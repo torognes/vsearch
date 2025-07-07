@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::max, std::transform
 #include <array>
 #include <cassert>
@@ -153,13 +154,11 @@ auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
 }
 
 
-auto open_sff_input(char const * filename) -> std::FILE * {
+auto check_sff_input(char const * filename, bool const filehandle_is_empty) -> void {
   assert(filename != nullptr);
-  auto * sff_handle = fopen_input(filename);
-  if (sff_handle == nullptr) {
+  if ((filename != nullptr) and filehandle_is_empty) {
     fatal("Unable to open SFF input file for reading.");
   }
-  return sff_handle;
 }
 
 
@@ -395,7 +394,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
 {
   /* open input and output files */
 
-  auto * fp_sff = open_sff_input(parameters.opt_sff_convert);
+  auto fp_sff = open_input_file(parameters.opt_sff_convert);
+  check_sff_input(parameters.opt_sff_convert, (not fp_sff));
   auto * fp_fastqout = open_fastq_output(parameters.opt_fastqout);
 
 
@@ -403,21 +403,21 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   uint64_t filepos = 0;
 
-  auto const sff_header = read_sff_header(fp_sff);
+  auto const sff_header = read_sff_header(fp_sff.get());
   filepos += n_bytes_in_header;
   check_sff_header(sff_header);
 
 
   /* skip flow chars, read and check key, and skip padding */
 
-  skip_sff_section(fp_sff, sff_header.flows_per_read, "flow characters");
+  skip_sff_section(fp_sff.get(), sff_header.flows_per_read, "flow characters");
   filepos += sff_header.flows_per_read;
 
-  auto const key_sequence = read_a_string(fp_sff, sff_header.key_length, "key sequence");
+  auto const key_sequence = read_a_string(fp_sff.get(), sff_header.key_length, "key sequence");
   filepos += sff_header.key_length;
 
   uint32_t const padding_length = sff_header.header_length - n_bytes_in_header - sff_header.flows_per_read - sff_header.key_length;
-  skip_sff_section(fp_sff, padding_length, "read padding");
+  skip_sff_section(fp_sff.get(), padding_length, "read padding");
   filepos += padding_length;
 
 
@@ -457,7 +457,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
       if ((not index_is_done) and (filepos == sff_header.index_offset))
         {
-          if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff) < index_header_length)
+          if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff.get()) < index_header_length)
             {
               fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
             }
@@ -465,7 +465,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           index_kind[index_header_length] = 0;
 
           uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;  // refactoring: skip index data and padding in one go?
-          if (fskip(fp_sff, index_size) != index_size)
+          if (fskip(fp_sff.get(), index_size) != index_size)
             {
               fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
             }
@@ -477,34 +477,34 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
       /* read and check each read header */
 
-      auto const read_header = read_sff_read_header(fp_sff);
+      auto const read_header = read_sff_read_header(fp_sff.get());
 
       filepos += n_bytes_in_read_header;
 
       check_sff_read_header(read_header);
 
-      auto read_name = read_a_string(fp_sff, read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
+      auto read_name = read_a_string(fp_sff.get(), read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
       filepos += read_header.name_length;
 
       uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
-      skip_sff_section(fp_sff, read_header_padding_length, "read header padding");
+      skip_sff_section(fp_sff.get(), read_header_padding_length, "read header padding");
       filepos += read_header_padding_length;
 
       /* read and check the flowgram and sequence */
 
-      if (fskip(fp_sff, 2UL * sff_header.flows_per_read) < sff_header.flows_per_read)
+      if (fskip(fp_sff.get(), 2UL * sff_header.flows_per_read) < sff_header.flows_per_read)
         {
           fatal("Invalid SFF file. Unable to read flowgram values. File may be truncated.");
         }
       filepos += 2UL * sff_header.flows_per_read;
 
-      skip_sff_section(fp_sff, read_header.number_of_bases, "flow indices");
+      skip_sff_section(fp_sff.get(), read_header.number_of_bases, "flow indices");
       filepos += read_header.number_of_bases;
 
-      auto bases = read_a_string(fp_sff, read_header.number_of_bases, "read length");
+      auto bases = read_a_string(fp_sff.get(), read_header.number_of_bases, "read length");
       filepos += read_header.number_of_bases;
 
-      auto quality_scores = read_a_string(fp_sff, read_header.number_of_bases, "quality scores");
+      auto quality_scores = read_a_string(fp_sff.get(), read_header.number_of_bases, "quality scores");
       filepos += read_header.number_of_bases;
 
       /* convert quality scores to ascii characters */
@@ -515,7 +515,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       uint32_t const read_data_padded_length = memory_alignment * ((read_data_length + max_padding_length) / memory_alignment);
       uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;  // refactoring: replace with compute_padding_length()
 
-      skip_sff_section(fp_sff, read_data_padding_length, "read data padding");
+      skip_sff_section(fp_sff.get(), read_data_padding_length, "read data padding");
       filepos += read_data_padding_length;
 
       // refactoring; mask_start, mask_end_5prime, mask_end_3prime, left_mask_end, right_mask_start
@@ -573,7 +573,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
     {
       if (filepos == sff_header.index_offset)
         {
-          if (std::fread(index_kind.data(), byte_size, 8, fp_sff) < 8)
+          if (std::fread(index_kind.data(), byte_size, 8, fp_sff.get()) < 8)
             {
               fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
             }
@@ -581,7 +581,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           index_kind[8] = 0;
 
           uint64_t const index_size = sff_header.index_length - 8;
-          if (fskip(fp_sff, index_size) != index_size)
+          if (fskip(fp_sff.get(), index_size) != index_size)
             {
               fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
             }
@@ -593,7 +593,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           // refactoring: should skip index_data + index padding in one go? or do not reject SFF files just because index padding is missing?
           if (index_padding > 0)
             {
-              uint64_t const got = fskip(fp_sff, index_padding);
+              uint64_t const got = fskip(fp_sff.get(), index_padding);
               if ((got < index_padding) and (got != 0))
                 {
                   fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
@@ -608,9 +608,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   /* ignore the rest of file */
 
-  check_for_additional_tail_data(fp_sff, parameters);  // rename to warn_if_additional_tail_data()?
+  check_for_additional_tail_data(fp_sff.get(), parameters);  // rename to warn_if_additional_tail_data()?
 
-  std::fclose(fp_sff);
   std::fclose(fp_fastqout);
 
   if (not parameters.opt_quiet) {
