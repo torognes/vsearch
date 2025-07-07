@@ -102,7 +102,8 @@ namespace {
       auto const size = bucket.size;
       return ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize));
     };
-    auto const selected = std::count_if(hashtable.begin(), hashtable.end(), size_in_range);
+    auto const selected = std::count_if(hashtable.begin(), hashtable.end(),
+                                        size_in_range);
     return std::min(static_cast<uint64_t>(selected),
                     static_cast<uint64_t>(parameters.opt_topn));
   }
