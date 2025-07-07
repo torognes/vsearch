@@ -108,6 +108,33 @@ namespace {
                     static_cast<uint64_t>(parameters.opt_topn));
   }
 
+
+  // refactoring: same as find_median_abundance()
+  auto find_median_size(std::vector<struct bucket> const & hashtable) -> double {
+    static constexpr auto half = 0.5;
+    if (hashtable.empty()) {
+      return 0.0;
+    }
+    auto const table_size = hashtable.size();
+    auto const midpoint = std::ldiv(static_cast<long>(table_size), 2L);
+    auto const is_odd = ((table_size % 2) != 0U);
+    if (is_odd) {
+      // index is zero-based, so if size == 3, midpoint == 1
+      auto const index = midpoint.quot;
+      return hashtable[index].size;
+    }
+    // pair number of elements:
+    // index is zero-based, so if size == 4, midpoint == 2, lhs index == 1
+    auto const lhs_index = midpoint.quot - 1;
+    auto const rhs_index = midpoint.quot;
+    auto const lhs_size = hashtable[lhs_index].size;
+    auto const rhs_size = hashtable[rhs_index].size;
+    // sorted by decreasing abundance: lhs size > rhs size
+    // limit risk of integer additon overflow:
+    // a >= b ; (a + b) / 2 == b + (a - b) / 2
+    return rhs_size + ((lhs_size - rhs_size) * half);
+  }
+
 }  // end of anonymous namespace
 
 
@@ -368,7 +395,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
   uint64_t clusters = 0;
   int64_t sumsize = 0;
   uint64_t maxsize = 0;
-  auto median = 0.0;
   auto average = 0.0;
 
   while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change))
@@ -699,19 +725,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
 
   show_rusage();
 
-  // refactoring: write a midpoint() function, similar to find_median_length()
-  if (clusters > 0)
-    {
-      if ((clusters % 2) != 0U)
-        {
-          median = hashtable[(clusters - 1) / 2].size;
-        }
-      else
-        {
-          median = (hashtable[(clusters / 2) - 1].size +
-                    hashtable[clusters / 2].size) / 2.0;
-        }
-    }
+  auto const median = find_median_size(hashtable);
 
   average = 1.0 * sumsize / clusters;
 
