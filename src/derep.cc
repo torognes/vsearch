@@ -763,17 +763,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable[i];
-          int64_t const size = bp->size;
+          auto const & bp = hashtable[i];
+          int64_t const size = bp.size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  bp->seq,
-                                  std::strlen(bp->seq),
-                                  bp->header,
-                                  std::strlen(bp->header),
+                                  bp.seq,
+                                  std::strlen(bp.seq),
+                                  bp.header,
+                                  std::strlen(bp.header),
                                   size,
                                   relabel_count,
                                   -1.0,
@@ -797,17 +797,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable[i];
-          int64_t const size = bp->size;
+          auto const & bp = hashtable[i];
+          int64_t const size = bp.size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fastq_print_general(fp_fastqout,
-                                  bp->seq,
-                                  std::strlen(bp->seq),
-                                  bp->header,
-                                  std::strlen(bp->header),
-                                  bp->qual,
+                                  bp.seq,
+                                  std::strlen(bp.seq),
+                                  bp.header,
+                                  std::strlen(bp.header),
+                                  bp.qual,
                                   size,
                                   relabel_count,
                                   -1.0);
@@ -830,14 +830,14 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing uc file, first part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable[i];
-          auto * hh =  bp->header;
-          int64_t const len = std::strlen(bp->seq);
+          auto const & bp = hashtable[i];
+          auto * hh =  bp.header;
+          int64_t const len = std::strlen(bp.seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, hh);
 
-          for (auto next = nextseqtab[bp->seqno_first];
+          for (auto next = nextseqtab[bp.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
@@ -855,9 +855,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing uc file, second part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable[i];
+          auto const & bp = hashtable[i];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, bp->size, bp->header);
+                  i, bp.size, bp.header);
           progress_update(i);
         }
       fclose(fp_uc);
@@ -869,31 +869,31 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool use
       progress_init("Writing tab separated file", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto * bp = &hashtable[i];
-          auto * hh =  bp->header;
+          auto const & bp = hashtable[i];
+          auto * hh =  bp.header;
 
           if (parameters.opt_relabel != nullptr) {
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    hh, parameters.opt_relabel, i + 1, i, (uint64_t) 0, bp->count, hh);
+                    hh, parameters.opt_relabel, i + 1, i, (uint64_t) 0, bp.count, hh);
           } else {
             fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    hh, hh, i, (uint64_t) 0, bp->count, hh);
+                    hh, hh, i, (uint64_t) 0, bp.count, hh);
           }
 
           uint64_t j = 1;
-          for (auto next = nextseqtab[bp->seqno_first];
+          for (auto next = nextseqtab[bp.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
               if (parameters.opt_relabel != nullptr) {
                 fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, bp->count, hh);
+                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, bp.count, hh);
               } else {
                 fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), hh, i, j, bp->count, hh);
+                        headertab[next].c_str(), hh, i, j, bp.count, hh);
               }
               ++j;
             }
