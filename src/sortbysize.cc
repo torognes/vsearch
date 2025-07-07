@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::sort
@@ -83,15 +84,6 @@ namespace {
     unsigned int seqno = 0;
   };
 
-
-  auto check_output_file(char const * filename, bool const filehandle_is_empty) -> void {
-    if (filename == nullptr) {
-      fatal("FASTA output file for sortbysize must be specified with --output");
-    }
-    if (filehandle_is_empty) {
-      fatal("Unable to open sortbysize output file for writing");
-    }
-  }
 
   auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
     auto const dbsequencecount = db_getsequencecount();
@@ -249,7 +241,7 @@ namespace {
 auto sortbysize(struct Parameters const & parameters) -> void
 {
   auto const output_handle = open_output_file(parameters.opt_output);
-  check_output_file(parameters.opt_output, (not output_handle));
+  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_sortbysize, 0);
   show_rusage();
 
