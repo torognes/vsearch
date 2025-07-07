@@ -179,16 +179,13 @@ auto rehash(std::vector<struct bucket> & hashtable_v) -> void
   for (auto const & old_bucket : hashtable_v) {
     if (old_bucket.size != 0U) {
       auto new_index = old_bucket.hash & new_hash_mask;
-      while (new_hashtable_v[new_index].size != 0U)
-        {
-          new_index = (new_index + 1) & new_hash_mask;
-        }
+      while (new_hashtable_v[new_index].size != 0U) {
+        new_index = (new_index + 1) & new_hash_mask;
+      }
       auto & new_bp = new_hashtable_v[new_index];
-
       new_bp = old_bucket;
     }
   }
-
   hashtable_v.swap(new_hashtable_v);
 }
 
