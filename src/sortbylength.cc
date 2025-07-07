@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::sort, std::min
 #include <cassert>
@@ -84,16 +85,13 @@ namespace {
   };
 
 
-  // refactoring: factorize all versions of this function, extract to new header
-  auto open_output_file(struct Parameters const & parameters) -> std::FILE * {
-    if (parameters.opt_output == nullptr) {
+  auto check_output_file(char const * filename, bool const filehandle_is_empty) -> void {
+    if (filename == nullptr) {
       fatal("FASTA output file for sortbylength must be specified with --output");
     }
-    auto * output_handle = fopen_output(parameters.opt_output);
-    if (output_handle == nullptr) {
+    if (filehandle_is_empty) {
       fatal("Unable to open sortbylength output file for writing");
     }
-    return output_handle;
   }
 
 
@@ -211,7 +209,8 @@ namespace {
 
 
 auto sortbylength(struct Parameters const & parameters) -> void {
-  auto * output_handle = open_output_file(parameters);
+  auto output_handle = open_output_file(parameters.opt_output);
+  check_output_file(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_sortbylength, 0);
   show_rusage();
 
@@ -224,11 +223,8 @@ auto sortbylength(struct Parameters const & parameters) -> void {
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, output_handle, parameters);
+  output_sorted_fasta(deck, output_handle.get(), parameters);
   show_rusage();
 
   db_free();
-  if (output_handle != nullptr) {
-    static_cast<void>(std::fclose(output_handle));
-  }
 }
