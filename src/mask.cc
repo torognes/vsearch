@@ -285,8 +285,8 @@ auto hardmask_all() -> void
 
 auto maskfasta(struct Parameters const & parameters) -> void
 {
-  auto const fp_output = open_output_file(parameters.opt_output);
-  check_mandatory_output_handle(parameters.opt_output, (not fp_output));
+  auto const output_handle = open_output_file(parameters.opt_output);
+  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
 
   db_read(parameters.opt_maskfasta, 0);
   show_rusage();
@@ -306,7 +306,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   progress_init("Writing output", seqcount);
   for (auto i = 0; i < seqcount; i++)
     {
-      fasta_print_db_relabel(fp_output.get(), i, i + 1);
+      fasta_print_db_relabel(output_handle.get(), i, i + 1);
       progress_update(i);
     }
   progress_done();
