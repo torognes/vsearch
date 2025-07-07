@@ -387,22 +387,6 @@ auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) ->
 }
 
 
-auto fopen_input(const char * filename) -> std::FILE *
-{
-  /* open the input stream given by filename, but use stdin if name is - */
-  if (std::strcmp(filename, "-") == 0)
-    {
-      auto const file_descriptor = dup(STDIN_FILENO);
-      if (file_descriptor < 0)
-        {
-          return nullptr;
-        }
-      return fdopen(file_descriptor, "rb");
-    }
-  return std::fopen(filename, "rb");
-}
-
-
 auto fopen_output(const char * filename) -> std::FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */

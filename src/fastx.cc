@@ -62,13 +62,14 @@
 #include "dynlibs.h"
 #include "utils/fatal.hpp"
 #include "utils/span.hpp"
+#include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 #include <algorithm>  // std::find_first_of
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fopen, std::size_t, std::fread, std::fileno
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::memcpy, std::memcmp
+#include <cstring>  // std::memcpy, std::memcmp, std::strcmp
 #include <iterator> // std::distance
 #include <vector>
 
@@ -206,6 +207,22 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
            input_handle->lineno_start);
     }
   }
+}
+
+
+auto fopen_input(const char * filename) -> std::FILE *
+{
+  /* open the input stream given by filename, but use stdin if name is - */
+  if (std::strcmp(filename, "-") == 0)
+    {
+      auto const file_descriptor = dup(STDIN_FILENO);
+      if (file_descriptor < 0)
+        {
+          return nullptr;
+        }
+      return fdopen(file_descriptor, "rb");
+    }
+  return std::fopen(filename, "rb");
 }
 
 
