@@ -178,21 +178,18 @@ auto rehash(std::vector<struct bucket> & hashtable_v) -> void
   auto * new_hashtable = new_hashtable_v.data();
 
   /* rehash all */
-  for (auto i = 0UL; i < old_hashtablesize; ++i)
-    {
-      auto const & old_bucket = *std::next(old_hashtable, static_cast<long>(i));
-      if (old_bucket.size != 0U)
+  for (auto const & old_bucket : hashtable_v) {
+    if (old_bucket.size != 0U) {
+      auto new_index = old_bucket.hash & new_hash_mask;
+      while (std::next(new_hashtable, static_cast<long>(new_index))->size != 0U)
         {
-          auto new_index = old_bucket.hash & new_hash_mask;
-          while (std::next(new_hashtable, static_cast<long>(new_index))->size != 0U)
-            {
-              new_index = (new_index + 1) & new_hash_mask;
-            }
-          auto & new_bp = *std::next(new_hashtable, new_index);
-
-          new_bp = old_bucket;
+          new_index = (new_index + 1) & new_hash_mask;
         }
+      auto & new_bp = *std::next(new_hashtable, new_index);
+
+      new_bp = old_bucket;
     }
+  }
 
   hashtable_v.swap(new_hashtable_v);
 }
