@@ -209,7 +209,7 @@ namespace {
 
 
 auto sortbylength(struct Parameters const & parameters) -> void {
-  auto output_handle = open_output_file(parameters.opt_output);
+  auto const output_handle = open_output_file(parameters.opt_output);
   check_output_file(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_sortbylength, 0);
   show_rusage();
