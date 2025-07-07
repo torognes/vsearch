@@ -62,7 +62,7 @@
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/seqcmp.h"
-#include <algorithm>  // std::min
+#include <algorithm>  // std::count_if, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
@@ -96,20 +96,15 @@ struct bucket
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  // refactoring: std::count_if
   auto count_selected(std::vector<struct bucket> const & hashtable,
                       struct Parameters const & parameters) -> uint64_t {
-    uint64_t selected = 0;
-    for (auto const & bucket : hashtable) {
-      int64_t const size = bucket.size;
-      if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize)) {
-        ++selected;
-        if (selected == static_cast<uint64_t>(parameters.opt_topn)) {
-          break;
-        }
-      }
-    }
-    return selected;
+    auto size_in_range = [&](struct bucket const & bucket) -> bool {
+      auto const size = bucket.size;
+      return ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize));
+    };
+    auto const selected = std::count_if(hashtable.begin(), hashtable.end(), size_in_range);
+    return std::min(static_cast<uint64_t>(selected),
+                    static_cast<uint64_t>(parameters.opt_topn));
   }
 
 }  // end of anonymous namespace
