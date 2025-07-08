@@ -69,6 +69,10 @@
 #include <vector>
 #include <utility>  // std::pair
 
+#ifndef NDEBUG
+#include <limits>
+#endif
+
 
 // CIGAR string example: 3M2I3MD
 // document the format here, and in vsearch-cigar(5)
