@@ -156,7 +156,7 @@ auto find_max_insertions_per_position(int const target_count,
   std::vector<int> max_insertions(centroid_len + 1);
   for (auto i = 1; i < target_count; ++i)
     {
-      char * cigar_start = target_list_v[i].cigar;
+      auto * cigar_start = target_list_v[i].cigar;
       auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
       char * cigar_end = std::next(cigar_start, cigar_length);
       auto * position_in_cigar = cigar_start;
