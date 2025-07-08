@@ -192,7 +192,7 @@ struct chimera_info_s
 static struct chimera_info_s * cia;
 
 
-enum struct Status {
+enum struct Status : unsigned char {
   no_parents,   // (0) non-chimeric
   no_alignment, // (1) score < 0, non-chimeric
   low_score,    // (2) score < minh, non-chimeric
