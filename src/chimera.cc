@@ -685,16 +685,16 @@ auto find_total_alignment_length(struct chimera_info_s const * chimera_info) -> 
 }
 
 
-auto fill_max_alignment_length(struct chimera_info_s * ci) -> void
+auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 {
   /* find max insertions in front of each position in the query sequence */
 
-  std::fill(ci->maxi.begin(), ci->maxi.end(), 0);
+  std::fill(chimera_info->maxi.begin(), chimera_info->maxi.end(), 0);
 
-  for (int f = 0; f < ci->parents_found; ++f)
+  for (int f = 0; f < chimera_info->parents_found; ++f)
     {
-      int const best_parent = ci->best_parents[f];
-      char * p = ci->nwcigar[best_parent];
+      int const best_parent = chimera_info->best_parents[f];
+      char * p = chimera_info->nwcigar[best_parent];
       char * e = p + std::strlen(p);
       int pos = 0;
       while (p < e)
@@ -713,7 +713,7 @@ auto fill_max_alignment_length(struct chimera_info_s * ci) -> void
               break;
 
             case 'I':
-              ci->maxi[pos] = std::max(run, ci->maxi[pos]);
+              chimera_info->maxi[pos] = std::max(run, chimera_info->maxi[pos]);
               break;
             }
         }
