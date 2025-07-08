@@ -693,30 +693,26 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
   for (int i = 0; i < chimera_info->parents_found; ++i)
     {
-      int const best_parent = chimera_info->best_parents[i];
-      char * p = chimera_info->nwcigar[best_parent];
-      char * e = p + std::strlen(p);
-      int pos = 0;
-      while (p < e)
-        {
-          int run = 1;
-          int scanlength = 0;
-          std::sscanf(p, "%d%n", &run, &scanlength);
-          p += scanlength;
-          char const op = *p;
-          ++p;
-          switch (op)
-            {
-            case 'M':
-            case 'D':
-              pos += run;
-              break;
+      auto pos = 0LL;
+      auto const best_parent = chimera_info->best_parents[i];
+      auto * cigar_start = chimera_info->nwcigar[best_parent];
+      auto cigar_length = std::strlen(cigar_start);
+      auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
 
-            case 'I':
-              chimera_info->maxi[pos] = std::max(run, chimera_info->maxi[pos]);
-              break;
-            }
+      for (auto const & a_pair: cigar_pairs) {
+        auto const operation = a_pair.first;
+        auto const run = a_pair.second;
+        switch (operation) {
+        case Operation::match:
+        case Operation::deletion:
+          pos += run;
+          break;
+
+        case Operation::insertion:
+          chimera_info->maxi[pos] = std::max(run, static_cast<long long>(chimera_info->maxi[pos]));
+          break;
         }
+      }
     }
 }
 
