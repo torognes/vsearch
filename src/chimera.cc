@@ -105,7 +105,7 @@ constexpr auto few = 4;
 constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
-static int tophits;
+static int tophits;  // all these static variables are on both sides of a pthread wall
 static pthread_attr_t attr;
 static pthread_t * pthread;
 static fastx_handle query_fasta_h;
