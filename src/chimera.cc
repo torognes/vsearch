@@ -312,7 +312,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
           auto ** next_operation = &position_in_cigar;
           auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
-          position_in_cigar = std::next(*next_operation);
+          position_in_cigar = std::next(*next_operation);  // potential bug here (see msa.cc:181)
           switch (operation)
             {
             case 'M':
