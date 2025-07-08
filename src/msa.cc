@@ -155,6 +155,7 @@ auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
   std::vector<int> max_insertions(centroid_len + 1);
+
   for (auto i = 1; i < target_count; ++i) {
     auto position_in_centroid = 0LL;
     auto * cigar_start = target_list_v[i].cigar;
