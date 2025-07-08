@@ -293,18 +293,19 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
       auto qpos = 0;
       auto tpos = 0;
 
-      auto * p = chimera_info->nwcigar[i];
-      auto const * e = p + std::strlen(p);
+      auto * cigar_start = chimera_info->nwcigar[i];
+      auto * position_in_cigar = cigar_start;
+      auto const * cigar_end = position_in_cigar + std::strlen(position_in_cigar);
 
-      while (p < e)
+      while (position_in_cigar < cigar_end)
         {
           auto run = 1;
           auto scanlength = 0;
-          std::sscanf(p, "%d%n", &run, &scanlength);
-          p += scanlength;
-          auto const op = *p;
-          ++p;
-          switch (op)
+          std::sscanf(position_in_cigar, "%d%n", &run, &scanlength);
+          position_in_cigar += scanlength;
+          auto const operation = *position_in_cigar;
+          ++position_in_cigar;
+          switch (operation)
             {
             case 'M':
               for (auto j = 0; j < run; ++j)
