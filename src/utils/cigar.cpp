@@ -75,6 +75,23 @@
 // also 'X' (mismatch) and 'N'
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  auto convert_operation(char const operation) -> Operation {
+    assert(operation == 'M' or operation == 'I' or operation == 'D');
+    if (operation == 'I') {
+      return Operation::insertion;
+    }
+    if (operation == 'D') {
+      return Operation::deletion;
+    }
+    return Operation::match;
+  }
+
+}  // end of anonymous namespace
+
+
 // duplicate: msa.cc
 auto find_runlength_of_leftmost_operation(char const * first_character,
                                           char ** first_non_digit) -> long long {
@@ -92,18 +109,6 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
 
   // in cigar strings, runlength of 1 are implicit (no digit)
   return std::max(runlength, 1LL);  // is in [1, INT_MAX]
-}
-
-
-auto convert_operation(char const operation) -> Operation {
-  assert(operation == 'M' or operation == 'I' or operation == 'D');
-  if (operation == 'I') {
-    return Operation::insertion;
-  }
-  if (operation == 'D') {
-    return Operation::deletion;
-  }
-  return Operation::match;
 }
 
 
