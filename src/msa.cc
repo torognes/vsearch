@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "msa.h"
+#include "utils/cigar.hpp"
 #include <array>
 #include <algorithm>  // std::max()
 #include <cassert>
@@ -145,23 +146,7 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-auto find_runlength_of_leftmost_operation(char * first_character, char ** first_non_digit) -> long long {
-  // std::strtoll:
-  // - start from the 'first_character' pointed to,
-  // - consume as many characters as possible to form a valid integer,
-  // - advance pointer to the first non-digit character,
-  // - return the valid integer
-  // - if there is no valid integer: pointer is not advanced and function returns zero,
-  static constexpr auto decimal_base = 10;
-  auto runlength = std::strtoll(first_character, first_non_digit, decimal_base);
-  assert(runlength <= std::numeric_limits<int>::max());
 
-  // in the context of cigar strings, runlength is at least 1
-  if (runlength == 0) {
-    runlength = 1;
-  }
-  return runlength;  // is in [1, LLONG_MAX]
-}
 }  // end of anonymous namespace
 
 
