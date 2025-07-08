@@ -108,6 +108,7 @@ userfields.h \
 util.h \
 utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
+utils/cigar_operations.hpp \
 utils/fatal.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
