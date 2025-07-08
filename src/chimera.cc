@@ -302,7 +302,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
       auto tpos = 0;
 
       auto * cigar_start = chimera_info->nwcigar[i];
-      auto cigar_length = std::strlen(cigar_start);
+      auto const cigar_length = std::strlen(cigar_start);
       auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
 
       for (auto const & a_pair: cigar_pairs) {
