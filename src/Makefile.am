@@ -107,6 +107,7 @@ unique.h \
 userfields.h \
 util.h \
 utils/check_output_filehandle.hpp \
+utils/cigar.hpp \
 utils/fatal.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
@@ -207,6 +208,7 @@ util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
 utils/check_output_filehandle.cpp \
+utils/cigar.cpp \
 utils/open_file.cpp \
 utils/xpthread.cpp \
 utils/seqcmp.cc \
