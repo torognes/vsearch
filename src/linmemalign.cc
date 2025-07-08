@@ -290,6 +290,9 @@ auto LinearMemoryAligner::diff(int64_t a_start,
                                bool b_right) -> void  /* includes right end of b */
 {
   static constexpr auto int64_min = std::numeric_limits<int64_t>::min();
+  // auto span_A = Span{std::next(a_seq, a_start), a_len};
+  // auto span_B = Span{std::next(b_seq, b_start), b_len};
+
   if (b_len == 0)
     {
       /* B and possibly A is empty */
@@ -781,3 +784,17 @@ auto LinearMemoryAligner::alignstats(char * cigar,
   *_nwmismatches = nwmismatches;
   *_nwgaps = nwgaps;
 }
+
+
+// TODO: include guards span.hpp, linmemalign.h  *DONE*
+//       scorematrix as vector of vectors? fix scorematrix_create? *DONE*
+//       pass nucleotides to subst_score(char const lhs, char const rhs) *DONE*
+//       struct scoring as class private member (rename struct members everywhere),
+//       inject struct Span in diff(),
+//       pass a Pair<nucleotides>
+//       design a struct Pair<sequences>?
+
+// struct Pair {
+//   Span seq_A;
+//   Span seq_B;
+// };
