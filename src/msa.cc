@@ -156,6 +156,10 @@ auto find_max_insertions_per_position(int const target_count,
                                       int const centroid_len) -> std::vector<int> {
   std::vector<int> max_insertions(centroid_len + 1);
 
+  // refactoring: with template Span<T>
+  // auto target_list_view = Span<struct msa_target_s>{target_list_v.data(), target_list_v.size()};
+  // for (auto const & a_msa_target : target_list_view.subspan(1, target_count) {}
+
   for (auto i = 1; i < target_count; ++i) {
     auto position = 0LL;
     auto * cigar_start = target_list_v[i].cigar;
