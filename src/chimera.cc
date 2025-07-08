@@ -286,28 +286,28 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
   auto & qseq = chimera_info->query_seq;
 
-  for (int i = 0; i < chimera_info->cand_count; ++i)
+  for (auto i = 0; i < chimera_info->cand_count; ++i)
     {
-      char const * tseq = db_getsequence(chimera_info->cand_list[i]);
+      auto const * tseq = db_getsequence(chimera_info->cand_list[i]);
 
-      int qpos = 0;
-      int tpos = 0;
+      auto qpos = 0;
+      auto tpos = 0;
 
-      char * p = chimera_info->nwcigar[i];
-      char const * e = p + std::strlen(p);
+      auto * p = chimera_info->nwcigar[i];
+      auto const * e = p + std::strlen(p);
 
       while (p < e)
         {
-          int run = 1;
-          int scanlength = 0;
+          auto run = 1;
+          auto scanlength = 0;
           std::sscanf(p, "%d%n", &run, &scanlength);
           p += scanlength;
-          char const op = *p;
+          auto const op = *p;
           ++p;
           switch (op)
             {
             case 'M':
-              for (int j = 0; j < run; ++j)
+              for (auto j = 0; j < run; ++j)
                 {
                   if ((map_4bit(qseq[qpos]) &
                        map_4bit(tseq[tpos])) != 0U)
