@@ -62,6 +62,7 @@
 #include "maps.h"
 #include "msa.h"
 #include "utils/cigar.hpp"
+#include "utils/span.hpp"
 #include <array>
 #include <algorithm>  // std::max()
 #include <cassert>
@@ -158,30 +159,25 @@ auto find_max_insertions_per_position(int const target_count,
     {
       auto position_in_centroid = 0LL;
       auto * cigar_start = target_list_v[i].cigar;
-      auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
-      char * cigar_end = std::next(cigar_start, cigar_length);
-      auto * position_in_cigar = cigar_start;
-      while (position_in_cigar < cigar_end)
-        {
-          auto** next_operation = &position_in_cigar;  // operations: match (M), insertion (I), or deletion (D)
-          auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
-          auto const operation = **next_operation;
-          position_in_cigar = std::next(position_in_cigar);
-          switch (operation)
-            {
-            case 'M':
-            case 'I':
-              position_in_centroid += runlength;
-              break;
-            case 'D':
-              assert(runlength <= std::numeric_limits<int>::max());
-              max_insertions[position_in_centroid] = std::max(static_cast<int>(runlength), max_insertions[position_in_centroid]);
-              break;
-            default:
-              break;
-            }
+      auto const cigar_length = std::strlen(cigar_start);
+      auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
+
+      for (auto const & a_pair: cigar_pairs) {
+        auto const operation = a_pair.first;
+        auto const runlength = a_pair.second;
+        switch (operation) {
+        case Operation::match:
+        case Operation::insertion:
+          position_in_centroid += runlength;
+          break;
+
+        case Operation::deletion:
+          assert(runlength <= std::numeric_limits<int>::max());
+          max_insertions[position_in_centroid] = std::max(static_cast<int>(runlength), max_insertions[position_in_centroid]);
+          break;
         }
-  }
+      }
+    }
   return max_insertions;
 }
 
