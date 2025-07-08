@@ -294,7 +294,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
       int tpos = 0;
 
       char * p = chimera_info->nwcigar[i];
-      char * e = p + std::strlen(p);
+      char const * e = p + std::strlen(p);
 
       while (p < e)
         {
