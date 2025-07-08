@@ -270,7 +270,7 @@ auto orient(struct Parameters const & parameters) -> void
 
       ++queries;
 
-      auto strand = 2;  // refactoring: enum struct strand : char {positive = '+', negative = '-', undetermined = '?'};
+      auto strand = 2;  // refactoring: enum struct Strand : char {positive = '+', negative = '-', undetermined = '?'};
       auto const min_count = 1U;
       auto const min_factor = 4U;
 
