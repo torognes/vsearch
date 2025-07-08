@@ -284,7 +284,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
-  char * qseq = chimera_info->query_seq.data();
+  auto & qseq = chimera_info->query_seq;
 
   for (int i = 0; i < chimera_info->cand_count; ++i)
     {
