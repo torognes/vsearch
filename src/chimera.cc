@@ -201,6 +201,12 @@ enum struct Status : unsigned char {
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+}  // end of anonymous namespace
+
+
 auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
 {
   if (opt_chimeras_denovo != nullptr)
