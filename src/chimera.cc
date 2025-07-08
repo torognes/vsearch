@@ -68,6 +68,7 @@
 #include "minheap.h"
 #include "udb.h"
 #include "unique.h"
+#include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/xpthread.hpp"
@@ -305,12 +306,13 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
       while (position_in_cigar < cigar_end)
         {
-          auto run = 1;
-          auto scanlength = 0;
-          std::sscanf(position_in_cigar, "%d%n", &run, &scanlength);
-          position_in_cigar += scanlength;
-          auto const operation = *position_in_cigar;
-          ++position_in_cigar;
+          // Consume digits (if any), return the position of the
+          // first char (M, D, or I), store it, move cursor to the next byte.
+          // Operations: match (M), insertion (I), or deletion (D)
+          auto ** next_operation = &position_in_cigar;
+          auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
+          auto const operation = **next_operation;
+          position_in_cigar = std::next(*next_operation);
           switch (operation)
             {
             case 'M':
