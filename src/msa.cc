@@ -174,6 +174,7 @@ auto find_max_insertions_per_position(int const target_count,
               position_in_centroid += runlength;
               break;
             case 'D':
+              assert(runlength <= std::numeric_limits<int>::max());
               max_insertions[position_in_centroid] = std::max(static_cast<int>(runlength), max_insertions[position_in_centroid]);
               break;
             default:
