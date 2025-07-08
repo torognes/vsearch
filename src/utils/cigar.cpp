@@ -58,7 +58,7 @@
 
 */
 
-#include <algorithm>  // std::min
+#include <algorithm>  // std::max
 #include <cassert>
 #include <cstdlib>  // std::strtoll
 #include <limits>
@@ -84,7 +84,7 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
   assert(runlength <= std::numeric_limits<int>::max());
 
   // in cigar strings, runlength of 1 are implicit (no digit)
-  return std::min(runlength, 1LL);  // is in [1, INT_MAX]
+  return std::max(runlength, 1LL);  // is in [1, INT_MAX]
 }
 
 
