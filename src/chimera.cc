@@ -307,7 +307,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
           switch (op)
             {
             case 'M':
-              for (int k = 0; k < run; ++k)
+              for (int j = 0; j < run; ++j)
                 {
                   if ((map_4bit(qseq[qpos]) &
                        map_4bit(tseq[tpos])) != 0U)
