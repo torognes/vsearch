@@ -140,6 +140,8 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
 }
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
 auto find_runlength_of_leftmost_operation(char * first_character, char ** first_non_digit) -> long long {
   // std::strtoll:
   // - start from the 'first_character' pointed to,
@@ -157,6 +159,7 @@ auto find_runlength_of_leftmost_operation(char * first_character, char ** first_
   }
   return runlength;  // is in [1, LLONG_MAX]
 }
+}  // end of anonymous namespace
 
 
 auto find_max_insertions_per_position(int const target_count,
