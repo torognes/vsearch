@@ -279,21 +279,21 @@ auto reset_matches(struct chimera_info_s * a_chimera_info) -> void {
 }
 
 
-auto find_matches(struct chimera_info_s * ci) -> void
+auto find_matches(struct chimera_info_s * chimera_info) -> void
 {
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
-  char * qseq = ci->query_seq.data();
+  char * qseq = chimera_info->query_seq.data();
 
-  for (int i = 0; i < ci->cand_count; ++i)
+  for (int i = 0; i < chimera_info->cand_count; ++i)
     {
-      char * tseq = db_getsequence(ci->cand_list[i]);
+      char * tseq = db_getsequence(chimera_info->cand_list[i]);
 
       int qpos = 0;
       int tpos = 0;
 
-      char * p = ci->nwcigar[i];
+      char * p = chimera_info->nwcigar[i];
       char * e = p + std::strlen(p);
 
       while (p < e)
@@ -312,7 +312,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
                   if ((map_4bit(qseq[qpos]) &
                        map_4bit(tseq[tpos])) != 0U)
                     {
-                      ci->match[(i * ci->query_len) + qpos] = 1;
+                      chimera_info->match[(i * chimera_info->query_len) + qpos] = 1;
                     }
                   ++qpos;
                   ++tpos;
@@ -320,7 +320,7 @@ auto find_matches(struct chimera_info_s * ci) -> void
               break;
 
             case 'I':
-              ci->insert[(i * ci->query_len) + qpos] = run;
+              chimera_info->insert[(i * chimera_info->query_len) + qpos] = run;
               tpos += run;
               break;
 
