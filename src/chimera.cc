@@ -158,7 +158,7 @@ struct chimera_info_s
   std::array<int64_t, maxcandidates> nwmatches {{}};
   std::array<int64_t, maxcandidates> nwmismatches {{}};
   std::array<int64_t, maxcandidates> nwgaps {{}};
-  std::array<char *, maxcandidates> nwcigar {{}};
+  std::vector<char *> nwcigar = std::vector<char *>(maxcandidates);  // this is a test
 
   int match_size = 0;
   std::vector<int> match;
