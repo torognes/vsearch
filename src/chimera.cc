@@ -288,7 +288,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
   for (int i = 0; i < chimera_info->cand_count; ++i)
     {
-      char * tseq = db_getsequence(chimera_info->cand_list[i]);
+      char const * tseq = db_getsequence(chimera_info->cand_list[i]);
 
       int qpos = 0;
       int tpos = 0;
