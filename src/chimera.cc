@@ -708,7 +708,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
         break;
 
       case Operation::insertion:
-        assert(run <= std::numeric_limits<int>::max());
+        assert(runlength <= std::numeric_limits<int>::max());
         chimera_info->maxi[pos] = std::max(static_cast<int>(runlength), chimera_info->maxi[pos]);
         break;
       }
