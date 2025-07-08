@@ -201,12 +201,12 @@ enum struct Status {
 };
 
 
-auto realloc_arrays(struct chimera_info_s * ci) -> void
+auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
 {
   if (opt_chimeras_denovo != nullptr)
     {
       if (opt_chimeras_parts == 0) {
-        parts = (ci->query_len + maxparts - 1) / maxparts;  // bug fix: std::max(expr, parts);?
+        parts = (chimera_info->query_len + maxparts - 1) / maxparts;  // bug fix: std::max(expr, parts);?
       }
       else {
         parts = opt_chimeras_parts;
@@ -224,49 +224,49 @@ auto realloc_arrays(struct chimera_info_s * ci) -> void
       parts = 4;
     }
 
-  const int maxhlen = std::max(ci->query_head_len, 1);
-  if (maxhlen > ci->head_alloc)
+  const int maxhlen = std::max(chimera_info->query_head_len, 1);
+  if (maxhlen > chimera_info->head_alloc)
     {
-      ci->head_alloc = maxhlen;
-      ci->query_head.resize(maxhlen + 1);
+      chimera_info->head_alloc = maxhlen;
+      chimera_info->query_head.resize(maxhlen + 1);
     }
 
   /* realloc arrays based on query length */
 
-  const int maxqlen = std::max(ci->query_len, 1);
+  const int maxqlen = std::max(chimera_info->query_len, 1);
   const int maxpartlen = (maxqlen + parts - 1) / parts;
 
-  if (maxqlen > ci->query_alloc)
+  if (maxqlen > chimera_info->query_alloc)
     {
-      ci->query_alloc = maxqlen;
+      chimera_info->query_alloc = maxqlen;
 
-      ci->query_seq.resize(maxqlen + 1);
+      chimera_info->query_seq.resize(maxqlen + 1);
 
-      for (auto & query_info: ci->si)
+      for (auto & query_info: chimera_info->si)
         {
           query_info.qsequence_v.resize(maxpartlen + 1);
           query_info.qsequence = query_info.qsequence_v.data();
         }
 
-      ci->maxi.resize(maxqlen + 1);
-      ci->maxsmooth.resize(maxqlen);
-      ci->match.resize(maxcandidates * maxqlen);
-      ci->insert.resize(maxcandidates * maxqlen);
-      ci->smooth.resize(maxcandidates * maxqlen);
+      chimera_info->maxi.resize(maxqlen + 1);
+      chimera_info->maxsmooth.resize(maxqlen);
+      chimera_info->match.resize(maxcandidates * maxqlen);
+      chimera_info->insert.resize(maxcandidates * maxqlen);
+      chimera_info->smooth.resize(maxcandidates * maxqlen);
 
-      ci->scan_p.resize(maxqlen + 1);
-      ci->scan_q.resize(maxqlen + 1);
+      chimera_info->scan_p.resize(maxqlen + 1);
+      chimera_info->scan_q.resize(maxqlen + 1);
 
       const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
-      ci->paln.resize(maxparents);
-      for (auto & a_parent_alignment : ci->paln) {
+      chimera_info->paln.resize(maxparents);
+      for (auto & a_parent_alignment : chimera_info->paln) {
         a_parent_alignment.resize(maxalnlen + 1);
       }
-      ci->qaln.resize(maxalnlen + 1);
-      ci->diffs.resize(maxalnlen + 1);
-      ci->votes.resize(maxalnlen + 1);
-      ci->model.resize(maxalnlen + 1);
-      ci->ignore.resize(maxalnlen + 1);
+      chimera_info->qaln.resize(maxalnlen + 1);
+      chimera_info->diffs.resize(maxalnlen + 1);
+      chimera_info->votes.resize(maxalnlen + 1);
+      chimera_info->model.resize(maxalnlen + 1);
+      chimera_info->ignore.resize(maxalnlen + 1);
     }
 }
 
