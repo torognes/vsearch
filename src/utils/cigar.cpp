@@ -65,7 +65,7 @@
 #include <cassert>
 #include <cstdio>  // std::size_t
 #include <cstdlib>  // std::strtoll
-#include <limits>
+#include <iterator>  // std::next
 #include <vector>
 #include <utility>  // std::pair
 
