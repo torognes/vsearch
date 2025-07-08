@@ -107,6 +107,7 @@ auto convert_operation(char const operation) -> Operation {
 }
 
 
+// refactoring C++20: std::pair generator
 auto parse_cigar_string(Span cigar_string) -> std::vector<std::pair<Operation, long long>> {
   std::vector<std::pair<Operation, long long>> parsed_cigar;
 
