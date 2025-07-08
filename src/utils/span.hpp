@@ -62,6 +62,7 @@
 #define SPAN_HPP
 
 
+#include <algorithm>  // std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
@@ -138,6 +139,12 @@ public:
   auto last(std::size_t const count) const -> Span {
     assert(count <= size());
     return subspan(size() - count, count);
+  }
+  auto drop(std::size_t const count) const -> Span {
+    // drop n first items, return empty if n is >= size()
+    auto const offset = std::min(count, size());
+    assert(offset <= size());
+    return subspan(offset, size() - offset);
   }
 
 private:
