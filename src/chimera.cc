@@ -307,10 +307,10 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
-        auto const run = a_pair.second;
+        auto const runlength = a_pair.second;
         switch (operation) {
         case Operation::match:
-          for (auto j = 0; j < run; ++j)
+          for (auto j = 0; j < runlength; ++j)
             {
               if ((map_4bit(qseq[qpos]) &
                    map_4bit(tseq[tpos])) != 0U)
@@ -323,12 +323,12 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
           break;
 
         case Operation::insertion:
-          chimera_info->insert[(i * chimera_info->query_len) + qpos] = run;
-          tpos += run;
+          chimera_info->insert[(i * chimera_info->query_len) + qpos] = runlength;
+          tpos += runlength;
           break;
 
         case Operation::deletion:
-          qpos += run;
+          qpos += runlength;
           break;
         }
       }
@@ -700,16 +700,16 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
-      auto const run = a_pair.second;
+      auto const runlength = a_pair.second;
       switch (operation) {
       case Operation::match:
       case Operation::deletion:
-        pos += run;
+        pos += runlength;
         break;
 
       case Operation::insertion:
         assert(run <= std::numeric_limits<int>::max());
-        chimera_info->maxi[pos] = std::max(static_cast<int>(run), chimera_info->maxi[pos]);
+        chimera_info->maxi[pos] = std::max(static_cast<int>(runlength), chimera_info->maxi[pos]);
         break;
       }
     }
