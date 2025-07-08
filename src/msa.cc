@@ -71,9 +71,12 @@
 #include <cstdlib>  // std::strtoll
 #include <cstring>  // std::strlen
 #include <iterator> // std::next
-#include <limits>
 #include <numeric> // std::accumulate
 #include <vector>
+
+#ifndef NDEBUG
+#include <limits>
+#endif
 
 
 /* Compute multiple sequence alignment (msa), profile, and consensus
