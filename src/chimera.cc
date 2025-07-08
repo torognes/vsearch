@@ -71,6 +71,7 @@
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/span.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
@@ -301,43 +302,36 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
       auto tpos = 0;
 
       auto * cigar_start = chimera_info->nwcigar[i];
-      auto * position_in_cigar = cigar_start;
-      auto const * cigar_end = position_in_cigar + std::strlen(position_in_cigar);
+      auto cigar_length = std::strlen(cigar_start);
+      auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
 
-      while (position_in_cigar < cigar_end)
-        {
-          // Consume digits (if any), return the position of the
-          // first char (M, D, or I), store it, move cursor to the next byte.
-          // Operations: match (M), insertion (I), or deletion (D)
-          auto ** next_operation = &position_in_cigar;
-          auto const run = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
-          auto const operation = **next_operation;
-          position_in_cigar = std::next(*next_operation);  // potential bug here (see msa.cc:181)
-          switch (operation)
+      for (auto const & a_pair: cigar_pairs) {
+        auto const operation = a_pair.first;
+        auto const run = a_pair.second;
+        switch (operation) {
+        case Operation::match:
+          for (auto j = 0; j < run; ++j)
             {
-            case 'M':
-              for (auto j = 0; j < run; ++j)
+              if ((map_4bit(qseq[qpos]) &
+                   map_4bit(tseq[tpos])) != 0U)
                 {
-                  if ((map_4bit(qseq[qpos]) &
-                       map_4bit(tseq[tpos])) != 0U)
-                    {
-                      chimera_info->match[(i * chimera_info->query_len) + qpos] = 1;
-                    }
-                  ++qpos;
-                  ++tpos;
+                  chimera_info->match[(i * chimera_info->query_len) + qpos] = 1;
                 }
-              break;
-
-            case 'I':
-              chimera_info->insert[(i * chimera_info->query_len) + qpos] = run;
-              tpos += run;
-              break;
-
-            case 'D':
-              qpos += run;
-              break;
+              ++qpos;
+              ++tpos;
             }
+          break;
+
+        case Operation::insertion:
+          chimera_info->insert[(i * chimera_info->query_len) + qpos] = run;
+          tpos += run;
+          break;
+
+        case Operation::deletion:
+          qpos += run;
+          break;
         }
+      }
     }
 }
 
