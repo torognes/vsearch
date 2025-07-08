@@ -691,30 +691,29 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
   std::fill(chimera_info->maxi.begin(), chimera_info->maxi.end(), 0);
 
-  for (int i = 0; i < chimera_info->parents_found; ++i)
-    {
-      auto pos = 0LL;
-      auto const best_parent = chimera_info->best_parents[i];
-      auto * cigar_start = chimera_info->nwcigar[best_parent];
-      auto cigar_length = std::strlen(cigar_start);
-      auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
+  for (int i = 0; i < chimera_info->parents_found; ++i) {
+    auto pos = 0LL;
+    auto const best_parent = chimera_info->best_parents[i];
+    auto * cigar_start = chimera_info->nwcigar[best_parent];
+    auto cigar_length = std::strlen(cigar_start);
+    auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
 
-      for (auto const & a_pair: cigar_pairs) {
-        auto const operation = a_pair.first;
-        auto const run = a_pair.second;
-        switch (operation) {
-        case Operation::match:
-        case Operation::deletion:
-          pos += run;
-          break;
+    for (auto const & a_pair: cigar_pairs) {
+      auto const operation = a_pair.first;
+      auto const run = a_pair.second;
+      switch (operation) {
+      case Operation::match:
+      case Operation::deletion:
+        pos += run;
+        break;
 
-        case Operation::insertion:
-          assert(run <= std::numeric_limits<int>::max());
-          chimera_info->maxi[pos] = std::max(static_cast<int>(run), chimera_info->maxi[pos]);
-          break;
-        }
+      case Operation::insertion:
+        assert(run <= std::numeric_limits<int>::max());
+        chimera_info->maxi[pos] = std::max(static_cast<int>(run), chimera_info->maxi[pos]);
+        break;
       }
     }
+  }
 }
 
 
