@@ -58,14 +58,21 @@
 
 */
 
+#include "cigar_operations.hpp"
+#include "fatal.hpp"
+#include "span.hpp"
 #include <algorithm>  // std::max
 #include <cassert>
+#include <cstdio>  // std::size_t
 #include <cstdlib>  // std::strtoll
 #include <limits>
+#include <vector>
+#include <utility>  // std::pair
 
 
 // CIGAR string example: 3M2I3MD
 // document the format here, and in vsearch-cigar(5)
+// also 'X' (mismatch) and 'N'
 
 
 // duplicate: msa.cc
@@ -88,5 +95,100 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
 }
 
 
-// TODO:
-// - parse a cigar string into a vector (or a stream?) of std::pair<Operation, long long>
+auto convert_operation(char const operation) -> Operation {
+  assert(operation == 'M' or operation == 'I' or operation == 'D');
+  if (operation == 'I') {
+    return Operation::insertion;
+  }
+  if (operation == 'D') {
+    return Operation::deletion;
+  }
+  return Operation::match;
+}
+
+
+auto parse_cigar_string(Span cigar_string) -> std::vector<std::pair<Operation, long long>> {
+  std::vector<std::pair<Operation, long long>> parsed_cigar;
+
+  auto * position = cigar_string.begin();
+  auto * cigar_end = cigar_string.end();
+
+  while (position < cigar_end)
+    {
+      // Consume digits (if any), return the position of the
+      // first char (M, D, or I), store it, move cursor to the next byte.
+      auto ** next_operation = &position;
+      auto const run = find_runlength_of_leftmost_operation(position, next_operation);
+      // do not dereference if outside of cigar_string! (= missing operation!)
+      if (*next_operation >= cigar_end) {
+        // fail if ill-formed (ex: '12M1'), we could also silently skip over
+        fatal("ill-formed CIGAR string");
+      }
+      // operations: match (M), insertion (I), or deletion (D)
+      auto const operation = **next_operation;
+      position = std::next(*next_operation);
+      parsed_cigar.emplace_back(convert_operation(operation), run);
+    }
+  return parsed_cigar;
+}
+
+
+// compiler explorer tests:
+
+// auto main() -> int {
+//     // basic example
+//     std::vector<char> ex1 = {'2', 'I'};
+//     auto res1 = parse_cigar_string(ex1);
+//     for (auto const & pair: res1) {
+//         std::cout << pair.first << '\t' << pair.second << '\n';
+//     }
+//     std::cout << '\n';
+
+//     // empty cigar
+//     std::vector<char> ex2 = {};
+//     auto res2 = parse_cigar_string(ex2);
+//     if (res2.empty()) {
+//         std::cout << "empty vector\n";
+//     }
+//     std::cout << '\n';
+
+//     // ommitted run
+//     std::vector<char> ex3 = {'M'};
+//     auto res3 = parse_cigar_string(ex3);
+//     for (auto const & pair: res3) {
+//         std::cout << pair.first << '\t' << pair.second << '\n';
+//     }
+//     std::cout << '\n';
+
+//     // long run
+//     std::vector<char> ex4 = {'1', '2', '3', '4', 'M'};
+//     auto res4 = parse_cigar_string(ex4);
+//     for (auto const & pair: res4) {
+//         std::cout << pair.first << '\t' << pair.second << '\n';
+//     }
+//     std::cout << '\n';
+
+//     // null run
+//     std::vector<char> ex5 = {'0', 'M'};
+//     auto res5 = parse_cigar_string(ex5);
+//     for (auto const & pair: res5) {
+//         std::cout << pair.first << '\t' << pair.second << '\n';
+//     }
+//     std::cout << '\n';
+
+//    // chained operations
+//     std::vector<char> ex6 = {'M', 'I', 'D'};
+//     auto res6 = parse_cigar_string(ex6);
+//     for (auto const & pair: res6) {
+//         std::cout << pair.first << '\t' << pair.second << '\n';
+//     }
+//     std::cout << '\n';
+
+//    // no operation?
+//     std::vector<char> ex7 = {'1'};
+//     auto res7 = parse_cigar_string(ex7);
+//     if (res7.empty()) {
+//         std::cout << "empty vector\n";
+//     }
+//     std::cout << '\n';
+// }

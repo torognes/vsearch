@@ -58,6 +58,13 @@
 
 */
 
+#include "cigar_operations.hpp"
+#include "span.hpp"
+#include <vector>
+#include <utility>  // std::pair
+
 
 auto find_runlength_of_leftmost_operation(char const * first_character,
                                           char ** first_non_digit) -> long long;
+
+auto parse_cigar_string(Span cigar_string) -> std::vector<std::pair<Operation, long long>>;
