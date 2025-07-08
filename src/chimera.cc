@@ -235,6 +235,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
 
   const int maxqlen = std::max(chimera_info->query_len, 1);
   const int maxpartlen = (maxqlen + parts - 1) / parts;
+  auto const max_2x2_size = static_cast<size_t>(maxcandidates * maxqlen);
 
   if (maxqlen > chimera_info->query_alloc)
     {
@@ -250,9 +251,9 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
 
       chimera_info->maxi.resize(maxqlen + 1);
       chimera_info->maxsmooth.resize(maxqlen);
-      chimera_info->match.resize(maxcandidates * maxqlen);
-      chimera_info->insert.resize(maxcandidates * maxqlen);
-      chimera_info->smooth.resize(maxcandidates * maxqlen);
+      chimera_info->match.resize(max_2x2_size);
+      chimera_info->insert.resize(max_2x2_size);
+      chimera_info->smooth.resize(max_2x2_size);
 
       chimera_info->scan_p.resize(maxqlen + 1);
       chimera_info->scan_q.resize(maxqlen + 1);
