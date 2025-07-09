@@ -784,7 +784,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
                   is_inserted = false;
                 }
             }
-        }
+        }  // end of CIGAR string parsing
 
       /* add any gaps at the end */
 
