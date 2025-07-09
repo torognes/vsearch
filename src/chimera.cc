@@ -233,9 +233,9 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
     }
 
   const int maxhlen = std::max(chimera_info->query_head_len, 1);
-  chimera_info->head_alloc = std::max(chimera_info->head_alloc, maxhlen);
   if (maxhlen > chimera_info->head_alloc)
     {
+      chimera_info->head_alloc = maxhlen;
       chimera_info->query_head.resize(maxhlen + 1);
     }
 
