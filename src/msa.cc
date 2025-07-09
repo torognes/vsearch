@@ -159,6 +159,7 @@ auto find_max_insertions_per_position(int const target_count,
   // refactoring: with template Span<T>
   // auto target_list_view = Span<struct msa_target_s const>{target_list_v.data(), target_list_v.size()};
   // for (auto const & a_msa_target : target_list_view.subspan(1, target_count) { }
+  // assert(static_cast<size_t>(target_count), target_list_v.size());
 
   for (auto i = 1; i < target_count; ++i) {
     auto position = 0LL;
