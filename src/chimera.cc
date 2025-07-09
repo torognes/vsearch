@@ -691,9 +691,11 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
   std::fill(chimera_info->maxi.begin(), chimera_info->maxi.end(), 0);
 
-  for (auto i = 0; i < chimera_info->parents_found; ++i) {
+  auto const count = static_cast<size_t>(chimera_info->parents_found);
+  assert(count <= chimera_info->best_parents.size());
+  auto const best_parents_view = Span<int>{chimera_info->best_parents.data(), count};
+  for (auto const best_parent : best_parents_view) {
     auto pos = 0LL;
-    auto const best_parent = chimera_info->best_parents[i];
     auto * cigar_start = chimera_info->nwcigar[best_parent];
     auto const cigar_length = std::strlen(cigar_start);
     auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
