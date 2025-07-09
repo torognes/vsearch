@@ -434,7 +434,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
   reset_matches(ci);
   find_matches(ci);
 
-  std::array<struct parents_info_s, maxparents> best_parents {{}};
+  std::vector<struct parents_info_s> best_parents(maxparents);
 
   for (int f = 0; f < maxparents; ++f)
     {
