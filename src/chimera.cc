@@ -749,9 +749,9 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
           if (op == 'I')
             {
-              for (int x = 0; x < ci->maxi[qpos]; ++x)
+              for (int j = 0; j < ci->maxi[qpos]; ++j)
                 {
-                  if (x < run)
+                  if (j < run)
                     {
                       alignment[alnpos] = map_uppercase(target_seq[tpos]);
                       ++tpos;
@@ -767,7 +767,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
             }
           else
             {
-              for (int x = 0; x < run; ++x)
+              for (int j = 0; j < run; ++j)
                 {
                   if (not is_inserted)
                     {
