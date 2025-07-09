@@ -338,8 +338,8 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
 struct parents_info_s
 {
-  int cand = 0;
-  int start = 0;
+  int cand = -1;
+  int start = -1;
   int len = 0;
 };
 
