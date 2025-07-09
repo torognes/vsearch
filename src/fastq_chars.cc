@@ -145,7 +145,7 @@ namespace {
   }
 
 
-  auto search_trailing_homopolymers(Span const symbols, int64_t const tail_length_signed) -> char {
+  auto search_trailing_homopolymers(Span<char> const symbols, int64_t const tail_length_signed) -> char {
     // search for trailing homopolymers of length >= 'tail_length'
     assert(tail_length_signed >= 0);
     auto const tail_length = static_cast<std::size_t>(tail_length_signed);
@@ -334,7 +334,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
       // search for trailing homopolymers in quality strings
       auto const tail_char =
-        search_trailing_homopolymers(Span{fastq_get_quality(fastq_handle), seq_length},
+        search_trailing_homopolymers(Span<char>{fastq_get_quality(fastq_handle), seq_length},
                                      parameters.opt_fastq_tail);
       if (tail_char != '\0') {
         ++stats.tail_chars[tail_char];

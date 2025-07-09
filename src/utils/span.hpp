@@ -77,11 +77,14 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 
 
 // simple version of std::span (C++20)
-// only valid for vectors or arrays of chars
+//
+// only valid for contiguous sequences of elements (vectors or arrays)
+// of any type Type (except std::vector<bool>?)
 
+template <typename Type>
 class Span {
 public:
-  explicit Span(char * start, std::size_t length)
+  explicit Span(Type * start, std::size_t length)
     : start_ {start},
       length_ {length} {
     assert(start != nullptr);
@@ -89,29 +92,29 @@ public:
   }
 
   // Iterators
-  auto begin() const -> char * { return data(); }
-  auto cbegin() const -> char const * { return data(); }
-  auto end() const -> char * {
+  auto begin() const -> Type * { return data(); }
+  auto cbegin() const -> Type const * { return data(); }
+  auto end() const -> Type * {
     auto const distance = static_cast<std::ptrdiff_t>(size());
     return std::next(data(), distance);
   }
-  auto cend() const -> char const * {
+  auto cend() const -> Type const * {
     auto const distance = static_cast<std::ptrdiff_t>(size());
     return std::next(data(), distance);
   }
 
   // Element access
   // C++17 refactoring: [[nodiscard]]
-  auto front() const -> char const & {
+  auto front() const -> Type const & {
     assert(not empty());
     return *data();
   }
-  auto back() const -> char const & {
+  auto back() const -> Type const & {
     assert(not empty());
     return *std::prev(end());
   }
-  auto data() const -> char * { return start_; }
-  auto operator[](std::size_t index) const -> char & {
+  auto data() const -> Type * { return start_; }
+  auto operator[](std::size_t index) const -> Type & {
     assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
     return *std::next(data(), distance);
@@ -120,8 +123,8 @@ public:
   // Observers
   auto size() const -> std::size_t { return length_; }
   auto size_bytes() const -> std::size_t {
-    assert(size() <= (max_size / sizeof(char)));
-    return size() * sizeof(char);
+    assert(size() <= (max_size / sizeof(Type)));
+    return size() * sizeof(Type);
   }
   auto empty() const -> bool { return size() == 0; }
 
@@ -148,7 +151,7 @@ public:
   }
 
 private:
-  char * start_ {};
+  Type * start_ {};
   std::size_t length_ {};
 };
 

@@ -157,14 +157,14 @@ auto find_max_insertions_per_position(int const target_count,
   std::vector<int> max_insertions(centroid_len + 1);
 
   // refactoring: with template Span<T>
-  // auto target_list_view = Span<struct msa_target_s>{target_list_v.data(), target_list_v.size()};
-  // for (auto const & a_msa_target : target_list_view.subspan(1, target_count) {}
+  // auto target_list_view = Span<struct msa_target_s const>{target_list_v.data(), target_list_v.size()};
+  // for (auto const & a_msa_target : target_list_view.subspan(1, target_count) { }
 
   for (auto i = 1; i < target_count; ++i) {
     auto position = 0LL;
     auto * cigar_start = target_list_v[i].cigar;
     auto const cigar_length = std::strlen(cigar_start);
-    auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
+    auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;

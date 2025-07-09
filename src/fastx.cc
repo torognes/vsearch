@@ -145,7 +145,7 @@ auto buffer_extend(struct fastx_buffer_s * dest_buffer,
 }
 
 
-auto find_header_end_first_blank(Span raw_header) -> std::size_t {
+auto find_header_end_first_blank(Span<char> raw_header) -> std::size_t {
   static const std::vector<char> blanks {' ', '\t', '\0', '\r', '\n'};
   auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
                                      blanks.begin(), blanks.end());
@@ -156,7 +156,7 @@ auto find_header_end_first_blank(Span raw_header) -> std::size_t {
 }
 
 
-auto find_header_end(Span raw_header) -> std::size_t {
+auto find_header_end(Span<char> raw_header) -> std::size_t {
   static const std::vector<char> blanks {'\0', '\r', '\n'};
   auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
                                      blanks.begin(), blanks.end());
@@ -184,7 +184,7 @@ auto warn(char const * const format,
 
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void {
   // truncate header (in-place)
-  auto raw_header = Span{input_handle->header_buffer.data, input_handle->header_buffer.length};
+  auto raw_header = Span<char>{input_handle->header_buffer.data, input_handle->header_buffer.length};
   auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
   input_handle->header_buffer.length = count;
 

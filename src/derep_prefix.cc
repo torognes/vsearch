@@ -88,7 +88,7 @@ struct bucket
 
 
 auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
-                                    Span const sequence) -> void {
+                                    Span<char> const sequence) -> void {
   // Fowler-Noll-Vo (FNV) hash function
   static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
   static constexpr auto FNV_prime = uint64_t{1099511628211U};
@@ -251,7 +251,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       */
 
-      compute_hashes_of_all_prefixes(prefix_hashes, Span{seq_up.data(), seqlen});
+      compute_hashes_of_all_prefixes(prefix_hashes, Span<char>{seq_up.data(), seqlen});
 
       /* first, look for an identical match */
 

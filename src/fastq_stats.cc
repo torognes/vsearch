@@ -136,7 +136,7 @@ namespace {
   }
 
 
-  auto check_minmax_scores(Span const qualities,
+  auto check_minmax_scores(Span<char> const qualities,
                            std::vector<uint64_t> const & symbol_to_score,
                            struct Parameters const & parameters) -> void {
     if (qualities.empty()) { return; }
@@ -546,7 +546,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       auto expected_error = 0.0;
       auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed so far in this read
 
-      check_minmax_scores(Span{quality_symbols, length}, symbol_to_score, parameters);
+      check_minmax_scores(Span<char>{quality_symbols, length}, symbol_to_score, parameters);
 
       // refactoring: replace for-loop below with three functions:
       // 0)

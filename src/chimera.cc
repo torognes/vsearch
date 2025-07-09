@@ -303,7 +303,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
       auto * cigar_start = chimera_info->nwcigar[i];
       auto const cigar_length = std::strlen(cigar_start);
-      auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
+      auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
 
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
@@ -696,7 +696,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
     auto const best_parent = chimera_info->best_parents[i];
     auto * cigar_start = chimera_info->nwcigar[best_parent];
     auto const cigar_length = std::strlen(cigar_start);
-    auto const cigar_pairs = parse_cigar_string(Span{cigar_start, cigar_length});
+    auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
