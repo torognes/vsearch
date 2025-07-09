@@ -723,10 +723,10 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 {
   /* fill in alignment strings for the parents */
 
-  for (int j = 0; j < ci->parents_found; ++j)
+  for (int i = 0; i < ci->parents_found; ++i)
     {
-      auto & alignment = ci->paln[j];
-      int const cand = ci->best_parents[j];
+      auto & alignment = ci->paln[i];
+      int const cand = ci->best_parents[i];
       int const target_seqno = ci->cand_list[cand];
       char * target_seq = db_getsequence(target_seqno);
 
