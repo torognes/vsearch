@@ -160,33 +160,31 @@ static uint64_t failed_nokmers = 0;
    - too few kmers on same diag found
 */
 
-enum struct Reason : char
-  {
-    undefined,
-    ok,
-    minlen,
-    maxlen,
-    maxns,
-    minovlen,
-    maxdiffs,
-    maxdiffpct,
-    staggered,
-    indel,
-    repeat,
-    minmergelen,
-    maxmergelen,
-    maxee,
-    minscore,
-    nokmers
-  };
+enum struct Reason : char {
+  undefined,
+  ok,
+  minlen,
+  maxlen,
+  maxns,
+  minovlen,
+  maxdiffs,
+  maxdiffpct,
+  staggered,
+  indel,
+  repeat,
+  minmergelen,
+  maxmergelen,
+  maxee,
+  minscore,
+  nokmers
+};
 
-enum struct State: char
-  {
-    empty,
-    filled,
-    inprogress,
-    processed
-  };
+enum struct State: char {
+  empty,
+  filled,
+  inprogress,
+  processed
+};
 
 struct merge_data_s
 {
