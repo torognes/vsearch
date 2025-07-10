@@ -160,7 +160,7 @@ static uint64_t failed_nokmers = 0;
    - too few kmers on same diag found
 */
 
-enum reason_enum
+enum struct Reason : char
   {
     undefined,
     ok,
@@ -214,7 +214,7 @@ struct merge_data_s
   int64_t rev_errors = 0;
   int64_t offset = 0;
   bool merged = false;
-  reason_enum reason = undefined;
+  Reason reason = Reason::undefined;
   state_enum state = empty;
 };
 
@@ -475,66 +475,66 @@ auto discard(merge_data_t * a_read_pair) -> void
 {
   switch(a_read_pair->reason)
     {
-    case undefined:
+    case Reason::undefined:
       ++failed_undefined;
       break;
 
-    case ok:
+    case Reason::ok:
       break;
 
-    case minlen:
+    case Reason::minlen:
       ++failed_minlen;
       break;
 
-    case maxlen:
+    case Reason::maxlen:
       ++failed_maxlen;
       break;
 
-    case maxns:
+    case Reason::maxns:
       ++failed_maxns;
       break;
 
-    case minovlen:
+    case Reason::minovlen:
       ++failed_minovlen;
       break;
 
-    case maxdiffs:
+    case Reason::maxdiffs:
       ++failed_maxdiffs;
       break;
 
-    case maxdiffpct:
+    case Reason::maxdiffpct:
       ++failed_maxdiffpct;
       break;
 
-    case staggered:
+    case Reason::staggered:
       ++failed_staggered;
       break;
 
-    case indel:
+    case Reason::indel:
       ++failed_indel;
       break;
 
-    case repeat:
+    case Reason::repeat:
       ++failed_repeat;
       break;
 
-    case minmergelen:
+    case Reason::minmergelen:
       ++failed_minmergelen;
       break;
 
-    case maxmergelen:
+    case Reason::maxmergelen:
       ++failed_maxmergelen;
       break;
 
-    case maxee:
+    case Reason::maxee:
       ++failed_maxee;
       break;
 
-    case minscore:
+    case Reason::minscore:
       ++failed_minscore;
       break;
 
-    case nokmers:
+    case Reason::nokmers:
       ++failed_nokmers;
       break;
     }
@@ -713,12 +713,12 @@ auto merge(merge_data_t * a_read_pair) -> void
 
   if (a_read_pair->ee_merged <= opt_fastq_maxee)
     {
-      a_read_pair->reason = ok;
+      a_read_pair->reason = Reason::ok;
       a_read_pair->merged = true;
     }
   else
     {
-      a_read_pair->reason = maxee;
+      a_read_pair->reason = Reason::maxee;
     }
 }
 
@@ -824,43 +824,43 @@ auto optimize(merge_data_t * a_read_pair,
 
   if (hits > 1)
     {
-      a_read_pair->reason = repeat;
+      a_read_pair->reason = Reason::repeat;
       return 0;
     }
 
   if ((! opt_fastq_allowmergestagger) && (best_i > a_read_pair->fwd_trunc))
     {
-      a_read_pair->reason = staggered;
+      a_read_pair->reason = Reason::staggered;
       return 0;
     }
 
   if (best_diffs > opt_fastq_maxdiffs)
     {
-      a_read_pair->reason = maxdiffs;
+      a_read_pair->reason = Reason::maxdiffs;
       return 0;
     }
 
   if ((100.0 * best_diffs / best_i) > opt_fastq_maxdiffpct)
     {
-      a_read_pair->reason = maxdiffpct;
+      a_read_pair->reason = Reason::maxdiffpct;
       return 0;
     }
 
   if (kmers == 0)
     {
-      a_read_pair->reason = nokmers;
+      a_read_pair->reason = Reason::nokmers;
       return 0;
     }
 
   if (best_score < merge_minscore)
     {
-      a_read_pair->reason = minscore;
+      a_read_pair->reason = Reason::minscore;
       return 0;
     }
 
   if (best_i < opt_fastq_minovlen)
     {
-      a_read_pair->reason = minovlen;
+      a_read_pair->reason = Reason::minovlen;
       return 0;
     }
 
@@ -868,13 +868,13 @@ auto optimize(merge_data_t * a_read_pair,
 
   if (mergelen < opt_fastq_minmergelen)
     {
-      a_read_pair->reason = minmergelen;
+      a_read_pair->reason = Reason::minmergelen;
       return 0;
     }
 
   if (mergelen > opt_fastq_maxmergelen)
     {
-      a_read_pair->reason = maxmergelen;
+      a_read_pair->reason = Reason::maxmergelen;
       return 0;
     }
 
@@ -894,14 +894,14 @@ auto process(merge_data_t * a_read_pair,
   if ((a_read_pair->fwd_length < opt_fastq_minlen) ||
       (a_read_pair->rev_length < opt_fastq_minlen))
     {
-      a_read_pair->reason = minlen;
+      a_read_pair->reason = Reason::minlen;
       skip = true;
     }
 
   if ((a_read_pair->fwd_length > opt_fastq_maxlen) ||
       (a_read_pair->rev_length > opt_fastq_maxlen))
     {
-      a_read_pair->reason = maxlen;
+      a_read_pair->reason = Reason::maxlen;
       skip = true;
     }
 
@@ -921,7 +921,7 @@ auto process(merge_data_t * a_read_pair,
         }
       if (fwd_trunc < opt_fastq_minlen)
         {
-          a_read_pair->reason = minlen;
+          a_read_pair->reason = Reason::minlen;
           skip = true;
         }
     }
@@ -942,7 +942,7 @@ auto process(merge_data_t * a_read_pair,
         }
       if (rev_trunc < opt_fastq_minlen)
         {
-          a_read_pair->reason = minlen;
+          a_read_pair->reason = Reason::minlen;
           skip = true;
         }
     }
@@ -966,7 +966,7 @@ auto process(merge_data_t * a_read_pair,
         }
       if (fwd_ncount > opt_fastq_maxns)
         {
-          a_read_pair->reason = maxns;
+          a_read_pair->reason = Reason::maxns;
           skip = true;
         }
     }
@@ -984,7 +984,7 @@ auto process(merge_data_t * a_read_pair,
         }
       if (rev_ncount > opt_fastq_maxns)
         {
-          a_read_pair->reason = maxns;
+          a_read_pair->reason = Reason::maxns;
           skip = true;
         }
     }
