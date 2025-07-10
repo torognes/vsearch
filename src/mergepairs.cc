@@ -180,7 +180,7 @@ enum struct Reason : char
     nokmers
   };
 
-enum state_enum
+enum struct State: char
   {
     empty,
     filled,
@@ -215,7 +215,7 @@ struct merge_data_s
   int64_t offset = 0;
   bool merged = false;
   Reason reason = Reason::undefined;
-  state_enum state = empty;
+  State state = State::empty;
 };
 
 using merge_data_t = struct merge_data_s;
@@ -223,7 +223,7 @@ using merge_data_t = struct merge_data_s;
 struct chunk_s
 {
   int size = 0; /* size of merge_data = number of pairs of reads */
-  state_enum state = empty; /* state of chunk: empty, read, processed */
+  State state = State::empty; /* state of chunk: empty, read, processed */
   std::vector<struct merge_data_s> merge_data_v;
   merge_data_t * merge_data = nullptr; /* data for merging */
 };
@@ -1001,7 +1001,7 @@ auto process(merge_data_t * a_read_pair,
       merge(a_read_pair);
     }
 
-  a_read_pair->state = processed;
+  a_read_pair->state = State::processed;
 }
 
 
@@ -1126,7 +1126,7 @@ auto free_merge_data(merge_data_t & a_read_pair) -> void
 
 inline auto chunk_perform_read() -> void
 {
-  while ((! finished_reading) && (chunks[chunk_read_next].state == empty))
+  while ((! finished_reading) && (chunks[chunk_read_next].state == State::empty))
     {
       xpthread_mutex_unlock(&mutex_chunks);
       progress_update(fastq_get_position(fastq_fwd));
@@ -1141,7 +1141,7 @@ inline auto chunk_perform_read() -> void
       pairs_read += r;
       if (r > 0)
         {
-          chunks[chunk_read_next].state = filled;
+          chunks[chunk_read_next].state = State::filled;
           chunk_read_next = (chunk_read_next + 1) % chunk_count;
         }
       if (r < chunk_size)
@@ -1159,7 +1159,7 @@ inline auto chunk_perform_read() -> void
 
 inline auto chunk_perform_write() -> void
 {
-  while (chunks[chunk_write_next].state == processed)
+  while (chunks[chunk_write_next].state == State::processed)
     {
       xpthread_mutex_unlock(&mutex_chunks);
       for (auto i = 0; i < chunks[chunk_write_next].size; i++)
@@ -1168,7 +1168,7 @@ inline auto chunk_perform_write() -> void
         }
       xpthread_mutex_lock(&mutex_chunks);
       pairs_written += chunks[chunk_write_next].size;
-      chunks[chunk_write_next].state = empty;
+      chunks[chunk_write_next].state = State::empty;
       if (finished_reading && (pairs_written >= pairs_read))
         {
           finished_all = true;
@@ -1182,9 +1182,9 @@ inline auto chunk_perform_write() -> void
 inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
 {
   auto const chunk_current = chunk_process_next;
-  if (chunks[chunk_current].state == filled)
+  if (chunks[chunk_current].state == State::filled)
     {
-      chunks[chunk_current].state = inprogress;
+      chunks[chunk_current].state = State::inprogress;
       chunk_process_next = (chunk_current + 1) % chunk_count;
       xpthread_cond_broadcast(&cond_chunks);
       xpthread_mutex_unlock(&mutex_chunks);
@@ -1193,7 +1193,7 @@ inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
           process(chunks[chunk_current].merge_data + i, kmerhash);
         }
       xpthread_mutex_lock(&mutex_chunks);
-      chunks[chunk_current].state = processed;
+      chunks[chunk_current].state = State::processed;
       xpthread_cond_broadcast(&cond_chunks);
     }
 }
@@ -1227,10 +1227,10 @@ auto pair_worker(void * vp) -> void *
                      (
                       finished_all
                       ||
-                      (chunks[chunk_process_next].state == filled)
+                      (chunks[chunk_process_next].state == State::filled)
                       ||
                       ((! finished_reading) &&
-                       chunks[chunk_read_next].state == empty)))
+                       chunks[chunk_read_next].state == State::empty)))
                 {
                   xpthread_cond_wait(&cond_chunks, &mutex_chunks);
                 }
@@ -1245,9 +1245,9 @@ auto pair_worker(void * vp) -> void *
                      (
                       finished_all
                       ||
-                      (chunks[chunk_process_next].state == filled)
+                      (chunks[chunk_process_next].state == State::filled)
                       ||
-                      (chunks[chunk_write_next].state == processed)
+                      (chunks[chunk_write_next].state == State::processed)
                       )
                      )
                 {
@@ -1268,9 +1268,9 @@ auto pair_worker(void * vp) -> void *
                       finished_all
                       ||
                       ((! finished_reading) &&
-                       (chunks[chunk_read_next].state == empty))
+                       (chunks[chunk_read_next].state == State::empty))
                       ||
-                      (chunks[chunk_process_next].state == filled)
+                      (chunks[chunk_process_next].state == State::filled)
                       )
                      )
                 {
@@ -1287,9 +1287,9 @@ auto pair_worker(void * vp) -> void *
                      (
                       finished_all
                       ||
-                      (chunks[chunk_write_next].state == processed)
+                      (chunks[chunk_write_next].state == State::processed)
                       ||
-                      (chunks[chunk_process_next].state == filled)
+                      (chunks[chunk_process_next].state == State::filled)
                       )
                      )
                 {
@@ -1306,7 +1306,7 @@ auto pair_worker(void * vp) -> void *
                      (
                       finished_all
                       ||
-                      (chunks[chunk_process_next].state == filled)
+                      (chunks[chunk_process_next].state == State::filled)
                       )
                      )
                 {
