@@ -728,63 +728,58 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
       int tpos = 0;
       int alnpos = 0;
 
-      char * p = ci->nwcigar[cand];
-      char * e = p + std::strlen(p);
-
-      while (p < e)
-        {
-          int run = 1;
-          int scanlength = 0;
-          std::sscanf(p, "%d%n", &run, &scanlength);
-          p += scanlength;
-          char const op = *p;
-          ++p;
-
-          if (op == 'I')
+      auto * cigar_start = ci->nwcigar[cand];
+      auto const cigar_length = std::strlen(cigar_start);
+      auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
+      for (auto const & a_pair: cigar_pairs) {
+        auto const operation = a_pair.first;
+        auto const runlength = a_pair.second;
+        switch (operation) {
+        case Operation::insertion:
+          for (int j = 0; j < ci->maxi[qpos]; ++j)
             {
-              for (int j = 0; j < ci->maxi[qpos]; ++j)
+              if (j < runlength)
                 {
-                  if (j < run)
-                    {
-                      alignment[alnpos] = map_uppercase(target_seq[tpos]);
-                      ++tpos;
-                      ++alnpos;
-                    }
-                  else
-                    {
-                      alignment[alnpos] = '-';
-                      ++alnpos;
-                    }
+                  alignment[alnpos] = map_uppercase(target_seq[tpos]);
+                  ++tpos;
+                  ++alnpos;
                 }
-              is_inserted = true;
-            }
-          else
-            {
-              for (int j = 0; j < run; ++j)
+              else
                 {
-                  if (not is_inserted)
-                    {
-                      std::fill_n(&alignment[alnpos], ci->maxi[qpos], '-');
-                      alnpos += ci->maxi[qpos];
-                    }
-
-                  if (op == 'M')
-                    {
-                      alignment[alnpos] = map_uppercase(target_seq[tpos]);
-                      ++tpos;
-                      ++alnpos;
-                    }
-                  else
-                    {
-                      alignment[alnpos] = '-';
-                      ++alnpos;
-                    }
-
-                  ++qpos;
-                  is_inserted = false;
+                  alignment[alnpos] = '-';
+                  ++alnpos;
                 }
             }
-        }  // end of CIGAR string parsing
+          is_inserted = true;
+          break;
+
+        case Operation::match:
+        case Operation::deletion:
+          for (int j = 0; j < runlength; ++j)
+            {
+              if (not is_inserted)
+                {
+                  std::fill_n(&alignment[alnpos], ci->maxi[qpos], '-');
+                  alnpos += ci->maxi[qpos];
+                }
+
+              if (operation == Operation::match)
+                {
+                  alignment[alnpos] = map_uppercase(target_seq[tpos]);
+                  ++tpos;
+                  ++alnpos;
+                }
+              else
+                {
+                  alignment[alnpos] = '-';
+                  ++alnpos;
+                }
+
+              ++qpos;
+              is_inserted = false;
+            }
+        }
+      }
 
       /* add any gaps at the end */
 
