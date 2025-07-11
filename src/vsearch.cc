@@ -601,7 +601,7 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
 
       while ((*cursor != '\0') and (*cursor != '/'))
         {
-          switch(*cursor)
+          switch (*cursor)
             {
             case 'E':
               set_E = 1;
@@ -1494,7 +1494,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           options_selected[options_index] = true;
         }
 
-      switch(options_index)
+      switch (options_index)
         {
         case option_help:
           parameters.opt_help = true;

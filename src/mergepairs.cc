@@ -471,7 +471,7 @@ auto keep(merge_data_t * a_read_pair) -> void
 
 auto discard(merge_data_t * a_read_pair) -> void
 {
-  switch(a_read_pair->reason)
+  switch (a_read_pair->reason)
     {
     case Reason::undefined:
       ++failed_undefined;

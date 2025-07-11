@@ -393,7 +393,7 @@ auto fastx_open(char const * filename) -> fastx_handle
         {
           /* close files if unrecognized file type */
 
-          switch(input_handle->format)
+          switch (input_handle->format)
             {
             case Format::plain:
               break;
@@ -509,7 +509,7 @@ auto fastx_close(fastx_handle input_handle) -> void
   int bz_error = 0;
 #endif
 
-  switch(input_handle->format)
+  switch (input_handle->format)
     {
     case Format::plain:
       break;
@@ -578,7 +578,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
   int bzError = 0;
 #endif
 
-  switch(input_handle->format)
+  switch (input_handle->format)
     {
     case Format::plain:
       bytes_read = fread(input_handle->file_buffer.data

@@ -101,7 +101,7 @@ auto update_profile(char const nucleotide,
   auto const offset = profsize * position_in_alignment;
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
-  switch(std::toupper(nucleotide))
+  switch (std::toupper(nucleotide))
     {
     case 'A':
       profile[offset + A_counter] += abundance;

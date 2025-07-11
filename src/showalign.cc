@@ -118,7 +118,7 @@ inline auto putop(char c, int64_t len) -> void
       auto qs4 = 0U;
       auto ds4 = 0U;
 
-      switch(c)
+      switch (c)
         {
         case 'M':
           qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];

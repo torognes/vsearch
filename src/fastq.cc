@@ -115,7 +115,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
       auto const c = *p++;
       char const m = char_action[(unsigned char) (c)];
 
-      switch(m)
+      switch (m)
         {
         case 0:
           /* stripped */
