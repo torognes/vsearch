@@ -306,6 +306,7 @@ auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 }
 
 
+// refactoring: only used in fastx.cc
 auto xftello(std::FILE * stream) -> uint64_t
 {
 #ifdef _WIN32
@@ -316,6 +317,7 @@ auto xftello(std::FILE * stream) -> uint64_t
 }
 
 
+// refactoring: only used in udb.cc
 auto xopen_read(const char * path) -> int
 {
 #ifdef _WIN32
@@ -326,6 +328,7 @@ auto xopen_read(const char * path) -> int
 }
 
 
+// refactoring: only used in udb.cc
 auto xopen_write(const char * path) -> int
 {
 #ifdef _WIN32
@@ -340,6 +343,7 @@ auto xopen_write(const char * path) -> int
 }
 
 
+// refactoring: only used in get_seq.cc
 auto xstrcasestr(const char * haystack, const char * needle) -> const char *
 {
 #ifdef _WIN32
