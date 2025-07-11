@@ -289,6 +289,7 @@ auto fastx_open(char const * filename) -> fastx_handle
 
       input_handle->format = Format::plain;
 
+      // refactoring: fread() see C++ Weekly - Ep 482 - Safely Wrapping C APIs
       auto const bytes_read = fread(magic.data(), 1, 2, input_handle->fp);
 
       if (bytes_read >= 2)
