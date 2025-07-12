@@ -775,8 +775,8 @@ auto LinearMemoryAligner::alignstats(char * cigar,
           nwalignmentlength += run;
           a_pos += run;
           break;
-        }
-    }
+        }  // end of switch
+    }  // end of cigar parsing
 
   *_nwscore = nwscore;
   *_nwalignmentlength = nwalignmentlength;
