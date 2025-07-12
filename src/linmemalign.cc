@@ -441,8 +441,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       // Upper part
 
       /* initialize HH and EE for values corresponding to
-         empty seq A vs B of j symbols,
-         i.e. a gap of length j in A                 */
+         empty seq A vs B of i symbols,
+         i.e. a gap of length i in A                 */
 
       HH[0] = 0;
       EE[0] = 0;
