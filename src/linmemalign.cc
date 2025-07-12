@@ -546,14 +546,14 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* solutions with diagonal at break */
 
-      for (int64_t j = 0; j <= b_len; j++)
+      for (int64_t i = 0; i <= b_len; i++)
         {
-          auto const Score = HH[j] + XX[b_len - j];
+          auto const Score = HH[i] + XX[b_len - i];
 
           if (Score > MaxScore0)
             {
               MaxScore0 = Score;
-              best0 = j;
+              best0 = i;
             }
         }
 
