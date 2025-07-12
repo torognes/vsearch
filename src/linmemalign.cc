@@ -743,7 +743,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
             {
               g = go_q_l + (run * ge_q_l);
             }
-          else if (*p == 0)
+          else if (*p == '\0')
             {
               g = go_q_r + (run * ge_q_r);
             }
@@ -762,7 +762,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
             {
               g = go_t_l + (run * ge_t_l);
             }
-          else if (*p == 0)
+          else if (*p == '\0')
             {
               g = go_t_r + (run * ge_t_r);
             }
