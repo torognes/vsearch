@@ -704,15 +704,15 @@ auto LinearMemoryAligner::alignstats(char * cigar,
 
   while (*p != '\0')
     {
-      int64_t run = 1;
+      int64_t runlength = 1;
       auto scanlength = 0;
-      std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+      std::sscanf(p, "%" PRId64 "%n", &runlength, &scanlength);
       p += scanlength;
       switch (*p++)
         {
         case 'M':
-          nwalignmentlength += run;
-          for (int64_t k = 0; k < run; k++)
+          nwalignmentlength += runlength;
+          for (int64_t k = 0; k < runlength; k++)
             {
               auto const a_nuc = a_seq[a_pos];
               auto const b_nuc = b_seq[b_pos];
@@ -741,39 +741,39 @@ auto LinearMemoryAligner::alignstats(char * cigar,
         case 'I':
           if ((a_pos == 0) and (b_pos == 0))
             {
-              g = go_q_l + (run * ge_q_l);
+              g = go_q_l + (runlength * ge_q_l);
             }
           else if (*p == '\0')
             {
-              g = go_q_r + (run * ge_q_r);
+              g = go_q_r + (runlength * ge_q_r);
             }
           else
             {
-              g = go_q_i + (run * ge_q_i);
+              g = go_q_i + (runlength * ge_q_i);
             }
           nwscore -= g;
           ++nwgaps;
-          nwalignmentlength += run;
-          b_pos += run;
+          nwalignmentlength += runlength;
+          b_pos += runlength;
           break;
 
         case 'D':
           if ((a_pos == 0) and (b_pos == 0))
             {
-              g = go_t_l + (run * ge_t_l);
+              g = go_t_l + (runlength * ge_t_l);
             }
           else if (*p == '\0')
             {
-              g = go_t_r + (run * ge_t_r);
+              g = go_t_r + (runlength * ge_t_r);
             }
           else
             {
-              g = go_t_i + (run * ge_t_i);
+              g = go_t_i + (runlength * ge_t_i);
             }
           nwscore -= g;
           ++nwgaps;
-          nwalignmentlength += run;
-          a_pos += run;
+          nwalignmentlength += runlength;
+          a_pos += runlength;
           break;
         }  // end of switch
     }  // end of cigar parsing
