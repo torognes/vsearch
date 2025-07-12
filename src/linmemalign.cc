@@ -379,7 +379,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* Third possibility */
 
-      for (int64_t j = 0; j < b_len; j++)
+      for (int64_t i = 0; i < b_len; i++)
         {
           // Insert zero or more from B, replace 1, insert rest of B
           // -A--
@@ -387,24 +387,24 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
           Score = 0;
 
-          if (j > 0)
+          if (i > 0)
             {
-              Score -= a_left ? go_q_l + (j * ge_q_l) : go_q_i + (j * ge_q_i);
+              Score -= a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i);
             }
 
-          Score += subst_score(a_seq[a_start], b_seq[b_start + j]);
+          Score += subst_score(a_seq[a_start], b_seq[b_start + i]);
 
-          if (j < b_len - 1)
+          if (i < b_len - 1)
             {
               Score -= a_right ?
-                go_q_r + ((b_len - 1 - j) * ge_q_r) :
-                go_q_i + ((b_len - 1 - j) * ge_q_i);
+                go_q_r + ((b_len - 1 - i) * ge_q_r) :
+                go_q_i + ((b_len - 1 - i) * ge_q_i);
             }
 
           if (Score > MaxScore)
             {
               MaxScore = Score;
-              best = j;
+              best = i;
             }
         }
 
