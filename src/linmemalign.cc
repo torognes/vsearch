@@ -562,14 +562,14 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* solutions that end with a gap in b from both ends at break */
 
-      for (int64_t j = 0; j <= b_len; j++)
+      for (int64_t i = 0; i <= b_len; i++)
         {
           int64_t g = 0;
-          if (b_left and (j == 0))
+          if (b_left and (i == 0))
             {
               g = go_t_l;
             }
-          else if (b_right and (j == b_len))
+          else if (b_right and (i == b_len))
             {
               g = go_t_r;
             }
@@ -578,12 +578,12 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               g = go_t_i;
             }
 
-          auto const Score = EE[j] + YY[b_len - j] + g;
+          auto const Score = EE[i] + YY[b_len - i] + g;
 
           if (Score > MaxScore1)
             {
               MaxScore1 = Score;
-              best1 = j;
+              best1 = i;
             }
         }
 
