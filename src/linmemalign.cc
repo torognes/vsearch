@@ -587,7 +587,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
             }
         }
 
-      int64_t P = 0;
+      int64_t P = 0;  // rename: is_parted?? convert to bool?
       int64_t best = 0;
 
       if (MaxScore0 > MaxScore1)
