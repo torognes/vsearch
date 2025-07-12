@@ -435,7 +435,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
     {
       /* a_len >= 2, b_len >= 1 */
 
-      int64_t const I = a_len / 2;
+      int64_t const I = a_len / 2;  // rename: median?
 
       // Compute HH & EE in forward phase
       // Upper part
