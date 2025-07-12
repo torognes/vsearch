@@ -497,10 +497,10 @@ auto LinearMemoryAligner::diff(int64_t a_start,
       XX[0] = 0;
       YY[0] = 0;
 
-      for (int64_t j = 1; j <= b_len; j++)
+      for (int64_t i = 1; i <= b_len; i++)
         {
-          XX[j] = - (a_right ? go_q_r + (j * ge_q_r) : go_q_i + (j * ge_q_i));
-          YY[j] = int64_min;
+          XX[i] = - (a_right ? go_q_r + (i * ge_q_r) : go_q_i + (i * ge_q_i));
+          YY[i] = int64_min;
         }
 
       /* compute matrix */
