@@ -340,7 +340,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
                   break;
                 }
             }
-        }
+        }  // end of labels_count loop
     }
   return false;
 }
