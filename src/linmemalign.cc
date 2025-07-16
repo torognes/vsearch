@@ -336,7 +336,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* gap penalty for gap in B of length 1 */
 
-      if (! gap_b_left)
+      if (not gap_b_left)
         {
           Score -= b_left ? go_t_l : go_t_i;
         }
@@ -363,7 +363,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       /* gap penalty for gap in B of length 1 */
 
-      if (! gap_b_right)
+      if (not gap_b_right)
         {
           Score -= b_right ? go_t_r : go_t_i;
         }
