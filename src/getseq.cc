@@ -81,6 +81,7 @@ static int labels_count = 0;
 static int labels_longest = 0;
 static char ** labels_data = nullptr;
 
+
 auto read_labels_file(char * filename) -> void
 {
   auto fp_labels = open_input_file(filename);
