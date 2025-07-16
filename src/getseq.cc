@@ -87,41 +87,41 @@ std::vector<std::vector<char>> labels_data;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-auto compare_chars = [](char const lhs, char const rhs) {
-  assert((lhs >= 0) or (lhs == EOF));
-  auto const lhs_unsigned = static_cast<unsigned char>(lhs);
-  auto const rhs_unsigned = static_cast<unsigned char>(rhs);
-  return std::toupper(lhs_unsigned) == std::toupper(rhs_unsigned);
- };
+  auto compare_chars = [](char const lhs, char const rhs) {
+    assert((lhs >= 0) or (lhs == EOF));
+    auto const lhs_unsigned = static_cast<unsigned char>(lhs);
+    auto const rhs_unsigned = static_cast<unsigned char>(rhs);
+    return std::toupper(lhs_unsigned) == std::toupper(rhs_unsigned);
+  };
 
 
-auto contains_substring(Span<char> const haystack, Span<char> const needle) -> bool {
-  // case insensitive
-  auto const hit = std::search(haystack.begin(), haystack.end(),
-                               needle.begin(), needle.end(),
-                               compare_chars);
-  return (hit != haystack.end());
-}
-
-
-auto are_same_string(Span<char> const haystack, std::vector<char> const & needle) -> bool {
-  // case insensitive
-  if (haystack.size() != needle.size()) {
-    return false;
+  auto contains_substring(Span<char> const haystack, Span<char> const needle) -> bool {
+    // case insensitive
+    auto const hit = std::search(haystack.begin(), haystack.end(),
+                                 needle.begin(), needle.end(),
+                                 compare_chars);
+    return (hit != haystack.end());
   }
-  return std::equal(haystack.begin(), haystack.end(),
-                    needle.begin(), compare_chars);
-}
 
 
-auto are_same_string(Span<char> const haystack, Span<char> const needle) -> bool {
-  // case insensitive
-  if (haystack.size() != needle.size()) {
-    return false;
+  auto are_same_string(Span<char> const haystack, std::vector<char> const & needle) -> bool {
+    // case insensitive
+    if (haystack.size() != needle.size()) {
+      return false;
+    }
+    return std::equal(haystack.begin(), haystack.end(),
+                      needle.begin(), compare_chars);
   }
-  return std::equal(haystack.begin(), haystack.end(),
-                    needle.begin(), compare_chars);
-}
+
+
+  auto are_same_string(Span<char> const haystack, Span<char> const needle) -> bool {
+    // case insensitive
+    if (haystack.size() != needle.size()) {
+      return false;
+    }
+    return std::equal(haystack.begin(), haystack.end(),
+                      needle.begin(), compare_chars);
+  }
 
 }  // end of anonymous namespace
 
