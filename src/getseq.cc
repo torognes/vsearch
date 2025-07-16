@@ -311,29 +311,29 @@ auto test_label_match(fastx_handle input_handle) -> bool
             if (hit == nullptr) {
               break;
             }
-                if (opt_label_field != nullptr)
+            if (opt_label_field != nullptr)
+              {
+                /* check of field */
+                if (((hit == header) or
+                     (*(hit - 1) == ';')) and
+                    ((hit + wlen == header + hlen) or
+                     (*(hit + wlen) == ';')))
                   {
-                    /* check of field */
-                    if (((hit == header) or
-                         (*(hit - 1) == ';')) and
-                        ((hit + wlen == header + hlen) or
-                         (*(hit + wlen) == ';')))
-                      {
-                        return true;
-                      }
+                    return true;
                   }
-                else
+              }
+            else
+              {
+                /* check of full word */
+                if (((hit == header) or
+                     (isalnum(*(hit - 1)) == 0)) and
+                    ((hit + wlen == header + hlen) or
+                     (isalnum(*(hit + wlen)) == 0)))
                   {
-                    /* check of full word */
-                    if (((hit == header) or
-                         (isalnum(*(hit - 1)) == 0)) and
-                        ((hit + wlen == header + hlen) or
-                         (isalnum(*(hit + wlen)) == 0)))
-                      {
-                        return true;
-                      }
+                    return true;
                   }
-                ++hit;
+              }
+            ++hit;
           }
       }  // end of labels_count loop
     }
