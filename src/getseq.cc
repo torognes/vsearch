@@ -85,6 +85,7 @@ std::vector<std::vector<char>> labels_data;
 
 
 auto contains_substring(Span<char> const haystack, Span<char> const needle) -> bool {
+  // case insensitive
   auto compare_chars = [](char const lhs, char const rhs) {
     assert((lhs >= 0) or (lhs == EOF));
     auto const lhs_unsigned = static_cast<unsigned char>(lhs);
