@@ -84,7 +84,7 @@ static int labels_longest = 0;
 std::vector<std::vector<char>> labels_data;
 
 
-auto find_string(Span<char> const haystack, Span<char> const needle) -> bool {
+auto find_substring(Span<char> const haystack, Span<char> const needle) -> bool {
   auto compare_chars = [](char const lhs, char const rhs) {
     assert((lhs >= 0) or (lhs == EOF));
     auto const lhs_unsigned = static_cast<unsigned char>(lhs);
@@ -207,7 +207,7 @@ auto test_label_match(fastx_handle h) -> bool
       auto const needle_length = std::strlen(needle);
       if (opt_label_substr_match)
         {
-          return (find_string(header_view, Span<char>{needle, needle_length}));
+          return (find_substring(header_view, Span<char>{needle, needle_length}));
         }
       return (header_length == needle_length) and (strcasecmp(header, needle) == 0); // strcasecmp is a linuxism
     }
