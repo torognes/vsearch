@@ -124,6 +124,7 @@ namespace {
 
 }  // end of anonymous namespace
 
+
 auto read_labels_file(char * filename) -> void
 {
   auto fp_labels = open_input_file(filename);
