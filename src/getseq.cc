@@ -137,10 +137,6 @@ auto read_labels_file(char * filename) -> void
         {
           labels_alloc += 1024;
           labels_data.resize(labels_alloc);
-          if (labels_data.data() == nullptr)
-            {
-              fatal("Unable to allocate memory for labels");
-            }
         }
       labels_data[labels_count] = strdup(buffer.data());
       ++labels_count;
