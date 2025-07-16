@@ -219,14 +219,12 @@ auto test_label_match(fastx_handle input_handle) -> bool
     {
       if (opt_label_substr_match)
         {
-          for (int i = 0; i < labels_count; i++)
-            {
-              auto const needle_view = Span<char>{labels_data[i].data(), labels_data[i].size()};
-              if (contains_substring(header_view, needle_view))
-                {
-                  return true;
-                }
+          for (auto & label: labels_data) {
+            auto const label_view = Span<char>{label.data(), label.size()};
+            if (contains_substring(header_view, label_view)) {
+              return true;
             }
+          }
         }
       else
         {
