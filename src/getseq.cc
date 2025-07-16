@@ -74,7 +74,6 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF
 #include <cstring>  // std::strlen, std::strcpy, std::strstr
-#include <string.h>  // strcasecmp
 #include <vector>
 
 
