@@ -236,7 +236,7 @@ auto test_label_match(fastx_handle h) -> bool
       char * needle = opt_label_word;
       if (opt_label_field != nullptr)
         {
-          std::strcpy(field_buffer + field_len + 1, needle);
+          std::strcpy(&field_buffer_v[field_len + 1], needle);
           needle = field_buffer_v.data();
         }
       int const wlen = std::strlen(needle);
@@ -283,7 +283,7 @@ auto test_label_match(fastx_handle h) -> bool
           char * needle = labels_data[i];
           if (opt_label_field != nullptr)
             {
-              std::strcpy(field_buffer + field_len + 1, needle);
+              std::strcpy(&field_buffer_v[field_len + 1], needle);
               needle = field_buffer_v.data();
             }
           int const wlen = std::strlen(needle);
