@@ -340,17 +340,6 @@ auto xopen_write(const char * path) -> int
 }
 
 
-// refactoring: only used in get_seq.cc
-auto xstrcasestr(const char * haystack, const char * needle) -> const char *
-{
-#ifdef _WIN32
-  return StrStrIA(haystack, needle);
-#else
-  return strcasestr(haystack, needle);  // GNU extension, not available on Windows
-#endif
-}
-
-
 #ifdef _WIN32
 auto arch_dlsym(HMODULE handle, const char * symbol) -> FARPROC
 {

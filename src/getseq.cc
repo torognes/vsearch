@@ -74,12 +74,25 @@
 #include <cstdlib>  // std::realloc, std::free
 #include <cstring>  // std::strlen, std::strcpy, std::strstr
 #include <string.h>  // strdup, strcasecmp
+#include <vector>
 
 
 static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
+std::vector<char *> labels_data_v;
 static char ** labels_data = nullptr;
+
+
+// refactoring: replace with std function
+auto xstrcasestr(const char * haystack, const char * needle) -> const char *
+{
+#ifdef _WIN32
+  return StrStrIA(haystack, needle);
+#else
+  return strcasestr(haystack, needle);  // GNU extension, not available on Windows
+#endif
+}
 
 
 auto read_labels_file(char * filename) -> void
