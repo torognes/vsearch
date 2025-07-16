@@ -66,7 +66,7 @@
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"
-#include <algorithm>  // std::copy, std::max, std::min, std::search
+#include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
 #include <array>
 #include <cassert>
 #include <cctype>  // isalnum, std::toupper
