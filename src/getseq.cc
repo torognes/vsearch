@@ -149,7 +149,7 @@ auto read_labels_file(char * filename) -> void
       fatal("Unable to get status for labels file (%s)", filename);
     }
 
-  bool const is_pipe = S_ISFIFO(fs.st_mode);  // linuxism
+  auto const is_pipe = S_ISFIFO(fs.st_mode);  // linuxism
   uint64_t file_size = 0;
   if (not is_pipe)
     {
