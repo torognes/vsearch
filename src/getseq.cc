@@ -80,7 +80,7 @@
 static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
-std::vector<char *> labels_data_v;
+std::vector<char *> labels_data;
 
 
 // refactoring: replace with std function
@@ -136,13 +136,13 @@ auto read_labels_file(char * filename) -> void
       if (labels_count + 1 > labels_alloc)
         {
           labels_alloc += 1024;
-          labels_data_v.resize(labels_alloc);
-          if (labels_data_v.data() == nullptr)
+          labels_data.resize(labels_alloc);
+          if (labels_data.data() == nullptr)
             {
               fatal("Unable to allocate memory for labels");
             }
         }
-      labels_data_v[labels_count] = strdup(buffer.data());
+      labels_data[labels_count] = strdup(buffer.data());
       ++labels_count;
     }
 
@@ -167,7 +167,7 @@ auto free_labels() -> void
 {
   for (int i = 0; i < labels_count; i++)
     {
-      free(labels_data_v[i]);
+      free(labels_data[i]);
     }
 }
 
@@ -210,7 +210,7 @@ auto test_label_match(fastx_handle h) -> bool
         {
           for (int i = 0; i < labels_count; i++)
             {
-              if (xstrcasestr(header, labels_data_v[i]) != nullptr)
+              if (xstrcasestr(header, labels_data[i]) != nullptr)
                 {
                   return true;
                 }
@@ -220,7 +220,7 @@ auto test_label_match(fastx_handle h) -> bool
         {
           for (int i = 0; i < labels_count; i++)
             {
-              char * needle = labels_data_v[i];
+              char * needle = labels_data[i];
               int const wlen = std::strlen(needle);
               if ((hlen == wlen) and (strcasecmp(header, needle) == 0)) // strcasecmp is a linuxism
                 {
@@ -278,7 +278,7 @@ auto test_label_match(fastx_handle h) -> bool
     {
       for (int i = 0; i < labels_count; i++)
         {
-          char * needle = labels_data_v[i];
+          char * needle = labels_data[i];
           if (opt_label_field != nullptr)
             {
               std::strcpy(field_buffer + field_len + 1, needle);
