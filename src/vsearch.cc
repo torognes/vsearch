@@ -102,7 +102,7 @@
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
-#include <string.h>  // strcasecmp
+#include <string.h>  // strcasecmp (linuxism, replaced with std::equal in getseq.cc)
 #include <string>
 #include <vector>
 
