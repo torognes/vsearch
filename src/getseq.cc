@@ -125,8 +125,8 @@ namespace {
 
 auto read_labels_file(char * filename) -> void
 {
-  auto labels_alloc = 0;
-  auto labels_count = 0;
+  auto labels_alloc = 0U;
+  auto labels_count = 0U;
   auto fp_labels = open_input_file(filename);
   if (fp_labels.get() == nullptr)
     {
