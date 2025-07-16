@@ -163,6 +163,9 @@ auto read_labels_file(char * filename) -> void
 
   progress_done();
 
+  // definitive number of labels is known
+  labels_data.resize(labels_count);
+
   if (labels_longest >= 1023)
     {
       if (not opt_quiet)
