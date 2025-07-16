@@ -176,7 +176,7 @@ auto test_label_match(fastx_handle h) -> bool
 {
   char * header = fastx_get_header(h);
   int const hlen = fastx_get_header_length(h);
-  std::vector<char> field_buffer_v;
+  std::vector<char> field_buffer;
   int field_len = 0;
   if (opt_label_field != nullptr)
     {
@@ -190,8 +190,8 @@ auto test_label_match(fastx_handle h) -> bool
         {
           field_buffer_size += labels_longest;
         }
-      field_buffer_v.resize(field_buffer_size);
-      snprintf(field_buffer_v.data(), field_buffer_size, "%s=", opt_label_field);
+      field_buffer.resize(field_buffer_size);
+      snprintf(field_buffer.data(), field_buffer_size, "%s=", opt_label_field);
     }
 
   if (opt_label != nullptr)
@@ -234,8 +234,8 @@ auto test_label_match(fastx_handle h) -> bool
       char * needle = opt_label_word;
       if (opt_label_field != nullptr)
         {
-          std::strcpy(&field_buffer_v[field_len + 1], needle);
-          needle = field_buffer_v.data();
+          std::strcpy(&field_buffer[field_len + 1], needle);
+          needle = field_buffer.data();
         }
       int const wlen = std::strlen(needle);
       char * hit = header;
@@ -281,8 +281,8 @@ auto test_label_match(fastx_handle h) -> bool
           char * needle = labels_data[i];
           if (opt_label_field != nullptr)
             {
-              std::strcpy(&field_buffer_v[field_len + 1], needle);
-              needle = field_buffer_v.data();
+              std::strcpy(&field_buffer[field_len + 1], needle);
+              needle = field_buffer.data();
             }
           int const wlen = std::strlen(needle);
           char * hit = header;
