@@ -143,14 +143,14 @@ auto read_labels_file(char * filename) -> void
       fatal("Unable to open labels file (%s)", filename);
     }
 
-  xstat_t fs;
-  if (xfstat(fileno(fp_labels.get()), & fs) != 0)
+  xstat_t file_status;
+  if (xfstat(fileno(fp_labels.get()), & file_status) != 0)
     {
       fatal("Unable to get status for labels file (%s)", filename);
     }
 
-  auto const is_pipe = S_ISFIFO(fs.st_mode);  // linuxism
-  uint64_t const file_size = is_pipe ? 0: fs.st_size;
+  auto const is_pipe = S_ISFIFO(file_status.st_mode);  // linuxism
+  uint64_t const file_size = is_pipe ? 0: file_status.st_size;
 
   progress_init("Reading labels", file_size);
 
