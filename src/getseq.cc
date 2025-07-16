@@ -236,9 +236,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
         {
           for (int i = 0; i < labels_count; i++)
             {
-              char * needle = labels_data[i].data();
-              int const wlen = std::strlen(needle);
-              if ((hlen == wlen) and (are_same_string(header_view, labels_data[i])))
+              if ((header_view.size() == labels_data[i].size()) and (are_same_string(header_view, labels_data[i])))
                 {
                   return true;
                 }
