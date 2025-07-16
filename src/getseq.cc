@@ -65,22 +65,21 @@
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
-#include <algorithm>  // std::max, std::min
+#include <algorithm>  // std::copy, std::max, std::min
 #include <array>
 #include <cctype>  // isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets
-#include <cstdlib>  // std::realloc, std::free
 #include <cstring>  // std::strlen, std::strcpy, std::strstr
-#include <string.h>  // strdup, strcasecmp
+#include <string.h>  // strcasecmp
 #include <vector>
 
 
 static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
-std::vector<char *> labels_data;
+std::vector<std::vector<char>> labels_data;
 
 
 // refactoring: replace with std function
@@ -138,7 +137,9 @@ auto read_labels_file(char * filename) -> void
           labels_alloc += 1024;
           labels_data.resize(labels_alloc);
         }
-      labels_data[labels_count] = strdup(buffer.data());
+      labels_data[labels_count].resize(length);
+      std::copy(buffer.begin(), std::next(buffer.begin(), length),
+                labels_data[labels_count].begin()); // strdup(buffer.data());
       ++labels_count;
     }
 
@@ -155,15 +156,6 @@ auto read_labels_file(char * filename) -> void
         {
           fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
-    }
-}
-
-
-auto free_labels() -> void
-{
-  for (int i = 0; i < labels_count; i++)
-    {
-      free(labels_data[i]);
     }
 }
 
@@ -206,7 +198,7 @@ auto test_label_match(fastx_handle h) -> bool
         {
           for (int i = 0; i < labels_count; i++)
             {
-              if (xstrcasestr(header, labels_data[i]) != nullptr)
+              if (xstrcasestr(header, labels_data[i].data()) != nullptr)
                 {
                   return true;
                 }
@@ -216,7 +208,7 @@ auto test_label_match(fastx_handle h) -> bool
         {
           for (int i = 0; i < labels_count; i++)
             {
-              char * needle = labels_data[i];
+              char * needle = labels_data[i].data();
               int const wlen = std::strlen(needle);
               if ((hlen == wlen) and (strcasecmp(header, needle) == 0)) // strcasecmp is a linuxism
                 {
@@ -274,7 +266,7 @@ auto test_label_match(fastx_handle h) -> bool
     {
       for (int i = 0; i < labels_count; i++)
         {
-          char * needle = labels_data[i];
+          char * needle = labels_data[i].data();
           if (opt_label_field != nullptr)
             {
               std::strcpy(&field_buffer[field_len + 1], needle);
@@ -594,11 +586,6 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
     }
 
   fastx_close(h1);
-
-  if ((opt_labels != nullptr) or (opt_label_words != nullptr))
-    {
-      free_labels();
-    }
 }
 
 
