@@ -218,7 +218,8 @@ auto test_label_match(fastx_handle h) -> bool
         {
           for (int i = 0; i < labels_count; i++)
             {
-              if (xstrcasestr(header, labels_data[i].data()) != nullptr)
+              auto const needle_view = Span<char>{labels_data[i].data(), labels_data[i].size()};
+              if (contains_substring(header_view, needle_view))
                 {
                   return true;
                 }
