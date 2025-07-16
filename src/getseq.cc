@@ -150,11 +150,7 @@ auto read_labels_file(char * filename) -> void
     }
 
   auto const is_pipe = S_ISFIFO(fs.st_mode);  // linuxism
-  uint64_t file_size = 0;
-  if (not is_pipe)
-    {
-      file_size = fs.st_size;
-    }
+  uint64_t const file_size = is_pipe ? 0: fs.st_size;
 
   progress_init("Reading labels", file_size);
 
