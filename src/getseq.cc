@@ -308,8 +308,9 @@ auto test_label_match(fastx_handle input_handle) -> bool
         while (true)
           {
             hit = std::strstr(hit, needle);
-            if (hit != nullptr)
-              {
+            if (hit == nullptr) {
+              break;
+            }
                 if (opt_label_field != nullptr)
                   {
                     /* check of field */
@@ -333,11 +334,6 @@ auto test_label_match(fastx_handle input_handle) -> bool
                       }
                   }
                 ++hit;
-              }
-            else
-              {
-                break;
-              }
           }
       }  // end of labels_count loop
     }
