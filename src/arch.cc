@@ -65,7 +65,6 @@
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::realloc, std::free
-#include <string.h>  // strcasestr
 
 
 constexpr auto memalignment = 16;
