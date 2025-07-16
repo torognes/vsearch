@@ -139,7 +139,7 @@ auto read_labels_file(char * filename) -> void
         }
       labels_data[labels_count].resize(length);
       std::copy(buffer.begin(), std::next(buffer.begin(), length),
-                labels_data[labels_count].begin()); // strdup(buffer.data());
+                labels_data[labels_count].begin());
       ++labels_count;
     }
 
