@@ -100,17 +100,6 @@ auto contains_substring(Span<char> const haystack, Span<char> const needle) -> b
 }
 
 
-// refactoring: replace with std function
-auto xstrcasestr(const char * haystack, const char * needle) -> const char *
-{
-#ifdef _WIN32
-  return StrStrIA(haystack, needle);
-#else
-  return strcasestr(haystack, needle);  // GNU extension, not available on Windows
-#endif
-}
-
-
 auto read_labels_file(char * filename) -> void
 {
   auto fp_labels = open_input_file(filename);
