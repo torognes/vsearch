@@ -177,7 +177,6 @@ auto test_label_match(fastx_handle h) -> bool
   char * header = fastx_get_header(h);
   int const hlen = fastx_get_header_length(h);
   std::vector<char> field_buffer_v;
-  char * field_buffer = nullptr;
   int field_len = 0;
   if (opt_label_field != nullptr)
     {
@@ -192,7 +191,6 @@ auto test_label_match(fastx_handle h) -> bool
           field_buffer_size += labels_longest;
         }
       field_buffer_v.resize(field_buffer_size);
-      field_buffer = field_buffer_v.data();
       snprintf(field_buffer_v.data(), field_buffer_size, "%s=", opt_label_field);
     }
 
