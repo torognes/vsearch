@@ -100,6 +100,23 @@ auto contains_substring(Span<char> const haystack, Span<char> const needle) -> b
 }
 
 
+auto are_same_string(Span<char> const haystack, std::vector<char> const & needle) -> bool {
+  // case insensitive
+  auto compare_chars = [](char const lhs, char const rhs) {
+    assert((lhs >= 0) or (lhs == EOF));
+    auto const lhs_unsigned = static_cast<unsigned char>(lhs);
+    auto const rhs_unsigned = static_cast<unsigned char>(rhs);
+    return std::toupper(lhs_unsigned) == std::toupper(rhs_unsigned);
+  };
+
+  if (haystack.size() != needle.size()) {
+    return false;
+  }
+  return std::equal(haystack.begin(), haystack.end(),
+                    needle.begin(), compare_chars);
+}
+
+
 auto read_labels_file(char * filename) -> void
 {
   auto fp_labels = open_input_file(filename);
@@ -221,7 +238,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
             {
               char * needle = labels_data[i].data();
               int const wlen = std::strlen(needle);
-              if ((hlen == wlen) and (strcasecmp(header, needle) == 0)) // strcasecmp is a linuxism
+              if ((hlen == wlen) and (are_same_string(header_view, labels_data[i])))
                 {
                   return true;
                 }
