@@ -77,7 +77,6 @@
 #include <vector>
 
 
-static int labels_longest = 0;
 std::vector<std::vector<char>> labels_data;
 
 
@@ -137,6 +136,7 @@ auto read_labels_file(char * filename) -> void
 {
   auto labels_alloc = 0U;
   auto labels_count = 0U;
+  auto labels_longest = 0;
   auto fp_labels = open_input_file(filename);
   if (fp_labels.get() == nullptr)
     {
