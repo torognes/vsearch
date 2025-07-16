@@ -84,6 +84,9 @@ static int labels_longest = 0;
 std::vector<std::vector<char>> labels_data;
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 auto compare_chars = [](char const lhs, char const rhs) {
   assert((lhs >= 0) or (lhs == EOF));
   auto const lhs_unsigned = static_cast<unsigned char>(lhs);
@@ -120,6 +123,7 @@ auto are_same_string(Span<char> const haystack, Span<char> const needle) -> bool
                     needle.begin(), compare_chars);
 }
 
+}  // end of anonymous namespace
 
 auto read_labels_file(char * filename) -> void
 {
