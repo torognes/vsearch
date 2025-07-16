@@ -275,7 +275,9 @@ auto test_label_match(fastx_handle input_handle) -> bool
       while (true)
         {
           hit = std::strstr(header_view.data(), needle);
-          if (hit == nullptr) { break; }
+          if (hit == nullptr) {
+            break;
+          }
           if (opt_label_field != nullptr)
             {
               /* check of field */
