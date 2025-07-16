@@ -190,7 +190,8 @@ auto read_labels_file(char * filename) -> void
   // definitive number of labels is known
   labels_data.resize(labels_count);
 
-  if (labels_longest >= 1023UL)
+  static constexpr auto max_label_length = std::size_t{1023};
+  if (labels_longest >= max_label_length)
     {
       if (not opt_quiet)
         {
