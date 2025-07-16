@@ -72,7 +72,7 @@
 #include <cctype>  // isalnum, std::toupper
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
 #include <cstring>  // std::strlen, std::strcpy, std::strstr
 #include <vector>
 
@@ -118,6 +118,16 @@ namespace {
     }
     return std::equal(haystack.begin(), haystack.end(),
                       needle.begin(), compare_chars);
+  }
+
+
+  auto find_length_longest_label(std::vector<std::vector<char>> const & labels)
+    -> std::size_t {
+    auto longest = std::size_t{0};
+    for (auto const & label : labels) {
+      longest = std::max(longest, label.size());
+    }
+    return longest;
   }
 
 }  // end of anonymous namespace
@@ -201,6 +211,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
   auto const header_length = fastx_get_header_length(input_handle);
   int const hlen = static_cast<int>(header_length);
   auto const header_view = Span<char>{header, header_length};
+  auto const longest_label = find_length_longest_label(labels_data);
   std::vector<char> field_buffer;
   int field_len = 0;
   if (opt_label_field != nullptr)
@@ -213,7 +224,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
         }
       else
         {
-          field_buffer_size += labels_longest;
+          field_buffer_size += static_cast<int>(longest_label);
         }
       field_buffer.resize(field_buffer_size);
       snprintf(field_buffer.data(), field_buffer_size, "%s=", opt_label_field);
