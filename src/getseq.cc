@@ -227,7 +227,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
         {
           return (contains_substring(header_view, needle_view));
         }
-      return (header_view.size() == needle_view.size()) and (strcasecmp(header, needle) == 0); // strcasecmp is a linuxism
+      return (are_same_string(header_view, needle_view));
     }
   if (opt_labels != nullptr)
     {
