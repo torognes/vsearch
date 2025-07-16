@@ -335,7 +335,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
               }
             ++hit;
           }
-      }  // end of labels_count loop
+      }  // end of range-for loop
     }
   return false;
 }
