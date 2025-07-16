@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "dynlibs.h"
 #include "utils/fatal.hpp"
+#include <algorithm>  // std::max
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdlib>  // std::realloc, std::free
@@ -219,10 +220,8 @@ auto arch_random() -> uint64_t
 
 auto xmalloc(std::size_t size) -> void *
 {
-  if (size == 0)
-    {
-      size = 1;
-    }
+  static constexpr auto minimal_allocation = 1UL;
+  size = std::max(size, minimal_allocation);
   void * ptr = nullptr;
 #ifdef _WIN32
   ptr = _aligned_malloc(size, memalignment);
