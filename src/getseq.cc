@@ -158,6 +158,7 @@ auto read_labels_file(char * filename) -> void
 
   progress_init("Reading labels", file_size);
 
+  static constexpr auto a_memory_chunck = 1024U;
   while (true)
     {
       static constexpr auto buffer_size = 1024;
@@ -176,7 +177,7 @@ auto read_labels_file(char * filename) -> void
 
       if (labels_count + 1 > labels_alloc)
         {
-          labels_alloc += 1024;
+          labels_alloc += a_memory_chunck;
           labels_data.resize(labels_alloc);
         }
       labels_data[labels_count].resize(length);
