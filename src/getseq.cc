@@ -136,7 +136,7 @@ auto read_labels_file(char * filename) -> void
 {
   auto labels_alloc = 0U;
   auto labels_count = 0U;
-  auto labels_longest = 0;
+  auto labels_longest = std::size_t{0};
   auto fp_labels = open_input_file(filename);
   if (fp_labels.get() == nullptr)
     {
@@ -172,7 +172,7 @@ auto read_labels_file(char * filename) -> void
           --length;
         }
 
-      labels_longest = std::max(static_cast<int>(length), labels_longest);
+      labels_longest = std::max(length, labels_longest);
 
       if (labels_count + 1 > labels_alloc)
         {
@@ -190,7 +190,7 @@ auto read_labels_file(char * filename) -> void
   // definitive number of labels is known
   labels_data.resize(labels_count);
 
-  if (labels_longest >= 1023)
+  if (labels_longest >= 1023UL)
     {
       if (not opt_quiet)
         {
