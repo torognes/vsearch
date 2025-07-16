@@ -241,10 +241,8 @@ auto xmalloc(std::size_t size) -> void *
 
 auto xrealloc(void * ptr, std::size_t size) -> void *
 {
-  if (size == 0)
-    {
-      size = 1;
-    }
+  static constexpr auto minimal_allocation = 1UL;
+  size = std::max(size, minimal_allocation);
 #ifdef _WIN32
   void * new_ptr = _aligned_realloc(ptr, size, memalignment);
 #else
