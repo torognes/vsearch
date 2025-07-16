@@ -234,13 +234,12 @@ auto test_label_match(fastx_handle input_handle) -> bool
         }
       else
         {
-          for (int i = 0; i < labels_count; i++)
-            {
-              if ((header_view.size() == labels_data[i].size()) and (are_same_string(header_view, labels_data[i])))
-                {
-                  return true;
-                }
+          for (auto const & label: labels_data) {
+            if ((header_view.size() == label.size())
+                and (are_same_string(header_view, label))) {
+              return true;
             }
+          }
         }
     }
   else if (opt_label_word != nullptr)
