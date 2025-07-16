@@ -193,7 +193,7 @@ auto test_label_match(fastx_handle h) -> bool
         }
       field_buffer_v.resize(field_buffer_size);
       field_buffer = field_buffer_v.data();
-      snprintf(field_buffer, field_buffer_size, "%s=", opt_label_field);
+      snprintf(field_buffer_v.data(), field_buffer_size, "%s=", opt_label_field);
     }
 
   if (opt_label != nullptr)
@@ -237,7 +237,7 @@ auto test_label_match(fastx_handle h) -> bool
       if (opt_label_field != nullptr)
         {
           std::strcpy(field_buffer + field_len + 1, needle);
-          needle = field_buffer;
+          needle = field_buffer_v.data();
         }
       int const wlen = std::strlen(needle);
       char * hit = header;
@@ -284,7 +284,7 @@ auto test_label_match(fastx_handle h) -> bool
           if (opt_label_field != nullptr)
             {
               std::strcpy(field_buffer + field_len + 1, needle);
-              needle = field_buffer;
+              needle = field_buffer_v.data();
             }
           int const wlen = std::strlen(needle);
           char * hit = header;
