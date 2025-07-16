@@ -137,8 +137,8 @@ auto read_labels_file(char * filename) -> void
       if (labels_count + 1 > labels_alloc)
         {
           labels_alloc += 1024;
-          labels_data = static_cast<char **>(xrealloc(labels_data,
-                                                      labels_alloc * sizeof (char *)));
+          labels_data_v.resize(labels_alloc);
+          labels_data = labels_data_v.data();
           if (labels_data == nullptr)
             {
               fatal("Unable to allocate memory for labels");
@@ -171,7 +171,6 @@ auto free_labels() -> void
     {
       free(labels_data[i]);
     }
-  free(labels_data);
   labels_data = nullptr;
 }
 
