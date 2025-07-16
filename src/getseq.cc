@@ -65,12 +65,14 @@
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
-#include <algorithm>  // std::copy, std::max, std::min
+#include "utils/span.hpp"
+#include <algorithm>  // std::copy, std::max, std::min, std::search
 #include <array>
-#include <cctype>  // isalnum
+#include <cassert>
+#include <cctype>  // isalnum, std::toupper
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF
 #include <cstring>  // std::strlen, std::strcpy, std::strstr
 #include <string.h>  // strcasecmp
 #include <vector>
@@ -80,6 +82,21 @@ static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
 std::vector<std::vector<char>> labels_data;
+
+
+auto find_string(Span<char> const haystack, Span<char> const needle) -> bool {
+  auto compare_chars = [](char const lhs, char const rhs) {
+    assert((lhs >= 0) or (lhs == EOF));
+    auto const lhs_unsigned = static_cast<unsigned char>(lhs);
+    auto const rhs_unsigned = static_cast<unsigned char>(rhs);
+    return std::toupper(lhs_unsigned) == std::toupper(rhs_unsigned);
+  };
+
+  auto const hit = std::search(haystack.begin(), haystack.end(),
+                               needle.begin(), needle.end(),
+                               compare_chars);
+  return (hit != haystack.end());
+}
 
 
 // refactoring: replace with std function
@@ -163,7 +180,9 @@ auto read_labels_file(char * filename) -> void
 auto test_label_match(fastx_handle h) -> bool
 {
   char * header = fastx_get_header(h);
-  int const hlen = fastx_get_header_length(h);
+  auto const header_length = fastx_get_header_length(h);
+  int const hlen = static_cast<int>(header_length);
+  auto const header_view = Span<char>{header, header_length};
   std::vector<char> field_buffer;
   int field_len = 0;
   if (opt_label_field != nullptr)
@@ -185,10 +204,11 @@ auto test_label_match(fastx_handle h) -> bool
   if (opt_label != nullptr)
     {
       char * needle = opt_label;
-      int const wlen = std::strlen(needle);
+      auto const needle_length = std::strlen(needle);
+      int const wlen = static_cast<int>(needle_length);
       if (opt_label_substr_match)
         {
-          return (xstrcasestr(header, needle) != nullptr);
+          return (find_string(header_view, Span<char>{needle, needle_length}));
         }
       return (hlen == wlen) and (strcasecmp(header, needle) == 0); // strcasecmp is a linuxism
     }
