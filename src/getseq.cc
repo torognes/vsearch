@@ -204,13 +204,12 @@ auto test_label_match(fastx_handle h) -> bool
   if (opt_label != nullptr)
     {
       char * needle = opt_label;
-      auto const needle_length = std::strlen(needle);
       auto const needle_view = Span<char>{opt_label, std::strlen(needle)};
       if (opt_label_substr_match)
         {
           return (find_substring(header_view, needle_view));
         }
-      return (header_length == needle_length) and (strcasecmp(header, needle) == 0); // strcasecmp is a linuxism
+      return (header_view.size() == needle_view.size()) and (strcasecmp(header, needle) == 0); // strcasecmp is a linuxism
     }
   if (opt_labels != nullptr)
     {
