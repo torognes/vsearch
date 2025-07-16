@@ -235,8 +235,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
       else
         {
           for (auto const & label: labels_data) {
-            if ((header_view.size() == label.size())
-                and (are_same_string(header_view, label))) {
+            if (are_same_string(header_view, label)) {
               return true;
             }
           }
