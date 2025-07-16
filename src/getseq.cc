@@ -297,49 +297,49 @@ auto test_label_match(fastx_handle input_handle) -> bool
   else if (opt_label_words != nullptr)
     {
       for (auto & label: labels_data) {
-          char * needle = label.data();
-          if (opt_label_field != nullptr)
-            {
-              std::strcpy(&field_buffer[field_len + 1], needle);
-              needle = field_buffer.data();
-            }
-          int const wlen = std::strlen(needle);
-          char * hit = header;
-          while (true)
-            {
-              hit = std::strstr(hit, needle);
-              if (hit != nullptr)
-                {
-                  if (opt_label_field != nullptr)
-                    {
-                      /* check of field */
-                      if (((hit == header) or
-                           (*(hit - 1) == ';')) and
-                          ((hit + wlen == header + hlen) or
-                           (*(hit + wlen) == ';')))
-                        {
-                          return true;
-                        }
-                    }
-                  else
-                    {
-                      /* check of full word */
-                      if (((hit == header) or
-                           (isalnum(*(hit - 1)) == 0)) and
-                          ((hit + wlen == header + hlen) or
-                           (isalnum(*(hit + wlen)) == 0)))
-                        {
-                          return true;
-                        }
-                    }
-                  ++hit;
-                }
-              else
-                {
-                  break;
-                }
-            }
-        }  // end of labels_count loop
+        char * needle = label.data();
+        if (opt_label_field != nullptr)
+          {
+            std::strcpy(&field_buffer[field_len + 1], needle);
+            needle = field_buffer.data();
+          }
+        int const wlen = std::strlen(needle);
+        char * hit = header;
+        while (true)
+          {
+            hit = std::strstr(hit, needle);
+            if (hit != nullptr)
+              {
+                if (opt_label_field != nullptr)
+                  {
+                    /* check of field */
+                    if (((hit == header) or
+                         (*(hit - 1) == ';')) and
+                        ((hit + wlen == header + hlen) or
+                         (*(hit + wlen) == ';')))
+                      {
+                        return true;
+                      }
+                  }
+                else
+                  {
+                    /* check of full word */
+                    if (((hit == header) or
+                         (isalnum(*(hit - 1)) == 0)) and
+                        ((hit + wlen == header + hlen) or
+                         (isalnum(*(hit + wlen)) == 0)))
+                      {
+                        return true;
+                      }
+                  }
+                ++hit;
+              }
+            else
+              {
+                break;
+              }
+          }
+      }  // end of labels_count loop
     }
   return false;
 }
