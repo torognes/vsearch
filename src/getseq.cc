@@ -81,7 +81,6 @@ static int labels_alloc = 0;
 static int labels_count = 0;
 static int labels_longest = 0;
 std::vector<char *> labels_data_v;
-static char ** labels_data = nullptr;
 
 
 // refactoring: replace with std function
@@ -138,7 +137,6 @@ auto read_labels_file(char * filename) -> void
         {
           labels_alloc += 1024;
           labels_data_v.resize(labels_alloc);
-          labels_data = labels_data_v.data();
           if (labels_data_v.data() == nullptr)
             {
               fatal("Unable to allocate memory for labels");
@@ -171,7 +169,6 @@ auto free_labels() -> void
     {
       free(labels_data_v[i]);
     }
-  labels_data = nullptr;
 }
 
 
