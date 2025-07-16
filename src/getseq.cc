@@ -161,7 +161,7 @@ auto read_labels_file(char * filename) -> void
   static constexpr auto a_memory_chunck = 1024U;
   while (true)
     {
-      static constexpr auto buffer_size = 1024;
+      static constexpr auto buffer_size = 1024U;
       std::array<char, buffer_size> buffer {{}};
       auto * return_value = std::fgets(buffer.data(), buffer_size, fp_labels.get());
       if (return_value == nullptr) { break; }
