@@ -305,7 +305,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
         char * needle = label.data();
         if (opt_label_field != nullptr)
           {
-            std::strcpy(&field_buffer[field_len + 1], needle);
+            std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
             needle = field_buffer.data();
           }
         int const wlen = std::strlen(needle);
