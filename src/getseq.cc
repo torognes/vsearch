@@ -178,10 +178,10 @@ auto read_labels_file(char * filename) -> void
 }
 
 
-auto test_label_match(fastx_handle h) -> bool
+auto test_label_match(fastx_handle input_handle) -> bool
 {
-  char * header = fastx_get_header(h);
-  auto const header_length = fastx_get_header_length(h);
+  char * header = fastx_get_header(input_handle);
+  auto const header_length = fastx_get_header_length(input_handle);
   int const hlen = static_cast<int>(header_length);
   auto const header_view = Span<char>{header, header_length};
   std::vector<char> field_buffer;
