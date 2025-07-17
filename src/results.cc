@@ -508,6 +508,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         }
     }
   fprintf(output_handle, "\n");
+  xfree(userfields_requested);
 }
 
 
