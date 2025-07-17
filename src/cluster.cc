@@ -1741,6 +1741,7 @@ auto cluster(char * dbname,
   if (fp_userout != nullptr)
     {
       fclose(fp_userout);
+      clean_up(); // free userfields allocation
     }
   if (fp_alnout != nullptr)
     {
