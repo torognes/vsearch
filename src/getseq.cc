@@ -83,7 +83,7 @@ std::vector<std::vector<char>> labels_data;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto compare_chars = [](char const lhs, char const rhs) {
+  auto compare_chars = [](char const lhs, char const rhs) -> bool {
     assert((lhs >= 0) or (lhs == EOF));
     auto const lhs_unsigned = static_cast<unsigned char>(lhs);
     auto const rhs_unsigned = static_cast<unsigned char>(rhs);
