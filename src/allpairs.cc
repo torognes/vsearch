@@ -264,10 +264,6 @@ auto allpairs_output_results(int hit_count,
         }
     }
 
-  if (fp_userout != nullptr) {
-    clean_up(); // free userfields allocation
-  }
-
   if (hit_count != 0)
     {
       ++count_matched;
@@ -547,7 +543,6 @@ auto allpairs_thread_run(int64_t t) -> void
     }
 
   search16_exit(searchinfo.s);
-
 }
 
 
@@ -783,4 +778,8 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
       fclose(fp_samout);
     }
   show_rusage();
+
+  if (fp_userout != nullptr) {
+    clean_up(); // free userfields allocation
+  }
 }
