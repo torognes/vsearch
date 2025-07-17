@@ -142,7 +142,14 @@ private:
   auto reserve(std::size_t const new_capacity) -> void {
     assert(new_capacity > capacity());
     alloc_ = new_capacity;
-    string_ = static_cast<char *>(xrealloc(string_, alloc_));
+    if (string_ == nullptr) {
+      string_ = static_cast<char *>(xmalloc(alloc_));
+      std::memset(string_, 0, alloc_);
+    } else {
+      auto const old_size = size();
+      string_ = static_cast<char *>(xrealloc(string_, alloc_));
+      std::memset(string_ + old_size, 0, alloc_ - old_size);
+    }
   }
   auto size() const -> std::size_t { return length_; }
 };
