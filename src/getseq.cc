@@ -270,14 +270,14 @@ auto test_label_match(fastx_handle input_handle) -> bool
       char * hit = header_view.data();
       while (true)
         {
-          hit = std::strstr(header_view.data(), needle);
+          hit = std::strstr(hit, needle);
           if (hit == nullptr) {
             break;
           }
           if (opt_label_field != nullptr)
             {
               /* check of field */
-              if (((hit == header_view.data()) or
+              if (((hit == header) or
                    (*(hit - 1) == ';')) and
                   ((hit + wlen == header + hlen) or
                    (*(hit + wlen) == ';')))
@@ -288,7 +288,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
           else
             {
               /* check of full word */
-              if (((hit == header_view.data()) or
+              if (((hit == header) or
                    (isalnum(*(hit - 1)) == 0)) and
                   ((hit + wlen == header + hlen) or
                    (isalnum(*(hit + wlen)) == 0)))
