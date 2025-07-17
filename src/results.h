@@ -118,3 +118,5 @@ auto results_show_samout(std::FILE * output_handle,
                          char * query_head,
                          char * qsequence,
                          char * qsequence_rc) -> void;
+
+auto clean_up() -> void;

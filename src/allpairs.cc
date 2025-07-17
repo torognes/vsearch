@@ -264,6 +264,10 @@ auto allpairs_output_results(int hit_count,
         }
     }
 
+  if (fp_userout != nullptr) {
+    clean_up(); // free userfields allocation
+  }
+
   if (hit_count != 0)
     {
       ++count_matched;

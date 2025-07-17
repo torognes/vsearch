@@ -508,7 +508,6 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         }
     }
   fprintf(output_handle, "\n");
-  xfree(userfields_requested);
 }
 
 
@@ -1005,4 +1004,12 @@ auto results_show_samout(std::FILE * output_handle,
               qsequence,
               "*");
     }
+}
+
+
+auto clean_up() -> void {
+  if (userfields_requested != nullptr) {
+    xfree(userfields_requested);
+  }
+  userfields_requested = nullptr;
 }
