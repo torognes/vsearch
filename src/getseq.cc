@@ -93,9 +93,9 @@ namespace {
 
   auto contains_substring(Span<char> const haystack, Span<char> const needle) -> bool {
     // case insensitive
-    auto const hit = std::search(haystack.begin(), haystack.end(),
-                                 needle.begin(), needle.end(),
-                                 compare_chars);
+    auto * const hit = std::search(haystack.begin(), haystack.end(),
+                                   needle.begin(), needle.end(),
+                                   compare_chars);
     return (hit != haystack.end());
   }
 
