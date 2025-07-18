@@ -141,7 +141,7 @@ private:
 
   auto cigar_add(char _op, int64_t run) -> void;
 
-  auto subst_score(char const lhs, char const rhs) -> int64_t;
+  auto subst_score(char lhs, char rhs) -> int64_t;
 
   auto diff(int64_t a_start,
             int64_t b_start,
