@@ -152,7 +152,7 @@ public:
 
 private:
   Type * start_ {};
-  std::size_t length_ {};
+  std::size_t const length_ {};
 };
 
 
