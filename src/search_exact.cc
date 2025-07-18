@@ -838,9 +838,10 @@ auto search_exact(struct Parameters const & parameters, char * cmdline, char * p
   /* allocate memory for thread info */
   std::vector<struct searchinfo_s> si_plus_v(parameters.opt_threads);
   si_plus = si_plus_v.data();
+  std::vector<struct searchinfo_s> si_minus_v;
   if (parameters.opt_strand)
     {
-      std::vector<struct searchinfo_s> si_minus_v(parameters.opt_threads);
+      si_minus_v.resize(parameters.opt_threads);
       si_minus = si_minus_v.data();
     }
 
