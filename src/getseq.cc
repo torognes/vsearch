@@ -194,8 +194,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
 
   if (opt_label != nullptr)
     {
-      char * needle = opt_label;
-      auto const needle_view = Span<char>{opt_label, std::strlen(needle)};
+      auto const needle_view = Span<char>{opt_label, std::strlen(opt_label)};
       if (opt_label_substr_match)
         {
           return (contains_substring(header_view, needle_view));
