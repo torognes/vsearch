@@ -91,6 +91,13 @@ public:
     assert(length <= max_ptrdiff);
   }
 
+  explicit Span(Type const * start, std::size_t const length)
+    : start_ {const_cast<Type *>(start)},
+      length_ {length} {
+    assert(start != nullptr);
+    assert(length <= max_ptrdiff);
+  }
+
   // Iterators
   auto begin() const -> Type * { return data(); }
   auto cbegin() const -> Type const * { return data(); }
