@@ -58,100 +58,32 @@
 
 */
 
-#include "utils/fatal.hpp"
-#include <array>
-#include <cassert>
-#include <cstddef>  // std::ptrdiff_t
-#include <cstdio>  // std::size_t, std::snprintf
-#include <cstring>  // std::strlen, std::strcpy
-#include <iterator> // std::prev, std::next
+#include <string>
 
 
-static std::array<char, 1> empty_string = {""};
-
-class xstring
-{
+class xstring {
 private:
-  char * string_ {};
-  std::size_t length_ {};
-  std::size_t alloc_ {};
+  std::string string_;
 
  public:
   xstring() = default;
 
-  ~xstring() {
-    if (capacity() != 0) {
-      xfree(string_);
-    }
-    alloc_ = 0;
-    string_ = nullptr;
-    length_ = 0;
-  }
-
-  // Iterators
-  auto end() const -> char * {
-    auto const distance = static_cast<std::ptrdiff_t>(size());
-    return std::next(data(), distance);
-  }
-
-  // Modifiers
-  auto clear() -> void {
-    length_ = 0;
-  }
-
-  auto add_c(char a_char) -> void {
-    // add a character (M, I, or D)
-    static constexpr std::size_t needed = 1;
-    auto const new_capacity = size() + needed + 1;
-    if (new_capacity > capacity()) {
-      reserve(new_capacity);
-    }
-    back() = a_char;
-    length_ += 1;
-    back() = '\0';
-  }
-
-  auto add_d(int a_number) -> void {
+  auto add_d(int const runlength) -> void {
     // add digits
-    auto const needed = std::snprintf(nullptr, 0, "%d", a_number);
-    if (needed < 0) {
-      fatal("snprintf failed");
-    }
-
-    auto const new_capacity = size() + needed + 1;
-    if (new_capacity > capacity()) {
-      reserve(new_capacity);
-    }
-    static_cast<void>(std::snprintf(end(), needed + 1, "%d", a_number));
-    length_ += needed;
+    string_ += std::to_string(runlength);
   }
 
-  // Element access
-  auto data() const -> char * {
-    if (empty()) {
-      return empty_string.data();
-    }
-    return string_;
-  }
-  auto back() const -> char & {
-    assert(not empty());
-    return *std::prev(end());
+  auto add_c(char const operation) -> void {
+    // add a character (M, I, or D)
+    string_ += operation;
   }
 
-  // Capacity
-  auto capacity() const -> std::size_t { return alloc_; }
-  auto empty() const -> bool { return size() == 0; }
-  auto reserve(std::size_t const new_capacity) -> void {
-    assert(new_capacity > capacity());
-    alloc_ = new_capacity;
-    if (string_ == nullptr) {
-      string_ = static_cast<char *>(xmalloc(alloc_));
-      std::memset(string_, 0, alloc_);
-    } else {
-      auto const old_size = size();
-      string_ = static_cast<char *>(xrealloc(string_, alloc_));
-      std::memset(string_ + old_size, 0, alloc_ - old_size);
-    }
+  auto clear() -> void {
+    string_.clear();
   }
-  auto size() const -> std::size_t { return length_; }
+
+  auto data() -> char * {
+    // return pointer to a null-terminated character array
+    return const_cast<char *>(string_.c_str());
+  }
 };
