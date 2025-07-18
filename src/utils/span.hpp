@@ -114,7 +114,7 @@ public:
     return *std::prev(end());
   }
   auto data() const -> Type * { return start_; }
-  auto operator[](std::size_t index) const -> Type & {
+  auto operator[](std::size_t const index) const -> Type & {
     assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
     return *std::next(data(), distance);
