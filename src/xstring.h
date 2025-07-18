@@ -100,6 +100,7 @@ private:
   }
 
   auto add_c(char a_char) -> void {
+    // add a character (M, I, or D)
     static constexpr std::size_t needed = 1;
     auto const new_capacity = size() + needed + 1;
     if (new_capacity > capacity()) {
@@ -111,6 +112,7 @@ private:
   }
 
   auto add_d(int a_number) -> void {
+    // add digits
     auto const needed = std::snprintf(nullptr, 0, "%d", a_number);
     if (needed < 0) {
       fatal("snprintf failed");
