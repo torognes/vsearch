@@ -109,6 +109,7 @@ util.h \
 utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
+utils/compare_strings_nocase.hpp \
 utils/fatal.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
@@ -210,6 +211,7 @@ utils/fatal.cpp \
 utils/maps.cpp \
 utils/check_output_filehandle.cpp \
 utils/cigar.cpp \
+utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
 utils/xpthread.cpp \
 utils/seqcmp.cc \
