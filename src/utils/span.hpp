@@ -84,7 +84,7 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 template <typename Type>
 class Span {
 public:
-  explicit Span(Type * start, std::size_t length)
+  explicit Span(Type * start, std::size_t const length)
     : start_ {start},
       length_ {length} {
     assert(start != nullptr);
