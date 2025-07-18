@@ -60,7 +60,7 @@
 
 
 auto check_mandatory_output_handle(char const * filename,
-                                   bool const filehandle_is_empty) -> void;
+                                   bool filehandle_is_empty) -> void;
 
 auto check_optional_output_handle(char const * filename,
-                                  bool const filehandle_is_empty) -> void;
+                                  bool filehandle_is_empty) -> void;
