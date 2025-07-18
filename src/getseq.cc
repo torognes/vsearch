@@ -70,7 +70,7 @@
 #include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
 #include <array>
 #include <cassert>
-#include <cctype>  // isalnum, std::toupper
+#include <cctype>  // isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
