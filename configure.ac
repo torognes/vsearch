@@ -34,7 +34,7 @@ AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memmove memcpy posix_memalign gettimeofday localtime memchr memset pow regcomp strcasecmp strchr strcspn sysinfo])
+AC_CHECK_FUNCS([memmove memcpy posix_memalign gettimeofday localtime memchr memset pow regcomp strchr strcspn sysinfo])
 
 have_bzip2=no
 AC_ARG_ENABLE(bzip2, AS_HELP_STRING([--disable-bzip2], [Disable bzip2 support]))

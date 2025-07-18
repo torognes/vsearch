@@ -89,6 +89,7 @@
 #include "subsample.h"
 #include "udb.h"
 #include "userfields.h"
+#include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
@@ -102,7 +103,6 @@
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
-#include <string.h>  // strcasecmp (linuxism, replaced with std::equal in getseq.cc)
 #include <string>
 #include <vector>
 
@@ -1547,12 +1547,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_strand:
-          if (strcasecmp(optarg, "plus") == 0)
+          if (are_same_string(optarg, "plus"))
             {
               opt_strand = 1;
               parameters.opt_strand = false;
             }
-          else if (strcasecmp(optarg, "both") == 0)
+          else if (are_same_string(optarg, "both"))
             {
               opt_strand = 2;
               parameters.opt_strand = true;
@@ -1834,17 +1834,17 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_qmask:
-          if (strcasecmp(optarg, "none") == 0)
+          if (are_same_string(optarg, "none"))
             {
               opt_qmask = MASK_NONE;
               parameters.opt_qmask = MASK_NONE;
             }
-          else if (strcasecmp(optarg, "dust") == 0)
+          else if (are_same_string(optarg, "dust"))
             {
               opt_qmask = MASK_DUST;
               parameters.opt_qmask = MASK_DUST;
             }
-          else if (strcasecmp(optarg, "soft") == 0)
+          else if (are_same_string(optarg, "soft"))
             {
               opt_qmask = MASK_SOFT;
               parameters.opt_qmask = MASK_SOFT;
@@ -1857,15 +1857,15 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_dbmask:
-          if (strcasecmp(optarg, "none") == 0)
+          if (are_same_string(optarg, "none"))
             {
               opt_dbmask = MASK_NONE;
             }
-          else if (strcasecmp(optarg, "dust") == 0)
+          else if (are_same_string(optarg, "dust"))
             {
               opt_dbmask = MASK_DUST;
             }
-          else if (strcasecmp(optarg, "soft") == 0)
+          else if (are_same_string(optarg, "soft"))
             {
               opt_dbmask = MASK_SOFT;
             }
