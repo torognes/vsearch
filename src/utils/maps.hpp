@@ -76,8 +76,8 @@ extern const std::vector<unsigned char> chrmap_upcase_vector;
 
 extern const std::vector<bool> is_ambiguous_4bit;
 
-auto map_uppercase(char const nucleotide) -> char;
+auto map_uppercase(char nucleotide) -> char;
 
-auto map_4bit(char const nucleotide) -> unsigned char;
+auto map_4bit(char nucleotide) -> unsigned char;
 
 #endif // MAPS_HPP
