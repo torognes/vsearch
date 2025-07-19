@@ -82,8 +82,8 @@ private:
     string_.clear();
   }
 
-  auto c_str() -> char * {
+  auto c_str() -> char const * {
     // return pointer to a null-terminated character array
-    return const_cast<char *>(string_.c_str());
+    return string_.c_str();
   }
 };
