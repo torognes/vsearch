@@ -82,7 +82,7 @@ private:
     string_.clear();
   }
 
-  auto data() -> char * {
+  auto c_str() -> char * {
     // return pointer to a null-terminated character array
     return const_cast<char *>(string_.c_str());
   }
