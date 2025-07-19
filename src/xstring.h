@@ -74,7 +74,7 @@ private:
   }
 
   auto add_c(char const operation) -> void {
-    // add a character (M, I, or D)
+    // add a CIGAR or MD character
     string_ += operation;
   }
 
