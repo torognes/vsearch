@@ -761,8 +761,8 @@ auto inline nucleotide_equal(char lhs, char rhs) -> bool
 auto build_sam_strings(char * alignment,
                        char * queryseq,
                        char * targetseq,
-                       xstring * cigar,
-                       xstring * md) -> void
+                       xstring & cigar,
+                       xstring & md) -> void
 {
   /*
     convert cigar to sam format:
@@ -772,8 +772,8 @@ auto build_sam_strings(char * alignment,
     build MD-string with substitutions
   */
 
-  cigar->clear();
-  md->clear();
+  cigar.clear();
+  md.clear();
 
   auto * p = alignment;
   auto * e = p + strlen(p);
@@ -796,8 +796,8 @@ auto build_sam_strings(char * alignment,
       switch (op)
         {
         case 'M':
-          cigar->add_d(run);
-          cigar->add_c('M');
+          cigar.add_d(run);
+          cigar.add_c('M');
 
           for (auto i = 0; i < run; i++)
             {
@@ -809,12 +809,12 @@ auto build_sam_strings(char * alignment,
                 {
                   if (not flag)
                     {
-                      md->add_d(matched);
+                      md.add_d(matched);
                       matched = 0;
                       flag = true;
                     }
 
-                  md->add_c(targetseq[tpos]);
+                  md.add_c(targetseq[tpos]);
                   flag = false;
                 }
               ++qpos;
@@ -824,26 +824,26 @@ auto build_sam_strings(char * alignment,
           break;
 
         case 'D':
-          cigar->add_d(run);
-          cigar->add_c('I');
+          cigar.add_d(run);
+          cigar.add_c('I');
           qpos += run;
           break;
 
         case 'I':
-          cigar->add_d(run);
-          cigar->add_c('D');
+          cigar.add_d(run);
+          cigar.add_c('D');
 
           if (not flag)
             {
-              md->add_d(matched);
+              md.add_d(matched);
               matched = 0;
               flag = true;
             }
 
-          md->add_c('^');
+          md.add_c('^');
           for (auto i = 0; i < run; i++)
             {
-              md->add_c(targetseq[tpos]);
+              md.add_c(targetseq[tpos]);
               ++tpos;
             }
           flag = false;
@@ -853,7 +853,7 @@ auto build_sam_strings(char * alignment,
 
   if (not flag)
     {
-      md->add_d(matched);
+      md.add_d(matched);
       matched = 0;
       flag = true;
     }
@@ -957,8 +957,8 @@ auto results_show_samout(std::FILE * output_handle,
           build_sam_strings(hp->nwalignment,
                             (hp->strand != 0) ? qsequence_rc : qsequence,
                             db_getsequence(hp->target),
-                            &cigar,
-                            &md);
+                            cigar,
+                            md);
 
           fprintf(output_handle,
                   "%s\t%u\t%s\t%" PRIu64
