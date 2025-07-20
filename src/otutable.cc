@@ -66,7 +66,7 @@
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::strncpy, std::strcspn, std::strspn
+#include <cstring>  // std::strcspn, std::strspn
 #include <iterator>  // std::next
 #include <map>
 #include <set>
@@ -263,7 +263,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           start_tax += pmatch_tax[2].rm_so;
 
           std::vector<char> tax_name(len_tax + 1);
-          std::strncpy(tax_name.data(), start_tax, len_tax);
+          std::copy(start_tax, std::next(start_tax, len_tax), tax_name.begin());
           tax_name[len_tax] = '\0';
           otutable->otu_tax_map[otu_name.data()] = tax_name.data();
         }
