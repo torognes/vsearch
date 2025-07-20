@@ -82,7 +82,7 @@ auto random_init() -> void;
 auto random_int(int64_t upper_limit) -> int64_t;
 auto random_ulong(uint64_t upper_limit) -> uint64_t;
 
-auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void;
+auto string_normalize(char * normalized, char const * raw_seq, unsigned int len) -> void;
 
 auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void;
 

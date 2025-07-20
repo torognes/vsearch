@@ -278,7 +278,7 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t
 }
 
 
-auto string_normalize(char * normalized, char * raw_seq, unsigned int len) -> void
+auto string_normalize(char * normalized, char const * raw_seq, unsigned int const len) -> void
 {
   /* convert string to upper case and replace U by T */
   for (auto i = 0U; i < len; ++i)
