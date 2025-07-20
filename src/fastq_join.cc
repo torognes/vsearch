@@ -284,11 +284,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
       if (parameters.opt_fastqout != nullptr)
         {
           fastq_print_general(outfiles.fastq.handle,
-                              const_cast<char *>(final_sequence.c_str()),
+                              final_sequence.c_str(),
                               static_cast<int>(needed),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
-                              const_cast<char *>(final_quality.c_str()),
+                              final_quality.c_str(),
                               static_cast<int>(fastq_get_abundance(infiles.forward.handle)),
                               static_cast<int>(total + 1),
                               -1.0);
@@ -298,7 +298,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
         {
           fasta_print_general(outfiles.fasta.handle,
                               nullptr,
-                              const_cast<char *>(final_sequence.c_str()),
+                              final_sequence.c_str(),
                               static_cast<int>(needed),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
