@@ -141,7 +141,7 @@ auto header_find_attribute(char const * header,
 }
 
 
-auto header_get_size(char * header, int header_length) -> int64_t {
+auto header_get_size(char const * header, int const header_length) -> int64_t {
   /* read size/abundance annotation */
   static constexpr auto length_of_attribute_name = 5;  // "size=" -> 5 letters
   static constexpr auto decimal_base = 10;
