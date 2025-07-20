@@ -530,7 +530,7 @@ auto fastq_get_abundance_and_presence(fastx_handle input_handle) -> int64_t
 }
 
 
-inline auto fprint_seq_label(std::FILE * output_handle, char * seq, int len) -> void
+inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
 {
   /* normalize first? */
   std::fprintf(output_handle, "%.*s", len, seq);

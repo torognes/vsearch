@@ -373,7 +373,7 @@ auto fasta_print(std::FILE * output_handle, char const * header,
 }
 
 
-inline auto fprint_seq_label(std::FILE * output_handle, char * seq, int len) -> void
+inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
 {
   /* normalize first? */
   std::fprintf(output_handle, "%.*s", len, seq);
