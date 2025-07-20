@@ -283,7 +283,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
           ((op == 'D') and (origin == 0)) or
           ((op == 'I') and (origin == 1)))
         {
-          strncpy(r, s, len);
+          std::strncpy(r, s, len);
           r += len;
           s += len;
         }
