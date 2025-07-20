@@ -178,7 +178,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   int len_sample = 0;
   char * start_sample = query_header;
-  std::vector<char> sample_name_v;
+  std::vector<char> sample_name;
 
   if (query_header != nullptr)
     {
@@ -208,9 +208,9 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
                               "0123456789");
         }
 
-      sample_name_v.resize(len_sample + 1);
-      std::strncpy(sample_name_v.data(), start_sample, len_sample);
-      sample_name_v[len_sample] = '\0';
+      sample_name.resize(len_sample + 1);
+      std::strncpy(sample_name.data(), start_sample, len_sample);
+      sample_name[len_sample] = '\0';
     }
 
 
@@ -276,18 +276,18 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   /* store data */
 
-  if (not sample_name_v.empty()) {
-    otutable->sample_set.insert(sample_name_v.data());
+  if (not sample_name.empty()) {
+    otutable->sample_set.insert(sample_name.data());
   }
 
   if (otu_name != nullptr) {
     otutable->otu_set.insert(otu_name);
   }
 
-  if ((not sample_name_v.empty()) && (otu_name != nullptr) && (abundance != 0))
+  if ((not sample_name.empty()) && (otu_name != nullptr) && (abundance != 0))
     {
-      otutable->sample_otu_count[string_pair_t(sample_name_v.data(), otu_name)] += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name, sample_name_v.data())] += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name)] += abundance;
+      otutable->otu_sample_count[string_pair_t(otu_name, sample_name.data())] += abundance;
     }
 
   if (otu_name != nullptr) {
