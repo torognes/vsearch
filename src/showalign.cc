@@ -265,38 +265,38 @@ auto align_show(std::FILE * output_handle,
 auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::vector<char>
 {
   std::vector<char> row(alignlen + 1);
-  auto * r = row.data();
-  auto * p = cigar;
-  auto * s = seq;
+  auto * row_cursor = row.data();
+  auto * cigar_cursor = cigar;
+  auto * seq_cursor = seq;
 
-  while (*p != 0)
+  while (*cigar_cursor != 0)
     {
       int64_t len = 0;
       auto n = 0;
-      if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
+      if (sscanf(cigar_cursor, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
           len = 1;
         }
-      p += n;
-      auto const op = *p++;
+      cigar_cursor += n;
+      auto const op = *cigar_cursor++;
 
       if ((op == 'M') or
           ((op == 'D') and (origin == 0)) or
           ((op == 'I') and (origin == 1)))
         {
-          std::strncpy(r, s, len);
-          r += len;
-          s += len;
+          std::strncpy(row_cursor, seq_cursor, len);
+          row_cursor += len;
+          seq_cursor += len;
         }
       else
         {
           /* insert len gap symbols */
-          std::fill_n(r, len, '-');
+          std::fill_n(row_cursor, len, '-');
         }
     }
 
-  *r = '\0';  // not needed, already initialized to null
+  *row_cursor = '\0';  // not needed, already initialized to null
   return row;
 }
 
