@@ -89,17 +89,17 @@ auto fasta_print(std::FILE * output_handle,
                  uint64_t len) -> void;
 
 auto fasta_print_general(std::FILE * output_handle,
-                         const char * prefix,
-                         char * seq,
+                         char const * prefix,
+                         char const * seq,
                          int len,
-                         char * header,
+                         char const * header,
                          int header_length,
                          unsigned int abundance,
                          int ordinal,
                          double expected_error,
                          int clustersize,
                          int clusterid,
-                         const char * score_name,
+                         char const * score_name,
                          double score) -> void;
 
 auto fasta_print_db(std::FILE * output_handle,

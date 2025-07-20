@@ -382,17 +382,17 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
-                         char * seq,
-                         int len,
-                         char * header,
-                         int header_length,
-                         unsigned int abundance,
-                         int ordinal,
-                         double expected_error,
-                         int clustersize,
-                         int clusterid,
-                         const char * score_name,
-                         double score) -> void
+                         char const * seq,
+                         int const len,
+                         char const * header,
+                         int const header_length,
+                         unsigned int const abundance,
+                         int const ordinal,
+                         double const expected_error,
+                         int const clustersize,
+                         int const clusterid,
+                         char const * score_name,
+                         double const score) -> void
 {
   std::fprintf(output_handle, ">");
 
