@@ -221,7 +221,6 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   int len_otu = 0;
   char * start_otu = target_header;
   std::vector<char> otu_name_v;
-  char * otu_name = otu_name_v.data();
 
   if (target_header != nullptr)
     {
@@ -248,7 +247,6 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 
       otu_name_v.resize(len_otu + 1);
-      otu_name = otu_name_v.data();
       std::strncpy(otu_name_v.data(), start_otu, len_otu);
       otu_name_v[len_otu] = 0;
 
