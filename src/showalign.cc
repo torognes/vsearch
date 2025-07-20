@@ -84,7 +84,7 @@ static int64_t q_strand;
 
 static int64_t alignlen;
 
-static char * q_line;
+std::vector<char> q_line;
 static char * a_line;
 static char * d_line;
 
@@ -184,7 +184,7 @@ inline auto putop(char c, int64_t len) -> void
 
           fprintf(out, "\n");
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
-                  q1, q_strand != 0 ? '-' : '+', q_line, q2);
+                  q1, q_strand != 0 ? '-' : '+', q_line.data(), q2);
           fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                   "", a_line);
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
@@ -231,7 +231,7 @@ auto align_show(std::FILE * output_handle,
   headwidth = namewidth;
   alignlen = alignwidth;
 
-  q_line = (char *) xmalloc(alignwidth + 1);
+  q_line.resize(alignwidth + 1);
   a_line = (char *) xmalloc(alignwidth + 1);
   d_line = (char *) xmalloc(alignwidth + 1);
 
@@ -256,7 +256,7 @@ auto align_show(std::FILE * output_handle,
 
   putop(0, 1);
 
-  xfree(q_line);
+  q_line.clear();
   xfree(a_line);
   xfree(d_line);
 }
