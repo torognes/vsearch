@@ -379,7 +379,7 @@ auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int con
 }
 
 
-auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) -> void
+auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int const seqlen) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_md5);
   get_hex_seq_digest_md5(hex_digest.data(), seq, seqlen);

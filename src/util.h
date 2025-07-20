@@ -90,6 +90,6 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int seqlen) -> void;
 auto get_hex_seq_digest_md5(char * hex, char const * seq, int seqlen) -> void;
 
 auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(std::FILE * output_handle, char * seq, int seqlen) -> void;
+auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int seqlen) -> void;
 
 auto fopen_output(const char * filename) -> std::FILE *;
