@@ -296,7 +296,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::ve
         }
     }
 
-  *r = '\0';
+  *r = '\0';  // not needed, already initialized to null
   return row;
 }
 
