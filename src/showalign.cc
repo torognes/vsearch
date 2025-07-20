@@ -297,7 +297,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
         }
     }
 
-  *r = 0;
+  *r = '\0';
   return row;
 }
 
