@@ -113,7 +113,7 @@ namespace {
 
 
 // read_file, file to read, open_input_file, open_istream
-auto open_input_file(const char * filename) -> FileHandle {
+auto open_input_file(char const * filename) -> FileHandle {
   if (filename == nullptr) {
     std::FILE * empty = nullptr;
     return FileHandle{empty};
@@ -131,7 +131,7 @@ auto open_input_file(const char * filename) -> FileHandle {
 
 
 // write_file, file to write, open_output_file, open_ostream
-auto open_output_file(const char * filename) -> FileHandle {
+auto open_output_file(char const * filename) -> FileHandle {
   if (filename == nullptr) {
     std::FILE * empty = nullptr;
     return FileHandle{empty};

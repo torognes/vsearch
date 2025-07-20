@@ -82,6 +82,6 @@ struct CloseFileHandle {
 using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 
-auto open_input_file(const char * filename) -> FileHandle;
+auto open_input_file(char const * filename) -> FileHandle;
 
-auto open_output_file(const char * filename) -> FileHandle;
+auto open_output_file(char const * filename) -> FileHandle;
