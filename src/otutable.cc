@@ -243,7 +243,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       else
         {
           /* no match: use first name in header up to ; */
-          len_otu = strcspn(target_header, ";");
+          len_otu = std::strcspn(target_header, ";");
         }
 
       otu_name.resize(len_otu + 1);
