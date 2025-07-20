@@ -86,7 +86,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
     return;
   }
 
-  auto qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
+  auto const qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                              hits->nwalignment,
                              hits->nwalignmentlength,
                              0);
@@ -104,7 +104,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       nullptr,
                       0.0);
 
-  auto trow = align_getrow(db_getsequence(hits->target),
+  auto const trow = align_getrow(db_getsequence(hits->target),
                              hits->nwalignment,
                              hits->nwalignmentlength,
                              1);
