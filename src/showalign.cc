@@ -65,6 +65,7 @@
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
 #include <cstring>  // std::strncpy
+#include <vector>
 
 
 static int64_t line_pos;
@@ -260,10 +261,10 @@ auto align_show(std::FILE * output_handle,
 }
 
 
-auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *
+auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::vector<char>
 {
-  auto * row = (char *) xmalloc(alignlen + 1);
-  auto * r = row;
+  std::vector<char> row(alignlen + 1);
+  auto * r = row.data();
   auto * p = cigar;
   auto * s = seq;
 

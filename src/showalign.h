@@ -60,9 +60,10 @@
 
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
+#include <vector>
 
 
-auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> char *;
+auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::vector<char>;
 
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void;
 

@@ -86,13 +86,13 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
     return;
   }
 
-  auto * qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
+  auto qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                              hits->nwalignment,
                              hits->nwalignmentlength,
                              0);
   fasta_print_general(output_handle,
                       nullptr,
-                      qrow + hits->trim_q_left + hits->trim_t_left,
+                      &qrow[hits->trim_q_left + hits->trim_t_left],
                       hits->internal_alignmentlength,
                       query_head,
                       strlen(query_head),
@@ -103,15 +103,14 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       -1,
                       nullptr,
                       0.0);
-  xfree(qrow);
 
-  auto * trow = align_getrow(db_getsequence(hits->target),
+  auto trow = align_getrow(db_getsequence(hits->target),
                              hits->nwalignment,
                              hits->nwalignmentlength,
                              1);
   fasta_print_general(output_handle,
                       nullptr,
-                      trow + hits->trim_q_left + hits->trim_t_left,
+                      &trow[hits->trim_q_left + hits->trim_t_left],
                       hits->internal_alignmentlength,
                       db_getheader(hits->target),
                       db_getheaderlen(hits->target),
@@ -122,7 +121,6 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       -1,
                       nullptr,
                       0.0);
-  xfree(trow);
 
   fprintf(output_handle, "\n");
 }
@@ -334,8 +332,6 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
           t_head = db_getheader(hits->target);
         }
 
-      char * qrow = nullptr;
-      char * trow = nullptr;
 
       switch (field)
         {
@@ -432,27 +428,25 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         case 26: /* qrow */
           if (hits != nullptr)
             {
-              qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
+              auto qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
                                   0);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
-                      qrow + hits->trim_q_left + hits->trim_t_left);
-              xfree(qrow);
+                      &qrow[hits->trim_q_left + hits->trim_t_left]);
             }
           break;
         case 27: /* trow */
           if (hits != nullptr)
             {
-              trow = align_getrow(tsequence,
+              auto trow = align_getrow(tsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
                                   1);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
-                      trow + hits->trim_q_left + hits->trim_t_left);
-              xfree(trow);
+                      &trow[hits->trim_q_left + hits->trim_t_left]);
             }
           break;
         case 28: /* qframe */
