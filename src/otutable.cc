@@ -220,7 +220,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   int len_otu = 0;
   char * start_otu = target_header;
-  std::vector<char> otu_name_v;
+  std::vector<char> otu_name;
 
   if (target_header != nullptr)
     {
@@ -246,9 +246,9 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           len_otu = strcspn(target_header, ";");
         }
 
-      otu_name_v.resize(len_otu + 1);
-      std::strncpy(otu_name_v.data(), start_otu, len_otu);
-      otu_name_v[len_otu] = 0;
+      otu_name.resize(len_otu + 1);
+      std::strncpy(otu_name.data(), start_otu, len_otu);
+      otu_name[len_otu] = 0;
 
       /* read tax annotation in target */
 
@@ -265,7 +265,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           std::vector<char> tax_name(len_tax + 1);
           std::strncpy(tax_name.data(), start_tax, len_tax);
           tax_name[len_tax] = '\0';
-          otutable->otu_tax_map[otu_name_v.data()] = tax_name.data();
+          otutable->otu_tax_map[otu_name.data()] = tax_name.data();
         }
 #else
       std::cmatch cmatch_tax;
@@ -282,14 +282,14 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
     otutable->sample_set.insert(sample_name.data());
   }
 
-  if (not otu_name_v.empty()) {
-    otutable->otu_set.insert(otu_name_v.data());
+  if (not otu_name.empty()) {
+    otutable->otu_set.insert(otu_name.data());
   }
 
-  if ((not sample_name.empty()) && (not otu_name_v.empty()) && (abundance != 0))
+  if ((not sample_name.empty()) && (not otu_name.empty()) && (abundance != 0))
     {
-      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name_v.data())] += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name_v.data(), sample_name.data())] += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name.data())] += abundance;
+      otutable->otu_sample_count[string_pair_t(otu_name.data(), sample_name.data())] += abundance;
     }
 
 }
