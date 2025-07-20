@@ -220,7 +220,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   int len_otu = 0;
   char * start_otu = target_header;
-  char * otu_name = nullptr;
+  std::vector<char> otu_name_v;
+  char * otu_name = otu_name_v.data();
 
   if (target_header != nullptr)
     {
@@ -246,7 +247,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           len_otu = strcspn(target_header, ";");
         }
 
-      otu_name = (char *) xmalloc(len_otu + 1);
+      otu_name_v.resize(len_otu + 1);
+      otu_name = otu_name_v.data();
       std::strncpy(otu_name, start_otu, len_otu);
       otu_name[len_otu] = 0;
 
@@ -292,9 +294,6 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       otutable->otu_sample_count[string_pair_t(otu_name, sample_name.data())] += abundance;
     }
 
-  if (otu_name != nullptr) {
-    xfree(otu_name);
-  }
 }
 
 
