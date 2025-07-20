@@ -109,8 +109,8 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                               struct hit * hits) -> void;
 
 auto results_show_samheader(std::FILE * output_handle,
-                            char * cmdline,
-                            char * dbname) -> void;
+                            char const * cmdline,
+                            char const * dbname) -> void;
 
 auto results_show_samout(std::FILE * output_handle,
                          struct hit * hits,

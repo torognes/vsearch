@@ -854,8 +854,8 @@ auto build_sam_strings(char * alignment,
 }
 
 auto results_show_samheader(std::FILE * output_handle,
-                            char * cmdline,
-                            char * dbname) -> void
+                            char const * cmdline,
+                            char const * dbname) -> void
 {
   if ((opt_samout != nullptr) and opt_samheader)
     {
