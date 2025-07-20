@@ -178,7 +178,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   int len_sample = 0;
   char * start_sample = query_header;
-  char * sample_name = nullptr;
+  std::vector<char> sample_name_v;
+  char * sample_name = sample_name_v.data();
 
   if (query_header != nullptr)
     {
@@ -208,7 +209,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
                               "0123456789");
         }
 
-      sample_name = (char *) xmalloc(len_sample + 1);
+      sample_name_v.resize(len_sample + 1);
+      sample_name = sample_name_v.data();
       std::strncpy(sample_name, start_sample, len_sample);
       sample_name[len_sample] = '\0';
     }
@@ -292,10 +294,6 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
   if (otu_name != nullptr) {
     xfree(otu_name);
-  }
-
-  if (sample_name != nullptr) {
-    xfree(sample_name);
   }
 }
 
