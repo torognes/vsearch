@@ -173,10 +173,10 @@ auto header_get_size(char * header, int header_length) -> int64_t {
 }
 
 
-auto look_for_attribute(char const *header, int const header_length,
-                        int &nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
+auto look_for_attribute(char const * header, int const header_length,
+                        int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
                         std::array<int, n_expected_attributes> &attribute_end,
-                        char const* attribute_text,
+                        char const * attribute_text,
                         bool const strip_attribute) -> void {
   auto start = 0;
   auto end = 0;
