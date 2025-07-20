@@ -249,8 +249,8 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
       otu_name_v.resize(len_otu + 1);
       otu_name = otu_name_v.data();
-      std::strncpy(otu_name, start_otu, len_otu);
-      otu_name[len_otu] = 0;
+      std::strncpy(otu_name_v.data(), start_otu, len_otu);
+      otu_name_v[len_otu] = 0;
 
       /* read tax annotation in target */
 
@@ -267,13 +267,13 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
           std::vector<char> tax_name(len_tax + 1);
           std::strncpy(tax_name.data(), start_tax, len_tax);
           tax_name[len_tax] = '\0';
-          otutable->otu_tax_map[otu_name] = tax_name.data();
+          otutable->otu_tax_map[otu_name_v.data()] = tax_name.data();
         }
 #else
       std::cmatch cmatch_tax;
       if (std::regex_search(target_header, cmatch_tax, regex_tax))
         {
-          otutable->otu_tax_map[otu_name] = cmatch_tax.str(2);
+          otutable->otu_tax_map[otu_name_v.data()] = cmatch_tax.str(2);
         }
 #endif
     }
@@ -284,14 +284,14 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
     otutable->sample_set.insert(sample_name.data());
   }
 
-  if (otu_name != nullptr) {
-    otutable->otu_set.insert(otu_name);
+  if (not otu_name_v.empty()) {
+    otutable->otu_set.insert(otu_name_v.data());
   }
 
-  if ((not sample_name.empty()) && (otu_name != nullptr) && (abundance != 0))
+  if ((not sample_name.empty()) && (not otu_name_v.empty()) && (abundance != 0))
     {
-      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name)] += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name, sample_name.data())] += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name_v.data())] += abundance;
+      otutable->otu_sample_count[string_pair_t(otu_name_v.data(), sample_name.data())] += abundance;
     }
 
 }
