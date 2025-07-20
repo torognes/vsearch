@@ -196,11 +196,11 @@ auto look_for_attribute(char const * header, int const header_length,
 
 
 auto header_fprint_strip(FILE * output_handle,
-                         char * header,
-                         int header_length,
-                         bool strip_size,
-                         bool strip_ee,
-                         bool strip_length) -> void
+                         char const * header,
+                         int const header_length,
+                         bool const strip_size,
+                         bool const strip_ee,
+                         bool const strip_length) -> void
 {
   auto nth_attribute = 0;
   std::array<int, n_expected_attributes> attribute_start {{}};
