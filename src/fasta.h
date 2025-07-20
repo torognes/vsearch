@@ -84,8 +84,8 @@ auto fasta_get_abundance_and_presence(fastx_handle input_handle) -> int64_t;
 /* fasta output */
 
 auto fasta_print(std::FILE * output_handle,
-                 const char * header,
-                 char * seq,
+                 char const * header,
+                 char const * seq,
                  uint64_t len) -> void;
 
 auto fasta_print_general(std::FILE * output_handle,

@@ -365,8 +365,8 @@ auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t 
 }
 
 
-auto fasta_print(std::FILE * output_handle, const char * header,
-                 char * seq, uint64_t len) -> void
+auto fasta_print(std::FILE * output_handle, char const * header,
+                 char const * seq, uint64_t const len) -> void
 {
   std::fprintf(output_handle, ">%s\n", header);
   fasta_print_sequence(output_handle, seq, len, opt_fasta_width);
