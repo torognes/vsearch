@@ -248,7 +248,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
 
       otu_name.resize(len_otu + 1);
       std::copy(start_otu, std::next(start_otu, len_otu), otu_name.begin());
-      otu_name[len_otu] = 0;
+      otu_name[len_otu] = '\0';
 
       /* read tax annotation in target */
 
