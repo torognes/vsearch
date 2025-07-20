@@ -179,7 +179,6 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   int len_sample = 0;
   char * start_sample = query_header;
   std::vector<char> sample_name_v;
-  char * sample_name = sample_name_v.data();
 
   if (query_header != nullptr)
     {
@@ -210,7 +209,6 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 
       sample_name_v.resize(len_sample + 1);
-      sample_name = sample_name_v.data();
       std::strncpy(sample_name_v.data(), start_sample, len_sample);
       sample_name_v[len_sample] = '\0';
     }
