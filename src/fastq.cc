@@ -538,14 +538,14 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 
 
 auto fastq_print_general(FILE * output_handle,
-                         char * seq,
-                         int len,
-                         char * header,
-                         int header_len,
-                         char * quality,
-                         int abundance,
-                         int ordinal,
-                         double expected_error) -> void
+                         char const * seq,
+                         int const len,
+                         char const * header,
+                         int const header_len,
+                         char const * quality,
+                         int const abundance,
+                         int const ordinal,
+                         double const expected_error) -> void
 {
   std::fprintf(output_handle, "@");
 
