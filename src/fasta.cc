@@ -381,7 +381,7 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 
 
 auto fasta_print_general(std::FILE * output_handle,
-                         const char * prefix,
+                         char const * prefix,
                          char * seq,
                          int len,
                          char * header,
