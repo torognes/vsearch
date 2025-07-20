@@ -338,7 +338,7 @@ auto fasta_get_sequence(fastx_handle input_handle) -> char *
 
 /* fasta output */
 
-auto fasta_print_sequence(std::FILE * output_handle, char * seq, uint64_t len, int width) -> void
+auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t const len, int const width) -> void
 {
   /*
     The actual length of the sequence may be longer than "len", but only
