@@ -591,7 +591,7 @@ auto search_exact_thread_worker_run() -> void
   xpthread_attr_destroy(&attr);
 }
 
-auto search_exact_prep(char * cmdline, char * progheader) -> void
+auto search_exact_prep(char * cmdline, char const * progheader) -> void
 {
   /* open output files */
 
