@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include <algorithm>  // std::fill_n
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
@@ -291,10 +292,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::ve
       else
         {
           /* insert len gap symbols */
-          for (int64_t i = 0; i < len; i++)
-            {
-              *r++ = '-';
-            }
+          std::fill_n(r, len, '-');
         }
     }
 
