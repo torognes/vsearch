@@ -73,7 +73,7 @@
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include "utils/xpthread.hpp"
-#include <algorithm>  // std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
+#include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>
 #include <cctype>  // std::tolower
@@ -81,7 +81,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::sscanf
-#include <cstring>  // std::strlen, std::strncpy, std::strcpy
+#include <cstring>  // std::strlen, std::strcpy
 #include <iterator>  // std::next
 #include <limits>
 #include <numeric>  // std::accumulate
@@ -1758,7 +1758,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.query_head = chimera_info->query_head.data();
       search_info.qseqlen = length;
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
-      std::strncpy(search_info.qsequence_v.data(), cursor, length);
+      std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
       search_info.qsequence_v[length] = '\0';
 
       rest -= length;
