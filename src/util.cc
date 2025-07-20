@@ -348,7 +348,7 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> 
 }
 
 
-auto get_hex_seq_digest_md5(char * hex, char * seq, int seqlen) -> void
+auto get_hex_seq_digest_md5(char * hex, char const * seq, int const seqlen) -> void
 {
   /* Save hexadecimal representation of the MD5 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_md5).
