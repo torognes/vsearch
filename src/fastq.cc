@@ -633,7 +633,7 @@ auto fastq_print_general(FILE * output_handle,
 }
 
 
-auto fastq_print(std::FILE * output_handle, char * header, char * sequence, char * quality) -> void
+auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality) -> void
 {
   auto const slen = static_cast<int>(std::strlen(sequence));
   auto const hlen = static_cast<int>(std::strlen(header));
