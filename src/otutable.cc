@@ -60,12 +60,14 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include <algorithm>  // std::copy
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strncpy, std::strcspn, std::strspn
+#include <iterator>  // std::next
 #include <map>
 #include <set>
 #include <string>
@@ -209,7 +211,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
         }
 
       sample_name.resize(len_sample + 1);
-      std::strncpy(sample_name.data(), start_sample, len_sample);
+      std::copy(start_sample, std::next(start_sample, len_sample), sample_name.begin());
       sample_name[len_sample] = '\0';
     }
 
