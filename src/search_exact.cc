@@ -822,7 +822,7 @@ auto search_exact_done() -> void
 }
 
 
-auto search_exact(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
+auto search_exact(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
   search_exact_prep(cmdline, progheader);
 
