@@ -61,11 +61,11 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
-#include <algorithm>  // std::fill_n
+#include <algorithm>  // std::copy, std::fill_n
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
-#include <cstring>  // std::strncpy
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -285,7 +285,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::ve
           ((op == 'D') and (origin == 0)) or
           ((op == 'I') and (origin == 1)))
         {
-          std::strncpy(row_cursor, seq_cursor, len);
+          std::copy(seq_cursor, std::next(seq_cursor, len), row_cursor);
           row_cursor += len;
           seq_cursor += len;
         }
