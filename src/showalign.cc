@@ -86,7 +86,7 @@ static int64_t alignlen;
 
 std::vector<char> q_line;
 std::vector<char> a_line;
-static char * d_line;
+std::vector<char> d_line;
 
 static std::FILE * out;
 
@@ -188,7 +188,7 @@ inline auto putop(char c, int64_t len) -> void
           fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                   "", a_line.data());
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
-                  d1, '+', d_line, d2);
+                  d1, '+', d_line.data(), d2);
 
           line_pos = 0;
         }
@@ -233,7 +233,7 @@ auto align_show(std::FILE * output_handle,
 
   q_line.resize(alignwidth + 1);
   a_line.resize(alignwidth + 1);
-  d_line = (char *) xmalloc(alignwidth + 1);
+  d_line.resize(alignwidth + 1);
 
   q_pos = strand != 0 ? seq1len - 1 - seq1off : seq1off;
   d_pos = seq2off;
@@ -258,7 +258,7 @@ auto align_show(std::FILE * output_handle,
 
   q_line.clear();
   a_line.clear();
-  xfree(d_line);
+  d_line.clear();
 }
 
 
