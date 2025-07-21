@@ -79,7 +79,6 @@ auto dbhash_open(uint64_t maxelements) -> void;
 auto dbhash_close() -> void;
 
 auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void;
-auto dbhash_add_one(uint64_t seqno) -> void;
 auto dbhash_add_all() -> void;
 
 auto dbhash_search_first(char * seq,

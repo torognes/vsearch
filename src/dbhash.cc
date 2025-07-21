@@ -204,15 +204,6 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 }
 
 
-auto dbhash_add_one(uint64_t seqno) -> void
-{
-  char * seq = db_getsequence(seqno);
-  uint64_t const seqlen = db_getsequencelen(seqno);
-  char * normalized = (char *) xmalloc(seqlen + 1);
-  string_normalize(normalized, seq, seqlen);
-  dbhash_add(normalized, seqlen, seqno);
-}
-
 auto dbhash_add_all() -> void
 {
   progress_init("Hashing database sequences", db_getsequencecount());
