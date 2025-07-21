@@ -276,5 +276,3 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
     }
 }
 
-
-// next: update mergepairs.cc functions, then rename mergepairs.cc to fastq_mergepairs.cpp?
