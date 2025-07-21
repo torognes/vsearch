@@ -210,7 +210,6 @@
 #include "fasta.h"
 #include "fastq.h"
 #include "dbhash.h"
-#include "kmerhash.h"
 
 /* options */
 

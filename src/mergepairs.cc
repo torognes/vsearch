@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "kmerhash.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
