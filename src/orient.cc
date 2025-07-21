@@ -367,7 +367,7 @@ auto orient(struct Parameters const & parameters) -> void
                     {
                       query_qual_rev[i] = query_qual_fwd[qseqlen - 1 - i];
                     }
-                  query_qual_rev[qseqlen] = 0;
+                  query_qual_rev[qseqlen] = '\0';
                 }
 
               fastq_print_general(fp_fastqout,
