@@ -73,6 +73,12 @@ static Hash hash_function = CityHash64;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  auto reset_buckets(std::vector<struct kh_bucket_s> & hash) -> void {
+    auto const current_size = hash.size();
+    hash.clear();
+    hash.resize(current_size);
+  }
+
 }  // end of anonymous namespace
 
 
@@ -98,6 +104,8 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
   int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
 
+  reset_buckets(kmer_hash.hash);
+
   /* reallocate hash table if necessary */
 
   if (kmer_hash.alloc < 2 * len)
@@ -118,14 +126,6 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
 
   kmer_hash.maxpos = len;
 
-  // reset vector of struct kh_bucket_s
-  for (auto & a_hash : kmer_hash.hash) {
-    a_hash.kmer = 0;
-    a_hash.pos = 0;
-  }
-  // or:
-  // kmer_hash.hash.clear();
-  // kmer_hash.hash.resize(kmer_hash.alloc);
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
