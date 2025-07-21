@@ -724,7 +724,7 @@ auto merge(merge_data_t * a_read_pair) -> void
 
 
 auto optimize(merge_data_t * a_read_pair,
-              kh_handle_s * kmerhash) -> int64_t
+              struct kh_handle_s & kmerhash) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
@@ -883,7 +883,7 @@ auto optimize(merge_data_t * a_read_pair,
 
 
 auto process(merge_data_t * a_read_pair,
-             struct kh_handle_s * kmerhash) -> void
+             struct kh_handle_s & kmerhash) -> void
 {
   a_read_pair->merged = false;
 
@@ -1179,7 +1179,7 @@ inline auto chunk_perform_write() -> void
 }
 
 
-inline auto chunk_perform_process(struct kh_handle_s * kmerhash) -> void
+inline auto chunk_perform_process(struct kh_handle_s & kmerhash) -> void
 {
   auto const chunk_current = chunk_process_next;
   if (chunks[chunk_current].state == State::filled)
@@ -1215,7 +1215,7 @@ auto pair_worker(void * vp) -> void *
         {
           /* One thread does it all */
           chunk_perform_read();
-          chunk_perform_process(&kmerhash);
+          chunk_perform_process(kmerhash);
           chunk_perform_write();
         }
       else if (opt_threads == 2)
@@ -1236,7 +1236,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_read();
-              chunk_perform_process(&kmerhash);
+              chunk_perform_process(kmerhash);
             }
           else /* t == 1 */
             {
@@ -1255,7 +1255,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_write();
-              chunk_perform_process(&kmerhash);
+              chunk_perform_process(kmerhash);
             }
         }
       else
@@ -1278,7 +1278,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_read();
-              chunk_perform_process(&kmerhash);
+              chunk_perform_process(kmerhash);
             }
           else if (t == opt_threads - 1)
             {
@@ -1297,7 +1297,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_write();
-              chunk_perform_process(&kmerhash);
+              chunk_perform_process(kmerhash);
             }
           else
             {
@@ -1313,7 +1313,7 @@ auto pair_worker(void * vp) -> void *
                   xpthread_cond_wait(&cond_chunks, &mutex_chunks);
                 }
 
-              chunk_perform_process(&kmerhash);
+              chunk_perform_process(kmerhash);
             }
         }
     }

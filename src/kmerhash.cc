@@ -70,58 +70,58 @@ using Hash = decltype(&CityHash64);
 static Hash hash_function = CityHash64;
 
 
-inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
+inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
                            int const k_offset,
                            unsigned int const kmer,
                            unsigned int const pos) -> void
 {
   /* find free bucket in hash */
-  auto bucket = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
-  while (kmer_hash->hash[bucket].pos != 0U)
+  auto bucket = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
+  while (kmer_hash.hash[bucket].pos != 0U)
     {
-      bucket = (bucket + 1) & kmer_hash->hash_mask;
+      bucket = (bucket + 1) & kmer_hash.hash_mask;
     }
 
-  kmer_hash->hash[bucket].kmer = kmer;
-  kmer_hash->hash[bucket].pos = pos;
+  kmer_hash.hash[bucket].kmer = kmer;
+  kmer_hash.hash[bucket].pos = pos;
 }
 
 
-auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char const * seq, int const len) -> void
+auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> void
 {
   int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
 
   /* reallocate hash table if necessary */
 
-  if (kmer_hash->alloc < 2 * len)
+  if (kmer_hash.alloc < 2 * len)
     {
-      while (kmer_hash->alloc < 2 * len)
+      while (kmer_hash.alloc < 2 * len)
         {
-          kmer_hash->alloc *= 2;
+          kmer_hash.alloc *= 2;
         }
-      kmer_hash->hash_v.resize(kmer_hash->alloc);
-      kmer_hash->hash = kmer_hash->hash_v.data();
+      kmer_hash.hash_v.resize(kmer_hash.alloc);
+      kmer_hash.hash = kmer_hash.hash_v.data();
     }
 
-  kmer_hash->size = 1;
-  while (kmer_hash->size < 2 * len)
+  kmer_hash.size = 1;
+  while (kmer_hash.size < 2 * len)
     {
-      kmer_hash->size *= 2;
+      kmer_hash.size *= 2;
     }
-  kmer_hash->hash_mask = kmer_hash->size - 1;
+  kmer_hash.hash_mask = kmer_hash.size - 1;
 
-  kmer_hash->maxpos = len;
+  kmer_hash.maxpos = len;
 
   // reset vector of struct kh_bucket_s
-  for (auto & a_hash : kmer_hash->hash_v) {
+  for (auto & a_hash : kmer_hash.hash_v) {
     a_hash.kmer = 0;
     a_hash.pos = 0;
   }
   // or:
-  // kmer_hash->hash_v.clear();
-  // kmer_hash->hash_v.resize(kmer_hash->alloc);
-  // kmer_hash->hash = kmer_hash->hash_v.data();
+  // kmer_hash.hash_v.clear();
+  // kmer_hash.hash_v.resize(kmer_hash.alloc);
+  // kmer_hash.hash = kmer_hash.hash_v.data();
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -150,9 +150,9 @@ auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char co
 }
 
 
-auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, char const * seq, int const len) -> int
+auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> int
 {
-  std::vector<int> diag_counts(kmer_hash->maxpos, 0);
+  std::vector<int> diag_counts(kmer_hash.maxpos, 0);
 
   int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
@@ -178,19 +178,19 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, c
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
-          while (kmer_hash->hash[j].pos != 0U)
+          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
+          while (kmer_hash.hash[j].pos != 0U)
             {
-              if (kmer_hash->hash[j].kmer == kmer)
+              if (kmer_hash.hash[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash->hash[j].pos - 1;
+                  int const fpos = kmer_hash.hash[j].pos - 1;
                   int const diag = fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
                       ++diag_counts[diag];
                     }
                 }
-              j = (j + 1) & kmer_hash->hash_mask;
+              j = (j + 1) & kmer_hash.hash_mask;
             }
         }
     }
@@ -199,9 +199,9 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, c
   int best_diag = -1;
   int good_diags = 0;
 
-  for (int d = 0; d < kmer_hash->maxpos - k_offset + 1; d++)
+  for (int d = 0; d < kmer_hash.maxpos - k_offset + 1; d++)
     {
-      int const diag_len = kmer_hash->maxpos - d;
+      int const diag_len = kmer_hash.maxpos - d;
       int const minmatch = std::max(1, diag_len - k_offset + 1 - (k_offset * std::max(diag_len / 20, 0)));
       int const c = diag_counts[d];
 
@@ -225,7 +225,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, c
 }
 
 
-auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
+auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
                        int const k_offset,
                        char const * seq,
                        int const len,
@@ -254,20 +254,23 @@ auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
-          while (kmer_hash->hash[j].pos != 0U)
+          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
+          while (kmer_hash.hash[j].pos != 0U)
             {
-              if (kmer_hash->hash[j].kmer == kmer)
+              if (kmer_hash.hash[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash->hash[j].pos - 1;
+                  int const fpos = kmer_hash.hash[j].pos - 1;
                   int const diag = len + fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
                       ++diags[diag];
                     }
                 }
-              j = (j + 1) & kmer_hash->hash_mask;
+              j = (j + 1) & kmer_hash.hash_mask;
             }
         }
     }
 }
+
+
+// next: use ref rather than ptr, remove indirection to hash vector, then update mergepairs.cc functions, then rename mergepairs.cc to fastq_mergepairs.cpp?
