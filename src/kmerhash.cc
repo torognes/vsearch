@@ -151,7 +151,7 @@ auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char co
 }
 
 
-auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, char * seq, int const len) -> int
+auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, char const * seq, int const len) -> int
 {
   std::vector<int> diag_counts(kmer_hash->maxpos, 0);
 
@@ -160,7 +160,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, c
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char * s = seq + len - 1;
+  char const * s = seq + len - 1;
 
   unsigned int * maskmap = chrmap_mask_ambig;
 
