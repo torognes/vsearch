@@ -126,7 +126,7 @@ auto dbhash_close() -> void
 
 
 auto dbhash_search_first(char * seq,
-                         uint64_t seqlen,
+                         uint64_t const seqlen,
                          struct dbhash_search_info_s * info) -> int64_t
 {
   uint64_t const hash = hash_cityhash64(seq, seqlen);
