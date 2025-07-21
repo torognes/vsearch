@@ -163,20 +163,20 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char const * s = seq + len - 1;
+  char const * seq_cursor = seq + len - 1;
 
   unsigned int * maskmap = chrmap_mask_ambig;
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const c = *s--;
+      int const nucleotide = *seq_cursor--;
 
       bad <<= 2ULL;
-      bad |= maskmap[c];
+      bad |= maskmap[nucleotide];
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[chrmap_complement[c]];
+      kmer |= chrmap_2bit[chrmap_complement[nucleotide]];
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -241,18 +241,18 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char const * s = seq + len - 1;
+  char const * seq_cursor = seq + len - 1;
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const c = *s--;
+      int const nucleotide = *seq_cursor--;
 
       bad <<= 2ULL;
-      bad |= chrmap_mask_ambig[c];
+      bad |= chrmap_mask_ambig[nucleotide];
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[chrmap_complement[c]];
+      kmer |= chrmap_2bit[chrmap_complement[nucleotide]];
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -277,4 +277,4 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
 }
 
 
-// next: remove indirection to hash vector, then update mergepairs.cc functions, then rename mergepairs.cc to fastq_mergepairs.cpp?
+// next: update mergepairs.cc functions, then rename mergepairs.cc to fastq_mergepairs.cpp?
