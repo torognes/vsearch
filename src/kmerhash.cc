@@ -70,6 +70,12 @@ using Hash = decltype(&CityHash64);
 static Hash hash_function = CityHash64;
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+}  // end of anonymous namespace
+
+
 inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
                            int const k_offset,
                            unsigned int const kmer,
