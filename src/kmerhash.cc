@@ -88,7 +88,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
 }
 
 
-auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char * seq, int const len) -> void
+auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char const * seq, int const len) -> void
 {
   int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
@@ -126,7 +126,7 @@ auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char * 
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char * s = seq;
+  char const * s = seq;
 
   unsigned int * maskmap = chrmap_mask_ambig;
 
