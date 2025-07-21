@@ -63,6 +63,7 @@
 #include "maps.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // std::memset
+#include <vector>
 
 
 static struct bitmap_s * dbhash_bitmap;
@@ -207,15 +208,14 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 auto dbhash_add_all() -> void
 {
   progress_init("Hashing database sequences", db_getsequencecount());
-  char * normalized = (char *) xmalloc(db_getlongestsequence() + 1);
+  std::vector<char> normalized(db_getlongestsequence() + 1);
   for (uint64_t seqno = 0; seqno < db_getsequencecount(); seqno++)
     {
       char * seq = db_getsequence(seqno);
       uint64_t const seqlen = db_getsequencelen(seqno);
-      string_normalize(normalized, seq, seqlen);
-      dbhash_add(normalized, seqlen, seqno);
+      string_normalize(normalized.data(), seq, seqlen);
+      dbhash_add(normalized.data(), seqlen, seqno);
       progress_update(seqno + 1);
     }
-  xfree(normalized);
   progress_done();
 }
