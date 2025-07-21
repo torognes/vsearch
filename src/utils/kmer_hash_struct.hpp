@@ -72,7 +72,6 @@ struct kh_handle_s
   static constexpr auto kmer_hash_allocation = 256;
   static constexpr auto kmer_hash_mask = kmer_hash_allocation - 1U;
   std::vector<struct kh_bucket_s> hash_v = std::vector<struct kh_bucket_s>(kmer_hash_allocation);
-  struct kh_bucket_s * hash = hash_v.data();
   unsigned int hash_mask = kmer_hash_mask;
   int size = 0;
   int alloc = kmer_hash_allocation;

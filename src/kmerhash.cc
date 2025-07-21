@@ -101,7 +101,6 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
           kmer_hash.alloc *= 2;
         }
       kmer_hash.hash_v.resize(kmer_hash.alloc);
-      kmer_hash.hash = kmer_hash.hash_v.data();
     }
 
   kmer_hash.size = 1;
@@ -121,7 +120,6 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
   // or:
   // kmer_hash.hash_v.clear();
   // kmer_hash.hash_v.resize(kmer_hash.alloc);
-  // kmer_hash.hash = kmer_hash.hash_v.data();
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -273,4 +271,4 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
 }
 
 
-// next: use ref rather than ptr, remove indirection to hash vector, then update mergepairs.cc functions, then rename mergepairs.cc to fastq_mergepairs.cpp?
+// next: remove indirection to hash vector, then update mergepairs.cc functions, then rename mergepairs.cc to fastq_mergepairs.cpp?
