@@ -222,7 +222,7 @@ auto orient(struct Parameters const & parameters) -> void
                     (opt_notrunclabels == 0),
                     chrmap_no_change))
     {
-      char * query_head = fastx_get_header(query_h);
+      char const * query_head = fastx_get_header(query_h);
       int const query_head_len = fastx_get_header_length(query_h);
       char * qseq_fwd = fastx_get_sequence(query_h);
       int const qseqlen = fastx_get_sequence_length(query_h);

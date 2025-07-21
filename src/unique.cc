@@ -153,7 +153,7 @@ auto unique_compare(const void * a, const void * b) -> int
 auto unique_count_bitmap(struct uhandle_s * unique_handle,
                          int wordlength,
                          int seqlen,
-                         char * seq,
+                         char const * seq,
                          unsigned int * listlen,
                          unsigned int * * list,
                          int seqmask) -> void
