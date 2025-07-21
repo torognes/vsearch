@@ -68,6 +68,7 @@
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
+#include <vector>
 
 
 // documentation: assuming opt_wordlength = 3 (6 bits)
@@ -212,7 +213,8 @@ auto orient(struct Parameters const & parameters) -> void
   uhandle_s * uh_fwd = unique_init();
 
   std::size_t alloc = 0;
-  char * qseq_rev = nullptr;
+  std::vector<char> qseq_rev_v;
+  char * qseq_rev = qseq_rev_v.data();
   char * query_qual_rev = nullptr;
 
   progress_init("Orienting sequences", fasta_get_size(query_h));
@@ -328,7 +330,8 @@ auto orient(struct Parameters const & parameters) -> void
           if (requirements > alloc)
             {
               alloc = requirements;
-              qseq_rev = (char*) xrealloc(qseq_rev, alloc);
+              qseq_rev_v.resize(alloc);
+              qseq_rev = qseq_rev_v.data();
               if (fastx_is_fastq(query_h))
                 {
                   query_qual_rev = (char*) xrealloc(query_qual_rev, alloc);
@@ -337,13 +340,13 @@ auto orient(struct Parameters const & parameters) -> void
 
           /* get reverse complementary sequence */
 
-          reverse_complement(qseq_rev, qseq_fwd, qseqlen);
+          reverse_complement(qseq_rev_v.data(), qseq_fwd, qseqlen);
 
           if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  qseq_rev,
+                                  qseq_rev_v.data(),
                                   qseqlen,
                                   query_head,
                                   query_head_len,
@@ -370,7 +373,7 @@ auto orient(struct Parameters const & parameters) -> void
                 }
 
               fastq_print_general(fp_fastqout,
-                                  qseq_rev,
+                                  qseq_rev_v.data(),
                                   qseqlen,
                                   query_head,
                                   query_head_len,
@@ -439,10 +442,6 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  if (qseq_rev != nullptr)
-    {
-      xfree(qseq_rev);
-    }
   if (query_qual_rev != nullptr)
     {
       xfree(query_qual_rev);
