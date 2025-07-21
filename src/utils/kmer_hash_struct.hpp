@@ -58,13 +58,23 @@
 
 */
 
+#include <vector>
 
-auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> void;
 
-auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> int;
+struct kh_bucket_s
+{
+  unsigned int kmer = 0;
+  unsigned int pos = 0; /* 1-based position, 0 = empty */
+};
 
-auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
-                       int k_offset,
-                       char * seq,
-                       int len,
-                       int * diags) -> void;
+struct kh_handle_s
+{
+  static constexpr auto kmer_hash_allocation = 256;
+  static constexpr auto kmer_hash_mask = kmer_hash_allocation - 1U;
+  std::vector<struct kh_bucket_s> hash_v = std::vector<struct kh_bucket_s>(kmer_hash_allocation);
+  struct kh_bucket_s * hash = hash_v.data();
+  unsigned int hash_mask = kmer_hash_mask;
+  int size = 0;
+  int alloc = kmer_hash_allocation;
+  int maxpos = 0;
+};

@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "city.h"
 #include "maps.h"
+#include "utils/kmer_hash_struct.hpp"
 #include <algorithm>  // std::max
 #include <cstring>  // std::memset
 #include <vector>
@@ -68,50 +69,6 @@
 
 using Hash = decltype(&CityHash64);
 static Hash hash_function = CityHash64;
-
-struct kh_bucket_s
-{
-  unsigned int kmer = 0;
-  unsigned int pos = 0; /* 1-based position, 0 = empty */
-};
-
-struct kh_handle_s
-{
-  static constexpr auto kmer_hash_allocation = 256;
-  static constexpr auto kmer_hash_mask = kmer_hash_allocation - 1U;
-  std::vector<struct kh_bucket_s> hash_v = std::vector<struct kh_bucket_s>(kmer_hash_allocation);
-  struct kh_bucket_s * hash = hash_v.data();
-  unsigned int hash_mask = kmer_hash_mask;
-  int size = 0;
-  int alloc = kmer_hash_allocation;
-  int maxpos = 0;
-};
-
-
-auto kh_init() -> struct kh_handle_s *
-{
-  auto * kmer_hash =
-    (struct kh_handle_s *) xmalloc(sizeof(struct kh_handle_s));
-
-  kmer_hash->maxpos = 0;
-  kmer_hash->alloc = 256;
-  kmer_hash->size = 0;
-  kmer_hash->hash_mask = kmer_hash->alloc - 1;
-  kmer_hash->hash =
-    (struct kh_bucket_s *) xmalloc(kmer_hash->alloc * sizeof(struct kh_bucket_s));
-
-  return kmer_hash;
-}
-
-
-auto kh_exit(struct kh_handle_s * kmer_hash) -> void
-{
-  if (kmer_hash->hash != nullptr)
-    {
-      xfree(kmer_hash->hash);
-    }
-  xfree(kmer_hash);
-}
 
 
 inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
@@ -144,8 +101,8 @@ auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, i
         {
           kmer_hash->alloc *= 2;
         }
-      kmer_hash->hash = (struct kh_bucket_s *)
-        xrealloc(kmer_hash->hash, kmer_hash->alloc * sizeof(struct kh_bucket_s));
+      kmer_hash->hash_v.resize(kmer_hash->alloc);
+      kmer_hash->hash = kmer_hash->hash_v.data();
     }
 
   kmer_hash->size = 1;
@@ -157,7 +114,15 @@ auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, i
 
   kmer_hash->maxpos = len;
 
-  std::memset(kmer_hash->hash, 0, kmer_hash->size * sizeof(struct kh_bucket_s));
+  // reset vector of struct kh_bucket_s
+  for (auto & a_hash : kmer_hash->hash_v) {
+    a_hash.kmer = 0;
+    a_hash.pos = 0;
+  }
+  // or:
+  // kmer_hash->hash_v.clear();
+  // kmer_hash->hash_v.resize(kmer_hash->alloc);
+  // kmer_hash->hash = kmer_hash->hash_v.data();
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;

@@ -111,6 +111,7 @@ utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
 utils/fatal.hpp \
+utils/kmer_hash_struct.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
 utils/progress.hpp \

@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/kmer_hash_struct.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
@@ -1203,7 +1204,7 @@ auto pair_worker(void * vp) -> void *
 
   auto t = (int64_t) vp;
 
-  auto * kmerhash = kh_init();
+  struct kh_handle_s kmerhash;
 
   xpthread_mutex_lock(&mutex_chunks);
 
@@ -1213,7 +1214,7 @@ auto pair_worker(void * vp) -> void *
         {
           /* One thread does it all */
           chunk_perform_read();
-          chunk_perform_process(kmerhash);
+          chunk_perform_process(&kmerhash);
           chunk_perform_write();
         }
       else if (opt_threads == 2)
@@ -1234,7 +1235,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_read();
-              chunk_perform_process(kmerhash);
+              chunk_perform_process(&kmerhash);
             }
           else /* t == 1 */
             {
@@ -1253,7 +1254,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_write();
-              chunk_perform_process(kmerhash);
+              chunk_perform_process(&kmerhash);
             }
         }
       else
@@ -1276,7 +1277,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_read();
-              chunk_perform_process(kmerhash);
+              chunk_perform_process(&kmerhash);
             }
           else if (t == opt_threads - 1)
             {
@@ -1295,7 +1296,7 @@ auto pair_worker(void * vp) -> void *
                 }
 
               chunk_perform_write();
-              chunk_perform_process(kmerhash);
+              chunk_perform_process(&kmerhash);
             }
           else
             {
@@ -1311,14 +1312,12 @@ auto pair_worker(void * vp) -> void *
                   xpthread_cond_wait(&cond_chunks, &mutex_chunks);
                 }
 
-              chunk_perform_process(kmerhash);
+              chunk_perform_process(&kmerhash);
             }
         }
     }
 
   xpthread_mutex_unlock(&mutex_chunks);
-
-  kh_exit(kmerhash);
 
   return nullptr;
 }
