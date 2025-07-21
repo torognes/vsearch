@@ -72,9 +72,9 @@ static Hash hash_function = CityHash64;
 
 
 inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
-                           int k_offset,
-                           unsigned int kmer,
-                           unsigned int pos) -> void
+                           int const k_offset,
+                           unsigned int const kmer,
+                           unsigned int const pos) -> void
 {
   /* find free bucket in hash */
   auto bucket = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash->hash_mask;
@@ -88,7 +88,7 @@ inline auto kh_insert_kmer(struct kh_handle_s * kmer_hash,
 }
 
 
-auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> void
+auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int const k_offset, char * seq, int const len) -> void
 {
   int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
@@ -151,7 +151,7 @@ auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char * seq, i
 }
 
 
-auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char * seq, int len) -> int
+auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, char * seq, int const len) -> int
 {
   std::vector<int> diag_counts(kmer_hash->maxpos, 0);
 
@@ -227,9 +227,9 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char * 
 
 
 auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
-                       int k_offset,
+                       int const k_offset,
                        char * seq,
-                       int len,
+                       int const len,
                        int * diags) -> void
 {
   std::memset(diags, 0, (kmer_hash->maxpos+len) * sizeof(int));
