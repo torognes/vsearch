@@ -86,7 +86,7 @@ static bool progress_show;
 
 
 // refactoring: make a progress object, with an .update() method and automatic closure?
-auto progress_init(const char * prompt, uint64_t size) -> void
+auto progress_init(char const * prompt, uint64_t const size) -> void
 {
   progress_show = (isatty(fileno(stderr)) != 0) and (not opt_quiet) and (not opt_no_progress);
   progress_prompt = prompt;
@@ -101,7 +101,7 @@ auto progress_init(const char * prompt, uint64_t size) -> void
 }
 
 
-auto progress_update(uint64_t progress) -> void
+auto progress_update(uint64_t const progress) -> void
 {
   if ((progress < progress_next) or not progress_show) { return; }
   if (progress_size == 0) {

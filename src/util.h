@@ -74,7 +74,7 @@ auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t;
 auto hash_cityhash128(char * sequence, uint64_t length) -> uint128;
 auto show_rusage() -> void;
 
-auto progress_init(const char * prompt, uint64_t size) -> void;
+auto progress_init(char const * prompt, uint64_t size) -> void;
 auto progress_update(uint64_t progress) -> void;
 auto progress_done() -> void;
 
