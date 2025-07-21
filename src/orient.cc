@@ -213,7 +213,7 @@ auto orient(struct Parameters const & parameters) -> void
   uhandle_s * uh_fwd = unique_init();
 
   std::size_t alloc = 0;
-  std::vector<char> qseq_rev_v;
+  std::vector<char> qseq_rev;
   char * query_qual_rev = nullptr;
 
   progress_init("Orienting sequences", fasta_get_size(query_h));
@@ -329,7 +329,7 @@ auto orient(struct Parameters const & parameters) -> void
           if (requirements > alloc)
             {
               alloc = requirements;
-              qseq_rev_v.resize(alloc);
+              qseq_rev.resize(alloc);
               if (fastx_is_fastq(query_h))
                 {
                   query_qual_rev = (char*) xrealloc(query_qual_rev, alloc);
@@ -338,13 +338,13 @@ auto orient(struct Parameters const & parameters) -> void
 
           /* get reverse complementary sequence */
 
-          reverse_complement(qseq_rev_v.data(), qseq_fwd, qseqlen);
+          reverse_complement(qseq_rev.data(), qseq_fwd, qseqlen);
 
           if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  qseq_rev_v.data(),
+                                  qseq_rev.data(),
                                   qseqlen,
                                   query_head,
                                   query_head_len,
@@ -371,7 +371,7 @@ auto orient(struct Parameters const & parameters) -> void
                 }
 
               fastq_print_general(fp_fastqout,
-                                  qseq_rev_v.data(),
+                                  qseq_rev.data(),
                                   qseqlen,
                                   query_head,
                                   query_head_len,
