@@ -183,7 +183,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
             {
               if (kmer_hash.hash_v[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash.hash[j].pos - 1;
+                  int const fpos = kmer_hash.hash_v[j].pos - 1;
                   int const diag = fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
@@ -255,11 +255,11 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
         {
           /* find matching buckets in hash */
           unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
-          while (kmer_hash.hash[j].pos != 0U)
+          while (kmer_hash.hash_v[j].pos != 0U)
             {
-              if (kmer_hash.hash[j].kmer == kmer)
+              if (kmer_hash.hash_v[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash.hash[j].pos - 1;
+                  int const fpos = kmer_hash.hash_v[j].pos - 1;
                   int const diag = len + fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
