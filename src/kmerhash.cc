@@ -63,7 +63,6 @@
 #include "maps.h"
 #include "utils/kmer_hash_struct.hpp"
 #include <algorithm>  // std::max
-#include <cstring>  // std::memset
 #include <vector>
 
 
@@ -232,7 +231,6 @@ auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
                        int const len,
                        int * diags) -> void
 {
-  std::memset(diags, 0, (kmer_hash->maxpos+len) * sizeof(int));
 
   int const kmers = 1U << (2U * k_offset);
   unsigned int const kmer_mask = kmers - 1;
