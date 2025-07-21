@@ -71,17 +71,20 @@ static Hash hash_function = CityHash64;
 
 struct kh_bucket_s
 {
-  unsigned int kmer;
-  unsigned int pos; /* 1-based position, 0 = empty */
+  unsigned int kmer = 0;
+  unsigned int pos = 0; /* 1-based position, 0 = empty */
 };
 
 struct kh_handle_s
 {
-  struct kh_bucket_s * hash;
-  unsigned int hash_mask;
-  int size;
-  int alloc;
-  int maxpos;
+  static constexpr auto kmer_hash_allocation = 256;
+  static constexpr auto kmer_hash_mask = kmer_hash_allocation - 1U;
+  std::vector<struct kh_bucket_s> hash_v = std::vector<struct kh_bucket_s>(kmer_hash_allocation);
+  struct kh_bucket_s * hash = hash_v.data();
+  unsigned int hash_mask = kmer_hash_mask;
+  int size = 0;
+  int alloc = kmer_hash_allocation;
+  int maxpos = 0;
 };
 
 
