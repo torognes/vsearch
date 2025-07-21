@@ -97,7 +97,7 @@ auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
 }
 
 
-auto dbhash_open(uint64_t maxelements) -> void
+auto dbhash_open(uint64_t const maxelements) -> void
 {
   /* adjust size of hash table for 2/3 fill rate */
   /* and use a multiple of 2 */
