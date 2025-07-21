@@ -363,6 +363,7 @@ auto orient(struct Parameters const & parameters) -> void
 
               if (fastx_is_fastq(query_h))
                 {
+                  // copy query string in reverse order
                   for (int i = 0; i < qseqlen; i++)
                     {
                       query_qual_rev[i] = query_qual_fwd[qseqlen - 1 - i];
