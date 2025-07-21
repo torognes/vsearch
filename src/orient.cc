@@ -214,7 +214,8 @@ auto orient(struct Parameters const & parameters) -> void
 
   std::size_t alloc = 0;
   std::vector<char> qseq_rev;
-  char * query_qual_rev = nullptr;
+  std::vector<char> query_qual_rev_v;
+  char * query_qual_rev = query_qual_rev_v.data();
 
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
@@ -332,7 +333,8 @@ auto orient(struct Parameters const & parameters) -> void
               qseq_rev.resize(alloc);
               if (fastx_is_fastq(query_h))
                 {
-                  query_qual_rev = (char*) xrealloc(query_qual_rev, alloc);
+                  query_qual_rev_v.resize(alloc);
+                  query_qual_rev = query_qual_rev_v.data();
                 }
             }
 
@@ -439,11 +441,6 @@ auto orient(struct Parameters const & parameters) -> void
   progress_done();
 
   /* clean up */
-
-  if (query_qual_rev != nullptr)
-    {
-      xfree(query_qual_rev);
-    }
 
   unique_exit(uh_fwd);
 
