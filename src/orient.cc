@@ -367,9 +367,9 @@ auto orient(struct Parameters const & parameters) -> void
                 {
                   for (int i = 0; i < qseqlen; i++)
                     {
-                      query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
+                      query_qual_rev_v[i] = query_qual_fwd[qseqlen-1-i];
                     }
-                  query_qual_rev[qseqlen] = 0;
+                  query_qual_rev_v[qseqlen] = 0;
                 }
 
               fastq_print_general(fp_fastqout,
@@ -377,7 +377,7 @@ auto orient(struct Parameters const & parameters) -> void
                                   qseqlen,
                                   query_head,
                                   query_head_len,
-                                  query_qual_rev,
+                                  query_qual_rev_v.data(),
                                   qsize,
                                   qmatches,
                                   -1.0);
