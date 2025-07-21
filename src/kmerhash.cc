@@ -82,8 +82,8 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
       bucket = (bucket + 1) & kmer_hash.hash_mask;
     }
 
-  kmer_hash.hash[bucket].kmer = kmer;
-  kmer_hash.hash[bucket].pos = pos;
+  kmer_hash.hash_v[bucket].kmer = kmer;
+  kmer_hash.hash_v[bucket].pos = pos;
 }
 
 
@@ -179,9 +179,9 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
         {
           /* find matching buckets in hash */
           unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
-          while (kmer_hash.hash[j].pos != 0U)
+          while (kmer_hash.hash_v[j].pos != 0U)
             {
-              if (kmer_hash.hash[j].kmer == kmer)
+              if (kmer_hash.hash_v[j].kmer == kmer)
                 {
                   int const fpos = kmer_hash.hash[j].pos - 1;
                   int const diag = fpos - (pos - k_offset + 1);
