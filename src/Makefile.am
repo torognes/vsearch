@@ -73,6 +73,7 @@ fasta.h \
 fastq.h \
 fastq_chars.h \
 fastq_join.h \
+fastq_mergepairs.h \
 fastq_stats.h \
 fastqops.h \
 fastx.h \
@@ -83,7 +84,6 @@ linmemalign.h \
 maps.h \
 mask.h \
 md5.h \
-mergepairs.h \
 minheap.h \
 msa.h \
 orient.h \
@@ -175,6 +175,7 @@ fasta.cc \
 fastq.cc \
 fastq_chars.cc \
 fastq_join.cc \
+fastq_mergepairs.cc \
 fastq_stats.cc \
 fastqops.cc \
 fastx.cc \
@@ -185,7 +186,6 @@ linmemalign.cc \
 maps.cc \
 mask.cc \
 md5.c \
-mergepairs.cc \
 minheap.cc \
 msa.cc \
 orient.cc \
