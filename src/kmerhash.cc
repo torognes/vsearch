@@ -77,13 +77,13 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
 {
   /* find free bucket in hash */
   auto bucket = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
-  while (kmer_hash.hash_v[bucket].pos != 0U)
+  while (kmer_hash.hash[bucket].pos != 0U)
     {
       bucket = (bucket + 1) & kmer_hash.hash_mask;
     }
 
-  kmer_hash.hash_v[bucket].kmer = kmer;
-  kmer_hash.hash_v[bucket].pos = pos;
+  kmer_hash.hash[bucket].kmer = kmer;
+  kmer_hash.hash[bucket].pos = pos;
 }
 
 
@@ -100,7 +100,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
         {
           kmer_hash.alloc *= 2;
         }
-      kmer_hash.hash_v.resize(kmer_hash.alloc);
+      kmer_hash.hash.resize(kmer_hash.alloc);
     }
 
   kmer_hash.size = 1;
@@ -113,13 +113,13 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
   kmer_hash.maxpos = len;
 
   // reset vector of struct kh_bucket_s
-  for (auto & a_hash : kmer_hash.hash_v) {
+  for (auto & a_hash : kmer_hash.hash) {
     a_hash.kmer = 0;
     a_hash.pos = 0;
   }
   // or:
-  // kmer_hash.hash_v.clear();
-  // kmer_hash.hash_v.resize(kmer_hash.alloc);
+  // kmer_hash.hash.clear();
+  // kmer_hash.hash.resize(kmer_hash.alloc);
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -177,11 +177,11 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
         {
           /* find matching buckets in hash */
           unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
-          while (kmer_hash.hash_v[j].pos != 0U)
+          while (kmer_hash.hash[j].pos != 0U)
             {
-              if (kmer_hash.hash_v[j].kmer == kmer)
+              if (kmer_hash.hash[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash.hash_v[j].pos - 1;
+                  int const fpos = kmer_hash.hash[j].pos - 1;
                   int const diag = fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
@@ -253,11 +253,11 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
         {
           /* find matching buckets in hash */
           unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
-          while (kmer_hash.hash_v[j].pos != 0U)
+          while (kmer_hash.hash[j].pos != 0U)
             {
-              if (kmer_hash.hash_v[j].kmer == kmer)
+              if (kmer_hash.hash[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash.hash_v[j].pos - 1;
+                  int const fpos = kmer_hash.hash[j].pos - 1;
                   int const diag = len + fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
