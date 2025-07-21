@@ -365,7 +365,7 @@ auto orient(struct Parameters const & parameters) -> void
                 {
                   for (int i = 0; i < qseqlen; i++)
                     {
-                      query_qual_rev[i] = query_qual_fwd[qseqlen-1-i];
+                      query_qual_rev[i] = query_qual_fwd[qseqlen - 1 - i];
                     }
                   query_qual_rev[qseqlen] = 0;
                 }
