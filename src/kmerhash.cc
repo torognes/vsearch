@@ -228,7 +228,7 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int const k_offset, c
 
 auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
                        int const k_offset,
-                       char * seq,
+                       char const * seq,
                        int const len,
                        int * diags) -> void
 {
@@ -239,7 +239,7 @@ auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char * s = seq + len - 1;
+  char const * s = seq + len - 1;
 
   for (int pos = 0; pos < len; pos++)
     {

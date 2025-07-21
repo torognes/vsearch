@@ -65,6 +65,6 @@ auto kh_find_best_diagonal(struct kh_handle_s * kmer_hash, int k_offset, char co
 
 auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
                        int k_offset,
-                       char * seq,
+                       char const * seq,
                        int len,
                        int * diags) -> void;
