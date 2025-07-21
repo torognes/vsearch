@@ -77,7 +77,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
 {
   /* find free bucket in hash */
   auto bucket = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
-  while (kmer_hash.hash[bucket].pos != 0U)
+  while (kmer_hash.hash_v[bucket].pos != 0U)
     {
       bucket = (bucket + 1) & kmer_hash.hash_mask;
     }
