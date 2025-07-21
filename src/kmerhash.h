@@ -58,6 +58,8 @@
 
 */
 
+#include <vector>
+
 
 auto kh_insert_kmers(struct kh_handle_s * kmer_hash, int k_offset, char const * seq, int len) -> void;
 
@@ -67,4 +69,4 @@ auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
                        int k_offset,
                        char const * seq,
                        int len,
-                       int * diags) -> void;
+                       std::vector<int> & diags) -> void;

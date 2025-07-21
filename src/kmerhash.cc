@@ -229,7 +229,7 @@ auto kh_find_diagonals(struct kh_handle_s * kmer_hash,
                        int const k_offset,
                        char const * seq,
                        int const len,
-                       int * diags) -> void
+                       std::vector<int> & diags) -> void
 {
 
   int const kmers = 1U << (2U * k_offset);
