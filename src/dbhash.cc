@@ -70,7 +70,7 @@ static struct bitmap_s * dbhash_bitmap;
 static uint64_t dbhash_size;
 static unsigned int dbhash_shift;
 static uint64_t dbhash_mask;
-static struct dbhash_bucket_s * dbhash_table;
+std::vector<struct dbhash_bucket_s> dbhash_table_v;
 
 
 auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
@@ -111,9 +111,7 @@ auto dbhash_open(uint64_t const maxelements) -> void
     }
   dbhash_mask = dbhash_size - 1;
 
-  dbhash_table = (struct dbhash_bucket_s *)
-    xmalloc(sizeof(dbhash_bucket_s) * dbhash_size);
-  std::memset(dbhash_table, 0, sizeof(dbhash_bucket_s) * dbhash_size);
+  dbhash_table_v.resize(dbhash_size);
 
   dbhash_bitmap = bitmap_init(dbhash_size);
   bitmap_reset_all(dbhash_bitmap);
@@ -124,8 +122,6 @@ auto dbhash_close() -> void
 {
   bitmap_free(dbhash_bitmap);
   dbhash_bitmap = nullptr;
-  xfree(dbhash_table);
-  dbhash_table = nullptr;
 }
 
 
@@ -138,7 +134,7 @@ auto dbhash_search_first(char * seq,
   info->seq = seq;
   info->seqlen = seqlen;
   uint64_t index = hash & dbhash_mask;
-  struct dbhash_bucket_s * bp = dbhash_table + index;
+  struct dbhash_bucket_s * bp = &dbhash_table_v[index];
 
   while ((bitmap_get(dbhash_bitmap, index) != 0U)
          and
@@ -147,7 +143,7 @@ auto dbhash_search_first(char * seq,
           (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
-      bp = dbhash_table + index;
+      bp = &dbhash_table_v[index];
     }
 
   info->index = index;
@@ -166,7 +162,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
   char * seq = info->seq;
   uint64_t const seqlen = info->seqlen;
   uint64_t index = (info->index + 1) & dbhash_mask;
-  struct dbhash_bucket_s * bp = dbhash_table + index;
+  struct dbhash_bucket_s * bp = &dbhash_table_v[index];
 
   while ((bitmap_get(dbhash_bitmap, index) != 0U)
          and
@@ -175,7 +171,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
           (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
-      bp = dbhash_table + index;
+      bp = &dbhash_table_v[index];
     }
 
   info->index = index;
@@ -199,7 +195,7 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
     }
 
   bitmap_set(dbhash_bitmap, info.index);
-  struct dbhash_bucket_s * bp = dbhash_table + info.index;
+  struct dbhash_bucket_s * bp = &dbhash_table_v[info.index];
   bp->hash = info.hash;
   bp->seqno = seqno;
 }

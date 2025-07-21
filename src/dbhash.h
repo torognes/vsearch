@@ -63,8 +63,8 @@
 
 struct dbhash_bucket_s
 {
-  uint64_t hash;
-  uint64_t seqno;
+  uint64_t hash = 0;
+  uint64_t seqno = 0;
 };
 
 struct dbhash_search_info_s
