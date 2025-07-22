@@ -230,7 +230,7 @@ struct chunk_s
 };
 
 
-static struct chunk_s * chunks; /* pointer to array of chunks */
+std::vector<struct chunk_s> chunks;
 
 static int chunk_count;
 static int chunk_read_next;
@@ -1317,10 +1317,9 @@ auto pair_all() -> void
   chunk_process_next = 0;
   chunk_write_next = 0;
 
-  std::vector<struct chunk_s> chunks_v(chunk_count);
-  chunks = chunks_v.data();
+  chunks.resize(chunk_count);
 
-  for (auto & a_chunk: chunks_v) {
+  for (auto & a_chunk: chunks) {
     a_chunk.merge_data_v.resize(chunk_size);
     a_chunk.merge_data = a_chunk.merge_data_v.data();
   }
@@ -1355,11 +1354,6 @@ auto pair_all() -> void
 
   xpthread_cond_destroy(&cond_chunks);
   xpthread_mutex_destroy(&mutex_chunks);
-
-  for (auto & a_chunk: chunks_v) {
-      a_chunk.merge_data = nullptr;
-  }
-  chunks = nullptr;
 }
 
 
