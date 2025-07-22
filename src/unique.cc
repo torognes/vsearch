@@ -77,7 +77,6 @@
 using Hash = decltype(&CityHash64);
 static Hash hash_function = CityHash64;
 
-constexpr auto initial_allocation = 2048;
 
 struct bucket_s
 {
@@ -100,13 +99,15 @@ struct uhandle_s
 
 auto unique_init() -> struct uhandle_s *
 {
+  static constexpr auto initial_allocation = 2048;
+  static constexpr auto initial_hash_mask = initial_allocation - 1U;
   auto * unique_handle = static_cast<struct uhandle_s *>(xmalloc(sizeof(struct uhandle_s)));
 
   unique_handle->alloc = initial_allocation;
   unique_handle->size = 0;
-  unique_handle->hash_mask = unique_handle->alloc - 1;
-  unique_handle->hash = static_cast<struct bucket_s *>(xmalloc(sizeof(struct bucket_s) * unique_handle->alloc));
-  unique_handle->list = static_cast<unsigned int *>(xmalloc(sizeof(unsigned int) * unique_handle->alloc));
+  unique_handle->hash_mask = initial_hash_mask;
+  unique_handle->hash = static_cast<struct bucket_s *>(xmalloc(sizeof(struct bucket_s) * initial_allocation));
+  unique_handle->list = static_cast<unsigned int *>(xmalloc(sizeof(unsigned int) * initial_allocation));
 
   unique_handle->bitmap_size = 0;
   unique_handle->bitmap = nullptr;
