@@ -598,20 +598,20 @@ auto discard(merge_data_t & a_read_pair) -> void
 }
 
 
-auto merge(merge_data_t * a_read_pair) -> void
+auto merge(merge_data_t & a_read_pair) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
 
-  auto const fwd_5prime_overhang = (a_read_pair->fwd_trunc > a_read_pair->offset) ?
-    a_read_pair->fwd_trunc - a_read_pair->offset : 0;
+  auto const fwd_5prime_overhang = (a_read_pair.fwd_trunc > a_read_pair.offset) ?
+    a_read_pair.fwd_trunc - a_read_pair.offset : 0;
 
   // reset struct members
-  a_read_pair->ee_merged = 0.0;
-  a_read_pair->ee_fwd = 0.0;
-  a_read_pair->ee_rev = 0.0;
-  a_read_pair->fwd_errors = 0;
-  a_read_pair->rev_errors = 0;
+  a_read_pair.ee_merged = 0.0;
+  a_read_pair.ee_fwd = 0.0;
+  a_read_pair.ee_rev = 0.0;
+  a_read_pair.fwd_errors = 0;
+  a_read_pair.rev_errors = 0;
   auto sym = '\0';
   auto qual = '\0';
   auto fwd_sym = '\0';
@@ -631,15 +631,15 @@ auto merge(merge_data_t * a_read_pair) -> void
 
   while (fwd_pos < fwd_5prime_overhang)
     {
-      sym = a_read_pair->fwd_sequence[fwd_pos];
-      qual = a_read_pair->fwd_quality[fwd_pos];
+      sym = a_read_pair.fwd_sequence[fwd_pos];
+      qual = a_read_pair.fwd_quality[fwd_pos];
 
-      a_read_pair->merged_sequence[merged_pos] = sym;
-      a_read_pair->merged_quality_v[merged_pos] = qual;
+      a_read_pair.merged_sequence[merged_pos] = sym;
+      a_read_pair.merged_quality_v[merged_pos] = qual;
 
       ee = q2p[(unsigned) qual];
-      a_read_pair->ee_merged += ee;
-      a_read_pair->ee_fwd += ee;
+      a_read_pair.ee_merged += ee;
+      a_read_pair.ee_fwd += ee;
 
       ++fwd_pos;
       ++merged_pos;
@@ -647,17 +647,17 @@ auto merge(merge_data_t * a_read_pair) -> void
 
   // Merged region
 
-  auto const rev_3prime_overhang = a_read_pair->offset > a_read_pair->fwd_trunc ?
-    a_read_pair->offset - a_read_pair->fwd_trunc : 0;
+  auto const rev_3prime_overhang = a_read_pair.offset > a_read_pair.fwd_trunc ?
+    a_read_pair.offset - a_read_pair.fwd_trunc : 0;
 
-  rev_pos = a_read_pair->rev_trunc - 1 - rev_3prime_overhang;
+  rev_pos = a_read_pair.rev_trunc - 1 - rev_3prime_overhang;
 
-  while ((fwd_pos < a_read_pair->fwd_trunc) && (rev_pos >= 0))
+  while ((fwd_pos < a_read_pair.fwd_trunc) && (rev_pos >= 0))
     {
-      fwd_sym = a_read_pair->fwd_sequence[fwd_pos];
-      rev_sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
-      fwd_qual = a_read_pair->fwd_quality[fwd_pos];
-      rev_qual = a_read_pair->rev_quality[rev_pos];
+      fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
+      rev_sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
+      fwd_qual = a_read_pair.fwd_quality[fwd_pos];
+      rev_qual = a_read_pair.rev_quality[rev_pos];
 
       merge_sym(& sym,
                 & qual,
@@ -668,18 +668,18 @@ auto merge(merge_data_t * a_read_pair) -> void
 
       if (sym != fwd_sym)
         {
-          ++a_read_pair->fwd_errors;
+          ++a_read_pair.fwd_errors;
         }
       if (sym != rev_sym)
         {
-          ++a_read_pair->rev_errors;
+          ++a_read_pair.rev_errors;
         }
 
-      a_read_pair->merged_sequence[merged_pos] = sym;
-      a_read_pair->merged_quality_v[merged_pos] = qual;
-      a_read_pair->ee_merged += q2p[(unsigned) qual];
-      a_read_pair->ee_fwd += q2p[(unsigned) fwd_qual];
-      a_read_pair->ee_rev += q2p[(unsigned) rev_qual];
+      a_read_pair.merged_sequence[merged_pos] = sym;
+      a_read_pair.merged_quality_v[merged_pos] = qual;
+      a_read_pair.ee_merged += q2p[(unsigned) qual];
+      a_read_pair.ee_fwd += q2p[(unsigned) fwd_qual];
+      a_read_pair.ee_rev += q2p[(unsigned) rev_qual];
 
       ++fwd_pos;
       --rev_pos;
@@ -690,45 +690,45 @@ auto merge(merge_data_t * a_read_pair) -> void
 
   while (rev_pos >= 0)
     {
-      sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
-      qual = a_read_pair->rev_quality[rev_pos];
+      sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
+      qual = a_read_pair.rev_quality[rev_pos];
 
-      a_read_pair->merged_sequence[merged_pos] = sym;
-      a_read_pair->merged_quality_v[merged_pos] = qual;
+      a_read_pair.merged_sequence[merged_pos] = sym;
+      a_read_pair.merged_quality_v[merged_pos] = qual;
       ++merged_pos;
 
       ee = q2p[(unsigned) qual];
-      a_read_pair->ee_merged += ee;
-      a_read_pair->ee_rev += ee;
+      a_read_pair.ee_merged += ee;
+      a_read_pair.ee_rev += ee;
 
       --rev_pos;
     }
 
   auto const mergelen = merged_pos;
-  a_read_pair->merged_length = mergelen;
+  a_read_pair.merged_length = mergelen;
 
-  a_read_pair->merged_sequence[mergelen] = 0;
-  a_read_pair->merged_quality_v[mergelen] = 0;
+  a_read_pair.merged_sequence[mergelen] = 0;
+  a_read_pair.merged_quality_v[mergelen] = 0;
 
-  if (a_read_pair->ee_merged <= opt_fastq_maxee)
+  if (a_read_pair.ee_merged <= opt_fastq_maxee)
     {
-      a_read_pair->reason = Reason::ok;
-      a_read_pair->merged = true;
+      a_read_pair.reason = Reason::ok;
+      a_read_pair.merged = true;
     }
   else
     {
-      a_read_pair->reason = Reason::maxee;
+      a_read_pair.reason = Reason::maxee;
     }
 }
 
 
-auto optimize(merge_data_t * a_read_pair,
+auto optimize(merge_data_t & a_read_pair,
               struct kh_handle_s & kmerhash) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
   int64_t const i1 = 1;
-  auto const i2 = a_read_pair->fwd_trunc + a_read_pair->rev_trunc - 1;
+  auto const i2 = a_read_pair.fwd_trunc + a_read_pair.rev_trunc - 1;
 
   auto best_score = 0.0;
   int64_t best_i = 0;
@@ -738,14 +738,14 @@ auto optimize(merge_data_t * a_read_pair,
 
   auto kmers = 0;
 
-  std::vector<int> diags(a_read_pair->fwd_trunc + a_read_pair->rev_trunc, 0);
+  std::vector<int> diags(a_read_pair.fwd_trunc + a_read_pair.rev_trunc, 0);
 
-  kh_insert_kmers(kmerhash, k, a_read_pair->fwd_sequence.data(), a_read_pair->fwd_trunc);
-  kh_find_diagonals(kmerhash, k, a_read_pair->rev_sequence.data(), a_read_pair->rev_trunc, diags);
+  kh_insert_kmers(kmerhash, k, a_read_pair.fwd_sequence.data(), a_read_pair.fwd_trunc);
+  kh_find_diagonals(kmerhash, k, a_read_pair.rev_sequence.data(), a_read_pair.rev_trunc, diags);
 
   for (int64_t i = i1; i <= i2; i++)
     {
-      int const diag = a_read_pair->rev_trunc + a_read_pair->fwd_trunc - i;
+      int const diag = a_read_pair.rev_trunc + a_read_pair.fwd_trunc - i;
       auto const diagcount = diags[diag];
 
       if (diagcount >= merge_mindiagcount)
@@ -755,15 +755,15 @@ auto optimize(merge_data_t * a_read_pair,
           /* for each interesting diagonal */
 
           auto const fwd_3prime_overhang
-            = i > a_read_pair->rev_trunc ? i - a_read_pair->rev_trunc : 0;
+            = i > a_read_pair.rev_trunc ? i - a_read_pair.rev_trunc : 0;
           auto const rev_3prime_overhang
-            = i > a_read_pair->fwd_trunc ? i - a_read_pair->fwd_trunc : 0;
+            = i > a_read_pair.fwd_trunc ? i - a_read_pair.fwd_trunc : 0;
           auto const overlap
             = i - fwd_3prime_overhang - rev_3prime_overhang;
           auto const fwd_pos_start
-            = a_read_pair->fwd_trunc - fwd_3prime_overhang - 1;
+            = a_read_pair.fwd_trunc - fwd_3prime_overhang - 1;
           auto const rev_pos_start
-            = a_read_pair->rev_trunc - rev_3prime_overhang - overlap;
+            = a_read_pair.rev_trunc - rev_3prime_overhang - overlap;
 
           auto fwd_pos = fwd_pos_start;
           auto rev_pos = rev_pos_start;
@@ -777,11 +777,11 @@ auto optimize(merge_data_t * a_read_pair,
             {
               /* for each pair of bases in the overlap */
 
-              auto const fwd_sym = a_read_pair->fwd_sequence[fwd_pos];
-              auto const rev_sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
+              auto const fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
+              auto const rev_sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
 
-              unsigned int const fwd_qual = a_read_pair->fwd_quality[fwd_pos];
-              unsigned int const rev_qual = a_read_pair->rev_quality[rev_pos];
+              unsigned int const fwd_qual = a_read_pair.fwd_quality[fwd_pos];
+              unsigned int const rev_qual = a_read_pair.rev_quality[rev_pos];
 
               --fwd_pos;
               ++rev_pos;
@@ -823,57 +823,57 @@ auto optimize(merge_data_t * a_read_pair,
 
   if (hits > 1)
     {
-      a_read_pair->reason = Reason::repeat;
+      a_read_pair.reason = Reason::repeat;
       return 0;
     }
 
-  if ((! opt_fastq_allowmergestagger) && (best_i > a_read_pair->fwd_trunc))
+  if ((! opt_fastq_allowmergestagger) && (best_i > a_read_pair.fwd_trunc))
     {
-      a_read_pair->reason = Reason::staggered;
+      a_read_pair.reason = Reason::staggered;
       return 0;
     }
 
   if (best_diffs > opt_fastq_maxdiffs)
     {
-      a_read_pair->reason = Reason::maxdiffs;
+      a_read_pair.reason = Reason::maxdiffs;
       return 0;
     }
 
   if ((100.0 * best_diffs / best_i) > opt_fastq_maxdiffpct)
     {
-      a_read_pair->reason = Reason::maxdiffpct;
+      a_read_pair.reason = Reason::maxdiffpct;
       return 0;
     }
 
   if (kmers == 0)
     {
-      a_read_pair->reason = Reason::nokmers;
+      a_read_pair.reason = Reason::nokmers;
       return 0;
     }
 
   if (best_score < merge_minscore)
     {
-      a_read_pair->reason = Reason::minscore;
+      a_read_pair.reason = Reason::minscore;
       return 0;
     }
 
   if (best_i < opt_fastq_minovlen)
     {
-      a_read_pair->reason = Reason::minovlen;
+      a_read_pair.reason = Reason::minovlen;
       return 0;
     }
 
-  int const mergelen = a_read_pair->fwd_trunc + a_read_pair->rev_trunc - best_i;
+  int const mergelen = a_read_pair.fwd_trunc + a_read_pair.rev_trunc - best_i;
 
   if (mergelen < opt_fastq_minmergelen)
     {
-      a_read_pair->reason = Reason::minmergelen;
+      a_read_pair.reason = Reason::minmergelen;
       return 0;
     }
 
   if (mergelen > opt_fastq_maxmergelen)
     {
-      a_read_pair->reason = Reason::maxmergelen;
+      a_read_pair.reason = Reason::maxmergelen;
       return 0;
     }
 
@@ -992,19 +992,19 @@ auto process(merge_data_t & a_read_pair,
 
   if (! skip)
     {
-      a_read_pair.offset = optimize(&a_read_pair, kmerhash);
+      a_read_pair.offset = optimize(a_read_pair, kmerhash);
     }
 
   if (a_read_pair.offset > 0)
     {
-      merge(&a_read_pair);
+      merge(a_read_pair);
     }
 
   a_read_pair.state = State::processed;
 }
 
 
-auto read_pair(merge_data_t * a_read_pair) -> bool
+auto read_pair(merge_data_t & a_read_pair) -> bool
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
@@ -1019,36 +1019,36 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
       int64_t const rev_header_len = fastq_get_header_length(fastq_rev);
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
-      if (header_needed > a_read_pair->header_alloc)
+      if (header_needed > a_read_pair.header_alloc)
         {
-          a_read_pair->header_alloc = header_needed;
-          a_read_pair->fwd_header.resize(header_needed);
-          a_read_pair->rev_header.resize(header_needed);
+          a_read_pair.header_alloc = header_needed;
+          a_read_pair.fwd_header.resize(header_needed);
+          a_read_pair.rev_header.resize(header_needed);
         }
 
-      a_read_pair->fwd_length = fastq_get_sequence_length(fastq_fwd);
-      a_read_pair->rev_length = fastq_get_sequence_length(fastq_rev);
-      int64_t const seq_needed = std::max(a_read_pair->fwd_length, a_read_pair->rev_length) + 1;
+      a_read_pair.fwd_length = fastq_get_sequence_length(fastq_fwd);
+      a_read_pair.rev_length = fastq_get_sequence_length(fastq_rev);
+      int64_t const seq_needed = std::max(a_read_pair.fwd_length, a_read_pair.rev_length) + 1;
 
-      sum_read_length += a_read_pair->fwd_length + a_read_pair->rev_length;
+      sum_read_length += a_read_pair.fwd_length + a_read_pair.rev_length;
 
-      if (seq_needed > a_read_pair->seq_alloc)
+      if (seq_needed > a_read_pair.seq_alloc)
         {
-          a_read_pair->seq_alloc = seq_needed;
-          a_read_pair->fwd_sequence.resize(seq_needed);
-          a_read_pair->rev_sequence.resize(seq_needed);
-          a_read_pair->fwd_quality.resize(seq_needed);
-          a_read_pair->rev_quality.resize(seq_needed);
+          a_read_pair.seq_alloc = seq_needed;
+          a_read_pair.fwd_sequence.resize(seq_needed);
+          a_read_pair.rev_sequence.resize(seq_needed);
+          a_read_pair.fwd_quality.resize(seq_needed);
+          a_read_pair.rev_quality.resize(seq_needed);
         }
 
 
-      int64_t const merged_seq_needed = a_read_pair->fwd_length + a_read_pair->rev_length + 1;
+      int64_t const merged_seq_needed = a_read_pair.fwd_length + a_read_pair.rev_length + 1;
 
-      if (merged_seq_needed > a_read_pair->merged_seq_alloc)
+      if (merged_seq_needed > a_read_pair.merged_seq_alloc)
         {
-          a_read_pair->merged_seq_alloc = merged_seq_needed;
-          a_read_pair->merged_sequence.resize(merged_seq_needed);
-          a_read_pair->merged_quality_v.resize(merged_seq_needed);
+          a_read_pair.merged_seq_alloc = merged_seq_needed;
+          a_read_pair.merged_sequence.resize(merged_seq_needed);
+          a_read_pair.merged_quality_v.resize(merged_seq_needed);
         }
 
       /* make local copies of the seq, header and qual */
@@ -1056,37 +1056,37 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
       auto const fwd_header_view = Span<char> {
         fastq_get_header(fastq_fwd),
         fastq_get_header_length(fastq_fwd)};
-      std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair->fwd_header.begin());
+      std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
 
       auto const rev_header_view = Span<char> {
         fastq_get_header(fastq_rev),
         fastq_get_header_length(fastq_rev)};
-      std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair->rev_header.begin());
+      std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
 
       auto const fwd_sequence_view = Span<char> {
         fastq_get_sequence(fastq_fwd),
         fastq_get_sequence_length(fastq_fwd)};
-      std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair->fwd_sequence.begin());
+      std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair.fwd_sequence.begin());
 
       auto const rev_sequence_view = Span<char> {
         fastq_get_sequence(fastq_rev),
         fastq_get_sequence_length(fastq_rev)};
-      std::copy(rev_sequence_view.cbegin(), rev_sequence_view.cend(), a_read_pair->rev_sequence.begin());
+      std::copy(rev_sequence_view.cbegin(), rev_sequence_view.cend(), a_read_pair.rev_sequence.begin());
 
       auto const fwd_quality_view = Span<char> {
         fastq_get_quality(fastq_fwd),
         fastq_get_quality_length(fastq_fwd)};
-      std::copy(fwd_quality_view.cbegin(), fwd_quality_view.cend(), a_read_pair->fwd_quality.begin());
+      std::copy(fwd_quality_view.cbegin(), fwd_quality_view.cend(), a_read_pair.fwd_quality.begin());
 
       auto const rev_quality_view = Span<char> {
         fastq_get_quality(fastq_rev),
         fastq_get_quality_length(fastq_rev)};
-      std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair->rev_quality.begin());
+      std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair.rev_quality.begin());
 
-      a_read_pair->merged_sequence[0] = 0;
-      a_read_pair->merged_quality_v[0] = 0;
-      a_read_pair->merged = false;
-      a_read_pair->pair_no = total++;
+      a_read_pair.merged_sequence[0] = 0;
+      a_read_pair.merged_quality_v[0] = 0;
+      a_read_pair.merged = false;
+      a_read_pair.pair_no = total++;
 
       return true;
     }
@@ -1115,7 +1115,7 @@ inline auto chunk_perform_read() -> void
       progress_update(fastq_get_position(fastq_fwd));
       auto r = 0;
       while ((r < chunk_size) &&
-             read_pair(&chunks[chunk_read_next].merge_data[r]))
+             read_pair(chunks[chunk_read_next].merge_data[r]))
         {
           ++r;
         }
