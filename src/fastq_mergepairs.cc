@@ -193,6 +193,7 @@ struct merge_data_s
 {
   std::vector<char> fwd_header;
   std::vector<char> rev_header;
+  std::vector<char> fwd_sequence_v;
   char * fwd_sequence = nullptr;
   char * rev_sequence = nullptr;
   char * fwd_quality = nullptr;
@@ -1037,7 +1038,8 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
       if (seq_needed > a_read_pair->seq_alloc)
         {
           a_read_pair->seq_alloc = seq_needed;
-          a_read_pair->fwd_sequence = (char *) xrealloc(a_read_pair->fwd_sequence, seq_needed);
+          a_read_pair->fwd_sequence_v.resize(seq_needed);
+          a_read_pair->fwd_sequence = a_read_pair->fwd_sequence_v.data();
           a_read_pair->rev_sequence = (char *) xrealloc(a_read_pair->rev_sequence, seq_needed);
           a_read_pair->fwd_quality  = (char *) xrealloc(a_read_pair->fwd_quality,  seq_needed);
           a_read_pair->rev_quality  = (char *) xrealloc(a_read_pair->rev_quality,  seq_needed);
@@ -1100,7 +1102,7 @@ auto free_merge_data(merge_data_t & a_read_pair) -> void
 {
   if (a_read_pair.fwd_sequence != nullptr)
     {
-      xfree(a_read_pair.fwd_sequence);
+      a_read_pair.fwd_sequence = nullptr;
     }
   if (a_read_pair.rev_sequence != nullptr)
     {
