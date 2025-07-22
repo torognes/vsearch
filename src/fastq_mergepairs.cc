@@ -229,9 +229,8 @@ struct chunk_s
   merge_data_t * merge_data = nullptr; /* data for merging */
 };
 
-using chunk_t = struct chunk_s;
 
-static chunk_t * chunks; /* pointer to array of chunks */
+static struct chunk_s * chunks; /* pointer to array of chunks */
 
 static int chunk_count;
 static int chunk_read_next;
@@ -1318,7 +1317,7 @@ auto pair_all() -> void
   chunk_process_next = 0;
   chunk_write_next = 0;
 
-  std::vector<chunk_t> chunks_v(chunk_count);
+  std::vector<struct chunk_s> chunks_v(chunk_count);
   chunks = chunks_v.data();
 
   for (auto & a_chunk: chunks_v) {
