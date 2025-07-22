@@ -1109,11 +1109,6 @@ auto keep_or_discard(merge_data_t * a_read_pair) -> void
 }
 
 
-auto free_merge_data(merge_data_t & a_read_pair) -> void
-{
-}
-
-
 inline auto chunk_perform_read() -> void
 {
   while ((! finished_reading) && (chunks[chunk_read_next].state == State::empty))
@@ -1363,9 +1358,6 @@ auto pair_all() -> void
   xpthread_mutex_destroy(&mutex_chunks);
 
   for (auto & a_chunk: chunks_v) {
-      for (auto & a_read_pair: a_chunk.merge_data_v) {
-        free_merge_data(a_read_pair);
-      }
       a_chunk.merge_data = nullptr;
   }
   chunks = nullptr;
