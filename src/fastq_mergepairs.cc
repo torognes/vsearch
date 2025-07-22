@@ -192,7 +192,7 @@ enum struct State: char {
 struct merge_data_s
 {
   std::vector<char> fwd_header;
-  std::vector<char> rev_header_v;
+  std::vector<char> rev_header;
   char * fwd_sequence = nullptr;
   char * rev_sequence = nullptr;
   char * fwd_quality = nullptr;
@@ -560,8 +560,8 @@ auto discard(merge_data_t * a_read_pair) -> void
       fastq_print_general(fp_fastqout_notmerged_rev,
                           a_read_pair->rev_sequence,
                           a_read_pair->rev_length,
-                          a_read_pair->rev_header_v.data(),
-                          strlen(a_read_pair->rev_header_v.data()),
+                          a_read_pair->rev_header.data(),
+                          strlen(a_read_pair->rev_header.data()),
                           a_read_pair->rev_quality,
                           0,
                           notmerged,
@@ -589,8 +589,8 @@ auto discard(merge_data_t * a_read_pair) -> void
                           nullptr,
                           a_read_pair->rev_sequence,
                           a_read_pair->rev_length,
-                          a_read_pair->rev_header_v.data(),
-                          strlen(a_read_pair->rev_header_v.data()),
+                          a_read_pair->rev_header.data(),
+                          strlen(a_read_pair->rev_header.data()),
                           0,
                           notmerged,
                           -1.0,
@@ -1025,7 +1025,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
         {
           a_read_pair->header_alloc = header_needed;
           a_read_pair->fwd_header.resize(header_needed);
-          a_read_pair->rev_header_v.resize(header_needed);
+          a_read_pair->rev_header.resize(header_needed);
         }
 
       a_read_pair->fwd_length = fastq_get_sequence_length(fastq_fwd);
@@ -1061,7 +1061,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
         fastq_get_header(fastq_fwd),
         fastq_get_header_length(fastq_fwd)};
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair->fwd_header.begin());
-      strcpy(a_read_pair->rev_header_v.data(),   fastq_get_header(fastq_rev));
+      strcpy(a_read_pair->rev_header.data(),   fastq_get_header(fastq_rev));
       strcpy(a_read_pair->fwd_sequence, fastq_get_sequence(fastq_fwd));
       strcpy(a_read_pair->rev_sequence, fastq_get_sequence(fastq_rev));
       strcpy(a_read_pair->fwd_quality,  fastq_get_quality(fastq_fwd));
