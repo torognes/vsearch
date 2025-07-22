@@ -190,7 +190,7 @@ enum struct State: char {
 
 struct merge_data_s
 {
-  std::vector<char> fwd_header_v;
+  std::vector<char> fwd_header;
   char * rev_header = nullptr;
   char * fwd_sequence = nullptr;
   char * rev_sequence = nullptr;
@@ -438,8 +438,8 @@ auto keep(merge_data_t * a_read_pair) -> void
       fastq_print_general(fp_fastqout,
                           a_read_pair->merged_sequence,
                           a_read_pair->merged_length,
-                          a_read_pair->fwd_header_v.data(),
-                          strlen(a_read_pair->fwd_header_v.data()),
+                          a_read_pair->fwd_header.data(),
+                          strlen(a_read_pair->fwd_header.data()),
                           a_read_pair->merged_quality,
                           0,
                           merged,
@@ -452,8 +452,8 @@ auto keep(merge_data_t * a_read_pair) -> void
                           nullptr,
                           a_read_pair->merged_sequence,
                           a_read_pair->merged_length,
-                          a_read_pair->fwd_header_v.data(),
-                          strlen(a_read_pair->fwd_header_v.data()),
+                          a_read_pair->fwd_header.data(),
+                          strlen(a_read_pair->fwd_header.data()),
                           0,
                           merged,
                           a_read_pair->ee_merged,
@@ -546,8 +546,8 @@ auto discard(merge_data_t * a_read_pair) -> void
       fastq_print_general(fp_fastqout_notmerged_fwd,
                           a_read_pair->fwd_sequence,
                           a_read_pair->fwd_length,
-                          a_read_pair->fwd_header_v.data(),
-                          strlen(a_read_pair->fwd_header_v.data()),
+                          a_read_pair->fwd_header.data(),
+                          strlen(a_read_pair->fwd_header.data()),
                           a_read_pair->fwd_quality,
                           0,
                           notmerged,
@@ -573,8 +573,8 @@ auto discard(merge_data_t * a_read_pair) -> void
                           nullptr,
                           a_read_pair->fwd_sequence,
                           a_read_pair->fwd_length,
-                          a_read_pair->fwd_header_v.data(),
-                          strlen(a_read_pair->fwd_header_v.data()),
+                          a_read_pair->fwd_header.data(),
+                          strlen(a_read_pair->fwd_header.data()),
                           0,
                           notmerged,
                           -1.0,
@@ -1023,7 +1023,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
       if (header_needed > a_read_pair->header_alloc)
         {
           a_read_pair->header_alloc = header_needed;
-          a_read_pair->fwd_header_v.resize(header_needed);
+          a_read_pair->fwd_header.resize(header_needed);
           a_read_pair->rev_header = (char *) xrealloc(a_read_pair->rev_header, header_needed);
         }
 
@@ -1056,7 +1056,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
 
       /* make local copies of the seq, header and qual */
 
-      strcpy(a_read_pair->fwd_header_v.data(),   fastq_get_header(fastq_fwd));
+      strcpy(a_read_pair->fwd_header.data(),   fastq_get_header(fastq_fwd));
       strcpy(a_read_pair->rev_header,   fastq_get_header(fastq_rev));
       strcpy(a_read_pair->fwd_sequence, fastq_get_sequence(fastq_fwd));
       strcpy(a_read_pair->rev_sequence, fastq_get_sequence(fastq_rev));
