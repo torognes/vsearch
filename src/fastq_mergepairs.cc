@@ -206,7 +206,6 @@ struct merge_data_s
   int64_t pair_no = 0;
   std::vector<char> merged_sequence;
   std::vector<char> merged_quality_v;
-  char * merged_quality = nullptr;
   int64_t merged_length = 0;
   int64_t merged_seq_alloc = 0;
   double ee_merged = 0;
@@ -1052,7 +1051,6 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
           a_read_pair->merged_seq_alloc = merged_seq_needed;
           a_read_pair->merged_sequence.resize(merged_seq_needed);
           a_read_pair->merged_quality_v.resize(merged_seq_needed);
-          a_read_pair->merged_quality = a_read_pair->merged_quality_v.data();
         }
 
       /* make local copies of the seq, header and qual */
@@ -1113,10 +1111,6 @@ auto keep_or_discard(merge_data_t * a_read_pair) -> void
 
 auto free_merge_data(merge_data_t & a_read_pair) -> void
 {
-  if (a_read_pair.merged_quality != nullptr)
-    {
-      a_read_pair.merged_quality = nullptr;
-    }
 }
 
 
