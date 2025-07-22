@@ -546,7 +546,7 @@ auto discard(merge_data_t * a_read_pair) -> void
   if (opt_fastqout_notmerged_fwd != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_fwd,
-                          a_read_pair->fwd_sequence,
+                          a_read_pair->fwd_sequence_v.data(),
                           a_read_pair->fwd_length,
                           a_read_pair->fwd_header.data(),
                           strlen(a_read_pair->fwd_header.data()),
@@ -573,7 +573,7 @@ auto discard(merge_data_t * a_read_pair) -> void
     {
       fasta_print_general(fp_fastaout_notmerged_fwd,
                           nullptr,
-                          a_read_pair->fwd_sequence,
+                          a_read_pair->fwd_sequence_v.data(),
                           a_read_pair->fwd_length,
                           a_read_pair->fwd_header.data(),
                           strlen(a_read_pair->fwd_header.data()),
@@ -634,7 +634,7 @@ auto merge(merge_data_t * a_read_pair) -> void
 
   while (fwd_pos < fwd_5prime_overhang)
     {
-      sym = a_read_pair->fwd_sequence[fwd_pos];
+      sym = a_read_pair->fwd_sequence_v[fwd_pos];
       qual = a_read_pair->fwd_quality[fwd_pos];
 
       a_read_pair->merged_sequence[merged_pos] = sym;
@@ -657,7 +657,7 @@ auto merge(merge_data_t * a_read_pair) -> void
 
   while ((fwd_pos < a_read_pair->fwd_trunc) && (rev_pos >= 0))
     {
-      fwd_sym = a_read_pair->fwd_sequence[fwd_pos];
+      fwd_sym = a_read_pair->fwd_sequence_v[fwd_pos];
       rev_sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
       fwd_qual = a_read_pair->fwd_quality[fwd_pos];
       rev_qual = a_read_pair->rev_quality[rev_pos];
@@ -743,7 +743,7 @@ auto optimize(merge_data_t * a_read_pair,
 
   std::vector<int> diags(a_read_pair->fwd_trunc + a_read_pair->rev_trunc, 0);
 
-  kh_insert_kmers(kmerhash, k, a_read_pair->fwd_sequence, a_read_pair->fwd_trunc);
+  kh_insert_kmers(kmerhash, k, a_read_pair->fwd_sequence_v.data(), a_read_pair->fwd_trunc);
   kh_find_diagonals(kmerhash, k, a_read_pair->rev_sequence, a_read_pair->rev_trunc, diags);
 
   for (int64_t i = i1; i <= i2; i++)
@@ -780,7 +780,7 @@ auto optimize(merge_data_t * a_read_pair,
             {
               /* for each pair of bases in the overlap */
 
-              auto const fwd_sym = a_read_pair->fwd_sequence[fwd_pos];
+              auto const fwd_sym = a_read_pair->fwd_sequence_v[fwd_pos];
               auto const rev_sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
 
               unsigned int const fwd_qual = a_read_pair->fwd_quality[fwd_pos];
@@ -960,7 +960,7 @@ auto process(merge_data_t * a_read_pair,
       int64_t fwd_ncount = 0;
       for (int64_t i = 0; i < fwd_trunc; i++)
         {
-          if (a_read_pair->fwd_sequence[i] == 'N')
+          if (a_read_pair->fwd_sequence_v[i] == 'N')
             {
               a_read_pair->fwd_quality[i] = opt_fastq_ascii;
               ++fwd_ncount;
@@ -1069,7 +1069,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
         fastq_get_header_length(fastq_rev)};
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair->rev_header.begin());
 
-      strcpy(a_read_pair->fwd_sequence, fastq_get_sequence(fastq_fwd));
+      strcpy(a_read_pair->fwd_sequence_v.data(), fastq_get_sequence(fastq_fwd));
       strcpy(a_read_pair->rev_sequence, fastq_get_sequence(fastq_rev));
       strcpy(a_read_pair->fwd_quality,  fastq_get_quality(fastq_fwd));
       strcpy(a_read_pair->rev_quality,  fastq_get_quality(fastq_rev));
