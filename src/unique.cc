@@ -151,12 +151,12 @@ auto unique_compare(const void * a, const void * b) -> int
 
 
 auto unique_count_bitmap(struct uhandle_s * unique_handle,
-                         int wordlength,
-                         int seqlen,
+                         int const wordlength,
+                         int const seqlen,
                          char const * seq,
                          unsigned int * listlen,
                          unsigned int * * list,
-                         int seqmask) -> void
+                         int const seqmask) -> void
 {
   /* if necessary, reallocate list of unique kmers */
 
@@ -236,12 +236,12 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
 
 
 auto unique_count_hash(struct uhandle_s * unique_handle,
-                       int wordlength,
-                       int seqlen,
+                       int const wordlength,
+                       int const seqlen,
                        char * seq,
                        unsigned int * listlen,
                        unsigned int * * list,
-                       int seqmask) -> void
+                       int const seqmask) -> void
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
@@ -329,12 +329,12 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
 
 
 auto unique_count(struct uhandle_s * unique_handle,
-                  int wordlength,
-                  int seqlen,
+                  int const wordlength,
+                  int const seqlen,
                   char * seq,
                   unsigned int * listlen,
                   unsigned int * * list,
-                  int seqmask) -> void
+                  int const seqmask) -> void
 {
   if (wordlength < 10)
     {
@@ -348,8 +348,8 @@ auto unique_count(struct uhandle_s * unique_handle,
 
 
 auto unique_count_shared(struct uhandle_s * unique_handle,
-                        int wordlength,
-                        int listlen,
+                        int const wordlength,
+                        int const listlen,
                         unsigned int * list) -> int
 {
   /* counts how many of the kmers in list are present in the
