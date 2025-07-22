@@ -1056,6 +1056,8 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
 
       /* make local copies of the seq, header and qual */
 
+      // refactoring:
+      // std::copy(fastq_get_header(fastq_fwd), std::next(fastq_get_header(fastq_fwd), fwd_header_len), a_read_pair->fwd_header.begin());
       strcpy(a_read_pair->fwd_header.data(),   fastq_get_header(fastq_fwd));
       strcpy(a_read_pair->rev_header,   fastq_get_header(fastq_rev));
       strcpy(a_read_pair->fwd_sequence, fastq_get_sequence(fastq_fwd));
