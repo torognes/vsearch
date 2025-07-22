@@ -442,7 +442,7 @@ auto keep(merge_data_t * a_read_pair) -> void
                           a_read_pair->merged_length,
                           a_read_pair->fwd_header.data(),
                           std::strlen(a_read_pair->fwd_header.data()),
-                          a_read_pair->merged_quality,
+                          a_read_pair->merged_quality_v.data(),
                           0,
                           merged,
                           a_read_pair->ee_merged);
@@ -638,7 +638,7 @@ auto merge(merge_data_t * a_read_pair) -> void
       qual = a_read_pair->fwd_quality[fwd_pos];
 
       a_read_pair->merged_sequence[merged_pos] = sym;
-      a_read_pair->merged_quality[merged_pos] = qual;
+      a_read_pair->merged_quality_v[merged_pos] = qual;
 
       ee = q2p[(unsigned) qual];
       a_read_pair->ee_merged += ee;
@@ -679,7 +679,7 @@ auto merge(merge_data_t * a_read_pair) -> void
         }
 
       a_read_pair->merged_sequence[merged_pos] = sym;
-      a_read_pair->merged_quality[merged_pos] = qual;
+      a_read_pair->merged_quality_v[merged_pos] = qual;
       a_read_pair->ee_merged += q2p[(unsigned) qual];
       a_read_pair->ee_fwd += q2p[(unsigned) fwd_qual];
       a_read_pair->ee_rev += q2p[(unsigned) rev_qual];
@@ -697,7 +697,7 @@ auto merge(merge_data_t * a_read_pair) -> void
       qual = a_read_pair->rev_quality[rev_pos];
 
       a_read_pair->merged_sequence[merged_pos] = sym;
-      a_read_pair->merged_quality[merged_pos] = qual;
+      a_read_pair->merged_quality_v[merged_pos] = qual;
       ++merged_pos;
 
       ee = q2p[(unsigned) qual];
@@ -711,7 +711,7 @@ auto merge(merge_data_t * a_read_pair) -> void
   a_read_pair->merged_length = mergelen;
 
   a_read_pair->merged_sequence[mergelen] = 0;
-  a_read_pair->merged_quality[mergelen] = 0;
+  a_read_pair->merged_quality_v[mergelen] = 0;
 
   if (a_read_pair->ee_merged <= opt_fastq_maxee)
     {
@@ -1088,7 +1088,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
       std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair->rev_quality.begin());
 
       a_read_pair->merged_sequence[0] = 0;
-      a_read_pair->merged_quality[0] = 0;
+      a_read_pair->merged_quality_v[0] = 0;
       a_read_pair->merged = false;
       a_read_pair->pair_no = total++;
 
