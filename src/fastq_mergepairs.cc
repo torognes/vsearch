@@ -63,8 +63,9 @@
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
+#include "utils/span.hpp"
 #include "utils/xpthread.hpp"
-#include <algorithm>  // std::min, std::max
+#include <algorithm>  // std::copy, std::min, std::max
 #include <array>
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -1056,9 +1057,10 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
 
       /* make local copies of the seq, header and qual */
 
-      // refactoring:
-      // std::copy(fastq_get_header(fastq_fwd), std::next(fastq_get_header(fastq_fwd), fwd_header_len), a_read_pair->fwd_header.begin());
-      strcpy(a_read_pair->fwd_header.data(),   fastq_get_header(fastq_fwd));
+      auto const fwd_header_view = Span<char> {
+        fastq_get_header(fastq_fwd),
+        fastq_get_header_length(fastq_fwd)};
+      std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair->fwd_header.begin());
       strcpy(a_read_pair->rev_header,   fastq_get_header(fastq_rev));
       strcpy(a_read_pair->fwd_sequence, fastq_get_sequence(fastq_fwd));
       strcpy(a_read_pair->rev_sequence, fastq_get_sequence(fastq_rev));
