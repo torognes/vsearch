@@ -225,7 +225,7 @@ struct chunk_s
 {
   int size = 0; /* size of merge_data = number of pairs of reads */
   State state = State::empty; /* state of chunk: empty, read, processed */
-  std::vector<struct merge_data_s> merge_data_v = std::vector<struct merge_data_s>(chunk_size);
+  std::vector<struct merge_data_s> merge_data = std::vector<struct merge_data_s>(chunk_size);
 };
 
 
@@ -1115,7 +1115,7 @@ inline auto chunk_perform_read() -> void
       progress_update(fastq_get_position(fastq_fwd));
       auto r = 0;
       while ((r < chunk_size) &&
-             read_pair(&chunks[chunk_read_next].merge_data_v[r]))
+             read_pair(&chunks[chunk_read_next].merge_data[r]))
         {
           ++r;
         }
@@ -1147,7 +1147,7 @@ inline auto chunk_perform_write() -> void
       xpthread_mutex_unlock(&mutex_chunks);
       for (auto i = 0; i < chunks[chunk_write_next].size; i++)
         {
-          keep_or_discard(&chunks[chunk_write_next].merge_data_v[i]);
+          keep_or_discard(&chunks[chunk_write_next].merge_data[i]);
         }
       xpthread_mutex_lock(&mutex_chunks);
       pairs_written += chunks[chunk_write_next].size;
@@ -1173,7 +1173,7 @@ inline auto chunk_perform_process(struct kh_handle_s & kmerhash) -> void
       xpthread_mutex_unlock(&mutex_chunks);
       for (auto i = 0; i < chunks[chunk_current].size; i++)
         {
-          process(&chunks[chunk_current].merge_data_v[i], kmerhash);
+          process(&chunks[chunk_current].merge_data[i], kmerhash);
         }
       xpthread_mutex_lock(&mutex_chunks);
       chunks[chunk_current].state = State::processed;
