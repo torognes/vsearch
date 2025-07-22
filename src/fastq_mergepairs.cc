@@ -419,43 +419,43 @@ auto merge_sym(char * sym,       char * qual,
 }
 
 
-auto keep(merge_data_t * a_read_pair) -> void
+auto keep(merge_data_t & a_read_pair) -> void
 {
   ++merged;
 
-  sum_fragment_length += a_read_pair->merged_length;
-  sum_squared_fragment_length += a_read_pair->merged_length * a_read_pair->merged_length;
+  sum_fragment_length += a_read_pair.merged_length;
+  sum_squared_fragment_length += a_read_pair.merged_length * a_read_pair.merged_length;
 
-  sum_ee_merged += a_read_pair->ee_merged;
-  sum_ee_fwd += a_read_pair->ee_fwd;
-  sum_ee_rev += a_read_pair->ee_rev;
-  sum_errors_fwd += a_read_pair->fwd_errors;
-  sum_errors_rev += a_read_pair->rev_errors;
+  sum_ee_merged += a_read_pair.ee_merged;
+  sum_ee_fwd += a_read_pair.ee_fwd;
+  sum_ee_rev += a_read_pair.ee_rev;
+  sum_errors_fwd += a_read_pair.fwd_errors;
+  sum_errors_rev += a_read_pair.rev_errors;
 
   if (opt_fastqout != nullptr)
     {
       fastq_print_general(fp_fastqout,
-                          a_read_pair->merged_sequence.data(),
-                          a_read_pair->merged_length,
-                          a_read_pair->fwd_header.data(),
-                          std::strlen(a_read_pair->fwd_header.data()),
-                          a_read_pair->merged_quality_v.data(),
+                          a_read_pair.merged_sequence.data(),
+                          a_read_pair.merged_length,
+                          a_read_pair.fwd_header.data(),
+                          std::strlen(a_read_pair.fwd_header.data()),
+                          a_read_pair.merged_quality_v.data(),
                           0,
                           merged,
-                          a_read_pair->ee_merged);
+                          a_read_pair.ee_merged);
     }
 
   if (opt_fastaout != nullptr)
     {
       fasta_print_general(fp_fastaout,
                           nullptr,
-                          a_read_pair->merged_sequence.data(),
-                          a_read_pair->merged_length,
-                          a_read_pair->fwd_header.data(),
-                          std::strlen(a_read_pair->fwd_header.data()),
+                          a_read_pair.merged_sequence.data(),
+                          a_read_pair.merged_length,
+                          a_read_pair.fwd_header.data(),
+                          std::strlen(a_read_pair.fwd_header.data()),
                           0,
                           merged,
-                          a_read_pair->ee_merged,
+                          a_read_pair.ee_merged,
                           -1,
                           -1,
                           nullptr,
@@ -465,14 +465,14 @@ auto keep(merge_data_t * a_read_pair) -> void
   if (opt_eetabbedout != nullptr)
     {
       fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
-              a_read_pair->ee_fwd, a_read_pair->ee_rev, a_read_pair->fwd_errors, a_read_pair->rev_errors);
+              a_read_pair.ee_fwd, a_read_pair.ee_rev, a_read_pair.fwd_errors, a_read_pair.rev_errors);
     }
 }
 
 
-auto discard(merge_data_t * a_read_pair) -> void
+auto discard(merge_data_t & a_read_pair) -> void
 {
-  switch (a_read_pair->reason)
+  switch (a_read_pair.reason)
     {
     case Reason::undefined:
       ++failed_undefined;
@@ -543,11 +543,11 @@ auto discard(merge_data_t * a_read_pair) -> void
   if (opt_fastqout_notmerged_fwd != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_fwd,
-                          a_read_pair->fwd_sequence.data(),
-                          a_read_pair->fwd_length,
-                          a_read_pair->fwd_header.data(),
-                          std::strlen(a_read_pair->fwd_header.data()),
-                          a_read_pair->fwd_quality.data(),
+                          a_read_pair.fwd_sequence.data(),
+                          a_read_pair.fwd_length,
+                          a_read_pair.fwd_header.data(),
+                          std::strlen(a_read_pair.fwd_header.data()),
+                          a_read_pair.fwd_quality.data(),
                           0,
                           notmerged,
                           -1.0);
@@ -556,11 +556,11 @@ auto discard(merge_data_t * a_read_pair) -> void
   if (opt_fastqout_notmerged_rev != nullptr)
     {
       fastq_print_general(fp_fastqout_notmerged_rev,
-                          a_read_pair->rev_sequence.data(),
-                          a_read_pair->rev_length,
-                          a_read_pair->rev_header.data(),
-                          std::strlen(a_read_pair->rev_header.data()),
-                          a_read_pair->rev_quality.data(),
+                          a_read_pair.rev_sequence.data(),
+                          a_read_pair.rev_length,
+                          a_read_pair.rev_header.data(),
+                          std::strlen(a_read_pair.rev_header.data()),
+                          a_read_pair.rev_quality.data(),
                           0,
                           notmerged,
                           -1.0);
@@ -570,10 +570,10 @@ auto discard(merge_data_t * a_read_pair) -> void
     {
       fasta_print_general(fp_fastaout_notmerged_fwd,
                           nullptr,
-                          a_read_pair->fwd_sequence.data(),
-                          a_read_pair->fwd_length,
-                          a_read_pair->fwd_header.data(),
-                          std::strlen(a_read_pair->fwd_header.data()),
+                          a_read_pair.fwd_sequence.data(),
+                          a_read_pair.fwd_length,
+                          a_read_pair.fwd_header.data(),
+                          std::strlen(a_read_pair.fwd_header.data()),
                           0,
                           notmerged,
                           -1.0,
@@ -585,10 +585,10 @@ auto discard(merge_data_t * a_read_pair) -> void
     {
       fasta_print_general(fp_fastaout_notmerged_rev,
                           nullptr,
-                          a_read_pair->rev_sequence.data(),
-                          a_read_pair->rev_length,
-                          a_read_pair->rev_header.data(),
-                          std::strlen(a_read_pair->rev_header.data()),
+                          a_read_pair.rev_sequence.data(),
+                          a_read_pair.rev_length,
+                          a_read_pair.rev_header.data(),
+                          std::strlen(a_read_pair.rev_header.data()),
                           0,
                           notmerged,
                           -1.0,
@@ -881,38 +881,38 @@ auto optimize(merge_data_t * a_read_pair,
 }
 
 
-auto process(merge_data_t * a_read_pair,
+auto process(merge_data_t & a_read_pair,
              struct kh_handle_s & kmerhash) -> void
 {
-  a_read_pair->merged = false;
+  a_read_pair.merged = false;
 
   auto skip = false;
 
   /* check length */
 
-  if ((a_read_pair->fwd_length < opt_fastq_minlen) ||
-      (a_read_pair->rev_length < opt_fastq_minlen))
+  if ((a_read_pair.fwd_length < opt_fastq_minlen) ||
+      (a_read_pair.rev_length < opt_fastq_minlen))
     {
-      a_read_pair->reason = Reason::minlen;
+      a_read_pair.reason = Reason::minlen;
       skip = true;
     }
 
-  if ((a_read_pair->fwd_length > opt_fastq_maxlen) ||
-      (a_read_pair->rev_length > opt_fastq_maxlen))
+  if ((a_read_pair.fwd_length > opt_fastq_maxlen) ||
+      (a_read_pair.rev_length > opt_fastq_maxlen))
     {
-      a_read_pair->reason = Reason::maxlen;
+      a_read_pair.reason = Reason::maxlen;
       skip = true;
     }
 
   /* truncate sequences by quality */
 
-  int64_t fwd_trunc = a_read_pair->fwd_length;
+  int64_t fwd_trunc = a_read_pair.fwd_length;
 
   if (! skip)
     {
-      for (int64_t i = 0; i < a_read_pair->fwd_length; i++)
+      for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
         {
-          if (get_qual(a_read_pair->fwd_quality[i]) <= opt_fastq_truncqual)
+          if (get_qual(a_read_pair.fwd_quality[i]) <= opt_fastq_truncqual)
             {
               fwd_trunc = i;
               break;
@@ -920,20 +920,20 @@ auto process(merge_data_t * a_read_pair,
         }
       if (fwd_trunc < opt_fastq_minlen)
         {
-          a_read_pair->reason = Reason::minlen;
+          a_read_pair.reason = Reason::minlen;
           skip = true;
         }
     }
 
-  a_read_pair->fwd_trunc = fwd_trunc;
+  a_read_pair.fwd_trunc = fwd_trunc;
 
-  auto rev_trunc = a_read_pair->rev_length;
+  auto rev_trunc = a_read_pair.rev_length;
 
   if (! skip)
     {
-      for (int64_t i = 0; i < a_read_pair->rev_length; i++)
+      for (int64_t i = 0; i < a_read_pair.rev_length; i++)
         {
-          if (get_qual(a_read_pair->rev_quality[i]) <= opt_fastq_truncqual)
+          if (get_qual(a_read_pair.rev_quality[i]) <= opt_fastq_truncqual)
             {
               rev_trunc = i;
               break;
@@ -941,12 +941,12 @@ auto process(merge_data_t * a_read_pair,
         }
       if (rev_trunc < opt_fastq_minlen)
         {
-          a_read_pair->reason = Reason::minlen;
+          a_read_pair.reason = Reason::minlen;
           skip = true;
         }
     }
 
-  a_read_pair->rev_trunc = rev_trunc;
+  a_read_pair.rev_trunc = rev_trunc;
 
   /* count n's */
 
@@ -957,15 +957,15 @@ auto process(merge_data_t * a_read_pair,
       int64_t fwd_ncount = 0;
       for (int64_t i = 0; i < fwd_trunc; i++)
         {
-          if (a_read_pair->fwd_sequence[i] == 'N')
+          if (a_read_pair.fwd_sequence[i] == 'N')
             {
-              a_read_pair->fwd_quality[i] = opt_fastq_ascii;
+              a_read_pair.fwd_quality[i] = opt_fastq_ascii;
               ++fwd_ncount;
             }
         }
       if (fwd_ncount > opt_fastq_maxns)
         {
-          a_read_pair->reason = Reason::maxns;
+          a_read_pair.reason = Reason::maxns;
           skip = true;
         }
     }
@@ -975,32 +975,32 @@ auto process(merge_data_t * a_read_pair,
       int64_t rev_ncount = 0;
       for (int64_t i = 0; i < rev_trunc; i++)
         {
-          if (a_read_pair->rev_sequence[i] == 'N')
+          if (a_read_pair.rev_sequence[i] == 'N')
             {
-              a_read_pair->rev_quality[i] = opt_fastq_ascii;
+              a_read_pair.rev_quality[i] = opt_fastq_ascii;
               ++rev_ncount;
             }
         }
       if (rev_ncount > opt_fastq_maxns)
         {
-          a_read_pair->reason = Reason::maxns;
+          a_read_pair.reason = Reason::maxns;
           skip = true;
         }
     }
 
-  a_read_pair->offset = 0;
+  a_read_pair.offset = 0;
 
   if (! skip)
     {
-      a_read_pair->offset = optimize(a_read_pair, kmerhash);
+      a_read_pair.offset = optimize(&a_read_pair, kmerhash);
     }
 
-  if (a_read_pair->offset > 0)
+  if (a_read_pair.offset > 0)
     {
-      merge(a_read_pair);
+      merge(&a_read_pair);
     }
 
-  a_read_pair->state = State::processed;
+  a_read_pair.state = State::processed;
 }
 
 
@@ -1094,9 +1094,9 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
 }
 
 
-auto keep_or_discard(merge_data_t * a_read_pair) -> void
+auto keep_or_discard(merge_data_t & a_read_pair) -> void
 {
-  if (a_read_pair->merged)
+  if (a_read_pair.merged)
     {
       keep(a_read_pair);
     }
@@ -1147,7 +1147,7 @@ inline auto chunk_perform_write() -> void
       xpthread_mutex_unlock(&mutex_chunks);
       for (auto i = 0; i < chunks[chunk_write_next].size; i++)
         {
-          keep_or_discard(&chunks[chunk_write_next].merge_data[i]);
+          keep_or_discard(chunks[chunk_write_next].merge_data[i]);
         }
       xpthread_mutex_lock(&mutex_chunks);
       pairs_written += chunks[chunk_write_next].size;
@@ -1173,7 +1173,7 @@ inline auto chunk_perform_process(struct kh_handle_s & kmerhash) -> void
       xpthread_mutex_unlock(&mutex_chunks);
       for (auto i = 0; i < chunks[chunk_current].size; i++)
         {
-          process(&chunks[chunk_current].merge_data[i], kmerhash);
+          process(chunks[chunk_current].merge_data[i], kmerhash);
         }
       xpthread_mutex_lock(&mutex_chunks);
       chunks[chunk_current].state = State::processed;
