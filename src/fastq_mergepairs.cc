@@ -1077,7 +1077,11 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
         fastq_get_sequence_length(fastq_rev)};
       std::copy(rev_sequence_view.cbegin(), rev_sequence_view.cend(), a_read_pair->rev_sequence.begin());
 
-      strcpy(a_read_pair->fwd_quality.data(),  fastq_get_quality(fastq_fwd));
+      auto const fwd_quality_view = Span<char> {
+        fastq_get_quality(fastq_fwd),
+        fastq_get_quality_length(fastq_fwd)};
+      std::copy(fwd_quality_view.cbegin(), fwd_quality_view.cend(), a_read_pair->fwd_quality.begin());
+
       strcpy(a_read_pair->rev_quality,  fastq_get_quality(fastq_rev));
 
       a_read_pair->merged_sequence[0] = 0;
