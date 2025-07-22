@@ -205,7 +205,6 @@ struct merge_data_s
   int64_t rev_trunc = 0;
   int64_t pair_no = 0;
   std::vector<char> merged_sequence_v;
-  char * merged_sequence = nullptr;
   char * merged_quality = nullptr;
   int64_t merged_length = 0;
   int64_t merged_seq_alloc = 0;
@@ -1051,7 +1050,6 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
         {
           a_read_pair->merged_seq_alloc = merged_seq_needed;
           a_read_pair->merged_sequence_v.resize(merged_seq_needed);
-          a_read_pair->merged_sequence = a_read_pair->merged_sequence_v.data();
           a_read_pair->merged_quality = (char *) xrealloc(a_read_pair->merged_quality,
                                                 merged_seq_needed);
         }
@@ -1114,10 +1112,6 @@ auto keep_or_discard(merge_data_t * a_read_pair) -> void
 
 auto free_merge_data(merge_data_t & a_read_pair) -> void
 {
-  if (a_read_pair.merged_sequence != nullptr)
-    {
-      a_read_pair.merged_sequence = nullptr;
-    }
   if (a_read_pair.merged_quality != nullptr)
     {
       xfree(a_read_pair.merged_quality);
