@@ -193,7 +193,6 @@ struct merge_data_s
 {
   std::vector<char> fwd_header;
   std::vector<char> rev_header_v;
-  char * rev_header = nullptr;
   char * fwd_sequence = nullptr;
   char * rev_sequence = nullptr;
   char * fwd_quality = nullptr;
@@ -1027,7 +1026,6 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
           a_read_pair->header_alloc = header_needed;
           a_read_pair->fwd_header.resize(header_needed);
           a_read_pair->rev_header_v.resize(header_needed);
-          a_read_pair->rev_header = a_read_pair->rev_header_v.data();
         }
 
       a_read_pair->fwd_length = fastq_get_sequence_length(fastq_fwd);
@@ -1095,10 +1093,6 @@ auto keep_or_discard(merge_data_t * a_read_pair) -> void
 
 auto free_merge_data(merge_data_t & a_read_pair) -> void
 {
-  if (a_read_pair.rev_header != nullptr)
-    {
-      a_read_pair.rev_header = nullptr;
-    }
   if (a_read_pair.fwd_sequence != nullptr)
     {
       xfree(a_read_pair.fwd_sequence);
