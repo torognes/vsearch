@@ -204,7 +204,7 @@ struct merge_data_s
   int64_t fwd_trunc = 0;
   int64_t rev_trunc = 0;
   int64_t pair_no = 0;
-  std::vector<char> merged_sequence_v;
+  std::vector<char> merged_sequence;
   char * merged_quality = nullptr;
   int64_t merged_length = 0;
   int64_t merged_seq_alloc = 0;
@@ -437,7 +437,7 @@ auto keep(merge_data_t * a_read_pair) -> void
   if (opt_fastqout != nullptr)
     {
       fastq_print_general(fp_fastqout,
-                          a_read_pair->merged_sequence_v.data(),
+                          a_read_pair->merged_sequence.data(),
                           a_read_pair->merged_length,
                           a_read_pair->fwd_header.data(),
                           std::strlen(a_read_pair->fwd_header.data()),
@@ -451,7 +451,7 @@ auto keep(merge_data_t * a_read_pair) -> void
     {
       fasta_print_general(fp_fastaout,
                           nullptr,
-                          a_read_pair->merged_sequence_v.data(),
+                          a_read_pair->merged_sequence.data(),
                           a_read_pair->merged_length,
                           a_read_pair->fwd_header.data(),
                           std::strlen(a_read_pair->fwd_header.data()),
@@ -636,7 +636,7 @@ auto merge(merge_data_t * a_read_pair) -> void
       sym = a_read_pair->fwd_sequence[fwd_pos];
       qual = a_read_pair->fwd_quality[fwd_pos];
 
-      a_read_pair->merged_sequence_v[merged_pos] = sym;
+      a_read_pair->merged_sequence[merged_pos] = sym;
       a_read_pair->merged_quality[merged_pos] = qual;
 
       ee = q2p[(unsigned) qual];
@@ -677,7 +677,7 @@ auto merge(merge_data_t * a_read_pair) -> void
           ++a_read_pair->rev_errors;
         }
 
-      a_read_pair->merged_sequence_v[merged_pos] = sym;
+      a_read_pair->merged_sequence[merged_pos] = sym;
       a_read_pair->merged_quality[merged_pos] = qual;
       a_read_pair->ee_merged += q2p[(unsigned) qual];
       a_read_pair->ee_fwd += q2p[(unsigned) fwd_qual];
@@ -695,7 +695,7 @@ auto merge(merge_data_t * a_read_pair) -> void
       sym = chrmap_complement[(int) (a_read_pair->rev_sequence[rev_pos])];
       qual = a_read_pair->rev_quality[rev_pos];
 
-      a_read_pair->merged_sequence_v[merged_pos] = sym;
+      a_read_pair->merged_sequence[merged_pos] = sym;
       a_read_pair->merged_quality[merged_pos] = qual;
       ++merged_pos;
 
@@ -709,7 +709,7 @@ auto merge(merge_data_t * a_read_pair) -> void
   auto const mergelen = merged_pos;
   a_read_pair->merged_length = mergelen;
 
-  a_read_pair->merged_sequence_v[mergelen] = 0;
+  a_read_pair->merged_sequence[mergelen] = 0;
   a_read_pair->merged_quality[mergelen] = 0;
 
   if (a_read_pair->ee_merged <= opt_fastq_maxee)
@@ -1049,7 +1049,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
       if (merged_seq_needed > a_read_pair->merged_seq_alloc)
         {
           a_read_pair->merged_seq_alloc = merged_seq_needed;
-          a_read_pair->merged_sequence_v.resize(merged_seq_needed);
+          a_read_pair->merged_sequence.resize(merged_seq_needed);
           a_read_pair->merged_quality = (char *) xrealloc(a_read_pair->merged_quality,
                                                 merged_seq_needed);
         }
@@ -1086,7 +1086,7 @@ auto read_pair(merge_data_t * a_read_pair) -> bool
         fastq_get_quality_length(fastq_rev)};
       std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair->rev_quality.begin());
 
-      a_read_pair->merged_sequence_v[0] = 0;
+      a_read_pair->merged_sequence[0] = 0;
       a_read_pair->merged_quality[0] = 0;
       a_read_pair->merged = false;
       a_read_pair->pair_no = total++;
