@@ -226,7 +226,6 @@ struct chunk_s
   int size = 0; /* size of merge_data = number of pairs of reads */
   State state = State::empty; /* state of chunk: empty, read, processed */
   std::vector<struct merge_data_s> merge_data_v = std::vector<struct merge_data_s>(chunk_size);
-  merge_data_t * merge_data = nullptr; /* data for merging */
 };
 
 
@@ -1318,10 +1317,6 @@ auto pair_all() -> void
   chunk_write_next = 0;
 
   chunks.resize(chunk_count);
-
-  for (auto & a_chunk: chunks) {
-    a_chunk.merge_data = a_chunk.merge_data_v.data();
-  }
 
   xpthread_mutex_init(&mutex_chunks, nullptr);
   xpthread_cond_init(&cond_chunks, nullptr);
