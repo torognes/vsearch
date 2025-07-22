@@ -106,8 +106,7 @@ public:
     return std::next(data(), distance);
   }
   auto cend() const -> Type const * {
-    auto const distance = static_cast<std::ptrdiff_t>(size());
-    return std::next(data(), distance);
+    return end();
   }
 
   // Element access
