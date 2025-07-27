@@ -156,7 +156,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
       source = std::next(source);
     }
 
-  /* add zero after sequence */
+  /* add nullchar after sequence */
   *dest = '\0';
   input_handle->sequence_buffer.length = dest - input_handle->sequence_buffer.data;
 }
