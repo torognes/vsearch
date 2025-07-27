@@ -1057,11 +1057,13 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
         fastq_get_header(fastq_fwd),
         fastq_get_header_length(fastq_fwd)};
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
+      a_read_pair.fwd_header[fwd_header_view.size()] = '\0';
 
       auto const rev_header_view = Span<char> {
         fastq_get_header(fastq_rev),
         fastq_get_header_length(fastq_rev)};
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
+      a_read_pair.rev_header[rev_header_view.size()] = '\0';
 
       auto const fwd_sequence_view = Span<char> {
         fastq_get_sequence(fastq_fwd),
