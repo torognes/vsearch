@@ -64,7 +64,7 @@
 #include <cassert>
 #include <cerrno>  // errno
 #include <cstdio>  // std::fopen, fdopen
-#include <cstring>  // std::strcmp
+#include <string>
 
 
 // type-safe string mode wrapper
@@ -77,6 +77,8 @@ struct ModeString {
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
+
+  const std::string a_dash = "-";  // used to represent stdin or stdout
 
   // Safely wrapping fopen()
   auto open_file(char const * filename,
@@ -121,7 +123,7 @@ auto open_input_file(char const * filename) -> FileHandle {
   auto const mode = ModeString{"rb"};  // r: reading, b: non-UNIX environments
   /* open the input stream given by filename, but if name is '-' then
      use a duplicate of stdin (fd = STDIN_FILENO = 0) */
-  if (std::strcmp(filename, "-") == 0) {
+  if (filename == a_dash) {
     auto const file_descriptor = dup(STDIN_FILENO);
     check_file_descriptor(file_descriptor);
     return open_file_descriptor(file_descriptor, mode);
@@ -139,7 +141,7 @@ auto open_output_file(char const * filename) -> FileHandle {
   auto const mode = ModeString{"w"};  // w: writing, no b?
   /* open the output stream given by filename, but if name is '-' then
      use a duplicate of stdout (fd = STDOUT_FILENO = 1) */
-  if (std::strcmp(filename, "-") == 0) {
+  if (filename == a_dash) {
     auto const file_descriptor = dup(STDOUT_FILENO);
     check_file_descriptor(file_descriptor);
     return open_file_descriptor(file_descriptor, mode);
