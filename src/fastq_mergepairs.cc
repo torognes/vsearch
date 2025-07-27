@@ -652,7 +652,7 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   rev_pos = a_read_pair.rev_trunc - 1 - rev_3prime_overhang;
 
-  while ((fwd_pos < a_read_pair.fwd_trunc) && (rev_pos >= 0))
+  while ((fwd_pos < a_read_pair.fwd_trunc) and (rev_pos >= 0))
     {
       fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
       rev_sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
@@ -827,7 +827,7 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((! opt_fastq_allowmergestagger) && (best_i > a_read_pair.fwd_trunc))
+  if ((not opt_fastq_allowmergestagger) and (best_i > a_read_pair.fwd_trunc))
     {
       a_read_pair.reason = Reason::staggered;
       return 0;
@@ -890,14 +890,14 @@ auto process(merge_data_t & a_read_pair,
 
   /* check length */
 
-  if ((a_read_pair.fwd_length < opt_fastq_minlen) ||
+  if ((a_read_pair.fwd_length < opt_fastq_minlen) or
       (a_read_pair.rev_length < opt_fastq_minlen))
     {
       a_read_pair.reason = Reason::minlen;
       skip = true;
     }
 
-  if ((a_read_pair.fwd_length > opt_fastq_maxlen) ||
+  if ((a_read_pair.fwd_length > opt_fastq_maxlen) or
       (a_read_pair.rev_length > opt_fastq_maxlen))
     {
       a_read_pair.reason = Reason::maxlen;
@@ -908,7 +908,7 @@ auto process(merge_data_t & a_read_pair,
 
   int64_t fwd_trunc = a_read_pair.fwd_length;
 
-  if (! skip)
+  if (not skip)
     {
       for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
         {
@@ -929,7 +929,7 @@ auto process(merge_data_t & a_read_pair,
 
   auto rev_trunc = a_read_pair.rev_length;
 
-  if (! skip)
+  if (not skip)
     {
       for (int64_t i = 0; i < a_read_pair.rev_length; i++)
         {
@@ -952,7 +952,7 @@ auto process(merge_data_t & a_read_pair,
 
   /* replace quality of N's by zero */
 
-  if (! skip)
+  if (not skip)
     {
       int64_t fwd_ncount = 0;
       for (int64_t i = 0; i < fwd_trunc; i++)
@@ -970,7 +970,7 @@ auto process(merge_data_t & a_read_pair,
         }
     }
 
-  if (! skip)
+  if (not skip)
     {
       int64_t rev_ncount = 0;
       for (int64_t i = 0; i < rev_trunc; i++)
@@ -990,7 +990,7 @@ auto process(merge_data_t & a_read_pair,
 
   a_read_pair.offset = 0;
 
-  if (! skip)
+  if (not skip)
     {
       a_read_pair.offset = optimize(a_read_pair, kmerhash);
     }
@@ -1008,7 +1008,7 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
 {
   if (fastq_next(fastq_fwd, false, chrmap_upcase))
     {
-      if (! fastq_next(fastq_rev, false, chrmap_upcase))
+      if (not fastq_next(fastq_rev, false, chrmap_upcase))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -1111,12 +1111,12 @@ auto keep_or_discard(merge_data_t const & a_read_pair) -> void
 
 inline auto chunk_perform_read() -> void
 {
-  while ((! finished_reading) && (chunks[chunk_read_next].state == State::empty))
+  while ((not finished_reading) and (chunks[chunk_read_next].state == State::empty))
     {
       xpthread_mutex_unlock(&mutex_chunks);
       progress_update(fastq_get_position(fastq_fwd));
       auto r = 0;
-      while ((r < chunk_size) &&
+      while ((r < chunk_size) and
              read_pair(chunks[chunk_read_next].merge_data[r]))
         {
           ++r;
@@ -1154,7 +1154,7 @@ inline auto chunk_perform_write() -> void
       xpthread_mutex_lock(&mutex_chunks);
       pairs_written += chunks[chunk_write_next].size;
       chunks[chunk_write_next].state = State::empty;
-      if (finished_reading && (pairs_written >= pairs_read))
+      if (finished_reading and (pairs_written >= pairs_read))
         {
           finished_all = true;
         }
@@ -1194,7 +1194,7 @@ auto pair_worker(void * vp) -> void *
 
   xpthread_mutex_lock(&mutex_chunks);
 
-  while (! finished_all)
+  while (not finished_all)
     {
       if (opt_threads == 1)
         {
@@ -1208,13 +1208,13 @@ auto pair_worker(void * vp) -> void *
           if (t == 0)
             {
               /* first thread reads and processes */
-              while (!
+              while (not
                      (
                       finished_all
-                      ||
+                      or
                       (chunks[chunk_process_next].state == State::filled)
-                      ||
-                      ((! finished_reading) &&
+                      or
+                      ((not finished_reading) and
                        chunks[chunk_read_next].state == State::empty)))
                 {
                   xpthread_cond_wait(&cond_chunks, &mutex_chunks);
@@ -1226,12 +1226,12 @@ auto pair_worker(void * vp) -> void *
           else /* t == 1 */
             {
               /* second thread writes and processes */
-              while (!
+              while (not
                      (
                       finished_all
-                      ||
+                      or
                       (chunks[chunk_process_next].state == State::filled)
-                      ||
+                      or
                       (chunks[chunk_write_next].state == State::processed)
                       )
                      )
@@ -1248,13 +1248,13 @@ auto pair_worker(void * vp) -> void *
           if (t == 0)
             {
               /* first thread reads and processes */
-              while (!
+              while (not
                      (
                       finished_all
-                      ||
-                      ((! finished_reading) &&
+                      or
+                      ((not finished_reading) and
                        (chunks[chunk_read_next].state == State::empty))
-                      ||
+                      or
                       (chunks[chunk_process_next].state == State::filled)
                       )
                      )
@@ -1268,12 +1268,12 @@ auto pair_worker(void * vp) -> void *
           else if (t == opt_threads - 1)
             {
               /* last thread writes and processes */
-              while (!
+              while (not
                      (
                       finished_all
-                      ||
+                      or
                       (chunks[chunk_write_next].state == State::processed)
-                      ||
+                      or
                       (chunks[chunk_process_next].state == State::filled)
                       )
                      )
@@ -1287,10 +1287,10 @@ auto pair_worker(void * vp) -> void *
           else
             {
               /* the other threads are only processing */
-              while (!
+              while (not
                      (
                       finished_all
-                      ||
+                      or
                       (chunks[chunk_process_next].state == State::filled)
                       )
                      )
@@ -1614,7 +1614,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   uint64_t const filesize = fastq_get_size(fastq_fwd);
   progress_init("Merging reads", filesize);
 
-  if (! fastq_fwd->is_empty)
+  if (not fastq_fwd->is_empty)
     {
       pair_all();
     }
