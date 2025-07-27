@@ -100,8 +100,6 @@ auto rereplicate(struct Parameters const & parameters) -> void
       for (int64_t i = 0; i < abundance; ++i)
         {
           ++n_reads;
-          if (parameters.opt_output != nullptr)
-            {
               fasta_print_general(output_handle.get(),
                                   nullptr,
                                   fasta_get_sequence(input_handle),
@@ -112,7 +110,6 @@ auto rereplicate(struct Parameters const & parameters) -> void
                                   static_cast<int>(n_reads),
                                   -1.0,
                                   -1, -1, nullptr, 0.0);
-            }
         }
 
       progress_update(fasta_get_position(input_handle));
