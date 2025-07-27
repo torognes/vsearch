@@ -244,7 +244,7 @@ static pthread_mutex_t mutex_chunks;
 static pthread_cond_t cond_chunks;
 
 
-// refactoring: make generic function (extract to utils/file_open_write.cpp)
+// refactoring: replace with check_optional_output_handle()
 auto fileopenw(char const * filename) -> std::FILE *
 {
   assert(filename != nullptr);
