@@ -78,7 +78,7 @@ struct ModeString {
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  const std::string a_dash = "-";  // used to represent stdin or stdout
+  std::string const a_dash = "-";  // used to represent stdin or stdout
 
   // Safely wrapping fopen()
   auto open_file(char const * filename,
