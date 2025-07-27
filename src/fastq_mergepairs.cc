@@ -419,7 +419,7 @@ auto merge_sym(char * sym,       char * qual,
 }
 
 
-auto keep(merge_data_t & a_read_pair) -> void
+auto keep(merge_data_t const & a_read_pair) -> void
 {
   ++merged;
 
@@ -470,7 +470,7 @@ auto keep(merge_data_t & a_read_pair) -> void
 }
 
 
-auto discard(merge_data_t & a_read_pair) -> void
+auto discard(merge_data_t const & a_read_pair) -> void
 {
   switch (a_read_pair.reason)
     {
@@ -1094,7 +1094,7 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
 }
 
 
-auto keep_or_discard(merge_data_t & a_read_pair) -> void
+auto keep_or_discard(merge_data_t const & a_read_pair) -> void
 {
   if (a_read_pair.merged)
     {
