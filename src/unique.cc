@@ -187,9 +187,9 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   uint64_t bad = 0;
   uint64_t kmer = 0;
   uint64_t const mask = size - 1ULL;
-  auto * s = seq;
-  auto * e1 = s + wordlength - 1;
-  auto * e2 = s + seqlen;
+  auto const * s = seq;
+  auto const * e1 = s + wordlength - 1;
+  auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
   auto * maskmap = (seqmask != MASK_NONE) ?
