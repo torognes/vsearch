@@ -160,7 +160,7 @@ void increment_counters_from_bitmap(count_t * counters,
 #include <simde/x86/sse2.h>
 #endif
 
-#if defined(SIMDE_VERSION)
+#ifdef SIMDE_VERSION
 void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char * bitmap,
                                     unsigned int totalbits)
