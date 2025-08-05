@@ -67,20 +67,21 @@
 #include <cstring>  // std::strcmp
 
 
-// type-safe string mode wrapper
-struct ModeString {
-  explicit constexpr ModeString(char const * str) noexcept
-    : mode(str) {
-  }
-  char const * mode;
-};
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
   // C++17 refactoring:
   // constexpr std::string_view a_dash = "-";
   // simpler string comparisons: if (filename == a_dash) {
+
+  // type-safe string mode wrapper
+  struct ModeString {
+    explicit constexpr ModeString(char const * str) noexcept
+      : mode(str) {
+    }
+    char const * mode;
+  };
+
 
   // Safely wrapping fopen()
   auto open_file(char const * filename,
