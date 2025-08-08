@@ -84,7 +84,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
   progress_init("Rereplicating", filesize);
 
   int64_t n_amplicons = 0;
-  int64_t missing_abundance = 0;
+  auto missing_abundance = false;
   int64_t n_reads = 0;
   auto const truncateatspace = not parameters.opt_notrunclabels;
   while (fasta_next(input_handle, truncateatspace, chrmap_no_change_vector.data()))
@@ -93,7 +93,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
       auto abundance = fasta_get_abundance_and_presence(input_handle);
       if (abundance == 0)
         {
-          ++missing_abundance;
+          missing_abundance = true;
           abundance = 1;
         }
 
@@ -118,7 +118,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      if (missing_abundance != 0)
+      if (missing_abundance)
         {
           std::fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
@@ -127,7 +127,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      if (missing_abundance != 0)
+      if (missing_abundance)
         {
           std::fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
