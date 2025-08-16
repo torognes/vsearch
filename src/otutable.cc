@@ -475,7 +475,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
     }
   fprintf(output_handle, "\n\t],\n");
 
-  bool first = true;
+  auto first = true;
   fprintf(output_handle, "\t\"data\": [");
 
   for (auto & it_map : otutable->otu_sample_count)
