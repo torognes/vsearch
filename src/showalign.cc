@@ -320,7 +320,7 @@ auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar
           auto x = 0;
           if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
             {
-              for (auto i = 0; i < n; i++)
+              for (auto i = 0; i < n; ++i)
                 {
                   fprintf(output_handle, "%c", c);
                 }
