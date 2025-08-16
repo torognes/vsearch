@@ -356,9 +356,9 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
 
   fprintf(output_handle, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
-  for (const auto & it_otu : otutable->otu_set)
+  for (auto const & it_otu : otutable->otu_set)
     {
-      const char * otu_name = it_otu.c_str();
+      char const * otu_name = it_otu.c_str();
       fprintf(output_handle, "\t%s", otu_name);
       ++numotus;
     }
