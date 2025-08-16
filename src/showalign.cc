@@ -131,7 +131,7 @@ inline auto putop(char c, int64_t len) -> void
 
           qs4 = chrmap_4bit[static_cast<int>(qs)];
           ds4 = chrmap_4bit[static_cast<int>(ds)];
-          if (opt_n_mismatch && ((qs4 == 15) || (ds4 == 15)))
+          if (opt_n_mismatch and ((qs4 == 15) or (ds4 == 15)))
             {
               a_line[line_pos] = ' ';
             }
