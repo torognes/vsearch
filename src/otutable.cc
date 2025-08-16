@@ -436,7 +436,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
         {
           fprintf(output_handle, ",");
         }
-      const char * otu_name = it_otu->c_str();
+      char const * otu_name = it_otu->c_str();
       fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
       if (otutable->otu_tax_map.empty())
         {
