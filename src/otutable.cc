@@ -286,7 +286,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
     otutable->otu_set.insert(otu_name.data());
   }
 
-  if ((not sample_name.empty()) && (not otu_name.empty()) && (abundance != 0))
+  if ((not sample_name.empty()) and (not otu_name.empty()) and (abundance != 0))
     {
       otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name.data())] += abundance;
       otutable->otu_sample_count[string_pair_t(otu_name.data(), sample_name.data())] += abundance;
@@ -305,7 +305,7 @@ auto otutable_print_otutabout(std::FILE * output_handle) -> void
     {
       fprintf(output_handle, "\t%s", it_sample.c_str());
     }
-  if (! otutable->otu_tax_map.empty())
+  if (not otutable->otu_tax_map.empty())
     {
       fprintf(output_handle, "\ttaxonomy");
     }
@@ -323,8 +323,8 @@ auto otutable_print_otutabout(std::FILE * output_handle) -> void
            ++it_sample)
         {
           uint64_t a = 0;
-          if ((it_map != otutable->otu_sample_count.end()) &&
-              (it_map->first.first == *it_otu) &&
+          if ((it_map != otutable->otu_sample_count.end()) and
+              (it_map->first.first == *it_otu) and
               (it_map->first.second == *it_sample))
             {
               a = it_map->second;
@@ -332,7 +332,7 @@ auto otutable_print_otutabout(std::FILE * output_handle) -> void
             }
           fprintf(output_handle, "\t%" PRIu64, a);
         }
-      if (! otutable->otu_tax_map.empty())
+      if (not otutable->otu_tax_map.empty())
         {
           fprintf(output_handle, "\t");
           auto it
@@ -377,8 +377,8 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
            ++it_otu)
         {
           uint64_t a = 0;
-          if ((it_map != otutable->sample_otu_count.end()) &&
-              (it_map->first.first == *it_sample) &&
+          if ((it_map != otutable->sample_otu_count.end()) and
+              (it_map->first.first == *it_sample) and
               (it_map->first.second == *it_otu))
             {
               a = it_map->second;
@@ -480,7 +480,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
 
   for (auto & it_map : otutable->otu_sample_count)
     {
-      if (! first)
+      if (not first)
         {
           fprintf(output_handle, ",");
         }
