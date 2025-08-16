@@ -171,11 +171,11 @@ inline auto putop(char c, int64_t len) -> void
           break;
         }
 
-      if ((line_pos == alignlen) or ((c == 0) and (line_pos > 0)))
+      if ((line_pos == alignlen) or ((c == '\0') and (line_pos > 0)))
         {
-          q_line[line_pos] = 0;
-          a_line[line_pos] = 0;
-          d_line[line_pos] = 0;
+          q_line[line_pos] = '\0';
+          a_line[line_pos] = '\0';
+          d_line[line_pos] = '\0';
 
           const int64_t q1 = q_start + 1 > q_len ? q_len : q_start + 1;
           const int64_t q2 = q_strand != 0 ? q_pos + 2 : q_pos;
@@ -306,7 +306,7 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::ve
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
 {
   auto * pos = cigar;
-  while (*pos != 0)
+  while (*pos != '\0')
     {
       if (*pos > '9')
         {
