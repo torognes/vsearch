@@ -305,26 +305,26 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::ve
 
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
 {
-  auto * p = cigar;
-  while (*p != 0)
+  auto * pos = cigar;
+  while (*pos != 0)
     {
-      if (*p > '9')
+      if (*pos > '9')
         {
-          fprintf(output_handle, "%c", *p);
-          ++p;
+          fprintf(output_handle, "%c", *pos);
+          ++pos;
         }
       else
         {
           auto n = 0;
           auto c = '\0';
           auto x = 0;
-          if (sscanf(p, "%d%c%n", &n, &c, &x) == 2)
+          if (sscanf(pos, "%d%c%n", &n, &c, &x) == 2)
             {
               for (auto i = 0; i < n; ++i)
                 {
                   fprintf(output_handle, "%c", c);
                 }
-              p += x;
+              pos += x;
             }
           else
             {
