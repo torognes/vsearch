@@ -87,9 +87,13 @@ struct bucket
 };
 
 
+// refactoring: FNV-1A is the hashing function used in std::hash
+// (designed for fast hash-table and checksum, not crypto). The
+// function below might be redundant with std?
+
 auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
                                     Span<char> const sequence) -> void {
-  // Fowler-Noll-Vo (FNV) hash function
+  // Fowler-Noll-Vo (FNV-1A) hash function
   static constexpr auto FNV_offset_basis = uint64_t{14695981039346656037U};
   static constexpr auto FNV_prime = uint64_t{1099511628211U};
   auto FNV1a_hash = FNV_offset_basis;
