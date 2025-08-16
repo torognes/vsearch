@@ -250,7 +250,8 @@ auto align_show(std::FILE * output_handle,
           len = 1;
         }
       p += n;
-      auto const op = *p++;
+      auto const op = *p;
+      ++p;
       putop(op, len);
     }
 
@@ -279,7 +280,8 @@ auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::ve
           len = 1;
         }
       cigar_cursor += n;
-      auto const op = *cigar_cursor++;
+      auto const op = *cigar_cursor;
+      ++cigar_cursor;
 
       if ((op == 'M') or
           ((op == 'D') and (origin == 0)) or
