@@ -453,7 +453,8 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
           fprintf(output_handle, "\"}");
         }
       fprintf(output_handle, "}");
-      otu_no_map[*it_otu] = otu_no++;
+      otu_no_map[*it_otu] = otu_no;
+      ++otu_no;
     }
   fprintf(output_handle, "\n");
   fprintf(output_handle, "\t],\n");
@@ -490,7 +491,8 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
 
       fprintf(output_handle, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
       first = false;
-      progress_update(++progress);
+      ++progress;
+      progress_update(progress);
     }
   fprintf(output_handle, "\n\t]\n");
 
