@@ -310,7 +310,8 @@ auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar
     {
       if (*p > '9')
         {
-          fprintf(output_handle, "%c", *p++);
+          fprintf(output_handle, "%c", *p);
+          ++p;
         }
       else
         {
