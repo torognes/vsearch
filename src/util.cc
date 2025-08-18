@@ -233,7 +233,7 @@ auto random_init() -> void
 }
 
 
-auto random_int(int64_t upper_limit) -> int64_t
+auto random_int(int64_t const upper_limit) -> int64_t
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive.
@@ -255,7 +255,7 @@ auto random_int(int64_t upper_limit) -> int64_t
 }
 
 
-auto random_ulong(uint64_t upper_limit) -> uint64_t
+auto random_ulong(uint64_t const upper_limit) -> uint64_t
 {
   /*
     Generate a random integer in the range 0 to n-1, inclusive,
