@@ -536,8 +536,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
             }
         }
 
-      int const abundance = fastx_get_abundance(input_handle);
-      int64_t const ab = parameters.opt_sizein ? abundance : 1;
+      auto const ab = parameters.opt_sizein ? fastx_get_abundance(input_handle) : int64_t{1};
       sumsize += ab;
 
       if (bp->size != 0U)
