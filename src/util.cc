@@ -162,7 +162,7 @@ auto xsprintf(char * * ret, char const * format, ...) -> int
 
 auto hash_cityhash64(char const * sequence, uint64_t const length) -> uint64_t
 {
-  return CityHash64(static_cast<const char *>(sequence), length);
+  return CityHash64(sequence, length);
 }
 
 
