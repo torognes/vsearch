@@ -874,9 +874,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       progress_init("Writing uc file, second part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto const & bp = hashtable[i];
+          auto const & cluster = hashtable[i];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, bp.size, bp.header);
+                  i, cluster.size, cluster.header);
           progress_update(i);
         }
       fclose(fp_uc);
