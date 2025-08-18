@@ -68,7 +68,6 @@ constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
 constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
 auto xstrdup(char const * src) -> char *;
-auto xstrchrnul(char * str, int target) -> char *;
 auto xsprintf(char * * ret, char const * format, ...) -> int;
 auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t;
 auto hash_cityhash128(char * sequence, uint64_t length) -> uint128;

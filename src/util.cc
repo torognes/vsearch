@@ -136,18 +136,6 @@ auto xstrdup(char const * src) -> char *
 }
 
 
-auto xstrchrnul(char * str, int target) -> char *
-{
-  // find the first occurrence to static_cast<char>(target)
-  auto * first_occurrence = std::strchr(str, target);
-
-  if (first_occurrence != nullptr) {
-    return first_occurrence;
-  }
-  return std::next(str, static_cast<long>(std::strlen(str)));
-}
-
-
 auto xsprintf(char * * ret, char const * format, ...) -> int
 {
   // refactoring: C variadic function, replace with template variadic function
