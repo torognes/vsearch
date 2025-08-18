@@ -782,17 +782,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto const & bp = hashtable[i];
-          int64_t const size = bp.size;
+          auto const & cluster = hashtable[i];
+          int64_t const size = cluster.size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  bp.seq,
-                                  std::strlen(bp.seq),
-                                  bp.header,
-                                  std::strlen(bp.header),
+                                  cluster.seq,
+                                  std::strlen(cluster.seq),
+                                  cluster.header,
+                                  std::strlen(cluster.header),
                                   size,
                                   relabel_count,
                                   -1.0,
