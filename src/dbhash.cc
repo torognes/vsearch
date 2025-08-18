@@ -129,12 +129,12 @@ auto dbhash_search_first(char * seq,
                          uint64_t const seqlen,
                          struct dbhash_search_info_s * info) -> int64_t
 {
-  uint64_t const hash = hash_cityhash64(seq, seqlen);
+  auto const hash = hash_cityhash64(seq, seqlen);
   info->hash = hash;
   info->seq = seq;
   info->seqlen = seqlen;
-  uint64_t index = hash & dbhash_mask;
-  struct dbhash_bucket_s * bp = &dbhash_table[index];
+  auto index = hash & dbhash_mask;
+  auto * bp = &dbhash_table[index];
 
   while ((bitmap_get(dbhash_bitmap, index) != 0U)
          and
