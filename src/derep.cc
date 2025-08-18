@@ -850,11 +850,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & bp = hashtable[i];
-          auto * hh =  bp.header;
           int64_t const len = std::strlen(bp.seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, hh);
+                  i, len, bp.header);
 
           for (auto next = nextseqtab[bp.seqno_first];
                next != terminal;
@@ -864,7 +863,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                       "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                       i, len, 100.0,
                       ((match_strand[next] != 0) ? "-" : "+"),
-                      headertab[next].c_str(), hh);
+                      headertab[next].c_str(), bp.header);
             }
 
           progress_update(i);
