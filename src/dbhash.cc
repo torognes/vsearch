@@ -158,11 +158,11 @@ auto dbhash_search_first(char * seq,
 
 auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 {
-  uint64_t const hash = info->hash;
-  char * seq = info->seq;
-  uint64_t const seqlen = info->seqlen;
-  uint64_t index = (info->index + 1) & dbhash_mask;
-  struct dbhash_bucket_s * bp = &dbhash_table[index];
+  auto const hash = info->hash;
+  auto * seq = info->seq;
+  auto const seqlen = info->seqlen;
+  auto index = (info->index + 1) & dbhash_mask;
+  auto * bp = &dbhash_table[index];
 
   while ((bitmap_get(dbhash_bitmap, index) != 0U)
          and
@@ -188,14 +188,14 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 {
   struct dbhash_search_info_s info;
 
-  int64_t ret = dbhash_search_first(seq, seqlen, & info);
+  auto ret = dbhash_search_first(seq, seqlen, & info);
   while (ret >= 0)
     {
       ret = dbhash_search_next(&info);
     }
 
   bitmap_set(dbhash_bitmap, info.index);
-  struct dbhash_bucket_s * bp = &dbhash_table[info.index];
+  auto * bp = &dbhash_table[info.index];
   bp->hash = info.hash;
   bp->seqno = seqno;
 }
