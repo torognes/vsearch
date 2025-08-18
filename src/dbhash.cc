@@ -205,7 +205,7 @@ auto dbhash_add_all() -> void
 {
   progress_init("Hashing database sequences", db_getsequencecount());
   std::vector<char> normalized(db_getlongestsequence() + 1);
-  for (uint64_t seqno = 0; seqno < db_getsequencecount(); seqno++)
+  for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
     {
       auto const * seq = db_getsequence(seqno);
       auto const seqlen = db_getsequencelen(seqno);
