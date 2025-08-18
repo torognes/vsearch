@@ -492,8 +492,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           hash_header = 0;
         }
 
-      uint64_t const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
-      uint64_t j = hash & hash_mask;
+      auto const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
+      auto j = hash & hash_mask;
       auto * bp = &hashtable[j];
 
       while ((bp->size != 0U) and
