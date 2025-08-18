@@ -188,7 +188,7 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 {
   struct dbhash_search_info_s info;
 
-  auto ret = dbhash_search_first(seq, seqlen, & info);
+  auto ret = dbhash_search_first(seq, seqlen, &info);
   while (ret >= 0)
     {
       ret = dbhash_search_next(&info);
