@@ -888,30 +888,30 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       progress_init("Writing tab separated file", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto const & bp = hashtable[i];
+          auto const & cluster = hashtable[i];
 
           if (parameters.opt_relabel != nullptr) {
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    bp.header, parameters.opt_relabel, i + 1, i, (uint64_t) 0, bp.count, bp.header);
+                    cluster.header, parameters.opt_relabel, i + 1, i, (uint64_t) 0, cluster.count, cluster.header);
           } else {
             fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    bp.header, bp.header, i, (uint64_t) 0, bp.count, bp.header);
+                    cluster.header, cluster.header, i, (uint64_t) 0, cluster.count, cluster.header);
           }
 
           uint64_t j = 1;
-          for (auto next = nextseqtab[bp.seqno_first];
+          for (auto next = nextseqtab[cluster.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
               if (parameters.opt_relabel != nullptr) {
                 fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, bp.count, bp.header);
+                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header);
               } else {
                 fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), bp.header, i, j, bp.count, bp.header);
+                        headertab[next].c_str(), cluster.header, i, j, cluster.count, cluster.header);
               }
               ++j;
             }
