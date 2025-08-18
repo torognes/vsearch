@@ -495,7 +495,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       auto const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
       auto j = hash & hash_mask;
-      auto * bp = &hashtable[j];
+      auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
 
       while ((bp->size != 0U) and
              ((hash != bp->hash) or
