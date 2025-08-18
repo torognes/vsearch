@@ -168,7 +168,7 @@ auto hash_cityhash64(char const * sequence, uint64_t const length) -> uint64_t
 
 auto hash_cityhash128(char const * sequence, uint64_t const length) -> uint128
 {
-  return CityHash128(static_cast<const char *>(sequence), length);
+  return CityHash128(sequence, length);
 }
 
 
