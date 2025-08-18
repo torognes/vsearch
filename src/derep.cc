@@ -536,8 +536,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
             }
         }
 
-      auto const ab = parameters.opt_sizein ? fastx_get_abundance(input_handle) : int64_t{1};
-      sumsize += ab;
+      auto const abundance = parameters.opt_sizein ? fastx_get_abundance(input_handle) : int64_t{1};
+      sumsize += abundance;
 
       if (bp->size != 0U)
         {
@@ -551,7 +551,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
             }
 
           int64_t const s1 = bp->size;
-          int64_t const s2 = ab;
+          int64_t const s2 = abundance;
           int64_t const s3 = s1 + s2;
 
           if (parameters.opt_fastqout != nullptr)
@@ -615,7 +615,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       else
         {
           /* no identical sequences yet */
-          bp->size = ab;
+          bp->size = abundance;
           bp->hash = hash;
           bp->seqno_first = sequencecount;
           bp->seqno_last = sequencecount;
