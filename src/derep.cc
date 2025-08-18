@@ -816,17 +816,17 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto const & bp = hashtable[i];
-          int64_t const size = bp.size;
+          auto const & cluster = hashtable[i];
+          int64_t const size = cluster.size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
               fastq_print_general(fp_fastqout,
-                                  bp.seq,
-                                  std::strlen(bp.seq),
-                                  bp.header,
-                                  std::strlen(bp.header),
-                                  bp.qual,
+                                  cluster.seq,
+                                  std::strlen(cluster.seq),
+                                  cluster.header,
+                                  std::strlen(cluster.header),
+                                  cluster.qual,
                                   size,
                                   relabel_count,
                                   -1.0);
