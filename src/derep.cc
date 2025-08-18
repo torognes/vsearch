@@ -510,8 +510,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           /* no match on plus strand */
           /* check minus strand as well */
 
-          uint64_t const rc_hash = hash_function(rc_seq_up.data(), seqlen) ^ hash_header;
-          uint64_t k = rc_hash & hash_mask;
+          auto const rc_hash = hash_function(rc_seq_up.data(), seqlen) ^ hash_header;
+          auto k = rc_hash & hash_mask;
           auto * rc_bp = &hashtable[k];
 
           while ((rc_bp->size != 0U)
