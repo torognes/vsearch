@@ -74,6 +74,10 @@
 #include <vector>
 
 
+// refactoring:
+// replace with std::unordered_map (default hashing)
+// if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
+// then make a CityHash hasher object and use it with std::unordered_map
 using Hash = decltype(&hash_cityhash64);
 static Hash hash_function = hash_cityhash64;
 
