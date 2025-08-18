@@ -849,13 +849,13 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       progress_init("Writing uc file, first part", clusters);
       for (uint64_t i = 0; i < clusters; ++i)
         {
-          auto const & bp = hashtable[i];
-          int64_t const len = std::strlen(bp.seq);
+          auto const & cluster = hashtable[i];
+          int64_t const len = std::strlen(cluster.seq);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, bp.header);
+                  i, len, cluster.header);
 
-          for (auto next = nextseqtab[bp.seqno_first];
+          for (auto next = nextseqtab[cluster.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
@@ -863,7 +863,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                       "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                       i, len, 100.0,
                       ((match_strand[next] != 0) ? "-" : "+"),
-                      headertab[next].c_str(), bp.header);
+                      headertab[next].c_str(), cluster.header);
             }
 
           progress_update(i);
