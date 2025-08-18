@@ -183,7 +183,16 @@ namespace {
     quality_value = std::max(quality_value, parameters.opt_fastq_qminout);
     return static_cast<int>(quality_value + parameters.opt_fastq_asciiout);
   }
-  
+
+
+  auto compute_header_hash(char const * header, uint64_t const headerlen,
+                           bool const use_header) -> uint64_t {
+    if (use_header) {
+      return hash_function(header, headerlen);
+    }
+    return uint64_t{0};
+  }
+
 }  // end of anonymous namespace
 
 
@@ -482,15 +491,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         collision when the number of sequences is about 5e9.
       */
 
-      uint64_t hash_header = 0;
-      if (use_header)
-        {
-          hash_header = hash_function(header, headerlen);
-        }
-      else
-        {
-          hash_header = 0;
-        }
+      auto const hash_header = compute_header_hash(header, headerlen, use_header);
 
       auto const hash = hash_function(seq_up.data(), seqlen) ^ hash_header;
       auto j = hash & hash_mask;
