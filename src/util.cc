@@ -172,13 +172,13 @@ auto xsprintf(char * * ret, const char * format, ...) -> int
 }
 
 
-auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t
+auto hash_cityhash64(char * sequence, uint64_t const length) -> uint64_t
 {
   return CityHash64(static_cast<const char *>(sequence), length);
 }
 
 
-auto hash_cityhash128(char * sequence, uint64_t length) -> uint128
+auto hash_cityhash128(char * sequence, uint64_t const length) -> uint128
 {
   return CityHash128(static_cast<const char *>(sequence), length);
 }
