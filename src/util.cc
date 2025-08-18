@@ -281,7 +281,7 @@ auto string_normalize(char * normalized, char const * raw_seq, unsigned int cons
 }
 
 
-auto SHA1(unsigned char const * data, unsigned long len, unsigned char * digest) -> void
+auto SHA1(unsigned char const * data, unsigned long const len, unsigned char * digest) -> void
 {
   if (digest == nullptr)
     {
@@ -294,7 +294,7 @@ auto SHA1(unsigned char const * data, unsigned long len, unsigned char * digest)
 }
 
 
-auto MD5(void * data, unsigned long len, unsigned char * digest) -> void
+auto MD5(void * data, unsigned long const len, unsigned char * digest) -> void
 {
   if (digest == nullptr)
     {
