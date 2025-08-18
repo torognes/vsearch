@@ -148,7 +148,7 @@ auto xstrchrnul(char * str, int target) -> char *
 }
 
 
-auto xsprintf(char * * ret, const char * format, ...) -> int
+auto xsprintf(char * * ret, char const * format, ...) -> int
 {
   // refactoring: C variadic function, replace with template variadic function
   std::va_list args;
@@ -293,7 +293,7 @@ auto string_normalize(char * normalized, char const * raw_seq, unsigned int cons
 }
 
 
-auto SHA1(const unsigned char * data, unsigned long len, unsigned char * digest) -> void
+auto SHA1(unsigned char const * data, unsigned long len, unsigned char * digest) -> void
 {
   if (digest == nullptr)
     {
@@ -387,7 +387,7 @@ auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int cons
 }
 
 
-auto fopen_output(const char * filename) -> std::FILE *
+auto fopen_output(char const * filename) -> std::FILE *
 {
   /* open the output stream given by filename, but use stdout if name is - */
   if (std::strcmp(filename, "-") == 0)
