@@ -67,9 +67,9 @@ constexpr auto sha1_digest_length = 20;
 constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
 constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
-auto xstrdup(const char * src) -> char *;
+auto xstrdup(char const * src) -> char *;
 auto xstrchrnul(char * str, int target) -> char *;
-auto xsprintf(char * * ret, const char * format, ...) -> int;
+auto xsprintf(char * * ret, char const * format, ...) -> int;
 auto hash_cityhash64(char * sequence, uint64_t length) -> uint64_t;
 auto hash_cityhash128(char * sequence, uint64_t length) -> uint128;
 auto show_rusage() -> void;
@@ -92,4 +92,4 @@ auto get_hex_seq_digest_md5(char * hex, char const * seq, int seqlen) -> void;
 auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int seqlen) -> void;
 auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int seqlen) -> void;
 
-auto fopen_output(const char * filename) -> std::FILE *;
+auto fopen_output(char const * filename) -> std::FILE *;
