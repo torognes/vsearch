@@ -207,8 +207,8 @@ auto dbhash_add_all() -> void
   std::vector<char> normalized(db_getlongestsequence() + 1);
   for (uint64_t seqno = 0; seqno < db_getsequencecount(); seqno++)
     {
-      char * seq = db_getsequence(seqno);
-      uint64_t const seqlen = db_getsequencelen(seqno);
+      auto const * seq = db_getsequence(seqno);
+      auto const seqlen = db_getsequencelen(seqno);
       string_normalize(normalized.data(), seq, seqlen);
       dbhash_add(normalized.data(), seqlen, seqno);
       progress_update(seqno + 1);
