@@ -195,9 +195,9 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
     }
 
   bitmap_set(dbhash_bitmap, info.index);
-  auto * bp = &dbhash_table[info.index];
-  bp->hash = info.hash;
-  bp->seqno = seqno;
+  auto & bp = dbhash_table[info.index];
+  bp.hash = info.hash;
+  bp.seqno = seqno;
 }
 
 
