@@ -168,6 +168,9 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
         {
           unique_handle->alloc *= 2;
         }
+      // failed refactoring 2025-08-19: unique_handle is passed as
+      // pointer to another struct, ownership is not clear,
+      // multithreading fails
       unique_handle->list = (unsigned int *)
         xrealloc(unique_handle->list, sizeof(unsigned int) * unique_handle->alloc);
     }
