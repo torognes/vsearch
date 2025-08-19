@@ -305,7 +305,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
 }
 
 
-auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char * cigar) -> void
+auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char const * cigar) -> void
 {
   auto * pos = cigar;
   while (*pos != '\0')
