@@ -108,7 +108,7 @@ namespace {
     Sequence query;
     Sequence target;
     int64_t strand = 0;
-    int64_t length = 0;
+    int64_t width = 0;
   };
 
 
