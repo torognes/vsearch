@@ -351,7 +351,7 @@ auto align_trim(struct hit * hit) -> void
       op = *p;
       if (op != 'M')
         {
-          while ((p > hit->nwalignment) and (*(p-1) <= '9'))
+          while ((p > hit->nwalignment) and (*(p - 1) <= '9'))
             {
               --p;
             }
