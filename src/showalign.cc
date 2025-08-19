@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
-#include <algorithm>  // std::copy, std::fill_n
+#include <algorithm>  // std::copy, std::fill_n, std::min
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
@@ -191,9 +191,9 @@ namespace {
             a_line[line_pos] = '\0';
             d_line[line_pos] = '\0';
 
-            int64_t const q1 = q_start + 1 > alignment.query.length ? alignment.query.length : q_start + 1;
+            int64_t const q1 = std::min(q_start + 1, alignment.query.length);
             int64_t const q2 = alignment.strand != 0 ? q_pos + 2 : q_pos;
-            int64_t const d1 = d_start + 1 > d_len ? d_len : d_start + 1;
+            int64_t const d1 = std::min(d_start + 1, d_len);
             int64_t const d2 = d_pos;
 
             fprintf(out, "\n");
