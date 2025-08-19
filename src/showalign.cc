@@ -106,9 +106,25 @@ static int64_t d_len;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  inline auto putop(char const c, int64_t const len) -> void
+
+  struct Sequence {
+    char * sequence = nullptr;
+    int64_t length = 0;
+    int64_t offset = 0;
+    char * name = nullptr;
+  };
+
+
+  struct Alignment {
+    Sequence query;
+    Sequence target;
+    int64_t strand = 0;
+  };
+
+
+  inline auto putop(Alignment & alignment, char const c, int64_t const len) -> void
   {
-    int64_t const delta = q_strand != 0 ? -1 : +1;
+    int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
     auto count = len;
     while (count != 0)
@@ -127,7 +143,7 @@ namespace {
         switch (c)
           {
           case 'M':
-            qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
+            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
             ds = d_seq[d_pos];
             q_pos += delta;
             d_pos += 1;
@@ -157,7 +173,7 @@ namespace {
             break;
 
           case 'D':
-            qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
+            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
             q_pos += delta;
             q_line[line_pos] = qs;
             a_line[line_pos] = ' ';
@@ -182,13 +198,13 @@ namespace {
             d_line[line_pos] = '\0';
 
             int64_t const q1 = q_start + 1 > q_len ? q_len : q_start + 1;
-            int64_t const q2 = q_strand != 0 ? q_pos + 2 : q_pos;
+            int64_t const q2 = alignment.strand != 0 ? q_pos + 2 : q_pos;
             int64_t const d1 = d_start + 1 > d_len ? d_len : d_start + 1;
             int64_t const d2 = d_pos;
 
             fprintf(out, "\n");
             fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
-                    q1, q_strand != 0 ? '-' : '+', q_line.data(), q2);
+                    q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
             fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                     "", a_line.data());
             fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
@@ -220,6 +236,15 @@ auto align_show(std::FILE * output_handle,
                 int const strand) -> void
 {
   out = output_handle;
+
+  Alignment alignment;
+  alignment.query.sequence = seq1;
+  alignment.query.length = seq1len;
+  alignment.query.offset = seq1off;
+  alignment.target.sequence = seq2;
+  alignment.target.length = seq2len;
+  alignment.target.offset = seq2off;
+  alignment.strand = strand;
 
   q_seq = seq1;
   q_len = seq1len;
@@ -258,10 +283,10 @@ auto align_show(std::FILE * output_handle,
       pos += n;
       auto const op = *pos;
       ++pos;
-      putop(op, len);
+      putop(alignment, op, len);
     }
 
-  putop('\0', 1);
+  putop(alignment, '\0', 1);
 
   q_line.clear();
   a_line.clear();
