@@ -74,6 +74,14 @@
   that caused a problem when searching for sequences with many repeats.
 */
 
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  // refactoring:
+  // replace with std::unordered_map (default hashing)
+  // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
+  // then make a CityHash hasher object and use it with std::unordered_map
 using Hash = decltype(&CityHash64);
 static Hash hash_function = CityHash64;
 
@@ -83,6 +91,10 @@ struct bucket_s
   unsigned int kmer;
   unsigned int count;
 };
+
+
+}  // end of anonymous namespace
+
 
 struct uhandle_s
 {
