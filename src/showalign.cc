@@ -225,8 +225,8 @@ auto align_show(std::FILE * output_handle,
   d_len = seq2len;
   d_name = seq2name;
 
-  auto * p = cigar;
-  auto * e = p + cigarlen;
+  auto * pos = cigar;
+  auto * end = pos + cigarlen;
 
   poswidth = numwidth;
   headwidth = namewidth;
@@ -241,18 +241,18 @@ auto align_show(std::FILE * output_handle,
 
   line_pos = 0;
 
-  while (p < e)
+  while (pos < end)
     {
       int64_t len = 0;
       auto n = 0;
-      if (sscanf(p, "%" PRId64 "%n", & len, & n) == 0)
+      if (sscanf(pos, "%" PRId64 "%n", & len, & n) == 0)
         {
           n = 0;
           len = 1;
         }
-      p += n;
-      auto const op = *p;
-      ++p;
+      pos += n;
+      auto const op = *pos;
+      ++pos;
       putop(op, len);
     }
 
