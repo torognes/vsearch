@@ -83,7 +83,7 @@ namespace {
   // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
   // then make a CityHash hasher object and use it with std::unordered_map
   using Hash = decltype(&CityHash64);
-  static Hash hash_function = CityHash64;
+  Hash hash_function = CityHash64;
 
 
   struct bucket_s
