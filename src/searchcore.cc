@@ -427,12 +427,12 @@ auto align_trim(struct hit * hit) -> void
 }
 
 
-auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
+auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int const target) -> bool
 {
   /* consider whether a hit satisfies accept criteria before alignment */
 
-  auto * qseq = searchinfo->qsequence;
+  auto * qseq = searchinfo.qsequence;
   auto * dlabel = db_getheader(target);
   auto * dseq = db_getsequence(target);
   const int64_t dseqlen = db_getsequencelen(target);
@@ -440,52 +440,52 @@ auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
 
   if (
       /* maxqsize */
-      (searchinfo->qsize <= opt_maxqsize)
+      (searchinfo.qsize <= opt_maxqsize)
       &&
       /* mintsize */
       (tsize >= opt_mintsize)
       &&
       /* minsizeratio */
-      (searchinfo->qsize >= opt_minsizeratio * tsize)
+      (searchinfo.qsize >= opt_minsizeratio * tsize)
       &&
       /* maxsizeratio */
-      (searchinfo->qsize <= opt_maxsizeratio * tsize)
+      (searchinfo.qsize <= opt_maxsizeratio * tsize)
       &&
       /* minqt */
-      (searchinfo->qseqlen >= opt_minqt * dseqlen)
+      (searchinfo.qseqlen >= opt_minqt * dseqlen)
       &&
       /* maxqt */
-      (searchinfo->qseqlen <= opt_maxqt * dseqlen)
+      (searchinfo.qseqlen <= opt_maxqt * dseqlen)
       &&
       /* minsl */
-      (searchinfo->qseqlen < dseqlen ?
-       searchinfo->qseqlen >= opt_minsl * dseqlen :
-       dseqlen >= opt_minsl * searchinfo->qseqlen)
+      (searchinfo.qseqlen < dseqlen ?
+       searchinfo.qseqlen >= opt_minsl * dseqlen :
+       dseqlen >= opt_minsl * searchinfo.qseqlen)
       &&
       /* maxsl */
-      (searchinfo->qseqlen < dseqlen ?
-       searchinfo->qseqlen <= opt_maxsl * dseqlen :
-       dseqlen <= opt_maxsl * searchinfo->qseqlen)
+      (searchinfo.qseqlen < dseqlen ?
+       searchinfo.qseqlen <= opt_maxsl * dseqlen :
+       dseqlen <= opt_maxsl * searchinfo.qseqlen)
       &&
       /* idprefix */
-      ((searchinfo->qseqlen >= opt_idprefix) &&
+      ((searchinfo.qseqlen >= opt_idprefix) &&
        (dseqlen >= opt_idprefix) &&
        (seqncmp(qseq, dseq, opt_idprefix) == 0))
       &&
       /* idsuffix */
-      ((searchinfo->qseqlen >= opt_idsuffix) &&
+      ((searchinfo.qseqlen >= opt_idsuffix) &&
        (dseqlen >= opt_idsuffix) &&
-       (seqncmp(qseq + searchinfo->qseqlen - opt_idsuffix,
+       (seqncmp(qseq + searchinfo.qseqlen - opt_idsuffix,
                  dseq + dseqlen - opt_idsuffix,
                  opt_idsuffix) == 0))
       &&
       /* self */
-      ((opt_self == 0) or (std::strcmp(searchinfo->query_head, dlabel) != 0))
+      ((opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
       &&
       /* selfid */
       ((opt_selfid == 0) or
-       (searchinfo->qseqlen != dseqlen) or
-       (seqncmp(qseq, dseq, searchinfo->qseqlen) != 0))
+       (searchinfo.qseqlen != dseqlen) or
+       (seqncmp(qseq, dseq, searchinfo.qseqlen) != 0))
       )
     {
       /* needs further consideration */
@@ -497,7 +497,7 @@ auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
 }
 
 
-auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
+auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool
 {
   if (/* weak_id */
@@ -515,7 +515,7 @@ auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
       ((opt_rightjust == 0) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) &&
       /* query_cov */
-      (hit->matches + hit->mismatches >= opt_query_cov * searchinfo->qseqlen) &&
+      (hit->matches + hit->mismatches >= opt_query_cov * searchinfo.qseqlen) &&
       /* target_cov */
       (hit->matches + hit->mismatches >=
        opt_target_cov * db_getsequencelen(hit->target)) &&
@@ -529,7 +529,7 @@ auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
       if (opt_cluster_unoise != nullptr)
         {
           const auto mismatches = hit->mismatches;
-          auto const skew = 1.0 * searchinfo->qsize / db_getabundance(hit->target);
+          auto const skew = 1.0 * searchinfo.qsize / db_getabundance(hit->target);
           auto const beta = 1.0 / std::pow(2, (1.0 * opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
@@ -681,7 +681,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               align_trim(hit);
 
               /* test accept/reject criteria after alignment */
-              if (search_acceptable_aligned(searchinfo, hit))
+              if (search_acceptable_aligned(*searchinfo, hit))
                 {
                   searchinfo->accepts++;
                 }
@@ -767,7 +767,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
       hit->nwalignment = nullptr;
 
       /* Test some accept/reject criteria before alignment */
-      if (search_acceptable_unaligned(searchinfo, e.seqno))
+      if (search_acceptable_unaligned(*searchinfo, e.seqno))
         {
           ++delayed;
         }

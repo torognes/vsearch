@@ -388,7 +388,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
           for (int target = searchinfo.query_no + 1; target < seqcount; target++)
             {
-              if ((opt_acceptall != 0) or search_acceptable_unaligned(si, target))
+              if ((opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
                 {
                   pseqnos[searchinfo.hit_count] = target;
                   ++searchinfo.hit_count;
@@ -489,7 +489,7 @@ auto allpairs_thread_run(int64_t t) -> void
                   align_trim(hit);
 
                   /* test accept/reject criteria after alignment */
-                  if ((opt_acceptall != 0) or search_acceptable_aligned(si, hit))
+                  if ((opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
                     {
                       finalhits[searchinfo.accepts] = *hit;
                       ++searchinfo.accepts;

@@ -834,7 +834,7 @@ auto cluster_core_parallel() -> void
                         {
                           /* Test accept/reject criteria before alignment */
                           unsigned int const target = hit->target;
-                          if (search_acceptable_unaligned(si, target))
+                          if (search_acceptable_unaligned(*si, target))
                             {
                               /* perform vectorized alignment */
                               /* but only using 1 sequence ! */
@@ -939,7 +939,7 @@ auto cluster_core_parallel() -> void
                       if (not hit->rejected)
                         {
                           /* test accept/reject criteria after alignment */
-                          if (search_acceptable_aligned(si, hit))
+                          if (search_acceptable_aligned(*si, hit))
                             {
                               ++si->accepts;
                             }

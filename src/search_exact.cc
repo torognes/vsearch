@@ -113,7 +113,7 @@ static int count_notmatched = 0;
 
 auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
 {
-  if (search_acceptable_unaligned(si, seqno))
+  if (search_acceptable_unaligned(*si, seqno))
     {
       struct hit * hp = si->hits + si->hit_count;
       si->hit_count++;
@@ -163,7 +163,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
       hp->accepted = false;
       hp->rejected = false;
       hp->weak = false;
-      (void) search_acceptable_aligned(si, hp);
+      (void) search_acceptable_aligned(*si, hp);
     }
 }
 

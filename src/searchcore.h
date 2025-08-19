@@ -164,10 +164,10 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 auto search_findbest2_bysize(struct searchinfo_s * si_p,
                              struct searchinfo_s * si_m) -> struct hit *;
 
-auto search_acceptable_unaligned(struct searchinfo_s * searchinfo,
+auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int target) -> bool;
 
-auto search_acceptable_aligned(struct searchinfo_s * searchinfo,
+auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool;
 
 auto align_trim(struct hit * hit) -> void;
