@@ -88,8 +88,8 @@ namespace {
 
   struct bucket_s
   {
-    unsigned int kmer;
-    unsigned int count;
+    unsigned int kmer = 0;
+    unsigned int count = 0;
   };
 
 
