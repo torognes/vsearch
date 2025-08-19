@@ -103,6 +103,13 @@ static int64_t q_len;
 static int64_t d_len;
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+}  // end of anonymous namespace
+
+
 inline auto putop(char const c, int64_t const len) -> void
 {
   int64_t const delta = q_strand != 0 ? -1 : +1;
