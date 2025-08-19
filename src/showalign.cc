@@ -141,7 +141,7 @@ namespace {
           {
           case 'M':
             qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[q_pos])] : alignment.query.sequence[q_pos];
-            ds = d_seq[d_pos];
+            ds = alignment.target.sequence[d_pos];
             q_pos += delta;
             d_pos += 1;
             q_line[line_pos] = qs;
@@ -179,7 +179,7 @@ namespace {
             break;
 
           case 'I':
-            ds = d_seq[d_pos];
+            ds = alignment.target.sequence[d_pos];
             d_pos += 1;
             q_line[line_pos] = '-';
             a_line[line_pos] = ' ';
