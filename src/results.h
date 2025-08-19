@@ -76,7 +76,7 @@ auto results_show_lcaout(std::FILE * output_handle,
 
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit * hits,
-                                char * query_head,
+                                char const * query_head,
                                 int64_t qseqlen) -> void;
 
 auto results_show_uc_one(std::FILE * output_handle,
