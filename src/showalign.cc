@@ -72,8 +72,6 @@
 
 static int64_t line_pos;
 
-static char * d_seq;
-
 static int64_t q_start;
 static int64_t d_start;
 
@@ -246,7 +244,6 @@ auto align_show(std::FILE * output_handle,
   q_len = seq1len;
   q_name = seq1name;
 
-  d_seq = seq2;
   d_len = seq2len;
   d_name = seq2name;
 
