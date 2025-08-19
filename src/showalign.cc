@@ -263,12 +263,12 @@ auto align_show(std::FILE * output_handle,
 }
 
 
-auto align_getrow(char * seq, char * cigar, int alignlen, int origin) -> std::vector<char>
+auto align_getrow(char const * seq, char const * cigar, int const alignlen, int const origin) -> std::vector<char>
 {
   std::vector<char> row(alignlen + 1);
   auto * row_cursor = row.data();
-  auto * cigar_cursor = cigar;
-  auto * seq_cursor = seq;
+  auto const * cigar_cursor = cigar;
+  auto const * seq_cursor = seq;
 
   while (*cigar_cursor != 0)
     {
