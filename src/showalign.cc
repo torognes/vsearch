@@ -81,8 +81,6 @@ static int64_t d_start;
 static int64_t q_pos;
 static int64_t d_pos;
 
-static int64_t q_strand;
-
 static int64_t alignlen;
 
 std::vector<char> q_line;
@@ -249,7 +247,6 @@ auto align_show(std::FILE * output_handle,
   q_seq = seq1;
   q_len = seq1len;
   q_name = seq1name;
-  q_strand = strand;
 
   d_seq = seq2;
   d_len = seq2len;
