@@ -237,8 +237,8 @@ auto align_show(std::FILE * output_handle,
   alignment.target.name = seq2name;
   alignment.strand = strand;
 
-  auto * pos = cigar;
-  auto * end = pos + cigarlen;
+  auto const * pos = cigar;
+  auto const * end = pos + cigarlen;
 
   poswidth = numwidth;
   headwidth = namewidth;
@@ -319,7 +319,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
 
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char const * cigar) -> void
 {
-  auto * pos = cigar;
+  auto const * pos = cigar;
   while (*pos != '\0')
     {
       if (*pos > '9')
