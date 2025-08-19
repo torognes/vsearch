@@ -743,7 +743,7 @@ auto cluster_core_parallel() -> void
 
                       /* find the number of shared unique kmers */
                       auto const shared
-                        = unique_count_shared(si->uh,
+                        = unique_count_shared(*si->uh,
                                               opt_wordlength,
                                               sic->kmersamplecount,
                                               sic->kmersample);

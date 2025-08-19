@@ -349,7 +349,7 @@ auto unique_count(struct uhandle_s * unique_handle,
 }
 
 
-auto unique_count_shared(struct uhandle_s * unique_handle,
+auto unique_count_shared(struct uhandle_s const & unique_handle,
                         int const wordlength,
                         int const listlen,
                         unsigned int * list) -> unsigned int
@@ -365,7 +365,7 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
           auto const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if ((unique_handle->bitmap[x] & y) != 0U)
+          if ((unique_handle.bitmap[x] & y) != 0U)
             {
               ++count;
             }
@@ -376,12 +376,12 @@ auto unique_count_shared(struct uhandle_s * unique_handle,
       for (auto i = 0; i < listlen; i++)
         {
           auto kmer = list[i];
-          uint64_t j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle->hash_mask;
-          while ((unique_handle->hash[j].count != 0U) && (unique_handle->hash[j].kmer != kmer))
+          uint64_t j = hash_function((char *) &kmer, (wordlength + 3) / 4) & unique_handle.hash_mask;
+          while ((unique_handle.hash[j].count != 0U) && (unique_handle.hash[j].kmer != kmer))
             {
-              j = (j + 1) & unique_handle->hash_mask;
+              j = (j + 1) & unique_handle.hash_mask;
             }
-          if (unique_handle->hash[j].count != 0U)
+          if (unique_handle.hash[j].count != 0U)
             {
               ++count;
             }

@@ -73,7 +73,7 @@ auto unique_count(struct uhandle_s * unique_handle,
                   unsigned int * * list,
                   int seqmask) -> void;
 
-auto unique_count_shared(struct uhandle_s * unique_handle,
+auto unique_count_shared(struct uhandle_s const & unique_handle,
                          int wordlength,
                          int listlen,
                          unsigned int * list) -> unsigned int;
