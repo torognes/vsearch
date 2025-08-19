@@ -192,7 +192,7 @@ namespace {
             a_line[line_pos] = '\0';
             d_line[line_pos] = '\0';
 
-            int64_t const q1 = q_start + 1 > q_len ? q_len : q_start + 1;
+            int64_t const q1 = q_start + 1 > alignment.query.length ? alignment.query.length : q_start + 1;
             int64_t const q2 = alignment.strand != 0 ? q_pos + 2 : q_pos;
             int64_t const d1 = d_start + 1 > d_len ? d_len : d_start + 1;
             int64_t const d2 = d_pos;
