@@ -111,7 +111,7 @@ namespace {
   };
 
 
-  inline auto putop(Alignment & alignment, char const c, int64_t const len) -> void
+  inline auto putop(Alignment const & alignment, char const c, int64_t const len) -> void
   {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
