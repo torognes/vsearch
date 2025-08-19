@@ -106,99 +106,99 @@ static int64_t d_len;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-inline auto putop(char const c, int64_t const len) -> void
-{
-  int64_t const delta = q_strand != 0 ? -1 : +1;
+  inline auto putop(char const c, int64_t const len) -> void
+  {
+    int64_t const delta = q_strand != 0 ? -1 : +1;
 
-  auto count = len;
-  while (count != 0)
-    {
-      if (line_pos == 0)
-        {
-          q_start = q_pos;
-          d_start = d_pos;
-        }
+    auto count = len;
+    while (count != 0)
+      {
+        if (line_pos == 0)
+          {
+            q_start = q_pos;
+            d_start = d_pos;
+          }
 
-      auto qs = '\0';
-      auto ds = '\0';
-      auto qs4 = 0U;
-      auto ds4 = 0U;
+        auto qs = '\0';
+        auto ds = '\0';
+        auto qs4 = 0U;
+        auto ds4 = 0U;
 
-      switch (c)
-        {
-        case 'M':
-          qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
-          ds = d_seq[d_pos];
-          q_pos += delta;
-          d_pos += 1;
-          q_line[line_pos] = qs;
+        switch (c)
+          {
+          case 'M':
+            qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
+            ds = d_seq[d_pos];
+            q_pos += delta;
+            d_pos += 1;
+            q_line[line_pos] = qs;
 
-          qs4 = chrmap_4bit[static_cast<int>(qs)];
-          ds4 = chrmap_4bit[static_cast<int>(ds)];
-          if (opt_n_mismatch and ((qs4 == 15) or (ds4 == 15)))
-            {
-              a_line[line_pos] = ' ';
-            }
-          else if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
-            {
-              a_line[line_pos] = '|';
-            }
-          else if ((qs4 & ds4) != 0U)
-            {
-              a_line[line_pos] = '+';
-            }
-          else
-            {
-              a_line[line_pos] = ' ';
-            }
+            qs4 = chrmap_4bit[static_cast<int>(qs)];
+            ds4 = chrmap_4bit[static_cast<int>(ds)];
+            if (opt_n_mismatch and ((qs4 == 15) or (ds4 == 15)))
+              {
+                a_line[line_pos] = ' ';
+              }
+            else if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
+              {
+                a_line[line_pos] = '|';
+              }
+            else if ((qs4 & ds4) != 0U)
+              {
+                a_line[line_pos] = '+';
+              }
+            else
+              {
+                a_line[line_pos] = ' ';
+              }
 
-          d_line[line_pos] = ds;
-          ++line_pos;
-          break;
+            d_line[line_pos] = ds;
+            ++line_pos;
+            break;
 
-        case 'D':
-          qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
-          q_pos += delta;
-          q_line[line_pos] = qs;
-          a_line[line_pos] = ' ';
-          d_line[line_pos] = '-';
-          ++line_pos;
-          break;
+          case 'D':
+            qs = q_strand != 0 ? chrmap_complement[static_cast<int>(q_seq[q_pos])] : q_seq[q_pos];
+            q_pos += delta;
+            q_line[line_pos] = qs;
+            a_line[line_pos] = ' ';
+            d_line[line_pos] = '-';
+            ++line_pos;
+            break;
 
-        case 'I':
-          ds = d_seq[d_pos];
-          d_pos += 1;
-          q_line[line_pos] = '-';
-          a_line[line_pos] = ' ';
-          d_line[line_pos] = ds;
-          ++line_pos;
-          break;
-        }
+          case 'I':
+            ds = d_seq[d_pos];
+            d_pos += 1;
+            q_line[line_pos] = '-';
+            a_line[line_pos] = ' ';
+            d_line[line_pos] = ds;
+            ++line_pos;
+            break;
+          }
 
-      if ((line_pos == alignlen) or ((c == '\0') and (line_pos > 0)))
-        {
-          q_line[line_pos] = '\0';
-          a_line[line_pos] = '\0';
-          d_line[line_pos] = '\0';
+        if ((line_pos == alignlen) or ((c == '\0') and (line_pos > 0)))
+          {
+            q_line[line_pos] = '\0';
+            a_line[line_pos] = '\0';
+            d_line[line_pos] = '\0';
 
-          int64_t const q1 = q_start + 1 > q_len ? q_len : q_start + 1;
-          int64_t const q2 = q_strand != 0 ? q_pos + 2 : q_pos;
-          int64_t const d1 = d_start + 1 > d_len ? d_len : d_start + 1;
-          int64_t const d2 = d_pos;
+            int64_t const q1 = q_start + 1 > q_len ? q_len : q_start + 1;
+            int64_t const q2 = q_strand != 0 ? q_pos + 2 : q_pos;
+            int64_t const d1 = d_start + 1 > d_len ? d_len : d_start + 1;
+            int64_t const d2 = d_pos;
 
-          fprintf(out, "\n");
-          fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
-                  q1, q_strand != 0 ? '-' : '+', q_line.data(), q2);
-          fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
-                  "", a_line.data());
-          fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
-                  d1, '+', d_line.data(), d2);
+            fprintf(out, "\n");
+            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
+                    q1, q_strand != 0 ? '-' : '+', q_line.data(), q2);
+            fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
+                    "", a_line.data());
+            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
+                    d1, '+', d_line.data(), d2);
 
-          line_pos = 0;
-        }
-      --count;
-    }
-}
+            line_pos = 0;
+          }
+        --count;
+      }
+  }
 
 }  // end of anonymous namespace
 
