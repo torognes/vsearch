@@ -181,7 +181,7 @@ namespace {
             break;
           }
 
-        if ((line_pos == alignlen) or ((c == '\0') and (line_pos > 0)))
+        if ((line_pos == alignment.width) or ((c == '\0') and (line_pos > 0)))
           {
             q_line[line_pos] = '\0';
             a_line[line_pos] = '\0';
