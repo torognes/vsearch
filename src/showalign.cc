@@ -62,6 +62,7 @@
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::copy, std::fill_n
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // FILE
@@ -298,6 +299,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
         }
     }
 
+  assert(*row_cursor == '\0');
   *row_cursor = '\0';  // not needed, already initialized to null
   return row;
 }
