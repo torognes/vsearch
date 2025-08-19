@@ -108,6 +108,7 @@ namespace {
     Sequence query;
     Sequence target;
     int64_t strand = 0;
+    int64_t length = 0;
   };
 
 
@@ -236,6 +237,7 @@ auto align_show(std::FILE * output_handle,
   alignment.target.offset = seq2off;
   alignment.target.name = seq2name;
   alignment.strand = strand;
+  alignment.width = alignwidth;
 
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
