@@ -245,7 +245,7 @@ auto align_show(std::FILE * output_handle,
     {
       int64_t len = 0;
       auto n = 0;
-      if (sscanf(pos, "%" PRId64 "%n", & len, & n) == 0)
+      if (sscanf(pos, "%" PRId64 "%n", &len, &n) == 0)
         {
           n = 0;
           len = 1;
@@ -275,7 +275,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
     {
       int64_t len = 0;
       auto n = 0;
-      if (sscanf(cigar_cursor, "%" PRId64 "%n", & len, & n) == 0)
+      if (sscanf(cigar_cursor, "%" PRId64 "%n", &len, &n) == 0)
         {
           n = 0;
           len = 1;
