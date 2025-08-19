@@ -351,7 +351,7 @@ auto align_trim(struct hit * hit) -> void
       op = *p;
       if (op != 'M')
         {
-          while ((p > hit->nwalignment) && (*(p-1) <= '9'))
+          while ((p > hit->nwalignment) and (*(p-1) <= '9'))
             {
               --p;
             }
@@ -441,47 +441,47 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   if (
       /* maxqsize */
       (searchinfo.qsize <= opt_maxqsize)
-      &&
+      and
       /* mintsize */
       (tsize >= opt_mintsize)
-      &&
+      and
       /* minsizeratio */
       (searchinfo.qsize >= opt_minsizeratio * tsize)
-      &&
+      and
       /* maxsizeratio */
       (searchinfo.qsize <= opt_maxsizeratio * tsize)
-      &&
+      and
       /* minqt */
       (searchinfo.qseqlen >= opt_minqt * dseqlen)
-      &&
+      and
       /* maxqt */
       (searchinfo.qseqlen <= opt_maxqt * dseqlen)
-      &&
+      and
       /* minsl */
       (searchinfo.qseqlen < dseqlen ?
        searchinfo.qseqlen >= opt_minsl * dseqlen :
        dseqlen >= opt_minsl * searchinfo.qseqlen)
-      &&
+      and
       /* maxsl */
       (searchinfo.qseqlen < dseqlen ?
        searchinfo.qseqlen <= opt_maxsl * dseqlen :
        dseqlen <= opt_maxsl * searchinfo.qseqlen)
-      &&
+      and
       /* idprefix */
-      ((searchinfo.qseqlen >= opt_idprefix) &&
-       (dseqlen >= opt_idprefix) &&
+      ((searchinfo.qseqlen >= opt_idprefix) and
+       (dseqlen >= opt_idprefix) and
        (seqncmp(qseq, dseq, opt_idprefix) == 0))
-      &&
+      and
       /* idsuffix */
-      ((searchinfo.qseqlen >= opt_idsuffix) &&
-       (dseqlen >= opt_idsuffix) &&
+      ((searchinfo.qseqlen >= opt_idsuffix) and
+       (dseqlen >= opt_idsuffix) and
        (seqncmp(qseq + searchinfo.qseqlen - opt_idsuffix,
                  dseq + dseqlen - opt_idsuffix,
                  opt_idsuffix) == 0))
-      &&
+      and
       /* self */
       ((opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
-      &&
+      and
       /* selfid */
       ((opt_selfid == 0) or
        (searchinfo.qseqlen != dseqlen) or
@@ -501,28 +501,28 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool
 {
   if (/* weak_id */
-      (hit->id >= 100.0 * opt_weak_id) &&
+      (hit->id >= 100.0 * opt_weak_id) and
       /* maxsubs */
-      (hit->mismatches <= opt_maxsubs) &&
+      (hit->mismatches <= opt_maxsubs) and
       /* maxgaps */
-      (hit->internal_gaps <= opt_maxgaps) &&
+      (hit->internal_gaps <= opt_maxgaps) and
       /* mincols */
-      (hit->internal_alignmentlength >= opt_mincols) &&
+      (hit->internal_alignmentlength >= opt_mincols) and
       /* leftjust */
       ((opt_leftjust == 0) or (hit->trim_q_left +
-                           hit->trim_t_left == 0)) &&
+                           hit->trim_t_left == 0)) and
       /* rightjust */
       ((opt_rightjust == 0) or (hit->trim_q_right +
-                            hit->trim_t_right == 0)) &&
+                            hit->trim_t_right == 0)) and
       /* query_cov */
-      (hit->matches + hit->mismatches >= opt_query_cov * searchinfo.qseqlen) &&
+      (hit->matches + hit->mismatches >= opt_query_cov * searchinfo.qseqlen) and
       /* target_cov */
       (hit->matches + hit->mismatches >=
-       opt_target_cov * db_getsequencelen(hit->target)) &&
+       opt_target_cov * db_getsequencelen(hit->target)) and
       /* maxid */
-      (hit->id <= 100.0 * opt_maxid) &&
+      (hit->id <= 100.0 * opt_maxid) and
       /* mid */
-      (100.0 * hit->matches / (hit->matches + hit->mismatches) >= opt_mid) &&
+      (100.0 * hit->matches / (hit->matches + hit->mismatches) >= opt_mid) and
       /* maxdiffs */
       (hit->mismatches + hit->internal_indels <= opt_maxdiffs))
     {
@@ -606,7 +606,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
   for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
-      if ((searchinfo->rejects < opt_maxrejects) && (searchinfo->accepts < opt_maxaccepts))
+      if ((searchinfo->rejects < opt_maxrejects) and (searchinfo->accepts < opt_maxaccepts))
         {
           struct hit * hit = searchinfo->hits + x;
 
@@ -748,9 +748,9 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
   int delayed = 0;
 
-  while ((searchinfo->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) &&
-         (searchinfo->rejects < opt_maxrejects) &&
-         (searchinfo->accepts < opt_maxaccepts) &&
+  while ((searchinfo->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) and
+         (searchinfo->rejects < opt_maxrejects) and
+         (searchinfo->accepts < opt_maxaccepts) and
          (not minheap_isempty(searchinfo->m)))
     {
       elem_t const e = minheap_poplast(searchinfo->m);
