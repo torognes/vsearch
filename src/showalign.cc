@@ -195,11 +195,11 @@ namespace {
             int64_t const d2 = d_pos;
 
             fprintf(out, "\n");
-            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
+            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, alignment.query.name, poswidth,
                     q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
             fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
                     "", a_line.data());
-            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, d_name, poswidth,
+            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, alignment.target.name, poswidth,
                     d1, '+', d_line.data(), d2);
 
             line_pos = 0;
@@ -233,9 +233,11 @@ auto align_show(std::FILE * output_handle,
   alignment.query.sequence = seq1;
   alignment.query.length = seq1len;
   alignment.query.offset = seq1off;
+  alignment.query.name = seq1name;
   alignment.target.sequence = seq2;
   alignment.target.length = seq2len;
   alignment.target.offset = seq2off;
+  alignment.target.name = seq2name;
   alignment.strand = strand;
 
   q_name = seq1name;
