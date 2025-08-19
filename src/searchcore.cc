@@ -441,7 +441,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   int64_t const dseqlen = db_getsequencelen(target);
   int64_t const tsize = db_getabundance(target);
 
-  if (
+  return (
       /* maxqsize */
       (searchinfo.qsize <= opt_maxqsize)
       and
@@ -489,14 +489,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
       ((opt_selfid == 0) or
        (searchinfo.qseqlen != dseqlen) or
        (seqncmp(qseq, dseq, searchinfo.qseqlen) != 0))
-      )
-    {
-      /* needs further consideration */
-      return true;
-    }
-
-  /* reject */
-  return false;
+      );
 }
 
 
