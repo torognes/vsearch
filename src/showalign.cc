@@ -94,7 +94,6 @@ static auto headwidth = headwidth_default;
 static char const * q_name;
 static char const * d_name;
 
-static int64_t q_len;
 static int64_t d_len;
 
 
@@ -241,7 +240,6 @@ auto align_show(std::FILE * output_handle,
   alignment.target.offset = seq2off;
   alignment.strand = strand;
 
-  q_len = seq1len;
   q_name = seq1name;
 
   d_len = seq2len;
