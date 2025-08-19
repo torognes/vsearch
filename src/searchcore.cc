@@ -430,7 +430,10 @@ auto align_trim(struct hit * hit) -> void
 auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int const target) -> bool
 {
-  /* consider whether a hit satisfies accept criteria before alignment */
+  /* consider whether a hit satisfies accepted criteria before alignment */
+
+  // true: needs further consideration
+  // false: reject
 
   auto * qseq = searchinfo.qsequence;
   auto * dlabel = db_getheader(target);
