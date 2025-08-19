@@ -209,11 +209,11 @@ namespace {
 
 
 auto align_show(std::FILE * output_handle,
-                char * seq1,  // assigned to a global, cannot be const
+                char const * seq1,
                 int64_t const seq1len,
                 int64_t const seq1off,
                 char const * seq1name,
-                char * seq2,  // assigned to a global, cannot be const
+                char const * seq2,
                 int64_t const seq2len,
                 int64_t const seq2off,
                 char const * seq2name,

@@ -68,11 +68,11 @@ auto align_getrow(char const * seq, char const * cigar, int alignlen, int origin
 auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char const * cigar) -> void;
 
 auto align_show(std::FILE * output_handle,
-                char * seq1,
+                char const * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
                 char const * seq1name,
-                char * seq2,
+                char const * seq2,
                 int64_t seq2len,
                 int64_t seq2off,
                 char const * seq2name,
