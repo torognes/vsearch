@@ -742,7 +742,7 @@ auto cluster_core_parallel() -> void
                       struct searchinfo_s * sic = si_plus + extra_list[j];
 
                       /* find the number of shared unique kmers */
-                      unsigned int const shared
+                      auto const shared
                         = unique_count_shared(si->uh,
                                               opt_wordlength,
                                               sic->kmersamplecount,
