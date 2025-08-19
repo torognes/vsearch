@@ -91,9 +91,6 @@ static auto poswidth = poswidth_default;
 constexpr auto headwidth_default = 5;
 static auto headwidth = headwidth_default;
 
-static char const * q_name;
-static char const * d_name;
-
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
@@ -239,9 +236,6 @@ auto align_show(std::FILE * output_handle,
   alignment.target.offset = seq2off;
   alignment.target.name = seq2name;
   alignment.strand = strand;
-
-  q_name = seq1name;
-  d_name = seq2name;
 
   auto * pos = cigar;
   auto * end = pos + cigarlen;
