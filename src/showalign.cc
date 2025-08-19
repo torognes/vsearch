@@ -100,10 +100,10 @@ namespace {
 
 
   struct Sequence {
-    char * sequence = nullptr;
+    char const * sequence = nullptr;
     int64_t length = 0;
     int64_t offset = 0;
-    char * name = nullptr;
+    char const * name = nullptr;
   };
 
 
