@@ -307,7 +307,6 @@ auto allpairs_thread_run(int64_t t) -> void
 
   struct searchinfo_s searchinfo;
 
-  struct searchinfo_s * si = & searchinfo;
   searchinfo.hits_v.resize(seqcount);
   searchinfo.hits = searchinfo.hits_v.data();
 
