@@ -442,54 +442,54 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   int64_t const tsize = db_getabundance(target);
 
   return (
-      /* maxqsize */
-      (searchinfo.qsize <= opt_maxqsize)
-      and
-      /* mintsize */
-      (tsize >= opt_mintsize)
-      and
-      /* minsizeratio */
-      (searchinfo.qsize >= opt_minsizeratio * tsize)
-      and
-      /* maxsizeratio */
-      (searchinfo.qsize <= opt_maxsizeratio * tsize)
-      and
-      /* minqt */
-      (searchinfo.qseqlen >= opt_minqt * dseqlen)
-      and
-      /* maxqt */
-      (searchinfo.qseqlen <= opt_maxqt * dseqlen)
-      and
-      /* minsl */
-      (searchinfo.qseqlen < dseqlen ?
-       searchinfo.qseqlen >= opt_minsl * dseqlen :
-       dseqlen >= opt_minsl * searchinfo.qseqlen)
-      and
-      /* maxsl */
-      (searchinfo.qseqlen < dseqlen ?
-       searchinfo.qseqlen <= opt_maxsl * dseqlen :
-       dseqlen <= opt_maxsl * searchinfo.qseqlen)
-      and
-      /* idprefix */
-      ((searchinfo.qseqlen >= opt_idprefix) and
-       (dseqlen >= opt_idprefix) and
-       (seqncmp(qseq, dseq, opt_idprefix) == 0))
-      and
-      /* idsuffix */
-      ((searchinfo.qseqlen >= opt_idsuffix) and
-       (dseqlen >= opt_idsuffix) and
-       (seqncmp(qseq + searchinfo.qseqlen - opt_idsuffix,
-                 dseq + dseqlen - opt_idsuffix,
-                 opt_idsuffix) == 0))
-      and
-      /* self */
-      ((opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
-      and
-      /* selfid */
-      ((opt_selfid == 0) or
-       (searchinfo.qseqlen != dseqlen) or
-       (seqncmp(qseq, dseq, searchinfo.qseqlen) != 0))
-      );
+          /* maxqsize */
+          (searchinfo.qsize <= opt_maxqsize)
+          and
+          /* mintsize */
+          (tsize >= opt_mintsize)
+          and
+          /* minsizeratio */
+          (searchinfo.qsize >= opt_minsizeratio * tsize)
+          and
+          /* maxsizeratio */
+          (searchinfo.qsize <= opt_maxsizeratio * tsize)
+          and
+          /* minqt */
+          (searchinfo.qseqlen >= opt_minqt * dseqlen)
+          and
+          /* maxqt */
+          (searchinfo.qseqlen <= opt_maxqt * dseqlen)
+          and
+          /* minsl */
+          (searchinfo.qseqlen < dseqlen ?
+           searchinfo.qseqlen >= opt_minsl * dseqlen :
+           dseqlen >= opt_minsl * searchinfo.qseqlen)
+          and
+          /* maxsl */
+          (searchinfo.qseqlen < dseqlen ?
+           searchinfo.qseqlen <= opt_maxsl * dseqlen :
+           dseqlen <= opt_maxsl * searchinfo.qseqlen)
+          and
+          /* idprefix */
+          ((searchinfo.qseqlen >= opt_idprefix) and
+           (dseqlen >= opt_idprefix) and
+           (seqncmp(qseq, dseq, opt_idprefix) == 0))
+          and
+          /* idsuffix */
+          ((searchinfo.qseqlen >= opt_idsuffix) and
+           (dseqlen >= opt_idsuffix) and
+           (seqncmp(qseq + searchinfo.qseqlen - opt_idsuffix,
+                    dseq + dseqlen - opt_idsuffix,
+                    opt_idsuffix) == 0))
+          and
+          /* self */
+          ((opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
+          and
+          /* selfid */
+          ((opt_selfid == 0) or
+           (searchinfo.qseqlen != dseqlen) or
+           (seqncmp(qseq, dseq, searchinfo.qseqlen) != 0))
+          );
 }
 
 
