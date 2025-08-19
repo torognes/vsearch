@@ -109,7 +109,8 @@ struct uhandle_s
 };
 
 
-// refactoring: 2025-07-22 failed attempt to eliminate malloc/free, requires major refactoring
+// refactoring: 2025-07-22 failed attempt to eliminate malloc/free,
+// requires major refactoring, see attempt in unique_struct.hpp
 auto unique_init() -> struct uhandle_s *
 {
   static constexpr auto initial_allocation = 2048;
