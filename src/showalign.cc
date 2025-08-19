@@ -96,8 +96,8 @@ static auto poswidth = poswidth_default;
 constexpr auto headwidth_default = 5;
 static auto headwidth = headwidth_default;
 
-static const char * q_name;
-static const char * d_name;
+static char const * q_name;
+static char const * d_name;
 
 static int64_t q_len;
 static int64_t d_len;
@@ -105,7 +105,7 @@ static int64_t d_len;
 
 inline auto putop(char const c, int64_t const len) -> void
 {
-  const int64_t delta = q_strand != 0 ? -1 : +1;
+  int64_t const delta = q_strand != 0 ? -1 : +1;
 
   auto count = len;
   while (count != 0)
@@ -178,10 +178,10 @@ inline auto putop(char const c, int64_t const len) -> void
           a_line[line_pos] = '\0';
           d_line[line_pos] = '\0';
 
-          const int64_t q1 = q_start + 1 > q_len ? q_len : q_start + 1;
-          const int64_t q2 = q_strand != 0 ? q_pos + 2 : q_pos;
-          const int64_t d1 = d_start + 1 > d_len ? d_len : d_start + 1;
-          const int64_t d2 = d_pos;
+          int64_t const q1 = q_start + 1 > q_len ? q_len : q_start + 1;
+          int64_t const q2 = q_strand != 0 ? q_pos + 2 : q_pos;
+          int64_t const d1 = d_start + 1 > d_len ? d_len : d_start + 1;
+          int64_t const d2 = d_pos;
 
           fprintf(out, "\n");
           fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, q_name, poswidth,
@@ -202,11 +202,11 @@ auto align_show(std::FILE * output_handle,
                 char * seq1,
                 int64_t seq1len,
                 int64_t seq1off,
-                const char * seq1name,
+                char const * seq1name,
                 char * seq2,
                 int64_t seq2len,
                 int64_t seq2off,
-                const char * seq2name,
+                char const * seq2name,
                 char * cigar,
                 int64_t cigarlen,
                 int numwidth,
