@@ -193,7 +193,7 @@ namespace {
 
             int64_t const q1 = std::min(q_start + 1, alignment.query.length);
             int64_t const q2 = alignment.strand != 0 ? q_pos + 2 : q_pos;
-            int64_t const d1 = std::min(d_start + 1, d_len);
+            int64_t const d1 = std::min(d_start + 1, alignment.target.length);
             int64_t const d2 = d_pos;
 
             fprintf(out, "\n");
