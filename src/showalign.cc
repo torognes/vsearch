@@ -256,7 +256,7 @@ auto align_show(std::FILE * output_handle,
       putop(op, len);
     }
 
-  putop(0, 1);
+  putop('\0', 1);
 
   q_line.clear();
   a_line.clear();
