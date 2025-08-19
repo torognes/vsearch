@@ -204,10 +204,10 @@ auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 }
 
 
-auto search_enough_kmers(struct searchinfo_s * searchinfo,
+auto search_enough_kmers(struct searchinfo_s const & searchinfo,
                          unsigned int const count) -> bool
 {
-  return (count >= opt_minwordmatches) or (count >= searchinfo->kmersamplecount);
+  return (count >= opt_minwordmatches) or (count >= searchinfo.kmersamplecount);
 }
 
 

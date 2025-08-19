@@ -749,7 +749,7 @@ auto cluster_core_parallel() -> void
                                               sic->kmersample);
 
                       /* check if min number of shared kmers is satisfied */
-                      if (search_enough_kmers(si, shared))
+                      if (search_enough_kmers(*si, shared))
                         {
                           unsigned int const length = sic->qseqlen;
 

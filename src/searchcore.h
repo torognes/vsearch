@@ -177,5 +177,5 @@ auto search_joinhits(struct searchinfo_s * si_p,
                      struct hit * * hits,
                      int * hit_count) -> void;
 
-auto search_enough_kmers(struct searchinfo_s * searchinfo,
+auto search_enough_kmers(struct searchinfo_s const & searchinfo,
                          unsigned int count) -> bool;
