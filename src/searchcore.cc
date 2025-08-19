@@ -284,7 +284,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto seqncmp(char * a, char * b, uint64_t n) -> int
+auto seqncmp(char const * a, char const * b, uint64_t const n) -> int
 {
   for (auto i = 0U; i < n; i++)
     {
