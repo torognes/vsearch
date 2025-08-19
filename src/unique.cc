@@ -82,15 +82,15 @@ namespace {
   // replace with std::unordered_map (default hashing)
   // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
   // then make a CityHash hasher object and use it with std::unordered_map
-using Hash = decltype(&CityHash64);
-static Hash hash_function = CityHash64;
+  using Hash = decltype(&CityHash64);
+  static Hash hash_function = CityHash64;
 
 
-struct bucket_s
-{
-  unsigned int kmer;
-  unsigned int count;
-};
+  struct bucket_s
+  {
+    unsigned int kmer;
+    unsigned int count;
+  };
 
 
 }  // end of anonymous namespace
