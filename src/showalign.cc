@@ -299,8 +299,8 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
         }
     }
 
-  assert(*row_cursor == '\0');
-  *row_cursor = '\0';  // not needed, already initialized to null
+  // assert(*row_cursor == '\0');  // is not always true
+  *row_cursor = '\0';  // needed, not already initialized to null
   return row;
 }
 
