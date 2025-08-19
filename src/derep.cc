@@ -74,6 +74,9 @@
 #include <vector>
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 // refactoring:
 // replace with std::unordered_map (default hashing)
 // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
@@ -95,9 +98,6 @@ struct bucket
   char * qual = nullptr;
 };
 
-
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
 
   auto count_selected(std::vector<struct bucket> const & hashtable,
                       struct Parameters const & parameters) -> uint64_t {
