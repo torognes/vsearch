@@ -352,12 +352,12 @@ auto unique_count(struct uhandle_s * unique_handle,
 auto unique_count_shared(struct uhandle_s * unique_handle,
                         int const wordlength,
                         int const listlen,
-                        unsigned int * list) -> int
+                        unsigned int * list) -> unsigned int
 {
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
 
-  auto count = 0;
+  auto count = 0U;
   if (wordlength < 10)
     {
       for (auto i = 0; i < listlen; i++)
