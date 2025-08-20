@@ -260,9 +260,9 @@ auto align_show(std::FILE * output_handle,
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
 
-  q_line.resize(alignwidth + 1);
-  a_line.resize(alignwidth + 1);
-  d_line.resize(alignwidth + 1);
+  q_line.resize(alignment.width + 1);
+  a_line.resize(alignment.width + 1);
+  d_line.resize(alignment.width + 1);
 
   while (pos < end)
     {
