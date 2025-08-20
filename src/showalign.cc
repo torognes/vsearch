@@ -82,8 +82,6 @@ std::vector<char> q_line;
 std::vector<char> a_line;
 std::vector<char> d_line;
 
-static std::FILE * out;
-
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
