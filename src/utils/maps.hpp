@@ -80,4 +80,6 @@ auto map_uppercase(char nucleotide) -> char;
 
 auto map_4bit(char nucleotide) -> unsigned char;
 
+auto map_complement(char nucleotide) -> char;
+
 #endif // MAPS_HPP

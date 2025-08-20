@@ -272,3 +272,7 @@ auto map_4bit(char const nucleotide) -> unsigned char {
 }
 
 
+auto map_complement(char const nucleotide) -> char {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return static_cast<char>(chrmap_complement_vector[unsigned_nucleotide]);
+}
