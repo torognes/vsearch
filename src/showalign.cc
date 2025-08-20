@@ -290,7 +290,7 @@ auto align_show(std::FILE * output_handle,
 }
 
 
-auto align_getrow(char const * seq, char const * cigar, int const alignlen, int const origin) -> std::vector<char>
+auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool const origin) -> std::vector<char>
 {
   std::vector<char> row(alignlen + 1);
   auto * row_cursor = row.data();

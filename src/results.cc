@@ -91,7 +91,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
   auto const qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                              hits->nwalignment,
                              hits->nwalignmentlength,
-                             0);
+                             false);
   fasta_print_general(output_handle,
                       nullptr,
                       &qrow[hits->trim_q_left + hits->trim_t_left],
@@ -109,7 +109,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
   auto const trow = align_getrow(db_getsequence(hits->target),
                              hits->nwalignment,
                              hits->nwalignmentlength,
-                             1);
+                             true);
   fasta_print_general(output_handle,
                       nullptr,
                       &trow[hits->trim_q_left + hits->trim_t_left],
@@ -433,7 +433,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
               auto const qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
-                                  0);
+                                  false);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
                       &qrow[hits->trim_q_left + hits->trim_t_left]);
@@ -445,7 +445,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
               auto const trow = align_getrow(tsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
-                                  1);
+                                  true);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
                       &trow[hits->trim_q_left + hits->trim_t_left]);
