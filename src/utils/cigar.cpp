@@ -106,6 +106,7 @@ namespace {
       return 'I';
       break;
     }
+    __builtin_unreachable();
   }
 
 }  // end of anonymous namespace
