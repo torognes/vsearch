@@ -290,7 +290,7 @@ auto align_show(std::FILE * output_handle,
 }
 
 
-auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool const origin) -> std::vector<char>
+auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool const is_target) -> std::vector<char>
 {
   std::vector<char> row(alignlen + 1);
   auto * row_cursor = row.data();
@@ -301,8 +301,8 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
     auto const is_match_or_insertion = (operation == Operation::match) or
-      ((operation == Operation::deletion) and (origin == 0)) or
-      ((operation == Operation::insertion) and (origin == 1));
+      ((operation == Operation::deletion) and not is_target) or
+      ((operation == Operation::insertion) and is_target);
     if (is_match_or_insertion)
       {
         std::copy(seq_cursor, std::next(seq_cursor, runlength), row_cursor);
