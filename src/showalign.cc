@@ -305,8 +305,8 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
         ((operation == Operation::insertion) and (origin == 1)))
       {
         std::copy(seq_cursor, std::next(seq_cursor, runlength), row_cursor);
-        row_cursor += runlength;
-        seq_cursor += runlength;
+        std::advance(row_cursor, runlength);
+        std::advance(seq_cursor, runlength);
       }
     else
       {
