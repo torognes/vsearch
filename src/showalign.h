@@ -63,7 +63,10 @@
 #include <vector>
 
 
-auto align_getrow(char const * seq, char const * cigar, int alignlen, int origin) -> std::vector<char>;
+auto align_getrow(char const * seq,
+                  char const * cigar,
+                  int alignlen,
+                  int origin) -> std::vector<char>;
 
 auto align_show(std::FILE * output_handle,
                 char const * seq1,
