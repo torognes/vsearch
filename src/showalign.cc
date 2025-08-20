@@ -100,6 +100,7 @@ namespace {
   struct Alignment {
     static constexpr auto poswidth_default = 3;
     static constexpr auto headwidth_default = 5;
+    std::FILE * output_handle = nullptr;
     Sequence query;
     Sequence target;
     int poswidth = poswidth_default;
@@ -189,12 +190,12 @@ namespace {
             int64_t const d1 = std::min(d_start + 1, alignment.target.length);
             int64_t const d2 = d_pos;
 
-            fprintf(out, "\n");
-            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
+            fprintf(alignment.output_handle, "\n");
+            fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
                     q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
-            fprintf(out, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
+            fprintf(alignment.output_handle, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
                     "", a_line.data());
-            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
+            fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
                     d1, '+', d_line.data(), d2);
 
             line_pos = 0;
@@ -222,9 +223,9 @@ auto align_show(std::FILE * output_handle,
                 int const alignwidth,
                 int const strand) -> void
 {
-  out = output_handle;
 
   Alignment alignment;
+  alignment.output_handle = output_handle;
   alignment.query.sequence = seq1;
   alignment.query.length = seq1len;
   alignment.query.offset = seq1off;
