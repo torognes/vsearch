@@ -259,14 +259,11 @@ auto align_show(std::FILE * output_handle,
   position.query_start = position.query;
   position.target_start = position.target;
 
-  auto const * pos = cigar;
-  auto const * end = pos + cigarlen;
-
   q_line.resize(alignment.width + 1);
   a_line.resize(alignment.width + 1);
   d_line.resize(alignment.width + 1);
 
-  auto const cigar_pairs = parse_cigar_string_char(cigar_string);
+  auto const cigar_pairs = parse_cigar_string_char(Span<char>{cigar, std::strlen(cigar)});
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
