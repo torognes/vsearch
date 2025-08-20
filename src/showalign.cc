@@ -293,31 +293,29 @@ auto align_show(std::FILE * output_handle,
 auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool const is_target) -> std::vector<char>
 {
   std::vector<char> row(alignlen + 1);
-  auto * row_cursor = row.data();
-  auto const * seq_cursor = seq;
+  auto cursor = size_t{0};
   auto const cigar_pairs = parse_cigar_string(Span<char>{cigar, std::strlen(cigar)});
 
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
+    assert(static_cast<size_t>(runlength) < row.size() - cursor);
     auto const is_match_or_insertion = (operation == Operation::match) or
       ((operation == Operation::deletion) and not is_target) or
       ((operation == Operation::insertion) and is_target);
     if (is_match_or_insertion)
       {
-        std::copy(seq_cursor, std::next(seq_cursor, runlength), row_cursor);
-        std::advance(row_cursor, runlength);
-        std::advance(seq_cursor, runlength);
+        std::copy(&seq[cursor], &seq[cursor + runlength], &row[cursor]);
+        cursor += runlength;
       }
     else
       {
         /* deletion in sequence: insert gap symbols */
-        // assert(runlength < std::distance(row_cursor, row.end()));
-        std::fill_n(row_cursor, runlength, '-');  // assert not longer than row!
+        std::fill_n(&row[cursor], runlength, '-');
       }
   }
 
-  // assert(*row_cursor == '\0');  // is not always true
-  *row_cursor = '\0';  // needed, not already initialized to null
+  // assert(row[cursor] == '\0');  // is not always true
+  row[cursor] = '\0';  // needed, not already initialized to null
   return row;
 }
