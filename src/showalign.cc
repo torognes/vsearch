@@ -59,8 +59,10 @@
 */
 
 #include "vsearch.h"
+#include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/span.hpp"
 #include <algorithm>  // std::copy, std::fill_n, std::min
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -291,36 +293,26 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
 {
   std::vector<char> row(alignlen + 1);
   auto * row_cursor = row.data();
-  auto const * cigar_cursor = cigar;
   auto const * seq_cursor = seq;
+  auto const cigar_pairs = parse_cigar_string(Span<char>{cigar, std::strlen(cigar)});
 
-  while (*cigar_cursor != '\0')
-    {
-      int64_t len = 0;
-      auto n = 0;
-      if (sscanf(cigar_cursor, "%" PRId64 "%n", &len, &n) == 0)
-        {
-          n = 0;
-          len = 1;
-        }
-      cigar_cursor += n;
-      auto const op = *cigar_cursor;
-      ++cigar_cursor;
-
-      if ((op == 'M') or
-          ((op == 'D') and (origin == 0)) or
-          ((op == 'I') and (origin == 1)))
-        {
-          std::copy(seq_cursor, std::next(seq_cursor, len), row_cursor);
-          row_cursor += len;
-          seq_cursor += len;
-        }
-      else
-        {
-          /* insert len gap symbols */
-          std::fill_n(row_cursor, len, '-');
-        }
-    }
+  for (auto const & a_pair: cigar_pairs) {
+    auto const operation = a_pair.first;
+    auto const runlength = a_pair.second;
+    if ((operation == Operation::match) or
+        ((operation == Operation::deletion) and (origin == 0)) or
+        ((operation == Operation::insertion) and (origin == 1)))
+      {
+        std::copy(seq_cursor, std::next(seq_cursor, runlength), row_cursor);
+        row_cursor += runlength;
+        seq_cursor += runlength;
+      }
+    else
+      {
+        /* insert len gap symbols */
+        std::fill_n(row_cursor, runlength, '-');  // assert not longer than row!
+      }
+  }
 
   // assert(*row_cursor == '\0');  // is not always true
   *row_cursor = '\0';  // needed, not already initialized to null
