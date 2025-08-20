@@ -121,7 +121,7 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
   // - consume as many characters as possible to form a valid integer,
   // - advance pointer to the first non-digit character,
   // - return the valid integer
-  // - if there is no valid integer: pointer is not advanced and function returns zero,
+  // - if there is no valid integer: pointer is not advanced and strtoll() returns zero
   static constexpr auto decimal_base = 10;
   auto const runlength = std::strtoll(first_character,
                                       first_non_digit,
