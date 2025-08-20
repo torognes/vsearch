@@ -266,20 +266,12 @@ auto align_show(std::FILE * output_handle,
   a_line.resize(alignment.width + 1);
   d_line.resize(alignment.width + 1);
 
-  while (pos < end)
-    {
-      int64_t len = 0;
-      auto n = 0;
-      if (sscanf(pos, "%" PRId64 "%n", &len, &n) == 0)  // replace with std::strtoll
-        {
-          n = 0;
-          len = 1;
-        }
-      pos += n;
-      auto const op = *pos;
-      ++pos;
-      putop(alignment, position, op, len);
-    }
+  auto const cigar_pairs = parse_cigar_string_char(cigar_string);
+  for (auto const & a_pair: cigar_pairs) {
+    auto const operation = a_pair.first;
+    auto const runlength = a_pair.second;
+    putop(alignment, position, operation, runlength);
+  }
 
   putop(alignment, position, '\0', 1);
 
