@@ -304,11 +304,11 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
       or ((operation == Operation::insertion) and is_target); // seq = target, insertion in seq
     if (is_not_a_gap) {
       std::copy(&seq[cursor], &seq[cursor + runlength], &row[cursor]);
-      cursor += runlength;
     } else {
       /* deletion in sequence: insert gap symbols */
       std::fill_n(&row[cursor], runlength, '-');
     }
+    cursor += runlength;
   }
 
   // assert(row[cursor] == '\0');  // is not always true?! (see issue 473 for a test)
