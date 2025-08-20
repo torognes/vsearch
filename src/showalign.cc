@@ -86,6 +86,8 @@ namespace {
     int64_t line = 0;
     int64_t query = 0;
     int64_t target = 0;
+    int64_t query_start = 0;
+    int64_t target_start = 0;
   };
 
 
@@ -254,6 +256,8 @@ auto align_show(std::FILE * output_handle,
   Position position;
   position.query = alignment.strand != 0 ? alignment.query.length - 1 - alignment.query.offset : alignment.query.offset;
   position.target = alignment.target.offset;
+  position.query_start = position.query;
+  position.target_start = position.target;
 
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
