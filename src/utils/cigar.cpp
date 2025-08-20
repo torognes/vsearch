@@ -160,6 +160,7 @@ auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<
 }
 
 
+// refactoring: eliminate if possible
 auto parse_cigar_string_char(Span<char> const cigar_string) -> std::vector<std::pair<char, long long>> {
   std::vector<std::pair<char, long long>> parsed_cigar;
   auto const cigar_pairs = parse_cigar_string(cigar_string);
