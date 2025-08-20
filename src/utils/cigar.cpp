@@ -159,7 +159,7 @@ auto parse_cigar_string(Span<char> cigar_string) -> std::vector<std::pair<Operat
 
 
 auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> cigar_string) -> void {
-  auto const cigar_pairs = parse_cigar_string(Span<char> cigar_string);
+  auto const cigar_pairs = parse_cigar_string(cigar_string);
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = convert_from_operation(a_pair.first);
     auto const runlength = a_pair.second;
