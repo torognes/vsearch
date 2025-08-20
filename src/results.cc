@@ -430,7 +430,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         case 26: /* qrow */
           if (hits != nullptr)
             {
-              auto qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
+              auto const qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
                                   0);
@@ -442,7 +442,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         case 27: /* trow */
           if (hits != nullptr)
             {
-              auto trow = align_getrow(tsequence,
+              auto const trow = align_getrow(tsequence,
                                   hits->nwalignment,
                                   hits->nwalignmentlength,
                                   1);

@@ -134,7 +134,7 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
 
 
 // refactoring C++23: std::pair generator
-auto parse_cigar_string(Span<char> cigar_string) -> std::vector<std::pair<Operation, long long>> {
+auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<Operation, long long>> {
   std::vector<std::pair<Operation, long long>> parsed_cigar;
 
   auto * position = cigar_string.begin();
@@ -160,7 +160,7 @@ auto parse_cigar_string(Span<char> cigar_string) -> std::vector<std::pair<Operat
 }
 
 
-auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> cigar_string) -> void {
+auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> const cigar_string) -> void {
   auto const cigar_pairs = parse_cigar_string(cigar_string);
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = convert_from_operation(a_pair.first);
