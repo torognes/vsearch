@@ -326,35 +326,3 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
   *row_cursor = '\0';  // needed, not already initialized to null
   return row;
 }
-
-
-auto align_fprint_uncompressed_alignment(std::FILE * output_handle, char const * cigar) -> void
-{
-  auto const * pos = cigar;
-  while (*pos != '\0')
-    {
-      if (*pos > '9')
-        {
-          fprintf(output_handle, "%c", *pos);
-          ++pos;
-        }
-      else
-        {
-          auto n = 0;
-          auto c = '\0';
-          auto x = 0;
-          if (sscanf(pos, "%d%c%n", &n, &c, &x) == 2)
-            {
-              for (auto i = 0; i < n; ++i)
-                {
-                  fprintf(output_handle, "%c", c);
-                }
-              pos += x;
-            }
-          else
-            {
-              fatal("bad alignment string");
-            }
-        }
-    }
-}
