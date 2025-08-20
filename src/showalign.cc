@@ -84,11 +84,6 @@ std::vector<char> d_line;
 
 static std::FILE * out;
 
-constexpr auto poswidth_default = 3;
-static auto poswidth = poswidth_default;
-constexpr auto headwidth_default = 5;
-static auto headwidth = headwidth_default;
-
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
@@ -245,9 +240,6 @@ auto align_show(std::FILE * output_handle,
 
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
-
-  poswidth = numwidth;
-  headwidth = namewidth;
 
   q_line.resize(alignwidth + 1);
   a_line.resize(alignwidth + 1);
