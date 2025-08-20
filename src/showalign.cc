@@ -268,7 +268,7 @@ auto align_show(std::FILE * output_handle,
     {
       int64_t len = 0;
       auto n = 0;
-      if (sscanf(pos, "%" PRId64 "%n", &len, &n) == 0)
+      if (sscanf(pos, "%" PRId64 "%n", &len, &n) == 0)  // replace with std::strtoll
         {
           n = 0;
           len = 1;
