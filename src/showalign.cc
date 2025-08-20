@@ -300,9 +300,10 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
-    if ((operation == Operation::match) or
-        ((operation == Operation::deletion) and (origin == 0)) or
-        ((operation == Operation::insertion) and (origin == 1)))
+    auto const is_match_or_insertion = (operation == Operation::match) or
+      ((operation == Operation::deletion) and (origin == 0)) or
+      ((operation == Operation::insertion) and (origin == 1));
+    if (is_match_or_insertion)
       {
         std::copy(seq_cursor, std::next(seq_cursor, runlength), row_cursor);
         std::advance(row_cursor, runlength);
