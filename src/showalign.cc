@@ -300,8 +300,9 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
     assert(static_cast<size_t>(runlength) < row.size() - cursor);
+    auto const is_query = not is_target;
     auto const is_match_or_insertion = (operation == Operation::match) or
-      ((operation == Operation::deletion) and not is_target) or
+      ((operation == Operation::deletion) and is_query) or
       ((operation == Operation::insertion) and is_target);
     if (is_match_or_insertion)
       {
