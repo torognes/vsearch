@@ -109,7 +109,7 @@ namespace {
   };
 
 
-  inline auto putop(Alignment const & alignment, Position & position, char const c, int64_t const len) -> void
+  inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void
   {
     static constexpr auto is_N = 15U;
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
@@ -128,7 +128,7 @@ namespace {
         auto qs4 = 0U;
         auto ds4 = 0U;
 
-        switch (c)
+        switch (operation)
           {
           case 'M':
             qs = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
@@ -179,7 +179,7 @@ namespace {
             break;
           }
 
-        if ((position.line == alignment.width) or ((c == '\0') and (position.line > 0)))
+        if ((position.line == alignment.width) or ((operation == '\0') and (position.line > 0)))
           {
             q_line[position.line] = '\0';
             a_line[position.line] = '\0';
