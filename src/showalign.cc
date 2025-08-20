@@ -87,6 +87,13 @@ std::vector<char> d_line;
 namespace {
 
 
+  struct Position {
+    int64_t line = 0;
+    int64_t query = 0;
+    int64_t target = 0;
+  };
+
+
   struct Sequence {
     char const * sequence = nullptr;
     int64_t length = 0;
@@ -248,6 +255,10 @@ auto align_show(std::FILE * output_handle,
   //   alignwidth,
   //   strand
   // };
+
+  Position position;
+  position.query = alignment.strand != 0 ? alignment.query.length - 1 - alignment.query.offset : alignment.query.offset;
+  position.target = alignment.target.offset;
 
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
