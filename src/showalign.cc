@@ -70,13 +70,8 @@
 #include <vector>
 
 
-static int64_t line_pos;
-
 static int64_t q_start;
 static int64_t d_start;
-
-static int64_t q_pos;
-static int64_t d_pos;
 
 std::vector<char> q_line;
 std::vector<char> a_line;
@@ -266,11 +261,6 @@ auto align_show(std::FILE * output_handle,
   q_line.resize(alignwidth + 1);
   a_line.resize(alignwidth + 1);
   d_line.resize(alignwidth + 1);
-
-  q_pos = strand != 0 ? seq1len - 1 - seq1off : seq1off;
-  d_pos = seq2off;
-
-  line_pos = 0;
 
   while (pos < end)
     {
