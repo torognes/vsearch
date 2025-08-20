@@ -312,7 +312,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
     }
   }
 
-  // assert(row[cursor] == '\0');  // is not always true
-  row[cursor] = '\0';  // needed, not already initialized to null
+  // assert(row[cursor] == '\0');  // is not always true?! (see issue 473 for a test)
+  row[cursor] = '\0';  // not already initialized to null?
   return row;
 }
