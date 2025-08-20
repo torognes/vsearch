@@ -66,7 +66,7 @@
 auto align_getrow(char const * seq,
                   char const * cigar,
                   int alignlen,
-                  bool origin) -> std::vector<char>;
+                  bool is_target) -> std::vector<char>;
 
 auto align_show(std::FILE * output_handle,
                 char const * seq1,
