@@ -132,7 +132,7 @@ namespace {
         switch (c)
           {
           case 'M':
-            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[position.query])] : alignment.query.sequence[position.query];
+            qs = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
             ds = alignment.target.sequence[position.target];
             position.query += delta;
             position.target += 1;
@@ -162,7 +162,7 @@ namespace {
             break;
 
           case 'D':
-            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[position.query])] : alignment.query.sequence[position.query];
+            qs = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
             position.query += delta;
             q_line[position.line] = qs;
             a_line[position.line] = ' ';
