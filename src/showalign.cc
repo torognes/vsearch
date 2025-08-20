@@ -311,6 +311,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
     else
       {
         /* deletion in sequence: insert gap symbols */
+        // assert(runlength < std::distance(row_cursor, row.end()));
         std::fill_n(row_cursor, runlength, '-');  // assert not longer than row!
       }
   }
