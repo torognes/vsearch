@@ -195,11 +195,11 @@ namespace {
             int64_t const d2 = d_pos;
 
             fprintf(out, "\n");
-            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, alignment.query.name, poswidth,
+            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
                     q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
-            fprintf(out, "%*s %*s   %s\n",      headwidth, "",     poswidth,
+            fprintf(out, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
                     "", a_line.data());
-            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", headwidth, alignment.target.name, poswidth,
+            fprintf(out, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
                     d1, '+', d_line.data(), d2);
 
             line_pos = 0;
