@@ -82,7 +82,7 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto convert_operation(char const operation) -> Operation {
+  auto convert_to_operation(char const operation) -> Operation {
     assert(operation == 'M' or operation == 'I' or operation == 'D');
     if (operation == 'I') {
       return Operation::insertion;
@@ -91,6 +91,21 @@ namespace {
       return Operation::deletion;
     }
     return Operation::match;
+  }
+
+
+  auto convert_from_operation(Operation const operation) -> char {
+    switch (operation) {
+    case Operation::match:
+      return 'M';
+      break;
+    case Operation::deletion:
+      return 'D';
+      break;
+    case Operation::insertion:
+      return 'I';
+      break;
+    }
   }
 
 }  // end of anonymous namespace
@@ -137,9 +152,22 @@ auto parse_cigar_string(Span<char> cigar_string) -> std::vector<std::pair<Operat
       // operations: match (M), insertion (I), or deletion (D)
       auto const operation = **next_operation;
       position = std::next(*next_operation);
-      parsed_cigar.emplace_back(convert_operation(operation), run);
+      parsed_cigar.emplace_back(convert_to_operation(operation), run);
     }
   return parsed_cigar;
+}
+
+
+auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> cigar_string) -> void {
+  auto const cigar_pairs = parse_cigar_string(Span<char> cigar_string);
+  for (auto const & a_pair: cigar_pairs) {
+    auto const operation = convert_from_operation(a_pair.first);
+    auto const runlength = a_pair.second;
+    // refactoring? std::fprintf("%s", std::string(runlength, operation).c_str());
+    for (auto i = 0LL; i < runlength; ++i) {
+      static_cast<void>(std::fprintf(output_handle, "%c", operation));
+    }
+  }
 }
 
 
