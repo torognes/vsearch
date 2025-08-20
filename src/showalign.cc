@@ -294,7 +294,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
   auto const * cigar_cursor = cigar;
   auto const * seq_cursor = seq;
 
-  while (*cigar_cursor != 0)
+  while (*cigar_cursor != '\0')
     {
       int64_t len = 0;
       auto n = 0;
