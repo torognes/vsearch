@@ -68,6 +68,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
+#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <vector>
 
