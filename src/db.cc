@@ -215,7 +215,7 @@ auto db_read(const char * filename, int upcase) -> void
   int64_t const filesize = fastx_get_size(h);
 
   char * prompt = nullptr;
-  if (xsprintf(& prompt, "Reading file %s", filename) == -1)
+  if (xsprintf(&prompt, "Reading file %s", filename) == -1)
     {
       fatal("Out of memory");
     }

@@ -312,7 +312,7 @@ auto udb_read(const char * filename,
     }
 
   char * prompt = nullptr;
-  if (xsprintf(& prompt, "Reading UDB file %s", filename) == -1)
+  if (xsprintf(&prompt, "Reading UDB file %s", filename) == -1)
     {
       fatal("Out of memory");
     }
