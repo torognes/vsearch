@@ -64,6 +64,8 @@
 #include "showalign.h"
 #include "tax.h"
 #include "userfields.h"
+#include "utils/cigar.hpp"
+#include "utils/span.hpp"
 #include "utils/taxonomic_fields.h"
 #include "xstring.h"
 #include <algorithm>  // std::max
@@ -404,7 +406,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
         case 22: /* aln */
           if (hits != nullptr)
             {
-              align_fprint_uncompressed_alignment(output_handle, hits->nwalignment);
+              print_uncompressed_cigar(output_handle, Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)});
             }
           break;
         case 23: /* caln */
