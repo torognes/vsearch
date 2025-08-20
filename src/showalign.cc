@@ -102,10 +102,10 @@ namespace {
     static constexpr auto headwidth_default = 5;
     Sequence query;
     Sequence target;
-    int64_t strand = 0;
     int poswidth = poswidth_default;
     int headwidth = headwidth_default;
     int64_t width = 0;
+    int64_t strand = 0;
   };
 
 
@@ -233,10 +233,10 @@ auto align_show(std::FILE * output_handle,
   alignment.target.length = seq2len;
   alignment.target.offset = seq2off;
   alignment.target.name = seq2name;
-  alignment.strand = strand;
   alignment.poswidth = numwidth;
   alignment.headwidth = namewidth;
   alignment.width = alignwidth;
+  alignment.strand = strand;
 
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
