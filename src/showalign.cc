@@ -78,8 +78,6 @@ static int64_t d_start;
 static int64_t q_pos;
 static int64_t d_pos;
 
-static int64_t alignlen;
-
 std::vector<char> q_line;
 std::vector<char> a_line;
 std::vector<char> d_line;
@@ -244,7 +242,6 @@ auto align_show(std::FILE * output_handle,
 
   poswidth = numwidth;
   headwidth = namewidth;
-  alignlen = alignwidth;
 
   q_line.resize(alignwidth + 1);
   a_line.resize(alignwidth + 1);
