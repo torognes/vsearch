@@ -263,7 +263,8 @@ auto align_show(std::FILE * output_handle,
   a_line.resize(alignment.width + 1);
   d_line.resize(alignment.width + 1);
 
-  auto const cigar_pairs = parse_cigar_string_char(Span<char>{cigar, std::strlen(cigar)});
+  // cigar string can be trimmed (left and right): cigarlen maybe != std::strlen(cigar)
+  auto const cigar_pairs = parse_cigar_string_char(Span<char>{cigar, static_cast<size_t>(cigarlen)});
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
