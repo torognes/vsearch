@@ -309,7 +309,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, int 
       }
     else
       {
-        /* insert len gap symbols */
+        /* insert gap symbols */
         std::fill_n(row_cursor, runlength, '-');  // assert not longer than row!
       }
   }
