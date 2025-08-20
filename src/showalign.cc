@@ -70,9 +70,6 @@
 #include <vector>
 
 
-static int64_t q_start;
-static int64_t d_start;
-
 std::vector<char> q_line;
 std::vector<char> a_line;
 std::vector<char> d_line;
