@@ -112,6 +112,7 @@ namespace {
 
   inline auto putop(Alignment const & alignment, Position & position, char const c, int64_t const len) -> void
   {
+    static constexpr auto is_N = 15U;
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
     auto count = len;
@@ -139,7 +140,7 @@ namespace {
 
             qs4 = map_4bit(qs);
             ds4 = map_4bit(ds);
-            if (opt_n_mismatch and ((qs4 == 15) or (ds4 == 15)))
+            if (opt_n_mismatch and ((qs4 == is_N) or (ds4 == is_N)))
               {
                 a_line[position.line] = ' ';
               }
