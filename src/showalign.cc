@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::copy, std::fill_n, std::min
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -136,8 +137,8 @@ namespace {
             position.target += 1;
             q_line[position.line] = qs;
 
-            qs4 = chrmap_4bit[static_cast<int>(qs)];
-            ds4 = chrmap_4bit[static_cast<int>(ds)];
+            qs4 = map_4bit(qs);
+            ds4 = map_4bit(ds);
             if (opt_n_mismatch and ((qs4 == 15) or (ds4 == 15)))
               {
                 a_line[position.line] = ' ';
