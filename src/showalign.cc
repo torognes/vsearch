@@ -237,6 +237,18 @@ auto align_show(std::FILE * output_handle,
   alignment.width = alignwidth;
   alignment.strand = strand;
 
+  // C++14 refactoring: aggregate initialization of a struct with
+  // default member initializers
+  // Alignment const alignment = {
+  //   output_handle,
+  //   {seq1, seq1len, seq1off, seq1name},
+  //   {seq2, seq2len, seq2off, seq2name},
+  //   numwidth,
+  //   namewidth,
+  //   alignwidth,
+  //   strand
+  // };
+
   auto const * pos = cigar;
   auto const * end = pos + cigarlen;
 
