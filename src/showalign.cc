@@ -121,8 +121,8 @@ namespace {
       {
         if (position.line == 0)
           {
-            q_start = position.query;
-            d_start = position.target;
+            position.query_start = position.query;
+            position.target_start = position.target;
           }
 
         auto qs = '\0';
@@ -187,9 +187,9 @@ namespace {
             a_line[position.line] = '\0';
             d_line[position.line] = '\0';
 
-            int64_t const q1 = std::min(q_start + 1, alignment.query.length);
+            int64_t const q1 = std::min(position.query_start + 1, alignment.query.length);
             int64_t const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
-            int64_t const d1 = std::min(d_start + 1, alignment.target.length);
+            int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
             int64_t const d2 = position.target;
 
             fprintf(alignment.output_handle, "\n");
