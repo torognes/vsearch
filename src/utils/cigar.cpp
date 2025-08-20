@@ -106,6 +106,7 @@ namespace {
       return 'I';
       break;
     }
+    // C++23 refactoring: default: std::unreachable();
     __builtin_unreachable();
   }
 
