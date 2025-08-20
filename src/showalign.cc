@@ -144,7 +144,7 @@ namespace {
               {
                 a_line[position.line] = ' ';
               }
-            else if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
+            else if ((qs4 == ds4) and is_ambiguous_4bit[qs4])
               {
                 a_line[position.line] = '|';
               }
