@@ -263,10 +263,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
       std::transform(reverse_sequence.begin(),
                      reverse_sequence.end(),
                      reverse_sequence.begin(),
-                     [](char const & lhs) -> char {
-                       auto const unsigned_lhs = static_cast<unsigned char>(lhs);
-                       auto const complement_lhs = chrmap_complement_vector[unsigned_lhs];
-                       return static_cast<char>(complement_lhs);
+                     [](char const nucleotide) -> char {
+                       return map_complement(nucleotide);
                      });
 
       /* reverse read: reverse quality */
