@@ -115,17 +115,17 @@ namespace {
   };
 
 
-  inline auto putop(Alignment const & alignment, char const c, int64_t const len) -> void
+  inline auto putop(Alignment const & alignment, Position & position, char const c, int64_t const len) -> void
   {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
     auto count = len;
     while (count != 0)
       {
-        if (line_pos == 0)
+        if (position.line == 0)
           {
-            q_start = q_pos;
-            d_start = d_pos;
+            q_start = position.query;
+            d_start = position.target;
           }
 
         auto qs = '\0';
@@ -136,64 +136,64 @@ namespace {
         switch (c)
           {
           case 'M':
-            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[q_pos])] : alignment.query.sequence[q_pos];
-            ds = alignment.target.sequence[d_pos];
-            q_pos += delta;
-            d_pos += 1;
-            q_line[line_pos] = qs;
+            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[position.query])] : alignment.query.sequence[position.query];
+            ds = alignment.target.sequence[position.target];
+            position.query += delta;
+            position.target += 1;
+            q_line[position.line] = qs;
 
             qs4 = chrmap_4bit[static_cast<int>(qs)];
             ds4 = chrmap_4bit[static_cast<int>(ds)];
             if (opt_n_mismatch and ((qs4 == 15) or (ds4 == 15)))
               {
-                a_line[line_pos] = ' ';
+                a_line[position.line] = ' ';
               }
             else if ((qs4 == ds4) and (ambiguous_4bit[qs4] == 0U))
               {
-                a_line[line_pos] = '|';
+                a_line[position.line] = '|';
               }
             else if ((qs4 & ds4) != 0U)
               {
-                a_line[line_pos] = '+';
+                a_line[position.line] = '+';
               }
             else
               {
-                a_line[line_pos] = ' ';
+                a_line[position.line] = ' ';
               }
 
-            d_line[line_pos] = ds;
-            ++line_pos;
+            d_line[position.line] = ds;
+            ++position.line;
             break;
 
           case 'D':
-            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[q_pos])] : alignment.query.sequence[q_pos];
-            q_pos += delta;
-            q_line[line_pos] = qs;
-            a_line[line_pos] = ' ';
-            d_line[line_pos] = '-';
-            ++line_pos;
+            qs = alignment.strand != 0 ? chrmap_complement[static_cast<int>(alignment.query.sequence[position.query])] : alignment.query.sequence[position.query];
+            position.query += delta;
+            q_line[position.line] = qs;
+            a_line[position.line] = ' ';
+            d_line[position.line] = '-';
+            ++position.line;
             break;
 
           case 'I':
-            ds = alignment.target.sequence[d_pos];
-            d_pos += 1;
-            q_line[line_pos] = '-';
-            a_line[line_pos] = ' ';
-            d_line[line_pos] = ds;
-            ++line_pos;
+            ds = alignment.target.sequence[position.target];
+            position.target += 1;
+            q_line[position.line] = '-';
+            a_line[position.line] = ' ';
+            d_line[position.line] = ds;
+            ++position.line;
             break;
           }
 
-        if ((line_pos == alignment.width) or ((c == '\0') and (line_pos > 0)))
+        if ((position.line == alignment.width) or ((c == '\0') and (position.line > 0)))
           {
-            q_line[line_pos] = '\0';
-            a_line[line_pos] = '\0';
-            d_line[line_pos] = '\0';
+            q_line[position.line] = '\0';
+            a_line[position.line] = '\0';
+            d_line[position.line] = '\0';
 
             int64_t const q1 = std::min(q_start + 1, alignment.query.length);
-            int64_t const q2 = alignment.strand != 0 ? q_pos + 2 : q_pos;
+            int64_t const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
             int64_t const d1 = std::min(d_start + 1, alignment.target.length);
-            int64_t const d2 = d_pos;
+            int64_t const d2 = position.target;
 
             fprintf(alignment.output_handle, "\n");
             fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
@@ -203,7 +203,7 @@ namespace {
             fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
                     d1, '+', d_line.data(), d2);
 
-            line_pos = 0;
+            position.line = 0;
           }
         --count;
       }
@@ -284,10 +284,10 @@ auto align_show(std::FILE * output_handle,
       pos += n;
       auto const op = *pos;
       ++pos;
-      putop(alignment, op, len);
+      putop(alignment, position, op, len);
     }
 
-  putop(alignment, '\0', 1);
+  putop(alignment, position, '\0', 1);
 
   q_line.clear();
   a_line.clear();
