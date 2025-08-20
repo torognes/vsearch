@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::copy, std::fill_n, std::min
