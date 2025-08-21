@@ -168,7 +168,7 @@ namespace {
 
 
   // add a bool is_final parameter, so operation can be of type Operation?
-  inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void {
+  inline auto putop(Alignment const & alignment, Position & position, Operation const operation, int64_t const len) -> void {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
     for (auto count = len; count != 0; --count) {
@@ -181,7 +181,7 @@ namespace {
       auto target_nuc = '\0';
 
       switch (operation) {
-      case 'M':
+      case Operation::match:
         query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
         target_nuc = alignment.target.sequence[position.target];
         position.query += delta;
@@ -192,7 +192,7 @@ namespace {
         ++position.line;
         break;
 
-      case 'D':  // gap in target (insertion in query)
+      case Operation::deletion:  // gap in target (insertion in query)
         query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
         position.query += delta;
         q_line[position.line] = query_nuc;
@@ -201,7 +201,7 @@ namespace {
         ++position.line;
         break;
 
-      case 'I':  // insertion in target (gap in query)
+      case Operation::insertion:  // insertion in target (gap in query)
         target_nuc = alignment.target.sequence[position.target];
         position.target += 1;
         q_line[position.line] = '-';
@@ -289,7 +289,7 @@ auto align_show(std::FILE * output_handle,
   d_line.resize(alignment.width + 1);
 
   // cigar string can be trimmed (left and right): cigarlen maybe != std::strlen(cigar)
-  auto const cigar_pairs = parse_cigar_string_char(Span<char>{cigar, static_cast<size_t>(cigarlen)});
+  auto const cigar_pairs = parse_cigar_string(Span<char>{cigar, static_cast<size_t>(cigarlen)});
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
