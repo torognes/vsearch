@@ -167,10 +167,10 @@ namespace {
   }
 
 
-  inline auto putop(Alignment const & alignment, Position & position, Operation const operation, int64_t const len) -> void {
+  inline auto putop(Alignment const & alignment, Position & position, Operation const operation, int64_t const runlength) -> void {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
-    for (auto count = len; count != 0; --count) {
+    for (auto count = runlength; count != 0; --count) {
 
       if (position.line == 0) {
         position.query_start = position.query;
