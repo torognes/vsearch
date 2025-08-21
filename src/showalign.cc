@@ -221,9 +221,7 @@ namespace {
             q_line[position.line] = '\0';
             a_line[position.line] = '\0';
             d_line[position.line] = '\0';
-
             print_alignment_block(alignment, position);
-
             position.line = 0;  // needed to avoid out-of-bounds
           }
       }
