@@ -276,6 +276,7 @@ auto align_show(std::FILE * output_handle,
   alignment.poswidth = numwidth;
   alignment.headwidth = namewidth;
   alignment.strand = strand;  // bool is_reverse_strand = false;
+  alignment.is_reverse_strand = strand != 0 ? true : false;
 
   // C++14 refactoring: aggregate initialization of a struct with
   // default member initializers
