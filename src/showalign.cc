@@ -111,10 +111,27 @@ namespace {
   };
 
 
+  auto get_aligment_symbol(char const qs, char const ds) -> char {
+    static constexpr auto is_N = 15U;
+    auto const qs4 = map_4bit(qs);
+    auto const ds4 = map_4bit(ds);
+
+    if (opt_n_mismatch and ((qs4 == is_N) or (ds4 == is_N))) {
+      return ' ';  // N are mismatches
+    }
+    if ((qs4 == ds4) and not is_ambiguous_4bit[qs4]) {
+      return '|';  // a perfect match
+    }
+    if ((qs4 & ds4) != 0U) {
+     return '+';  // an equivalence (ambiguous nucleotides)
+    }
+    return ' ';
+  }
+
+
   // add a bool is_final parameter, so operation can be of type Operation
   inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void
   {
-    static constexpr auto is_N = 15U;
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
     for (auto count = len; count != 0; --count)
@@ -127,8 +144,6 @@ namespace {
 
         auto qs = '\0';
         auto ds = '\0';
-        auto qs4 = 0U;
-        auto ds4 = 0U;
 
         switch (operation)
           {
@@ -139,24 +154,7 @@ namespace {
             position.target += 1;
             q_line[position.line] = qs;
 
-            qs4 = map_4bit(qs);
-            ds4 = map_4bit(ds);
-            if (opt_n_mismatch and ((qs4 == is_N) or (ds4 == is_N)))
-              {
-                a_line[position.line] = ' ';
-              }
-            else if ((qs4 == ds4) and not is_ambiguous_4bit[qs4])
-              {
-                a_line[position.line] = '|';
-              }
-            else if ((qs4 & ds4) != 0U)
-              {
-                a_line[position.line] = '+';
-              }
-            else
-              {
-                a_line[position.line] = ' ';
-              }
+            a_line[position.line] = get_aligment_symbol(qs, ds);
 
             d_line[position.line] = ds;
             ++position.line;
