@@ -196,7 +196,7 @@ namespace {
             ++position.line;
             break;
 
-          case 'D':  // deletion in target (gap in target)
+          case 'D':  // deletion in target (insertion in query)
             query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
             position.query += delta;
             q_line[position.line] = query_nuc;
