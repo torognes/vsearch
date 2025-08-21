@@ -201,7 +201,7 @@ namespace {
             fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
                     d1, '+', d_line.data(), d2);
 
-            position.line = 0;
+            position.line = 0;  // needed to avoid out-of-bounds
           }
       }
   }
