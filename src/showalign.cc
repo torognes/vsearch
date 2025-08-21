@@ -104,9 +104,9 @@ namespace {
     std::FILE * output_handle = nullptr;
     Sequence query;
     Sequence target;
+    int64_t width = 0;
     int poswidth = poswidth_default;
     int headwidth = headwidth_default;
-    int64_t width = 0;
     int64_t strand = 0;
   };
 
@@ -271,9 +271,9 @@ auto align_show(std::FILE * output_handle,
   alignment.target.length = seq2len;
   alignment.target.offset = seq2off;
   alignment.target.name = seq2name;
+  alignment.width = alignwidth;
   alignment.poswidth = numwidth;
   alignment.headwidth = namewidth;
-  alignment.width = alignwidth;
   alignment.strand = strand;  // bool is_reverse_strand = false;
 
   // C++14 refactoring: aggregate initialization of a struct with
