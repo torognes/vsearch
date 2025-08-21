@@ -130,6 +130,20 @@ namespace {
   }
 
 
+  auto get_query_nucleotide(Alignment const & alignment, Position const & position) -> char {
+    auto const nucleotide = *std::next(alignment.query.sequence, position.query);
+    if (alignment.strand != 0) {
+      return map_complement(nucleotide);
+    }
+    return nucleotide;
+  }
+
+
+  auto get_target_nucleotide(Alignment const & alignment, Position const & position) -> char {
+    return *std::next(alignment.target.sequence, position.target);
+  }
+
+
   auto print_alignment_block(Alignment const & alignment, Position const & position) -> void {
     // current query and target starting and ending positions
     auto const query_start = std::min(position.query_start + 1, alignment.query.length);
@@ -178,9 +192,8 @@ namespace {
         position.target_start = position.target;
       }
 
-      auto const nucleotide = *std::next(alignment.query.sequence, position.query);
-      auto const query_nuc = alignment.strand != 0 ? map_complement(nucleotide) : nucleotide;
-      auto const target_nuc = *std::next(alignment.target.sequence, position.target);
+      auto const query_nuc = get_query_nucleotide(alignment, position);
+      auto const target_nuc = get_target_nucleotide(alignment, position);
 
       switch (operation) {
       case Operation::match:
