@@ -181,6 +181,7 @@ namespace {
             break;
           }
 
+        // refactor: extract to a putop_final()?
         if ((position.line == alignment.width) or ((operation == '\0') and (position.line > 0)))
           {
             q_line[position.line] = '\0';
