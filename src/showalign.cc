@@ -132,7 +132,7 @@ namespace {
 
   auto get_query_nucleotide(Alignment const & alignment, Position const & position) -> char {
     auto const nucleotide = *std::next(alignment.query.sequence, position.query);
-    if (alignment.strand != 0) {
+    if (alignment.is_reverse_strand) {
       return map_complement(nucleotide);
     }
     return nucleotide;
@@ -147,7 +147,7 @@ namespace {
   auto print_alignment_block(Alignment const & alignment, Position const & position) -> void {
     // current query and target starting and ending positions
     auto const query_start = std::min(position.query_start + 1, alignment.query.length);
-    auto const query_end = alignment.strand != 0 ? position.query + 2 : position.query;
+    auto const query_end = alignment.is_reverse_strand ? position.query + 2 : position.query;
     auto const target_start = std::min(position.target_start + 1, alignment.target.length);
     auto const target_end = position.target;
 
@@ -158,7 +158,7 @@ namespace {
                  alignment.query.name,
                  alignment.poswidth,
                  query_start,
-                 alignment.strand != 0 ? '-' : '+',
+                 alignment.is_reverse_strand ? '-' : '+',
                  q_line.data(),
                  query_end));
     static_cast<void>(
@@ -183,7 +183,7 @@ namespace {
 
 
   inline auto putop(Alignment const & alignment, Position & position, Operation const operation, int64_t const runlength) -> void {
-    int64_t const delta = alignment.strand != 0 ? -1 : +1;
+    int64_t const delta = alignment.is_reverse_strand ? -1 : +1;
 
     for (auto count = runlength; count != 0; --count) {
 
