@@ -176,13 +176,11 @@ namespace {
         position.target_start = position.target;
       }
 
-      auto query_nuc = '\0';
-      auto target_nuc = '\0';
+      auto const query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
+      auto const target_nuc = alignment.target.sequence[position.target];
 
       switch (operation) {
       case Operation::match:
-        query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
-        target_nuc = alignment.target.sequence[position.target];
         position.query += delta;
         position.target += 1;
         q_line[position.line] = query_nuc;
@@ -192,7 +190,6 @@ namespace {
         break;
 
       case Operation::deletion:  // gap in target (insertion in query)
-        query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
         position.query += delta;
         q_line[position.line] = query_nuc;
         a_line[position.line] = ' ';
@@ -201,7 +198,6 @@ namespace {
         break;
 
       case Operation::insertion:  // insertion in target (gap in query)
-        target_nuc = alignment.target.sequence[position.target];
         position.target += 1;
         q_line[position.line] = '-';
         a_line[position.line] = ' ';
