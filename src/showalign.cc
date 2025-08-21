@@ -180,37 +180,37 @@ namespace {
             position.target_start = position.target;
           }
 
-        auto qs = '\0';
-        auto ds = '\0';
+        auto query_nuc = '\0';
+        auto target_nuc = '\0';
 
         switch (operation)
           {
           case 'M':
-            qs = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
-            ds = alignment.target.sequence[position.target];
+            query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
+            target_nuc = alignment.target.sequence[position.target];
             position.query += delta;
             position.target += 1;
-            q_line[position.line] = qs;
-            a_line[position.line] = get_aligment_symbol(qs, ds);
-            d_line[position.line] = ds;
+            q_line[position.line] = query_nuc;
+            a_line[position.line] = get_aligment_symbol(query_nuc, target_nuc);
+            d_line[position.line] = target_nuc;
             ++position.line;
             break;
 
           case 'D':  // deletion in target (gap in target)
-            qs = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
+            query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
             position.query += delta;
-            q_line[position.line] = qs;
+            q_line[position.line] = query_nuc;
             a_line[position.line] = ' ';
             d_line[position.line] = '-';
             ++position.line;
             break;
 
           case 'I':  // insertion in target (gap in query)
-            ds = alignment.target.sequence[position.target];
+            target_nuc = alignment.target.sequence[position.target];
             position.target += 1;
             q_line[position.line] = '-';
             a_line[position.line] = ' ';
-            d_line[position.line] = ds;
+            d_line[position.line] = target_nuc;
             ++position.line;
             break;
           }
