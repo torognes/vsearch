@@ -136,12 +136,31 @@ namespace {
     int64_t const d2 = position.target;
 
     std::fprintf(alignment.output_handle, "\n");
-    std::fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
-            q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
-    std::fprintf(alignment.output_handle, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
-            "", a_line.data());
-    std::fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
-            d1, '+', d_line.data(), d2);
+    std::fprintf(alignment.output_handle,
+                 "%*s %*" PRId64 " %c %s %" PRId64 "\n",
+                 alignment.headwidth,
+                 alignment.query.name,
+                 alignment.poswidth,
+                 q1,
+                 alignment.strand != 0 ? '-' : '+',
+                 q_line.data(),
+                 q2);
+    std::fprintf(alignment.output_handle,
+                 "%*s %*s   %s\n",
+                 alignment.headwidth,
+                 "",
+                 alignment.poswidth,
+                 "",
+                 a_line.data());
+    std::fprintf(alignment.output_handle,
+                 "%*s %*" PRId64 " %c %s %" PRId64 "\n",
+                 alignment.headwidth,
+                 alignment.target.name,
+                 alignment.poswidth,
+                 d1,
+                 '+',
+                 d_line.data(),
+                 d2);
   }
 
 
