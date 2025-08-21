@@ -107,7 +107,6 @@ namespace {
     int64_t width = 0;
     int poswidth = poswidth_default;
     int headwidth = headwidth_default;
-    int64_t strand = 0;
     bool is_reverse_strand = false;
   };
 
@@ -275,7 +274,6 @@ auto align_show(std::FILE * output_handle,
   alignment.width = alignwidth;
   alignment.poswidth = numwidth;
   alignment.headwidth = namewidth;
-  alignment.strand = strand;  // bool is_reverse_strand = false;
   alignment.is_reverse_strand = strand != 0 ? true : false;
 
   // C++14 refactoring: aggregate initialization of a struct with
