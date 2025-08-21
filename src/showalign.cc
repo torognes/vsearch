@@ -211,8 +211,8 @@ namespace {
         break;
       }
 
-      // end of the line or of the whole alignment, print alignment block
-      if ((position.line == alignment.width) or ((operation == '\0') and (position.line > 0))) {
+      // maximal alignment width is reached, print alignment block
+      if (position.line == alignment.width) {
         q_line[position.line] = '\0';
         a_line[position.line] = '\0';
         d_line[position.line] = '\0';
@@ -220,6 +220,15 @@ namespace {
         position.line = 0;  // needed to avoid out-of-bounds
       }
     }
+  }
+
+
+  auto putop_final(Alignment const & alignment, Position const & position) -> void {
+    if (position.line == 0) { return; }  // final block already printed
+    q_line[position.line] = '\0';
+    a_line[position.line] = '\0';
+    d_line[position.line] = '\0';
+    print_alignment_block(alignment, position);
   }
 
 }  // end of anonymous namespace
@@ -287,7 +296,7 @@ auto align_show(std::FILE * output_handle,
     putop(alignment, position, operation, runlength);
   }
 
-  putop(alignment, position, '\0', 1);
+  putop_final(alignment, position);
 
   q_line.clear();
   a_line.clear();
