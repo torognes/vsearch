@@ -135,9 +135,8 @@ namespace {
     int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
     int64_t const d2 = position.target;
 
-    std::fprintf(alignment.output_handle, "\n");
     std::fprintf(alignment.output_handle,
-                 "%*s %*" PRId64 " %c %s %" PRId64 "\n",
+                 "\n%*s %*" PRId64 " %c %s %" PRId64 "\n",
                  alignment.headwidth,
                  alignment.query.name,
                  alignment.poswidth,
