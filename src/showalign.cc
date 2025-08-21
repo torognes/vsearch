@@ -291,7 +291,7 @@ auto align_show(std::FILE * output_handle,
   // };
 
   Position position;
-  position.query = alignment.strand != 0 ? alignment.query.length - 1 - alignment.query.offset : alignment.query.offset;
+  position.query = alignment.is_reverse_strand ? alignment.query.length - 1 - alignment.query.offset : alignment.query.offset;
   position.target = alignment.target.offset;
   position.query_start = position.query;
   position.target_start = position.target;
