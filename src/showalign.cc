@@ -158,7 +158,7 @@ namespace {
             ++position.line;
             break;
 
-          case 'D':
+          case 'D':  // deletion in target (gap in target)
             qs = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
             position.query += delta;
             q_line[position.line] = qs;
@@ -167,7 +167,7 @@ namespace {
             ++position.line;
             break;
 
-          case 'I':
+          case 'I':  // insertion in target (gap in query)
             ds = alignment.target.sequence[position.target];
             position.target += 1;
             q_line[position.line] = '-';
@@ -177,7 +177,7 @@ namespace {
             break;
           }
 
-        // refactor: extract to a putop_final()?
+        // end of the line or of the whole alignment, print alignment block
         if ((position.line == alignment.width) or ((operation == '\0') and (position.line > 0)))
           {
             q_line[position.line] = '\0';
