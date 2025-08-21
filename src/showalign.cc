@@ -111,18 +111,18 @@ namespace {
   };
 
 
-  auto get_aligment_symbol(char const qs, char const ds) -> char {
+  auto get_aligment_symbol(char const query_nuc, char const target_nuc) -> char {
     static constexpr auto is_N = 15U;
-    auto const qs4 = map_4bit(qs);
-    auto const ds4 = map_4bit(ds);
+    auto const query_coded = map_4bit(query_nuc);
+    auto const target_coded = map_4bit(target_nuc);
 
-    if (opt_n_mismatch and ((qs4 == is_N) or (ds4 == is_N))) {
+    if (opt_n_mismatch and ((query_coded == is_N) or (target_coded == is_N))) {
       return ' ';  // N are mismatches
     }
-    if ((qs4 == ds4) and not is_ambiguous_4bit[qs4]) {
+    if ((query_coded == target_coded) and not is_ambiguous_4bit[query_coded]) {
       return '|';  // a perfect match
     }
-    if ((qs4 & ds4) != 0U) {
+    if ((query_coded & target_coded) != 0U) {
      return '+';  // an equivalence (ambiguous nucleotides)
     }
     return ' ';
