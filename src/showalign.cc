@@ -328,7 +328,7 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
       or ((operation == Operation::deletion) and is_query)    // seq = query, insertion in seq
       or ((operation == Operation::insertion) and is_target); // seq = target, insertion in seq
     if (is_not_a_gap) {
-      auto const * const source_begin = std::next(seq, cursor);
+      auto const * const source_begin = std::next(seq, static_cast<long>(cursor));
       auto const * const source_end = std::next(source_begin, runlength);
       std::copy(source_begin, source_end, &row[cursor]);
     } else {
