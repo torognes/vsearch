@@ -111,13 +111,13 @@ namespace {
   };
 
 
+  // add a bool is_final parameter, so operation can be of type Operation
   inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void
   {
     static constexpr auto is_N = 15U;
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
-    auto count = len;
-    while (count != 0)
+    for (auto count = len; count != 0; --count)
       {
         if (position.line == 0)
           {
@@ -203,7 +203,6 @@ namespace {
 
             position.line = 0;
           }
-        --count;
       }
   }
 
