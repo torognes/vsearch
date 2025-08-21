@@ -168,63 +168,58 @@ namespace {
 
 
   // add a bool is_final parameter, so operation can be of type Operation?
-  inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void
-  {
+  inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
-    for (auto count = len; count != 0; --count)
-      {
-        if (position.line == 0)
-          {
-            position.query_start = position.query;
-            position.target_start = position.target;
-          }
-
-        auto query_nuc = '\0';
-        auto target_nuc = '\0';
-
-        switch (operation)
-          {
-          case 'M':
-            query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
-            target_nuc = alignment.target.sequence[position.target];
-            position.query += delta;
-            position.target += 1;
-            q_line[position.line] = query_nuc;
-            a_line[position.line] = get_aligment_symbol(query_nuc, target_nuc);
-            d_line[position.line] = target_nuc;
-            ++position.line;
-            break;
-
-          case 'D':  // gap in target (insertion in query)
-            query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
-            position.query += delta;
-            q_line[position.line] = query_nuc;
-            a_line[position.line] = ' ';
-            d_line[position.line] = '-';
-            ++position.line;
-            break;
-
-          case 'I':  // insertion in target (gap in query)
-            target_nuc = alignment.target.sequence[position.target];
-            position.target += 1;
-            q_line[position.line] = '-';
-            a_line[position.line] = ' ';
-            d_line[position.line] = target_nuc;
-            ++position.line;
-            break;
-          }
-
-        // end of the line or of the whole alignment, print alignment block
-        if ((position.line == alignment.width) or ((operation == '\0') and (position.line > 0)))
-          {
-            q_line[position.line] = '\0';
-            a_line[position.line] = '\0';
-            d_line[position.line] = '\0';
-            print_alignment_block(alignment, position);
-            position.line = 0;  // needed to avoid out-of-bounds
-          }
+    for (auto count = len; count != 0; --count) {
+      if (position.line == 0) {
+        position.query_start = position.query;
+        position.target_start = position.target;
       }
+
+      auto query_nuc = '\0';
+      auto target_nuc = '\0';
+
+      switch (operation) {
+      case 'M':
+        query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
+        target_nuc = alignment.target.sequence[position.target];
+        position.query += delta;
+        position.target += 1;
+        q_line[position.line] = query_nuc;
+        a_line[position.line] = get_aligment_symbol(query_nuc, target_nuc);
+        d_line[position.line] = target_nuc;
+        ++position.line;
+        break;
+
+      case 'D':  // gap in target (insertion in query)
+        query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
+        position.query += delta;
+        q_line[position.line] = query_nuc;
+        a_line[position.line] = ' ';
+        d_line[position.line] = '-';
+        ++position.line;
+        break;
+
+      case 'I':  // insertion in target (gap in query)
+        target_nuc = alignment.target.sequence[position.target];
+        position.target += 1;
+        q_line[position.line] = '-';
+        a_line[position.line] = ' ';
+        d_line[position.line] = target_nuc;
+        ++position.line;
+        break;
+      }
+
+      // end of the line or of the whole alignment, print alignment block
+      if ((position.line == alignment.width) or ((operation == '\0') and (position.line > 0))) {
+        q_line[position.line] = '\0';
+        a_line[position.line] = '\0';
+        d_line[position.line] = '\0';
+        print_alignment_block(alignment, position);
+        position.line = 0;  // needed to avoid out-of-bounds
+      }
+    }
   }
 
 }  // end of anonymous namespace
