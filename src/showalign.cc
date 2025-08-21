@@ -207,8 +207,8 @@ namespace {
         break;
       }
 
-      // maximal alignment width is reached, print alignment block
       if (position.line == alignment.width) {
+        // maximal alignment width is reached, print alignment block
         q_line[position.line] = '\0';
         a_line[position.line] = '\0';
         d_line[position.line] = '\0';
