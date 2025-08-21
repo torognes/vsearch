@@ -167,7 +167,6 @@ namespace {
   }
 
 
-  // add a bool is_final parameter, so operation can be of type Operation?
   inline auto putop(Alignment const & alignment, Position & position, Operation const operation, int64_t const len) -> void {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
