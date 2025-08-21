@@ -89,9 +89,9 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
   }
 
   auto const qrow = align_getrow((hits->strand != 0) ? qsequence_rc : qsequence,
-                             hits->nwalignment,
-                             hits->nwalignmentlength,
-                             false);
+                                 hits->nwalignment,
+                                 hits->nwalignmentlength,
+                                 false);
   fasta_print_general(output_handle,
                       nullptr,
                       &qrow[hits->trim_q_left + hits->trim_t_left],
@@ -107,9 +107,9 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       0.0);
 
   auto const trow = align_getrow(db_getsequence(hits->target),
-                             hits->nwalignment,
-                             hits->nwalignmentlength,
-                             true);
+                                 hits->nwalignment,
+                                 hits->nwalignmentlength,
+                                 true);
   fasta_print_general(output_handle,
                       nullptr,
                       &trow[hits->trim_q_left + hits->trim_t_left],
