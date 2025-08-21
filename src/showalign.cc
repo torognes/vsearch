@@ -130,6 +130,7 @@ namespace {
 
 
   auto print_alignment_block(Alignment const & alignment, Position const & position) -> void {
+    // current query and target starting and ending positions
     int64_t const q1 = std::min(position.query_start + 1, alignment.query.length);
     int64_t const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
     int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
