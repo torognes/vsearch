@@ -108,6 +108,7 @@ namespace {
     int poswidth = poswidth_default;
     int headwidth = headwidth_default;
     int64_t strand = 0;
+    bool is_reverse_strand = false;
   };
 
 
