@@ -73,13 +73,12 @@
 #include <vector>
 
 
-std::vector<char> q_line;  // query
-std::vector<char> a_line;  // alignment symbols (|)
-std::vector<char> d_line;  // target
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
+
+  std::vector<char> q_line;  // query
+  std::vector<char> a_line;  // alignment symbols (|)
+  std::vector<char> d_line;  // target
 
 
   struct Position {
