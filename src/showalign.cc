@@ -153,9 +153,7 @@ namespace {
             position.query += delta;
             position.target += 1;
             q_line[position.line] = qs;
-
             a_line[position.line] = get_aligment_symbol(qs, ds);
-
             d_line[position.line] = ds;
             ++position.line;
             break;
