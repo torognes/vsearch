@@ -129,6 +129,22 @@ namespace {
   }
 
 
+  auto print_alignment_block(Alignment const & alignment, Position const & position) -> void {
+    int64_t const q1 = std::min(position.query_start + 1, alignment.query.length);
+    int64_t const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
+    int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
+    int64_t const d2 = position.target;
+
+    fprintf(alignment.output_handle, "\n");
+    fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
+            q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
+    fprintf(alignment.output_handle, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
+            "", a_line.data());
+    fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
+            d1, '+', d_line.data(), d2);
+  }
+
+
   // add a bool is_final parameter, so operation can be of type Operation
   inline auto putop(Alignment const & alignment, Position & position, char const operation, int64_t const len) -> void
   {
@@ -184,18 +200,7 @@ namespace {
             a_line[position.line] = '\0';
             d_line[position.line] = '\0';
 
-            int64_t const q1 = std::min(position.query_start + 1, alignment.query.length);
-            int64_t const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
-            int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
-            int64_t const d2 = position.target;
-
-            fprintf(alignment.output_handle, "\n");
-            fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
-                    q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
-            fprintf(alignment.output_handle, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
-                    "", a_line.data());
-            fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
-                    d1, '+', d_line.data(), d2);
+            print_alignment_block(alignment, position);
 
             position.line = 0;  // needed to avoid out-of-bounds
           }
