@@ -178,8 +178,9 @@ namespace {
         position.target_start = position.target;
       }
 
-      auto const query_nuc = alignment.strand != 0 ? map_complement(alignment.query.sequence[position.query]) : alignment.query.sequence[position.query];
-      auto const target_nuc = alignment.target.sequence[position.target];
+      auto const nucleotide = *std::next(alignment.query.sequence, position.query);
+      auto const query_nuc = alignment.strand != 0 ? map_complement(nucleotide) : nucleotide;
+      auto const target_nuc = *std::next(alignment.target.sequence, position.target);
 
       switch (operation) {
       case Operation::match:
