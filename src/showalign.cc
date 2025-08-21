@@ -131,10 +131,10 @@ namespace {
 
   auto print_alignment_block(Alignment const & alignment, Position const & position) -> void {
     // current query and target starting and ending positions
-    int64_t const q1 = std::min(position.query_start + 1, alignment.query.length);
-    int64_t const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
-    int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
-    int64_t const d2 = position.target;
+    auto const q1 = std::min(position.query_start + 1, alignment.query.length);
+    auto const q2 = alignment.strand != 0 ? position.query + 2 : position.query;
+    auto const d1 = std::min(position.target_start + 1, alignment.target.length);
+    auto const d2 = position.target;
 
     std::fprintf(alignment.output_handle,
                  "\n%*s %*" PRId64 " %c %s %" PRId64 "\n",
