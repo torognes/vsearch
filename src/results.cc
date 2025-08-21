@@ -77,10 +77,10 @@
 
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
-                                 struct hit * hits,
-                                 char * query_head,
-                                 char * qsequence,
-                                 char * qsequence_rc) -> void
+                                 struct hit const * hits,
+                                 char const * query_head,
+                                 char const * qsequence,
+                                 char const * qsequence_rc) -> void
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
 

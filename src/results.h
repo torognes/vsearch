@@ -93,10 +93,10 @@ auto results_show_userout_one(std::FILE * output_handle,
                               char * qsequence_rc) -> void;
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
-                                 struct hit * hits,
-                                 char * query_head,
-                                 char * qsequence,
-                                 char * qsequence_rc) -> void;
+                                 struct hit const * hits,
+                                 char const * query_head,
+                                 char const * qsequence,
+                                 char const * qsequence_rc) -> void;
 
 auto results_show_qsegout_one(std::FILE * output_handle,
                               struct hit * hits,
