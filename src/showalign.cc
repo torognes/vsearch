@@ -171,6 +171,7 @@ namespace {
     int64_t const delta = alignment.strand != 0 ? -1 : +1;
 
     for (auto count = len; count != 0; --count) {
+
       if (position.line == 0) {
         position.query_start = position.query;
         position.target_start = position.target;
