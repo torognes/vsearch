@@ -135,12 +135,12 @@ namespace {
     int64_t const d1 = std::min(position.target_start + 1, alignment.target.length);
     int64_t const d2 = position.target;
 
-    fprintf(alignment.output_handle, "\n");
-    fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
+    std::fprintf(alignment.output_handle, "\n");
+    std::fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.query.name, alignment.poswidth,
             q1, alignment.strand != 0 ? '-' : '+', q_line.data(), q2);
-    fprintf(alignment.output_handle, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
+    std::fprintf(alignment.output_handle, "%*s %*s   %s\n",      alignment.headwidth, "",     alignment.poswidth,
             "", a_line.data());
-    fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
+    std::fprintf(alignment.output_handle, "%*s %*" PRId64 " %c %s %" PRId64 "\n", alignment.headwidth, alignment.target.name, alignment.poswidth,
             d1, '+', d_line.data(), d2);
   }
 
