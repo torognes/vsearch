@@ -69,6 +69,4 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
 
 auto parse_cigar_string(Span<char> cigar_string) -> std::vector<std::pair<Operation, long long>>;
 
-auto parse_cigar_string_char(Span<char> cigar_string) -> std::vector<std::pair<char, long long>>;
-
 auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> cigar_string) -> void;

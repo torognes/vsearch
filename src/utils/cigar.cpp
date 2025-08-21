@@ -160,24 +160,10 @@ auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<
 }
 
 
-// refactoring: eliminate if possible
-auto parse_cigar_string_char(Span<char> const cigar_string) -> std::vector<std::pair<char, long long>> {
-  std::vector<std::pair<char, long long>> parsed_cigar;
+auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> const cigar_string) -> void {
   auto const cigar_pairs = parse_cigar_string(cigar_string);
-  parsed_cigar.reserve(cigar_pairs.size());
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = convert_from_operation(a_pair.first);
-    auto const runlength = a_pair.second;
-    parsed_cigar.emplace_back(operation, runlength);
-  }
-  return parsed_cigar;
-}
-
-
-auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> const cigar_string) -> void {
-  auto const cigar_pairs = parse_cigar_string_char(cigar_string);
-  for (auto const & a_pair: cigar_pairs) {
-    auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
     // refactoring? std::fprintf("%s", std::string(runlength, operation).c_str());
     for (auto i = 0LL; i < runlength; ++i) {
