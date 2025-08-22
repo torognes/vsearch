@@ -112,13 +112,13 @@ public:
     return std::reverse_iterator<Type *>(end());
   }
   auto crbegin() const -> std::reverse_iterator<Type const *> {
-    return rbegin();
+    return std::reverse_iterator<Type const *>(cend());
   }
   auto rend() const -> std::reverse_iterator<Type *> {
     return std::reverse_iterator<Type *>(begin());
   }
   auto crend() const -> std::reverse_iterator<Type const *> {
-    return rend();
+    return std::reverse_iterator<Type const *>(cbegin());
   }
 
   // Element access
