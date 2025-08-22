@@ -129,17 +129,17 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
 
 auto results_show_qsegout_one(std::FILE * output_handle,
-                              struct hit * hits,
-                              char * query_head,
-                              char * qsequence,
-                              int64_t qseqlen,
-                              char * qsequence_rc) -> void
+                              struct hit const * hits,
+                              char const * query_head,
+                              char const * qsequence,
+                              int64_t const qseqlen,
+                              char const * qsequence_rc) -> void
 {
   if (hits == nullptr) {
     return;
   }
 
-  char * qseg = ((hits->strand != 0) ? qsequence_rc : qsequence) + hits->trim_q_left;
+  char const * qseg = ((hits->strand != 0) ? qsequence_rc : qsequence) + hits->trim_q_left;
   int const qseglen = qseqlen - hits->trim_q_left - hits->trim_q_right;
 
   fasta_print_general(output_handle,

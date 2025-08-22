@@ -99,11 +99,11 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  char const * qsequence_rc) -> void;
 
 auto results_show_qsegout_one(std::FILE * output_handle,
-                              struct hit * hits,
-                              char * query_head,
-                              char * qsequence,
+                              struct hit const * hits,
+                              char const * query_head,
+                              char const * qsequence,
                               int64_t qseqlen,
-                              char * qsequence_rc) -> void;
+                              char const * qsequence_rc) -> void;
 
 auto results_show_tsegout_one(std::FILE * output_handle,
                               struct hit * hits) -> void;
