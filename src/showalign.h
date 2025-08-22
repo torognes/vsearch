@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/span.hpp"
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 #include <vector>
@@ -67,6 +68,11 @@ auto align_getrow(char const * seq,
                   char const * cigar,
                   int alignlen,
                   bool is_target) -> std::vector<char>;
+
+auto align_getrow(Span<char> const seq_view,
+                  Span<char> const cigar_view,
+                  int const alignlen,
+                  bool const is_target) -> std::vector<char>;
 
 auto align_show(std::FILE * output_handle,
                 char const * seq1,

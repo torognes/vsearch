@@ -341,3 +341,30 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
   assert(row[cursor] == '\0');
   return row;
 }
+
+
+auto align_getrow(Span<char> const seq_view, Span<char> const cigar_view, int const alignlen, bool const is_target) -> std::vector<char> {
+  std::vector<char> row(alignlen + 1);
+  auto const is_query = not is_target;
+  auto cursor = size_t{0};
+
+  for (auto const & a_pair: parse_cigar_string(cigar_view)) {
+    auto const operation = a_pair.first;
+    auto const runlength = a_pair.second;
+    assert(static_cast<size_t>(runlength) < row.size() - cursor);
+    auto const is_not_a_gap = (operation == Operation::match) // a match, all good
+      or ((operation == Operation::deletion) and is_query)    // seq = query, insertion in seq
+      or ((operation == Operation::insertion) and is_target); // seq = target, insertion in seq
+    if (is_not_a_gap) {
+      auto const subsequence = seq_view.subspan(cursor, runlength);
+      std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor]);
+    } else {
+      /* deletion in sequence: insert gap symbols */
+      std::fill_n(&row[cursor], runlength, '-');
+    }
+    cursor += runlength;
+  }
+
+  assert(row[cursor] == '\0');
+  return row;
+}
