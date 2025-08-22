@@ -187,7 +187,7 @@ auto results_show_tsegout_one(std::FILE * output_handle,
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hits,
                                 char const * query_head,
-                                int64_t qseqlen) -> void
+                                int64_t const qseqlen) -> void
 {
 
   /*
