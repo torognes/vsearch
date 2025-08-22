@@ -215,8 +215,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
     return;
   }
   // if 'hp->strand' then 'minus strand' else 'plus strand'
-  const int qstart = (hits->strand != 0) ? qseqlen : 1;
-  const int qend = (hits->strand != 0) ? 1 : qseqlen;
+  int const qstart = (hits->strand != 0) ? qseqlen : 1;
+  int const qend = (hits->strand != 0) ? 1 : qseqlen;
 
   fprintf(output_handle,
           "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
