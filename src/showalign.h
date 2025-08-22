@@ -69,10 +69,10 @@ auto align_getrow(char const * seq,
                   int alignlen,
                   bool is_target) -> std::vector<char>;
 
-auto align_getrow(Span<char> const seq_view,
-                  Span<char> const cigar_view,
-                  int const alignlen,
-                  bool const is_target) -> std::vector<char>;
+auto align_getrow(Span<char> seq_view,
+                  Span<char> cigar_view,
+                  int alignlen,
+                  bool is_target) -> std::vector<char>;
 
 auto align_show(std::FILE * output_handle,
                 char const * seq1,
