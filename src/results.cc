@@ -434,8 +434,8 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
               auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
               auto const qrow = align_getrow(Span<char>{query, std::strlen(query)},
                                              Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
-                                  hits->nwalignmentlength,
-                                  false);
+                                             hits->nwalignmentlength,
+                                             false);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
                       &qrow[hits->trim_q_left + hits->trim_t_left]);
@@ -445,9 +445,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
           if (hits != nullptr)
             {
               auto const trow = align_getrow(Span<char>{tsequence, std::strlen(tsequence)},
-                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
-                                  hits->nwalignmentlength,
-                                  true);
+                                             Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
+                                             hits->nwalignmentlength,
+                                             true);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
                       &trow[hits->trim_q_left + hits->trim_t_left]);
