@@ -238,8 +238,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
 auto results_show_uc_one(std::FILE * output_handle,
                          struct hit * hits,
                          char * query_head,
-                         int64_t qseqlen,
-                         int clusterno) -> void
+                         int64_t const qseqlen,
+                         int const clusterno) -> void
 {
   /*
     http://www.drive5.com/usearch/manual/ucout.html
