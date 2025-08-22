@@ -317,6 +317,7 @@ auto align_show(std::FILE * output_handle,
 auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool const is_target) -> std::vector<char> {
   std::vector<char> row(alignlen + 1);
   auto cursor = size_t{0};
+  auto const source = Span<char>{seq, std::strlen(seq)};
   auto const cigar_pairs = parse_cigar_string(Span<char>{cigar, std::strlen(cigar)});
 
   for (auto const & a_pair: cigar_pairs) {
@@ -328,9 +329,8 @@ auto align_getrow(char const * seq, char const * cigar, int const alignlen, bool
       or ((operation == Operation::deletion) and is_query)    // seq = query, insertion in seq
       or ((operation == Operation::insertion) and is_target); // seq = target, insertion in seq
     if (is_not_a_gap) {
-      auto const * const source_begin = std::next(seq, static_cast<long>(cursor));
-      auto const * const source_end = std::next(source_begin, runlength);
-      std::copy(source_begin, source_end, &row[cursor]);
+      auto const subsequence = source.subspan(cursor, runlength);
+      std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor]);
     } else {
       /* deletion in sequence: insert gap symbols */
       std::fill_n(&row[cursor], runlength, '-');
