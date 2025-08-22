@@ -262,43 +262,43 @@ auto results_show_uc_one(std::FILE * output_handle,
     return;
   }
 
-      auto perfect = false;
+  auto perfect = false;
 
-      if (opt_cluster_fast != nullptr)
-        {
-          /* cluster_fast */
-          /* use = for identical sequences ignoring terminal gaps */
-          perfect = (hits->matches == hits->internal_alignmentlength);
-        }
-      else
-        {
-          /* cluster_size, cluster_smallmem, cluster_unoise */
-          /* usearch_global, search_exact, allpairs_global */
-          /* use = for strictly identical sequences */
-          perfect = (hits->matches == hits->nwalignmentlength);
-        }
+  if (opt_cluster_fast != nullptr)
+    {
+      /* cluster_fast */
+      /* use = for identical sequences ignoring terminal gaps */
+      perfect = (hits->matches == hits->internal_alignmentlength);
+    }
+  else
+    {
+      /* cluster_size, cluster_smallmem, cluster_unoise */
+      /* usearch_global, search_exact, allpairs_global */
+      /* use = for strictly identical sequences */
+      perfect = (hits->matches == hits->nwalignmentlength);
+    }
 
-      fprintf(output_handle,
-              "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
-              clusterno,
-              qseqlen,
-              hits->id,
-              (hits->strand != 0) ? '-' : '+',
-              perfect ? "=" : hits->nwalignment);
-      header_fprint_strip(output_handle,
-                          query_head,
-                          strlen(query_head),
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
-      fprintf(output_handle, "\t");
-      header_fprint_strip(output_handle,
-                          db_getheader(hits->target),
-                          db_getheaderlen(hits->target),
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
-      fprintf(output_handle, "\n");
+  fprintf(output_handle,
+          "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
+          clusterno,
+          qseqlen,
+          hits->id,
+          (hits->strand != 0) ? '-' : '+',
+          perfect ? "=" : hits->nwalignment);
+  header_fprint_strip(output_handle,
+                      query_head,
+                      strlen(query_head),
+                      opt_xsize,
+                      opt_xee,
+                      opt_xlength);
+  fprintf(output_handle, "\t");
+  header_fprint_strip(output_handle,
+                      db_getheader(hits->target),
+                      db_getheaderlen(hits->target),
+                      opt_xsize,
+                      opt_xee,
+                      opt_xlength);
+  fprintf(output_handle, "\n");
 }
 
 
