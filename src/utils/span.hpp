@@ -169,7 +169,7 @@ private:
 
 // auto main() -> int {
 //   std::vector<char> v = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
-//   auto s = Span{v.data(), 5};
+//   auto s = Span<char>{v.data(), 5};
 //   assert(s.size() == 5);
 //   assert(s.size_bytes() == 5);
 //   assert(! s.empty());
@@ -180,27 +180,32 @@ private:
 //     printf("%c\n", c);
 //   }
 //   printf("\n");
-//   std::for_each(s.begin(), s.end(), [](char &c) -> void { printf("%c\n", c); });
+//   auto report = [](char const &c) -> void { printf("%c\n", c); };
+//   std::for_each(s.begin(), s.end(), report);
 //   printf("\n");
 //   // assert(s[5] == 'f');
-//   auto s1 = Span{v.data(), 0};
-//   std::for_each(s1.begin(), s1.end(), [](char &c) -> void { printf("%c\n", c); });
+//   auto s1 = Span<char>{v.data(), 0};
+//   std::for_each(s1.begin(), s1.end(), report);
 //   printf("\n");
-//   auto s2 = Span{v.data(), 10};
+//   auto s2 = Span<char>{v.data(), 10};
 //   auto s3 = s2.first(2);
-//   std::for_each(s3.begin(), s3.end(), [](char &c) -> void { printf("%c\n", c); });
+//   std::for_each(s3.begin(), s3.end(), report);
 //   printf("\n");
 //   auto s4 = s2.first(10);
-//   std::for_each(s4.begin(), s4.end(), [](char &c) -> void { printf("%c\n", c); });
+//   std::for_each(s4.begin(), s4.end(), report);
 //   printf("\n");
 //   auto s5 = s2.first(0);
-//   std::for_each(s5.begin(), s5.end(), [](char &c) -> void { printf("%c\n", c); });
+//   std::for_each(s5.begin(), s5.end(), report);
 //   printf("\n");
 //   auto s6 = s2.last(0);
-//   std::for_each(s6.begin(), s6.end(), [](char &c) -> void { printf("%c\n", c); });
+//   std::for_each(s6.begin(), s6.end(), report);
 //   printf("\n");
 //   auto s7 = s2.last(2);
-//   std::for_each(s7.begin(), s7.end(), [](char &c) -> void { printf("%c\n", c); });
+//   std::for_each(s7.begin(), s7.end(), report);
+//   printf("\n");
+//   std::for_each(s7.rbegin(), s7.rend(), report);
+//   printf("\n");
+//   std::for_each(s7.crbegin(), s7.crend(), report);
 //   printf("\n");
 // }
 
