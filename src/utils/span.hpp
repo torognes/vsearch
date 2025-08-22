@@ -108,6 +108,18 @@ public:
   auto cend() const -> Type const * {
     return end();
   }
+  auto rbegin() const -> std::reverse_iterator<Type *> {
+    return std::reverse_iterator<Type *>(end());
+  }
+  auto crbegin() const -> std::reverse_iterator<Type const *> {
+    return rbegin();
+  }
+  auto rend() const -> std::reverse_iterator<Type *> {
+    return std::reverse_iterator<Type *>(begin());
+  }
+  auto crend() const -> std::reverse_iterator<Type const *> {
+    return rend();
+  }
 
   // Element access
   // C++17 refactoring: [[nodiscard]]
