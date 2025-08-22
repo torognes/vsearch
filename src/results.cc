@@ -257,8 +257,11 @@ auto results_show_uc_one(std::FILE * output_handle,
     target label
   */
 
-  if (hits != nullptr)
-    {
+  if (hits == nullptr) {
+    fprintf(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
+    return;
+  }
+
       auto perfect = false;
 
       if (opt_cluster_fast != nullptr)
@@ -296,11 +299,6 @@ auto results_show_uc_one(std::FILE * output_handle,
                           opt_xee,
                           opt_xlength);
       fprintf(output_handle, "\n");
-    }
-  else
-    {
-      fprintf(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
-    }
 }
 
 
