@@ -160,12 +160,12 @@ auto results_show_qsegout_one(std::FILE * output_handle,
 
 
 auto results_show_tsegout_one(std::FILE * output_handle,
-                              struct hit * hits) -> void
+                              struct hit const * hits) -> void
 {
   if (hits == nullptr) {
     return;
   }
-  auto * tseg = db_getsequence(hits->target) + hits->trim_t_left;
+  auto const * tseg = db_getsequence(hits->target) + hits->trim_t_left;
   int const tseglen = db_getsequencelen(hits->target) - hits->trim_t_left - hits->trim_t_right;
 
   fasta_print_general(output_handle,

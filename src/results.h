@@ -106,7 +106,7 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                               char const * qsequence_rc) -> void;
 
 auto results_show_tsegout_one(std::FILE * output_handle,
-                              struct hit * hits) -> void;
+                              struct hit const * hits) -> void;
 
 auto results_show_samheader(std::FILE * output_handle,
                             char const * cmdline,
