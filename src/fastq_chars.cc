@@ -296,8 +296,8 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   while (fastq_next(fastq_handle, false, chrmap_upcase_vector.data()))
     {
       auto const seq_length = fastq_get_sequence_length(fastq_handle);
-      auto * seq_ptr = fastq_get_sequence(fastq_handle);
-      auto * qual_ptr = fastq_get_quality(fastq_handle);
+      auto const * seq_ptr = fastq_get_sequence(fastq_handle);
+      auto const * qual_ptr = fastq_get_quality(fastq_handle);
 
       ++stats.seq_count;
       stats.total_chars += seq_length;
