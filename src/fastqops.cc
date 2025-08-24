@@ -254,7 +254,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
       /* convert quality values */
 
-      normalized_quality.resize(length);
+      normalized_quality.resize(length + 1);
       auto * quality = const_cast<char *>(fastq_get_quality(input_handle));  // ugly hack!
       for (uint64_t i = 0; i < length; i++)
         {
