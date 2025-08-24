@@ -276,3 +276,8 @@ auto map_complement(char const nucleotide) -> char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return static_cast<char>(chrmap_complement_vector[unsigned_nucleotide]);
 }
+
+
+auto is_same_4bit(char const lhs, char const rhs) -> bool {
+  return map_4bit(lhs) == map_4bit(rhs);
+}
