@@ -79,6 +79,18 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  auto check_if_perfect_match(char const * opt_cluster_fast,
+                              struct hit * hits) -> bool {
+    if (opt_cluster_fast != nullptr) {
+      /* cluster_fast */
+      /* use '=' for identical sequences, ignoring terminal gaps */
+      return (hits->matches == hits->internal_alignmentlength);
+    }
+    /* cluster_size, cluster_smallmem, cluster_unoise */
+    /* usearch_global, search_exact, allpairs_global */
+    /* use '=' for strictly identical sequences */
+    return (hits->matches == hits->nwalignmentlength);
+  }
 
 }  // end of anonymous namespace
 
