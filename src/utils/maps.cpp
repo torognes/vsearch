@@ -98,6 +98,41 @@ namespace {
     };
 
 
+  const std::vector<unsigned int> chrmap_2bit =
+    {
+      /*
+
+        Map from ascii to 2-bit nucleotide code
+
+        Aa: 0
+        Cc: 1
+        Gg: 2
+        TtUu: 3
+        All others: 0
+
+        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+      */
+
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  1,  0,  0,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  1,  0,  0,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
+    };
+
+
   const std::vector<unsigned int> chrmap_mask_ambig =
     {
       /*
@@ -331,6 +366,18 @@ const std::vector<bool> is_ambiguous_4bit = {
 auto map_uppercase(char const nucleotide) -> char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);
+}
+
+
+auto map_2bit(char const nucleotide) -> unsigned int {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return chrmap_2bit[unsigned_nucleotide];
+}
+
+
+auto map_2bit(int const nucleotide) -> unsigned int {
+  auto const unsigned_nucleotide = static_cast<unsigned int>(nucleotide);
+  return chrmap_2bit[unsigned_nucleotide];
 }
 
 

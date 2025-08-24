@@ -76,6 +76,10 @@ extern const std::vector<bool> is_ambiguous_4bit;
 
 auto map_uppercase(char nucleotide) -> char;
 
+auto map_2bit(char nucleotide) -> unsigned int;
+
+auto map_2bit(int nucleotide) -> unsigned int;
+
 auto map_4bit(char nucleotide) -> unsigned char;
 
 auto map_complement(char nucleotide) -> char;
