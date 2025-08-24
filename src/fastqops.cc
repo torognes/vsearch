@@ -253,7 +253,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
       /* convert quality values */
 
-      auto * quality = const_cast<char *>(fastq_get_quality(input_handle));
+      auto * quality = const_cast<char *>(fastq_get_quality(input_handle));  // ugly hack!
       for (uint64_t i = 0; i < length; i++)
         {
           int q = quality[i] - parameters.opt_fastq_ascii;
