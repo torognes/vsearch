@@ -138,7 +138,7 @@ struct searchinfo_s
   std::vector<char> qsequence_v;  /* vector of query sequence chars */
   char * qsequence = nullptr;             /* query sequence */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
-  unsigned int * kmersample = nullptr;    /* list of kmers sampled from query */
+  unsigned int const * kmersample = nullptr;    /* list of kmers sampled from query */
   std::vector<count_t> kmers_v; /* vector of kmer counts */
   count_t * kmers = nullptr;              /* list of kmer counts for each db seq */
   std::vector<struct hit> hits_v; /* vector of hits */

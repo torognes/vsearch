@@ -134,7 +134,7 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 #endif
 
   unsigned int uniquecount = 0;
-  unsigned int * uniquelist = nullptr;
+  unsigned int const * uniquelist = nullptr;
   unique_count(dbindex_uh, opt_wordlength,
                db_getsequencelen(seqno), db_getsequence(seqno),
                &uniquecount, &uniquelist, seqmask);
@@ -186,7 +186,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
   for (auto seqno = 0U; seqno < seqcount ; seqno++)
     {
       unsigned int uniquecount = 0;
-      unsigned int * uniquelist = nullptr;
+      unsigned int const * uniquelist = nullptr;
       unique_count(dbindex_uh, opt_wordlength,
                    db_getsequencelen(seqno), db_getsequence(seqno),
                    &uniquecount, &uniquelist, seqmask);

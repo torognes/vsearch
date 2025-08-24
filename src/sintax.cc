@@ -390,7 +390,7 @@ auto sintax_query(int64_t t) -> void
       /* perform search */
 
       auto kmersamplecount = 0U;
-      unsigned int * kmersample = nullptr;
+      unsigned int const * kmersample = nullptr;
 
       /* find unique kmers */
       unique_count(si->uh, opt_wordlength,

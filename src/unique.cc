@@ -170,7 +170,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
                          int const seqlen,
                          char const * seq,
                          unsigned int * listlen,
-                         unsigned int * * list,
+                         unsigned int const * * list,
                          int const seqmask) -> void
 {
   /* if necessary, reallocate list of unique kmers */
@@ -258,7 +258,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
                        int const seqlen,
                        char const * seq,
                        unsigned int * listlen,
-                       unsigned int * * list,
+                       unsigned int const * * list,
                        int const seqmask) -> void
 {
   /* if necessary, reallocate hash table and list of unique kmers */
@@ -351,7 +351,7 @@ auto unique_count(struct uhandle_s * unique_handle,
                   int const seqlen,
                   char const * seq,
                   unsigned int * listlen,
-                  unsigned int * * list,
+                  unsigned int const * * list,
                   int const seqmask) -> void
 {
   if (wordlength < 10)
@@ -368,7 +368,7 @@ auto unique_count(struct uhandle_s * unique_handle,
 auto unique_count_shared(struct uhandle_s const & unique_handle,
                         int const wordlength,
                         int const listlen,
-                        unsigned int * list) -> unsigned int
+                        unsigned int const * list) -> unsigned int
 {
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
