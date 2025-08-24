@@ -940,57 +940,57 @@ auto results_show_samout(std::FILE * output_handle,
     return;
   }
 
-      auto const top_hit_id = hits[0].id;
+  auto const top_hit_id = hits[0].id;
 
-      for (auto t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; t++)
+    {
+      auto * hp = hits + t;
+
+      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
-          auto * hp = hits + t;
-
-          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
-            {
-              break;
-            }
-
-          /*
-
-           */
-
-          xstring cigar;
-          xstring md;
-
-          build_sam_strings(hp->nwalignment,
-                            (hp->strand != 0) ? qsequence_rc : qsequence,
-                            db_getsequence(hp->target),
-                            cigar,
-                            md);
-
-          fprintf(output_handle,
-                  "%s\t%u\t%s\t%" PRIu64
-                  "\t%u\t%s\t%s\t%" PRIu64
-                  "\t%" PRIu64
-                  "\t%s\t%s\t"
-                  "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
-                  "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
-                  query_head,
-                  (0x10 * hp->strand) | (t > 0 ? 0x100 : 0),
-                  db_getheader(hp->target),
-                  (uint64_t) 1,
-                  255,
-                  cigar.c_str(),
-                  "*",
-                  (uint64_t) 0,
-                  (uint64_t) 0,
-                  (hp->strand != 0) ? qsequence_rc : qsequence,
-                  "*",
-                  hp->id,
-                  0,
-                  hp->mismatches,
-                  hp->internal_gaps,
-                  hp->internal_indels,
-                  hp->mismatches + hp->internal_indels,
-                  md.c_str(),
-                  "UU");
+          break;
         }
+
+      /*
+
+       */
+
+      xstring cigar;
+      xstring md;
+
+      build_sam_strings(hp->nwalignment,
+                        (hp->strand != 0) ? qsequence_rc : qsequence,
+                        db_getsequence(hp->target),
+                        cigar,
+                        md);
+
+      fprintf(output_handle,
+              "%s\t%u\t%s\t%" PRIu64
+              "\t%u\t%s\t%s\t%" PRIu64
+              "\t%" PRIu64
+              "\t%s\t%s\t"
+              "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
+              "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
+              query_head,
+              (0x10 * hp->strand) | (t > 0 ? 0x100 : 0),
+              db_getheader(hp->target),
+              (uint64_t) 1,
+              255,
+              cigar.c_str(),
+              "*",
+              (uint64_t) 0,
+              (uint64_t) 0,
+              (hp->strand != 0) ? qsequence_rc : qsequence,
+              "*",
+              hp->id,
+              0,
+              hp->mismatches,
+              hp->internal_gaps,
+              hp->internal_indels,
+              hp->mismatches + hp->internal_indels,
+              md.c_str(),
+              "UU");
+    }
 }
 
 
