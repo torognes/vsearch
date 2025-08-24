@@ -170,7 +170,8 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const nucleotide = *seq_cursor--;
+      int const nucleotide = *seq_cursor;
+      --seq_cursor;
 
       bad <<= 2ULL;
       bad |= maskmap[nucleotide];
