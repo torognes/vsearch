@@ -307,10 +307,10 @@ auto results_show_uc_one(std::FILE * output_handle,
 }
 
 
-auto results_show_userout_one(std::FILE * output_handle, struct hit * hits,
-                              char * query_head,
-                              char * qsequence, int64_t const qseqlen,
-                              char * qsequence_rc) -> void
+auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits,
+                              char const * query_head,
+                              char const * qsequence, int64_t const qseqlen,
+                              char const * qsequence_rc) -> void
 {
 
   /*
