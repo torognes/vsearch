@@ -63,10 +63,10 @@
 
 
 auto results_show_alnout(std::FILE * output_handle,
-                         struct hit * hits,
+                         struct hit const * hits,
                          int hitcount,
-                         char * query_head,
-                         char * qsequence,
+                         char const * query_head,
+                         char const * qsequence,
                          int64_t qseqlen) -> void;
 
 auto results_show_lcaout(std::FILE * output_handle,

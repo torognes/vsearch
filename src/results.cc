@@ -649,11 +649,11 @@ auto results_show_lcaout(std::FILE * output_handle,
 
 
 auto results_show_alnout(std::FILE * output_handle,
-                         struct hit * hits,
-                         int hitcount,
-                         char * query_head,
-                         char * qsequence,
-                         int64_t qseqlen) -> void
+                         struct hit const * hits,
+                         int const hitcount,
+                         char const * query_head,
+                         char const * qsequence,
+                         int64_t const qseqlen) -> void
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
