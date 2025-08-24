@@ -878,11 +878,11 @@ auto results_show_samheader(std::FILE * output_handle,
 
 
 auto results_show_samout(std::FILE * output_handle,
-                         struct hit * hits,
-                         int hitcount,
-                         char * query_head,
-                         char * qsequence,
-                         char * qsequence_rc) -> void
+                         struct hit const * hits,
+                         int const hitcount,
+                         char const * query_head,
+                         char const * qsequence,
+                         char const * qsequence_rc) -> void
 {
   /*
     SAM format output

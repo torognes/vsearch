@@ -113,10 +113,10 @@ auto results_show_samheader(std::FILE * output_handle,
                             char const * dbname) -> void;
 
 auto results_show_samout(std::FILE * output_handle,
-                         struct hit * hits,
+                         struct hit const * hits,
                          int hitcount,
-                         char * query_head,
-                         char * qsequence,
-                         char * qsequence_rc) -> void;
+                         char const * query_head,
+                         char const * qsequence,
+                         char const * qsequence_rc) -> void;
 
 auto clean_up() -> void;
