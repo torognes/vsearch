@@ -318,7 +318,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
     qlo, qhi, tlo, thi and raw are given more meaningful values here
   */
 
-  for (auto c = 0; c < userfields_requested_count; c++)
+  for (auto c = 0; c < userfields_requested_count; ++c)
     {
       if (c != 0)
         {
@@ -535,7 +535,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   auto const top_hit_id = hits[0].id;
   auto tophitcount = 0;
 
-  for (auto t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; ++t)
     {
       struct hit const * hp = hits + t;
 
@@ -551,13 +551,13 @@ auto results_show_lcaout(std::FILE * output_handle,
       std::array<int, tax_levels> new_level_len {{}};
       tax_split(seqno, new_level_start.data(), new_level_len.data());
 
-      for (auto k = 0; k < tax_levels; k++)
+      for (auto k = 0; k < tax_levels; ++k)
         {
           if (votes[k] == 0)
             {
               cand[k] = seqno;
               votes[k] = 1;
-              for (auto j = 0; j < tax_levels; j++)
+              for (auto j = 0; j < tax_levels; ++j)
                 {
                   cand_level_start[k][j] = new_level_start[j];
                   cand_level_len[k][j] = new_level_len[j];
@@ -566,7 +566,7 @@ auto results_show_lcaout(std::FILE * output_handle,
           else
             {
               auto match = true;
-              for (auto j = 0; j <= k; j++)
+              for (auto j = 0; j <= k; ++j)
                 {
                   if ((new_level_len[j] != cand_level_len[k][j]) or
                       (std::strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
@@ -591,17 +591,17 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   /* count actual matches to the candidate at each level */
 
-  for (auto t = 0; t < tophitcount; t++)
+  for (auto t = 0; t < tophitcount; ++t)
     {
       auto const seqno = hits[t].target;
       std::array<int, tax_levels> new_level_start {{}};
       std::array<int, tax_levels> new_level_len {{}};
       tax_split(seqno, new_level_start.data(), new_level_len.data());
 
-      for (auto k = 0; k < tax_levels; k++)
+      for (auto k = 0; k < tax_levels; ++k)
         {
           auto match = true;
-          for (auto j = 0; j <= k; j++)
+          for (auto j = 0; j <= k; ++j)
             {
               if ((new_level_len[j] != cand_level_len[k][j]) or
                   (std::strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
@@ -626,7 +626,7 @@ auto results_show_lcaout(std::FILE * output_handle,
     return;
   }
   auto comma = false;
-  for (auto j = 0; j < tax_levels; j++)
+  for (auto j = 0; j < tax_levels; ++j)
     {
       if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
         {
@@ -675,7 +675,7 @@ auto results_show_alnout(std::FILE * output_handle,
 
   auto const top_hit_id = hits[0].id;
 
-  for (auto t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; ++t)
     {
       auto * hp = hits + t;
 
@@ -690,7 +690,7 @@ auto results_show_alnout(std::FILE * output_handle,
               db_getheader(hp->target));
     }
 
-  for (auto t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; ++t)
     {
       auto * hp = hits + t;
 
@@ -786,7 +786,7 @@ auto build_sam_strings(char const * alignment,
           cigar.add_d(run);
           cigar.add_c('M');
 
-          for (auto i = 0; i < run; i++)
+          for (auto i = 0; i < run; ++i)
             {
               if (is_same_4bit(queryseq[qpos], targetseq[tpos]))
                 {
@@ -828,7 +828,7 @@ auto build_sam_strings(char const * alignment,
             }
 
           md.add_c('^');
-          for (auto i = 0; i < run; i++)
+          for (auto i = 0; i < run; ++i)
             {
               md.add_c(targetseq[tpos]);
               ++tpos;
@@ -855,7 +855,7 @@ auto results_show_samheader(std::FILE * output_handle,
       fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
       std::array<char, len_hex_dig_md5> md5hex;
-      for (uint64_t i = 0; i < db_getsequencecount(); i++)
+      for (uint64_t i = 0; i < db_getsequencecount(); ++i)
         {
           get_hex_seq_digest_md5(md5hex.data(),
                                  db_getsequence(i),
@@ -942,7 +942,7 @@ auto results_show_samout(std::FILE * output_handle,
 
   auto const top_hit_id = hits[0].id;
 
-  for (auto t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; ++t)
     {
       auto * hp = hits + t;
 
