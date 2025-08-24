@@ -290,9 +290,9 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   uint64_t j = 0;
   auto kmer = 0U;
   unsigned int const mask = (1ULL << (2ULL * wordlength)) - 1ULL;
-  auto * s = seq;
-  auto * e1 = s + wordlength - 1;
-  auto * e2 = s + seqlen;
+  auto const * s = seq;
+  auto const * e1 = s + wordlength - 1;
+  auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
   auto * maskmap = (seqmask != MASK_NONE) ?
