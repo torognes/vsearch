@@ -658,8 +658,16 @@ auto results_show_alnout(std::FILE * output_handle,
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
-  if (hitcount > 0)
-    {
+  if (hitcount == 0) {
+    if (opt_output_no_hits != 0) {
+      fprintf(output_handle, "\n");
+      fprintf(output_handle,"Query >%s\n", query_head);
+      fprintf(output_handle, "No hits\n");
+    }
+    return;
+  }
+
+
       fprintf(output_handle, "\n");
 
       fprintf(output_handle,"Query >%s\n", query_head);
@@ -734,13 +742,6 @@ auto results_show_alnout(std::FILE * output_handle,
                   100.0 * hp->internal_indels / hp->internal_alignmentlength :
                   0.0);
         }
-    }
-  else if (opt_output_no_hits != 0)
-    {
-      fprintf(output_handle, "\n");
-      fprintf(output_handle,"Query >%s\n", query_head);
-      fprintf(output_handle,"No hits\n");
-    }
 }
 
 
