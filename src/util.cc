@@ -207,8 +207,8 @@ auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> v
      (identical to the length of seq + 1). */
 
   for (auto i = 0LL; i < len; ++i) {
-    auto const unsigned_char = static_cast<unsigned char>(*std::next(seq, len - 1 - i));
-    auto const complement_char = static_cast<char>(chrmap_complement_vector[unsigned_char]);
+    auto const nucleotide = *std::next(seq, len - 1 - i);
+    auto const complement_char = map_complement(nucleotide);
     *std::next(rc_seq, i) = complement_char;
   }
   *std::next(rc_seq, len) = '\0';
