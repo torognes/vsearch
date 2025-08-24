@@ -76,6 +76,13 @@
 #include <cstring>  // std::strlen, std::strncmp
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+}  // end of anonymous namespace
+
+
 auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const * hits,
                                  char const * query_head,
