@@ -80,8 +80,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
                                 int64_t qseqlen) -> void;
 
 auto results_show_uc_one(std::FILE * output_handle,
-                         struct hit * hits,
-                         char * query_head,
+                         struct hit const * hits,
+                         char const * query_head,
                          int64_t qseqlen,
                          int clusterno) -> void;
 

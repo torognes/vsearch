@@ -80,7 +80,7 @@
 namespace {
 
   auto check_if_perfect_match(char const * opt_cluster_fast,
-                              struct hit * hits) -> bool {
+                              struct hit const * hits) -> bool {
     if (opt_cluster_fast != nullptr) {
       /* cluster_fast */
       /* use '=' for identical sequences, ignoring terminal gaps */
@@ -255,8 +255,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
 
 
 auto results_show_uc_one(std::FILE * output_handle,
-                         struct hit * hits,
-                         char * query_head,
+                         struct hit const * hits,
+                         char const * query_head,
                          int64_t const qseqlen,
                          int const clusterno) -> void
 {
