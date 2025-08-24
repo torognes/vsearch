@@ -944,7 +944,7 @@ auto results_show_samout(std::FILE * output_handle,
 
   for (auto t = 0; t < hitcount; ++t)
     {
-      auto * hp = hits + t;
+      auto const * hp = hits + t;
 
       if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
