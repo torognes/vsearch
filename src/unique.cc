@@ -208,6 +208,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
+  // refactoring: references to function overloads?
   auto * maskmap = (seqmask != MASK_NONE) ?
     chrmap_mask_lower : chrmap_mask_ambig;
 
