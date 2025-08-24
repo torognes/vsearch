@@ -73,6 +73,12 @@
 #include <limits>
 #endif
 
+// refactoring: as a Cigar class (pivate data: Span<char>, or
+// View<char> const), constructor from a char const *, or from a
+// View<char>. That would eliminate the
+// bugprone-easily-swappable-parameters warning. Merge with
+// cigar_operations.hpp
+
 
 // CIGAR string example: 3M2I3MD
 // document the format here, and in vsearch-cigar(5)
