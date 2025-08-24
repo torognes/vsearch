@@ -625,25 +625,25 @@ auto results_show_lcaout(std::FILE * output_handle,
     fprintf(output_handle, "\n");
     return;
   }
-      auto comma = false;
-      for (auto j = 0; j < tax_levels; j++)
+  auto comma = false;
+  for (auto j = 0; j < tax_levels; j++)
+    {
+      if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
         {
-          if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
-            {
-              break;
-            }
-
-          if (cand_level_len[j][j] > 0)
-            {
-              fprintf(output_handle,
-                      "%s%c:%.*s",
-                      (comma ? "," : ""),
-                      taxonomic_fields[j],
-                      cand_level_len[j][j],
-                      db_getheader(cand[j]) + cand_level_start[j][j]);
-              comma = true;
-            }
+          break;
         }
+
+      if (cand_level_len[j][j] > 0)
+        {
+          fprintf(output_handle,
+                  "%s%c:%.*s",
+                  (comma ? "," : ""),
+                  taxonomic_fields[j],
+                  cand_level_len[j][j],
+                  db_getheader(cand[j]) + cand_level_start[j][j]);
+          comma = true;
+        }
+    }
 
 
   fprintf(output_handle, "\n");
