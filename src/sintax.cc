@@ -395,7 +395,7 @@ auto sintax_query(int64_t t) -> void
       /* find unique kmers */
       unique_count(si->uh, opt_wordlength,
                    si->qseqlen, si->qsequence,
-                   & kmersamplecount, & kmersample, MASK_NONE);
+                   &kmersamplecount, &kmersample, MASK_NONE);
 
       /* perform 100 bootstraps */
 
