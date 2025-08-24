@@ -132,15 +132,13 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
   unsigned int kmer = 0;
   char const * s = seq;
 
-  unsigned int const * maskmap = chrmap_mask_ambig;
-
   for (int pos = 0; pos < len; pos++)
     {
       int const c = *s;
       ++s;
 
       bad <<= 2ULL;
-      bad |= maskmap[c];
+      bad |= map_mask_ambig(c);
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
@@ -167,15 +165,13 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
   unsigned int kmer = 0;
   char const * seq_cursor = seq + len - 1;
 
-  unsigned int const * maskmap = chrmap_mask_ambig;
-
   for (int pos = 0; pos < len; pos++)
     {
       int const nucleotide = *seq_cursor;
       --seq_cursor;
 
       bad <<= 2ULL;
-      bad |= maskmap[nucleotide];
+      bad |= map_mask_ambig(nucleotide);
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
@@ -251,7 +247,7 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
       int const nucleotide = *seq_cursor--;
 
       bad <<= 2ULL;
-      bad |= chrmap_mask_ambig[nucleotide];
+      bad |= map_mask_ambig(nucleotide);
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
