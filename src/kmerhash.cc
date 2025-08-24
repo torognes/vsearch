@@ -131,7 +131,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
   unsigned int kmer = 0;
   char const * s = seq;
 
-  unsigned int * maskmap = chrmap_mask_ambig;
+  unsigned int const * maskmap = chrmap_mask_ambig;
 
   for (int pos = 0; pos < len; pos++)
     {
@@ -165,7 +165,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
   unsigned int kmer = 0;
   char const * seq_cursor = seq + len - 1;
 
-  unsigned int * maskmap = chrmap_mask_ambig;
+  unsigned int const * maskmap = chrmap_mask_ambig;
 
   for (int pos = 0; pos < len; pos++)
     {
