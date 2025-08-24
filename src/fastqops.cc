@@ -288,9 +288,9 @@ auto fastq_convert(struct Parameters const & parameters) -> void
           q += parameters.opt_fastq_asciiout;
           q = std::max(q, 33);
           q = std::min(q, 126);
-          quality[i] = q;
+          normalized_quality[i] = q;
         }
-      quality[length] = 0;
+      normalized_quality[length] = '\0';
 
       int const hlen = fastq_get_header_length(input_handle);
       fastq_print_general(fp_fastqout,
@@ -298,7 +298,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
                           length,
                           header,
                           hlen,
-                          quality,
+                          normalized_quality.data(),
                           abundance,
                           n_entries,
                           default_expected_error);  // refactoring: prefer function overload?
