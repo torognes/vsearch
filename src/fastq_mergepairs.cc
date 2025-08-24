@@ -779,7 +779,7 @@ auto optimize(merge_data_t & a_read_pair,
               /* for each pair of bases in the overlap */
 
               auto const fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
-              auto const rev_sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
+              auto const rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
 
               unsigned int const fwd_qual = a_read_pair.fwd_quality[fwd_pos];
               unsigned int const rev_qual = a_read_pair.rev_quality[rev_pos];
