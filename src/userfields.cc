@@ -117,13 +117,13 @@ int * userfields_requested = nullptr;
 int userfields_requested_count = 0;
 
 
-auto parse_userfields_arg(char * arg) -> int
+auto parse_userfields_arg(char const * arg) -> int
 {
   // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
   // and returns 1 if it is ok or 0 if not.
   static constexpr auto separator = '+';
-  char * ptr = arg;
-  char * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
+  char const * ptr = arg;
+  char const * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
 
   userfields_requested_count = std::count(ptr, end_of_string, separator) + 1;
 
@@ -131,7 +131,7 @@ auto parse_userfields_arg(char * arg) -> int
 
   ptr = arg;  // reset to the start of the string
 
-  char * next_separator = nullptr;
+  char const * next_separator = nullptr;
 
   auto nth_field = 0;
 
