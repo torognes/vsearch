@@ -225,7 +225,7 @@ auto xmalloc(std::size_t size) -> void *
 #ifdef _WIN32
   ptr = _aligned_malloc(size, memalignment);
 #else
-  if (posix_memalign(& ptr, memalignment, size) != 0)
+  if (posix_memalign(&ptr, memalignment, size) != 0)
     {
       ptr = nullptr;
     }
