@@ -237,6 +237,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   progress_init("Reading FASTQ file", filesize);
 
+  std::vector<char> normalized_quality;
   auto n_entries = 1;
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
   while (fastq_next(input_handle, false, chrmap_no_change))
@@ -253,6 +254,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
       /* convert quality values */
 
+      normalized_quality.resize(length);
       auto * quality = const_cast<char *>(fastq_get_quality(input_handle));  // ugly hack!
       for (uint64_t i = 0; i < length; i++)
         {
@@ -302,6 +304,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
                           default_expected_error);  // refactoring: prefer function overload?
 
       ++n_entries;
+      normalized_quality.clear();
       progress_update(fastq_get_position(input_handle));
     }
 
