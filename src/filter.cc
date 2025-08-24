@@ -173,7 +173,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
       static constexpr auto base = 10.0;
-      auto * quality_symbols = fastx_get_quality(input_handle) + res.start;
+      auto const * quality_symbols = fastx_get_quality(input_handle) + res.start;
       for (auto i = 0; i < res.length; ++i)
         {
           auto const quality_score = fastq_get_qual(quality_symbols[i]);
@@ -222,7 +222,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
 
   /* filter by n's */  // refactoring: std::count_if();
   int64_t ncount = 0;
-  auto * nucleotides = fastx_get_sequence(input_handle) + res.start;
+  auto const * nucleotides = fastx_get_sequence(input_handle) + res.start;
   for (auto i = 0; i < res.length; ++i)
     {
       auto const nucleotide = nucleotides[i];
