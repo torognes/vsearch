@@ -134,7 +134,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
       /* header */
 
       auto const hlen = fastx_get_header_length(input_handle);
-      auto * header = fastx_get_header(input_handle);
+      auto const * header = fastx_get_header(input_handle);
       auto const abundance = fastx_get_abundance(input_handle);
 
 
@@ -149,13 +149,13 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
           qual_buffer.resize(buffer_alloc);
         }
 
-      auto * p = fastx_get_sequence(input_handle);
+      auto const * p = fastx_get_sequence(input_handle);
       reverse_complement(seq_buffer.data(), p, length);
 
 
       /* quality values */
 
-      auto * q = fastx_get_quality(input_handle);
+      auto const * q = fastx_get_quality(input_handle);
 
       if (fastx_is_fastq(input_handle))
         {
