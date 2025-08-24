@@ -116,7 +116,7 @@ namespace {
                       std::vector<char> & rc_buffer) -> void
   {
     auto const pattern_length = static_cast<int>(restriction.pattern.size());
-    char * seq = fasta_get_sequence(input_handle);
+    char const * seq = fasta_get_sequence(input_handle);
     auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
     // failed refactoring: use transform to create a coded std::string
     // and find() to search for pattern occurrences, IUPAC chars make it

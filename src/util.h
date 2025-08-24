@@ -83,7 +83,7 @@ auto random_ulong(uint64_t upper_limit) -> uint64_t;
 
 auto string_normalize(char * normalized, char const * raw_seq, unsigned int len) -> void;
 
-auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void;
+auto reverse_complement(char * rc_seq, char const * seq, int64_t len) -> void;
 
 auto get_hex_seq_digest_sha1(char * hex, char const * seq, int seqlen) -> void;
 auto get_hex_seq_digest_md5(char * hex, char const * seq, int seqlen) -> void;

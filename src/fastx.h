@@ -137,7 +137,7 @@ auto fastx_get_size(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_lineno(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_seqno(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_header(fastx_handle input_handle) -> char const *;
-auto fastx_get_sequence(fastx_handle input_handle) -> char *;
+auto fastx_get_sequence(fastx_handle input_handle) -> char const *;
 auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t;
 

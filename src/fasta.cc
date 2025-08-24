@@ -330,7 +330,7 @@ auto fasta_get_header(fastx_handle input_handle) -> char const *
 }
 
 
-auto fasta_get_sequence(fastx_handle input_handle) -> char *
+auto fasta_get_sequence(fastx_handle input_handle) -> char const *
 {
   return input_handle->sequence_buffer.data;
 }

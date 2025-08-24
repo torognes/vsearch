@@ -224,7 +224,7 @@ auto orient(struct Parameters const & parameters) -> void
     {
       char const * query_head = fastx_get_header(query_h);
       int const query_head_len = fastx_get_header_length(query_h);
-      char * qseq_fwd = fastx_get_sequence(query_h);
+      char const * qseq_fwd = fastx_get_sequence(query_h);
       int const qseqlen = fastx_get_sequence_length(query_h);
       int const qsize = fastx_get_abundance(query_h);
       char * query_qual_fwd = fastx_get_quality(query_h);

@@ -706,7 +706,7 @@ auto fastx_get_header(fastx_handle input_handle) -> char const *
 }
 
 
-auto fastx_get_sequence(fastx_handle input_handle) -> char *
+auto fastx_get_sequence(fastx_handle input_handle) -> char const *
 {
   if (input_handle->is_fastq)
     {

@@ -68,7 +68,7 @@ auto unique_exit(struct uhandle_s * unique_handle) -> void;
 auto unique_count(struct uhandle_s * unique_handle,
                   int wordlength,
                   int seqlen,
-                  char * seq,
+                  char const * seq,
                   unsigned int * listlen,
                   unsigned int * * list,
                   int seqmask) -> void;

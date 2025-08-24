@@ -120,13 +120,13 @@ auto db_getquality(uint64_t seqno) -> char *
 }
 
 
-auto db_add(bool is_fastq,
+auto db_add(bool const is_fastq,
             char const * header,
-            char * sequence,
+            char const * sequence,
             char * quality,
-            size_t headerlength,
-            size_t sequencelength,
-            int64_t abundance) -> void
+            size_t const headerlength,
+            size_t const sequencelength,
+            int64_t const abundance) -> void
 {
   /* Add a sequence to the database. Assumes that the database has been initialized. */
 

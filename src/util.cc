@@ -200,7 +200,7 @@ auto show_rusage() -> void
 // auto complement = [](char nucleotide) -> char { ... };
 // std::transform(destination.begin(), destination.end(), destination.begin(), complement)
 // destination[length] = '\0';
-auto reverse_complement(char * rc_seq, char * seq, int64_t len) -> void
+auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> void
 {
   /* Write the reverse complementary sequence to rc_seq.
      The memory for rc_seq must be long enough for the rc_seq of the sequence
