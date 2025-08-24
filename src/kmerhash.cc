@@ -142,7 +142,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[c];
+      kmer |= map_2bit(c);
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -175,7 +175,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[static_cast<int>(map_complement(nucleotide))];
+      kmer |= map_2bit(map_complement(nucleotide));
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -251,7 +251,7 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[static_cast<int>(map_complement(nucleotide))];
+      kmer |= map_2bit(map_complement(nucleotide));
       kmer &= kmer_mask;
 
       if (bad == 0U)
