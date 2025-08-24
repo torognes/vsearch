@@ -62,6 +62,9 @@
 #include <iterator>
 
 
+// Find first position with a difference, if any. Return 0 for
+// identical sequences, -1 if lhs is sorted first (lower
+// alpha-sorting), +1 if rhs is sorted first.
 auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
   if (length <= 0) {
     return 0;
