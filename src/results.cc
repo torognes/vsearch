@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "attributes.h"
-#include "maps.h"
 #include "showalign.h"
 #include "tax.h"
 #include "userfields.h"
@@ -743,12 +742,6 @@ auto results_show_alnout(std::FILE * output_handle,
               100.0 * hp->internal_indels / hp->internal_alignmentlength :
               0.0);
     }
-}
-
-
-auto inline nucleotide_equal(char const lhs, char const rhs) -> bool
-{
-  return chrmap_4bit[(int) lhs] == chrmap_4bit[(int) rhs];
 }
 
 
