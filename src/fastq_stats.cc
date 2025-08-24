@@ -542,7 +542,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
       /* update quality statistics */
 
-      auto * quality_symbols = fastq_get_quality(input_handle);
+      auto const * quality_symbols = fastq_get_quality(input_handle);
       auto expected_error = 0.0;
       auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed so far in this read
 
