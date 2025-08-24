@@ -281,21 +281,8 @@ auto results_show_uc_one(std::FILE * output_handle,
     return;
   }
 
-  auto perfect = false;
+  auto const perfect = check_if_perfect_match(opt_cluster_fast, hits);
 
-  if (opt_cluster_fast != nullptr)
-    {
-      /* cluster_fast */
-      /* use = for identical sequences ignoring terminal gaps */
-      perfect = (hits->matches == hits->internal_alignmentlength);
-    }
-  else
-    {
-      /* cluster_size, cluster_smallmem, cluster_unoise */
-      /* usearch_global, search_exact, allpairs_global */
-      /* use = for strictly identical sequences */
-      perfect = (hits->matches == hits->nwalignmentlength);
-    }
 
   fprintf(output_handle,
           "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
