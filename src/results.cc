@@ -621,8 +621,10 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   /* output results */
 
-  if (tophitcount > 0)
-    {
+  if (tophitcount == 0) {
+    fprintf(output_handle, "\n");
+    return;
+  }
       auto comma = false;
       for (auto j = 0; j < tax_levels; j++)
         {
@@ -642,7 +644,7 @@ auto results_show_lcaout(std::FILE * output_handle,
               comma = true;
             }
         }
-    }
+
 
   fprintf(output_handle, "\n");
 }
