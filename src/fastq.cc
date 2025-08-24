@@ -504,7 +504,7 @@ auto fastq_get_header(fastx_handle input_handle) -> char const *
 }
 
 
-auto fastq_get_sequence(fastx_handle input_handle) -> char *
+auto fastq_get_sequence(fastx_handle input_handle) -> char const *
 {
   return input_handle->sequence_buffer.data;
 }
