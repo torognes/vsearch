@@ -128,6 +128,37 @@ namespace {
     };
 
 
+  const std::vector<unsigned int> chrmap_mask_lower =
+    {
+      /*
+
+        Should character be masked and not used for search ?
+        Mask everything but A, C, G, T and U.
+        All lower case letters are masked (soft masking).
+
+        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+      */
+
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  0,  1,  0,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
+    };
+
+
 }  // end of anonymous namespace
 
 
@@ -323,8 +354,21 @@ auto map_mask_ambig(char const nucleotide) -> unsigned int {
 
 // refactoring: eliminate if possible
 auto map_mask_ambig(int const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  auto const unsigned_nucleotide = static_cast<unsigned int>(nucleotide);
   return chrmap_mask_ambig[unsigned_nucleotide];
+}
+
+
+auto map_mask_lower(char const nucleotide) -> unsigned int {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return chrmap_mask_lower[unsigned_nucleotide];
+}
+
+
+// refactoring: eliminate if possible
+auto map_mask_lower(int const nucleotide) -> unsigned int {
+  auto const unsigned_nucleotide = static_cast<unsigned int>(nucleotide);
+  return chrmap_mask_lower[unsigned_nucleotide];
 }
 
 
