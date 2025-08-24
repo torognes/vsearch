@@ -668,80 +668,80 @@ auto results_show_alnout(std::FILE * output_handle,
   }
 
 
-      fprintf(output_handle, "\n");
+  fprintf(output_handle, "\n");
 
-      fprintf(output_handle,"Query >%s\n", query_head);
-      fprintf(output_handle," %%Id   TLen  Target\n");
+  fprintf(output_handle,"Query >%s\n", query_head);
+  fprintf(output_handle," %%Id   TLen  Target\n");
 
-      auto const top_hit_id = hits[0].id;
+  auto const top_hit_id = hits[0].id;
 
-      for (auto t = 0; t < hitcount; t++)
+  for (auto t = 0; t < hitcount; t++)
+    {
+      auto * hp = hits + t;
+
+      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
-          auto * hp = hits + t;
-
-          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
-            {
-              break;
-            }
-
-          fprintf(output_handle,"%3.0f%% %6" PRIu64 "  %s\n",
-                  hp->id,
-                  db_getsequencelen(hp->target),
-                  db_getheader(hp->target));
+          break;
         }
 
-      for (auto t = 0; t < hitcount; t++)
+      fprintf(output_handle,"%3.0f%% %6" PRIu64 "  %s\n",
+              hp->id,
+              db_getsequencelen(hp->target),
+              db_getheader(hp->target));
+    }
+
+  for (auto t = 0; t < hitcount; t++)
+    {
+      auto * hp = hits + t;
+
+      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
-          auto * hp = hits + t;
-
-          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
-            {
-              break;
-            }
-
-          fprintf(output_handle,"\n");
-
-
-          auto * dseq = db_getsequence(hp->target);
-          int64_t const dseqlen = db_getsequencelen(hp->target);
-
-          auto const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
-          auto const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
-          auto const numwidth = std::max(qlenlen, tlenlen);
-
-          fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
-                  qseqlen, query_head);
-          fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
-                  dseqlen, db_getheader(hp->target));
-
-          int const rowlen = (opt_rowlen == 0) ? qseqlen + dseqlen : opt_rowlen;
-
-          align_show(output_handle,
-                     qsequence,
-                     qseqlen,
-                     hp->trim_q_left,
-                     "Qry",
-                     dseq,
-                     dseqlen,
-                     hp->trim_t_left,
-                     "Tgt",
-                     hp->nwalignment + hp->trim_aln_left,
-                     strlen(hp->nwalignment)
-                     - hp->trim_aln_left - hp->trim_aln_right,
-                     numwidth,
-                     3,
-                     rowlen,
-                     hp->strand);
-
-          fprintf(output_handle, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
-                  hp->internal_alignmentlength,
-                  hp->matches,
-                  hp->id,
-                  hp->internal_indels,
-                  hp->internal_alignmentlength > 0 ?
-                  100.0 * hp->internal_indels / hp->internal_alignmentlength :
-                  0.0);
+          break;
         }
+
+      fprintf(output_handle,"\n");
+
+
+      auto * dseq = db_getsequence(hp->target);
+      int64_t const dseqlen = db_getsequencelen(hp->target);
+
+      auto const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
+      auto const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
+      auto const numwidth = std::max(qlenlen, tlenlen);
+
+      fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
+              qseqlen, query_head);
+      fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
+              dseqlen, db_getheader(hp->target));
+
+      int const rowlen = (opt_rowlen == 0) ? qseqlen + dseqlen : opt_rowlen;
+
+      align_show(output_handle,
+                 qsequence,
+                 qseqlen,
+                 hp->trim_q_left,
+                 "Qry",
+                 dseq,
+                 dseqlen,
+                 hp->trim_t_left,
+                 "Tgt",
+                 hp->nwalignment + hp->trim_aln_left,
+                 strlen(hp->nwalignment)
+                 - hp->trim_aln_left - hp->trim_aln_right,
+                 numwidth,
+                 3,
+                 rowlen,
+                 hp->strand);
+
+      fprintf(output_handle, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
+              hp->internal_alignmentlength,
+              hp->matches,
+              hp->id,
+              hp->internal_indels,
+              hp->internal_alignmentlength > 0 ?
+              100.0 * hp->internal_indels / hp->internal_alignmentlength :
+              0.0);
+    }
 }
 
 
