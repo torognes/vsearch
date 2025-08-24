@@ -340,7 +340,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           show_rusage();
         }
 
-      auto * seq = fastx_get_sequence(h);
+      auto const * seq = fastx_get_sequence(h);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -559,7 +559,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           continue;
         }
 
-      auto * seq = fastx_get_sequence(h2);
+      auto const * seq = fastx_get_sequence(h2);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -608,7 +608,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         {
           /* print sequence */
 
-          auto * header = fastx_get_header(h2);
+          auto const * header = fastx_get_header(h2);
           int const headerlen = fastx_get_header_length(h2);
 
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
