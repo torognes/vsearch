@@ -645,7 +645,6 @@ auto results_show_lcaout(std::FILE * output_handle,
         }
     }
 
-
   fprintf(output_handle, "\n");
 }
 
