@@ -281,7 +281,7 @@ auto results_show_uc_one(std::FILE * output_handle,
     return;
   }
 
-  auto const perfect = check_if_perfect_match(opt_cluster_fast, hits);
+  auto const is_perfect_match = check_if_perfect_match(opt_cluster_fast, hits);
 
 
   fprintf(output_handle,
@@ -290,7 +290,7 @@ auto results_show_uc_one(std::FILE * output_handle,
           qseqlen,
           hits->id,
           (hits->strand != 0) ? '-' : '+',
-          perfect ? "=" : hits->nwalignment);
+          is_perfect_match ? "=" : hits->nwalignment);
   header_fprint_strip(output_handle,
                       query_head,
                       strlen(query_head),
