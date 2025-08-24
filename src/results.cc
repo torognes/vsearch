@@ -513,9 +513,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 
 
 auto results_show_lcaout(std::FILE * output_handle,
-                         struct hit * hits,
-                         int hitcount,
-                         char * query_head) -> void
+                         struct hit const * hits,
+                         int const hitcount,
+                         char const * query_head) -> void
 {
   /* Output last common ancestor (LCA) of the hits,
      in a similar way to the Sintax command */
@@ -537,7 +537,7 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   for (auto t = 0; t < hitcount; t++)
     {
-      struct hit * hp = hits + t;
+      struct hit const * hp = hits + t;
 
       if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {

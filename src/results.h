@@ -70,9 +70,9 @@ auto results_show_alnout(std::FILE * output_handle,
                          int64_t qseqlen) -> void;
 
 auto results_show_lcaout(std::FILE * output_handle,
-                         struct hit * hits,
+                         struct hit const * hits,
                          int hitcount,
-                         char * query_head) -> void;
+                         char const * query_head) -> void;
 
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hits,
