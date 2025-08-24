@@ -67,7 +67,7 @@ auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
     return 0;
   }
 
-  while ((length-- > 0) and (chrmap_4bit_vector[static_cast<unsigned char>(*lhs)] == chrmap_4bit_vector[static_cast<unsigned char>(*rhs)])) {
+  while ((length-- > 0) and (is_same_4bit(*lhs, *rhs))) {
     if ((length == 0) or (*lhs == '\0') or (*rhs == '\0')) {
       break;
     }
@@ -75,5 +75,5 @@ auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
     std::advance(rhs, 1);
   }
 
-  return static_cast<int>(chrmap_4bit_vector[static_cast<unsigned char>(*lhs)] - chrmap_4bit_vector[static_cast<unsigned char>(*rhs)]);
+  return static_cast<int>(map_4bit(*lhs) - map_4bit(*rhs));
 }
