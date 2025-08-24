@@ -244,13 +244,13 @@ auto fastq_convert(struct Parameters const & parameters) -> void
     {
       /* header */
 
-      auto * header = fastq_get_header(input_handle);
+      auto const * header = fastq_get_header(input_handle);
       auto const abundance = fastq_get_abundance(input_handle);
 
       /* sequence */
 
       auto const length = fastq_get_sequence_length(input_handle);
-      auto * sequence = fastq_get_sequence(input_handle);
+      auto const * sequence = fastq_get_sequence(input_handle);
 
       /* convert quality values */
 
