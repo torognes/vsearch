@@ -80,6 +80,10 @@ auto map_4bit(char nucleotide) -> unsigned char;
 
 auto map_complement(char nucleotide) -> char;
 
+auto map_mask_ambig(char const nucleotide) -> unsigned int;
+
+auto map_mask_ambig(int const nucleotide) -> unsigned int;
+
 auto is_same_4bit(char const lhs, char const rhs) -> bool;
 
 #endif // MAPS_HPP
