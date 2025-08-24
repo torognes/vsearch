@@ -290,7 +290,6 @@ auto fastq_convert(struct Parameters const & parameters) -> void
           q = std::min(q, 126);
           normalized_quality[i] = q;
         }
-      normalized_quality[length] = '\0';
 
       int const hlen = fastq_get_header_length(input_handle);
       fastq_print_general(fp_fastqout,
