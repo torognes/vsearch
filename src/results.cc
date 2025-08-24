@@ -745,9 +745,9 @@ auto results_show_alnout(std::FILE * output_handle,
 }
 
 
-auto build_sam_strings(char * alignment,
-                       char * queryseq,
-                       char * targetseq,
+auto build_sam_strings(char const * alignment,
+                       char const * queryseq,
+                       char const * targetseq,
                        xstring & cigar,
                        xstring & md) -> void
 {
@@ -763,7 +763,7 @@ auto build_sam_strings(char * alignment,
   md.clear();
 
   auto * p = alignment;
-  auto * e = p + strlen(p);
+  auto const * e = p + strlen(p);
 
   auto qpos = 0;
   auto tpos = 0;
