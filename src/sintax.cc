@@ -482,9 +482,9 @@ auto sintax_thread_run(int64_t t) -> void
                      opt_notrunclabels == 0,
                      chrmap_no_change))
         {
-          auto * qhead = fastx_get_header(query_fastx_h);
+          auto const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = fastx_get_header_length(query_fastx_h);
-          auto * qseq = fastx_get_sequence(query_fastx_h);
+          auto const * qseq = fastx_get_sequence(query_fastx_h);
           int const qseqlen = fastx_get_sequence_length(query_fastx_h);
           int const query_no = fastx_get_seqno(query_fastx_h);
           int const qsize = fastx_get_abundance(query_fastx_h);
