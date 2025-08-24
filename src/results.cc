@@ -283,7 +283,6 @@ auto results_show_uc_one(std::FILE * output_handle,
 
   auto const is_perfect_match = check_if_perfect_match(opt_cluster_fast, hits);
 
-
   fprintf(output_handle,
           "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
           clusterno,
