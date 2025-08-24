@@ -169,7 +169,7 @@ auto read_labels_file(char * filename) -> void
 
 auto test_label_match(fastx_handle input_handle) -> bool
 {
-  char * header = fastx_get_header(input_handle);
+  char const * header = fastx_get_header(input_handle);
   auto const header_length = fastx_get_header_length(input_handle);
   int const hlen = static_cast<int>(header_length);
   auto const header_view = Span<char>{header, header_length};
@@ -272,7 +272,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
             needle = field_buffer.data();
           }
         int const wlen = std::strlen(needle);
-        char * hit = header;
+        char const * hit = header;
         while (true)
           {
             hit = std::strstr(hit, needle);

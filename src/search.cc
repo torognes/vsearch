@@ -381,7 +381,7 @@ auto search_thread_run(int64_t t) -> void
                      (opt_notrunclabels == 0),
                      chrmap_no_change))
         {
-          char * qhead = fastx_get_header(query_fastx_h);
+          char const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = fastx_get_header_length(query_fastx_h);
           char * qseq = fastx_get_sequence(query_fastx_h);
           int const qseqlen = fastx_get_sequence_length(query_fastx_h);

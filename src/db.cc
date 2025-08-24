@@ -121,7 +121,7 @@ auto db_getquality(uint64_t seqno) -> char *
 
 
 auto db_add(bool is_fastq,
-            char * header,
+            char const * header,
             char * sequence,
             char * quality,
             size_t headerlength,
