@@ -135,7 +135,8 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const c = *s++;
+      int const c = *s;
+      ++s;
 
       bad <<= 2ULL;
       bad |= maskmap[c];
