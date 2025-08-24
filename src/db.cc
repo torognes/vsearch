@@ -123,7 +123,7 @@ auto db_getquality(uint64_t seqno) -> char *
 auto db_add(bool const is_fastq,
             char const * header,
             char const * sequence,
-            char * quality,
+            char const * quality,
             size_t const headerlength,
             size_t const sequencelength,
             int64_t const abundance) -> void

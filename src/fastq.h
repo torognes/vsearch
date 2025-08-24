@@ -74,7 +74,7 @@ auto fastq_get_lineno(fastx_handle input_handle) -> uint64_t;
 auto fastq_get_seqno(fastx_handle input_handle) -> uint64_t;
 auto fastq_get_header(fastx_handle input_handle) -> char const *;
 auto fastq_get_sequence(fastx_handle input_handle) -> char const *;
-auto fastq_get_quality(fastx_handle input_handle) -> char *;
+auto fastq_get_quality(fastx_handle input_handle) -> char const *;
 auto fastq_get_abundance(fastx_handle input_handle) -> int64_t;
 auto fastq_get_abundance_and_presence(fastx_handle input_handle) -> int64_t;
 auto fastq_get_header_length(fastx_handle input_handle) -> uint64_t;

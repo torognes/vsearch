@@ -450,7 +450,7 @@ auto fastq_next(fastx_handle input_handle,
 }
 
 
-auto fastq_get_quality(fastx_handle input_handle) -> char *
+auto fastq_get_quality(fastx_handle input_handle) -> char const *
 {
   return input_handle->quality_buffer.data;
 }

@@ -736,7 +736,7 @@ auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_get_quality(fastx_handle input_handle) -> char *
+auto fastx_get_quality(fastx_handle input_handle) -> char const *
 {
   if (input_handle->is_fastq)
     {

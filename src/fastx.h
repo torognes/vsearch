@@ -141,7 +141,7 @@ auto fastx_get_sequence(fastx_handle input_handle) -> char const *;
 auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t;
 
-auto fastx_get_quality(fastx_handle input_handle) -> char *;
+auto fastx_get_quality(fastx_handle input_handle) -> char const *;
 auto fastx_get_abundance(fastx_handle input_handle) -> int64_t;
 
 auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t;

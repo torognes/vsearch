@@ -176,7 +176,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       ++seq_count;
 
       int64_t const len = fastq_get_sequence_length(h);
-      char * q = fastq_get_quality(h);
+      char const * q = fastq_get_quality(h);
 
       /* update length statistics */
 

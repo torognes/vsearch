@@ -463,7 +463,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       auto * seq = fastx_get_sequence(input_handle);
       auto const * header = fastx_get_header(input_handle);
       auto const headerlen = fastx_get_header_length(input_handle);
-      auto * qual = fastx_get_quality(input_handle); // nullptr if FASTA
+      auto const * qual = fastx_get_quality(input_handle); // nullptr if FASTA
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
