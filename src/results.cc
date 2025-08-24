@@ -921,8 +921,25 @@ auto results_show_samout(std::FILE * output_handle,
 
   */
 
-  if (hitcount > 0)
-    {
+  if (hitcount == 0) {
+    if (opt_output_no_hits != 0) {
+      fprintf(output_handle,
+              "%s\t%u\t%s\t%" PRIu64 "\t%u\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
+              query_head,
+              0x04,
+              "*",
+              (uint64_t) 0,
+              255,
+              "*",
+              "*",
+              (uint64_t) 0,
+              (uint64_t) 0,
+              qsequence,
+              "*");
+    }
+    return;
+  }
+
       auto const top_hit_id = hits[0].id;
 
       for (auto t = 0; t < hitcount; t++)
@@ -974,23 +991,6 @@ auto results_show_samout(std::FILE * output_handle,
                   md.c_str(),
                   "UU");
         }
-    }
-  else if (opt_output_no_hits != 0)
-    {
-      fprintf(output_handle,
-              "%s\t%u\t%s\t%" PRIu64 "\t%u\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
-              query_head,
-              0x04,
-              "*",
-              (uint64_t) 0,
-              255,
-              "*",
-              "*",
-              (uint64_t) 0,
-              (uint64_t) 0,
-              qsequence,
-              "*");
-    }
 }
 
 
