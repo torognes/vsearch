@@ -98,6 +98,36 @@ namespace {
     };
 
 
+  const std::vector<unsigned int> chrmap_mask_ambig =
+    {
+      /*
+        Should character be masked and not used for search ?
+        Mask everything but A, C, G, T and U.
+        Lower case letters are NOT masked.
+
+        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+      */
+
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  0,  1,  0,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  0,  1,  0,  1,  1,  1,  0,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  0,  0,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
+    };
+
+
 }  // end of anonymous namespace
 
 
@@ -282,6 +312,19 @@ auto map_4bit(char const nucleotide) -> unsigned char {
 auto map_complement(char const nucleotide) -> char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return static_cast<char>(chrmap_complement[unsigned_nucleotide]);
+}
+
+
+auto map_mask_ambig(char const nucleotide) -> unsigned int {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return chrmap_mask_ambig[unsigned_nucleotide];
+}
+
+
+// refactoring: eliminate if possible
+auto map_mask_ambig(int const nucleotide) -> unsigned int {
+  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
+  return chrmap_mask_ambig[unsigned_nucleotide];
 }
 
 
