@@ -65,6 +65,7 @@
 #include "tax.h"
 #include "userfields.h"
 #include "utils/cigar.hpp"
+#include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include "utils/taxonomic_fields.h"
 #include "xstring.h"
@@ -794,7 +795,7 @@ auto build_sam_strings(char * alignment,
 
           for (auto i = 0; i < run; i++)
             {
-              if (nucleotide_equal(queryseq[qpos], targetseq[tpos]))
+              if (is_same_4bit(queryseq[qpos], targetseq[tpos]))
                 {
                   ++matched;
                 }
