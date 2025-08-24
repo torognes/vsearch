@@ -951,9 +951,6 @@ auto results_show_samout(std::FILE * output_handle,
           break;
         }
 
-      /*
-
-       */
 
       xstring cigar;
       xstring md;
