@@ -77,7 +77,6 @@ extern unsigned int chrmap_2bit[byte_capacity];
 extern unsigned int chrmap_4bit[byte_capacity];
 extern unsigned int chrmap_mask_ambig[byte_capacity];
 extern unsigned int chrmap_mask_lower[byte_capacity];
-extern const unsigned char chrmap_complement[byte_capacity];
 extern const unsigned char chrmap_normalize[byte_capacity];
 extern const unsigned char chrmap_upcase[byte_capacity];
 extern const unsigned char chrmap_no_change[byte_capacity];
