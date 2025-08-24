@@ -67,7 +67,8 @@ auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
     return 0;
   }
 
-  while ((length-- > 0) and (is_same_4bit(*lhs, *rhs))) {
+  while ((length > 0) and (is_same_4bit(*lhs, *rhs))) {
+    --length;
     if ((length == 0) or (*lhs == '\0') or (*rhs == '\0')) {
       break;
     }
