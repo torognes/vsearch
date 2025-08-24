@@ -62,6 +62,13 @@
 #include <vector>
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+}  // end of anonymous namespace
+
+
 const std::vector<unsigned char> chrmap_no_change_vector = {
     /*
 
