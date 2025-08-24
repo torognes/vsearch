@@ -62,6 +62,7 @@
 #include "city.h"
 #include "maps.h"
 #include "utils/kmer_hash_struct.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::max
 #include <vector>
 
@@ -178,7 +179,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[chrmap_complement[nucleotide]];
+      kmer |= chrmap_2bit[static_cast<int>(map_complement(nucleotide))];
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -254,7 +255,7 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[chrmap_complement[nucleotide]];
+      kmer |= chrmap_2bit[static_cast<int>(map_complement(nucleotide))];
       kmer &= kmer_mask;
 
       if (bad == 0U)
