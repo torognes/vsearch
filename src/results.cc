@@ -745,7 +745,7 @@ auto results_show_alnout(std::FILE * output_handle,
 }
 
 
-auto inline nucleotide_equal(char lhs, char rhs) -> bool
+auto inline nucleotide_equal(char const lhs, char const rhs) -> bool
 {
   return chrmap_4bit[(int) lhs] == chrmap_4bit[(int) rhs];
 }
