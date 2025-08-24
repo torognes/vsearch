@@ -66,36 +66,36 @@
 namespace {
 
 
-const std::vector<unsigned char> chrmap_complement_vector =
-  {
-    /*
+  const std::vector<unsigned char> chrmap_complement_vector =
+    {
+      /*
 
-      Map from ascii to ascii, complementary nucleotide
+        Map from ascii to ascii, complementary nucleotide
 
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
+        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
+        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
+      */
 
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
 
-    'N','T','V','G','H','N','N','C','D','N','N','M','N','K','N','N',
-    'N','N','Y','S','A','A','B','W','N','R','N','N','N','N','N','N',
-    'N','t','v','g','h','N','N','c','d','N','N','m','N','k','n','N',
-    'N','N','y','s','a','a','b','w','N','r','N','N','N','N','N','N',
+      'N','T','V','G','H','N','N','C','D','N','N','M','N','K','N','N',
+      'N','N','Y','S','A','A','B','W','N','R','N','N','N','N','N','N',
+      'N','t','v','g','h','N','N','c','d','N','N','m','N','k','n','N',
+      'N','N','y','s','a','a','b','w','N','r','N','N','N','N','N','N',
 
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
 
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
+    };
 
 
 }  // end of anonymous namespace
