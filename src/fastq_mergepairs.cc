@@ -63,6 +63,7 @@
 #include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
+#include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
@@ -655,7 +656,7 @@ auto merge(merge_data_t & a_read_pair) -> void
   while ((fwd_pos < a_read_pair.fwd_trunc) and (rev_pos >= 0))
     {
       fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
-      rev_sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
+      rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
       fwd_qual = a_read_pair.fwd_quality[fwd_pos];
       rev_qual = a_read_pair.rev_quality[rev_pos];
 
@@ -690,7 +691,7 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   while (rev_pos >= 0)
     {
-      sym = chrmap_complement[(int) (a_read_pair.rev_sequence[rev_pos])];
+      sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
       qual = a_read_pair.rev_quality[rev_pos];
 
       a_read_pair.merged_sequence[merged_pos] = sym;
