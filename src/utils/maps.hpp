@@ -82,6 +82,8 @@ auto map_mask_ambig(char nucleotide) -> unsigned int;
 
 auto map_mask_lower(char nucleotide) -> unsigned int;
 
+auto is_equivalent_4bit(char lhs, char rhs) -> bool;
+
 auto is_equivalent_4bit_rhs(char lhs, char rhs) -> bool;
 
 auto is_ambiguous_4bit(unsigned char nucleotide) -> bool;
