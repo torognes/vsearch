@@ -59,10 +59,10 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "mask.h"
 #include "otutable.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -438,7 +438,7 @@ auto search_exact_thread_run(int64_t t) -> void
     {
       xpthread_mutex_lock(&mutex_input);
 
-      if (fastx_next(query_fastx_h, (opt_notrunclabels == 0), chrmap_no_change))
+      if (fastx_next(query_fastx_h, (opt_notrunclabels == 0), chrmap_no_change_vector.data()))
         {
           char const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = fastx_get_header_length(query_fastx_h);
