@@ -60,15 +60,15 @@
 
 #include "maps.hpp"
 #include <cassert>
+#include <cstdint>  // uint64_t
 #include <iterator>
 
 
 // Find first position with a difference, if any. Return 0 for
 // identical sequences, -1 if lhs is sorted first (lower
 // alpha-sorting), +1 if rhs is sorted first.
-auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
-  assert(length >= 0);
-  if (length <= 0) {
+auto seqcmp(char const * lhs, char const * rhs, uint64_t length) -> int {
+  if (length == 0) {
     return 0;
   }
 
@@ -82,4 +82,21 @@ auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
   }
 
   return static_cast<int>(map_4bit(*lhs) - map_4bit(*rhs));
+}
+
+
+auto seqcmp(char const * lhs, char const * rhs, unsigned int length) -> int {
+  return seqcmp(lhs, rhs, static_cast<uint64_t>(length));
+}
+
+
+auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
+  assert(length >= 0);
+  return seqcmp(lhs, rhs, static_cast<uint64_t>(length));
+}
+
+
+auto seqcmp(char const * lhs, char const * rhs, int64_t length) -> int {
+  assert(length >= 0);
+  return seqcmp(lhs, rhs, static_cast<uint64_t>(length));
 }
