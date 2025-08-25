@@ -255,11 +255,10 @@ auto _mm_print2(VECTOR_SHORT x) -> void
 
 auto dprofile_dump16(CELL * dprofile) -> void
 {
-  char * s = sym_nt_4bit;
   printf("\ndprofile:\n");
   for (int i = 0; i < matrix_size; i++)
     {
-      printf("%c: ", s[i]);
+      printf("%c: ", sym_nt_4bit[i]);
       for (int k = 0; k < CDEPTH; k++)
         {
           printf("[");
