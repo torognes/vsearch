@@ -73,6 +73,7 @@ static uint64_t dbhash_mask;
 std::vector<struct dbhash_bucket_s> dbhash_table;
 
 
+// refactoring: almost identical to /utils/seqcmp.cc
 auto dbhash_seqcmp(char const * a, char const * b, uint64_t n) -> int
 {
   char const * p = a;
