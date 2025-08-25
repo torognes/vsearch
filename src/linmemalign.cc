@@ -167,7 +167,7 @@ auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> vo
     auto const row = map_4bit(row_nuc);
     for (auto const column_nuc : nucleotides) {
       auto const column = map_4bit(column_nuc);
-      if (is_ambiguous_4bit[row] or is_ambiguous_4bit[column]) {
+      if (is_ambiguous_4bit(row) or is_ambiguous_4bit(column)) {
         continue;  // then score is 0; already zero-initialized
       }
       if (row == column) { // diagonal

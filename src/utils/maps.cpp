@@ -179,6 +179,26 @@ namespace {
     };
 
 
+  const std::vector<bool> chrmap_ambiguous_4bit = {
+    true,
+    false,  // Aa
+    false,  // Cc
+    true,
+    false,  // Gg
+    true,
+    true,
+    true,
+    false,  // TtUu
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  };
+
+
   const std::vector<unsigned int> chrmap_mask_ambig =
     {
       /*
@@ -343,26 +363,6 @@ const std::vector<unsigned char> chrmap_upcase_vector =
   };
 
 
-const std::vector<bool> is_ambiguous_4bit = {
-  true,
-  false,  // Aa
-  false,  // Cc
-  true,
-  false,  // Gg
-  true,
-  true,
-  true,
-  false,  // TtUu
-  true,
-  true,
-  true,
-  true,
-  true,
-  true,
-  true
-};
-
-
 auto map_uppercase(char const nucleotide) -> char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);
@@ -405,6 +405,10 @@ auto is_equivalent_4bit_rhs(char const lhs, char const rhs) -> bool {
   return ((lhs_unsigned & rhs_unsigned) != 0);
 }
 
+
+auto is_ambiguous_4bit(unsigned char const nucleotide) -> bool {
+  return chrmap_ambiguous_4bit[nucleotide];
+}
 
 auto is_same_4bit(char const lhs, char const rhs) -> bool {
   return map_4bit(lhs) == map_4bit(rhs);

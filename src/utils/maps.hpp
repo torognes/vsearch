@@ -70,8 +70,6 @@ extern const std::vector<unsigned char> chrmap_normalize_vector;
 
 extern const std::vector<unsigned char> chrmap_upcase_vector;
 
-extern const std::vector<bool> is_ambiguous_4bit;
-
 auto map_uppercase(char nucleotide) -> char;
 
 auto map_2bit(char nucleotide) -> unsigned int;
@@ -85,6 +83,8 @@ auto map_mask_ambig(char nucleotide) -> unsigned int;
 auto map_mask_lower(char nucleotide) -> unsigned int;
 
 auto is_equivalent_4bit_rhs(char lhs, char rhs) -> bool;
+
+auto is_ambiguous_4bit(unsigned char nucleotide) -> bool;
 
 auto is_same_4bit(char lhs, char rhs) -> bool;
 

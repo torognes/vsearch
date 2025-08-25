@@ -119,7 +119,7 @@ namespace {
     if (opt_n_mismatch and ((query_coded == is_N) or (target_coded == is_N))) {
       return ' ';  // N are mismatches
     }
-    if ((query_coded == target_coded) and not is_ambiguous_4bit[query_coded]) {
+    if ((query_coded == target_coded) and not is_ambiguous_4bit(query_coded)) {
       return '|';  // a perfect match
     }
     if ((query_coded & target_coded) != 0U) {

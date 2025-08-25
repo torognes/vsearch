@@ -1164,9 +1164,9 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
         }
 
       /* ignore ambiguous symbols */
-      if (is_ambiguous_4bit[qsym] or
-          is_ambiguous_4bit[p1sym] or
-          is_ambiguous_4bit[p2sym])
+      if (is_ambiguous_4bit(qsym) or
+          is_ambiguous_4bit(p1sym) or
+          is_ambiguous_4bit(p2sym))
         {
           ci->ignore[i] = true;
         }
