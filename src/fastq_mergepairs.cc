@@ -1007,9 +1007,9 @@ auto process(merge_data_t & a_read_pair,
 
 auto read_pair(merge_data_t & a_read_pair) -> bool
 {
-  if (fastq_next(fastq_fwd, false, chrmap_upcase))
+  if (fastq_next(fastq_fwd, false, chrmap_upcase_vector.data()))
     {
-      if (not fastq_next(fastq_rev, false, chrmap_upcase))
+      if (not fastq_next(fastq_rev, false, chrmap_upcase_vector.data()))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -1622,7 +1622,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  if (fastq_next(fastq_rev, true, chrmap_upcase))
+  if (fastq_next(fastq_rev, true, chrmap_upcase_vector.data()))
     {
       fatal("More reverse reads than forward reads");
     }
