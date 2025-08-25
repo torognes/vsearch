@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::signbit
@@ -404,9 +404,9 @@ auto filter(bool const fastq_only, char * filename) -> void
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  while (fastx_next(forward_handle, false, chrmap_no_change))
+  while (fastx_next(forward_handle, false, chrmap_no_change_vector.data()))
     {
-      if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change))
+      if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
         {
           fatal("More forward reads than reverse reads");
         }
@@ -570,7 +570,7 @@ auto filter(bool const fastq_only, char * filename) -> void
 
   progress_done();
 
-  if ((reverse_handle != nullptr) and fastx_next(reverse_handle, false, chrmap_no_change))
+  if ((reverse_handle != nullptr) and fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
     {
       fatal("More reverse reads than forward reads");
     }
