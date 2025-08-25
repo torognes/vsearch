@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "bitmap.h"
 #include "utils/maps.hpp"
+#include "utils/seqcmp.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // std::memset
 #include <vector>
@@ -141,7 +142,7 @@ auto dbhash_search_first(char * seq,
          and
          ((bp->hash != hash) or
           (seqlen != db_getsequencelen(bp->seqno)) or
-          (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
+          (seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
       bp = &dbhash_table[index];
@@ -169,7 +170,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
          and
          ((bp->hash != hash) or
           (seqlen != db_getsequencelen(bp->seqno)) or
-          (dbhash_seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
+          (seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
       bp = &dbhash_table[index];
