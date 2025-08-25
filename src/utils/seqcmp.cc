@@ -59,6 +59,7 @@
 */
 
 #include "maps.hpp"
+#include <cassert>
 #include <iterator>
 
 
@@ -66,6 +67,7 @@
 // identical sequences, -1 if lhs is sorted first (lower
 // alpha-sorting), +1 if rhs is sorted first.
 auto seqcmp(char const * lhs, char const * rhs, int length) -> int {
+  assert(length >= 0);
   if (length <= 0) {
     return 0;
   }
