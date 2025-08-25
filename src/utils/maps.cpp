@@ -66,7 +66,7 @@
 namespace {
 
 
-  const std::vector<unsigned char> chrmap_4bit_vector =
+  const std::vector<unsigned char> chrmap_4bit =
     {
       /*
         Map from ascii to 4-bit nucleotide code
@@ -377,7 +377,7 @@ auto map_2bit(char const nucleotide) -> unsigned int {
 
 auto map_4bit(char const nucleotide) -> unsigned char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return chrmap_4bit_vector[unsigned_nucleotide];
+  return chrmap_4bit[unsigned_nucleotide];
 }
 
 
