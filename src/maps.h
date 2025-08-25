@@ -70,7 +70,6 @@ extern char sym_nt_4bit[four_bit_capacity + 1];
 extern unsigned int char_fasta_action[byte_capacity];
 extern unsigned int char_fq_action_seq[byte_capacity];
 extern unsigned int char_fq_action_qual[byte_capacity];
-extern const unsigned char chrmap_no_change[byte_capacity];
 extern const unsigned char chrmap_identity[byte_capacity];
 
 #endif // MAPS_H
