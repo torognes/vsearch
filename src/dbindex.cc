@@ -63,6 +63,7 @@
 #include "dbindex.h"
 #include "maps.h"
 #include "unique.h"
+#include <array>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::memset
@@ -121,6 +122,7 @@ auto dbindex_getcount() -> unsigned int
 
 auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint64_t const kmer) -> void
 {
+  static constexpr std::array<char, 4> sym_nt_2bit = {{'A', 'C', 'G', 'T'}};
   for (auto i = 0U; i < kmer_length; ++i)
     {
       std::fprintf(output_handle, "%c", sym_nt_2bit[(kmer >> (2 * (kmer_length - i - 1))) & 3]);
