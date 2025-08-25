@@ -78,19 +78,13 @@ auto map_uppercase(char nucleotide) -> char;
 
 auto map_2bit(char nucleotide) -> unsigned int;
 
-auto map_2bit(int nucleotide) -> unsigned int;
-
 auto map_4bit(char nucleotide) -> unsigned char;
 
 auto map_complement(char nucleotide) -> char;
 
 auto map_mask_ambig(char nucleotide) -> unsigned int;
 
-auto map_mask_ambig(int nucleotide) -> unsigned int;
-
 auto map_mask_lower(char nucleotide) -> unsigned int;
-
-auto map_mask_lower(int nucleotide) -> unsigned int;
 
 auto is_same_4bit(char lhs, char rhs) -> bool;
 

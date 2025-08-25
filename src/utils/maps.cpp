@@ -375,12 +375,6 @@ auto map_2bit(char const nucleotide) -> unsigned int {
 }
 
 
-auto map_2bit(int const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned int>(nucleotide);
-  return chrmap_2bit[unsigned_nucleotide];
-}
-
-
 auto map_4bit(char const nucleotide) -> unsigned char {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
   return chrmap_4bit_vector[unsigned_nucleotide];
@@ -399,22 +393,8 @@ auto map_mask_ambig(char const nucleotide) -> unsigned int {
 }
 
 
-// refactoring: eliminate if possible
-auto map_mask_ambig(int const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned int>(nucleotide);
-  return chrmap_mask_ambig[unsigned_nucleotide];
-}
-
-
 auto map_mask_lower(char const nucleotide) -> unsigned int {
   auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return chrmap_mask_lower[unsigned_nucleotide];
-}
-
-
-// refactoring: eliminate if possible
-auto map_mask_lower(int const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned int>(nucleotide);
   return chrmap_mask_lower[unsigned_nucleotide];
 }
 
