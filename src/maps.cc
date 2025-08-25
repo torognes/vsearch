@@ -167,38 +167,6 @@ unsigned int char_fq_action_qual[256] =
   };
 
 
-const unsigned char chrmap_upcase[256] =
-  {
-    /*
-
-      Map from ascii to ascii
-      Convert to upper case nucleotide
-
-     @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-     P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-    */
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
-    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
-    'N','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
-    'P','Q','R','S','T','U','V','W','X','Y','Z','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
-
 const unsigned char chrmap_no_change[256] =
   {
     /*
