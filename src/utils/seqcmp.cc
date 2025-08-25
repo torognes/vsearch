@@ -59,29 +59,36 @@
 */
 
 #include "maps.hpp"
+#include "span.hpp"
 #include <cassert>
 #include <cstdint>  // uint64_t
-#include <iterator>
 
+
+// refactoring: with std::mismatch()? having to check if == '\0' breaks the flow
 
 // Find first position with a difference, if any. Return 0 for
 // identical sequences, -1 if lhs is sorted first (lower
 // alpha-sorting), +1 if rhs is sorted first.
-auto seqcmp(char const * lhs, char const * rhs, uint64_t length) -> int {
-  if (length == 0) {
-    return 0;
-  }
-
-  while ((length > 0) and (is_same_4bit(*lhs, *rhs))) {
-    --length;
-    if ((length == 0) or (*lhs == '\0') or (*rhs == '\0')) {
+auto seqcmp(char const * lhs, char const * rhs, uint64_t const length) -> int {
+  auto const lhs_seq = Span<char>{lhs, length};
+  auto const rhs_seq = Span<char>{rhs, length};
+  for (auto lhs_it = lhs_seq.cbegin(), rhs_it = rhs_seq.cbegin();
+       lhs_it < lhs_seq.cend() and rhs_it < rhs_seq.cend();
+       ++lhs_it, ++rhs_it) {
+    if ((*lhs_it == '\0') or (*rhs_it == '\0')) {
       break;
     }
-    std::advance(lhs, 1);
-    std::advance(rhs, 1);
+    auto const lhs_nuc = map_4bit(*lhs_it);
+    auto const rhs_nuc = map_4bit(*rhs_it);
+    if (lhs_nuc < rhs_nuc) {
+      return -1;
+    }
+    if (lhs_nuc > rhs_nuc) {
+      return +1;
+    }
   }
 
-  return static_cast<int>(map_4bit(*lhs) - map_4bit(*rhs));
+  return 0;
 }
 
 
