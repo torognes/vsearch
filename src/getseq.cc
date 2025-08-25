@@ -62,9 +62,9 @@
    https://drive5.com/usearch/manual/cmd_fastx_getseqs.html                  */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
@@ -439,7 +439,7 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
   int64_t kept = 0;
   int64_t discarded = 0;
 
-  while (fastx_next(h1, opt_notrunclabels == 0, chrmap_no_change))
+  while (fastx_next(h1, opt_notrunclabels == 0, chrmap_no_change_vector.data()))
     {
       bool const match = test_label_match(h1);
 
