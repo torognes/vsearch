@@ -72,7 +72,7 @@
 #include <vector>
 
 
-inline auto fastq_get_qual_eestats(char q) -> int
+inline auto fastq_get_qual_eestats(char const q) -> int
 {
   int const qual = q - opt_fastq_ascii;
 
@@ -118,13 +118,13 @@ inline auto fastq_get_qual_eestats(char q) -> int
 }
 
 
-auto q2p(int quality_value) -> double
+auto q2p(int const quality_value) -> double
 {
   static constexpr auto base = 10.0;
   return std::pow(base, -quality_value / base);
 }
 
-auto ee_start(int pos, int resolution) -> int64_t
+auto ee_start(int const pos, int const resolution) -> int64_t
 {
   return pos * (resolution * (pos + 1) + 2) / 2;
 }
