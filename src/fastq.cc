@@ -68,7 +68,7 @@
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
 
 
-auto fastq_fatal(uint64_t lineno, const char * msg) -> void
+auto fastq_fatal(uint64_t const lineno, const char * msg) -> void
 {
   char * string = nullptr;
   if (xsprintf(&string,
@@ -95,7 +95,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
                           struct fastx_buffer_s * dest_buffer,
                           char * source_buf,
                           uint64_t len,
-                          unsigned int * char_action,
+                          unsigned int const * char_action,
                           const unsigned char * char_mapping,
                           bool * ok,
                           char * illegal_char) -> void
