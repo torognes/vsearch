@@ -360,8 +360,8 @@ auto compare_positions(const void * a, const void * b) -> int
 
 
 auto scan_matches(struct chimera_info_s * ci,
-                  int * matches,
-                  int len,
+                  int const * matches,
+                  int const len,
                   double const percentage,
                   int * best_start,
                   int * best_len) -> bool
@@ -2210,7 +2210,7 @@ auto chimera_threads_run() -> void
 }
 
 
-auto open_chimera_file(std::FILE ** output_stream, char * name) -> void
+auto open_chimera_file(std::FILE ** output_stream, char const * name) -> void
 {
   if (name != nullptr)
     {
