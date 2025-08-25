@@ -248,7 +248,7 @@ File | Description
 **util.cc** | Various common utility functions
 **vsearch.cc** | Main program file, general initialization, reads arguments and parses options, writes info.
 **utils/maps.cc** | Utilities, maps for encoding of nucleotides
-**utils/seqcmp.cc** | Utilities, sequence comparison
+**utils/seqcmp.cpp** | Utilities, sequence comparison
 
 VSEARCH may be compiled with zlib or bzip2 integration that allows it to read compressed FASTA files. The [zlib](http://www.zlib.net/) and the [bzip2](https://www.sourceware.org/bzip2/) libraries are needed for this.
 

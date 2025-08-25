@@ -65,7 +65,7 @@
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
-#include "utils/seqcmp.h"
+#include "utils/seqcmp.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

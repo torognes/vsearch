@@ -115,7 +115,7 @@ utils/kmer_hash_struct.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
 utils/progress.hpp \
-utils/seqcmp.h \
+utils/seqcmp.hpp \
 utils/span.hpp \
 utils/taxonomic_fields.h \
 utils/xpthread.hpp \
@@ -215,5 +215,5 @@ utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
 utils/xpthread.cpp \
-utils/seqcmp.cc \
+utils/seqcmp.cpp \
 vsearch.cc

@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
-#include "utils/seqcmp.h"
+#include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::max, std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64

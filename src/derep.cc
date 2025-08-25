@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
-#include "utils/seqcmp.h"
+#include "utils/seqcmp.hpp"
 #include <algorithm>  // std::count_if, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
