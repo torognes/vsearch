@@ -61,13 +61,13 @@
 #include "vsearch.h"
 #include "align_simd.h"
 #include "dbindex.h"
-#include "maps.h"
 #include "mask.h"
 #include "minheap.h"
 #include "otutable.h"
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -379,7 +379,7 @@ auto search_thread_run(int64_t t) -> void
 
       if (fastx_next(query_fastx_h,
                      (opt_notrunclabels == 0),
-                     chrmap_no_change))
+                     chrmap_no_change_vector.data()))
         {
           char const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = fastx_get_header_length(query_fastx_h);
