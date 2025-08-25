@@ -284,6 +284,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
+// refactoring: almost identical to /utils/seqcmp.cc
 auto seqncmp(char const * a, char const * b, uint64_t const n) -> int
 {
   for (auto i = 0U; i < n; i++)
