@@ -60,11 +60,11 @@
 
 #include "vsearch.h"
 #include "dbindex.h"
-#include "maps.h"
 #include "mask.h"
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
@@ -220,7 +220,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   while (fastx_next(query_h,
                     (opt_notrunclabels == 0),
-                    chrmap_no_change))
+                    chrmap_no_change_vector.data()))
     {
       char const * query_head = fastx_get_header(query_h);
       int const query_head_len = fastx_get_header_length(query_h);
