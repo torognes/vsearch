@@ -62,9 +62,11 @@
 #include "city.h"
 #include "maps.h"
 #include "mask.h"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::min
 #include <cstdint> // uint64_t
 #include <cstring>  // std::memset
+#include <functional>  // std::function
 
 
 /*
@@ -208,17 +210,16 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  // refactoring: references to function overloads?
-  auto * maskmap = (seqmask != MASK_NONE) ?
-    chrmap_mask_lower : chrmap_mask_ambig;
+  std::function<unsigned int(char)> maskmap = (seqmask != MASK_NONE) ?
+    map_mask_lower : map_mask_ambig;
 
   while (s < e1)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int) (*s)];
+      bad |= maskmap(*s);
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s)];
+      kmer |= map_2bit(*s);
       ++s;
     }
 
@@ -227,11 +228,11 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   while (s < e2)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int) (*s)];
+      bad |= maskmap(*s);
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s)];
+      kmer |= map_2bit(*s);
       ++s;
       kmer &= mask;
 
@@ -296,16 +297,16 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  auto * maskmap = (seqmask != MASK_NONE) ?
-    chrmap_mask_lower : chrmap_mask_ambig;
+  std::function<unsigned int(char)> maskmap = (seqmask != MASK_NONE) ?
+    map_mask_lower : map_mask_ambig;
 
   while (s < e1)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int) (*s)];
+      bad |= maskmap(*s);
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s)];
+      kmer |= map_2bit(*s);
       ++s;
     }
 
@@ -314,11 +315,11 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   while (s < e2)
     {
       bad <<= 2ULL;
-      bad |= maskmap[(int) (*s)];
+      bad |= maskmap(*s);
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= chrmap_2bit[(int) (*s)];
+      kmer |= map_2bit(*s);
       ++s;
       kmer &= mask;
 
