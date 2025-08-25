@@ -66,8 +66,6 @@
 
 extern const std::vector<unsigned char> chrmap_no_change_vector;
 
-extern const std::vector<unsigned char> chrmap_4bit_vector;
-
 extern const std::vector<unsigned char> chrmap_normalize_vector;
 
 extern const std::vector<unsigned char> chrmap_upcase_vector;
