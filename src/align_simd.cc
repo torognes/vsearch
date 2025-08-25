@@ -1141,7 +1141,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          else if ((ambiguous_4bit[i] != 0U) or (ambiguous_4bit[j] != 0U))
+          else if (is_ambiguous_4bit(i) or is_ambiguous_4bit(j))
             {
               value = 0;
             }
