@@ -73,7 +73,6 @@ extern unsigned int ambiguous_4bit[four_bit_capacity];
 extern unsigned int char_fasta_action[byte_capacity];
 extern unsigned int char_fq_action_seq[byte_capacity];
 extern unsigned int char_fq_action_qual[byte_capacity];
-extern unsigned int chrmap_2bit[byte_capacity];
 extern unsigned int chrmap_4bit[byte_capacity];
 extern unsigned int chrmap_mask_ambig[byte_capacity];
 extern unsigned int chrmap_mask_lower[byte_capacity];
