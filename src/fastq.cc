@@ -93,10 +93,10 @@ auto fastq_fatal(uint64_t const lineno, const char * msg) -> void
 
 auto buffer_filter_extend(fastx_handle input_handle,
                           struct fastx_buffer_s * dest_buffer,
-                          char * source_buf,
-                          uint64_t len,
+                          char const * source_buf,
+                          uint64_t const len,
                           unsigned int const * char_action,
-                          const unsigned char * char_mapping,
+                          unsigned char const * char_mapping,
                           bool * ok,
                           char * illegal_char) -> void
 {
@@ -105,7 +105,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
   /* Strip unwanted characters from the string and raise warnings or
      errors on certain characters. */
 
-  auto * p = source_buf;
+  auto const * p = source_buf;
   auto * d = dest_buffer->data + dest_buffer->length;
   auto * q = d;
   *ok = true;
