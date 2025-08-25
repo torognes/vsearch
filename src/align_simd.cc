@@ -289,7 +289,7 @@ auto dumpscorematrix(CELL const * score_matrix) -> void
 
 auto dprofile_fill16(CELL * dprofile_word,
                      CELL * score_matrix_word,
-                     BYTE * dseq) -> void
+                     BYTE const * dseq) -> void
 {
 #if 0
   dumpscorematrix(score_matrix_word);
