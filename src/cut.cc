@@ -376,9 +376,7 @@ namespace {
   auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
     auto pattern = remove_restriction_sites(std::move(raw_pattern));
     auto encode_characters = [](char const & character) -> char {
-      auto const symbol_uchar = static_cast<unsigned char>(character);
-      auto const coded_symbol_uchar = chrmap_4bit_vector[symbol_uchar];
-      return static_cast<char>(coded_symbol_uchar);
+      return map_4bit(character);
     };
     std::transform(pattern.cbegin(), pattern.cend(),
                    pattern.begin(), encode_characters);
