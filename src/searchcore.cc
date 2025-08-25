@@ -65,7 +65,6 @@
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
-#include "utils/maps.hpp"
 #include "utils/seqcmp.h"
 #include <algorithm>  // std::min, std::max
 #include <array>
