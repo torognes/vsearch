@@ -62,6 +62,7 @@
 #include "align_simd.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
@@ -1040,10 +1041,10 @@ auto backtrack16(s16info_s * s,
         }
       else
         {
-          if ((chrmap_4bit[(int) (qseq[i])] & chrmap_4bit[(int) (dseq[j])]) != 0U)
+          if (is_equivalent_4bit(qseq[i], dseq[j]))
             {
-              if (opt_n_mismatch && ((chrmap_4bit[(int)(qseq[i])] == 15) ||
-                                     (chrmap_4bit[(int)(dseq[j])] == 15)))
+              if (opt_n_mismatch && ((map_4bit(qseq[i]) == 15) ||
+                                     (map_4bit(dseq[j]) == 15)))
                 {
                   ++mismatches;
                 }
@@ -1237,7 +1238,7 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
 
   for (int i = 0; i < qlen; i++)
     {
-      s->qtable[i] = s->dprofile + (4 * chrmap_4bit[(int) (qseq[i])]);
+      s->qtable[i] = s->dprofile + (4 * map_4bit(qseq[i]));
     }
 }
 
@@ -1481,7 +1482,7 @@ auto search16(s16info_s * s,
                 {
                   if (d_begin[c] < d_end[c])
                     {
-                      dseq[(CHANNELS * j) + c] = chrmap_4bit[*(d_begin[c]++)];
+                      dseq[(CHANNELS * j) + c] = map_4bit(*(d_begin[c]++));
                     }
                   else
                     {
@@ -1588,7 +1589,7 @@ auto search16(s16info_s * s,
                     {
                       if (d_begin[c] < d_end[c])
                         {
-                          dseq[(CHANNELS * j) + c] = chrmap_4bit[*(d_begin[c]++)];
+                          dseq[(CHANNELS * j) + c] = map_4bit(*(d_begin[c]++));
                         }
                       else
                         {
@@ -1698,7 +1699,7 @@ auto search16(s16info_s * s,
                           if (d_begin[c] < d_end[c])
                             {
                               dseq[(CHANNELS * j) + c] =
-                                chrmap_4bit[*(d_begin[c]++)];
+                                map_4bit(*(d_begin[c]++));
                             }
                           else
                             {
