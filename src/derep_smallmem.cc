@@ -60,8 +60,8 @@
 
 #include "vsearch.h"
 #include "city.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 // #include "util.h"  // hash_cityhash128, Uint128Low64
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -302,7 +302,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* first pass */
 
-  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
     {
       int64_t const seqlen = fastx_get_sequence_length(h);
 
@@ -550,7 +550,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   uint64_t selected = 0;
 
-  while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
     {
       int64_t const seqlen = fastx_get_sequence_length(h2);
 
