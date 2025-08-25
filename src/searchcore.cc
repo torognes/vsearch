@@ -66,6 +66,7 @@
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -289,8 +290,8 @@ auto seqncmp(char const * a, char const * b, uint64_t const n) -> int
 {
   for (auto i = 0U; i < n; i++)
     {
-      auto const x = chrmap_4bit[(int)(a[i])];
-      auto const y = chrmap_4bit[(int)(b[i])];
+      auto const x = map_4bit(a[i]);
+      auto const y = map_4bit(b[i]);
       if (x < y)
         {
           return -1;
