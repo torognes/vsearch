@@ -73,10 +73,10 @@ static uint64_t dbhash_mask;
 std::vector<struct dbhash_bucket_s> dbhash_table;
 
 
-auto dbhash_seqcmp(char * a, char * b, uint64_t n) -> int
+auto dbhash_seqcmp(char const * a, char const * b, uint64_t n) -> int
 {
-  char * p = a;
-  char * q = b;
+  char const * p = a;
+  char const * q = b;
 
   if (n <= 0)
     {
