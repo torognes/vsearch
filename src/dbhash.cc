@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "bitmap.h"
 #include "maps.h"
+#include "utils/maps.hpp"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // std::memset
 #include <vector>
@@ -84,7 +85,7 @@ auto dbhash_seqcmp(char const * a, char const * b, uint64_t n) -> int
       return 0;
     }
 
-  while ((n-- > 0) and (chrmap_4bit[(int) (*p)] == chrmap_4bit[(int) (*q)]))
+  while ((n-- > 0) and is_same_4bit(*p, *q))
     {
       if ((n == 0) or (*p == 0) or (*q == 0))
         {
@@ -94,7 +95,7 @@ auto dbhash_seqcmp(char const * a, char const * b, uint64_t n) -> int
       ++q;
     }
 
-  return chrmap_4bit[(int) (*p)] - chrmap_4bit[(int) (*q)];
+  return static_cast<int>(map_4bit(*p) - map_4bit(*q));
 }
 
 
