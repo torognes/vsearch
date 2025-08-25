@@ -70,7 +70,6 @@
   includes both amino acid and nucleotide sequences, adapt to nt only
 */
 
-char sym_nt_2bit[] = "ACGT";
 char sym_nt_4bit[] = "-ACMGRSVTWYHKDBN";
 //                    |    |    |    |
 //                    0....5...10...15

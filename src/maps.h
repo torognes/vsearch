@@ -65,7 +65,6 @@ constexpr auto two_bit_capacity = 4U;
 constexpr auto four_bit_capacity = 16U;
 constexpr auto byte_capacity = 256U;
 
-extern char sym_nt_2bit[two_bit_capacity + 1];
 extern char sym_nt_4bit[four_bit_capacity + 1];
 
 extern unsigned int char_fasta_action[byte_capacity];
