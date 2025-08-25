@@ -63,6 +63,7 @@
 #include "mask.h"
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/xpthread.hpp"
 #include <array>
@@ -99,7 +100,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
   for (auto j = 0; j < len; j++)
     {
       word <<= 2U;
-      word |= chrmap_2bit[(int) (s[j])];
+      word |= map_2bit(s[j]);
       words[j] = word & bitmask;
     }
 
