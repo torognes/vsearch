@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -127,7 +128,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   auto count = 0;
 
-  while (fastx_next(input_handle, false, chrmap_no_change))
+  while (fastx_next(input_handle, false, chrmap_no_change_vector.data()))
     {
       ++count;
 
@@ -240,7 +241,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   std::vector<char> normalized_quality;
   auto n_entries = 1;
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
-  while (fastq_next(input_handle, false, chrmap_no_change))
+  while (fastq_next(input_handle, false, chrmap_no_change_vector.data()))
     {
       /* header */
 
