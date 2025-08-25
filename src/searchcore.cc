@@ -66,6 +66,7 @@
 #include "otutable.h"
 #include "unique.h"
 #include "utils/maps.hpp"
+#include "utils/seqcmp.h"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -284,26 +285,6 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
-// refactoring: almost identical to /utils/seqcmp.cc
-auto seqncmp(char const * a, char const * b, uint64_t const n) -> int
-{
-  for (auto i = 0U; i < n; i++)
-    {
-      auto const x = map_4bit(a[i]);
-      auto const y = map_4bit(b[i]);
-      if (x < y)
-        {
-          return -1;
-        }
-      if (x > y)
-        {
-          return +1;
-        }
-    }
-  return 0;
-}
-
-
 auto align_trim(struct hit * hit) -> void
 {
   /* trim alignment and fill in info */
@@ -474,12 +455,12 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           /* idprefix */
           ((searchinfo.qseqlen >= opt_idprefix) and
            (dseqlen >= opt_idprefix) and
-           (seqncmp(qseq, dseq, opt_idprefix) == 0))
+           (seqcmp(qseq, dseq, opt_idprefix) == 0))
           and
           /* idsuffix */
           ((searchinfo.qseqlen >= opt_idsuffix) and
            (dseqlen >= opt_idsuffix) and
-           (seqncmp(qseq + searchinfo.qseqlen - opt_idsuffix,
+           (seqcmp(qseq + searchinfo.qseqlen - opt_idsuffix,
                     dseq + dseqlen - opt_idsuffix,
                     opt_idsuffix) == 0))
           and
@@ -489,7 +470,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           /* selfid */
           ((opt_selfid == 0) or
            (searchinfo.qseqlen != dseqlen) or
-           (seqncmp(qseq, dseq, searchinfo.qseqlen) != 0))
+           (seqcmp(qseq, dseq, searchinfo.qseqlen) != 0))
           );
 }
 
