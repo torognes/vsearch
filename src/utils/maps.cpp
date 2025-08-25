@@ -399,7 +399,7 @@ auto map_mask_lower(char const nucleotide) -> unsigned int {
 }
 
 
-auto is_equivalent_4bit(char const lhs, char const rhs) -> bool {
+auto is_equivalent_4bit_rhs(char const lhs, char const rhs) -> bool {
   auto const lhs_unsigned = static_cast<unsigned char>(lhs);
   auto const rhs_unsigned = map_4bit(rhs);
   return ((lhs_unsigned & rhs_unsigned) != 0);

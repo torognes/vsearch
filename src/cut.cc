@@ -139,7 +139,7 @@ namespace {
                                       restriction.coded_pattern.cend(),
                                       std::next(seq, i),
                                       [](char const & lhs, char const & rhs) -> bool {
-                                        return is_equivalent_4bit(lhs, rhs);
+                                        return is_equivalent_4bit_rhs(lhs, rhs);
                                       });
 
         if (not match) {
