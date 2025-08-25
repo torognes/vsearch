@@ -86,6 +86,8 @@ auto map_mask_ambig(char nucleotide) -> unsigned int;
 
 auto map_mask_lower(char nucleotide) -> unsigned int;
 
+auto is_equivalent_4bit(char lhs, char rhs) -> bool;
+
 auto is_same_4bit(char lhs, char rhs) -> bool;
 
 #endif // MAPS_HPP
