@@ -194,12 +194,6 @@ unsigned int char_fq_action_qual[256] =
   N = ACGT = 1111 = 15
 */
 
-unsigned int ambiguous_4bit[16] =
-  {
- /* -  A  C  M  G  R  S  V  T  W  Y  H  K  D  B  N */
-    1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1
-  };
-
 unsigned int chrmap_4bit[256] =
   {
     /*
