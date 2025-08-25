@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include "utils/seqcmp.hpp"
 #include <algorithm>  // std::count_if, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -401,7 +401,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   uint64_t maxsize = 0;
   auto average = 0.0;
 
-  while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change))
+  while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
     {
       int64_t const seqlen = fastx_get_sequence_length(input_handle);
 
