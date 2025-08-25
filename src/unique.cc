@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "city.h"
-#include "maps.h"
 #include "mask.h"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min
