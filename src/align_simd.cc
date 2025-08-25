@@ -887,7 +887,7 @@ inline auto pushop(s16info_s * s, char const newop) -> void
 
 inline auto finishop(s16info_s * s) -> void
 {
-  if ((s->op != 0) && (s->opcount != 0))
+  if ((s->op != 0) and (s->opcount != 0))
     {
       *--s->cigarend = s->op;
       if (s->opcount > 1)
@@ -996,7 +996,7 @@ auto backtrack16(s16info_s * s,
   s->op = 0;
   s->opcount = 1;
 
-  while ((i >= 0) && (j >= 0))
+  while ((i >= 0) and (j >= 0))
     {
       ++aligned;
 
@@ -1011,12 +1011,12 @@ auto backtrack16(s16info_s * s,
                                          ((offset + (matrix_size * s->qlen * (j / 4)) +
                                            (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
 
-      if ((s->op == 'I') && ((d & maskextleft) != 0U))
+      if ((s->op == 'I') and ((d & maskextleft) != 0U))
         {
           --j;
           pushop(s, 'I');
         }
-      else if ((s->op == 'D') && ((d & maskextup) != 0U))
+      else if ((s->op == 'D') and ((d & maskextup) != 0U))
         {
           --i;
           pushop(s, 'D');
@@ -1043,7 +1043,7 @@ auto backtrack16(s16info_s * s,
         {
           if (is_equivalent_4bit(qseq[i], dseq[j]))
             {
-              if (opt_n_mismatch && ((map_4bit(qseq[i]) == 15) ||
+              if (opt_n_mismatch and ((map_4bit(qseq[i]) == 15) or
                                      (map_4bit(dseq[j]) == 15)))
                 {
                   ++mismatches;
@@ -1137,7 +1137,7 @@ auto search16_init(CELL score_match,
       for (auto j = 0U; j < matrix_size; j++)
         {
           CELL value = 0;
-          if (opt_n_mismatch && ((i == 15U) || (j == 15U)))
+          if (opt_n_mismatch and ((i == 15U) or (j == 15U)))
             {
               value = opt_mismatch;
             }
@@ -1522,7 +1522,7 @@ auto search16(s16info_s * s,
                   VECTOR_SHORT TT = T0;
                   for (int c = 0; c < CHANNELS; c++)
                     {
-                      if ((d_begin[c] == d_end[c]) &&
+                      if ((d_begin[c] == d_end[c]) and
                           (j >= ((d_length[c] + 3) % 4)))
                         {
                           MM = v_xor(MM, TT);
@@ -1647,7 +1647,7 @@ auto search16(s16info_s * s,
 
                   int64_t length = 0;
 
-                  while ((length == 0) && (next_id < sequences))
+                  while ((length == 0) and (next_id < sequences))
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
@@ -1772,7 +1772,7 @@ auto search16(s16info_s * s,
                   VECTOR_SHORT TT = T0;
                   for (int c = 0; c < CHANNELS; c++)
                     {
-                      if ((d_begin[c] == d_end[c]) &&
+                      if ((d_begin[c] == d_end[c]) and
                           (j >= ((d_length[c] + 3) % 4)))
                         {
                           MM = v_xor(MM, TT);
