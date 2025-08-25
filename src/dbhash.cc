@@ -74,31 +74,6 @@ static uint64_t dbhash_mask;
 std::vector<struct dbhash_bucket_s> dbhash_table;
 
 
-// refactoring: almost identical to /utils/seqcmp.cc
-auto dbhash_seqcmp(char const * a, char const * b, uint64_t n) -> int
-{
-  auto const * p = a;
-  auto const * q = b;
-
-  if (n <= 0)
-    {
-      return 0;
-    }
-
-  while ((n-- > 0) and is_same_4bit(*p, *q))
-    {
-      if ((n == 0) or (*p == 0) or (*q == 0))
-        {
-          break;
-        }
-      ++p;
-      ++q;
-    }
-
-  return static_cast<int>(map_4bit(*p) - map_4bit(*q));
-}
-
-
 auto dbhash_open(uint64_t const maxelements) -> void
 {
   /* adjust size of hash table for 2/3 fill rate */
