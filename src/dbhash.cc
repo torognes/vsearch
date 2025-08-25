@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "bitmap.h"
-#include "utils/maps.hpp"
 #include "utils/seqcmp.h"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // std::memset
