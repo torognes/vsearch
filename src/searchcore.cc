@@ -62,7 +62,6 @@
 #include "align_simd.h"
 #include "dbindex.h"
 #include "linmemalign.h"
-#include "maps.h"
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
