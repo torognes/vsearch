@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -243,7 +243,7 @@ auto db_read(const char * filename, int upcase) -> void
 
   while (fastx_next(h,
                    opt_notrunclabels == 0,
-                    (upcase != 0) ? chrmap_upcase : chrmap_no_change))
+                    (upcase != 0) ? chrmap_upcase_vector.data() : chrmap_no_change_vector.data()))
     {
       size_t const sequencelength = fastx_get_sequence_length(h);
       int64_t const abundance = fastx_get_abundance(h);
