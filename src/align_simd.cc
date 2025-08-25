@@ -1132,12 +1132,12 @@ auto search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
-  for (auto i = 0; i < matrix_size; i++)
+  for (auto i = 0U; i < matrix_size; i++)
     {
-      for (auto j = 0; j < matrix_size; j++)
+      for (auto j = 0U; j < matrix_size; j++)
         {
           CELL value = 0;
-          if (opt_n_mismatch && ((i == 15) || (j == 15)))
+          if (opt_n_mismatch && ((i == 15U) || (j == 15U)))
             {
               value = opt_mismatch;
             }
