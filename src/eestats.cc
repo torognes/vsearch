@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"
 #include <algorithm>  // std::max, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
@@ -171,7 +171,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   int64_t len_min = std::numeric_limits<long>::max();
   int64_t len_max = 0;
 
-  while (fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(h, false, chrmap_upcase_vector.data()))
     {
       ++seq_count;
 
@@ -437,7 +437,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   std::vector<uint64_t> count_table;
 
-  while (fastq_next(h, false, chrmap_upcase))
+  while (fastq_next(h, false, chrmap_upcase_vector.data()))
     {
       ++seq_count;
 
