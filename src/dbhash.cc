@@ -76,8 +76,8 @@ std::vector<struct dbhash_bucket_s> dbhash_table;
 // refactoring: almost identical to /utils/seqcmp.cc
 auto dbhash_seqcmp(char const * a, char const * b, uint64_t n) -> int
 {
-  char const * p = a;
-  char const * q = b;
+  auto const * p = a;
+  auto const * q = b;
 
   if (n <= 0)
     {
