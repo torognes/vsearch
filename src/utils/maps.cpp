@@ -417,6 +417,7 @@ auto is_ambiguous_4bit(unsigned char const nucleotide) -> bool {
   return chrmap_ambiguous_4bit[nucleotide];
 }
 
+
 auto is_same_4bit(char const lhs, char const rhs) -> bool {
   return map_4bit(lhs) == map_4bit(rhs);
 }
