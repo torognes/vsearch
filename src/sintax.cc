@@ -118,10 +118,10 @@ static int queries = 0;
 static int classified = 0;
 
 
-auto sintax_analyse(char * query_head,
-                    int strand,
-                    int * all_seqno,
-                    int count) -> void
+auto sintax_analyse(char const * query_head,
+                    int const strand,
+                    int const * all_seqno,
+                    int const count) -> void
 {
   std::array<int, tax_levels> level_matchcount {{}};
   std::array<int, tax_levels> level_best {{}};
@@ -373,7 +373,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto sintax_query(int64_t t) -> void
+auto sintax_query(int64_t const t) -> void
 {
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
   std::array<int, 2> boot_count = {0, 0};
@@ -472,7 +472,7 @@ auto sintax_query(int64_t t) -> void
 }
 
 
-auto sintax_thread_run(int64_t t) -> void
+auto sintax_thread_run(int64_t const t) -> void
 {
   while (true)
     {
