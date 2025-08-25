@@ -233,7 +233,7 @@ struct s16info_s
 };
 
 
-auto _mm_print(VECTOR_SHORT x) -> void
+auto _mm_print(VECTOR_SHORT const x) -> void
 {
   auto * y = (unsigned short *) &x;
   for (int i = 0; i < 8; i++)
@@ -243,7 +243,7 @@ auto _mm_print(VECTOR_SHORT x) -> void
 }
 
 
-auto _mm_print2(VECTOR_SHORT x) -> void
+auto _mm_print2(VECTOR_SHORT const x) -> void
 {
   auto * y = (signed short *) &x;
   for (int i = 0; i < 8; i++)
@@ -253,7 +253,7 @@ auto _mm_print2(VECTOR_SHORT x) -> void
 }
 
 
-auto dprofile_dump16(CELL * dprofile) -> void
+auto dprofile_dump16(CELL const * dprofile) -> void
 {
   printf("\ndprofile:\n");
   for (int i = 0; i < matrix_size; i++)
