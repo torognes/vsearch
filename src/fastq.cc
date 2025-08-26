@@ -403,7 +403,7 @@ auto fastq_next(fastx_handle input_handle,
                            &input_handle->sequence_buffer,
                            input_handle->file_buffer.data + input_handle->file_buffer.position,
                            len,
-                           char_fq_action_seq, char_mapping,
+                           char_fq_action_seq_vector.data(), char_mapping,
                            &ok, &illegal_char);
       input_handle->file_buffer.position += len;
       rest -= len;
@@ -530,7 +530,7 @@ auto fastq_next(fastx_handle input_handle,
                            &input_handle->quality_buffer,
                            input_handle->file_buffer.data + input_handle->file_buffer.position,
                            len,
-                           char_fq_action_qual, chrmap_identity.data(),
+                           char_fq_action_qual_vector.data(), chrmap_identity.data(),
                            &ok, &illegal_char);
       input_handle->file_buffer.position += len;
       rest -= len;
