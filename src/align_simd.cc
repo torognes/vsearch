@@ -608,7 +608,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT E;
   VECTOR_SHORT HE;
   VECTOR_SHORT HF;
-  VECTOR_SHORT * vp = nullptr;
+  VECTOR_SHORT const * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
@@ -770,7 +770,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT E;
   VECTOR_SHORT HE;
   VECTOR_SHORT HF;
-  VECTOR_SHORT * vp = nullptr;
+  VECTOR_SHORT const * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero;
   VECTOR_SHORT h_max = v_zero;
@@ -924,7 +924,7 @@ auto backtrack16(s16info_s * s,
   unsigned short * dirbuffer = s->dir;
   uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
   uint64_t const qlen = s->qlen;
-  char * qseq = s->qseq;
+  char const * qseq = s->qseq;
 
   uint64_t const maskup      = 3ULL << (2 * channel + 0);
   uint64_t const maskleft    = 3ULL << (2 * channel + 16);
