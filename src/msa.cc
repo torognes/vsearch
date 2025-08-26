@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "msa.h"
 #include "utils/cigar.hpp"
 #include "utils/span.hpp"
@@ -415,6 +414,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> &profile,
                                  std::FILE * fp_msaout) -> void {
+  static constexpr std::array<char, 16> sym_nt_4bit = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
   static constexpr char index_of_N = 15;  // 15th char in sym_nt_4bit[] (=> 'N')
 
   auto const alignment_length = static_cast<int>(aln_v.size() - 1);
