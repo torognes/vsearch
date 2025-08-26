@@ -160,9 +160,9 @@ namespace {
     };
 
 
-  auto map_action(char const nucleotide) -> unsigned int {
+  auto map_action(char const nucleotide) -> Action {
     auto const current_char = static_cast<unsigned char>(nucleotide);
-    return char_fasta_action[current_char];
+    return char_actions[current_char];
   }
 
 }  // end of anonymous namespace
@@ -194,8 +194,6 @@ auto fasta_filter_sequence(fastx_handle input_handle,
      errors on certain characters. */
 
   static constexpr std::size_t buffer_size = 200;
-  static constexpr unsigned char first_printable = ' '; // SPACE = 32
-  static constexpr unsigned char last_printable = '~';  // 126
   auto * source = input_handle->sequence_buffer.data;
   auto * dest = source;
   static std::array<char, buffer_size> msg {{}};
@@ -206,44 +204,43 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
       switch (map_action(*source))
         {
-        case 0:
+        case Action::warn:
           /* stripped */
           ++input_handle->stripped_all;
           ++input_handle->stripped[current_char];
           break;
 
-        case 1:
+        case Action::accept:
           /* legal character */
           *dest = static_cast<char>(char_mapping[current_char]);
           dest = std::next(dest);
           break;
 
-        case 2:  // refactoring: add new modes 'fatal printable character' and 'fatal unprintable character', solve the issue in the char_fasta_action table
+        case Action::reject:
           /* fatal character */
-          if ((current_char >= first_printable) and (current_char <= last_printable))
-            {
-              static_cast<void>(std::snprintf(msg.data(),
-                                              buffer_size,
-                                              "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-                                              current_char,
-                                              input_handle->lineno));
-            }
-          else
-            {
-              static_cast<void>(std::snprintf(msg.data(),
-                                              buffer_size,
-                                              "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
-                                              current_char,
-                                              input_handle->lineno));
-            }
+          static_cast<void>(std::snprintf(
+              msg.data(), buffer_size,
+              "Illegal character '%c' in sequence on line %" PRIu64
+              " of FASTA file",
+              current_char, input_handle->lineno));
           fatal(msg.data());
           break;
 
-        case 3:
+        case Action::show:
+          /* fatal unprintable character */
+          static_cast<void>(std::snprintf(msg.data(),
+                                          buffer_size,
+                                          "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
+                                          current_char,
+                                          input_handle->lineno));
+          fatal(msg.data());
+          break;
+
+        case Action::skip:
           /* silently stripped chars (whitespace) */
           break;
 
-        case 4:
+        case Action::count:
           /* newline (silently stripped) */
           ++input_handle->lineno;
           break;
