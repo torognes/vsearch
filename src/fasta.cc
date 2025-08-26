@@ -133,6 +133,32 @@ namespace {
     return char_actions[current_char];
   }
 
+
+  // __attribute__((noreturn))
+  auto report_illegal_symbol_and_exit(unsigned char symbol, uint64_t line_number) -> void {
+    static constexpr std::size_t max_buffer_size = 200;
+    static std::array<char, max_buffer_size> msg {{}};
+    static_cast<void>(std::snprintf(
+        msg.data(), max_buffer_size,
+        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
+        symbol,
+        line_number));
+    fatal(msg.data());
+  }
+
+
+  // __attribute__((noreturn))
+  auto report_unprintable_symbol_and_exit(unsigned char symbol, uint64_t line_number) -> void {
+    static constexpr std::size_t max_buffer_size = 200;
+    static std::array<char, max_buffer_size> msg {{}};
+    static_cast<void>(std::snprintf(
+        msg.data(), max_buffer_size,
+        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
+        symbol,
+        line_number));
+    fatal(msg.data());
+  }
+
 }  // end of anonymous namespace
 
 
@@ -161,10 +187,8 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
 
-  static constexpr std::size_t buffer_size = 200;
   auto * source = input_handle->sequence_buffer.data;
   auto * dest = source;
-  static std::array<char, buffer_size> msg {{}};
 
   while (*source != '\0')
     {
@@ -186,22 +210,12 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
         case Action::reject:
           /* fatal character */
-          static_cast<void>(std::snprintf(
-              msg.data(), buffer_size,
-              "Illegal character '%c' in sequence on line %" PRIu64
-              " of FASTA file",
-              current_char, input_handle->lineno));
-          fatal(msg.data());
+          report_illegal_symbol_and_exit(current_char, input_handle->lineno);
           break;
 
         case Action::show:
           /* fatal unprintable character */
-          static_cast<void>(std::snprintf(msg.data(),
-                                          buffer_size,
-                                          "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
-                                          current_char,
-                                          input_handle->lineno));
-          fatal(msg.data());
+          report_unprintable_symbol_and_exit(current_char, input_handle->lineno);
           break;
 
         case Action::skip:
