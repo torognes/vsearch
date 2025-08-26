@@ -73,7 +73,7 @@
 namespace {
 
   // refactoring: eliminate and replace with an overload of buffer_filter_extend()?
-  const std::vector<unsigned char> chrmap_identity_vector = {
+  const std::vector<unsigned char> chrmap_identity = {
     /* identity map: does nothing */
 
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -465,7 +465,7 @@ auto fastq_next(fastx_handle input_handle,
                            &input_handle->quality_buffer,
                            input_handle->file_buffer.data + input_handle->file_buffer.position,
                            len,
-                           char_fq_action_qual, chrmap_identity_vector.data(),
+                           char_fq_action_qual, chrmap_identity.data(),
                            &ok, &illegal_char);
       input_handle->file_buffer.position += len;
       rest -= len;
