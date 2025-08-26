@@ -62,11 +62,7 @@
 #define MAPS_H
 
 constexpr auto four_bit_capacity = 16U;
-constexpr auto byte_capacity = 256U;
 
 extern char sym_nt_4bit[four_bit_capacity + 1];
-
-extern unsigned int char_fq_action_seq[byte_capacity];
-extern unsigned int char_fq_action_qual[byte_capacity];
 
 #endif // MAPS_H
