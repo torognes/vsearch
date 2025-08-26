@@ -128,38 +128,6 @@ namespace {
     };
 
 
-  // refactoring: replace with vector of enum (exact same as char_fq_action_seq? no)
-  //   add a new action: 'fatal unprintable'
-  const std::vector<unsigned int> char_fasta_action =
-    {
-      /*
-        How to handle input characters for FASTA
-
-        0=stripped, 1=legal, 2=fatal, 3=silently stripped, 4=newline
-
-        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-      */
-
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  4,  3,  3,  3,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  1,  1,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,
-      0,  0,  1,  1,  1,  1,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,
-      0,  1,  1,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,
-      0,  0,  1,  1,  1,  1,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-    };
-
-
   auto map_action(char const nucleotide) -> Action {
     auto const current_char = static_cast<unsigned char>(nucleotide);
     return char_actions[current_char];
