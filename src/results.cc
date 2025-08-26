@@ -329,7 +329,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 
       char * tsequence = nullptr;
       int64_t tseqlen = 0;
-      char * t_head = nullptr;
+      char const * t_head = nullptr;
 
       if (hits != nullptr)
         {
