@@ -81,7 +81,6 @@ filter.h \
 getseq.h \
 kmerhash.h \
 linmemalign.h \
-maps.h \
 mask.h \
 md5.h \
 minheap.h \
@@ -183,7 +182,6 @@ filter.cc \
 getseq.cc \
 kmerhash.cc \
 linmemalign.cc \
-maps.cc \
 mask.cc \
 md5.c \
 minheap.cc \

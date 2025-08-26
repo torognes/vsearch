@@ -220,7 +220,6 @@ File | Description
 **getseq.cc** | Extraction of sequences based on header labels
 **kmerhash.cc** | Hash for kmers used by paired-end read merger
 **linmemalign.cc** | Linear memory global sequence aligner
-**maps.cc** | Various character mapping arrays
 **mask.cc** | Masking (DUST)
 **md5.c** | MD5 message digest
 **mergepairs.cc** | Paired-end read merging
