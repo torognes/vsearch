@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "maps.h"
 #include "mask.h"
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"

@@ -61,7 +61,6 @@
 #ifndef LINMEMALIGN_HPP
 #define LINMEMALIGN_HPP
 
-#include "maps.h"
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
 #include <vector>
