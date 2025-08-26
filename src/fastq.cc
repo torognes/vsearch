@@ -464,7 +464,7 @@ auto fastq_next(fastx_handle input_handle,
                            &input_handle->quality_buffer,
                            input_handle->file_buffer.data + input_handle->file_buffer.position,
                            len,
-                           char_fq_action_qual, chrmap_identity,
+                           char_fq_action_qual, chrmap_identity_vector.data(),
                            &ok, &illegal_char);
       input_handle->file_buffer.position += len;
       rest -= len;
