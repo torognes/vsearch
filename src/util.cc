@@ -138,7 +138,8 @@ auto xstrdup(char const * src) -> char *
 
 auto xsprintf(char * * ret, char const * format, ...) -> int
 {
-  // refactoring: C variadic function, replace with template variadic function
+  // refactoring: C variadic function, replace with template variadic function?
+  // Only used with one or two extra arguments, it could be a simple overload
   std::va_list args;
   va_start(args, format);
   auto len = std::vsnprintf(nullptr, 0, format, args);
