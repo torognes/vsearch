@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "attributes.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
 #include <array>
 #include <cstdint> // int64_t, uint64_t
