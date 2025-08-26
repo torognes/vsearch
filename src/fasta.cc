@@ -74,6 +74,8 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  // refactoring: replace with vector of enum (exact same as char_fq_action_seq? no)
+  //   add a new action: 'fatal unprintable'
   const std::vector<unsigned int> char_fasta_action =
     {
       /*
