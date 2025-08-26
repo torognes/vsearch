@@ -298,7 +298,7 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->seqno;
 
   fastx_filter_header(input_handle, truncateatspace);
-  fasta_filter_sequence(input_handle, char_fasta_action, char_mapping);
+  fasta_filter_sequence(input_handle, char_fasta_action_vector.data(), char_mapping);
 
   return true;
 }
