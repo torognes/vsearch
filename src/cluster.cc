@@ -739,7 +739,7 @@ auto cluster_core_parallel() -> void
 
                   for (int j = 0; j < extra_count; j++)
                     {
-                      struct searchinfo_s * sic = si_plus + extra_list[j];
+                      struct searchinfo_s const * sic = si_plus + extra_list[j];
 
                       /* find the number of shared unique kmers */
                       auto const shared
@@ -955,7 +955,7 @@ auto cluster_core_parallel() -> void
                   int new_hit_count = si->hit_count;
                   for (int t = si->hit_count - 1; t >= 0; t--)
                     {
-                      struct hit * hit = si->hits + t;
+                      struct hit const * hit = si->hits + t;
                       if (not hit->accepted and not hit->rejected)
                         {
                           new_hit_count = t;
@@ -1033,7 +1033,7 @@ auto cluster_core_parallel() -> void
           /* free alignments */
           for (int s = 0; s < opt_strand; s++)
             {
-              struct searchinfo_s * si = (s != 0) ? si_m : si_p;
+              struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
               for (int j = 0; j < si->hit_count; j++)
                 {
                   if (si->hits[j].aligned)
@@ -1160,7 +1160,7 @@ auto cluster_core_serial() -> void
       /* free alignments */
       for (int s = 0; s < opt_strand; s++)
         {
-          struct searchinfo_s * si = (s != 0) ? si_m.data() : si_p.data();
+          struct searchinfo_s const * si = (s != 0) ? si_m.data() : si_p.data();
           for (int i = 0; i < si->hit_count; i++)
             {
               if (si->hits[i].aligned)
