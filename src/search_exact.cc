@@ -171,7 +171,7 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 {
   dbhash_search_info_s info;
 
-  char * seq = si->qsequence;
+  char const * seq = si->qsequence;
   uint64_t const seqlen = si->qseqlen;
   std::vector<char> normalized(seqlen + 1);
   string_normalize(normalized.data(), seq, seqlen);
@@ -232,7 +232,7 @@ auto search_exact_output_results(int hit_count,
 
       for (int t = 0; t < n_results_to_report; t++)
         {
-          struct hit * hp = hits + t;
+          struct hit const * hp = hits + t;
 
           if ((opt_top_hits_only != 0) && (hp->id < top_hit_id))
             {
