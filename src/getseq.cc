@@ -223,7 +223,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
     }
   else if (opt_label_word != nullptr)
     {
-      char * needle = opt_label_word;
+      char const * needle = opt_label_word;
       if (opt_label_field != nullptr)
         {
           std::strcpy(&field_buffer[field_len + 1], needle);
@@ -265,7 +265,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
   else if (opt_label_words != nullptr)
     {
       for (auto & label: labels_data) {
-        char * needle = label.data();
+        char const * needle = label.data();
         if (opt_label_field != nullptr)
           {
             std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
