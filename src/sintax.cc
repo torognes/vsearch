@@ -379,7 +379,7 @@ auto sintax_query(int64_t const t) -> void
   std::array<int, 2> boot_count = {0, 0};
   std::array<unsigned int, 2> best_count = {0, 0};
   int const qseqlen = si_plus[t].qseqlen;
-  char * query_head = si_plus[t].query_head;
+  char const * query_head = si_plus[t].query_head;
 
   auto * b = bitmap_init(qseqlen);
 
