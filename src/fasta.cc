@@ -105,6 +105,12 @@ namespace {
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
     };
 
+
+  auto map_action(char const nucleotide) -> unsigned int {
+    auto const current_char = static_cast<unsigned char>(nucleotide);
+    return char_fasta_action[current_char];
+  }
+
 }  // end of anonymous namespace
 
 
@@ -128,7 +134,6 @@ auto fasta_close(fastx_handle input_handle) -> void
 
 
 auto fasta_filter_sequence(fastx_handle input_handle,
-                           unsigned int const * char_action,
                            unsigned char const * char_mapping) -> void
 {
   /* Strip unwanted characters from the sequence and raise warnings or
@@ -144,9 +149,8 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   while (*source != '\0')
     {
       auto const current_char = static_cast<unsigned char>(*source);
-      auto const mode = static_cast<char>(char_action[current_char]);
 
-      switch (mode)
+      switch (map_action(*source))
         {
         case 0:
           /* stripped */
@@ -299,7 +303,7 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->seqno;
 
   fastx_filter_header(input_handle, truncateatspace);
-  fasta_filter_sequence(input_handle, char_fasta_action.data(), char_mapping);
+  fasta_filter_sequence(input_handle, char_mapping);
 
   return true;
 }
