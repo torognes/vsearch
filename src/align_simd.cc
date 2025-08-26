@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "align_simd.h"
-#include "maps.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
@@ -84,6 +83,15 @@ constexpr auto matrix_size = 16;
 constexpr auto CHANNELS = 8;
 constexpr auto CDEPTH = 4;
 constexpr auto maxseqlenproduct = 25000000LL;
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  constexpr std::array<char, 16> sym_nt_4bit = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
+
+}  // end of anonymous namespace
+
 
 /*
   Due to memory usage, limit the product of the length of the sequences.
