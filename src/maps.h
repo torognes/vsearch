@@ -61,7 +61,6 @@
 #ifndef MAPS_H
 #define MAPS_H
 
-constexpr auto two_bit_capacity = 4U;
 constexpr auto four_bit_capacity = 16U;
 constexpr auto byte_capacity = 256U;
 
