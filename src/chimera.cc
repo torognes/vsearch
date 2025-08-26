@@ -721,7 +721,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
       auto & alignment = ci->paln[i];
       int const cand = ci->best_parents[i];
       int const target_seqno = ci->cand_list[cand];
-      char * target_seq = db_getsequence(target_seqno);
+      char const * target_seq = db_getsequence(target_seqno);
 
       auto is_inserted = false;
       int qpos = 0;
@@ -2290,7 +2290,7 @@ auto chimera(struct Parameters const & parameters) -> void
   xpthread_mutex_init(&mutex_input, nullptr);
   xpthread_mutex_init(&mutex_output, nullptr);
 
-  char * denovo_dbname = nullptr;
+  char const * denovo_dbname = nullptr;
 
   /* prepare queries / database */
   if (parameters.opt_uchime_ref != nullptr)
