@@ -72,6 +72,7 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  // refactoring: eliminate and replace with an overload of buffer_filter_extend()?
   const std::vector<unsigned char> chrmap_identity_vector = {
     /* identity map: does nothing */
 
