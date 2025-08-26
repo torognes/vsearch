@@ -169,7 +169,7 @@ auto search_output_results(int hit_count,
 
       for (int t = 0; t < toreport; t++)
         {
-          struct hit * hp = hits + t;
+          struct hit const * hp = hits + t;
 
           if ((opt_top_hits_only != 0) && (hp->id < top_hit_id))
             {
