@@ -1898,14 +1898,12 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               auto hit_count = 0;
               search_onequery(&ci->si[i], opt_qmask);
               search_joinhits(&ci->si[i], nullptr, hits, & hit_count);
-              for (auto j = 0; j < hit_count; ++j)
-                {
-                  if (hits[j].accepted)
-                    {
-                      allhits_list[allhits_count] = hits[j];
-                      ++allhits_count;
-                    }
+              for (auto const & hit : hits) {
+                if (hit.accepted) {
+                  allhits_list[allhits_count] = hit;
+                  ++allhits_count;
                 }
+              }
               hits.clear();
             }
         }
