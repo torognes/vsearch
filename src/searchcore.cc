@@ -85,6 +85,9 @@ namespace {
   auto count_number_of_hits_to_keep(struct searchinfo_s * search_info) -> std::size_t
   {
     std::size_t counter = 0;
+    if (search_info == nullptr) {
+      return counter;
+    }
     for (auto i = 0; i < search_info->hit_count; ++i)
       {
         struct hit const * hit = search_info->hits + i;
