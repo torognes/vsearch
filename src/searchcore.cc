@@ -884,7 +884,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
     }
 
   /* last, sort the hits */
-  qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
+  std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
 
   *hit_count = counter;
 }
