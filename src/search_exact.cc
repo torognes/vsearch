@@ -371,12 +371,10 @@ auto search_exact_output_results(int hit_count,
     }
 
   /* update matching db sequences */
-  for (int i = 0; i < hit_count; i++)
-    {
-      if (hits[i].accepted)
-        {
-          dbmatched[hits[i].target] += opt_sizein ? qsize : 1;
-        }
+    for (auto const & hit : hits) {
+      if (hit.accepted) {
+        dbmatched[hit.target] += opt_sizein ? qsize : 1;
+      }
     }
 
   xpthread_mutex_unlock(&mutex_output);
