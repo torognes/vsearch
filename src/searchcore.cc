@@ -104,8 +104,7 @@ namespace {
   auto copy_over_hits_to_be_kept(std::vector<struct hit> & hits_to_be_kept,
                                  struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
-    auto const hits = make_hits_span(search_info);
-    for (auto const & hit : hits) {
+    for (auto const & hit : make_hits_span(search_info)) {
       if (hit.accepted or hit.weak) {
         hits_to_be_kept.emplace_back(hit);
       }
@@ -115,8 +114,7 @@ namespace {
 
   auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
-    auto const hits = make_hits_span(search_info);
-    for (auto const & hit : hits) {
+    for (auto const & hit : make_hits_span(search_info)) {
       if (not (hit.accepted or hit.weak) and hit.aligned) {
         xfree(hit.nwalignment);
       }
