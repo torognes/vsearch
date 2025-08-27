@@ -127,7 +127,7 @@ auto search_output_results(int hit_count,
   xpthread_mutex_lock(&mutex_output);
 
   /* show results */
-  auto const toreport = std::min<int64_t>(opt_maxhits, hit_count);
+  auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hits.size()));
 
   if (fp_alnout != nullptr)
     {
@@ -273,7 +273,7 @@ auto search_output_results(int hit_count,
         }
     }
 
-  if (hit_count != 0)
+  if (not hits.empty())
     {
       count_matched++;
       if (opt_matched != nullptr)
