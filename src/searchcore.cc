@@ -69,6 +69,7 @@
 #include "utils/span.hpp"
 #include <algorithm>  // std::count_if, std::min, std::max
 #include <array>
+#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
@@ -83,12 +84,18 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  auto make_hits_span(struct searchinfo_s const * search_info) -> Span<struct hit> {
+    assert(search_info != nullptr);
+    auto const length = static_cast<std::size_t>(search_info->hit_count);
+    return Span<struct hit>{search_info->hits, length};
+  }
+
+
   auto count_number_of_hits_to_keep(struct searchinfo_s const * search_info) -> std::size_t {
     if (search_info == nullptr) {
       return std::size_t{0};
     }
-    auto const length = static_cast<std::size_t>(search_info->hit_count);
-    auto const hits = Span<struct hit>{search_info->hits, length};
+    auto const hits = make_hits_span(search_info);
     return static_cast<std::size_t>(std::count_if(hits.cbegin(), hits.cend(),
                                                   [](struct hit const & hit) -> bool {
                                                     return hit.accepted or hit.weak;
@@ -99,8 +106,7 @@ namespace {
   auto copy_over_hits_to_be_kept(std::vector<struct hit> & hits_to_be_kept,
                                  struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
-    auto const length = static_cast<std::size_t>(search_info->hit_count);
-    auto const hits = Span<struct hit>{search_info->hits, length};
+    auto const hits = make_hits_span(search_info);
     for (auto const & hit : hits) {
       if (hit.accepted or hit.weak) {
         hits_to_be_kept.emplace_back(hit);
@@ -111,8 +117,7 @@ namespace {
 
   auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
-    auto const length = static_cast<std::size_t>(search_info->hit_count);
-    auto const hits = Span<struct hit>{search_info->hits, length};
+    auto const hits = make_hits_span(search_info);
     for (auto const & hit : hits) {
       if (not (hit.accepted or hit.weak) and hit.aligned) {
         xfree(hit.nwalignment);
