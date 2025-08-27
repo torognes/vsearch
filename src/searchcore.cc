@@ -92,9 +92,7 @@ namespace {
 
 
   auto count_number_of_hits_to_keep(struct searchinfo_s const * search_info) -> std::size_t {
-    if (search_info == nullptr) {
-      return std::size_t{0};
-    }
+    if (search_info == nullptr) { return std::size_t{0}; }
     auto const hits = make_hits_span(search_info);
     return static_cast<std::size_t>(std::count_if(hits.cbegin(), hits.cend(),
                                                   [](struct hit const & hit) -> bool {
