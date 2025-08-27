@@ -846,7 +846,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
   /* free the remaining alignments */
 
   /* first, just count the number of hits to keep */
-  int a = 0;
+  int counter = 0;
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
@@ -855,16 +855,16 @@ auto search_joinhits(struct searchinfo_s * si_p,
           struct hit const * h = si->hits + i;
           if (h->accepted or h->weak)
             {
-              ++a;
+              ++counter;
             }
         }
     }
 
   /* allocate new array of hits */
-  hits.resize(a);
+  hits.resize(counter);
 
   /* copy over the hits to be kept */
-  a = 0;
+  counter = 0;
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
@@ -873,7 +873,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
           struct hit const * h = si->hits + i;
           if (h->accepted or h->weak)
             {
-              hits[a++] = *h;
+              hits[counter++] = *h;
             }
           else if (h->aligned)
             {
@@ -883,7 +883,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
     }
 
   /* last, sort the hits */
-  qsort(hits.data(), a, sizeof(struct hit), hit_compare_byid);
+  qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
 
-  *hit_count = a;
+  *hit_count = counter;
 }
