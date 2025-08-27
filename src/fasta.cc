@@ -266,7 +266,7 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->file_buffer.position;
   --rest;
 
-  char * line_end = nullptr;
+  char const * line_end = nullptr;
   while (line_end == nullptr)
     {
       /* get more data if buffer empty*/
