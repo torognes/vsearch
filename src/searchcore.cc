@@ -96,6 +96,19 @@ namespace {
   }
 
 
+  auto copy_over_hits_to_be_kept(std::vector<struct hit> & hits_to_be_kept,
+                                 struct searchinfo_s const * search_info) -> void {
+    if (search_info == nullptr) { return; }
+    auto const length = static_cast<std::size_t>(search_info->hit_count);
+    auto const hits = Span<struct hit>{search_info->hits, length};
+    for (auto const & hit : hits) {
+      if (hit.accepted or hit.weak) {
+        hits_to_be_kept.emplace_back(hit);
+      }
+    }
+  }
+
+
   auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) {
       return;
@@ -885,19 +898,8 @@ auto search_joinhits(struct searchinfo_s * si_p,
   /* allocate new array of hits */
   hits.reserve(counter);
 
-  /* copy over the hits to be kept */
-  for (int strand = 0; strand < opt_strand; ++strand)
-    {
-      struct searchinfo_s const * search_info = (strand != 0) ? si_m : si_p;
-      for (int i = 0; i < search_info->hit_count; ++i)
-        {
-          struct hit const * hit = search_info->hits + i;
-          if (hit->accepted or hit->weak)
-            {
-              hits.emplace_back(*hit);
-            }
-        }
-    }
+  copy_over_hits_to_be_kept(hits, si_p);
+  copy_over_hits_to_be_kept(hits, si_m);
 
   free_rejected_alignments(si_p);
   free_rejected_alignments(si_m);
