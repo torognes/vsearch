@@ -405,7 +405,6 @@ auto search_exact_query(int64_t t) -> int
                   opt_strand > 1 ? si_minus + t : nullptr,
                   hits);
 
-  auto const hit_count = static_cast<int>(hits.size());
   search_exact_output_results(hits,
                               si_plus[t].query_head,
                               si_plus[t].qseqlen,
@@ -420,7 +419,7 @@ auto search_exact_query(int64_t t) -> int
     }
   }
 
-  return hit_count;
+  return static_cast<int>(hits.size());
 }
 
 auto search_exact_thread_run(int64_t t) -> void
