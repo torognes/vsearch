@@ -186,8 +186,7 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
     }
 }
 
-auto search_exact_output_results(int hit_count,
-                                 std::vector<struct hit> & hits,
+auto search_exact_output_results(std::vector<struct hit> & hits,
                                  char * query_head,
                                  int qseqlen,
                                  char * qsequence,
@@ -407,8 +406,7 @@ auto search_exact_query(int64_t t) -> int
                   hits);
 
   auto const hit_count = static_cast<int>(hits.size());
-  search_exact_output_results(hit_count,
-                              hits,
+  search_exact_output_results(hits,
                               si_plus[t].query_head,
                               si_plus[t].qseqlen,
                               si_plus[t].qsequence,
