@@ -472,7 +472,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
   opt_ee_cutoffs_count = 0;
   opt_ee_cutoffs_values = (double *) xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double));
 
-  char * cursor = arg;
+  char const * cursor = arg;
   while (true)
     {
       double val = 0;
@@ -590,7 +590,7 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
           fatal("Invalid gap penalty argument (%s)", cursor);
         }
 
-      char * q = cursor;
+      char const * q = cursor;
 
       int set_E = 0;
       int set_I = 0;
@@ -5060,7 +5060,7 @@ auto cmd_version(struct Parameters const & parameters) -> void
       char * (*zlibVersion_p)();
       zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib,
                                                 "zlibVersion");
-      char * gz_version = (*zlibVersion_p)();
+      char const * gz_version = (*zlibVersion_p)();
       uLong (*zlibCompileFlags_p)();
       zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
                                                     "zlibCompileFlags");
@@ -5920,7 +5920,7 @@ auto main(int argc, char** argv) -> int
 
       std::array<char, 26> time_string {{}};
       time_start = time(nullptr);
-      struct tm * tm_start = localtime(& time_start);
+      struct tm const * tm_start = localtime(& time_start);
       strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
       fprintf(fp_log, "Started  %s\n", time_string.data());
     }
@@ -6117,7 +6117,7 @@ auto main(int argc, char** argv) -> int
   if (parameters.opt_log != nullptr)
     {
       time_finish = time(nullptr);
-      struct tm * tm_finish = localtime(& time_finish);
+      struct tm const * tm_finish = localtime(& time_finish);
       std::array<char, 26> time_string {{}};
       strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
       fprintf(fp_log, "\n");
