@@ -207,7 +207,8 @@ auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void
     {
       /* space for another item at end; swap upwards */
 
-      int index = a_minheap->count++;
+      int index = a_minheap->count;
+      ++a_minheap->count;
       int pos = (index - 1) / 2;
       while ((index > 0) && (elem_smaller(n, a_minheap->array + pos) != 0))
         {

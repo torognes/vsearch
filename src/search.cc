@@ -431,12 +431,12 @@ auto search_thread_run(int64_t t) -> void
           xpthread_mutex_lock(&mutex_output);
 
           /* update stats */
-          queries++;
+          ++queries;
           queries_abundance += qsize;
 
           if (match != 0)
             {
-              qmatches++;
+              ++qmatches;
               qmatches_abundance += qsize;
             }
 
