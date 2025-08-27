@@ -176,7 +176,7 @@ inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rh
 }
 
 
-inline auto hit_compare_bysize_typed(struct hit * lhs, struct hit * rhs) -> int
+inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * rhs) -> int
 {
   // high abundance, then low abundance
   // high id, then low id
