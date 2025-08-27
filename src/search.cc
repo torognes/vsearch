@@ -167,9 +167,9 @@ auto search_output_results(std::vector<struct hit> const & hits,
                        qsize);
         }
 
-      for (int t = 0; t < toreport; t++)
+      for (auto t = 0; t < toreport; t++)
         {
-          struct hit const * hp = &hits[t];
+          auto const * hp = &hits[t];
 
           if ((opt_top_hits_only != 0) && (hp->id < top_hit_id))
             {
