@@ -110,9 +110,7 @@ namespace {
 
 
   auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
-    if (search_info == nullptr) {
-      return;
-    }
+    if (search_info == nullptr) { return; }
     auto const length = static_cast<std::size_t>(search_info->hit_count);
     auto const hits = Span<struct hit>{search_info->hits, length};
     for (auto const & hit : hits) {
