@@ -95,6 +95,20 @@ namespace {
                                                   }));
   }
 
+
+  auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
+    if (search_info == nullptr) {
+      return;
+    }
+    auto const length = static_cast<std::size_t>(search_info->hit_count);
+    auto const hits = Span<struct hit>{search_info->hits, length};
+    for (auto const & hit : hits) {
+      if (not (hit.accepted or hit.weak) and hit.aligned) {
+        xfree(hit.nwalignment);
+      }
+    }
+  }
+
 }  // end of anonymous namespace
 
 
@@ -882,12 +896,11 @@ auto search_joinhits(struct searchinfo_s * si_p,
             {
               hits.emplace_back(*hit);
             }
-          else if (hit->aligned)
-            {
-              xfree(hit->nwalignment);
-            }
         }
     }
+
+  free_rejected_alignments(si_p);
+  free_rejected_alignments(si_m);
 
   /* last, sort the hits */
   std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
