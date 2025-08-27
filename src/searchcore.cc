@@ -127,7 +127,7 @@ namespace {
 
 /* per thread data */
 
-inline auto hit_compare_byid_typed(struct hit * lhs, struct hit * rhs) -> int
+inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rhs) -> int
 {
   /*
     Order:
