@@ -117,10 +117,10 @@ static int count_matched = 0;
 static int count_notmatched = 0;
 
 auto search_output_results(std::vector<struct hit> const & hits,
-                           char * query_head,
+                           char const * query_head,
                            int qseqlen,
-                           char * qsequence,
-                           char * qsequence_rc,
+                           char const * qsequence,
+                           char const * qsequence_rc,
                            int qsize) -> void
 {
   xpthread_mutex_lock(&mutex_output);
