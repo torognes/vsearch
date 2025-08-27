@@ -847,10 +847,10 @@ auto search_joinhits(struct searchinfo_s * si_p,
 
   /* first, just count the number of hits to keep */
   int counter = 0;
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < opt_strand; ++s)
     {
       struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
-      for (int i = 0; i < si->hit_count; i++)
+      for (int i = 0; i < si->hit_count; ++i)
         {
           struct hit const * h = si->hits + i;
           if (h->accepted or h->weak)
@@ -865,15 +865,16 @@ auto search_joinhits(struct searchinfo_s * si_p,
 
   /* copy over the hits to be kept */
   counter = 0;
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < opt_strand; ++s)
     {
       struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
-      for (int i = 0; i < si->hit_count; i++)
+      for (int i = 0; i < si->hit_count; ++i)
         {
           struct hit const * h = si->hits + i;
           if (h->accepted or h->weak)
             {
-              hits[counter++] = *h;
+              hits[counter] = *h;
+              ++counter;
             }
           else if (h->aligned)
             {
