@@ -349,7 +349,8 @@ auto search_query(int64_t t) -> int
                   hits,
                   & hit_count);
 
-  search_output_results(hit_count,
+  auto const hit_count2 = static_cast<int>(hits.size());
+  search_output_results(hit_count2,
                         hits.data(),
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
@@ -364,7 +365,7 @@ auto search_query(int64_t t) -> int
     }
   }
 
-  return hit_count;
+  return hit_count2;
 }
 
 
