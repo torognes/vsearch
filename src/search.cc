@@ -347,8 +347,8 @@ auto search_query(int64_t t) -> int
                   opt_strand > 1 ? si_minus + t : nullptr,
                   hits);
 
-  auto const hit_count2 = static_cast<int>(hits.size());
-  search_output_results(hit_count2,
+  auto const hit_count = static_cast<int>(hits.size());
+  search_output_results(hit_count,
                         hits.data(),
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
@@ -363,7 +363,7 @@ auto search_query(int64_t t) -> int
     }
   }
 
-  return hit_count2;
+  return hit_count;
 }
 
 
