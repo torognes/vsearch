@@ -847,9 +847,9 @@ auto search_joinhits(struct searchinfo_s * si_p,
 
   /* first, just count the number of hits to keep */
   int counter = 0;
-  for (int s = 0; s < opt_strand; ++s)
+  for (int strand = 0; strand < opt_strand; ++strand)
     {
-      struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
+      struct searchinfo_s const * si = (strand != 0) ? si_m : si_p;
       for (int i = 0; i < si->hit_count; ++i)
         {
           struct hit const * h = si->hits + i;
