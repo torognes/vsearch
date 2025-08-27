@@ -117,7 +117,7 @@ static int count_matched = 0;
 static int count_notmatched = 0;
 
 auto search_output_results(int hit_count,
-                           struct hit * hits,
+                           std::vector<struct hit> & hits,
                            char * query_head,
                            int qseqlen,
                            char * qsequence,
@@ -132,7 +132,7 @@ auto search_output_results(int hit_count,
   if (fp_alnout != nullptr)
     {
       results_show_alnout(fp_alnout,
-                          hits,
+                          hits.data(),
                           toreport,
                           query_head,
                           qsequence,
@@ -142,7 +142,7 @@ auto search_output_results(int hit_count,
   if (fp_lcaout != nullptr)
     {
       results_show_lcaout(fp_lcaout,
-                          hits,
+                          hits.data(),
                           toreport,
                           query_head);
     }
@@ -150,7 +150,7 @@ auto search_output_results(int hit_count,
   if (fp_samout != nullptr)
     {
       results_show_samout(fp_samout,
-                          hits,
+                          hits.data(),
                           toreport,
                           query_head,
                           qsequence,
@@ -170,7 +170,7 @@ auto search_output_results(int hit_count,
 
       for (int t = 0; t < toreport; t++)
         {
-          struct hit const * hp = hits + t;
+          struct hit const * hp = hits.data() + t;
 
           if ((opt_top_hits_only != 0) && (hp->id < top_hit_id))
             {
@@ -349,7 +349,7 @@ auto search_query(int64_t t) -> int
 
   auto const hit_count = static_cast<int>(hits.size());
   search_output_results(hit_count,
-                        hits.data(),
+                        hits,
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
                         si_plus[t].qsequence,
