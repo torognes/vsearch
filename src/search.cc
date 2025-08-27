@@ -116,7 +116,7 @@ static FILE * fp_tsegout = nullptr;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
-auto search_output_results(std::vector<struct hit> & hits,
+auto search_output_results(std::vector<struct hit> const & hits,
                            char * query_head,
                            int qseqlen,
                            char * qsequence,
