@@ -101,12 +101,12 @@ namespace {
   }
 
 
-  auto copy_over_hits_to_be_kept(std::vector<struct hit> & hits_to_be_kept,
+  auto copy_over_hits_to_be_kept(std::vector<struct hit> & hits,
                                  struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
     for (auto const & hit : make_hits_span(search_info)) {
       if (hit.accepted or hit.weak) {
-        hits_to_be_kept.emplace_back(hit);
+        hits.emplace_back(hit);
       }
     }
   }
