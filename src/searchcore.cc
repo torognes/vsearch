@@ -82,9 +82,9 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto count_number_of_hits_to_keep(struct searchinfo_s * search_info) -> std::size_t
+  auto count_number_of_hits_to_keep(struct searchinfo_s const * search_info) -> std::size_t
   {
-    std::size_t counter = 0;
+    auto counter = std::size_t{0};
     if (search_info == nullptr) {
       return counter;
     }
