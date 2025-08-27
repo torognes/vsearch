@@ -231,9 +231,9 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
 
       for (int t = 0; t < n_results_to_report; t++)
         {
-          struct hit const * hp = hits.data() + t;
+          auto const & hp = hits[t];
 
-          if ((opt_top_hits_only != 0) && (hp->id < top_hit_id))
+          if ((opt_top_hits_only != 0) && (hp.id < top_hit_id))
             {
               break;
             }
@@ -241,7 +241,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
           if (fp_fastapairs != nullptr)
             {
               results_show_fastapairs_one(fp_fastapairs,
-                                          hp,
+                                          &hp,
                                           query_head,
                                           qsequence,
                                           qsequence_rc);
@@ -250,7 +250,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
           if (fp_qsegout != nullptr)
             {
               results_show_qsegout_one(fp_qsegout,
-                                       hp,
+                                       &hp,
                                        query_head,
                                        qsequence,
                                        qseqlen,
@@ -260,7 +260,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
           if (fp_tsegout != nullptr)
             {
               results_show_tsegout_one(fp_tsegout,
-                                       hp);
+                                       &hp);
             }
 
           if (fp_uc != nullptr)
@@ -268,17 +268,17 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
               if ((t == 0) || (opt_uc_allhits != 0))
                 {
                   results_show_uc_one(fp_uc,
-                                      hp,
+                                      &hp,
                                       query_head,
                                       qseqlen,
-                                      hp->target);
+                                      hp.target);
                 }
             }
 
           if (fp_userout != nullptr)
             {
               results_show_userout_one(fp_userout,
-                                       hp,
+                                       &hp,
                                        query_head,
                                        qsequence,
                                        qseqlen,
@@ -288,7 +288,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
           if (fp_blast6out != nullptr)
             {
               results_show_blast6out_one(fp_blast6out,
-                                         hp,
+                                         &hp,
                                          query_head,
                                          qseqlen);
             }
