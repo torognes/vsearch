@@ -1892,12 +1892,12 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       if (ci->query_len >= parts)
         {
+          std::vector<struct hit> hits;
           for (auto i = 0; i < parts; ++i)
             {
-              struct hit * hits = nullptr;
               auto hit_count = 0;
               search_onequery(&ci->si[i], opt_qmask);
-              search_joinhits(&ci->si[i], nullptr, & hits, & hit_count);
+              search_joinhits(&ci->si[i], nullptr, hits, & hit_count);
               for (auto j = 0; j < hit_count; ++j)
                 {
                   if (hits[j].accepted)
@@ -1906,7 +1906,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                       ++allhits_count;
                     }
                 }
-              xfree(hits);
+              hits.clear();
             }
         }
 

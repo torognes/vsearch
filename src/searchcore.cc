@@ -75,6 +75,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen, std::memset, std::strcmp
 #include <limits>
+#include <vector>
 
 
 /* per thread data */
@@ -838,7 +839,7 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 
 auto search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
-                     struct hit * * hitsp,
+                     std::vector<struct hit> & hits,
                      int * hit_count) -> void
 {
   /* join and sort accepted and weak hits from both strands */
@@ -860,7 +861,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
     }
 
   /* allocate new array of hits */
-  auto * hits = (struct hit *) xmalloc(a * sizeof(struct hit));
+  hits.resize(a);
 
   /* copy over the hits to be kept */
   a = 0;
@@ -882,8 +883,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
     }
 
   /* last, sort the hits */
-  qsort(hits, a, sizeof(struct hit), hit_compare_byid);
+  qsort(hits.data(), a, sizeof(struct hit), hit_compare_byid);
 
-  *hitsp = hits;
   *hit_count = a;
 }

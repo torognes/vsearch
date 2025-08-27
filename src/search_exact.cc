@@ -402,16 +402,16 @@ auto search_exact_query(int64_t t) -> int
       search_exact_onequery(si);
     }
 
-  struct hit * hits = nullptr;
+  std::vector<struct hit> hits;
   int hit_count = 0;
 
   search_joinhits(si_plus + t,
                   opt_strand > 1 ? si_minus + t : nullptr,
-                  & hits,
+                  hits,
                   & hit_count);
 
   search_exact_output_results(hit_count,
-                              hits,
+                              hits.data(),
                               si_plus[t].query_head,
                               si_plus[t].qseqlen,
                               si_plus[t].qsequence,
@@ -426,8 +426,6 @@ auto search_exact_query(int64_t t) -> int
           xfree(hits[i].nwalignment);
         }
     }
-
-  xfree(hits);
 
   return hit_count;
 }

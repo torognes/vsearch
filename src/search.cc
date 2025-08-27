@@ -75,6 +75,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::strlen, std::memset, std::strcpy
 #include <pthread.h>
+#include <vector>
 
 
 static struct searchinfo_s * si_plus;
@@ -340,16 +341,16 @@ auto search_query(int64_t t) -> int
       search_onequery(si, opt_qmask);
     }
 
-  struct hit * hits = nullptr;
+  std::vector<struct hit> hits;
   int hit_count = 0;
 
   search_joinhits(si_plus + t,
                   opt_strand > 1 ? si_minus + t : nullptr,
-                  & hits,
+                  hits,
                   & hit_count);
 
   search_output_results(hit_count,
-                        hits,
+                        hits.data(),
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
                         si_plus[t].qsequence,
@@ -364,8 +365,6 @@ auto search_query(int64_t t) -> int
           xfree(hits[i].nwalignment);
         }
     }
-
-  xfree(hits);
 
   return hit_count;
 }

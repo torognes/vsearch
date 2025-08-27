@@ -174,7 +174,7 @@ auto align_trim(struct hit * hit) -> void;
 
 auto search_joinhits(struct searchinfo_s * si_p,
                      struct searchinfo_s * si_m,
-                     struct hit * * hits,
+                     std::vector<struct hit> & hits,
                      int * hit_count) -> void;
 
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,
