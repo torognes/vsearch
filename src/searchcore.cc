@@ -886,8 +886,7 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 
 auto search_joinhits(struct searchinfo_s * si_plus,
                      struct searchinfo_s * si_minus,
-                     std::vector<struct hit> & hits,
-                     int * hit_count) -> void
+                     std::vector<struct hit> & hits) -> void
 {
   /* join and sort accepted and weak hits from both strands */
   /* free the remaining alignments */
@@ -905,6 +904,4 @@ auto search_joinhits(struct searchinfo_s * si_plus,
 
   /* last, sort the hits */
   std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
-
-  *hit_count = static_cast<int>(counter);
 }

@@ -342,12 +342,10 @@ auto search_query(int64_t t) -> int
     }
 
   std::vector<struct hit> hits;
-  int hit_count = 0;
 
   search_joinhits(si_plus + t,
                   opt_strand > 1 ? si_minus + t : nullptr,
-                  hits,
-                  & hit_count);
+                  hits);
 
   auto const hit_count2 = static_cast<int>(hits.size());
   search_output_results(hit_count2,

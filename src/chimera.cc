@@ -1895,9 +1895,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
           std::vector<struct hit> hits;
           for (auto i = 0; i < parts; ++i)
             {
-              auto hit_count = 0;
               search_onequery(&ci->si[i], opt_qmask);
-              search_joinhits(&ci->si[i], nullptr, hits, & hit_count);
+              search_joinhits(&ci->si[i], nullptr, hits);
               for (auto const & hit : hits) {
                 if (hit.accepted) {
                   allhits_list[allhits_count] = hit;
