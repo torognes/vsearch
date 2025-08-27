@@ -71,7 +71,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::sscanf
+#include <cstdio>  // std::sscanf, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen, std::memset, std::strcmp
 #include <limits>
@@ -82,6 +82,19 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  auto count_number_of_hits_to_keep(struct searchinfo_s * search_info) -> std::size_t
+  {
+    std::size_t counter = 0;
+    for (auto i = 0; i < search_info->hit_count; ++i)
+      {
+        struct hit const * hit = search_info->hits + i;
+        if (hit->accepted or hit->weak)
+          {
+            ++counter;
+          }
+      }
+    return counter;
+  }
 
 }  // end of anonymous namespace
 
@@ -854,20 +867,7 @@ auto search_joinhits(struct searchinfo_s * si_p,
   /* join and sort accepted and weak hits from both strands */
   /* free the remaining alignments */
 
-  /* first, just count the number of hits to keep */
-  int counter = 0;
-  for (int strand = 0; strand < opt_strand; ++strand)
-    {
-      struct searchinfo_s const * search_info = (strand != 0) ? si_m : si_p;
-      for (int i = 0; i < search_info->hit_count; ++i)
-        {
-          struct hit const * hit = search_info->hits + i;
-          if (hit->accepted or hit->weak)
-            {
-              ++counter;
-            }
-        }
-    }
+  auto const counter = count_number_of_hits_to_keep(si_p) + count_number_of_hits_to_keep(si_m);
 
   /* allocate new array of hits */
   hits.reserve(counter);
@@ -893,5 +893,5 @@ auto search_joinhits(struct searchinfo_s * si_p,
   /* last, sort the hits */
   std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
 
-  *hit_count = counter;
+  *hit_count = static_cast<int>(counter);
 }
