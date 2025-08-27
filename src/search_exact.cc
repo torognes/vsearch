@@ -419,13 +419,11 @@ auto search_exact_query(int64_t t) -> int
                               si_plus[t].qsize);
 
   /* free memory for alignment strings */
-  for (int i = 0; i < hit_count; i++)
-    {
-      if (hits[i].aligned)
-        {
-          xfree(hits[i].nwalignment);
-        }
+  for (auto const & hit : hits) {
+    if (hit.aligned) {
+      xfree(hit.nwalignment);
     }
+  }
 
   return hit_count;
 }
