@@ -366,7 +366,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
         }
     }
 
-  minheap_empty(searchinfo->m);
+  minheap_clear(searchinfo->m);
   if (best.count > 1) {
     minheap_add(searchinfo->m, &best);
   }

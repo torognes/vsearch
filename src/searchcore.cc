@@ -274,7 +274,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   /* zero counts */
   std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
 
-  minheap_empty(searchinfo->m);
+  minheap_clear(searchinfo->m);
 
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {

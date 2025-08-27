@@ -81,7 +81,7 @@ inline auto minheap_isempty(minheap_t const * a_minheap) -> bool
   return (a_minheap->count == 0);
 }
 
-inline auto minheap_empty(minheap_t * a_minheap) -> void
+inline auto minheap_clear(minheap_t * a_minheap) -> void
 {
   a_minheap->count = 0;
 }
