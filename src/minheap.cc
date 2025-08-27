@@ -176,7 +176,7 @@ auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
   while (nth_child < a_minheap->count)
     {
       /* if two children: swap with the one with smallest value */
-      if ((nth_child + 1 < a_minheap->count) &&
+      if ((nth_child + 1 < a_minheap->count) and
           (elem_smaller(a_minheap->array + nth_child + 1, a_minheap->array + nth_child) != 0))
         {
           ++nth_child;
@@ -210,7 +210,7 @@ auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void
       int index = a_minheap->count;
       ++a_minheap->count;
       int pos = (index - 1) / 2;
-      while ((index > 0) && (elem_smaller(n, a_minheap->array + pos) != 0))
+      while ((index > 0) and (elem_smaller(n, a_minheap->array + pos) != 0))
         {
           a_minheap->array[index] = a_minheap->array[pos];
           index = pos;
