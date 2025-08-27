@@ -66,7 +66,8 @@
 #include "otutable.h"
 #include "unique.h"
 #include "utils/seqcmp.hpp"
-#include <algorithm>  // std::min, std::max
+#include "utils/span.hpp"
+#include <algorithm>  // std::count_if, std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
@@ -84,19 +85,15 @@ namespace {
 
   auto count_number_of_hits_to_keep(struct searchinfo_s const * search_info) -> std::size_t
   {
-    auto counter = std::size_t{0};
     if (search_info == nullptr) {
-      return counter;
+      return std::size_t{0};
     }
-    for (auto i = 0; i < search_info->hit_count; ++i)
-      {
-        struct hit const * hit = search_info->hits + i;
-        if (hit->accepted or hit->weak)
-          {
-            ++counter;
-          }
-      }
-    return counter;
+    auto const length = static_cast<std::size_t>(search_info->hit_count);
+    auto const hits = Span<struct hit>{search_info->hits, length};
+    return static_cast<std::size_t>(std::count_if(hits.cbegin(), hits.cend(),
+                                                  [](struct hit const & hit) -> bool {
+                                                    return hit.accepted or hit.weak;
+                                                  }));
   }
 
 }  // end of anonymous namespace
