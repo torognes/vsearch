@@ -64,7 +64,7 @@
 
 auto otutable_init() -> void;
 auto otutable_done() -> void;
-auto otutable_add(char * query_header, char * target_header, int64_t abundance) -> void;
+auto otutable_add(char const * query_header, char const * target_header, int64_t abundance) -> void;
 auto otutable_print_otutabout(std::FILE * output_handle) -> void;
 auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void;
 auto otutable_print_biomout(std::FILE * output_handle) -> void;

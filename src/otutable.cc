@@ -174,12 +174,12 @@ auto otutable_done() -> void
 }
 
 
-auto otutable_add(char * query_header, char * target_header, int64_t abundance) -> void
+auto otutable_add(char const * query_header, char const * target_header, int64_t abundance) -> void
 {
   /* read sample annotation in query */
 
   int len_sample = 0;
-  char * start_sample = query_header;
+  char const * start_sample = query_header;
   std::vector<char> sample_name;
 
   if (query_header != nullptr)
@@ -219,7 +219,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
   /* read OTU annotation in target */
 
   int len_otu = 0;
-  char * start_otu = target_header;
+  char const * start_otu = target_header;
   std::vector<char> otu_name;
 
   if (target_header != nullptr)
@@ -253,7 +253,7 @@ auto otutable_add(char * query_header, char * target_header, int64_t abundance) 
       /* read tax annotation in target */
 
 #ifdef HAVE_REGEX_H
-      char * start_tax = target_header;
+      char const * start_tax = target_header;
 
       std::array<regmatch_t, 4> pmatch_tax {{}};
       if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax.data(), 0) == 0)
