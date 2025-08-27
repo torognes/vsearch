@@ -256,11 +256,8 @@ auto minheap_sort(minheap_t * a_minheap) -> void
 auto minheap_poplast(minheap_t * a_minheap) -> elem_t
 {
   /* return top element and restore order */
-  static const elem_t zero = {0, 0, 0};
-
-  if (a_minheap->count != 0) {
-    return a_minheap->array[--a_minheap->count];
+  if (a_minheap->count == 0) {
+    return elem_t{0, 0, 0};
   }
-
-  return zero;
+  return a_minheap->array[--a_minheap->count];
 }
