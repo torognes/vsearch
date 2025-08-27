@@ -403,7 +403,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
   int64_t const columns = otutable->sample_set.size();
 
   static const time_t time_now = time(nullptr);
-  struct tm * tm_now = localtime(& time_now);
+  struct tm const * tm_now = localtime(& time_now);
   std::array<char, 50> date {{}};
   strftime(date.data(), 50, "%Y-%m-%dT%H:%M:%S", tm_now);
 
