@@ -86,6 +86,7 @@ namespace {
 
   auto make_hits_span(struct searchinfo_s const * search_info) -> Span<struct hit> {
     assert(search_info != nullptr);
+    assert(search_info->hit_count >= 0);
     auto const length = static_cast<std::size_t>(search_info->hit_count);
     return Span<struct hit>{search_info->hits, length};
   }
