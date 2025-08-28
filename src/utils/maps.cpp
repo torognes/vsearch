@@ -59,11 +59,17 @@
 */
 
 #include "maps.hpp"
+#include <cassert>
 #include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
+
+  auto to_uchar(char const nucleotide) -> unsigned char {
+    assert(nucleotide >= 0);
+    return static_cast<unsigned char>(nucleotide);
+  }
 
 
   const std::vector<unsigned char> chrmap_4bit =
@@ -364,38 +370,32 @@ const std::vector<unsigned char> chrmap_upcase_vector =
 
 
 auto map_uppercase(char const nucleotide) -> char {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return static_cast<char>(chrmap_upcase_vector[unsigned_nucleotide]);
+  return static_cast<char>(chrmap_upcase_vector[to_uchar(nucleotide)]);
 }
 
 
 auto map_2bit(char const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return chrmap_2bit[unsigned_nucleotide];
+  return chrmap_2bit[to_uchar(nucleotide)];
 }
 
 
 auto map_4bit(char const nucleotide) -> unsigned char {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return chrmap_4bit[unsigned_nucleotide];
+  return chrmap_4bit[to_uchar(nucleotide)];
 }
 
 
 auto map_complement(char const nucleotide) -> char {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return static_cast<char>(chrmap_complement[unsigned_nucleotide]);
+  return static_cast<char>(chrmap_complement[to_uchar(nucleotide)]);
 }
 
 
 auto map_mask_ambig(char const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return chrmap_mask_ambig[unsigned_nucleotide];
+  return chrmap_mask_ambig[to_uchar(nucleotide)];
 }
 
 
 auto map_mask_lower(char const nucleotide) -> unsigned int {
-  auto const unsigned_nucleotide = static_cast<unsigned char>(nucleotide);
-  return chrmap_mask_lower[unsigned_nucleotide];
+  return chrmap_mask_lower[to_uchar(nucleotide)];
 }
 
 
@@ -407,7 +407,7 @@ auto is_equivalent_4bit(char const lhs, char const rhs) -> bool {
 
 
 auto is_equivalent_4bit_rhs(char const lhs, char const rhs) -> bool {
-  auto const lhs_unsigned = static_cast<unsigned char>(lhs);
+  auto const lhs_unsigned = to_uchar(lhs);
   auto const rhs_unsigned = map_4bit(rhs);
   return ((lhs_unsigned & rhs_unsigned) != 0);
 }
