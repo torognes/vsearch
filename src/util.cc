@@ -138,6 +138,7 @@ auto xstrdup(char const * src) -> char *
 
 auto xsprintf(char * * ret, char const * format, ...) -> int
 {
+  // refactoring: build string with std::string?
   // refactoring: C variadic function, replace with template variadic function?
   // Only used with one or two extra arguments, it could be a simple overload
   std::va_list args;
