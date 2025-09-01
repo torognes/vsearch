@@ -77,7 +77,7 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 
 
 // TODO:
-//  - turn into a View (not allowed to modify the underlying data),
+//  - turn into a View (not allowed to modify the underlying data), not possible because ot strtoll()
 //  - add friend function for custom hashing,
 //  - goal is to be able to build std::map and std::set of Span<char>
 
