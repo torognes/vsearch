@@ -230,7 +230,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
           needle = field_buffer.data();
         }
       int const wlen = std::strlen(needle);
-      char * hit = header_view.data();
+      char const * hit = header_view.data();
       while (true)
         {
           hit = std::strstr(hit, needle);
