@@ -76,6 +76,12 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 #endif
 
 
+// TODO:
+//  - turn into a View (not allowed to modify the underlying data),
+//  - add friend function for custom hashing,
+//  - goal is to be able to build std::map and std::set of Span<char>
+
+
 // simple version of std::span (C++20)
 //
 // only valid for contiguous sequences of elements (vectors or arrays)
