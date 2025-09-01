@@ -62,7 +62,7 @@
 #define SPAN_HPP
 
 
-#include <algorithm>  // std::min
+#include <algorithm>  // std::equal, std::lexicographical_compare, std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
@@ -96,6 +96,16 @@ public:
       length_ {length} {
     assert(start != nullptr);
     assert(length <= max_ptrdiff);
+  }
+
+  // Operators
+  auto operator==(Span<Type> const & other) const -> bool {
+    return size() == other.size()
+      and std::equal(cbegin(), cend(), other.cbegin());
+  }
+  auto operator<(Span<Type> const & other) const -> bool {
+    return std::lexicographical_compare(cbegin(), cend(),
+                                        other.cbegin(), other.cend());
   }
 
   // Iterators
