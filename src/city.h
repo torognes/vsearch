@@ -87,8 +87,4 @@ auto CityHash64WithSeeds(const char * seq, std::size_t len,
 // Hash function for a byte array.
 auto CityHash128(const char * seq, std::size_t len) -> uint128;
 
-// Hash function for a byte array.  For convenience, a 128-bit seed is also
-// hashed into the result.
-auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128;
-
 #endif  // CITY_HASH_H_
