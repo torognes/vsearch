@@ -411,13 +411,13 @@ auto CityHash64(const char * seq, std::size_t len) -> uint64_t {
                    HashLen16(v.second, w.second) + x);
 }
 
-auto CityHash64WithSeed(const char * seq, std::size_t len, uint64_t seed) -> uint64_t {
-  return CityHash64WithSeeds(seq, len, k2, seed);
-}
-
 auto CityHash64WithSeeds(const char * seq, std::size_t len,
                          uint64_t seed0, uint64_t seed1) -> uint64_t {
   return HashLen16(CityHash64(seq, len) - seed0, seed1);
+}
+
+auto CityHash64WithSeed(const char * seq, std::size_t len, uint64_t seed) -> uint64_t {
+  return CityHash64WithSeeds(seq, len, k2, seed);
 }
 
 // A subroutine for CityHash128().  Returns a decent 128-bit hash for strings
