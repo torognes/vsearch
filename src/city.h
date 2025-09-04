@@ -91,9 +91,6 @@ auto CityHash128(const char * seq, std::size_t len) -> uint128;
 // hashed into the result.
 auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128;
 
-// Hash function for a byte array.  Most useful in 32-bit binaries.
-auto CityHash32(const char * seq, std::size_t len) -> uint32_t;
-
 // Hash 128 input bits down to 64 bits of output.
 // This is intended to be a reasonably good hash function.
 inline auto Hash128to64(const uint128& a_pair) -> uint64_t {
