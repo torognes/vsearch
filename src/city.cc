@@ -116,17 +116,6 @@ constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 constexpr uint32_t c1 = 0xcc9e2d51;
 constexpr uint32_t c2 = 0x1b873593;
 
-// A 32-bit to 32-bit integer hash copied from Murmur3.
-static auto fmix(uint32_t hash_value) -> uint32_t
-{
-  hash_value ^= hash_value >> 16U;
-  hash_value *= 0x85ebca6b;
-  hash_value ^= hash_value >> 13U;
-  hash_value *= 0xc2b2ae35;
-  hash_value ^= hash_value >> 16U;
-  return hash_value;
-}
-
 static auto Rotate32(uint32_t val, int shift) -> uint32_t {
   // Avoid shifting by 32: doing so yields an undefined result.
   return shift == 0 ? val : ((val >> shift) | (val << (32 - shift)));
@@ -134,16 +123,6 @@ static auto Rotate32(uint32_t val, int shift) -> uint32_t {
 
 #undef PERMUTE3
 #define PERMUTE3(a, b, c) do { std::swap(a, b); std::swap(a, c); } while (0)
-
-static auto Mur(uint32_t a_value, uint32_t hash_value) -> uint32_t {
-  // Helper from Murmur3 for combining two 32-bit values.
-  a_value *= c1;
-  a_value = Rotate32(a_value, 17);
-  a_value *= c2;
-  hash_value ^= a_value;
-  hash_value = Rotate32(hash_value, 19);
-  return (hash_value * 5) + 0xe6546b64;
-}
 
 // Bitwise right rotate.  Normally this will compile to a single
 // instruction, especially if the shift is a manifest constant.
