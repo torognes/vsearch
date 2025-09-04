@@ -69,7 +69,7 @@
 
 using uint128 = std::pair<uint64_t, uint64_t>;
 
-inline auto Uint128Low64(const uint128& a_pair) -> uint64_t { return a_pair.first; }  // used only in city.cc and derep_smallmem.cc
+inline auto Uint128Low64(const uint128& a_pair) -> uint64_t { return a_pair.first; }  // also used in derep_smallmem.cc
 inline auto Uint128High64(const uint128& a_pair) -> uint64_t { return a_pair.second; }  // used only in city.cc
 
 // Hash function for a byte array.
