@@ -145,40 +145,6 @@ static auto Mur(uint32_t a_value, uint32_t hash_value) -> uint32_t {
   return (hash_value * 5) + 0xe6546b64;
 }
 
-static auto Hash32Len13to24(const char * seq, std::size_t len) -> uint32_t {
-  const uint32_t a = Fetch32(seq - 4 + (len >> 1U));
-  const uint32_t b = Fetch32(seq + 4);
-  const uint32_t c = Fetch32(seq + len - 8);
-  const uint32_t d = Fetch32(seq + (len >> 1U));
-  const uint32_t e = Fetch32(seq);
-  const uint32_t f = Fetch32(seq + len - 4);
-  const uint32_t h = len;
-
-  return fmix(Mur(f, Mur(e, Mur(d, Mur(c, Mur(b, Mur(a, h)))))));
-}
-
-static auto Hash32Len0to4(const char * seq, std::size_t len) -> uint32_t {
-  uint32_t b = 0;
-  uint32_t c = 9;
-  for (int i = 0; i < len; i++) {
-    const signed char v = seq[i];
-    b = (b * c1) + v;
-    c ^= b;
-  }
-  return fmix(Mur(b, Mur(len, c)));
-}
-
-static auto Hash32Len5to12(const char * seq, std::size_t len) -> uint32_t {
-  uint32_t a = len;
-  uint32_t b = len * 5;
-  uint32_t c = 9;
-  uint32_t const d = b;
-  a += Fetch32(seq);
-  b += Fetch32(seq + len - 4);
-  c += Fetch32(seq + ((len >> 1U) & 4U));
-  return fmix(Mur(c, Mur(b, Mur(a, d))));
-}
-
 // Bitwise right rotate.  Normally this will compile to a single
 // instruction, especially if the shift is a manifest constant.
 static auto Rotate(uint64_t val, int shift) -> uint64_t {
