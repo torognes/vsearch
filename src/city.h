@@ -75,11 +75,6 @@ inline auto Uint128High64(const uint128& a_pair) -> uint64_t { return a_pair.sec
 // Hash function for a byte array.
 auto CityHash64(const char * seq, std::size_t len) -> uint64_t;
 
-// Hash function for a byte array.  For convenience, two seeds are also
-// hashed into the result.
-auto CityHash64WithSeeds(const char * seq, std::size_t len,
-                         uint64_t seed0, uint64_t seed1) -> uint64_t;
-
 // Hash function for a byte array.
 auto CityHash128(const char * seq, std::size_t len) -> uint128;
 
