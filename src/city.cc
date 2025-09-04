@@ -116,11 +116,6 @@ constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 constexpr uint32_t c1 = 0xcc9e2d51;
 constexpr uint32_t c2 = 0x1b873593;
 
-static auto Rotate32(uint32_t val, int shift) -> uint32_t {
-  // Avoid shifting by 32: doing so yields an undefined result.
-  return shift == 0 ? val : ((val >> shift) | (val << (32 - shift)));
-}
-
 #undef PERMUTE3
 #define PERMUTE3(a, b, c) do { std::swap(a, b); std::swap(a, c); } while (0)
 
