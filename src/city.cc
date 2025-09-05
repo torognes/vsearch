@@ -110,7 +110,7 @@ namespace {
   // Bitwise right rotate.  Normally this will compile to a single
   // instruction, especially if the shift is a manifest constant.
   // C++20 refactoring: std::rotr()
-  auto Rotate(uint64_t val, int shift) -> uint64_t {
+  auto Rotate(uint64_t val, unsigned int shift) -> uint64_t {
     static constexpr auto sixtyfour = 64U;
     // Avoid shifting by 64: doing so yields an undefined result.
     return shift == 0 ? val : ((val >> shift) | (val << (sixtyfour - shift)));
