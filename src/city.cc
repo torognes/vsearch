@@ -99,6 +99,16 @@ namespace {
   constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;  // uint64 initialization value?
 
 
+  inline auto Uint128Low64(const uint128 &a_pair) -> uint64_t {
+    return a_pair.first;
+  }
+
+
+  inline auto Uint128High64(const uint128 &a_pair) -> uint64_t {
+    return a_pair.second;
+  }
+
+
   auto unaligned_load64(const char * p) -> uint64_t {
     uint64_t result = 0;
     std::memcpy(&result, p, sizeof(result));
