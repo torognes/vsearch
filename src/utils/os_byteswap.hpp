@@ -58,37 +58,64 @@
 
 */
 
-
-// #include <cstdint>  // uint16_t, uint32_t, uint64_t
-
-
 // Operating System specific commands to swap bytes
 // C++23 refactoring: replace with std::byteswap()
 
 
-// constexpr auto bswap_16(uint16_t bsx) -> uint16_t;
-
 #ifdef _MSC_VER
 
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <stdlib.h>
-#define bswap_16(x) _byteswap_ushort(x)
-#define bswap_32(x) _byteswap_ulong(x)
-#define bswap_64(x) _byteswap_uint64(x)
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return _byteswap_ushort(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return _byteswap_ulong(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return _byteswap_uint64(bsx);
+};
+
 
 #elif __APPLE__
 
 // Mac OS X / Darwin features
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <libkern/OSByteOrder.h>
-#define bswap_16(x) OSSwapInt16(x)
-#define bswap_32(x) OSSwapInt32(x)
-#define bswap_64(x) OSSwapInt64(x)
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return OSSwapInt16(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return OSSwapInt32(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return OSSwapInt64(bsx);
+};
+
 
 #elif __FreeBSD__
 
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <sys/endian.h>
-#define bswap_16(x) bswap16(x)
-#define bswap_32(x) bswap32(x)
-#define bswap_64(x) bswap64(x)
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return bswap16(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return bswap32(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return bswap64(bsx);
+};
+
 
 #elif __linux__
 
@@ -96,11 +123,22 @@
 
 #elif __NetBSD__
 
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <sys/types.h>
 #include <machine/bswap.h>
-#define bswap_16(x) bswap16(x)
-#define bswap_32(x) bswap32(x)
-#define bswap_64(x) bswap64(x)
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return bswap16(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return bswap32(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return bswap64(bsx);
+};
+
 
 #else
 
