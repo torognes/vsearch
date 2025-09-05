@@ -70,6 +70,7 @@
 
 #endif
 
+
 #ifdef WORDS_BIGENDIAN
 #define uint32_in_expected_order(x) (bswap_32(x))
 #define uint64_in_expected_order(x) (bswap_64(x))
@@ -77,6 +78,7 @@
 #define uint32_in_expected_order(x) (x)
 #define uint64_in_expected_order(x) (x)
 #endif
+
 
 #if !defined(LIKELY)
 #if HAVE_BUILTIN_EXPECT
@@ -96,42 +98,42 @@ namespace {
   constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 
 
-auto unaligned_load64(const char * p) -> uint64_t {
-  uint64_t result = 0;
-  std::memcpy(&result, p, sizeof(result));
-  return result;
-}
+  auto unaligned_load64(const char * p) -> uint64_t {
+    uint64_t result = 0;
+    std::memcpy(&result, p, sizeof(result));
+    return result;
+  }
 
 
-auto unaligned_load32(const char * p) -> uint32_t {
-  uint32_t result = 0;
-  std::memcpy(&result, p, sizeof(result));
-  return result;
-}
+  auto unaligned_load32(const char * p) -> uint32_t {
+    uint32_t result = 0;
+    std::memcpy(&result, p, sizeof(result));
+    return result;
+  }
 
 
-auto Fetch64(const char *p) -> uint64_t {
-  return uint64_in_expected_order(unaligned_load64(p));
-}
+  auto Fetch64(const char *p) -> uint64_t {
+    return uint64_in_expected_order(unaligned_load64(p));
+  }
 
 
-auto Fetch32(const char *p) -> uint32_t {
-  return uint32_in_expected_order(unaligned_load32(p));
-}
+  auto Fetch32(const char *p) -> uint32_t {
+    return uint32_in_expected_order(unaligned_load32(p));
+  }
 
 
-// Bitwise right rotate.  Normally this will compile to a single
-// instruction, especially if the shift is a manifest constant.
-// C++20 refactoring: std::rotr()
-auto Rotate(uint64_t val, int shift) -> uint64_t {
-  // Avoid shifting by 64: doing so yields an undefined result.
-  return shift == 0 ? val : ((val >> shift) | (val << (64U - shift)));
-}
+  // Bitwise right rotate.  Normally this will compile to a single
+  // instruction, especially if the shift is a manifest constant.
+  // C++20 refactoring: std::rotr()
+  auto Rotate(uint64_t val, int shift) -> uint64_t {
+    // Avoid shifting by 64: doing so yields an undefined result.
+    return shift == 0 ? val : ((val >> shift) | (val << (64U - shift)));
+  }
 
 
-auto ShiftMix(uint64_t val) -> uint64_t {
-  return val ^ (val >> 47U);
-}
+  auto ShiftMix(uint64_t val) -> uint64_t {
+    return val ^ (val >> 47U);
+  }
 
 }  // end of anonymous namespace
 
