@@ -116,9 +116,6 @@ constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 constexpr uint32_t c1 = 0xcc9e2d51;
 constexpr uint32_t c2 = 0x1b873593;
 
-#undef PERMUTE3
-#define PERMUTE3(a, b, c) do { std::swap(a, b); std::swap(a, c); } while (0)
-
 // Bitwise right rotate.  Normally this will compile to a single
 // instruction, especially if the shift is a manifest constant.
 static auto Rotate(uint64_t val, int shift) -> uint64_t {
