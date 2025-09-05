@@ -57,16 +57,16 @@ namespace {
   }
 
 
-  auto unaligned_load64(const char * source) -> uint64_t {
+  auto unaligned_load64(const char * src) -> uint64_t {
     uint64_t result = 0;
-    std::memcpy(&result, source, sizeof(result));
+    std::memcpy(&result, src, sizeof(result));
     return result;
   }
 
 
-  auto unaligned_load32(const char * source) -> uint32_t {
+  auto unaligned_load32(const char * src) -> uint32_t {
     uint32_t result = 0;
-    std::memcpy(&result, source, sizeof(result));
+    std::memcpy(&result, src, sizeof(result));
     return result;
   }
 
