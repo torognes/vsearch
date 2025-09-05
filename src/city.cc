@@ -71,16 +71,6 @@
 #endif
 
 
-// refactoring: only used in CityHash128WithSeed()
-#if !defined(LIKELY)
-#if HAVE_BUILTIN_EXPECT
-#define LIKELY(x) (__builtin_expect(!!(x), 1))
-#else
-#define LIKELY(x) (x)
-#endif
-#endif
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
@@ -317,6 +307,17 @@ namespace {
   }
 
 
+  constexpr auto likely(bool condition) noexcept -> bool {
+#if HAVE_BUILTIN_EXPECT
+    static constexpr auto is_expected_to_be_true = 1L;
+    // !!condition converts to a strict boolean value
+    return __builtin_expect(!!condition, is_expected_to_be_true);
+#else
+    return condition;
+#endif
+  }
+
+
   auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128 {
     if (len < 128) {
       return CityMurmur(seq, len, seed);
@@ -355,7 +356,7 @@ namespace {
       std::swap(z, x);
       seq += 64;
       len -= 128;
-    } while (LIKELY(len >= 128));  // hot path
+    } while (likely(len >= 128));  // hot path
     x += Rotate(v.first + z, 49) * k0;
     y = (y * k0) + Rotate(w.second, 37);
     z = (z * k0) + Rotate(w.first, 27);
