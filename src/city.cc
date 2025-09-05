@@ -513,14 +513,4 @@ auto CityHashCrc128WithSeed(const char * s, std::size_t len, uint128 seed) -> ui
   }
 }
 
-auto CityHashCrc128(const char * s, std::size_t len) -> uint128 {
-  if (len <= 900) {
-    return CityHash128(s, len);
-  } else {
-    uint64_t result[4];
-    CityHashCrc256(s, len, result);
-    return uint128(result[2], result[3]);
-  }
-}
-
 #endif
