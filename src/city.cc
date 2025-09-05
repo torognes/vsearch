@@ -93,6 +93,7 @@ static auto UNALIGNED_LOAD64(const char * p) -> uint64_t {
   return result;
 }
 
+
 static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
   uint32_t result = 0;
   std::memcpy(&result, p, sizeof(result));
@@ -104,14 +105,17 @@ static auto Fetch64(const char *p) -> uint64_t {
   return uint64_in_expected_order(UNALIGNED_LOAD64(p));
 }
 
+
 static auto Fetch32(const char *p) -> uint32_t {
   return uint32_in_expected_order(UNALIGNED_LOAD32(p));
 }
+
 
 // Some primes between 2^63 and 2^64 for various uses.
 constexpr uint64_t k0 = 0xc3a5c85c97cb3127ULL;
 constexpr uint64_t k1 = 0xb492b66fbe98f273ULL;
 constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
+
 
 // Bitwise right rotate.  Normally this will compile to a single
 // instruction, especially if the shift is a manifest constant.
@@ -121,9 +125,11 @@ static auto Rotate(uint64_t val, int shift) -> uint64_t {
   return shift == 0 ? val : ((val >> shift) | (val << (64U - shift)));
 }
 
+
 static auto ShiftMix(uint64_t val) -> uint64_t {
   return val ^ (val >> 47U);
 }
+
 
 // Hash 128 input bits down to 64 bits of output.
 // This is intended to be a reasonably good hash function.
