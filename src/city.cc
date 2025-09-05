@@ -99,12 +99,12 @@ namespace {
   constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;  // uint64 initialization value?
 
 
-  inline auto Uint128Low64(const uint128 &a_pair) -> uint64_t {
+  inline auto Uint128Low64(const uint128 & a_pair) -> uint64_t {
     return a_pair.first;
   }
 
 
-  inline auto Uint128High64(const uint128 &a_pair) -> uint64_t {
+  inline auto Uint128High64(const uint128 & a_pair) -> uint64_t {
     return a_pair.second;
   }
 
@@ -123,12 +123,12 @@ namespace {
   }
 
 
-  auto Fetch64(const char *p) -> uint64_t {
+  auto Fetch64(const char * p) -> uint64_t {
     return uint64_in_expected_order(unaligned_load64(p));
   }
 
 
-  auto Fetch32(const char *p) -> uint32_t {
+  auto Fetch32(const char * p) -> uint32_t {
     return uint32_in_expected_order(unaligned_load32(p));
   }
 
@@ -149,7 +149,7 @@ namespace {
 
   // Hash 128 input bits down to 64 bits of output.
   // This is intended to be a reasonably good hash function.
-  inline auto Hash128to64(const uint128& a_pair) -> uint64_t {
+  inline auto Hash128to64(const uint128 & a_pair) -> uint64_t {
     // Murmur-inspired hashing.
     static constexpr auto divider = 47U;
     static constexpr uint64_t kMul = 0x9ddfea08eb382d69ULL;
