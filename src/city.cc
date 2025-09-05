@@ -289,69 +289,69 @@ namespace {
   }
 
 
-auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128 {
-  if (len < 128) {
-    return CityMurmur(seq, len, seed);
-  }
+  auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128 {
+    if (len < 128) {
+      return CityMurmur(seq, len, seed);
+    }
 
-  // We expect len >= 128 to be the common case.  Keep 56 bytes of state:
-  // v, w, x, y, and z.
-  std::pair<uint64_t, uint64_t> v;
-  std::pair<uint64_t, uint64_t> w;
-  uint64_t x = Uint128Low64(seed);
-  uint64_t y = Uint128High64(seed);
-  uint64_t z = len * k1;
-  v.first = (Rotate(y ^ k1, 49) * k1) + Fetch64(seq);
-  v.second = (Rotate(v.first, 42) * k1) + Fetch64(seq + 8);
-  w.first = (Rotate(y + z, 35) * k1) + x;
-  w.second = Rotate(x + Fetch64(seq + 88), 53) * k1;
+    // We expect len >= 128 to be the common case.  Keep 56 bytes of state:
+    // v, w, x, y, and z.
+    std::pair<uint64_t, uint64_t> v;
+    std::pair<uint64_t, uint64_t> w;
+    uint64_t x = Uint128Low64(seed);
+    uint64_t y = Uint128High64(seed);
+    uint64_t z = len * k1;
+    v.first = (Rotate(y ^ k1, 49) * k1) + Fetch64(seq);
+    v.second = (Rotate(v.first, 42) * k1) + Fetch64(seq + 8);
+    w.first = (Rotate(y + z, 35) * k1) + x;
+    w.second = Rotate(x + Fetch64(seq + 88), 53) * k1;
 
-  // This is the same inner loop as CityHash64(), manually unrolled.
-  do {
-    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
-    x ^= w.second;
-    y += v.first + Fetch64(seq + 40);
-    z = Rotate(z + w.first, 33) * k1;
-    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
-    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
-    std::swap(z, x);
-    seq += 64;
-    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
-    x ^= w.second;
-    y += v.first + Fetch64(seq + 40);
-    z = Rotate(z + w.first, 33) * k1;
-    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
-    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
-    std::swap(z, x);
-    seq += 64;
-    len -= 128;
-  } while (LIKELY(len >= 128));
-  x += Rotate(v.first + z, 49) * k0;
-  y = (y * k0) + Rotate(w.second, 37);
-  z = (z * k0) + Rotate(w.first, 27);
-  w.first *= 9;
-  v.first *= k0;
-  // If 0 < len < 128, hash up to 4 chunks of 32 bytes each from the end of s.
-  for (std::size_t tail_done = 0; tail_done < len; ) {
-    tail_done += 32;
-    y = (Rotate(x + y, 42) * k0) + v.second;
-    w.first += Fetch64(seq + len - tail_done + 16);
-    x = (x * k0) + w.first;
-    z += w.second + Fetch64(seq + len - tail_done);
-    w.second += v.first;
-    v = WeakHashLen32WithSeeds(seq + len - tail_done, v.first + z, v.second);
+    // This is the same inner loop as CityHash64(), manually unrolled.
+    do {
+      x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
+      y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
+      x ^= w.second;
+      y += v.first + Fetch64(seq + 40);
+      z = Rotate(z + w.first, 33) * k1;
+      v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
+      w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
+      std::swap(z, x);
+      seq += 64;
+      x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
+      y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
+      x ^= w.second;
+      y += v.first + Fetch64(seq + 40);
+      z = Rotate(z + w.first, 33) * k1;
+      v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
+      w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
+      std::swap(z, x);
+      seq += 64;
+      len -= 128;
+    } while (LIKELY(len >= 128));
+    x += Rotate(v.first + z, 49) * k0;
+    y = (y * k0) + Rotate(w.second, 37);
+    z = (z * k0) + Rotate(w.first, 27);
+    w.first *= 9;
     v.first *= k0;
+    // If 0 < len < 128, hash up to 4 chunks of 32 bytes each from the end of s.
+    for (std::size_t tail_done = 0; tail_done < len; ) {
+      tail_done += 32;
+      y = (Rotate(x + y, 42) * k0) + v.second;
+      w.first += Fetch64(seq + len - tail_done + 16);
+      x = (x * k0) + w.first;
+      z += w.second + Fetch64(seq + len - tail_done);
+      w.second += v.first;
+      v = WeakHashLen32WithSeeds(seq + len - tail_done, v.first + z, v.second);
+      v.first *= k0;
+    }
+    // At this point our 56 bytes of state should contain more than
+    // enough information for a strong 128-bit hash.  We use two
+    // different 56-byte-to-8-byte hashes to get a 16-byte final result.
+    x = HashLen16(x, v.first);
+    y = HashLen16(y + z, w.first);
+    return uint128(HashLen16(x + v.second, w.second) + y,
+                   HashLen16(x + w.second, y + v.second));
   }
-  // At this point our 56 bytes of state should contain more than
-  // enough information for a strong 128-bit hash.  We use two
-  // different 56-byte-to-8-byte hashes to get a 16-byte final result.
-  x = HashLen16(x, v.first);
-  y = HashLen16(y + z, w.first);
-  return uint128(HashLen16(x + v.second, w.second) + y,
-                 HashLen16(x + w.second, y + v.second));
-}
 
 }  // end of anonymous namespace
 
