@@ -94,14 +94,14 @@ namespace {
 }  // end of anonymous namespace
 
 
-static auto UNALIGNED_LOAD64(const char * p) -> uint64_t {
+static auto unaligned_load64(const char * p) -> uint64_t {
   uint64_t result = 0;
   std::memcpy(&result, p, sizeof(result));
   return result;
 }
 
 
-static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
+static auto unaligned_load32(const char * p) -> uint32_t {
   uint32_t result = 0;
   std::memcpy(&result, p, sizeof(result));
   return result;
@@ -109,12 +109,12 @@ static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
 
 
 static auto Fetch64(const char *p) -> uint64_t {
-  return uint64_in_expected_order(UNALIGNED_LOAD64(p));
+  return uint64_in_expected_order(unaligned_load64(p));
 }
 
 
 static auto Fetch32(const char *p) -> uint32_t {
-  return uint32_in_expected_order(UNALIGNED_LOAD32(p));
+  return uint32_in_expected_order(unaligned_load32(p));
 }
 
 
