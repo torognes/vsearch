@@ -135,8 +135,6 @@ namespace {
     return val ^ (val >> 47U);
   }
 
-}  // end of anonymous namespace
-
 
 // Hash 128 input bits down to 64 bits of output.
 // This is intended to be a reasonably good hash function.
@@ -152,11 +150,11 @@ inline auto Hash128to64(const uint128& a_pair) -> uint64_t {
   return higher_part;
 }
 
-static auto HashLen16(uint64_t u, uint64_t v) -> uint64_t {
+auto HashLen16(uint64_t u, uint64_t v) -> uint64_t {
   return Hash128to64(uint128(u, v));
 }
 
-static auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
+auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
   // Murmur-inspired hashing.
   uint64_t a = (u ^ v) * mul;
   a ^= (a >> 47U);
@@ -166,7 +164,7 @@ static auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
   return b;
 }
 
-static auto HashLen0to16(const char * seq, std::size_t len) -> uint64_t {
+auto HashLen0to16(const char * seq, std::size_t len) -> uint64_t {
   if (len >= 8) {
     const uint64_t mul = k2 + (len * 2);
     const uint64_t a = Fetch64(seq) + k2;
@@ -193,7 +191,7 @@ static auto HashLen0to16(const char * seq, std::size_t len) -> uint64_t {
 
 // This probably works well for 16-byte strings as well, but it may be overkill
 // in that case.
-static auto HashLen17to32(const char * seq, std::size_t len) -> uint64_t {
+auto HashLen17to32(const char * seq, std::size_t len) -> uint64_t {
   const uint64_t mul = k2 + (len * 2);
   const uint64_t a = Fetch64(seq) * k1;
   const uint64_t b = Fetch64(seq + 8);
@@ -205,7 +203,7 @@ static auto HashLen17to32(const char * seq, std::size_t len) -> uint64_t {
 
 // Return a 16-byte hash for 48 bytes.  Quick and dirty.
 // Callers do best to use "random-looking" values for a and b.
-static auto WeakHashLen32WithSeeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z,
+auto WeakHashLen32WithSeeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z,
                                    uint64_t a, uint64_t b)
   -> std::pair<uint64_t, uint64_t> {
   a += w;
@@ -218,7 +216,7 @@ static auto WeakHashLen32WithSeeds(uint64_t w, uint64_t x, uint64_t y, uint64_t 
 }
 
 // Return a 16-byte hash for s[0] ... s[31], a, and b.  Quick and dirty.
-static auto WeakHashLen32WithSeeds(const char * seq, uint64_t a, uint64_t b)
+auto WeakHashLen32WithSeeds(const char * seq, uint64_t a, uint64_t b)
   -> std::pair<uint64_t, uint64_t> {
   return WeakHashLen32WithSeeds(Fetch64(seq),
                                 Fetch64(seq + 8),
@@ -229,7 +227,7 @@ static auto WeakHashLen32WithSeeds(const char * seq, uint64_t a, uint64_t b)
 }
 
 // Return an 8-byte hash for 33 to 64 bytes.
-static auto HashLen33to64(const char * seq, std::size_t len) -> uint64_t {
+auto HashLen33to64(const char * seq, std::size_t len) -> uint64_t {
   const uint64_t mul = k2 + (len * 2);
   uint64_t a = Fetch64(seq) * k2;
   uint64_t b = Fetch64(seq + 8);
@@ -249,6 +247,9 @@ static auto HashLen33to64(const char * seq, std::size_t len) -> uint64_t {
   b = ShiftMix(((z + a) * mul) + d + h) * mul;
   return b + x;
 }
+
+}  // end of anonymous namespace
+
 
 auto CityHash64(const char * seq, std::size_t len) -> uint64_t {
   if (len <= 16) {
