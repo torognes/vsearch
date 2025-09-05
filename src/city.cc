@@ -170,7 +170,7 @@ namespace {
   }
 
 
-  auto HashLen0to16(const char * seq, std::size_t len) -> uint64_t {
+  auto HashLen0to16(const char * seq, std::size_t const len) -> uint64_t {
     if (len >= 8) {
       const uint64_t mul = k2 + (len * 2);
       const uint64_t a = Fetch64(seq) + k2;
@@ -198,7 +198,7 @@ namespace {
 
   // This probably works well for 16-byte strings as well, but it may be overkill
   // in that case.
-  auto HashLen17to32(const char * seq, std::size_t len) -> uint64_t {
+  auto HashLen17to32(const char * seq, std::size_t const len) -> uint64_t {
     const uint64_t mul = k2 + (len * 2);
     const uint64_t a = Fetch64(seq) * k1;
     const uint64_t b = Fetch64(seq + 8);
