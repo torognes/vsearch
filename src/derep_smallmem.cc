@@ -62,7 +62,7 @@
 #include "city.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-// #include "util.h"  // hash_cityhash128, Uint128Low64
+// #include "util.h"  // hash_cityhash128
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
