@@ -112,6 +112,7 @@ utils/fatal.hpp \
 utils/kmer_hash_struct.hpp \
 utils/maps.hpp \
 utils/open_file.hpp \
+utils/os_byteswap.hpp \
 utils/progress.hpp \
 utils/seqcmp.hpp \
 utils/span.hpp \
