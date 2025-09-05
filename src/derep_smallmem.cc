@@ -176,7 +176,8 @@ auto find_median() -> double
 
 inline auto hash2bucket(uint128 hash, uint64_t htsize) -> uint64_t
 {
-  return Uint128Low64(hash) % htsize;
+  // extract hash's first uint64_t, cast to the size of the hash table
+  return hash.first % htsize;
 }
 
 
