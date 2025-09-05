@@ -256,37 +256,37 @@ namespace {
   }
 
 
-// A subroutine for CityHash128().  Returns a decent 128-bit hash for strings
-// of any length representable in signed long.  Based on City and Murmur.
-auto CityMurmur(const char * seq, std::size_t len, uint128 seed) -> uint128 {
-  uint64_t a = Uint128Low64(seed);
-  uint64_t b = Uint128High64(seed);
-  uint64_t c = 0;
-  uint64_t d = 0;
-  signed long l = len - 16;
-  if (l <= 0) {  // len <= 16
-    a = ShiftMix(a * k1) * k1;
-    c = (b * k1) + HashLen0to16(seq, len);
-    d = ShiftMix(a + (len >= 8 ? Fetch64(seq) : c));
-  } else {  // len > 16
-    c = HashLen16(Fetch64(seq + len - 8) + k1, a);
-    d = HashLen16(b + len, c + Fetch64(seq + len - 16));
-    a += d;
-    do {
-      a ^= ShiftMix(Fetch64(seq) * k1) * k1;
-      a *= k1;
-      b ^= a;
-      c ^= ShiftMix(Fetch64(seq + 8) * k1) * k1;
-      c *= k1;
-      d ^= c;
-      seq += 16;
-      l -= 16;
-    } while (l > 0);
+  // A subroutine for CityHash128().  Returns a decent 128-bit hash for strings
+  // of any length representable in signed long.  Based on City and Murmur.
+  auto CityMurmur(const char * seq, std::size_t len, uint128 seed) -> uint128 {
+    uint64_t a = Uint128Low64(seed);
+    uint64_t b = Uint128High64(seed);
+    uint64_t c = 0;
+    uint64_t d = 0;
+    signed long l = len - 16;
+    if (l <= 0) {  // len <= 16
+      a = ShiftMix(a * k1) * k1;
+      c = (b * k1) + HashLen0to16(seq, len);
+      d = ShiftMix(a + (len >= 8 ? Fetch64(seq) : c));
+    } else {  // len > 16
+      c = HashLen16(Fetch64(seq + len - 8) + k1, a);
+      d = HashLen16(b + len, c + Fetch64(seq + len - 16));
+      a += d;
+      do {
+        a ^= ShiftMix(Fetch64(seq) * k1) * k1;
+        a *= k1;
+        b ^= a;
+        c ^= ShiftMix(Fetch64(seq + 8) * k1) * k1;
+        c *= k1;
+        d ^= c;
+        seq += 16;
+        l -= 16;
+      } while (l > 0);
+    }
+    a = HashLen16(a, c);
+    b = HashLen16(d, b);
+    return uint128(a ^ b, HashLen16(b, a));
   }
-  a = HashLen16(a, c);
-  b = HashLen16(d, b);
-  return uint128(a ^ b, HashLen16(b, a));
-}
 
 }  // end of anonymous namespace
 
