@@ -71,15 +71,6 @@
 #endif
 
 
-#ifdef WORDS_BIGENDIAN
-#define uint32_in_expected_order(x) (bswap_32(x))
-#define uint64_in_expected_order(x) (bswap_64(x))
-#else
-#define uint32_in_expected_order(x) (x)
-#define uint64_in_expected_order(x) (x)
-#endif
-
-
 // refactoring: only used in CityHash128WithSeed()
 #if !defined(LIKELY)
 #if HAVE_BUILTIN_EXPECT
@@ -120,6 +111,32 @@ namespace {
     uint32_t result = 0;
     std::memcpy(&result, p, sizeof(result));
     return result;
+  }
+
+
+  // C++23 refactoring:
+  //   #include <bit>
+  //   constexpr auto uint32_in_expected_order(uint32_t x) noexcept -> uint32_t {
+  //     if constexpr (std::endian::native == std::endian::big) {
+  //         return std::byteswap(x); }
+  //     else {
+  //         return x; }
+  // }
+  constexpr auto uint32_in_expected_order(uint32_t x) noexcept -> uint32_t {
+#ifdef WORDS_BIGENDIAN
+    return bswap_32(x);
+#else
+    return x;
+#endif
+  }
+
+
+  constexpr auto uint64_in_expected_order(uint64_t x) noexcept -> uint64_t {
+#ifdef WORDS_BIGENDIAN
+    return bswap_64(x);
+#else
+    return x;
+#endif
   }
 
 
