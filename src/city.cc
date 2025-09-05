@@ -79,31 +79,31 @@ namespace {
   //     else {
   //         return x; }
   // }
-  constexpr auto uint32_in_expected_order(uint32_t x) noexcept -> uint32_t {
+  constexpr auto uint32_in_expected_order(uint32_t src) noexcept -> uint32_t {
 #ifdef WORDS_BIGENDIAN
-    return bswap_32(x);
+    return bswap_32(src);
 #else
-    return x;
+    return src;
 #endif
   }
 
 
-  constexpr auto uint64_in_expected_order(uint64_t x) noexcept -> uint64_t {
+  constexpr auto uint64_in_expected_order(uint64_t src) noexcept -> uint64_t {
 #ifdef WORDS_BIGENDIAN
-    return bswap_64(x);
+    return bswap_64(src);
 #else
-    return x;
+    return src;
 #endif
   }
 
 
-  auto Fetch64(const char * p) -> uint64_t {
-    return uint64_in_expected_order(unaligned_load64(p));
+  auto Fetch64(const char * src) -> uint64_t {
+    return uint64_in_expected_order(unaligned_load64(src));
   }
 
 
-  auto Fetch32(const char * p) -> uint32_t {
-    return uint32_in_expected_order(unaligned_load32(p));
+  auto Fetch32(const char * src) -> uint32_t {
+    return uint32_in_expected_order(unaligned_load32(src));
   }
 
 
