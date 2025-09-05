@@ -56,7 +56,6 @@ attributes.h \
 bitmap.h \
 chimera.h \
 city.h \
-citycrc.h \
 cluster.h \
 cpu.h \
 cut.h \
