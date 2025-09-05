@@ -32,7 +32,5 @@
 #include <cstdio>  // std::size_t
 
 
-// Hash function for a byte array.  Sets result[0] ... result[3].
-auto CityHashCrc256(const char *s, std::size_t len, uint64 *result) -> void;
 
 #endif  // CITY_HASH_CRC_H_

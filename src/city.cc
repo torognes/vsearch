@@ -492,13 +492,5 @@ static auto CityHashCrc256Short(const char * s, std::size_t len, uint64_t *resul
   CityHashCrc256Long(buf, 240, ~static_cast<uint32_t>(len), result);
 }
 
-auto CityHashCrc256(const char * s, std::size_t len, uint64_t *result) -> void {
-  if (LIKELY(len >= 240)) {
-    CityHashCrc256Long(s, len, 0, result);
-  } else {
-    CityHashCrc256Short(s, len, result);
-  }
-}
-
 
 #endif
