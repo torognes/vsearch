@@ -145,12 +145,12 @@ namespace {
     // Murmur-inspired hashing.
     static constexpr auto divider = 47U;
     static constexpr uint64_t kMul = 0x9ddfea08eb382d69ULL;
-    uint64_t lower_part = (Uint128Low64(a_pair) ^ Uint128High64(a_pair)) * kMul;
-    lower_part ^= (lower_part >> divider);
-    uint64_t higher_part = (Uint128High64(a_pair) ^ lower_part) * kMul;
-    higher_part ^= (higher_part >> divider);
-    higher_part *= kMul;
-    return higher_part;
+    uint64_t reg_a = (Uint128Low64(a_pair) ^ Uint128High64(a_pair)) * kMul;
+    reg_a ^= (reg_a >> divider);
+    uint64_t reg_b = (Uint128High64(a_pair) ^ reg_a) * kMul;
+    reg_b ^= (reg_b >> divider);
+    reg_b *= kMul;
+    return reg_b;
   }
 
 
