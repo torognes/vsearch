@@ -111,13 +111,15 @@ namespace {
   // instruction, especially if the shift is a manifest constant.
   // C++20 refactoring: std::rotr()
   auto Rotate(uint64_t val, int shift) -> uint64_t {
+    static constexpr auto sixtyfour = 64U;
     // Avoid shifting by 64: doing so yields an undefined result.
-    return shift == 0 ? val : ((val >> shift) | (val << (64U - shift)));
+    return shift == 0 ? val : ((val >> shift) | (val << (sixtyfour - shift)));
   }
 
 
   auto ShiftMix(uint64_t val) -> uint64_t {
-    return val ^ (val >> 47U);
+    static constexpr auto fourtyseven = 47U;
+    return val ^ (val >> fourtyseven);
   }
 
 
