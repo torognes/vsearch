@@ -29,46 +29,13 @@
 
 #include "config.h"
 #include <city.h>
+#include "utils/os_byteswap.hpp"
 
 #include <algorithm>  // std::swap
 #include <cstdint>  // int32_t, uint8_t, uint32_t, uint64_t
 #include <cstdio>  // std::size_t
 #include <cstring>  // std::memcpy, std::memset
 #include <utility> // std::pair, std::make_pair
-
-#ifdef _MSC_VER
-
-#include <stdlib.h>
-#define bswap_32(x) _byteswap_ulong(x)
-#define bswap_64(x) _byteswap_uint64(x)
-
-#elif defined(__APPLE__)
-
-// Mac OS X / Darwin features
-#include <libkern/OSByteOrder.h>
-#define bswap_32(x) OSSwapInt32(x)
-#define bswap_64(x) OSSwapInt64(x)
-
-#elif defined(__FreeBSD__)
-
-#include <sys/endian.h>
-#define bswap_32(x) bswap32(x)
-#define bswap_64(x) bswap64(x)
-
-#elif defined(__NetBSD__)
-
-#include <sys/types.h>
-#include <machine/bswap.h>
-#if defined(__BSWAP_RENAME) && !defined(__bswap_32)
-#define bswap_32(x) bswap32(x)
-#define bswap_64(x) bswap64(x)
-#endif
-
-#else
-
-#include <byteswap.h>
-
-#endif
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
