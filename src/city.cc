@@ -393,7 +393,6 @@ auto CityHash128(const char * seq, std::size_t len) -> uint128 {
 }
 
 #ifdef __SSE4_2__
-#include <citycrc.h>
 #include <nmmintrin.h>
 
 // Requires len >= 240.
