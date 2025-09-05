@@ -32,10 +32,6 @@
 #include <cstdio>  // std::size_t
 
 
-// Hash function for a byte array.  For convenience, a 128-bit seed is also
-// hashed into the result.
-auto CityHashCrc128WithSeed(const char *s, std::size_t len, uint128 seed) -> uint128;
-
 // Hash function for a byte array.  Sets result[0] ... result[3].
 auto CityHashCrc256(const char *s, std::size_t len, uint64 *result) -> void;
 
