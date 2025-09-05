@@ -80,6 +80,24 @@ constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 };
 
 
+#elif _WIN32
+
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
+#include <stdlib.h>
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return _byteswap_ushort(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return _byteswap_ulong(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return _byteswap_uint64(bsx);
+};
+
+
 #elif __APPLE__
 
 // Mac OS X / Darwin features
