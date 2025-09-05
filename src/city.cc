@@ -87,6 +87,13 @@
 #endif
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+}  // end of anonymous namespace
+
+
 static auto UNALIGNED_LOAD64(const char * p) -> uint64_t {
   uint64_t result = 0;
   std::memcpy(&result, p, sizeof(result));
