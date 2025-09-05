@@ -72,10 +72,9 @@ using uint128 = std::pair<uint64_t, uint64_t>;
 inline auto Uint128Low64(const uint128& a_pair) -> uint64_t { return a_pair.first; }  // also used in derep_smallmem.cc
 inline auto Uint128High64(const uint128& a_pair) -> uint64_t { return a_pair.second; }  // used only in city.cc
 
-// Hash function for a byte array.
+// Hash functions for byte arrays
 auto CityHash64(const char * seq, std::size_t len) -> uint64_t;
 
-// Hash function for a byte array.
 auto CityHash128(const char * seq, std::size_t len) -> uint128;
 
 #endif  // CITY_HASH_H_
