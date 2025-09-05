@@ -93,9 +93,9 @@
 namespace {
 
   // Some primes between 2^63 and 2^64 for various uses.
-  constexpr uint64_t k0 = 0xc3a5c85c97cb3127ULL;
-  constexpr uint64_t k1 = 0xb492b66fbe98f273ULL;
-  constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
+  constexpr uint64_t k0 = 0xc3a5c85c97cb3127ULL;  // uint128 seeds?
+  constexpr uint64_t k1 = 0xb492b66fbe98f273ULL;  // uint128 seeds?
+  constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;  // uint64 initialization value?
 
 
   auto unaligned_load64(const char * p) -> uint64_t {
@@ -189,7 +189,7 @@ namespace {
       const uint32_t z = len + (static_cast<uint32_t>(c) << 2U);
       return ShiftMix((y * k2) ^ (z * k0)) * k2;
     }
-    return k2;
+    return k2;  // initialization value for empty sequences
   }
 
 
