@@ -36,19 +36,6 @@
 #include <cstring>  // std::memcpy, std::memset
 #include <utility> // std::pair, std::make_pair
 
-
-static auto UNALIGNED_LOAD64(const char * p) -> uint64_t {
-  uint64_t result = 0;
-  std::memcpy(&result, p, sizeof(result));
-  return result;
-}
-
-static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
-  uint32_t result = 0;
-  std::memcpy(&result, p, sizeof(result));
-  return result;
-}
-
 #ifdef _MSC_VER
 
 #include <stdlib.h>
@@ -98,6 +85,20 @@ static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
 #define LIKELY(x) (x)
 #endif
 #endif
+
+
+static auto UNALIGNED_LOAD64(const char * p) -> uint64_t {
+  uint64_t result = 0;
+  std::memcpy(&result, p, sizeof(result));
+  return result;
+}
+
+static auto UNALIGNED_LOAD32(const char * p) -> uint32_t {
+  uint32_t result = 0;
+  std::memcpy(&result, p, sizeof(result));
+  return result;
+}
+
 
 static auto Fetch64(const char *p) -> uint64_t {
   return uint64_in_expected_order(UNALIGNED_LOAD64(p));
