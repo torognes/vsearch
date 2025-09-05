@@ -128,13 +128,13 @@ namespace {
   // Bitwise right rotate.  Normally this will compile to a single
   // instruction, especially if the shift is a manifest constant.
   // C++20 refactoring: std::rotr()
-  auto Rotate(uint64_t val, unsigned int shift) -> uint64_t {
+  auto Rotate(uint64_t const val, unsigned int const shift) -> uint64_t {
     assert(shift != sixtyfour);  // shifting by 64 yields undefined results
     return shift == 0 ? val : ((val >> shift) | (val << (sixtyfour - shift)));
   }
 
 
-  auto ShiftMix(uint64_t val) -> uint64_t {
+  auto ShiftMix(uint64_t const val) -> uint64_t {
     return val ^ (val >> fourtyseven);
   }
 
@@ -154,17 +154,16 @@ namespace {
   }
 
 
-  auto HashLen16(uint64_t first, uint64_t second) -> uint64_t {
+  auto HashLen16(uint64_t const first, uint64_t const second) -> uint64_t {
     return Hash128to64(uint128(first, second));
   }
 
 
-  auto HashLen16(uint64_t first, uint64_t second, uint64_t mul) -> uint64_t {
+  auto HashLen16(uint64_t const first, uint64_t const second, uint64_t const mul) -> uint64_t {
     // Murmur-inspired hashing.
-    static constexpr auto fourtyseven = 47U;
-    uint64_t reg_a = (first ^ second) * mul;
+    auto reg_a = (first ^ second) * mul;
     reg_a ^= (reg_a >> fourtyseven);
-    uint64_t reg_b = (second ^ reg_a) * mul;
+    auto reg_b = (second ^ reg_a) * mul;
     reg_b ^= (reg_b >> fourtyseven);
     reg_b *= mul;
     return reg_b;
