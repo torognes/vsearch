@@ -288,47 +288,6 @@ namespace {
     return uint128(a ^ b, HashLen16(b, a));
   }
 
-}  // end of anonymous namespace
-
-
-auto CityHash64(const char * seq, std::size_t len) -> uint64_t {
-  if (len <= 16) {
-    return HashLen0to16(seq, len);
-  }
-  if (len <= 32) {
-    return HashLen17to32(seq, len);
-  }
-  if (len <= 64) {
-    return HashLen33to64(seq, len);
-  }
-
-  // For strings over 64 bytes we hash the end first, and then as we
-  // loop we keep 56 bytes of state: v, w, x, y, and z.
-  uint64_t x = Fetch64(seq + len - 40);
-  uint64_t y = Fetch64(seq + len - 16) + Fetch64(seq + len - 56);
-  uint64_t z = HashLen16(Fetch64(seq + len - 48) + len, Fetch64(seq + len - 24));
-  auto v = WeakHashLen32WithSeeds(seq + len - 64, len, z);
-  auto w = WeakHashLen32WithSeeds(seq + len - 32, y + k1, x);
-  x = (x * k1) + Fetch64(seq);
-
-  // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
-  len = (len - 1) & ~static_cast<std::size_t>(63);
-  do {
-    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
-    x ^= w.second;
-    y += v.first + Fetch64(seq + 40);
-    z = Rotate(z + w.first, 33) * k1;
-    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
-    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
-    std::swap(z, x);
-    seq += 64;
-    len -= 64;
-  } while (len != 0);
-  return HashLen16(HashLen16(v.first, w.first) + (ShiftMix(y) * k1) + z,
-                   HashLen16(v.second, w.second) + x);
-}
-
 
 auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128 {
   if (len < 128) {
@@ -393,6 +352,48 @@ auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uin
   return uint128(HashLen16(x + v.second, w.second) + y,
                  HashLen16(x + w.second, y + v.second));
 }
+
+}  // end of anonymous namespace
+
+
+auto CityHash64(const char * seq, std::size_t len) -> uint64_t {
+  if (len <= 16) {
+    return HashLen0to16(seq, len);
+  }
+  if (len <= 32) {
+    return HashLen17to32(seq, len);
+  }
+  if (len <= 64) {
+    return HashLen33to64(seq, len);
+  }
+
+  // For strings over 64 bytes we hash the end first, and then as we
+  // loop we keep 56 bytes of state: v, w, x, y, and z.
+  uint64_t x = Fetch64(seq + len - 40);
+  uint64_t y = Fetch64(seq + len - 16) + Fetch64(seq + len - 56);
+  uint64_t z = HashLen16(Fetch64(seq + len - 48) + len, Fetch64(seq + len - 24));
+  auto v = WeakHashLen32WithSeeds(seq + len - 64, len, z);
+  auto w = WeakHashLen32WithSeeds(seq + len - 32, y + k1, x);
+  x = (x * k1) + Fetch64(seq);
+
+  // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
+  len = (len - 1) & ~static_cast<std::size_t>(63);
+  do {
+    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
+    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
+    x ^= w.second;
+    y += v.first + Fetch64(seq + 40);
+    z = Rotate(z + w.first, 33) * k1;
+    v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
+    w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
+    std::swap(z, x);
+    seq += 64;
+    len -= 64;
+  } while (len != 0);
+  return HashLen16(HashLen16(v.first, w.first) + (ShiftMix(y) * k1) + z,
+                   HashLen16(v.second, w.second) + x);
+}
+
 
 auto CityHash128(const char * seq, std::size_t len) -> uint128 {
   return len >= 16 ?
