@@ -80,6 +80,7 @@
 #endif
 
 
+// refactoring: only used in CityHash128WithSeed()
 #if !defined(LIKELY)
 #if HAVE_BUILTIN_EXPECT
 #define LIKELY(x) (__builtin_expect(!!(x), 1))
