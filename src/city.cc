@@ -154,20 +154,20 @@ namespace {
   }
 
 
-  auto HashLen16(uint64_t u, uint64_t v) -> uint64_t {
-    return Hash128to64(uint128(u, v));
+  auto HashLen16(uint64_t first, uint64_t second) -> uint64_t {
+    return Hash128to64(uint128(first, second));
   }
 
 
-  auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
+  auto HashLen16(uint64_t first, uint64_t second, uint64_t mul) -> uint64_t {
     // Murmur-inspired hashing.
     static constexpr auto fourtyseven = 47U;
-    uint64_t a = (u ^ v) * mul;
-    a ^= (a >> fourtyseven);
-    uint64_t b = (v ^ a) * mul;
-    b ^= (b >> fourtyseven);
-    b *= mul;
-    return b;
+    uint64_t reg_a = (first ^ second) * mul;
+    reg_a ^= (reg_a >> fourtyseven);
+    uint64_t reg_b = (second ^ reg_a) * mul;
+    reg_b ^= (reg_b >> fourtyseven);
+    reg_b *= mul;
+    return reg_b;
   }
 
 
