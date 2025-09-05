@@ -32,6 +32,7 @@
 #include "utils/os_byteswap.hpp"
 
 #include <algorithm>  // std::swap
+#include <cassert>
 #include <cstdint>  // int32_t, uint8_t, uint32_t, uint64_t
 #include <cstdio>  // std::size_t
 #include <cstring>  // std::memcpy, std::memset
@@ -128,14 +129,12 @@ namespace {
   // instruction, especially if the shift is a manifest constant.
   // C++20 refactoring: std::rotr()
   auto Rotate(uint64_t val, unsigned int shift) -> uint64_t {
-    static constexpr auto sixtyfour = 64U;
-    // Avoid shifting by 64: doing so yields an undefined result.
+    assert(shift != sixtyfour);  // shifting by 64 yields undefined results
     return shift == 0 ? val : ((val >> shift) | (val << (sixtyfour - shift)));
   }
 
 
   auto ShiftMix(uint64_t val) -> uint64_t {
-    static constexpr auto fourtyseven = 47U;
     return val ^ (val >> fourtyseven);
   }
 
