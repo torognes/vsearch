@@ -114,6 +114,7 @@ constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;
 
 // Bitwise right rotate.  Normally this will compile to a single
 // instruction, especially if the shift is a manifest constant.
+// C++20 refactoring: std::rotr()
 static auto Rotate(uint64_t val, int shift) -> uint64_t {
   // Avoid shifting by 64: doing so yields an undefined result.
   return shift == 0 ? val : ((val >> shift) | (val << (64U - shift)));
