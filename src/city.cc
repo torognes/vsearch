@@ -46,6 +46,23 @@ namespace {
   constexpr uint64_t k1 = 0xb492b66fbe98f273ULL;  // uint128 seeds?
   constexpr uint64_t k2 = 0x9ae16a3b2f90404fULL;  // uint64 initialization value?
 
+  // shift values
+  constexpr auto eighteen = 18U;
+  constexpr auto twentyone = 21U;
+  constexpr auto twentyfive = 25U;
+  constexpr auto twentyseven = 27U;
+  constexpr auto thirty = 30U;
+  constexpr auto thirtythree = 33U;
+  constexpr auto thirtyfive = 35U;
+  constexpr auto thirtyseven = 37U;
+  constexpr auto fourtytwo = 42U;
+  constexpr auto fourtythree = 43U;
+  constexpr auto fourtyfour = 44U;
+  constexpr auto fourtyseven = 47U;
+  constexpr auto fourtynine = 49U;
+  constexpr auto fiftythree = 53U;
+  constexpr auto sixtyfour = 64U;
+
 
   inline auto Uint128Low64(const uint128 & a_pair) -> uint64_t {
     return a_pair.first;
@@ -145,10 +162,11 @@ namespace {
 
   auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
     // Murmur-inspired hashing.
+    static constexpr auto fourtyseven = 47U;
     uint64_t a = (u ^ v) * mul;
-    a ^= (a >> 47U);
+    a ^= (a >> fourtyseven);
     uint64_t b = (v ^ a) * mul;
-    b ^= (b >> 47U);
+    b ^= (b >> fourtyseven);
     b *= mul;
     return b;
   }
@@ -159,8 +177,8 @@ namespace {
       const uint64_t mul = k2 + (len * 2);
       const uint64_t a = Fetch64(seq) + k2;
       const uint64_t b = Fetch64(seq + len - 8);
-      const uint64_t c = (Rotate(b, 37) * mul) + a;
-      const uint64_t d = (Rotate(a, 25) + b) * mul;
+      const uint64_t c = (Rotate(b, thirtyseven) * mul) + a;
+      const uint64_t d = (Rotate(a, twentyfive) + b) * mul;
       return HashLen16(c, d, mul);
     }
     if (len >= 4) {
