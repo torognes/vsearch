@@ -219,7 +219,7 @@ auto arch_random() -> uint64_t
 
 auto xmalloc(std::size_t size) -> void *
 {
-  static constexpr auto minimal_allocation = 1UL;
+  static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
   void * ptr = nullptr;
 #ifdef _WIN32
@@ -240,7 +240,7 @@ auto xmalloc(std::size_t size) -> void *
 
 auto xrealloc(void * ptr, std::size_t size) -> void *
 {
-  static constexpr auto minimal_allocation = 1UL;
+  static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
 #ifdef _WIN32
   void * new_ptr = _aligned_realloc(ptr, size, memalignment);
