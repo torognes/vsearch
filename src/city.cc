@@ -136,117 +136,124 @@ namespace {
   }
 
 
-// Hash 128 input bits down to 64 bits of output.
-// This is intended to be a reasonably good hash function.
-inline auto Hash128to64(const uint128& a_pair) -> uint64_t {
-  // Murmur-inspired hashing.
-  static constexpr auto divider = 47U;
-  static constexpr uint64_t kMul = 0x9ddfea08eb382d69ULL;
-  uint64_t lower_part = (Uint128Low64(a_pair) ^ Uint128High64(a_pair)) * kMul;
-  lower_part ^= (lower_part >> divider);
-  uint64_t higher_part = (Uint128High64(a_pair) ^ lower_part) * kMul;
-  higher_part ^= (higher_part >> divider);
-  higher_part *= kMul;
-  return higher_part;
-}
+  // Hash 128 input bits down to 64 bits of output.
+  // This is intended to be a reasonably good hash function.
+  inline auto Hash128to64(const uint128& a_pair) -> uint64_t {
+    // Murmur-inspired hashing.
+    static constexpr auto divider = 47U;
+    static constexpr uint64_t kMul = 0x9ddfea08eb382d69ULL;
+    uint64_t lower_part = (Uint128Low64(a_pair) ^ Uint128High64(a_pair)) * kMul;
+    lower_part ^= (lower_part >> divider);
+    uint64_t higher_part = (Uint128High64(a_pair) ^ lower_part) * kMul;
+    higher_part ^= (higher_part >> divider);
+    higher_part *= kMul;
+    return higher_part;
+  }
 
-auto HashLen16(uint64_t u, uint64_t v) -> uint64_t {
-  return Hash128to64(uint128(u, v));
-}
 
-auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
-  // Murmur-inspired hashing.
-  uint64_t a = (u ^ v) * mul;
-  a ^= (a >> 47U);
-  uint64_t b = (v ^ a) * mul;
-  b ^= (b >> 47U);
-  b *= mul;
-  return b;
-}
+  auto HashLen16(uint64_t u, uint64_t v) -> uint64_t {
+    return Hash128to64(uint128(u, v));
+  }
 
-auto HashLen0to16(const char * seq, std::size_t len) -> uint64_t {
-  if (len >= 8) {
+
+  auto HashLen16(uint64_t u, uint64_t v, uint64_t mul) -> uint64_t {
+    // Murmur-inspired hashing.
+    uint64_t a = (u ^ v) * mul;
+    a ^= (a >> 47U);
+    uint64_t b = (v ^ a) * mul;
+    b ^= (b >> 47U);
+    b *= mul;
+    return b;
+  }
+
+
+  auto HashLen0to16(const char * seq, std::size_t len) -> uint64_t {
+    if (len >= 8) {
+      const uint64_t mul = k2 + (len * 2);
+      const uint64_t a = Fetch64(seq) + k2;
+      const uint64_t b = Fetch64(seq + len - 8);
+      const uint64_t c = (Rotate(b, 37) * mul) + a;
+      const uint64_t d = (Rotate(a, 25) + b) * mul;
+      return HashLen16(c, d, mul);
+    }
+    if (len >= 4) {
+      const uint64_t mul = k2 + (len * 2);
+      const uint64_t a = Fetch32(seq);
+      return HashLen16(len + (a << 3U), Fetch32(seq + len - 4), mul);
+    }
+    if (len > 0) {
+      uint8_t const a = seq[0];
+      uint8_t const b = seq[len >> 1U];
+      uint8_t const c = seq[len - 1];
+      const uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8U);
+      const uint32_t z = len + (static_cast<uint32_t>(c) << 2U);
+      return ShiftMix((y * k2) ^ (z * k0)) * k2;
+    }
+    return k2;
+  }
+
+
+  // This probably works well for 16-byte strings as well, but it may be overkill
+  // in that case.
+  auto HashLen17to32(const char * seq, std::size_t len) -> uint64_t {
     const uint64_t mul = k2 + (len * 2);
-    const uint64_t a = Fetch64(seq) + k2;
-    const uint64_t b = Fetch64(seq + len - 8);
-    const uint64_t c = (Rotate(b, 37) * mul) + a;
-    const uint64_t d = (Rotate(a, 25) + b) * mul;
-    return HashLen16(c, d, mul);
+    const uint64_t a = Fetch64(seq) * k1;
+    const uint64_t b = Fetch64(seq + 8);
+    const uint64_t c = Fetch64(seq + len - 8) * mul;
+    const uint64_t d = Fetch64(seq + len - 16) * k2;
+    return HashLen16(Rotate(a + b, 43) + Rotate(c, 30) + d,
+                     a + Rotate(b + k2, 18) + c, mul);
   }
-  if (len >= 4) {
+
+
+  // Return a 16-byte hash for 48 bytes.  Quick and dirty.
+  // Callers do best to use "random-looking" values for a and b.
+  auto WeakHashLen32WithSeeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z,
+                              uint64_t a, uint64_t b)
+    -> std::pair<uint64_t, uint64_t> {
+    a += w;
+    b = Rotate(b + a + z, 21);
+    const uint64_t c = a;
+    a += x;
+    a += y;
+    b += Rotate(a, 44);
+    return std::make_pair(a + z, b + c);
+  }
+
+
+  // Return a 16-byte hash for s[0] ... s[31], a, and b.  Quick and dirty.
+  auto WeakHashLen32WithSeeds(const char * seq, uint64_t a, uint64_t b)
+    -> std::pair<uint64_t, uint64_t> {
+    return WeakHashLen32WithSeeds(Fetch64(seq),
+                                  Fetch64(seq + 8),
+                                  Fetch64(seq + 16),
+                                  Fetch64(seq + 24),
+                                  a,
+                                  b);
+  }
+
+
+  // Return an 8-byte hash for 33 to 64 bytes.
+  auto HashLen33to64(const char * seq, std::size_t len) -> uint64_t {
     const uint64_t mul = k2 + (len * 2);
-    const uint64_t a = Fetch32(seq);
-    return HashLen16(len + (a << 3U), Fetch32(seq + len - 4), mul);
+    uint64_t a = Fetch64(seq) * k2;
+    uint64_t b = Fetch64(seq + 8);
+    const uint64_t c = Fetch64(seq + len - 24);
+    const uint64_t d = Fetch64(seq + len - 32);
+    const uint64_t e = Fetch64(seq + 16) * k2;
+    const uint64_t f = Fetch64(seq + 24) * 9;
+    const uint64_t g = Fetch64(seq + len - 8);
+    const uint64_t h = Fetch64(seq + len - 16) * mul;
+    const uint64_t u = Rotate(a + g, 43) + ((Rotate(b, 30) + c) * 9);
+    const uint64_t v = ((a + g) ^ d) + f + 1;
+    const uint64_t w = bswap_64((u + v) * mul) + h;
+    const uint64_t x = Rotate(e + f, 42) + c;
+    const uint64_t y = (bswap_64((v + w) * mul) + g) * mul;
+    const uint64_t z = e + f + c;
+    a = bswap_64(((x + z) * mul) + y) + b;
+    b = ShiftMix(((z + a) * mul) + d + h) * mul;
+    return b + x;
   }
-  if (len > 0) {
-    uint8_t const a = seq[0];
-    uint8_t const b = seq[len >> 1U];
-    uint8_t const c = seq[len - 1];
-    const uint32_t y = static_cast<uint32_t>(a) + (static_cast<uint32_t>(b) << 8U);
-    const uint32_t z = len + (static_cast<uint32_t>(c) << 2U);
-    return ShiftMix((y * k2) ^ (z * k0)) * k2;
-  }
-  return k2;
-}
-
-// This probably works well for 16-byte strings as well, but it may be overkill
-// in that case.
-auto HashLen17to32(const char * seq, std::size_t len) -> uint64_t {
-  const uint64_t mul = k2 + (len * 2);
-  const uint64_t a = Fetch64(seq) * k1;
-  const uint64_t b = Fetch64(seq + 8);
-  const uint64_t c = Fetch64(seq + len - 8) * mul;
-  const uint64_t d = Fetch64(seq + len - 16) * k2;
-  return HashLen16(Rotate(a + b, 43) + Rotate(c, 30) + d,
-                   a + Rotate(b + k2, 18) + c, mul);
-}
-
-// Return a 16-byte hash for 48 bytes.  Quick and dirty.
-// Callers do best to use "random-looking" values for a and b.
-auto WeakHashLen32WithSeeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z,
-                                   uint64_t a, uint64_t b)
-  -> std::pair<uint64_t, uint64_t> {
-  a += w;
-  b = Rotate(b + a + z, 21);
-  const uint64_t c = a;
-  a += x;
-  a += y;
-  b += Rotate(a, 44);
-  return std::make_pair(a + z, b + c);
-}
-
-// Return a 16-byte hash for s[0] ... s[31], a, and b.  Quick and dirty.
-auto WeakHashLen32WithSeeds(const char * seq, uint64_t a, uint64_t b)
-  -> std::pair<uint64_t, uint64_t> {
-  return WeakHashLen32WithSeeds(Fetch64(seq),
-                                Fetch64(seq + 8),
-                                Fetch64(seq + 16),
-                                Fetch64(seq + 24),
-                                a,
-                                b);
-}
-
-// Return an 8-byte hash for 33 to 64 bytes.
-auto HashLen33to64(const char * seq, std::size_t len) -> uint64_t {
-  const uint64_t mul = k2 + (len * 2);
-  uint64_t a = Fetch64(seq) * k2;
-  uint64_t b = Fetch64(seq + 8);
-  const uint64_t c = Fetch64(seq + len - 24);
-  const uint64_t d = Fetch64(seq + len - 32);
-  const uint64_t e = Fetch64(seq + 16) * k2;
-  const uint64_t f = Fetch64(seq + 24) * 9;
-  const uint64_t g = Fetch64(seq + len - 8);
-  const uint64_t h = Fetch64(seq + len - 16) * mul;
-  const uint64_t u = Rotate(a + g, 43) + ((Rotate(b, 30) + c) * 9);
-  const uint64_t v = ((a + g) ^ d) + f + 1;
-  const uint64_t w = bswap_64((u + v) * mul) + h;
-  const uint64_t x = Rotate(e + f, 42) + c;
-  const uint64_t y = (bswap_64((v + w) * mul) + g) * mul;
-  const uint64_t z = e + f + c;
-  a = bswap_64(((x + z) * mul) + y) + b;
-  b = ShiftMix(((z + a) * mul) + d + h) * mul;
-  return b + x;
-}
 
 }  // end of anonymous namespace
 
