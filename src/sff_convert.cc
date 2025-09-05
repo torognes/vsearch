@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
+#include "utils/os_byteswap.hpp"
 #include <algorithm>  // std::min, std::max, std::transform
 #include <array>
 #include <cassert>
