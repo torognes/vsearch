@@ -31,7 +31,7 @@
 // is Murmur3.  For 64-bit x86 code, CityHash64 is an excellent choice for hash
 // tables and most other hashing (excluding cryptography).
 //
-// For 64-bit x86 code, on long strings, the picture is more complicated.
+// For 64-bit x86 code, on long strings (> 900), the picture is more complicated.
 // On many recent Intel CPUs, such as Nehalem, Westmere, Sandy Bridge, etc.,
 // CityHashCrc128 appears to be faster than all competitors of comparable
 // quality.  CityHash128 is also good but not quite as fast.  We believe our
