@@ -215,11 +215,11 @@ namespace {
                               uint64_t a, uint64_t b)
     -> std::pair<uint64_t, uint64_t> {
     a += w;
-    b = Rotate(b + a + z, 21);
+    b = Rotate(b + a + z, twentyone);
     const uint64_t c = a;
     a += x;
     a += y;
-    b += Rotate(a, 44);
+    b += Rotate(a, fourtyfour);
     return std::make_pair(a + z, b + c);
   }
 
