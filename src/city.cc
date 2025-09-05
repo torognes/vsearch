@@ -355,7 +355,7 @@ namespace {
       std::swap(z, x);
       seq += 64;
       len -= 128;
-    } while (LIKELY(len >= 128));
+    } while (LIKELY(len >= 128));  // hot path
     x += Rotate(v.first + z, 49) * k0;
     y = (y * k0) + Rotate(w.second, 37);
     z = (z * k0) + Rotate(w.first, 27);
