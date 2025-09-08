@@ -115,6 +115,9 @@ private:
   char const * prompt_ {};
   std::uint64_t max_size_ {};
   struct Parameters const & parameters_ {};
+  bool stderr_is_tty_ {};
+  bool is_quiet_ {};
+  bool no_progress_ {};
 
   // Internal parameters
   std::uint64_t counter_ {};
