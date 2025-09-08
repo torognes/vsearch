@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/progress.hpp"
 #include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
 #include <vector>
@@ -84,7 +85,9 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   static constexpr auto initial_length = 1024U;
   std::vector<char> quality(initial_length, max_ascii_value);
 
-  progress_init("Converting FASTA file to FASTQ", fasta_get_size(fp_input));
+  Progress progress("Converting FASTA file to FASTQ",
+                    fasta_get_size(fp_input),
+                    parameters);
 
   auto counter = 0;
   while (fasta_next(fp_input, false, chrmap_no_change_vector.data()))
@@ -114,10 +117,8 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           counter,
                           -1.0);
 
-      progress_update(fasta_get_position(fp_input));
+      progress.update(fasta_get_position(fp_input));
     }
-
-  progress_done();
 
   if (fp_fastqout != nullptr) {
     static_cast<void>(std::fclose(fp_fastqout));
