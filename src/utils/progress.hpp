@@ -110,17 +110,19 @@ public:
 
 private:
   static constexpr auto one_hundred_percent = 100UL;
+
+  // External parameters
   char const * prompt_ {};
   std::uint64_t max_size_ {};
   struct Parameters const & parameters_ {};
 
-  // Internal
+  // Internal parameters
   std::uint64_t counter_ {};
   std::uint64_t current_percentage_ {};  // integer, and not a double
   std::uint64_t next_threshold_ {};
   bool is_visible_ {};
   
-  // Helpers
+  // Helper functions
   auto check_if_visible() const -> bool {
     return (parameters_.opt_stderr_is_tty)
       and (not parameters_.opt_quiet)
