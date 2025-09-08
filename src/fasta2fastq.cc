@@ -59,8 +59,10 @@
 */
 
 #include "vsearch.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <cassert>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
@@ -76,11 +78,8 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
   assert(fp_input != nullptr);  // check performed in fasta_open(fastx_open())
 
-  auto * fp_fastqout = fopen_output(parameters.opt_fastqout);
-  if (fp_fastqout == nullptr)
-    {
-      fatal("Unable to open FASTQ output file for writing");
-    }
+  auto const output_handle = open_output_file(parameters.opt_fastqout);
+  check_mandatory_fastq_output_handle(parameters.opt_fastqout, (not output_handle));
 
   static constexpr auto initial_length = 1024U;
   std::vector<char> quality(initial_length, max_ascii_value);
@@ -107,7 +106,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       ++counter;
 
       /* write to fastq file */
-      fastq_print_general(fp_fastqout,
+      fastq_print_general(output_handle.get(),
                           fastq_get_sequence(fp_input),
                           static_cast<int>(length),
                           fasta_get_header(fp_input),
@@ -119,10 +118,6 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 
       progress.update(fasta_get_position(fp_input));
     }
-
-  if (fp_fastqout != nullptr) {
-    static_cast<void>(std::fclose(fp_fastqout));
-  }
 
   fasta_close(fp_input);
 }
