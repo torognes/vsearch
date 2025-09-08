@@ -89,8 +89,8 @@ public:
 
   Progress(Progress const &) = delete;  // copy constructor: no copies
   auto operator=(Progress const &) -> Progress & = delete;  // assignment operator: no self-assignment
-  Progress(Progress&&) = delete;  // move constructor
-  auto operator=(Progress&&) -> Progress & = delete; // move assignment operator
+  Progress(Progress&&) = delete;  // no move constructor
+  auto operator=(Progress&&) -> Progress & = delete; // no move assignment operator
   
   auto update(std::uint64_t const counter) -> void {
     counter_ = counter;
@@ -115,7 +115,7 @@ public:
 private:
   static constexpr auto one_hundred_percent = 100UL;
 
-  // External parameters
+  // Construction-time parameters
   char const * prompt_ {};
   std::uint64_t max_size_ {};
   bool stderr_is_tty_ {};
