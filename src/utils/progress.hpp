@@ -136,7 +136,7 @@ private:
   };
 
   auto calculate_percentage() const -> std::uint64_t {
-    assert(max_size_ != 0);
+    if (max_size_ == 0) { return 0; }  // when reading from a pipe
     return counter_ * one_hundred_percent / max_size_;
   };
 
