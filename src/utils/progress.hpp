@@ -70,7 +70,6 @@ public:
                     struct Parameters const & parameters)
       : prompt_{prompt},
         max_size_{max_size},
-        parameters_{parameters},
         stderr_is_tty_(parameters.opt_stderr_is_tty),
         is_quiet_(parameters.opt_quiet),
         no_progress_(parameters.opt_no_progress) {
@@ -119,7 +118,6 @@ private:
   // External parameters
   char const * prompt_ {};
   std::uint64_t max_size_ {};
-  struct Parameters const & parameters_ {};
   bool stderr_is_tty_ {};
   bool is_quiet_ {};
   bool no_progress_ {};
