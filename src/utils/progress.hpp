@@ -64,9 +64,6 @@
 #include <cstdio>  // std::fprintf
 
 
-constexpr auto one_hundred_percent = 100UL;
-
-
 class Progress {
 public:
   explicit Progress(char const * prompt, std::uint64_t const max_size,
@@ -110,8 +107,9 @@ public:
   ~Progress() {
     done();
   }
-  
+
 private:
+  static constexpr auto one_hundred_percent = 100UL;
   char const * prompt_ {};
   std::uint64_t max_size_ {};
   struct Parameters const & parameters_ {};
