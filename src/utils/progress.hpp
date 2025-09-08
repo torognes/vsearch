@@ -70,7 +70,10 @@ public:
                     struct Parameters const & parameters)
       : prompt_{prompt},
         max_size_{max_size},
-        parameters_{parameters} {
+        parameters_{parameters},
+        stderr_is_tty_(parameters.opt_stderr_is_tty),
+        is_quiet_(parameters.opt_quiet),
+        no_progress_(parameters.opt_no_progress) {
     assert(prompt != nullptr);
     is_visible_ = check_if_visible();
     if (parameters_.opt_quiet) { return; }
