@@ -76,7 +76,7 @@ public:
         no_progress_(parameters.opt_no_progress) {
     assert(prompt != nullptr);
     is_visible_ = check_if_visible();
-    if (parameters_.opt_quiet) { return; }
+    if (is_quiet_) { return; }
     static_cast<void>(std::fprintf(stderr, "%s", prompt));
     if (not is_visible_) { return; }
     static_cast<void>(std::fprintf(stderr, " %d%%", 0));
@@ -132,9 +132,9 @@ private:
   
   // Helper functions
   auto check_if_visible() const -> bool {
-    return (parameters_.opt_stderr_is_tty)
-      and (not parameters_.opt_quiet)
-      and (not parameters_.opt_no_progress);
+    return (stderr_is_tty_)
+      and (not is_quiet_)
+      and (not no_progress_);
   };
 
   auto calculate_percentage() const -> std::uint64_t {
@@ -149,7 +149,7 @@ private:
   };
 
   auto done() const -> void {
-    if (parameters_.opt_quiet) { return; }
+    if (is_quiet_) { return; }
     if (is_visible_) {
       static_cast<void>(std::fprintf(stderr, "  \r%s", prompt_));
     }
