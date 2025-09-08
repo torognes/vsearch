@@ -59,6 +59,9 @@
 */
 
 
+auto check_mandatory_fastq_output_handle(char const * filename,
+                                         bool filehandle_is_empty) -> void;
+
 auto check_mandatory_output_handle(char const * filename,
                                    bool filehandle_is_empty) -> void;
 
