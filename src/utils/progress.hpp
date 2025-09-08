@@ -68,7 +68,9 @@ class Progress {
 public:
   explicit Progress(char const * prompt, std::uint64_t const max_size,
                     struct Parameters const & parameters)
-    : prompt_{prompt}, max_size_{max_size}, parameters_{parameters} {
+      : prompt_{prompt},
+        max_size_{max_size},
+        parameters_{parameters} {
     assert(prompt != nullptr);
     is_visible_ = check_if_visible();
     if (parameters_.opt_quiet) { return; }
