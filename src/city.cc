@@ -204,7 +204,7 @@ namespace {
     const uint64_t b = Fetch64(seq + 8);
     const uint64_t c = Fetch64(seq + len - 8) * mul;
     const uint64_t d = Fetch64(seq + len - 16) * k2;
-    return HashLen16(Rotate(a + b, 43) + Rotate(c, 30) + d,
+    return HashLen16(Rotate(a + b, fortythree) + Rotate(c, thirty) + d,
                      a + Rotate(b + k2, 18) + c, mul);
   }
 
