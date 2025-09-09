@@ -56,11 +56,11 @@ namespace {
   constexpr auto thirtythree = 33U;
   constexpr auto thirtyfive = 35U;
   constexpr auto thirtyseven = 37U;
-  constexpr auto fourtytwo = 42U;
-  constexpr auto fourtythree = 43U;
-  constexpr auto fourtyfour = 44U;
-  constexpr auto fourtyseven = 47U;
-  constexpr auto fourtynine = 49U;
+  constexpr auto fortytwo = 42U;
+  constexpr auto fortythree = 43U;
+  constexpr auto fortyfour = 44U;
+  constexpr auto fortyseven = 47U;
+  constexpr auto fortynine = 49U;
   constexpr auto fiftythree = 53U;
   constexpr auto sixtyfour = 64U;
 
@@ -135,7 +135,7 @@ namespace {
 
 
   auto ShiftMix(uint64_t const val) -> uint64_t {
-    return val ^ (val >> fourtyseven);
+    return val ^ (val >> fortyseven);
   }
 
 
@@ -162,9 +162,9 @@ namespace {
   auto HashLen16(uint64_t const first, uint64_t const second, uint64_t const mul) -> uint64_t {
     // Murmur-inspired hashing.
     auto reg_a = (first ^ second) * mul;
-    reg_a ^= (reg_a >> fourtyseven);
+    reg_a ^= (reg_a >> fortyseven);
     auto reg_b = (second ^ reg_a) * mul;
-    reg_b ^= (reg_b >> fourtyseven);
+    reg_b ^= (reg_b >> fortyseven);
     reg_b *= mul;
     return reg_b;
   }
@@ -219,7 +219,7 @@ namespace {
     const uint64_t c = a;
     a += x;
     a += y;
-    b += Rotate(a, fourtyfour);
+    b += Rotate(a, fortyfour);
     return std::make_pair(a + z, b + c);
   }
 
