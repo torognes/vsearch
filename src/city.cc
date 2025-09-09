@@ -211,7 +211,7 @@ namespace {
 
   // Return a 16-byte hash for 48 bytes.  Quick and dirty.
   // Callers do best to use "random-looking" values for a and b.
-  auto WeakHashLen32WithSeeds(uint64_t w, uint64_t x, uint64_t y, uint64_t z,
+  auto WeakHashLen32WithSeeds(uint64_t const w, uint64_t const x, uint64_t const y, uint64_t const z,
                               uint64_t a, uint64_t b)
     -> std::pair<uint64_t, uint64_t> {
     a += w;
