@@ -247,10 +247,10 @@ namespace {
     const uint64_t f = Fetch64(seq + 24) * 9;
     const uint64_t g = Fetch64(seq + len - 8);
     const uint64_t h = Fetch64(seq + len - 16) * mul;
-    const uint64_t u = Rotate(a + g, 43) + ((Rotate(b, 30) + c) * 9);
+    const uint64_t u = Rotate(a + g, fortythree) + ((Rotate(b, thirty) + c) * 9);
     const uint64_t v = ((a + g) ^ d) + f + 1;
     const uint64_t w = bswap_64((u + v) * mul) + h;
-    const uint64_t x = Rotate(e + f, 42) + c;
+    const uint64_t x = Rotate(e + f, fortytwo) + c;
     const uint64_t y = (bswap_64((v + w) * mul) + g) * mul;
     const uint64_t z = e + f + c;
     a = bswap_64(((x + z) * mul) + y) + b;
@@ -315,42 +315,42 @@ namespace {
     uint64_t x = Uint128Low64(seed);
     uint64_t y = Uint128High64(seed);
     uint64_t z = len * k1;
-    v.first = (Rotate(y ^ k1, 49) * k1) + Fetch64(seq);
-    v.second = (Rotate(v.first, 42) * k1) + Fetch64(seq + 8);
-    w.first = (Rotate(y + z, 35) * k1) + x;
-    w.second = Rotate(x + Fetch64(seq + 88), 53) * k1;
+    v.first = (Rotate(y ^ k1, fortynine) * k1) + Fetch64(seq);
+    v.second = (Rotate(v.first, fortytwo) * k1) + Fetch64(seq + 8);
+    w.first = (Rotate(y + z, thirtyfive) * k1) + x;
+    w.second = Rotate(x + Fetch64(seq + 88), fiftythree) * k1;
 
     // This is the same inner loop as CityHash64(), manually unrolled.
     do {
-      x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
-      y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
+      x = Rotate(x + y + v.first + Fetch64(seq + 8), thirtyseven) * k1;
+      y = Rotate(y + v.second + Fetch64(seq + 48), fortytwo) * k1;
       x ^= w.second;
       y += v.first + Fetch64(seq + 40);
-      z = Rotate(z + w.first, 33) * k1;
+      z = Rotate(z + w.first, thirtythree) * k1;
       v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
       w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
       std::swap(z, x);
       seq += 64;
-      x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
-      y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
+      x = Rotate(x + y + v.first + Fetch64(seq + 8), thirtyseven) * k1;
+      y = Rotate(y + v.second + Fetch64(seq + 48), fortytwo) * k1;
       x ^= w.second;
       y += v.first + Fetch64(seq + 40);
-      z = Rotate(z + w.first, 33) * k1;
+      z = Rotate(z + w.first, thirtythree) * k1;
       v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
       w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
       std::swap(z, x);
       seq += 64;
       len -= 128;
     } while (likely(len >= 128));  // hot path
-    x += Rotate(v.first + z, 49) * k0;
-    y = (y * k0) + Rotate(w.second, 37);
-    z = (z * k0) + Rotate(w.first, 27);
+    x += Rotate(v.first + z, fortynine) * k0;
+    y = (y * k0) + Rotate(w.second, thirtyseven);
+    z = (z * k0) + Rotate(w.first, twentyseven);
     w.first *= 9;
     v.first *= k0;
     // If 0 < len < 128, hash up to 4 chunks of 32 bytes each from the end of s.
     for (std::size_t tail_done = 0; tail_done < len; ) {
       tail_done += 32;
-      y = (Rotate(x + y, 42) * k0) + v.second;
+      y = (Rotate(x + y, fortytwo) * k0) + v.second;
       w.first += Fetch64(seq + len - tail_done + 16);
       x = (x * k0) + w.first;
       z += w.second + Fetch64(seq + len - tail_done);
@@ -393,11 +393,11 @@ auto CityHash64(const char * seq, std::size_t len) -> uint64_t {
   // Decrease len to the nearest multiple of 64, and operate on 64-byte chunks.
   len = (len - 1) & ~static_cast<std::size_t>(63);
   do {
-    x = Rotate(x + y + v.first + Fetch64(seq + 8), 37) * k1;
-    y = Rotate(y + v.second + Fetch64(seq + 48), 42) * k1;
+    x = Rotate(x + y + v.first + Fetch64(seq + 8), thirtyseven) * k1;
+    y = Rotate(y + v.second + Fetch64(seq + 48), fortytwo) * k1;
     x ^= w.second;
     y += v.first + Fetch64(seq + 40);
-    z = Rotate(z + w.first, 33) * k1;
+    z = Rotate(z + w.first, thirtythree) * k1;
     v = WeakHashLen32WithSeeds(seq, v.second * k1, x + w.first);
     w = WeakHashLen32WithSeeds(seq + 32, z + w.second, y + Fetch64(seq + 16));
     std::swap(z, x);
