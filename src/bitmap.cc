@@ -65,9 +65,9 @@
 
 auto bitmap_init(unsigned int const size) -> struct bitmap_s *
 {
-  auto * b = (struct bitmap_s *) xmalloc(sizeof(struct bitmap_s));
+  auto * b = static_cast<struct bitmap_s *>(xmalloc(sizeof(struct bitmap_s)));
   b->size = size;
-  b->bitmap = (unsigned char *) xmalloc((size + 7) / 8);
+  b->bitmap = static_cast<unsigned char *>(xmalloc((size + 7) / 8));
   return b;
 }
 
