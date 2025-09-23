@@ -62,25 +62,7 @@
 // C++23 refactoring: replace with std::byteswap()
 
 
-#ifdef _MSC_VER
-
-#include <cstdint>  // uint16_t, uint32_t, uint64_t
-#include <stdlib.h>
-
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
-  return _byteswap_ushort(bsx);
-};
-
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
-  return _byteswap_ulong(bsx);
-};
-
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
-  return _byteswap_uint64(bsx);
-};
-
-
-#elif _WIN32
+#if defined(_MSC_VER) || defined(_WIN32)
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <stdlib.h>
