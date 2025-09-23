@@ -64,6 +64,15 @@ namespace {
   constexpr auto fiftythree = 53U;
   constexpr auto sixtyfour = 64U;
 
+  // refactoring: offset values (in bytes)
+  // constexpr auto offset_8 = 8U;
+  // constexpr auto offset_16 = 16U;
+  // constexpr auto offset_24 = 24U;
+  // constexpr auto offset_32 = 32U;
+  // constexpr auto offset_40 = 40U;
+  // constexpr auto offset_48 = 48U;
+  // constexpr auto offset_56 = 56U;
+
 
   inline auto Uint128Low64(const uint128 & a_pair) -> uint64_t {
     return a_pair.first;
