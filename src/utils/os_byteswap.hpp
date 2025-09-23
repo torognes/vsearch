@@ -121,6 +121,7 @@ constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 
 #include <byteswap.h>
 
+
 #elif __NetBSD__
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
