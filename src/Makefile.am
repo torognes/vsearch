@@ -212,6 +212,7 @@ utils/check_output_filehandle.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
+utils/os_byteswap.cpp \
 utils/xpthread.cpp \
 utils/seqcmp.cpp \
 vsearch.cc

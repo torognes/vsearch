@@ -61,39 +61,83 @@
 // Operating System specific commands to swap bytes
 // C++23 refactoring: replace with std::byteswap()
 
-#ifndef OS_BYTESWAP_HPP
-#define OS_BYTESWAP_HPP
-
 
 #if defined(_MSC_VER) || defined(_WIN32)
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
+#include <stdlib.h>
 
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
+auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return _byteswap_ushort(bsx);
+};
 
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
+auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return _byteswap_ulong(bsx);
+};
 
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
+auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return _byteswap_uint64(bsx);
+};
 
 
-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#elif  __APPLE__
+
+// Mac OS X / Darwin features
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
+#include <libkern/OSByteOrder.h>
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return OSSwapInt16(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return OSSwapInt32(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return OSSwapInt64(bsx);
+};
+
+
+#elif __FreeBSD__
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
+#include <sys/endian.h>
 
-constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return bswap16(bsx);
+};
 
-constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return bswap32(bsx);
+};
 
-constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return bswap64(bsx);
+};
+
+
+#elif __NetBSD__
+
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
+#include <sys/types.h>
+#include <machine/bswap.h>
+
+constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+  return bswap16(bsx);
+};
+
+constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+  return bswap32(bsx);
+};
+
+constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+  return bswap64(bsx);
+};
 
 
 #else
 
-// __linux__ and other operating systems
-
-#include <byteswap.h>
+// other operating systems?
 
 #endif
-
-
-#endif // OS_BYTESWAP_HPP
