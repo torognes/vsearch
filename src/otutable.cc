@@ -271,7 +271,7 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       std::cmatch cmatch_tax;
       if (std::regex_search(target_header, cmatch_tax, regex_tax))
         {
-          otutable->otu_tax_map[otu_name_v.data()] = cmatch_tax.str(2);
+          otutable->otu_tax_map[otu_name.data()] = cmatch_tax.str(2);
         }
 #endif
     }
