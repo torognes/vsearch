@@ -156,6 +156,7 @@ using VECTOR_SHORT = int16x8_t;
 constexpr uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
 
+// warning: ISO C++ forbids compound-literals [-Wpedantic] (line below) (clang specific?)
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
 #define v_load(a) vld1q_s16((const int16_t *)(a))
 #define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
