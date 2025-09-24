@@ -80,7 +80,7 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 };
 
 
-#elif  __APPLE__
+#elif defined(__APPLE__)
 
 // Mac OS X / Darwin features
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
@@ -99,7 +99,7 @@ constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 };
 
 
-#elif __FreeBSD__
+#elif defined(__FreeBSD__)
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <sys/endian.h>
@@ -117,7 +117,7 @@ constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 };
 
 
-#elif __NetBSD__
+#elif defined(__NetBSD__)
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <sys/types.h>
