@@ -346,10 +346,9 @@ std::FILE * fp_log = nullptr;
 
 
 auto is_not_ASCII(std::string const & user_string) -> bool {
-  static constexpr auto ascii_max = std::numeric_limits<signed char>::max();
+  // ASCII range is [0, 127]
   auto is_not_in_range = [](char const user_char) -> bool {
-    // warning: user_char < 0 is always false? not true in my tests
-    return (user_char < 0) or (user_char > ascii_max);
+    return (user_char < 0);
   };
   return std::any_of(user_string.begin(), user_string.end(), is_not_in_range);
 }
