@@ -86,15 +86,15 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <libkern/OSByteOrder.h>
 
-constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
   return OSSwapInt16(bsx);
 }
 
-constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
   return OSSwapInt32(bsx);
 }
 
-constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
   return OSSwapInt64(bsx);
 }
 
@@ -104,15 +104,15 @@ constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <sys/endian.h>
 
-constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
   return bswap16(bsx);
 }
 
-constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
   return bswap32(bsx);
 }
 
-constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
   return bswap64(bsx);
 }
 
@@ -123,15 +123,15 @@ constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 #include <sys/types.h>
 #include <machine/bswap.h>
 
-constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
   return bswap16(bsx);
 }
 
-constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
   return bswap32(bsx);
 }
 
-constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
   return bswap64(bsx);
 }
 

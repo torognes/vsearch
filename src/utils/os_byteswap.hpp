@@ -80,11 +80,11 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
 
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 
-constexpr auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
+auto bswap_16(uint16_t bsx) noexcept -> uint16_t;
 
-constexpr auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
+auto bswap_32(uint32_t bsx) noexcept -> uint32_t;
 
-constexpr auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
+auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
 
 
 #else
