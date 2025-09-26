@@ -345,6 +345,9 @@ static time_t time_finish;
 std::FILE * fp_log = nullptr;
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
 // performance: lambda compiles to a single x86-64 instruction (shr al, 7),
 // equivalent to (c & ~0x7F) == 0
 auto is_not_ASCII(std::string const & user_string) -> bool {
@@ -355,6 +358,8 @@ auto is_not_ASCII(std::string const & user_string) -> bool {
   };
   return std::any_of(user_string.begin(), user_string.end(), is_not_in_range);
 }
+
+}  // end of anonymous namespace
 
 
 #ifdef __x86_64__
