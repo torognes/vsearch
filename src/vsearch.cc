@@ -345,6 +345,8 @@ static time_t time_finish;
 std::FILE * fp_log = nullptr;
 
 
+// performance: lambda compiles to a single x86-64 instruction (shr al, 7),
+// equivalent to (c & ~0x7F) == 0
 auto is_not_ASCII(std::string const & user_string) -> bool {
   static constexpr auto ascii_max = static_cast<unsigned char>(std::numeric_limits<signed char>::max());
   auto is_not_in_range = [](char const user_char) -> bool {
