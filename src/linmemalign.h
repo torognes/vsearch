@@ -107,9 +107,6 @@ private:
   // initialize a 16x16 matrix
   std::vector<std::vector<int64_t>> scorematrix = std::vector<std::vector<int64_t>>(matrix_size, std::vector<int64_t>(matrix_size));
 
-  int64_t q = 0;  // general gap opening penalty (same as gap open query interior)  // unused?
-  int64_t r = 0;  // general gap extension penalty (same as gap extension query interior)  // unused?
-
   /* gap penalties for open/extension query/target left/interior/right */
   int64_t go_q_l = 0;
   int64_t go_t_l = 0;
