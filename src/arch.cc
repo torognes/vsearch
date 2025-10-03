@@ -340,13 +340,13 @@ auto xopen_write(const char * path) -> int
 
 
 #ifdef _WIN32
-auto arch_dlsym(HMODULE handle, const char * symbol) -> FARPROC
+auto arch_dlsym(HMODULE handle, const char * symbol) -> void_func_ptr
 {
-  return GetProcAddress(handle, symbol);
+  return reinterpret_cast<void_func_ptr>(GetProcAddress(handle, symbol));
 }
 #else
-auto arch_dlsym(void * handle, const char * symbol) -> void *
+auto arch_dlsym(void * handle, const char * symbol) -> void_func_ptr
 {
-  return dlsym(handle, symbol);
+  return reinterpret_cast<void_func_ptr>(dlsym(handle, symbol));
 }
 #endif

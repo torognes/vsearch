@@ -5066,13 +5066,12 @@ auto cmd_version(struct Parameters const & parameters) -> void
       printf(" and the library is loaded.\n");
 
       char * (*zlibVersion_p)();
-      zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib,
-                                                "zlibVersion");
+      zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib, "zlibVersion");
       char const * gz_version = (*zlibVersion_p)();
-      uLong (*zlibCompileFlags_p)();
-      zlibCompileFlags_p = (uLong (*)()) arch_dlsym(gz_lib,
-                                                    "zlibCompileFlags");
-      uLong const flags = (*zlibCompileFlags_p)();
+
+      long unsigned int (*zlibCompileFlags_p)();
+      zlibCompileFlags_p = (long unsigned int (*)()) arch_dlsym(gz_lib, "zlibCompileFlags");
+      long unsigned int const flags = (*zlibCompileFlags_p)();
 
       printf("zlib version %s, compile flags %lx", gz_version, flags);
       static constexpr auto check_10th_bit = 1024U; // 0x0400
