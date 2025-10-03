@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "February 27, 2025" "version 2.30.0" "USER COMMANDS"
+.TH vsearch 1 "October 3, 2025" "version 2.30.1" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5059,7 +5059,6 @@ commands (\-\-sortbylength, \-\-sortbysize, \-\-shuffle,
 .IP -
 improve: code-coverage of our test-suite for the above-mentioned commands (1,210 new tests, 4,753 in total)
 .RE
-.LP
 .TP
 .BR v2.29.1\~ "released October 24th, 2024"
 Fix a segmentation fault that could occur during alignment in version
@@ -5099,6 +5098,61 @@ a quality scores below the given value. The new
 `\-\-fastq_truncee_rate` option for the same commands will truncate
 sequences at the first position where the number of expected errors
 per base is above the given value.
+.TP
+.BR v2.30.1\~ "released October 3rd, 2025"
+This version incorporates many code improvements, more extensive testing, better documentation and some minor bug fixes. List of changes:
+.RS
+.IP - 2
+fix: use-after-free introduced in commit de6c1d8 (Jun 13, 2024),
+.IP -
+fix: (harmless) out-of-bounds memory issue in  \-\-derep_prefix (commit 8a0a508b),
+.IP -
+fix: (harmless) memory leak in \-\-fastx_getseqs \-\-label_field (commit a9c42713),
+.IP -
+fix: (harmless) memory leak when using option \-\-userfields (\-\-allpairs_global commit 03b95bcf; \-\-cluster_* commit 2fde5472; \-\-search_exact commit 45cd56d6; \-\-usearch_global commit d83bfee9),
+.IP -
+fix: (harmless) valgrind error, use of uninitialized values (commit 8bab2444), also eliminates a pesky compilation warning,
+.IP -
+change: passing a negative value to \-\-fastq_truncee_rate is now an error (commit a120f371),
+.IP -
+change: passing a negative value to \-\-fastq_minqual is now an error (commit ff5b0c99),
+.IP -
+change: passing a non-ASCII symbol to \-\-join_padgap or \-\-join_padgapq is now an error (commit a708f5b3),
+.IP -
+change: when using \-\-gapopen "*" to forbid gap opening, the penalty is now set to INT_MAX (rather than 1,000). This might change alignment results for users who relied on the old behavior (thanks to Denis Filloux, issue #602, commit 96e9cf9e),
+.IP -
+change: when using command \-\-chimeras_denovo, \-\-tabbedout or \-\-alnout can be the only output files specified (commit d51f0a456300a0ea69c035ba3de23c5ecf3da348)
+.IP -
+change: when using command \-\-chimeras_denovo, option \-\-lengthout is now accepted (commit 3f55cc6b)
+.IP -
+change: when using command \-\-chimeras_denovo, option \-\-xlength is now accepted (commit 0fd346cd)
+.IP -
+add: compilation option GLIBCXX_DEBUG when compiling for debugging (commit 5cf4a6c1, option activates more runtime checks),
+.IP -
+add: official support for clang 20,
+.IP -
+add: initial support for clang 21, initial support for GCC 15,
+.IP -
+add: experimental support for clang 22,
+.IP -
+improve: more accurate line number when reporting illegal characters in fastq headers (commit 539084e9),
+.IP -
+improve: more accurate line number when reporting non-ASCII characters in fastq headers (commit 98a851ed),
+.IP -
+improve: remove checks for unneeded libraries during compilation (commit 249bb5d5276b1be6c9add60a538a16e1b9d0ebfb),
+.IP -
+improve: code quality (eliminates clang-tidy warnings),
+.IP -
+improve: documentation and help messages (issues #604),
+.IP -
+improve: complete refactoring and modernization of the command \-\-fastq_stats,
+.IP -
+improve: command \-\-fastq_stats is now up to twice faster (tested on x86-64),
+.IP -
+improve: extensive test-suites for \-\-fastq_stats and \-\-sff_convert,
+.IP -
+improve: code coverage of our test-suite
+.RE
 .\" ============================================================================
 .\" TODO:
 .\"
