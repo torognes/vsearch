@@ -142,18 +142,21 @@ auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset)
 }
 
 
-auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
+auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, bool seek) -> uint64_t
 {
   /* call write multiple times and update progress */
 
   auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      auto const res = xlseek(file_descriptor, offset + i, SEEK_SET);
-      if (res != offset + i)
-        {
-          fatal("Unable to seek in UDB file or invalid UDB file");
-        }
+      if (seek)
+      {
+        auto const res = xlseek(file_descriptor, offset + i, SEEK_SET);
+        if (res != offset + i)
+          {
+            fatal("Unable to seek in UDB file or invalid UDB file");
+          }
+      }
 
       auto const rem = std::min(blocksize, nbyte - i);
       uint64_t const byteswritten = write(file_descriptor, ((char *) buf) + i, rem);
@@ -949,14 +952,14 @@ auto udb_make(struct Parameters const & parameters) -> void
   buffer[13] = seqcount; /* number of sequences */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
-  pos += largewrite(fd_output, buffer.data(), 50 * 4, 0);
+  pos += largewrite(fd_output, buffer.data(), 50 * 4, 0, false);
 
   /* write 4^wordlength uint32_t's with word match counts */
-  pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos);
+  pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos, false);
 
   /* 3BDU */
   buffer[0] = 0x55444233; /* 3BDU UDB3 */
-  pos += largewrite(fd_output, buffer.data(), 1 * 4, pos);
+  pos += largewrite(fd_output, buffer.data(), 1 * 4, pos, false);
 
   /* lists of sequence no's with matches for all words */
   for (auto i = 0U; i < kmerhashsize; i++)
@@ -972,7 +975,7 @@ auto udb_make(struct Parameters const & parameters) -> void
                   buffer[elements++] = j;
                 }
             }
-          pos += largewrite(fd_output, buffer.data(), 4 * elements, pos);
+          pos += largewrite(fd_output, buffer.data(), 4 * elements, pos, false);
         }
       else
         {
@@ -981,7 +984,8 @@ auto udb_make(struct Parameters const & parameters) -> void
               pos += largewrite(fd_output,
                                 kmerindex + kmerhash[i],
                                 4 * kmercount[i],
-                                pos);
+                                pos,
+                                false);
             }
         }
     }
@@ -1000,7 +1004,7 @@ auto udb_make(struct Parameters const & parameters) -> void
   buffer[6] = (unsigned int) (header_characters >> 32U);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
-  pos += largewrite(fd_output, buffer.data(), 4 * 8, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * 8, pos, false);
 
   /* indices to headers (uint32_t) */
   auto sum = 0U;
@@ -1009,13 +1013,13 @@ auto udb_make(struct Parameters const & parameters) -> void
       buffer[i] = sum;
       sum += db_getheaderlen(i) + 1;
     }
-  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false);
 
   /* headers (ascii, zero terminated, not padded) */
   for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const len = db_getheaderlen(i);
-      pos += largewrite(fd_output, db_getheader(i), len + 1, pos);
+      pos += largewrite(fd_output, db_getheader(i), len + 1, pos, false);
     }
 
   /* sequence lengths (uint32_t) */
@@ -1023,13 +1027,13 @@ auto udb_make(struct Parameters const & parameters) -> void
     {
       buffer[i] = db_getsequencelen(i);
     }
-  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos);
+  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false);
 
   /* sequences (ascii, no term, no pad) */
   for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const len = db_getsequencelen(i);
-      pos += largewrite(fd_output, db_getsequence(i), len, pos);
+      pos += largewrite(fd_output, db_getsequence(i), len, pos, false);
     }
 
   if (close(fd_output) != 0)
