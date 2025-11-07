@@ -113,14 +113,13 @@ namespace {
 
 
   // refactoring: same as find_median_abundance()
-  auto find_median_size(std::vector<struct bucket> const & hashtable) -> double {
+  auto find_median_size(std::vector<struct bucket> const & hashtable, uint64_t num_used) -> double {
     static constexpr auto half = 0.5;
-    if (hashtable.empty()) {
+    if (num_used == 0) {
       return 0.0;
     }
-    auto const table_size = hashtable.size();
-    auto const midpoint = std::ldiv(static_cast<long>(table_size), 2L);
-    auto const is_odd = ((table_size % 2) != 0U);
+    auto const midpoint = std::ldiv(static_cast<long>(num_used), 2L);
+    auto const is_odd = ((num_used % 2) != 0U);
     if (is_odd) {
       // index is zero-based, so if size == 3, midpoint == 1
       auto const index = midpoint.quot;
@@ -720,7 +719,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   show_rusage();
 
-  auto const median = find_median_size(hashtable);
+  auto const median = find_median_size(hashtable, clusters);
 
   average = 1.0 * sumsize / clusters;
 
