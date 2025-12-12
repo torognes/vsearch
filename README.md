@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/torognes/vsearch.svg?branch=master)](https://app.travis-ci.com/torognes/vsearch)
+[![Build and test](https://github.com/torognes/vsearch/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/torognes/vsearch/actions/workflows/build-and-test.yml)
 
 # VSEARCH
 

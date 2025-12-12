@@ -1,0 +1,128 @@
+name: Build for all platforms
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          g++-aarch64-linux-gnu \
+          g++-mips64el-linux-gnuabi64 \
+          g++-powerpc64le-linux-gnu \
+          g++-riscv64-linux-gnu \
+          g++-x86-64-linux-gnu \
+          ghostscript \
+          groff \
+          libbz2-dev \
+          libsimde-dev \
+          libz-mingw-w64-dev \
+          mingw-w64 \
+          zlib1g-dev
+
+    - name: Prepare
+      run: |
+        JOBS=$(nproc 2>/dev/null || echo 1)
+        ./autogen.sh
+
+    - name: Configure and build for Linux aarch64
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=aarch64-linux-gnu
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-linux-aarch64
+
+    - name: Configure and build for Linux mips64el
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=mips64el-linux-gnuabi64
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-linux-mips64el
+
+    - name: Configure and build for Linux powerpc64le
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=powerpc64le-linux-gnu
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-linux-ppc64le
+
+    - name: Configure and build for Linux riscv64
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=riscv64-linux-gnu
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-linux-riscv64
+
+    - name: Configure and build for Linux x86_64
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=x86_64-linux-gnu
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-linux-x86_64
+        bin/vsearch-linux-x86_64 -v
+        
+    - name: Configure and build for Windows x86_64
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=x86_64-w64-mingw32
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch.exe bin/vsearch-win-x86_64.exe
+
+  macos-aarch64:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install autoconf automake ghostscript groff
+
+    - name: Prepare
+      run: |
+        JOBS=$(nproc 2>/dev/null || echo 1)
+        ./autogen.sh
+
+    - name: Configure and build for macos aarch64
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-macos-aarch64
+        bin/vsearch-macos-aarch64 -v
+
+
+  macos-x86_64:
+    runs-on: macos-15-intel
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install automake ghostscript groff
+
+    - name: Prepare
+      run: |
+        JOBS=$(nproc 2>/dev/null || echo 1)
+        ./autogen.sh
+
+    - name: Configure and build for macos x86_64
+      run: |
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+        make clean
+        make -j$JOBS ARFLAGS="cr"
+        mv bin/vsearch bin/vsearch-macos-x86_64
+        bin/vsearch-macos-x86_64 -v
