@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "October 3, 2025" "version 2.30.1" "USER COMMANDS"
+.TH vsearch 1 "December 12, 2025" "version 2.30.2" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5153,6 +5153,11 @@ improve: extensive test-suites for \-\-fastq_stats and \-\-sff_convert,
 .IP -
 improve: code coverage of our test-suite
 .RE
+.TP
+.BR v2.30.2\~ "released December 12th, 2025"
+This release fixes two minor issues. Allow a UDB file to be written to
+a pipe or stdout (issue #599). Correct computation of median cluster
+size after dereplication (issue #611).
 .\" ============================================================================
 .\" TODO:
 .\"
