@@ -4811,12 +4811,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --fastq_tail must be greater than zero");
     }
 
-  if ((parameters.opt_min_unmasked_pct < 0.0) and (parameters.opt_min_unmasked_pct > 100.0))
+  if ((parameters.opt_min_unmasked_pct < 0.0) or (parameters.opt_min_unmasked_pct > 100.0))
     {
       fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
     }
 
-  if ((parameters.opt_max_unmasked_pct < 0.0) and (parameters.opt_max_unmasked_pct > 100.0))
+  if ((parameters.opt_max_unmasked_pct < 0.0) or (parameters.opt_max_unmasked_pct > 100.0))
     {
       fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
     }
