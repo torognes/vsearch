@@ -136,6 +136,7 @@ struct chimera_info_s
 {
   int query_alloc = 0; /* the longest query sequence allocated memory for */
   int head_alloc = 0; /* the longest header allocated memory for */
+  int part_alloc = 0; /* the longest query part allocated memory for */
 
   int query_no = 0;
   std::vector<char> query_head;
@@ -214,7 +215,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   if (opt_chimeras_denovo != nullptr)
     {
       if (opt_chimeras_parts == 0) {
-        parts = (chimera_info->query_len + maxparts - 1) / maxparts;  // bug fix: std::max(expr, parts);?
+        parts = (chimera_info->query_len + 99) / 100; // one part per 100bp by default
       }
       else {
         parts = opt_chimeras_parts;
@@ -242,7 +243,6 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   /* realloc arrays based on query length */
 
   const int maxqlen = std::max(chimera_info->query_len, 1);
-  const int maxpartlen = (maxqlen + parts - 1) / parts;
   auto const max_2x2_size = static_cast<size_t>(maxcandidates * maxqlen);
 
   if (maxqlen > chimera_info->query_alloc)
@@ -250,12 +250,6 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
       chimera_info->query_alloc = maxqlen;
 
       chimera_info->query_seq.resize(maxqlen + 1);
-
-      for (auto & query_info: chimera_info->si)
-        {
-          query_info.qsequence_v.resize(maxpartlen + 1);
-          query_info.qsequence = query_info.qsequence_v.data();
-        }
 
       chimera_info->maxi.resize(maxqlen + 1);
       chimera_info->maxsmooth.resize(maxqlen);
@@ -276,6 +270,18 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
       chimera_info->votes.resize(maxalnlen + 1);
       chimera_info->model.resize(maxalnlen + 1);
       chimera_info->ignore.resize(maxalnlen + 1);
+    }
+
+  // resize query parts if longer than earlier, minimum 100
+  const int maxpartlen = std::max((maxqlen + parts - 1) / parts, 100);
+  if (maxpartlen > chimera_info->part_alloc)
+    {
+      for (auto & query_info: chimera_info->si)
+	{
+	  query_info.qsequence_v.resize(maxpartlen + 1);
+	  query_info.qsequence = query_info.qsequence_v.data();
+	}
+      chimera_info->part_alloc = maxpartlen;
     }
 }
 
@@ -1897,11 +1903,21 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             {
               search_onequery(&ci->si[i], opt_qmask);
               search_joinhits(&ci->si[i], nullptr, hits);
-              for (auto const & hit : hits) {
-                if (hit.accepted) {
-                  allhits_list[allhits_count] = hit;
-                  ++allhits_count;
-                }
+              for (auto & hit : hits) {
+                if (hit.accepted)
+		  {
+		    allhits_list[allhits_count] = hit;
+		    ++allhits_count;
+		  }
+		else
+		  {
+		    // Unallocate alignments for weak hits
+		    if (hit.nwalignment)
+		      {
+			xfree(hit.nwalignment);
+			hit.nwalignment = nullptr;
+		      }
+		  }
               }
               hits.clear();
             }
