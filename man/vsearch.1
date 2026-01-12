@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "December 12, 2025" "version 2.30.2" "USER COMMANDS"
+.TH vsearch 1 "January 12, 2026" "version 2.30.3" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5158,6 +5158,10 @@ improve: code coverage of our test-suite
 This release fixes two minor issues. Allow a UDB file to be written to
 a pipe or stdout (issue #599). Correct computation of median cluster
 size after dereplication (issue #611).
+.TP
+.BR v2.30.3\~ "released January 12th, 2026"
+This release fixes memory allocation bugs in the chimera detection
+code that caused a segmentation fault in rare cases (issue #615).
 .\" ============================================================================
 .\" TODO:
 .\"
