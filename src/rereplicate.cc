@@ -70,7 +70,7 @@
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-  
+
 }  // end of anonymous namespace
 
 
