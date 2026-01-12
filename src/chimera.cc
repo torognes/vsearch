@@ -277,10 +277,10 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   if (maxpartlen > chimera_info->part_alloc)
     {
       for (auto & query_info: chimera_info->si)
-	{
-	  query_info.qsequence_v.resize(maxpartlen + 1);
-	  query_info.qsequence = query_info.qsequence_v.data();
-	}
+        {
+          query_info.qsequence_v.resize(maxpartlen + 1);
+          query_info.qsequence = query_info.qsequence_v.data();
+        }
       chimera_info->part_alloc = maxpartlen;
     }
 }
@@ -1905,19 +1905,19 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
               search_joinhits(&ci->si[i], nullptr, hits);
               for (auto & hit : hits) {
                 if (hit.accepted)
-		  {
-		    allhits_list[allhits_count] = hit;
-		    ++allhits_count;
-		  }
-		else
-		  {
-		    // Unallocate alignments for weak hits
-		    if (hit.nwalignment)
-		      {
-			xfree(hit.nwalignment);
-			hit.nwalignment = nullptr;
-		      }
-		  }
+                  {
+                    allhits_list[allhits_count] = hit;
+                    ++allhits_count;
+                  }
+                else
+                  {
+                    // Unallocate alignments for weak hits
+                    if (hit.nwalignment)
+                      {
+                        xfree(hit.nwalignment);
+                        hit.nwalignment = nullptr;
+                      }
+                  }
               }
               hits.clear();
             }
