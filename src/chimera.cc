@@ -1894,6 +1894,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       /* perform searches and collect candidate parents */
       ci->cand_count = 0;
+      ci->best_h = 0.0;
       auto allhits_count = 0;
 
       if (ci->query_len >= parts)
@@ -2114,7 +2115,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
           /* output no parents, no chimeras */
           if ((status < Status::low_score) and (opt_uchimeout != nullptr))
             {
-              fprintf(fp_uchimeout, "0.0000\t");
+              fprintf(fp_uchimeout, "%.4f\t", ci->best_h);
 
               header_fprint_strip(fp_uchimeout,
                                   ci->query_head.data(),
