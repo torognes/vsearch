@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "January 12, 2026" "version 2.30.3" "USER COMMANDS"
+.TH vsearch 1 "January 19, 2026" "version 2.30.4" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5162,6 +5162,11 @@ size after dereplication (issue #611).
 .BR v2.30.3\~ "released January 12th, 2026"
 This release fixes memory allocation bugs in the chimera detection
 code that caused a segmentation fault in rare cases (issue #615).
+.TP
+.BR v2.30.4\~ "released January 19th, 2026"
+This release fixes issue #617. Due to a bug, incorrect scores were
+reported in the FASTA file headers of some non-chimeric sequences
+during chimera detection. The non-chimeric status was correct.
 .\" ============================================================================
 .\" TODO:
 .\"
