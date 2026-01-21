@@ -166,8 +166,9 @@ auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<
 }
 
 
-// refactoring: run-length decoding: this is not cigar-specific, extract to its
-// own header? check if I need a run-length encoding function
+// refactoring: run-length decoding: this is not cigar-specific,
+// extract to its own header? check if I need a run-length encoding
+// function (see swarm:cigar.cc for an example)
 auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> const cigar_string) -> void {
   auto const cigar_pairs = parse_cigar_string(cigar_string);
   for (auto const & a_pair: cigar_pairs) {
