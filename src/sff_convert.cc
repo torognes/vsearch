@@ -118,7 +118,7 @@ struct sff_read_header_s
   uint16_t clip_adapter_right = 0;
 };
 
-constexpr std::size_t n_bytes_in_read_header = sizeof(struct sff_read_header_s);  // 16 bytes
+constexpr std::size_t n_bytes_in_read_header = sizeof(struct sff_read_header_s);
 static_assert(n_bytes_in_read_header == 16, "sff read header has a size of 16 bytes");
 
 struct sff_read_stats {
