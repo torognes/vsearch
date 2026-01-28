@@ -82,7 +82,6 @@
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
 constexpr auto max_padding_length = 7U;
-constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
 constexpr auto index_header_length = 8U;  // index_magic_number (uint32_t) + index_version (char[4])
 
 // SFF format expects the following to be true:
@@ -249,6 +248,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect header length.");
     }
 
+  static constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
   if (sff_header.key_length != expected_key_length)
     {
       fatal("Invalid SFF file. Incorrect key length. Must be 4.");
