@@ -104,7 +104,8 @@ struct sff_header_s
   // automatic padding: +1 bytes
 };
 
-constexpr std::size_t n_bytes_in_header = sizeof(struct sff_header_s);  // first part of the header is 31 bytes in total + automatic padding = 32 bytes
+constexpr std::size_t n_bytes_in_header = sizeof(struct sff_header_s);
+static_assert(n_bytes_in_header == 32, "sff header has a first part of size 31 + 1 padding byte");
 
 struct sff_read_header_s
 {
