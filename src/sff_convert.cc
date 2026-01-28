@@ -88,7 +88,7 @@ constexpr auto index_header_length = 8U;  // index_magic_number (uint32_t) + ind
 static_assert(sizeof(uint8_t) == 1, "sff expects a uint8_t of size 1");
 static_assert(sizeof(uint16_t) == 2, "sff expects a uint16_t of size 2");
 static_assert(sizeof(uint32_t) == 4, "sff expects a uint32_t of size 4");
-static_assert(sizeof(uint64_t) == memory_alignment, "sff expects a uint64_t of size 8");
+static_assert(sizeof(uint64_t) == 8, "sff expects a uint64_t of size 8");
 
 struct sff_header_s
 {
