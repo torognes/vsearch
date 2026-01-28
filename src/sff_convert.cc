@@ -245,6 +245,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   // required by this set of header fields, and should be equal to "31
   // + number_of_flows_per_read + key_length" rounded up to the next
   // value divisible by 8
+  assert(sff_header.flows_per_read <= std::numeric_limits<uint16_t>::max() - (n_bytes_in_header + sff_header.key_length));
   auto const expected_header_length = memory_alignment * ((n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length + max_padding_length) / memory_alignment); 
   if (sff_header.header_length != expected_header_length)
     {
