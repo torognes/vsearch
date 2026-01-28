@@ -79,7 +79,6 @@
 // - index (optional, can be at the end) (index_offset tells us where it is)
 
 
-constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
 constexpr auto max_padding_length = 7U;
@@ -225,6 +224,7 @@ auto read_sff_read_header(std::FILE * sff_handle) -> struct sff_read_header_s {
 
 
 auto check_sff_header(struct sff_header_s const &sff_header) -> void {
+  static constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
   if (sff_header.magic_number != sff_magic)
     {
       fatal("Invalid SFF file. Incorrect magic number. Must be 0x2e736666 (.sff).");
