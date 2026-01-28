@@ -82,7 +82,6 @@
 constexpr auto byte_size = sizeof(uint8_t);
 constexpr auto memory_alignment = 8U;
 constexpr auto max_padding_length = 7U;
-constexpr auto expected_flowgram_format_code = 1U;
 constexpr auto expected_key_length = 4U;  // key sequences always have 4 nucleotides?
 constexpr auto index_header_length = 8U;  // index_magic_number (uint32_t) + index_version (char[4])
 
@@ -235,6 +234,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
       fatal("Invalid SFF file. Incorrect version. Must be 1.");
     }
 
+  static constexpr auto expected_flowgram_format_code = 1U;
   if (sff_header.flowgram_format_code != expected_flowgram_format_code)
     {
       fatal("Invalid SFF file. Incorrect flowgram format code. Must be 1.");
