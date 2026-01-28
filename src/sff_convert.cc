@@ -128,6 +128,16 @@ struct sff_read_stats {
 };
 
 
+auto round_up_to_8(uint16_t n_bytes) -> uint16_t {
+  // add stub to guarantee overflow into the next bucket, then zero
+  // out the remainder bits
+  static constexpr uint16_t stub = 8 - 1;     // 00000111
+  static constexpr uint16_t bitmask = ~stub;  // 11111000
+  assert(n_bytes <= std::numeric_limits<uint16_t>::max() - stub);
+  return (n_bytes + stub) & bitmask;
+}
+
+
 auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
