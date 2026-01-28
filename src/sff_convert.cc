@@ -286,7 +286,8 @@ auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void 
   //  header for this read, and should be equal to "16 + name_length"
   //  rounded up to the next value divisible by 8.
   assert(read_header.name_length <= std::numeric_limits<uint16_t>::max() - n_bytes_in_read_header);
-  if (read_header.read_header_length != memory_alignment * ((n_bytes_in_read_header + read_header.name_length + max_padding_length) / memory_alignment))
+  auto const expected_read_header_length = round_up_to_8(n_bytes_in_read_header + read_header.name_length);
+  if (read_header.read_header_length != expected_read_header_length)
     {
       fatal("Invalid SFF file. Incorrect read header length.");
     }
