@@ -224,12 +224,12 @@ auto read_sff_read_header(std::FILE * sff_handle) -> struct sff_read_header_s {
 
 auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   static constexpr uint32_t sff_magic = 0x2e736666;  // encoding the string ".sff"
-  static constexpr auto expected_version_number = 1U;
   if (sff_header.magic_number != sff_magic)
     {
       fatal("Invalid SFF file. Incorrect magic number. Must be 0x2e736666 (.sff).");
     }
 
+  static constexpr auto expected_version_number = 1U;
   if (sff_header.version != expected_version_number)
     {
       fatal("Invalid SFF file. Incorrect version. Must be 1.");
