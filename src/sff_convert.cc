@@ -101,7 +101,7 @@ struct sff_header_s
   uint16_t key_length = 0;
   uint16_t flows_per_read = 0;
   uint8_t  flowgram_format_code = 0;
-  // automatic padding: +1 bytes
+  // automatic padding: +1 byte
 };
 
 constexpr std::size_t n_bytes_in_header = sizeof(struct sff_header_s);
