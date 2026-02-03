@@ -87,7 +87,7 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 // only valid for contiguous sequences of elements (vectors or arrays)
 // of any type Type (except std::vector<bool>?)
 
-template <typename Type>
+template <typename Type = char>
 class Span {
 public:
   explicit Span(Type * start, std::size_t const length)
