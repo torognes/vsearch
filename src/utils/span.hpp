@@ -109,7 +109,7 @@ public:
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
-  // refactoring: lexicographical only for char and int?
+  // refactoring: std::lexicographical only for char and int?
   auto operator<(Span<Type> const & other) const -> bool {
     return std::lexicographical_compare(cbegin(), cend(),
                                         other.cbegin(), other.cend());
