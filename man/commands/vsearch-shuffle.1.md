@@ -9,7 +9,7 @@ vsearch \-\-shuffle --- randomize the order of fasta or fastq entries
 
 # SYNOPSIS
 
-| **vsearch** **\-\-shuffle** _fastxfile_ \-\-output _filename_ \[_options_]
+| **vsearch** **\-\-shuffle** _fastxfile_ \-\-output _fastafile_ \[_options_]
 
 
 # DESCRIPTION
