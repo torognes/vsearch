@@ -67,6 +67,9 @@ of quality score values used.
   distribution, effect of expected error and length filtering, effect
   of quality score and length filtering.
 
+**[`vsearch-shuffle(1)`](./commands/vsearch-shuffle.1.md)**
+: Randomize the order of fasta or fastq entries.
+
 
 <!---
 ## Orienting:
