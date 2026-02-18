@@ -1,5 +1,5 @@
 % vsearch-fastq_stats(1) version 2.30.4 | vsearch manual
-#(./fragments/authors.md)
+% Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 
 # NAME

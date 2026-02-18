@@ -1,5 +1,5 @@
 % vsearch-udb(5) version 2.30.4 | vsearch file formats
-#(../commands/fragments/authors.md)
+% Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(../commands/fragments/date.md)
 
 # NAME
