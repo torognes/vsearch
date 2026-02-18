@@ -24,7 +24,7 @@ fastq and the range of accepted quality values can be specified with
 `--fastq_ascii`, `--fastq_qmin` and `--fastq_qmax`.
 
 
-## Read length distribution
+## Read length distribution (table 1)
 
 Observed read lengths are sorted in decreasing order. The largest
 length value is marked with '>='.
@@ -52,7 +52,7 @@ Read length distribution
 ```
 
 
-## Quality score distribution
+## Quality score distribution (table 2)
 
 Observed quality values are sorted in decreasing order.
 
@@ -97,7 +97,7 @@ ASCII    Q       Pe           N      Pct   AccPct
 ```
 
 
-## Length vs. quality distribution
+## Length vs. quality distribution (table 3)
 
 Positions in reads are sorted in increasing order.
 
@@ -127,7 +127,7 @@ Positions in reads are sorted in increasing order.
 ```
 
 
-## Effect of expected error and length filtering
+## Effect of expected error and length filtering (table 4)
 
 Positions in reads are sorted in decreasing order, starting with the
 first read length (L) with a cummulated expected error smaller or
@@ -169,7 +169,7 @@ using the same length L and maximum expected error parameters.
 ```
 
 
-## Effect of minimum quality and length filtering
+## Effect of minimum quality and length filtering (table 5)
 
 Positions in reads are sorted in decreasing order, starting with the
 largest read length (Len), and limited to the top *n* lengths, where
