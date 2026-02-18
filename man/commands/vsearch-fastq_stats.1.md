@@ -16,14 +16,13 @@ detailed statistics
 # DESCRIPTION
 
 The vsearch command `--fastq_stats` analyzes fastq sequences and
-outputs detailed statistics, including projections of the impact
-different filtering thresholds would have. Results are written to
-`--log` *outputfile*. The quality encoding of the input fastq and the
-range of accepted quality values can be specified with
+outputs five detailed statistics tables, including projections of the
+impact different filtering thresholds would have. The statistics
+tables are described below, with an example for each. Results are
+written to `--log` *outputfile*. The quality encoding of the input
+fastq and the range of accepted quality values can be specified with
 `--fastq_ascii`, `--fastq_qmin` and `--fastq_qmax`.
 
-The five different statistics tables reported by `--fastq_stats` are
-described below, with an example for each.
 
 ## Read length distribution
 
