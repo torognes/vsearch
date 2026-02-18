@@ -1,5 +1,5 @@
 % vsearch-fasta2fastq(1) version 2.30.0 | vsearch manual
-% Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
+#(./fragments/authors.md)
 #(./fragments/date.md)
 
 # NAME
