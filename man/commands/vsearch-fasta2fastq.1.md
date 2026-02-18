@@ -4,8 +4,8 @@
 
 # NAME
 
-vsearch \-\-fasta2fastq --- convert a fasta file to a fastq file with
-fake quality scores
+vsearch \-\-fasta2fastq --- convert fasta entries into fastq entries
+with fake quality scores
 
 
 # SYNOPSIS
