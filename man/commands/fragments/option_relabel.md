@@ -4,5 +4,5 @@
   sequence header becomes '>cluster:1', the second sequence header
   becomes '>cluster:2', and so on. To retain annotations, use their
   corresponding options (`--lengthout`, `--eeout`, and
-  `--sizeout`). Use `--relabel_keep` to retain old sequence
+  `--sizeout`). Use `--relabel_keep` to also retain old sequence
   identifiers.
