@@ -71,18 +71,17 @@ of quality score values used.
 : Randomize the order of fasta or fastq entries.
 
 
-<!---
-## Orienting:
 
-**[`vsearch-orient(1)`](./commands/vsearch-orient.1.md)**
-: Use a reference database to orient fastq or fasta sequences.
+<!-- ## Orienting: -->
+
+<!-- **[`vsearch-orient(1)`](./commands/vsearch-orient.1.md)** -->
+<!-- : Use a reference database to orient fastq or fasta sequences. -->
 
 
 ## Restriction site cutting:
 
 ** [`vsearch-cut(1)`](./commands/vsearch-cut.1.md)**
 : Use a restriction pattern to cut fasta sequences.
--->
 
 
 # FILE FORMATS
