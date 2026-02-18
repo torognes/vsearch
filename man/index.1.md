@@ -1,5 +1,5 @@
 % vsearch(1) version 2.30.0 | vsearch manual
-#(./commands/fragments/authors.md)
+% Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./commands/fragments/date.md)
 
 # NAME
