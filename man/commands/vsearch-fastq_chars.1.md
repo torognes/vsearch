@@ -17,8 +17,9 @@ quality encoding and the range of quality score values used
 
 The vsearch command `--fastq_chars` summarizes the number and
 composition of sequences and quality strings contained in the input
-fastq file. Results are written to the *standard error* `stderr(3)`,
-and to *filename* if option `--log` *filename* is used.
+fastq file (see below for an example). Results are written to the
+*standard error* `stderr(3)`, and to *filename* if option `--log`
+*filename* is used.
 
 The command `--fastq_chars` tries to automatically detect the quality
 offset (33 or 64) and the fastq format (Solexa, Illumina 1.3+,
