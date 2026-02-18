@@ -32,12 +32,14 @@ option.
 A typical restriction pattern is "`G^AATT_C`", representing the EcoRI
 restriction site. The nucleotide symbols represent the sequence to be
 matched. Lowercase or uppercase nucleotides, as well as ambiguous
-nucleotides (IUPAC) are accepted. The special character '^'
-(circumflex) indicates the cutting position on the forward strand,
-while '`_`' (underscore) indicates the cutting position on the reverse
-strand. Forward and reverse cutting positions can be the same (for
-example "`GG^_AA`"), but exactly one cutting position on each strand
-must be indicated (one '^' and one '`_`').
+nucleotides (IUPAC) are accepted. See
+[`vsearch-nucleotides(7)`](../misc/vsearch-nucleotides.7.md) for
+details. The special character '^' (circumflex) indicates the cutting
+position on the forward strand, while '`_`' (underscore) indicates the
+cutting position on the reverse strand. Forward and reverse cutting
+positions can be the same (for example "`GG^_AA`"), but exactly one
+cutting position on each strand must be indicated (one '^' and one
+'`_`').
 
 As noted above, restriction patterns are only searched on the forward
 (or normal) strand, not on the reverse strand. For palindromic
