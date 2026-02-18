@@ -1,5 +1,5 @@
-% vsearch-expected_error(7) version 2.30.0 | vsearch file formats
-% Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
+% vsearch-expected_error(7) version 2.30.4 | vsearch file formats
+#(../commands/fragments/authors.md)
 #(../commands/fragments/date.md)
 
 # NAME
