@@ -75,8 +75,9 @@ reverse 3' T...C_GG...C 5'  <- present but not detected
 
 To detect asymetrical or non-palindromic patterns on the reverse
 strand, it is necessary to run the `--cut` command on the
-reverse-complemented input sequences (see
-[`vsearch-fastx_revcomp(1)`](./vsearch-fastx_revcomp.1.md)).
+reverse-complemented input sequences. See
+[`vsearch-fastx_revcomp(1)`](./vsearch-fastx_revcomp.1.md) for more
+details.
 
 Finally, pattern occurrences can overlap. For example, the pattern
 "`G^_G`" will be detected *three* times in the sequence "`GGGG`".
