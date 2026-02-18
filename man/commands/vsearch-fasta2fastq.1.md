@@ -1,4 +1,4 @@
-% vsearch-fasta2fastq(1) version 2.30.0 | vsearch manual
+% vsearch-fasta2fastq(1) version 2.30.4 | vsearch manual
 #(./fragments/authors.md)
 #(./fragments/date.md)
 
