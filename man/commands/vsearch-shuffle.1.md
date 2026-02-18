@@ -121,7 +121,7 @@ vsearch \
 
 # SEE ALSO
 
-Inverse operation (sort):
+Sorting operations (complementary to shuffling):
 [`vsearch-sortbylength(1)`](./commands/vsearch-sortbylength.1.md),
 [`vsearch-sortbysize(1)`](../formats/vsearch-sortbysize.1.md)
 
