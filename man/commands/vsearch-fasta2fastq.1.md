@@ -50,11 +50,11 @@ default is 33).
 
 `--fastq_qmaxout` *positive integer*
 : Specify the fake quality score used when writing the fastq file. The
-  default is 41, which is the usual maximal quality score for recent
-  Sanger/Illumina 1.8+ files (maximal quality score was 40 in older
-  formats). Accepted values range from 0 to 93 when the quality offset
-  is set to 33 (see `--fastq_asciiout`), and from 0 to 62 when the
-  quality offset is set to 64.
+  default is 41 ('J'), which is the usual maximal quality score for
+  recent Sanger/Illumina 1.8+ files (maximal quality score was 40 in
+  older formats). Accepted values range from 0 to 93 when the quality
+  offset is set to 33 (see `--fastq_asciiout`), and from 0 to 62 when
+  the quality offset is set to 64.
 
 
 ## secondary options
