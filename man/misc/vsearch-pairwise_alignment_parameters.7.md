@@ -19,6 +19,10 @@ algorithm finds the pairwise alignment with the best score.
 Along the pairwise alignment, each aligned position contributes to the
 score, by being either a *match*, a *mismatch*, or a *gap*.
 
+vsearch interprets symbols in DNA/RNA sequences according to the IUPAC
+coding system for nucleotides. See
+[`vsearch-nucleotides(7)`](./vsearch-nucleotides.7.md) for details.
+
 TODO: inject "reward and penalty system"
 
 
