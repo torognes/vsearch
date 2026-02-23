@@ -341,3 +341,17 @@ auto align_getrow(Span<char> const seq_view, Span<char> const cigar_view, int co
   assert(row[cursor_dest] == '\0');
   return row;
 }
+
+
+auto get_alignment_qrow(Span<char> const seq_view, Span<char> const cigar_view,
+                        int const alignlen) -> std::vector<char> {
+  static constexpr auto is_target = false;
+  return align_getrow(seq_view, cigar_view, alignlen, is_target);
+}
+
+
+auto get_alignment_trow(Span<char> const seq_view, Span<char> const cigar_view,
+                        int const alignlen) -> std::vector<char> {
+  static constexpr auto is_target = true;
+  return align_getrow(seq_view, cigar_view, alignlen, is_target);
+}
