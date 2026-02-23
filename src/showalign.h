@@ -64,11 +64,6 @@
 #include <vector>
 
 
-auto align_getrow(Span<char> seq_view,
-                  Span<char> cigar_view,
-                  int alignlen,
-                  bool is_target) -> std::vector<char>;
-
 auto get_alignment_qrow(Span<char> const seq_view,
                         Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char>;
