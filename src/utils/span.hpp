@@ -80,6 +80,7 @@ constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 //  - turn into a View (not allowed to modify the underlying data), not possible because ot strtoll()
 //  - add friend function for custom hashing,
 //  - goal is to be able to build std::map and std::set of Span<char>
+//  - mark member functions as noexcept, use gcc -Wnoexcept to catch mismatches
 
 
 // simple version of std::span (C++20)
