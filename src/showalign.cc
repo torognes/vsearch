@@ -171,22 +171,43 @@ namespace {
     auto cursor_src = size_t{0};
     auto cursor_dest = size_t{0};
 
-    for (auto const & a_pair: parse_cigar_string(cigar_view)) {
-      auto const operation = a_pair.first;
-      auto const runlength = a_pair.second;
-      assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
-      auto const is_not_a_gap = (operation == Operation::match) // a match, all good
-        or ((operation == Operation::deletion) and (viewpoint == Viewpoint::query))    // seq = query, insertion in seq
-        or ((operation == Operation::insertion) and (viewpoint == Viewpoint::target)); // seq = target, insertion in seq
-      if (is_not_a_gap) {
-        auto const subsequence = seq_view.subspan(cursor_src, runlength);
-        std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
-        cursor_src += runlength;
-      } else {
-        /* deletion in sequence: insert gap symbols */
-        std::fill_n(&row[cursor_dest], runlength, '-');
+    if (viewpoint == Viewpoint::query) {
+      for (auto const & a_pair: parse_cigar_string(cigar_view)) {
+        auto const operation = a_pair.first;
+        auto const runlength = a_pair.second;
+        assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
+        auto const is_not_a_gap = (operation == Operation::match) // a match, all good
+          or ((operation == Operation::deletion) and (viewpoint == Viewpoint::query))    // seq = query, insertion in seq
+          or ((operation == Operation::insertion) and (viewpoint == Viewpoint::target)); // seq = target, insertion in seq
+        if (is_not_a_gap) {
+          auto const subsequence = seq_view.subspan(cursor_src, runlength);
+          std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
+          cursor_src += runlength;
+        } else {
+          /* deletion in sequence: insert gap symbols */
+          std::fill_n(&row[cursor_dest], runlength, '-');
+        }
+        cursor_dest += runlength;
       }
-      cursor_dest += runlength;
+    }
+    else {
+      for (auto const & a_pair: parse_cigar_string(cigar_view)) {
+        auto const operation = a_pair.first;
+        auto const runlength = a_pair.second;
+        assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
+        auto const is_not_a_gap = (operation == Operation::match) // a match, all good
+          or ((operation == Operation::deletion) and (viewpoint == Viewpoint::query))    // seq = query, insertion in seq
+          or ((operation == Operation::insertion) and (viewpoint == Viewpoint::target)); // seq = target, insertion in seq
+        if (is_not_a_gap) {
+          auto const subsequence = seq_view.subspan(cursor_src, runlength);
+          std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
+          cursor_src += runlength;
+        } else {
+          /* deletion in sequence: insert gap symbols */
+          std::fill_n(&row[cursor_dest], runlength, '-');
+        }
+        cursor_dest += runlength;
+      }
     }
 
     assert(row[cursor_dest] == '\0');
