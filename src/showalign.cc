@@ -165,7 +165,7 @@ namespace {
   }
 
 
-  auto mirror_operations(Viewpoint const viewpoint) -> Operation {
+  auto adapt_to_viewpoint(Viewpoint const viewpoint) -> Operation {
     // cigar operations are relative to target
     if (viewpoint == Viewpoint::query) {
       return Operation::deletion;  // insertion in target -> deletion in query
@@ -180,7 +180,7 @@ namespace {
     auto cursor_src = size_t{0};
     auto cursor_dest = size_t{0};
 
-    auto const viewpoint_deletion = mirror_operations(viewpoint);
+    auto const viewpoint_deletion = adapt_to_viewpoint(viewpoint);
     for (auto const & a_pair: parse_cigar_string(cigar_view)) {
       auto const operation = a_pair.first;
       auto const runlength = a_pair.second;
