@@ -129,8 +129,8 @@ namespace {
   }
 
 
-  auto align_getrow(Span<char> const seq_view, Span<char> const cigar_view,
-                    int const alignlen, bool const is_target) -> std::vector<char> {
+  auto get_alignment_row(Span<char> const seq_view, Span<char> const cigar_view,
+                         int const alignlen, bool const is_target) -> std::vector<char> {
     std::vector<char> row(alignlen + 1);
     auto const is_query = not is_target;
     auto cursor_src = size_t{0};
@@ -347,12 +347,12 @@ auto align_show(std::FILE * output_handle,
 auto get_alignment_qrow(Span<char> const seq_view, Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
   static constexpr auto is_target = false;
-  return align_getrow(seq_view, cigar_view, alignlen, is_target);
+  return get_alignment_row(seq_view, cigar_view, alignlen, is_target);
 }
 
 
 auto get_alignment_trow(Span<char> const seq_view, Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
   static constexpr auto is_target = true;
-  return align_getrow(seq_view, cigar_view, alignlen, is_target);
+  return get_alignment_row(seq_view, cigar_view, alignlen, is_target);
 }
