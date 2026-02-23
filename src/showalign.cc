@@ -381,13 +381,13 @@ auto align_show(std::FILE * output_handle,
 
 auto get_alignment_qrow(Span<char> const seq_view, Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
-  static constexpr auto is_target = Viewpoint::query;
-  return get_alignment_row(seq_view, cigar_view, alignlen, is_target);
+  static constexpr auto viewpoint = Viewpoint::query;
+  return get_alignment_row(seq_view, cigar_view, alignlen, viewpoint);
 }
 
 
 auto get_alignment_trow(Span<char> const seq_view, Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
-  static constexpr auto is_target = Viewpoint::target;
-  return get_alignment_row(seq_view, cigar_view, alignlen, is_target);
+  static constexpr auto viewpoint = Viewpoint::target;
+  return get_alignment_row(seq_view, cigar_view, alignlen, viewpoint);
 }
