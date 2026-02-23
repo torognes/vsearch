@@ -167,7 +167,7 @@ namespace {
 
   auto mirror_operations(Viewpoint const viewpoint) -> Operation {
     if (viewpoint == Viewpoint::query) {
-      return  Operation::deletion;
+      return Operation::deletion;
     }
     return Operation::insertion; // Viewpoint::target
   }
