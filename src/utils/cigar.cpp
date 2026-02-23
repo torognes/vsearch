@@ -78,7 +78,8 @@
 // View<char>. That would eliminate the
 // bugprone-easily-swappable-parameters warning. Merge with
 // cigar_operations.hpp
-
+//
+//  - add the possibility to return a mirror cigar string (query viewpoint: I -> D, D -> I)
 
 // CIGAR string example: 3M2I3MD
 // document the format here, and in vsearch-cigar(5)
