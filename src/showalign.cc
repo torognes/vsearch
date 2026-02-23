@@ -136,7 +136,7 @@ namespace {
 
 
   auto adapt_to_viewpoint(Viewpoint const viewpoint) -> Operation {
-    // cigar operations are relative to target
+    // cigar operations are relative to target (see issue #618)
     if (viewpoint == Viewpoint::query) {
       return Operation::deletion;  // deletion in target -> insertion in query
     }
