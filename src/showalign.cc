@@ -176,32 +176,29 @@ namespace {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
         assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
-        auto const is_not_a_gap = (operation == Operation::match) // a match, all good
-          or (operation == Operation::deletion);    // seq = query, insertion in seq
-        if (is_not_a_gap) {
+        if ((operation == Operation::match) or
+            (operation == Operation::deletion)) {
           auto const subsequence = seq_view.subspan(cursor_src, runlength);
           std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
           cursor_src += runlength;
         } else {
-          /* deletion in sequence: insert gap symbols */
+          // Operation::insertion = deletion in query: insert gap symbols
           std::fill_n(&row[cursor_dest], runlength, '-');
         }
         cursor_dest += runlength;
       }
-    }
-    else {
+    } else {
       for (auto const & a_pair: parse_cigar_string(cigar_view)) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
         assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
-        auto const is_not_a_gap = (operation == Operation::match) // a match, all good
-          or (operation == Operation::insertion); // seq = target, insertion in seq
-        if (is_not_a_gap) {
+        if ((operation == Operation::match) or
+            (operation == Operation::insertion)) {
           auto const subsequence = seq_view.subspan(cursor_src, runlength);
           std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
           cursor_src += runlength;
         } else {
-          /* deletion in sequence: insert gap symbols */
+          // Operation::deletion = deletion in target: insert gap symbols
           std::fill_n(&row[cursor_dest], runlength, '-');
         }
         cursor_dest += runlength;
