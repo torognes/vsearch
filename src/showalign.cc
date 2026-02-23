@@ -165,6 +165,14 @@ namespace {
   }
 
 
+  auto mirror_operations(Viewpoint const viewpoint) -> Operation {
+    if (viewpoint == Viewpoint::query) {
+      return  Operation::deletion;
+    }
+    return Operation::insertion; // Viewpoint::target
+  }
+
+
   auto get_alignment_row(Span<char> const seq_view, Span<char> const cigar_view,
                          int const alignlen, Viewpoint const viewpoint) -> std::vector<char> {
     std::vector<char> row(alignlen + 1);
@@ -172,7 +180,7 @@ namespace {
     auto cursor_dest = size_t{0};
 
     if (viewpoint == Viewpoint::query) {
-      auto const viewpoint_operation = Operation::deletion;
+      auto const viewpoint_operation = mirror_operations(viewpoint);
       for (auto const & a_pair: parse_cigar_string(cigar_view)) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
@@ -189,7 +197,7 @@ namespace {
         cursor_dest += runlength;
       }
     } else {
-      auto const viewpoint_operation = Operation::insertion;
+      auto const viewpoint_operation = mirror_operations(viewpoint);
       for (auto const & a_pair: parse_cigar_string(cigar_view)) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
