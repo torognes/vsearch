@@ -108,10 +108,9 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
   }
 
   auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
-  auto const qrow = align_getrow(Span<char>{query, std::strlen(query)},
+  auto const qrow = get_alignment_qrow(Span<char>{query, std::strlen(query)},
                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
-                                 hits->nwalignmentlength,
-                                 false);
+                                 hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
                       &qrow[hits->trim_q_left + hits->trim_t_left],
@@ -126,10 +125,9 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       nullptr,
                       0.0);
 
-  auto const trow = align_getrow(Span<char>{db_getsequence(hits->target), db_getsequencelen(hits->target)},
+  auto const trow = get_alignment_trow(Span<char>{db_getsequence(hits->target), db_getsequencelen(hits->target)},
                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
-                                 hits->nwalignmentlength,
-                                 true);
+                                 hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
                       &trow[hits->trim_q_left + hits->trim_t_left],
@@ -435,10 +433,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           if (hits != nullptr)
             {
               auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
-              auto const qrow = align_getrow(Span<char>{query, std::strlen(query)},
+              auto const qrow = get_alignment_qrow(Span<char>{query, std::strlen(query)},
                                              Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
-                                             hits->nwalignmentlength,
-                                             false);
+                                             hits->nwalignmentlength);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
                       &qrow[hits->trim_q_left + hits->trim_t_left]);
@@ -447,10 +444,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 27: /* trow */
           if (hits != nullptr)
             {
-              auto const trow = align_getrow(Span<char>{tsequence, std::strlen(tsequence)},
+              auto const trow = get_alignment_trow(Span<char>{tsequence, std::strlen(tsequence)},
                                              Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
-                                             hits->nwalignmentlength,
-                                             true);
+                                             hits->nwalignmentlength);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
                       &trow[hits->trim_q_left + hits->trim_t_left]);
