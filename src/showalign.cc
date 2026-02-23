@@ -177,8 +177,7 @@ namespace {
         auto const runlength = a_pair.second;
         assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
         auto const is_not_a_gap = (operation == Operation::match) // a match, all good
-          or ((operation == Operation::deletion) and (viewpoint == Viewpoint::query))    // seq = query, insertion in seq
-          or ((operation == Operation::insertion) and (viewpoint == Viewpoint::target)); // seq = target, insertion in seq
+          or (operation == Operation::deletion);    // seq = query, insertion in seq
         if (is_not_a_gap) {
           auto const subsequence = seq_view.subspan(cursor_src, runlength);
           std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
@@ -196,8 +195,7 @@ namespace {
         auto const runlength = a_pair.second;
         assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
         auto const is_not_a_gap = (operation == Operation::match) // a match, all good
-          or ((operation == Operation::deletion) and (viewpoint == Viewpoint::query))    // seq = query, insertion in seq
-          or ((operation == Operation::insertion) and (viewpoint == Viewpoint::target)); // seq = target, insertion in seq
+          or (operation == Operation::insertion); // seq = target, insertion in seq
         if (is_not_a_gap) {
           auto const subsequence = seq_view.subspan(cursor_src, runlength);
           std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
