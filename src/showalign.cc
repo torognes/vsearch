@@ -172,12 +172,13 @@ namespace {
     auto cursor_dest = size_t{0};
 
     if (viewpoint == Viewpoint::query) {
+      auto const viewpoint_operation = Operation::deletion;
       for (auto const & a_pair: parse_cigar_string(cigar_view)) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
         assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
         if ((operation == Operation::match) or
-            (operation == Operation::deletion)) {
+            (operation == viewpoint_operation)) {
           auto const subsequence = seq_view.subspan(cursor_src, runlength);
           std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
           cursor_src += runlength;
@@ -188,12 +189,13 @@ namespace {
         cursor_dest += runlength;
       }
     } else {
+      auto const viewpoint_operation = Operation::insertion;
       for (auto const & a_pair: parse_cigar_string(cigar_view)) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
         assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
         if ((operation == Operation::match) or
-            (operation == Operation::insertion)) {
+            (operation == viewpoint_operation)) {
           auto const subsequence = seq_view.subspan(cursor_src, runlength);
           std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
           cursor_src += runlength;
