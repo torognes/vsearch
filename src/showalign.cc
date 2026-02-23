@@ -81,6 +81,12 @@ namespace {
   std::vector<char> d_line;  // target
 
 
+  enum struct Viewpoint : char {
+    target,
+    query
+  };
+
+
   struct Position {
     int64_t line = 0;
     int64_t query = 0;
