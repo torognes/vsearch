@@ -191,7 +191,7 @@ namespace {
         std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
         cursor_src += runlength;
       } else {
-        // Operation::insertion = deletion in query: insert gap symbols
+        // viewpoint_insertion = insert gap symbols
         std::fill_n(&row[cursor_dest], runlength, '-');
       }
       cursor_dest += runlength;
