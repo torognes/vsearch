@@ -180,18 +180,18 @@ namespace {
     auto cursor_src = size_t{0};
     auto cursor_dest = size_t{0};
 
-    auto const viewpoint_deletion = adapt_to_viewpoint(viewpoint);
+    auto const viewpoint_insertion = adapt_to_viewpoint(viewpoint);
     for (auto const & a_pair: parse_cigar_string(cigar_view)) {
       auto const operation = a_pair.first;
       auto const runlength = a_pair.second;
       assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
       if ((operation == Operation::match) or
-          (operation == viewpoint_deletion)) {
+          (operation == viewpoint_insertion)) {
         auto const subsequence = seq_view.subspan(cursor_src, runlength);
         std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
         cursor_src += runlength;
       } else {
-        // viewpoint_insertion = insert gap symbols
+        // viewpoint_deletion = fill-in with gap symbols
         std::fill_n(&row[cursor_dest], runlength, '-');
       }
       cursor_dest += runlength;
