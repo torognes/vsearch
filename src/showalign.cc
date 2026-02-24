@@ -141,10 +141,7 @@ namespace {
     //  - I is an insertion in target, a deletion in query
     //
     // Which operation is an insertion depends on viewpoint:
-    if (viewpoint == Viewpoint::query) {
-      return Operation::deletion;  // deletion in target -> insertion in query
-    }
-    return Operation::insertion; // Viewpoint::target
+    return (viewpoint == Viewpoint::target) ? Operation::insertion : Operation::deletion;
   }
 
 
