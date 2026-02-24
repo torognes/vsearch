@@ -135,7 +135,8 @@ namespace {
   }
 
 
-  auto adapt_to_viewpoint(Viewpoint const viewpoint) -> Operation {
+  constexpr
+  auto adapt_to_viewpoint(Viewpoint const viewpoint) noexcept -> Operation {
     // cigar operations are relative to target (see issue #618)
     //  - D is a deletion in target, an insertion in query
     //  - I is an insertion in target, a deletion in query
