@@ -139,6 +139,8 @@ namespace {
     // cigar operations are relative to target (see issue #618)
     //  - D is a deletion in target, an insertion in query
     //  - I is an insertion in target, a deletion in query
+    //
+    // Which operation is an insertion depends on viewpoint:
     if (viewpoint == Viewpoint::query) {
       return Operation::deletion;  // deletion in target -> insertion in query
     }
