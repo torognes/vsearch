@@ -126,7 +126,7 @@ auto q2p(int const quality_value) -> double
 
 auto ee_start(int const pos, int const resolution) -> int64_t
 {
-  return pos * (resolution * (pos + 1) + 2) / 2;
+  return pos * ((resolution * (pos + 1)) + 2) / 2;
 }
 
 
