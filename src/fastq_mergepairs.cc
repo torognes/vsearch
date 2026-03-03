@@ -1517,8 +1517,8 @@ auto print_stats(std::FILE * output_handle) -> void
               mean);
 
       auto const stdev = sqrt((sum_squared_fragment_length
-                               - 2.0 * mean * sum_fragment_length
-                               + mean * mean * merged)
+                               - (2.0 * mean * sum_fragment_length)
+                               + (mean * mean * merged))
                               / (merged + 0.0));
 
       fprintf(output_handle,
