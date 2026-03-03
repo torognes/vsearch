@@ -348,14 +348,14 @@ auto precompute_qual() -> void
           /* Quality score equations from Edgar & Flyvbjerg (2015) */
 
           /* Match */
-          p = px * py / 3.0 / (1.0 - px - py + 4.0 * px * py / 3.0);
+          p = px * py / 3.0 / (1.0 - px - py + (4.0 * px * py / 3.0));
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
           merge_qual_same[x][y] = opt_fastq_ascii + q;
 
           /* Mismatch, x is highest quality */
-          p = px * (1.0 - py / 3.0) / (px + py - 4.0 * px * py / 3.0);
+          p = px * (1.0 - (py / 3.0)) / (px + py - (4.0 * px * py / 3.0));
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
