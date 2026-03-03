@@ -142,7 +142,7 @@ private:
 
   auto calculate_next_threshold() const -> std::uint64_t {
     static constexpr auto nighty_nine_percent = 99UL;
-    return ((current_percentage_ + 1) * max_size_ + nighty_nine_percent) /
+    return (((current_percentage_ + 1) * max_size_) + nighty_nine_percent) /
       one_hundred_percent;
   };
 
