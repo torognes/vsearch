@@ -718,7 +718,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
                   freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
-                  "%.*s", std::max(12 - (int)(opt_wordlength), 0), "            ");
+                  "%.*s", std::max(12 - (int) (opt_wordlength), 0), "            ");
 
           fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
 
