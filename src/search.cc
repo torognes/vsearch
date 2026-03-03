@@ -461,7 +461,7 @@ auto search_thread_init(struct searchinfo_s * si) -> void
   si->kmers = (count_t *) xmalloc((seqcount * sizeof(count_t)) + 32);
   si->m = minheap_init(tophits);
   si->hits = (struct hit *) xmalloc
-    (sizeof(struct hit) * (tophits) * opt_strand);
+    (sizeof(struct hit) * tophits * opt_strand);
   si->qsize = 1;
   si->query_head_alloc = 0;
   si->query_head = nullptr;
