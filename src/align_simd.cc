@@ -927,10 +927,10 @@ auto backtrack16(s16info_s * s,
   uint64_t const qlen = s->qlen;
   char const * qseq = s->qseq;
 
-  uint64_t const maskup      = 3ULL << (2 * channel + 0);
-  uint64_t const maskleft    = 3ULL << (2 * channel + 16);
-  uint64_t const maskextup   = 3ULL << (2 * channel + 32);
-  uint64_t const maskextleft = 3ULL << (2 * channel + 48);
+  uint64_t const maskup      = 3ULL << ((2 * channel) + 0);
+  uint64_t const maskleft    = 3ULL << ((2 * channel) + 16);
+  uint64_t const maskextup   = 3ULL << ((2 * channel) + 32);
+  uint64_t const maskextleft = 3ULL << ((2 * channel) + 48);
 
 #if 0
 
