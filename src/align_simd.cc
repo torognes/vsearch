@@ -659,21 +659,21 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
       ALIGNCORE(h1, h6, f1, vp[1], RES2,
                 QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
       RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      v_store((dir + 16*i + 0), RES);
+      v_store((dir + 16 * i + 0), RES);
       ALIGNCORE(h2, h7, f2, vp[2], RES1,
                 QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
       ALIGNCORE(h3, h8, f3, vp[3], RES2,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
       RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      v_store((dir + 16*i + 8), RES);
+      v_store((dir + 16 * i + 8), RES);
 #else
-      ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+0,
+      ALIGNCORE(h0, h5, f0, vp[0], dir + 16 * i + 0,
                 QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+4,
+      ALIGNCORE(h1, h6, f1, vp[1], dir + 16 * i + 4,
                 QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      ALIGNCORE(h2, h7, f2, vp[2], dir+16*i+8,
+      ALIGNCORE(h2, h7, f2, vp[2], dir + 16 * i + 8,
                 QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], dir+16*i+12,
+      ALIGNCORE(h3, h8, f3, vp[3], dir + 16 * i + 12,
                 QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
@@ -703,21 +703,21 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   ALIGNCORE(h1, h6, f1, vp[1], RES2,
             QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
   RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  v_store((dir + 16*i + 0), RES);
+  v_store((dir + 16 * i + 0), RES);
   ALIGNCORE(h2, h7, f2, vp[2], RES1,
             QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
   ALIGNCORE(h3, h8, f3, vp[3], RES2,
             QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
   RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  v_store((dir + 16*i + 8), RES);
+  v_store((dir + 16 * i + 8), RES);
 #else
-  ALIGNCORE(h0, h5, f0, vp[0], dir+16*i+ 0,
+  ALIGNCORE(h0, h5, f0, vp[0], dir + 16 * i + 0,
             QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  ALIGNCORE(h1, h6, f1, vp[1], dir+16*i+ 4,
+  ALIGNCORE(h1, h6, f1, vp[1], dir + 16 * i + 4,
             QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  ALIGNCORE(h2, h7, f2, vp[2], dir+16*i+ 8,
+  ALIGNCORE(h2, h7, f2, vp[2], dir + 16 * i + 8,
             QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  ALIGNCORE(h3, h8, f3, vp[3], dir+16*i+12,
+  ALIGNCORE(h3, h8, f3, vp[3], dir + 16 * i + 12,
             QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
 #endif
 
