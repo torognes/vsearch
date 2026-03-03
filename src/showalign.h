@@ -64,13 +64,13 @@
 #include <vector>
 
 
-auto get_alignment_qrow(Span<char> const seq_view,
-                        Span<char> const cigar_view,
-                        int const alignlen) -> std::vector<char>;
+auto get_alignment_qrow(Span<char> seq_view,
+                        Span<char> cigar_view,
+                        int alignlen) -> std::vector<char>;
 
-auto get_alignment_trow(Span<char> const seq_view,
-                        Span<char> const cigar_view,
-                        int const alignlen) -> std::vector<char>;
+auto get_alignment_trow(Span<char> seq_view,
+                        Span<char> cigar_view,
+                        int alignlen) -> std::vector<char>;
 
 auto align_show(std::FILE * output_handle,
                 char const * seq1,
