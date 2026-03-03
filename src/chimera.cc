@@ -1323,8 +1323,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
               if ((left_y > left_n) and (right_y > right_n))
                 {
-                  left_h = left_y / (opt_xn * (left_n + opt_dn) + left_a);
-                  right_h = right_y / (opt_xn * (right_n + opt_dn) + right_a);
+                  left_h = left_y / ((opt_xn * (left_n + opt_dn)) + left_a);
+                  right_h = right_y / ((opt_xn * (right_n + opt_dn)) + right_a);
                   h = left_h * right_h;
 
                   if (h > best_h)
@@ -1344,8 +1344,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                 {
                   /* swap left/right and yes/no */
 
-                  left_h = left_n / (opt_xn * (left_y + opt_dn) + left_a);
-                  right_h = right_n / (opt_xn * (right_y + opt_dn) + right_a);
+                  left_h = left_n / ((opt_xn * (left_y + opt_dn)) + left_a);
+                  right_h = right_n / ((opt_xn * (right_y + opt_dn)) + right_a);
                   h = left_h * right_h;
 
                   if (h > best_h)
