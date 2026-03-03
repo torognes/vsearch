@@ -92,7 +92,7 @@ auto progress_init(char const * prompt, uint64_t const size) -> void
   progress_prompt = prompt;
   progress_size = size;
   progress_pct = 0;
-  progress_next = ((progress_pct + 1) * progress_size + nighty_nine_percent) / one_hundred_percent;
+  progress_next = (((progress_pct + 1) * progress_size) + nighty_nine_percent) / one_hundred_percent;
 
   if (opt_quiet) { return; }
   std::fprintf(stderr, "%s", prompt);
@@ -113,7 +113,7 @@ auto progress_update(uint64_t const progress) -> void
           "  \r%s %" PRIu64 "%%",
           progress_prompt,
           progress_pct);
-  progress_next = ((progress_pct + 1) * progress_size + nighty_nine_percent) / one_hundred_percent;
+  progress_next = (((progress_pct + 1) * progress_size) + nighty_nine_percent) / one_hundred_percent;
 }
 
 
