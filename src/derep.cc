@@ -567,7 +567,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                     {
                       // fastq_qout_avg
                       /* average, as in USEARCH */
-                      p3 = (p1 * s1 + p2 * s2) / s3;
+                      p3 = ((p1 * s1) + (p2 * s2)) / s3;
                     }
 
                   // fastq_qout_min
