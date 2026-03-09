@@ -207,22 +207,28 @@ auto header_fprint_strip(FILE * output_handle,
   std::array<int, n_expected_attributes> attribute_end {{}};
 
   /* look for size attribute */
-  look_for_attribute(header, header_length,
-                     nth_attribute, attribute_start,
-                     attribute_end,
-                     "size=", strip_size);
+  if (strip_size) {
+    look_for_attribute(header, header_length,
+                       nth_attribute, attribute_start,
+                       attribute_end,
+                       "size=", strip_size);
+  }
 
   /* look for ee attribute */
-  look_for_attribute(header, header_length,
-                     nth_attribute, attribute_start,
-                     attribute_end,
-                     "ee=", strip_ee);
+  if (strip_ee) {
+    look_for_attribute(header, header_length,
+                       nth_attribute, attribute_start,
+                       attribute_end,
+                       "ee=", strip_ee);
+  }
 
   /* look for length attribute */
-  look_for_attribute(header, header_length,
-                     nth_attribute, attribute_start,
-                     attribute_end,
-                     "length=", strip_length);
+  if (strip_length) {
+    look_for_attribute(header, header_length,
+                       nth_attribute, attribute_start,
+                       attribute_end,
+                       "length=", strip_length);
+  }
 
   /* sort */
 
