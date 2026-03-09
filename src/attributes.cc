@@ -177,7 +177,7 @@ auto look_for_attribute(char const * header, int const header_length,
                         int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
                         std::array<int, n_expected_attributes> &attribute_end,
                         char const * attribute_text,
-                        bool const strip_attribute) -> void {
+                        bool const allow_decimal) -> void {
   auto start = 0;
   auto end = 0;
 
@@ -186,7 +186,7 @@ auto look_for_attribute(char const * header, int const header_length,
                                                           attribute_text,
                                                           & start,
                                                           & end,
-                                                          false);
+                                                          allow_decimal);
   if (not attribute_is_present) { return; }
   attribute_start[nth_attribute] = start;
   attribute_end[nth_attribute] = end;
@@ -210,7 +210,7 @@ auto header_fprint_strip(FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       "size=", strip_size);
+                       "size=", false);
   }
 
   /* look for ee attribute */
@@ -218,7 +218,7 @@ auto header_fprint_strip(FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       "ee=", strip_ee);
+                       "ee=", true);
   }
 
   /* look for length attribute */
@@ -226,7 +226,7 @@ auto header_fprint_strip(FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       "length=", strip_length);
+                       "length=", true);
   }
 
   /* sort */
