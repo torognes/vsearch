@@ -180,7 +180,6 @@ auto look_for_attribute(char const * header, int const header_length,
                         bool const strip_attribute) -> void {
   auto start = 0;
   auto end = 0;
-  if (not strip_attribute) { return; }
 
   auto const attribute_is_present = header_find_attribute(header,
                                                           header_length,
