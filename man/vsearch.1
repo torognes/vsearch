@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "January 19, 2026" "version 2.30.4" "USER COMMANDS"
+.TH vsearch 1 "March 10, 2026" "version 2.30.5" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5167,6 +5167,23 @@ code that caused a segmentation fault in rare cases (issue #615).
 This release fixes issue #617. Due to a bug, incorrect scores were
 reported in the FASTA file headers of some non-chimeric sequences
 during chimera detection. The non-chimeric status was correct.
+.TP
+.BR v2.30.5\~ "released March 10th, 2026"
+This release includes the following changes:
+.RS
+.IP - 2
+fix: out-of-bound look-ups when printing alignment rows (commit 2f3d1ef). Thanks to user @gbbio for reporting this issue (#618). This is a regression, introduced in v2.30.1
+.IP -
+fix: options `\-\-xlength` and `\-\-xee` were not removing length and ee attributes as expected (commit 69fccdbc). This is a regression, introduced in v2.30.1
+.IP -
+fix: range checking for the option `\-\-max_unmasked_pct` (commit e1a5611505)
+.IP -
+add: individual manpages for the commands `\-\-shuffle` and `\-\-cut`
+.IP -
+improve: eliminated 50 clang-tidy warnings
+.IP -
+improve: code coverage of our test-suite
+.RE
 .\" ============================================================================
 .\" TODO:
 .\"
