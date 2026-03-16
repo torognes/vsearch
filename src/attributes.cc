@@ -96,10 +96,9 @@ namespace {
 
   auto header_find_attribute(char const * header,
                              int const header_length,
-                             char const * attribute,
+                             Attribute const attribute,
                              int * start,
-                             int * end,
-                             bool const allow_decimal) -> bool
+                             int * end) -> bool
   {
     /*
       Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -110,18 +109,18 @@ namespace {
     const char * digit_chars = "0123456789";
     const char * digit_chars_decimal = "0123456789.";
 
-    if ((header == nullptr) or (attribute == nullptr))
+    if ((header == nullptr) or (attribute.text == nullptr))
       {
         return false;
       }
 
-    auto const attribute_length = static_cast<int>(std::strlen(attribute));
+    auto const attribute_length = static_cast<int>(std::strlen(attribute.text));
 
     auto offset = 0;
 
     while (offset < header_length - attribute_length)
       {
-        auto const * first_occurence = std::strstr(header + offset, attribute);
+        auto const * first_occurence = std::strstr(header + offset, attribute.text);
 
         /* no match */
         if (first_occurence == nullptr)
@@ -140,7 +139,7 @@ namespace {
 
         auto const digits
           = static_cast<int>(std::strspn(header + offset + attribute_length,
-                                         (allow_decimal ? digit_chars_decimal : digit_chars)));
+                                         (attribute.allow_decimal ? digit_chars_decimal : digit_chars)));
 
         /* check for at least one digit */
         if (digits == 0)
@@ -175,10 +174,9 @@ namespace {
 
     auto const attribute_is_present = header_find_attribute(header,
                                                             header_length,
-                                                            attribute.text,
+                                                            attribute,
                                                             & start,
-                                                            & end,
-                                                            attribute.allow_decimal);
+                                                            & end);
     if (not attribute_is_present) { return; }
     attribute_start[nth_attribute] = start;
     attribute_end[nth_attribute] = end;
@@ -197,10 +195,9 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
   auto end = 0;
   auto const attribute_is_present = header_find_attribute(header,
                                                           header_length,
-                                                          "size=",
+                                                          attributes.size,
                                                           &start,
-                                                          &end,
-                                                          false);
+                                                          &end);
   if (not attribute_is_present) {
     return 0;  // refactoring: return 1 by default?
   }
