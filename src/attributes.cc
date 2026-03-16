@@ -173,6 +173,7 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
 }
 
 
+// refactoring: replace allow_decimal with an enum struct
 auto look_for_attribute(char const * header, int const header_length,
                         int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
                         std::array<int, n_expected_attributes> &attribute_end,
