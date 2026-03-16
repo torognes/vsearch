@@ -72,99 +72,101 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
-auto header_find_attribute(char const * header,
-                           int const header_length,
-                           char const * attribute,
-                           int * start,
-                           int * end,
-                           bool const allow_decimal) -> bool
-{
-  /*
-    Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
-    in the header string, where "size=" is the specified attribute.
-    If allow_decimal is true, a dot (.) is allowed within the digits.
-  */
-
-  const char * digit_chars = "0123456789";
-  const char * digit_chars_decimal = "0123456789.";
-
-  if ((header == nullptr) or (attribute == nullptr))
-    {
-      return false;
-    }
-
-  auto const attribute_length = static_cast<int>(std::strlen(attribute));
-
-  auto offset = 0;
-
-  while (offset < header_length - attribute_length)
-    {
-      auto const * first_occurence = std::strstr(header + offset, attribute);
-
-      /* no match */
-      if (first_occurence == nullptr)
-        {
-          break;
-        }
-
-      offset = first_occurence - header;
-
-      /* check for ';' in front */
-      if ((offset > 0) and (header[offset - 1] != ';'))
-        {
-          offset += attribute_length + 1;
-          continue;
-        }
-
-      auto const digits
-        = static_cast<int>(std::strspn(header + offset + attribute_length,
-                                       (allow_decimal ? digit_chars_decimal : digit_chars)));
-
-      /* check for at least one digit */
-      if (digits == 0)
-        {
-          offset += attribute_length + 1;
-          continue;
-        }
-
-      /* check for ';' after */
-      if ((offset + attribute_length + digits < header_length) and (header[offset + attribute_length + digits] != ';'))
-        {
-          offset += attribute_length + digits + 2;
-          continue;
-        }
-
-      /* ok */
-      *start = offset;
-      *end = offset + attribute_length + digits;
-      return true;
-    }
-  return false;
-}
+  constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 
-// refactoring: replace allow_decimal with an enum struct
-auto look_for_attribute(char const * header, int const header_length,
-                        int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
-                        std::array<int, n_expected_attributes> &attribute_end,
-                        char const * attribute_text,
-                        bool const allow_decimal) -> void {
-  auto start = 0;
-  auto end = 0;
+  auto header_find_attribute(char const * header,
+                             int const header_length,
+                             char const * attribute,
+                             int * start,
+                             int * end,
+                             bool const allow_decimal) -> bool
+  {
+    /*
+      Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
+      in the header string, where "size=" is the specified attribute.
+      If allow_decimal is true, a dot (.) is allowed within the digits.
+    */
 
-  auto const attribute_is_present = header_find_attribute(header,
-                                                          header_length,
-                                                          attribute_text,
-                                                          & start,
-                                                          & end,
-                                                          allow_decimal);
-  if (not attribute_is_present) { return; }
-  attribute_start[nth_attribute] = start;
-  attribute_end[nth_attribute] = end;
-  ++nth_attribute;
-}
+    const char * digit_chars = "0123456789";
+    const char * digit_chars_decimal = "0123456789.";
+
+    if ((header == nullptr) or (attribute == nullptr))
+      {
+        return false;
+      }
+
+    auto const attribute_length = static_cast<int>(std::strlen(attribute));
+
+    auto offset = 0;
+
+    while (offset < header_length - attribute_length)
+      {
+        auto const * first_occurence = std::strstr(header + offset, attribute);
+
+        /* no match */
+        if (first_occurence == nullptr)
+          {
+            break;
+          }
+
+        offset = first_occurence - header;
+
+        /* check for ';' in front */
+        if ((offset > 0) and (header[offset - 1] != ';'))
+          {
+            offset += attribute_length + 1;
+            continue;
+          }
+
+        auto const digits
+          = static_cast<int>(std::strspn(header + offset + attribute_length,
+                                         (allow_decimal ? digit_chars_decimal : digit_chars)));
+
+        /* check for at least one digit */
+        if (digits == 0)
+          {
+            offset += attribute_length + 1;
+            continue;
+          }
+
+        /* check for ';' after */
+        if ((offset + attribute_length + digits < header_length) and (header[offset + attribute_length + digits] != ';'))
+          {
+            offset += attribute_length + digits + 2;
+            continue;
+          }
+
+        /* ok */
+        *start = offset;
+        *end = offset + attribute_length + digits;
+        return true;
+      }
+    return false;
+  }
+
+
+  // refactoring: replace allow_decimal with an enum struct
+  auto look_for_attribute(char const * header, int const header_length,
+                          int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
+                          std::array<int, n_expected_attributes> &attribute_end,
+                          char const * attribute_text,
+                          bool const allow_decimal) -> void {
+    auto start = 0;
+    auto end = 0;
+
+    auto const attribute_is_present = header_find_attribute(header,
+                                                            header_length,
+                                                            attribute_text,
+                                                            & start,
+                                                            & end,
+                                                            allow_decimal);
+    if (not attribute_is_present) { return; }
+    attribute_start[nth_attribute] = start;
+    attribute_end[nth_attribute] = end;
+    ++nth_attribute;
+  }
 
 
 }  // end of anonymous namespace
