@@ -74,8 +74,8 @@ namespace {
 
   struct Attribute {
     char const * text = nullptr;
-    int length = 0;
-    bool allow_decimal = false;
+    int length = 0;  // length of the text field
+    bool allow_decimal = false;  // integer or float
 
     constexpr Attribute(char const * text, int length, bool allow_decimal)
       : text(text), length(length), allow_decimal(allow_decimal) {}
