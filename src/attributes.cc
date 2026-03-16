@@ -74,18 +74,19 @@ namespace {
 
   struct Attribute {
     char const * text = nullptr;
+    int length = 0;
     bool allow_decimal = false;
 
-    constexpr Attribute(char const * text, bool allow_decimal)
-      : text(text), allow_decimal(allow_decimal) {}
+    constexpr Attribute(char const * text, int length, bool allow_decimal)
+      : text(text), length(length), allow_decimal(allow_decimal) {}
 
   };
 
 
   struct Attributes {
-    const Attribute ee {"ee=",     true};
-    const Attribute length {"length=", false};
-    const Attribute size {"size=",   false};
+    const Attribute ee {"ee=", 3, true};
+    const Attribute length {"length=", 7, false};
+    const Attribute size {"size=", 5, false};
   };
 
   constexpr Attributes attributes;
