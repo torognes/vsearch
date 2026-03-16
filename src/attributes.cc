@@ -66,7 +66,7 @@
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::strtoll
-#include <cstring>  // std::strlen, std::strstr, std::strspn
+#include <cstring>  // std::strstr, std::strspn
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
