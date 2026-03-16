@@ -195,7 +195,7 @@ auto look_for_attribute(char const * header, int const header_length,
 }
 
 
-auto header_fprint_strip(FILE * output_handle,
+auto header_fprint_strip(std::FILE * output_handle,
                          char const * header,
                          int const header_length,
                          bool const strip_size,
