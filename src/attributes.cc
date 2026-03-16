@@ -72,6 +72,20 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  struct Attribute {
+    char const * text = nullptr;
+    bool allow_decimal = false;
+
+    constexpr Attribute(char const * text, bool allow_decimal)
+      : text(text), allow_decimal(allow_decimal) {}
+
+  };
+
+
+  constexpr Attribute ee {"ee=", true};
+  constexpr Attribute length {"length=", false};
+  constexpr Attribute size {"size=", false};
+
 
   constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
