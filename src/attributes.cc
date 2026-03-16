@@ -115,8 +115,6 @@ namespace {
         return false;
       }
 
-    auto const attribute_length = static_cast<int>(std::strlen(attribute.text));
-
     auto offset = 0;
 
     while (offset < header_length - attribute.length)
