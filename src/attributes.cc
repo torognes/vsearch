@@ -190,7 +190,6 @@ namespace {
 
 auto header_get_size(char const * header, int const header_length) -> int64_t {
   /* read size/abundance annotation */
-  static constexpr auto length_of_attribute_name = 5;  // "size=" -> 5 letters
   static constexpr auto decimal_base = 10;
   auto start = 0;
   auto end = 0;
@@ -204,7 +203,7 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
   }
 
   char * next_character = nullptr;
-  auto const abundance = std::strtoll(header + start + length_of_attribute_name, &next_character, decimal_base);
+  auto const abundance = std::strtoll(header + start + attributes.size.length, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 
   if (range_error) {
