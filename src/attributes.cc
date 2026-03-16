@@ -150,6 +150,28 @@ auto header_find_attribute(char const * header,
 }
 
 
+// refactoring: replace allow_decimal with an enum struct
+auto look_for_attribute(char const * header, int const header_length,
+                        int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
+                        std::array<int, n_expected_attributes> &attribute_end,
+                        char const * attribute_text,
+                        bool const allow_decimal) -> void {
+  auto start = 0;
+  auto end = 0;
+
+  auto const attribute_is_present = header_find_attribute(header,
+                                                          header_length,
+                                                          attribute_text,
+                                                          & start,
+                                                          & end,
+                                                          allow_decimal);
+  if (not attribute_is_present) { return; }
+  attribute_start[nth_attribute] = start;
+  attribute_end[nth_attribute] = end;
+  ++nth_attribute;
+}
+
+
 auto header_get_size(char const * header, int const header_length) -> int64_t {
   /* read size/abundance annotation */
   static constexpr auto length_of_attribute_name = 5;  // "size=" -> 5 letters
@@ -179,28 +201,6 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
   }
 
   return abundance;
-}
-
-
-// refactoring: replace allow_decimal with an enum struct
-auto look_for_attribute(char const * header, int const header_length,
-                        int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
-                        std::array<int, n_expected_attributes> &attribute_end,
-                        char const * attribute_text,
-                        bool const allow_decimal) -> void {
-  auto start = 0;
-  auto end = 0;
-
-  auto const attribute_is_present = header_find_attribute(header,
-                                                          header_length,
-                                                          attribute_text,
-                                                          & start,
-                                                          & end,
-                                                          allow_decimal);
-  if (not attribute_is_present) { return; }
-  attribute_start[nth_attribute] = start;
-  attribute_end[nth_attribute] = end;
-  ++nth_attribute;
 }
 
 
