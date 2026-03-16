@@ -84,9 +84,9 @@ namespace {
 
 
   struct Attributes {
-    const Attribute ee {"ee=", 3, true};
-    const Attribute length {"length=", 7, false};
-    const Attribute size {"size=", 5, false};
+    Attribute ee {"ee=", 3, true};
+    Attribute length {"length=", 7, false};
+    Attribute size {"size=", 5, false};
   };
 
   constexpr Attributes attributes;
