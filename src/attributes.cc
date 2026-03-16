@@ -119,7 +119,7 @@ namespace {
 
     auto offset = 0;
 
-    while (offset < header_length - attribute_length)
+    while (offset < header_length - attribute.length)
       {
         auto const * first_occurence = std::strstr(header + offset, attribute.text);
 
@@ -134,31 +134,31 @@ namespace {
         /* check for ';' in front */
         if ((offset > 0) and (header[offset - 1] != ';'))
           {
-            offset += attribute_length + 1;
+            offset += attribute.length + 1;
             continue;
           }
 
         auto const digits
-          = static_cast<int>(std::strspn(header + offset + attribute_length,
+          = static_cast<int>(std::strspn(header + offset + attribute.length,
                                          (attribute.allow_decimal ? digit_chars_decimal : digit_chars)));
 
         /* check for at least one digit */
         if (digits == 0)
           {
-            offset += attribute_length + 1;
+            offset += attribute.length + 1;
             continue;
           }
 
         /* check for ';' after */
-        if ((offset + attribute_length + digits < header_length) and (header[offset + attribute_length + digits] != ';'))
+        if ((offset + attribute.length + digits < header_length) and (header[offset + attribute.length + digits] != ';'))
           {
-            offset += attribute_length + digits + 2;
+            offset += attribute.length + digits + 2;
             continue;
           }
 
         /* ok */
         *start = offset;
-        *end = offset + attribute_length + digits;
+        *end = offset + attribute.length + digits;
         return true;
       }
     return false;
