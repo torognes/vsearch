@@ -82,9 +82,13 @@ namespace {
   };
 
 
-  constexpr Attribute ee {"ee=", true};
-  constexpr Attribute length {"length=", false};
-  constexpr Attribute size {"size=", false};
+  struct Attributes {
+    const Attribute ee {"ee=",     true};
+    const Attribute length {"length=", false};
+    const Attribute size {"size=",   false};
+  };
+
+  constexpr Attributes attributes;
 
 
   constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
@@ -233,7 +237,7 @@ auto header_fprint_strip(std::FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       size);
+                       attributes.size);
   }
 
   /* look for ee attribute */
@@ -241,7 +245,7 @@ auto header_fprint_strip(std::FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       ee);
+                       attributes.ee);
   }
 
   /* look for length attribute */
@@ -249,7 +253,7 @@ auto header_fprint_strip(std::FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       length);
+                       attributes.length);
   }
 
   /* sort */
