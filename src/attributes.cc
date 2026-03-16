@@ -234,7 +234,7 @@ auto header_fprint_strip(std::FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       "size=", false);
+                       size.text, size.allow_decimal);
   }
 
   /* look for ee attribute */
@@ -242,7 +242,7 @@ auto header_fprint_strip(std::FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       "ee=", true);
+                       ee.text, ee.allow_decimal);
   }
 
   /* look for length attribute */
@@ -250,7 +250,7 @@ auto header_fprint_strip(std::FILE * output_handle,
     look_for_attribute(header, header_length,
                        nth_attribute, attribute_start,
                        attribute_end,
-                       "length=", true);
+                       length.text, length.allow_decimal);
   }
 
   /* sort */
