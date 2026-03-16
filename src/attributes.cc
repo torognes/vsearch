@@ -69,6 +69,14 @@
 #include <cstring>  // std::strlen, std::strstr, std::strspn
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+
+
+}  // end of anonymous namespace
+
+
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 auto header_find_attribute(char const * header,
