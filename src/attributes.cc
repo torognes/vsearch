@@ -68,6 +68,7 @@
 #include <cstdlib>  // std::strtoll
 #include <cstring>  // std::strlen, std::strstr, std::strspn
 
+
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 auto header_find_attribute(char const * header,
