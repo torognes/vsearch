@@ -72,11 +72,6 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-
-
-}  // end of anonymous namespace
-
-
 constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 auto header_find_attribute(char const * header,
@@ -170,6 +165,9 @@ auto look_for_attribute(char const * header, int const header_length,
   attribute_end[nth_attribute] = end;
   ++nth_attribute;
 }
+
+
+}  // end of anonymous namespace
 
 
 auto header_get_size(char const * header, int const header_length) -> int64_t {
