@@ -5087,15 +5087,15 @@ In addition, a compiler pragma has been included in align_simd.cc to
 further protect the compiler from generating wrong code.
 .TP
 .BR v2.30.0\~ "released February 27th, 2025"
-Add options `\-\-n_mismatch`, `\-\-fastq_minqual`, and
-`\-\-fastq_truncee_rate`.  The `\-\-n_mismatch` option will count N's
+Add options \-\-n_mismatch, \-\-fastq_minqual, and
+\-\-fastq_truncee_rate.  The \-\-n_mismatch option will count N's
 as mismatches in alignments, which may be useful to get sensible
 alignments for sequences with lots of N's. By default N's are counted
 as matches. Both the scoring and the counting of matches are
-affected. The new `\-\-fastq_minqual` option for the `fastq_filter`
+affected. The new \-\-fastq_minqual option for the `fastq_filter`
 and `fastx_filter` commands will discard sequences with any bases with
 a quality scores below the given value. The new
-`\-\-fastq_truncee_rate` option for the same commands will truncate
+\-\-fastq_truncee_rate option for the same commands will truncate
 sequences at the first position where the number of expected errors
 per base is above the given value.
 .TP
@@ -5174,11 +5174,11 @@ This release includes the following changes:
 .IP - 2
 fix: out-of-bound look-ups when printing alignment rows (commit 2f3d1ef). Thanks to user @gbbio for reporting this issue (#618). This is a regression, introduced in v2.30.1
 .IP -
-fix: options `\-\-xlength` and `\-\-xee` were not removing length and ee attributes as expected (commit 69fccdbc). This is a regression, introduced in v2.30.1
+fix: options \-\-xlength and \-\-xee were not removing length and ee attributes as expected (commit 69fccdbc). This is a regression, introduced in v2.30.1
 .IP -
-fix: range checking for the option `\-\-max_unmasked_pct` (commit e1a5611505)
+fix: range checking for the option \-\-max_unmasked_pct (commit e1a5611505)
 .IP -
-add: individual manpages for the commands `\-\-shuffle` and `\-\-cut`
+add: individual manpages for the commands \-\-shuffle and \-\-cut
 .IP -
 improve: eliminated 50 clang-tidy warnings
 .IP -
