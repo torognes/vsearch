@@ -156,7 +156,7 @@ auto search_output_results(std::vector<struct hit> const & hits,
                           qsequence_rc);
     }
 
-  if (toreport != 0)
+  if (toreport != 0)  // hits.size() >=1 and <= opt_maxhits
     {
       double const top_hit_id = hits[0].id;
 
