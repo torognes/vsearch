@@ -5057,7 +5057,8 @@ commands (\-\-sortbylength, \-\-sortbysize, \-\-shuffle,
 \-\-rereplicate, \-\-cut, \-\-fastq_join, \-\-fasta2fastq,
 \-\-fastq_chars),
 .IP -
-improve: code-coverage of our test-suite for the above-mentioned commands (1,210 new tests, 4,753 in total)
+improve: code-coverage of our test-suite for the above-mentioned
+commands (1,210 new tests, 4,753 in total)
 .RE
 .TP
 .BR v2.29.1\~ "released October 24th, 2024"
@@ -5066,8 +5067,9 @@ Fix a segmentation fault that could occur during alignment in version
 documentation.
 .TP
 .BR v2.29.2\~ "released December 20th, 2024"
-Fix a segmentation fault during clustering when the set of clusters is empty.
-Initial documentation in markdown format available on GitHub Pages.
+Fix a segmentation fault during clustering when the set of clusters is
+empty. Initial documentation in markdown format available on GitHub
+Pages.
 .TP
 .BR v2.29.3\~ "released February 3rd, 2025"
 This version is released in order to mitigate a bug that occurs when
@@ -5088,46 +5090,64 @@ further protect the compiler from generating wrong code.
 .TP
 .BR v2.30.0\~ "released February 27th, 2025"
 Add options \-\-n_mismatch, \-\-fastq_minqual, and
-\-\-fastq_truncee_rate.  The \-\-n_mismatch option will count N's
-as mismatches in alignments, which may be useful to get sensible
+\-\-fastq_truncee_rate.  The \-\-n_mismatch option will count N's as
+mismatches in alignments, which may be useful to get sensible
 alignments for sequences with lots of N's. By default N's are counted
 as matches. Both the scoring and the counting of matches are
 affected. The new \-\-fastq_minqual option for the \-\-fastq_filter
-and \-\-fastx_filter commands will discard sequences with any bases with
-a quality scores below the given value. The new
+and \-\-fastx_filter commands will discard sequences with any bases
+with a quality scores below the given value. The new
 \-\-fastq_truncee_rate option for the same commands will truncate
 sequences at the first position where the number of expected errors
 per base is above the given value.
 .TP
 .BR v2.30.1\~ "released October 3rd, 2025"
-This version incorporates many code improvements, more extensive testing, better documentation and some minor bug fixes. List of changes:
+This version incorporates many code improvements, more extensive
+testing, better documentation and some minor bug fixes. List of
+changes:
 .RS
 .IP - 2
 fix: use-after-free introduced in commit de6c1d8 (Jun 13, 2024),
 .IP -
-fix: (harmless) out-of-bounds memory issue in  \-\-derep_prefix (commit 8a0a508b),
+fix: (harmless) out-of-bounds memory issue in \-\-derep_prefix (commit
+8a0a508b),
 .IP -
-fix: (harmless) memory leak in \-\-fastx_getseqs \-\-label_field (commit a9c42713),
+fix: (harmless) memory leak in \-\-fastx_getseqs \-\-label_field
+(commit a9c42713),
 .IP -
-fix: (harmless) memory leak when using option \-\-userfields (\-\-allpairs_global commit 03b95bcf; \-\-cluster_* commit 2fde5472; \-\-search_exact commit 45cd56d6; \-\-usearch_global commit d83bfee9),
+fix: (harmless) memory leak when using option \-\-userfields
+(\-\-allpairs_global commit 03b95bcf; \-\-cluster_* commit 2fde5472;
+\-\-search_exact commit 45cd56d6; \-\-usearch_global commit d83bfee9),
 .IP -
-fix: (harmless) valgrind error, use of uninitialized values (commit 8bab2444), also eliminates a pesky compilation warning,
+fix: (harmless) valgrind error, use of uninitialized values (commit
+8bab2444), also eliminates a pesky compilation warning,
 .IP -
-change: passing a negative value to \-\-fastq_truncee_rate is now an error (commit a120f371),
+change: passing a negative value to \-\-fastq_truncee_rate is now an
+error (commit a120f371),
 .IP -
-change: passing a negative value to \-\-fastq_minqual is now an error (commit ff5b0c99),
+change: passing a negative value to \-\-fastq_minqual is now an error
+(commit ff5b0c99),
 .IP -
-change: passing a non-ASCII symbol to \-\-join_padgap or \-\-join_padgapq is now an error (commit a708f5b3),
+change: passing a non-ASCII symbol to \-\-join_padgap or
+\-\-join_padgapq is now an error (commit a708f5b3),
 .IP -
-change: when using \-\-gapopen "*" to forbid gap opening, the penalty is now set to INT_MAX (rather than 1,000). This might change alignment results for users who relied on the old behavior (thanks to Denis Filloux, issue #602, commit 96e9cf9e),
+change: when using \-\-gapopen "*" to forbid gap opening, the penalty
+is now set to INT_MAX (rather than 1,000). This might change alignment
+results for users who relied on the old behavior (thanks to Denis
+Filloux, issue #602, commit 96e9cf9e),
 .IP -
-change: when using command \-\-chimeras_denovo, \-\-tabbedout or \-\-alnout can be the only output files specified (commit d51f0a456300a0ea69c035ba3de23c5ecf3da348)
+change: when using command \-\-chimeras_denovo, \-\-tabbedout or
+\-\-alnout can be the only output files specified (commit
+d51f0a456300a0ea69c035ba3de23c5ecf3da348)
 .IP -
-change: when using command \-\-chimeras_denovo, option \-\-lengthout is now accepted (commit 3f55cc6b)
+change: when using command \-\-chimeras_denovo, option \-\-lengthout
+is now accepted (commit 3f55cc6b)
 .IP -
-change: when using command \-\-chimeras_denovo, option \-\-xlength is now accepted (commit 0fd346cd)
+change: when using command \-\-chimeras_denovo, option \-\-xlength is
+now accepted (commit 0fd346cd)
 .IP -
-add: compilation option GLIBCXX_DEBUG when compiling for debugging (commit 5cf4a6c1, option activates more runtime checks),
+add: compilation option GLIBCXX_DEBUG when compiling for debugging
+(commit 5cf4a6c1, option activates more runtime checks),
 .IP -
 add: official support for clang 20,
 .IP -
@@ -5135,21 +5155,27 @@ add: initial support for clang 21, initial support for GCC 15,
 .IP -
 add: experimental support for clang 22,
 .IP -
-improve: more accurate line number when reporting illegal characters in fastq headers (commit 539084e9),
+improve: more accurate line number when reporting illegal characters
+in fastq headers (commit 539084e9),
 .IP -
-improve: more accurate line number when reporting non-ASCII characters in fastq headers (commit 98a851ed),
+improve: more accurate line number when reporting non-ASCII characters
+in fastq headers (commit 98a851ed),
 .IP -
-improve: remove checks for unneeded libraries during compilation (commit 249bb5d5276b1be6c9add60a538a16e1b9d0ebfb),
+improve: remove checks for unneeded libraries during compilation
+(commit 249bb5d5276b1be6c9add60a538a16e1b9d0ebfb),
 .IP -
 improve: code quality (8,536 clang-tidy warnings eliminated),
 .IP -
 improve: documentation and help messages (issues #604),
 .IP -
-improve: complete refactoring and modernization of the command \-\-fastq_stats,
+improve: complete refactoring and modernization of the command
+\-\-fastq_stats,
 .IP -
-improve: command \-\-fastq_stats is now up to twice faster (tested on x86-64),
+improve: command \-\-fastq_stats is now up to twice faster (tested on
+x86-64),
 .IP -
-improve: extensive test-suites for \-\-fastq_stats and \-\-sff_convert,
+improve: extensive test-suites for \-\-fastq_stats and
+\-\-sff_convert,
 .IP -
 improve: code coverage of our test-suite
 .RE
@@ -5172,11 +5198,16 @@ during chimera detection. The non-chimeric status was correct.
 This release includes the following changes:
 .RS
 .IP - 2
-fix: out-of-bound look-ups when printing alignment rows (commit 2f3d1ef). Thanks to user @gbbio for reporting this issue (#618). This is a regression, introduced in v2.30.1
+fix: out-of-bound look-ups when printing alignment rows (commit
+2f3d1ef). Thanks to user @gbbio for reporting this issue (#618). This
+is a regression, introduced in v2.30.1
 .IP -
-fix: options \-\-xlength and \-\-xee were not removing length and ee attributes as expected (commit 69fccdbc). This is a regression, introduced in v2.30.1
+fix: options \-\-xlength and \-\-xee were not removing length and ee
+attributes as expected (commit 69fccdbc). This is a regression,
+introduced in v2.30.1
 .IP -
-fix: range checking for the option \-\-max_unmasked_pct (commit e1a5611505)
+fix: range checking for the option \-\-max_unmasked_pct (commit
+e1a5611505)
 .IP -
 add: individual manpages for the commands \-\-shuffle and \-\-cut
 .IP -
