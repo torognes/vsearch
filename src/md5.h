@@ -25,6 +25,8 @@
  * See md5.c for more information.
  */
 
+#pragma once
+
 #ifndef __MD5_H
 #define __MD5_H
 

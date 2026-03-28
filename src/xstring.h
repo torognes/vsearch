@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include <string>
 
 

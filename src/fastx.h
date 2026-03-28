@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include <array>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t

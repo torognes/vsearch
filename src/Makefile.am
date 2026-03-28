@@ -119,6 +119,7 @@ utils/span.hpp \
 utils/taxonomic_fields.h \
 utils/xpthread.hpp \
 vsearch.h \
+vsearch_api.h \
 xstring.h
 
 if TARGET_X86_64
@@ -126,33 +127,49 @@ libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
 libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
-noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcityhash.a
+# PIC variants for static library embedding
+libcpu_sse2_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_sse2_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2 -fPIC
+libcpu_ssse3_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3 -fPIC
+noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcpu_sse2_pic.a libcpu_ssse3_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 else
 libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-noinst_LIBRARIES = libcpu.a libcityhash.a
+libcpu_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
+noinst_LIBRARIES = libcpu.a libcpu_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 endif
 
 libcityhash_a_SOURCES = city.cc city.h
+libcityhash_pic_a_SOURCES = city.cc city.h
 
 if TARGET_WIN
 
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -D_MSC_VER
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -D_MSC_VER -fPIC
 __top_builddir__bin_vsearch_LDFLAGS = -static
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 
 else
 
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -fPIC
 
 if TARGET_X86_64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 else
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
+VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_pic.a
 endif
 
 endif
 
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) \
+# Common source files shared between the executable and the static library.
+# cpu.cc and city.cc are excluded — they need per-target SIMD/warning flags
+# and are built as separate sub-libraries (libcpu_*, libcityhash_*).
+VSEARCH_COMMON_SOURCES = \
 align_simd.cc \
 allpairs.cc \
 arch.cc \
@@ -216,3 +233,29 @@ utils/os_byteswap.cpp \
 utils/xpthread.cpp \
 utils/seqcmp.cpp \
 vsearch.cc
+
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)
+
+# Static library core — same sources as the executable, compiled with -fPIC
+# for embedding into shared libraries (e.g., DuckDB extensions).
+libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN
+libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC -DVSEARCH_NO_MAIN
+libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)
+
+# Merged static library — combines core PIC objects with SIMD cpu and cityhash PIC objects.
+# Build with: make libvsearch.a
+# All objects are -fPIC so the archive can be linked into shared libraries.
+VSEARCH_MERGE_TMP = .libvsearch_merge
+libvsearch.a: libvsearch_core.a $(VSEARCH_PIC_LIBS)
+	rm -rf $(VSEARCH_MERGE_TMP) $@
+	mkdir -p $(VSEARCH_MERGE_TMP)
+	cd $(VSEARCH_MERGE_TMP) && $(AR) x $(abs_builddir)/libvsearch_core.a
+	for lib in $(VSEARCH_PIC_LIBS); do \
+	  cd $(abs_builddir)/$(VSEARCH_MERGE_TMP) && $(AR) x $(abs_builddir)/$$lib; \
+	done
+	$(AR) cr $@ $(VSEARCH_MERGE_TMP)/*.o
+	$(RANLIB) $@
+	rm -rf $(VSEARCH_MERGE_TMP)
+
+clean-local:
+	rm -rf $(VSEARCH_MERGE_TMP) libvsearch.a

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #ifdef HAVE_ZLIB_H
 #ifdef _WIN32
 extern HMODULE gz_lib;

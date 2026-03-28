@@ -766,16 +766,20 @@ auto args_getdouble(char * arg) -> double
 }
 
 
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+/* Initialize all global opt_* variables to their default values.
+   This is the library-API equivalent of the defaults block in args_init().
+   Must be called before using any vsearch library function.
+
+   After calling this, the caller should override any options needed
+   for their specific use case (e.g., chimera detection parameters).
+
+   Note: allocates opt_ee_cutoffs_values via xmalloc. Caller is responsible
+   for freeing it (or calling vsearch_init_defaults again, which leaks the
+   old allocation — acceptable for single-init library use). */
+auto vsearch_init_defaults() -> void
 {
-  /* Set defaults */
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
-  static constexpr auto number_of_commands = std::size_t{50};
-  static constexpr auto number_of_options = std::size_t{247};
-  static constexpr auto max_number_of_options_per_command = std::size_t{99};
-
-  parameters.progname = argv[0];
 
   opt_abskew = 0.0;
   opt_acceptall = 0;
@@ -804,6 +808,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_dbnotmatched = nullptr;
   opt_dn = 1.4;
   opt_ee_cutoffs_count = 3;
+  if (opt_ee_cutoffs_values != nullptr)
+    {
+      xfree(opt_ee_cutoffs_values);
+    }
   opt_ee_cutoffs_values = (double *) xmalloc(opt_ee_cutoffs_count * sizeof(double));
   opt_ee_cutoffs_values[0] = 0.5;
   opt_ee_cutoffs_values[1] = 1.0;
@@ -983,7 +991,56 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_xlength = false;
   opt_xn = 8.0;
   opt_xsize = false;
+}
 
+
+/* Apply post-parsing fixups to global options.
+   Resolves sentinel values (e.g., opt_minwordmatches=-1, opt_maxhits=0)
+   to their computed defaults. Call after vsearch_init_defaults() and
+   after setting any option overrides (e.g., opt_wordlength).
+
+   In the CLI path, args_init() calls this implicitly at the end of
+   option parsing. Library users must call it explicitly after setting
+   their overrides. */
+auto vsearch_apply_defaults_fixups() -> void
+{
+  if (opt_maxhits == 0)
+    {
+      opt_maxhits = int64_max;
+    }
+
+  if (opt_minwordmatches < 0)
+    {
+      if (opt_wordlength >= 0 and
+          opt_wordlength < static_cast<int64_t>(minwordmatches_defaults.size()))
+        {
+          opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
+        }
+      else
+        {
+          opt_minwordmatches = 0;
+        }
+    }
+
+  /* Note: opt_minsize is NOT resolved here — it has command-specific
+     defaults (1 for most commands, 8 for cluster_unoise).
+     Library users should set opt_minsize explicitly if needed. */
+}
+
+
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+{
+  vsearch_init_defaults();
+
+  static constexpr auto number_of_commands = std::size_t{50};
+  static constexpr auto number_of_options = std::size_t{247};
+  static constexpr auto max_number_of_options_per_command = std::size_t{99};
+
+  parameters.progname = argv[0];
+
+  /* Defaults are now set by vsearch_init_defaults() above. */
+
+  /* opt_* defaults removed — now in vsearch_init_defaults() */
   opterr = 1;
 
   enum
@@ -4960,17 +5017,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
 #endif
 
-  /* set defaults parameters, if not specified */
-
-  if (opt_maxhits == 0)
-    {
-      opt_maxhits = int64_max;
-    }
-
-  if (opt_minwordmatches < 0)
-    {
-      opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
-    }
+  /* Resolve sentinel defaults (maxhits, minwordmatches, minsize).
+     Generic fixups are in vsearch_apply_defaults_fixups(); command-specific
+     overrides (abskew, minsize for unoise) follow below. */
+  vsearch_apply_defaults_fixups();
 
   /* set default opt_minsize depending on command */
   if (parameters.opt_minsize == 0)
@@ -5901,6 +5951,11 @@ auto show_header(struct Parameters const & parameters) -> void {
 }
 
 
+/* When building as a library (VSEARCH_NO_MAIN), exclude main() to avoid
+   symbol conflicts with the embedding application's entry point.
+   All global variable definitions and helper functions above remain
+   available — only the CLI entry point is excluded. */
+#ifndef VSEARCH_NO_MAIN
 auto main(int argc, char** argv) -> int
 {
   struct Parameters parameters;
@@ -6156,3 +6211,4 @@ auto main(int argc, char** argv) -> int
   xfree(cmdline);
   dynlibs_close();
 }
+#endif /* VSEARCH_NO_MAIN */

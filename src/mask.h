@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 // refactoring: enum struct Masking: int { error, none, dust, soft };
 constexpr auto MASK_ERROR = -1;
 constexpr auto MASK_NONE = 0;
