@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "fastq_mergepairs.h"
 #include "kmerhash.h"
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
@@ -1668,4 +1669,83 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   fastq_rev = nullptr;
   fastq_close(fastq_fwd);
   fastq_fwd = nullptr;
+}
+
+
+/* === Library API for embedding paired-end merging === */
+
+
+auto mergepairs_init() -> void
+{
+  precompute_qual();
+}
+
+
+auto mergepairs_single(const char * fwd_seq,
+                        const char * fwd_qual,
+                        int fwd_len,
+                        const char * rev_seq,
+                        const char * rev_qual,
+                        int rev_len,
+                        const char * fwd_header,
+                        const char * rev_header,
+                        struct merge_result_s * result) -> int
+{
+  /* Populate merge_data_t from caller's buffers */
+  merge_data_t md {};
+
+  md.fwd_length = fwd_len;
+  md.rev_length = rev_len;
+  md.fwd_trunc = fwd_len;
+  md.rev_trunc = rev_len;
+
+  /* Ensure buffers are large enough */
+  int64_t max_len = std::max(md.fwd_length, md.rev_length);
+  md.fwd_header.resize(std::strlen(fwd_header) + 1);
+  md.rev_header.resize(std::strlen(rev_header) + 1);
+  md.fwd_sequence.resize(max_len + 1);
+  md.rev_sequence.resize(max_len + 1);
+  md.fwd_quality.resize(max_len + 1);
+  md.rev_quality.resize(max_len + 1);
+  md.merged_sequence.resize(fwd_len + rev_len + 1);
+  md.merged_quality_v.resize(fwd_len + rev_len + 1);
+
+  std::strcpy(md.fwd_header.data(), fwd_header);
+  std::strcpy(md.rev_header.data(), rev_header);
+  std::memcpy(md.fwd_sequence.data(), fwd_seq, fwd_len);
+  md.fwd_sequence[fwd_len] = '\0';
+  std::memcpy(md.rev_sequence.data(), rev_seq, rev_len);
+  md.rev_sequence[rev_len] = '\0';
+  std::memcpy(md.fwd_quality.data(), fwd_qual, fwd_len);
+  md.fwd_quality[fwd_len] = '\0';
+  std::memcpy(md.rev_quality.data(), rev_qual, rev_len);
+  md.rev_quality[rev_len] = '\0';
+
+  /* Run the merge pipeline */
+  struct kh_handle_s kmerhash;
+  process(md, kmerhash);
+
+  /* Populate result */
+  std::memset(result, 0, sizeof(*result));
+  result->merged = md.merged;
+
+  if (md.merged)
+    {
+      result->merged_length = static_cast<int>(md.merged_length);
+      int copy_len = std::min(static_cast<int>(md.merged_length),
+                              static_cast<int>(sizeof(result->merged_sequence) - 1));
+      std::memcpy(result->merged_sequence, md.merged_sequence.data(), copy_len);
+      result->merged_sequence[copy_len] = '\0';
+      std::memcpy(result->merged_quality, md.merged_quality_v.data(), copy_len);
+      result->merged_quality[copy_len] = '\0';
+      result->ee_merged = md.ee_merged;
+      result->ee_fwd = md.ee_fwd;
+      result->ee_rev = md.ee_rev;
+      result->fwd_errors = static_cast<int>(md.fwd_errors);
+      result->rev_errors = static_cast<int>(md.rev_errors);
+      result->overlap_length = static_cast<int>(md.fwd_trunc + md.rev_trunc - md.merged_length);
+      return 0;
+    }
+
+  return -1;  /* merge failed */
 }

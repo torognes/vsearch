@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "align_simd.h"
+#include "cluster.h"
 #include "attributes.h"
 #include "dbindex.h"
 #include "linmemalign.h"
@@ -78,6 +79,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strcpy, std::strlen
 #include <limits>
+#include <map>
 #include <pthread.h>
 #include <utility>  // std::get
 #include <vector>
@@ -1787,4 +1789,120 @@ auto cluster_size(char * cmdline, char * progheader) -> void
 auto cluster_unoise(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_unoise, cmdline, progheader);
+}
+
+
+/* === Library API for embedding clustering === */
+
+
+struct cluster_session_s {
+  struct searchinfo_s * si = nullptr;
+  int cluster_count = 0;
+  int seqcount = 0;
+  std::map<int, int> centroid_cluster_ids;  /* seqno → cluster_id for centroids */
+};
+
+
+auto cluster_session_alloc() -> struct cluster_session_s *
+{
+  return new cluster_session_s {};
+}
+
+
+auto cluster_session_free(struct cluster_session_s * cs) -> void
+{
+  if (cs != nullptr)
+    {
+      delete cs;
+    }
+}
+
+
+auto cluster_session_init(struct cluster_session_s * cs) -> void
+{
+  /* Initialize clustering session for library use.
+     Assumes global opt_* variables and database are already set up
+     (sequences loaded, masked, and dbindex_prepare called with
+     bitmap=1 but WITHOUT dbindex_addallsequences — centroids are
+     indexed incrementally as they are discovered).
+
+     The database must be pre-sorted:
+     - by length (descending) for cluster_fast behavior
+     - by abundance (descending) for cluster_size behavior */
+
+  /* Set search parameters matching the CLI cluster path */
+  tophits = opt_maxaccepts + opt_maxrejects;
+
+  cs->si = new searchinfo_s {};
+  cluster_query_init(cs->si);
+  cs->si->strand = 0;
+
+  cs->cluster_count = 0;
+  cs->seqcount = static_cast<int>(db_getsequencecount());
+}
+
+
+auto cluster_assign_single(struct cluster_session_s * cs,
+                            int seqno,
+                            struct cluster_result_s * result) -> void
+{
+  /* Assign a single database sequence to a cluster.
+     Must be called in order (seqno 0, 1, 2, ...).
+     Each call either assigns the sequence to an existing cluster
+     (if a match is found above opt_id threshold) or creates a new
+     cluster with this sequence as the centroid.
+
+     New centroids are automatically indexed for subsequent queries. */
+
+  std::memset(result, 0, sizeof(*result));
+
+  cs->si->query_no = seqno;
+  cs->si->strand = 0;
+  cluster_query_core(cs->si);
+
+  struct hit * best = search_findbest2_byid(cs->si, nullptr);
+
+  if (best != nullptr)
+    {
+      /* Match found — assign to existing cluster */
+      result->is_centroid = false;
+      result->cluster_id = cs->centroid_cluster_ids[best->target];
+      result->centroid_seqno = best->target;
+      result->identity = best->id;
+      std::snprintf(result->centroid_label, sizeof(result->centroid_label),
+                    "%.*s",
+                    (int) db_getheaderlen(best->target),
+                    db_getheader(best->target));
+      if (best->nwalignment != nullptr)
+        {
+          xfree(best->nwalignment);
+        }
+    }
+  else
+    {
+      /* No match — this sequence becomes a new centroid */
+      result->is_centroid = true;
+      result->cluster_id = cs->cluster_count;
+      result->centroid_seqno = seqno;
+      result->identity = 100.0;
+      std::snprintf(result->centroid_label, sizeof(result->centroid_label),
+                    "%.*s",
+                    (int) db_getheaderlen(seqno),
+                    db_getheader(seqno));
+
+      cs->centroid_cluster_ids[seqno] = cs->cluster_count;
+      dbindex_addsequence(seqno, opt_qmask);
+      ++cs->cluster_count;
+    }
+}
+
+
+auto cluster_session_cleanup(struct cluster_session_s * cs) -> void
+{
+  if (cs->si != nullptr)
+    {
+      cluster_query_exit(cs->si);
+      delete cs->si;
+      cs->si = nullptr;
+    }
 }

@@ -67,9 +67,12 @@
 
 /* Module headers for API functions not declared in vsearch.h */
 #include "chimera.h"
+#include "cluster.h"
 #include "db.h"
 #include "dbindex.h"
+#include "fastq_mergepairs.h"
 #include "mask.h"
+#include "search.h"
 #include "searchcore.h"
 
 /* === Global initialization === */

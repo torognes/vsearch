@@ -321,3 +321,42 @@ void detect_chimeras(const char **headers, const char **sequences,
 | `chimera_detect_init(ci)` | Initialize search infrastructure. Call after DB is indexed. |
 | `chimera_detect_single(ci, ...)` | Detect chimera for one query. Thread-safe with per-thread ci. |
 | `chimera_detect_cleanup(ci)` | Free search infrastructure. Call before `chimera_info_free`. |
+
+### Global search
+
+| Function | Description |
+|----------|-------------|
+| `search_info_alloc()` | Allocate opaque per-thread search state. |
+| `search_info_free(si)` | Free per-thread state (null-safe). |
+| `search_init(si)` | Initialize SIMD aligners and k-mer finders. Call after DB is indexed. |
+| `search_single(si, ...)` | Search one query against the database. Thread-safe with per-thread si. |
+| `search_cleanup(si)` | Free search infrastructure. Call before `search_info_free`. |
+
+Set `opt_id` to the minimum identity threshold (e.g., 0.97 for 97%)
+and `opt_maxaccepts`/`opt_maxrejects` to control search depth before
+calling `search_init()`.
+
+### Paired-end merging
+
+| Function | Description |
+|----------|-------------|
+| `mergepairs_init()` | Initialize quality score lookup table. Call once. |
+| `mergepairs_single(...)` | Merge one forward/reverse read pair. Thread-safe. |
+
+No per-thread state needed — each call is fully independent.
+Override `opt_fastq_minovlen`, `opt_fastq_maxdiffs`, etc. for
+merge parameters.
+
+### Clustering
+
+| Function | Description |
+|----------|-------------|
+| `cluster_session_alloc()` | Allocate opaque session state. |
+| `cluster_session_free(cs)` | Free session state (null-safe). |
+| `cluster_session_init(cs)` | Initialize for incremental clustering. Call after DB is loaded and `dbindex_prepare()` is called (but NOT `dbindex_addallsequences`). |
+| `cluster_assign_single(cs, seqno, ...)` | Assign one sequence to a cluster. Must be called sequentially (seqno 0, 1, 2, ...). |
+| `cluster_session_cleanup(cs)` | Free session resources. Call before `cluster_session_free`. |
+
+Clustering is inherently sequential. Database must be pre-sorted by
+length (cluster_fast) or abundance (cluster_size). Set `opt_id` to
+the identity threshold. New centroids are indexed incrementally.

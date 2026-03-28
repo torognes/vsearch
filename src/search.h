@@ -58,4 +58,51 @@
 
 */
 
+#pragma once
+
 auto usearch_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void;
+
+/* === Library API for embedding global search === */
+
+/* Result of a single search hit. */
+struct search_result_s {
+  int target;                  /* database sequence index */
+  char target_label[1024];     /* target header (may truncate) */
+  double id;                   /* percent identity (method per opt_iddef) */
+  int matches;                 /* matching columns */
+  int mismatches;              /* mismatching columns */
+  int gaps;                    /* gap columns */
+  int alignment_length;        /* total alignment length */
+  int query_length;            /* query sequence length */
+  int target_length;           /* target sequence length */
+  bool accepted;               /* true if passed identity threshold */
+};
+
+struct searchinfo_s;
+
+/* Allocate/free opaque per-thread search state. */
+auto search_info_alloc() -> struct searchinfo_s *;
+auto search_info_free(struct searchinfo_s * si) -> void;
+
+/* Initialize search state for library use.
+   Requires: global opt_* set, database loaded and indexed.
+   One instance per thread — do NOT share across threads. */
+auto search_init(struct searchinfo_s * si) -> void;
+
+/* Search for a single query against the global database.
+   Plus-strand only (library API does not support reverse complement).
+   results: caller-allocated array of at least max_results elements.
+   result_count: number of results populated on return.
+   Results are ordered by identity (descending). */
+auto search_single(struct searchinfo_s * si,
+                    const char * query_seq,
+                    const char * query_head,
+                    int query_len,
+                    int query_size,
+                    struct search_result_s * results,
+                    int max_results,
+                    int * result_count) -> void;
+
+/* Clean up per-thread search state.
+   Call before search_info_free(). */
+auto search_cleanup(struct searchinfo_s * si) -> void;
