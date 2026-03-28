@@ -189,6 +189,9 @@ struct chimera_info_s
   std::vector<bool> ignore;
 
   double best_h = 0;
+
+  /* API result fields — populated by eval_parents when result_out is set */
+  struct chimera_result_s * result_out = nullptr;
 };
 
 
@@ -1521,6 +1524,43 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               }
           }
 
+      /* Populate API result struct if requested */
+      if (ci->result_out != nullptr)
+        {
+          auto * r = ci->result_out;
+          r->score = best_h;
+          std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
+                        ci->query_head_len, ci->query_head.data());
+          std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
+                        (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+          std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
+                        (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+          if (QA >= QB)
+            {
+              std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
+                            "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+            }
+          else
+            {
+              std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
+                            "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+            }
+          r->id_query_model = QM;
+          r->id_query_a = QA;
+          r->id_query_b = QB;
+          r->id_a_b = AB;
+          r->id_query_top = QT;
+          r->left_yes = best_left_y;
+          r->left_no = best_left_n;
+          r->left_abstain = best_left_a;
+          r->right_yes = best_right_y;
+          r->right_no = best_right_n;
+          r->right_abstain = best_right_a;
+          r->divergence = divdiff;
+          r->flag = (status == Status::chimeric) ? 'Y' :
+                    (status == Status::low_score ? 'N' : '?');
+        }
+
       /* print alignment */
 
       xpthread_mutex_lock(&mutex_output);
@@ -2581,4 +2621,238 @@ auto chimera(struct Parameters const & parameters) -> void
   close_chimera_file(fp_chimeras);
 
   show_rusage();
+}
+
+
+/* === Library API implementation === */
+
+auto chimera_info_alloc() -> struct chimera_info_s *
+{
+  return new chimera_info_s {};
+}
+
+auto chimera_info_free(struct chimera_info_s * ci) -> void
+{
+  if (ci != nullptr)
+    {
+      delete ci;
+    }
+}
+
+auto chimera_detect_init(struct chimera_info_s * ci) -> void
+{
+  /* Initialize the per-thread chimera working state.
+     Assumes global opt_* variables are already set (at minimum:
+     opt_match, opt_mismatch, opt_gap_*, opt_minh, opt_xn, opt_dn,
+     opt_mindiv, opt_mindiffs, opt_abskew, opt_dbmask, opt_qmask,
+     opt_wordlength) and the global db + dbindex are loaded.
+
+     Sets search-shaping globals that chimera() normally sets but
+     the library API path bypasses. */
+
+  /* Override search parameters to chimera detection defaults */
+  opt_maxaccepts = few;
+  opt_maxrejects = rejects;
+  opt_id = chimera_id;
+  tophits = opt_maxaccepts + opt_maxrejects;
+
+  chimera_thread_init(ci);
+}
+
+auto chimera_detect_single(struct chimera_info_s * ci,
+                           const char * query_seq,
+                           const char * query_head,
+                           int query_len,
+                           int query_size,
+                           struct chimera_result_s * result) -> int
+{
+  /* Populate query in the chimera_info_s.
+     ci is per-thread state — must NOT be shared across threads. */
+  ci->query_no = 0;
+  ci->query_head_len = std::strlen(query_head);
+  ci->query_len = query_len;
+  ci->query_size = query_size;
+
+  realloc_arrays(ci);
+
+  std::strcpy(ci->query_head.data(), query_head);
+  std::strcpy(ci->query_seq.data(), query_seq);
+
+  /* Clear result. Non-chimeric results will have only query_label and
+     flag='N' populated; all other fields remain zero. */
+  std::memset(result, 0, sizeof(*result));
+  ci->result_out = result;
+
+  auto status = Status::no_parents;
+
+  /* Partition query into segments */
+  partition_query(ci);
+
+  /* Search for candidate parents */
+  ci->cand_count = 0;
+  ci->best_h = 0.0;
+  auto allhits_count = 0;
+
+  std::vector<struct hit> allhits_list(maxcandidates);
+
+  if (ci->query_len >= parts)
+    {
+      std::vector<struct hit> hits;
+      for (auto i = 0; i < parts; ++i)
+        {
+          search_onequery(&ci->si[i], opt_qmask);
+          search_joinhits(&ci->si[i], nullptr, hits);
+          for (auto & hit : hits) {
+            if (hit.accepted && allhits_count < maxcandidates)
+              {
+                allhits_list[allhits_count] = hit;
+                ++allhits_count;
+              }
+            else
+              {
+                if (hit.nwalignment)
+                  {
+                    xfree(hit.nwalignment);
+                    hit.nwalignment = nullptr;
+                  }
+              }
+          }
+          hits.clear();
+        }
+    }
+
+  /* Dedup candidates */
+  for (auto i = 0; i < allhits_count; ++i)
+    {
+      unsigned int const target = allhits_list[i].target;
+      auto k = 0;
+      for (k = 0; k < ci->cand_count; ++k)
+        {
+          if (ci->cand_list[k] == target) { break; }
+        }
+      if (k == ci->cand_count)
+        {
+          ci->cand_list[ci->cand_count] = target;
+          ++ci->cand_count;
+        }
+      if (allhits_list[i].nwalignment != nullptr)
+        {
+          xfree(allhits_list[i].nwalignment);
+          allhits_list[i].nwalignment = nullptr;
+        }
+    }
+
+  /* Full-query alignment of all candidates */
+  search16_qprep(ci->s, ci->query_seq.data(), ci->query_len);
+
+  search16(ci->s,
+           ci->cand_count,
+           ci->cand_list.data(),
+           ci->snwscore.data(),
+           ci->snwalignmentlength.data(),
+           ci->snwmatches.data(),
+           ci->snwmismatches.data(),
+           ci->snwgaps.data(),
+           ci->nwcigar.data());
+
+  /* Linear memory aligner fallback for SIMD overflow */
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
+  scoring.gap_open_query_left = opt_gap_open_query_left;
+  scoring.gap_open_target_left = opt_gap_open_target_left;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
+  scoring.gap_open_target_interior = opt_gap_open_target_interior;
+  scoring.gap_open_query_right = opt_gap_open_query_right;
+  scoring.gap_open_target_right = opt_gap_open_target_right;
+  scoring.gap_extension_query_left = opt_gap_extension_query_left;
+  scoring.gap_extension_target_left = opt_gap_extension_target_left;
+  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
+  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
+  scoring.gap_extension_query_right = opt_gap_extension_query_right;
+  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  LinearMemoryAligner lma(scoring);
+
+  for (auto i = 0; i < ci->cand_count; ++i)
+    {
+      int64_t const target = ci->cand_list[i];
+      if (ci->snwscore[i] == std::numeric_limits<short>::max())
+        {
+          auto * tseq = db_getsequence(target);
+          int64_t const tseqlen = db_getsequencelen(target);
+          if (ci->nwcigar[i] != nullptr) { xfree(ci->nwcigar[i]); }
+          auto * nwcigar = xstrdup(lma.align(ci->query_seq.data(), tseq,
+                                              ci->query_len, tseqlen));
+          int64_t nwscore, nwalignmentlength, nwmatches, nwmismatches, nwgaps;
+          lma.alignstats(nwcigar, ci->query_seq.data(), tseq,
+                         &nwscore, &nwalignmentlength, &nwmatches, &nwmismatches, &nwgaps);
+          ci->nwcigar[i] = nwcigar;
+          ci->nwscore[i] = nwscore;
+          ci->nwalignmentlength[i] = nwalignmentlength;
+          ci->nwmatches[i] = nwmatches;
+          ci->nwmismatches[i] = nwmismatches;
+          ci->nwgaps[i] = nwgaps;
+        }
+      else
+        {
+          ci->nwscore[i] = ci->snwscore[i];
+          ci->nwalignmentlength[i] = ci->snwalignmentlength[i];
+          ci->nwmatches[i] = ci->snwmatches[i];
+          ci->nwmismatches[i] = ci->snwmismatches[i];
+          ci->nwgaps[i] = ci->snwgaps[i];
+        }
+    }
+
+  /* Find best parents and evaluate.
+     chimeras_denovo uses find_best_parents_long + eval_parents_long.
+     uchime_ref/uchime_denovo use find_best_parents + eval_parents. */
+  if (opt_chimeras_denovo != nullptr)
+    {
+      if (find_best_parents_long(ci) != 0)
+        {
+          status = eval_parents_long(ci);
+        }
+      else
+        {
+          status = Status::no_parents;
+        }
+    }
+  else
+    {
+      if (find_best_parents(ci) != 0)
+        {
+          status = eval_parents(ci);
+        }
+      else
+        {
+          status = Status::no_parents;
+        }
+    }
+
+  if (status == Status::no_parents)
+    {
+      /* Populate result for no-parents case */
+      std::snprintf(result->query_label, sizeof(result->query_label), "%.*s",
+                    ci->query_head_len, ci->query_head.data());
+      result->flag = 'N';
+    }
+
+  ci->result_out = nullptr;
+  return 0;
+}
+
+auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
+{
+  /* Use chimera_thread_exit which properly frees all resources
+     (search16, unique, minheap) allocated by chimera_thread_init.
+     Also free any CIGAR strings from the last detection. */
+  for (auto & p : ci->nwcigar)
+    {
+      if (p != nullptr)
+        {
+          xfree(p);
+          p = nullptr;
+        }
+    }
+  chimera_thread_exit(ci);
 }
