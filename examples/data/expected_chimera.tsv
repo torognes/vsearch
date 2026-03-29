@@ -1,0 +1,8 @@
+0.0000	query_clean1	*	*	*	*	*	*	*	*	0	0	0	0	0	0	*	N
+0.0000	query_clean2	*	*	*	*	*	*	*	*	0	0	0	0	0	0	*	N
+16.5019	query_chimera1	ref1	ref2	ref2	100.0	84.7	85.0	69.7	85.0	45	0	0	46	0	0	15.0	Y
+0.0000	query_noparent	*	*	*	*	*	*	*	*	0	0	0	0	0	0	*	N
+13.9509	query_chimera2	ref3	ref4	ref4	100.0	83.3	88.3	71.7	88.3	35	0	0	50	0	0	11.7	Y
+13.8466	query_chimera3	ref5	ref6	ref6	99.7	85.0	85.3	71.0	85.3	43	0	0	44	0	1	14.3	Y
+0.0000	query_short	*	*	*	*	*	*	*	*	0	0	0	0	0	0	*	N
+3.4385	query_divergent_chimera	ref1	ref2	ref1	95.0	81.3	80.3	69.7	81.3	44	0	4	43	2	9	13.7	Y

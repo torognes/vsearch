@@ -1677,6 +1677,19 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
 auto mergepairs_init() -> void
 {
+  /* Relax default parameters for short overlaps, matching the CLI path
+     (fastq_mergepairs lines 1560-1571). Without this, short-overlap
+     merges that work via the CLI will silently fail via the API. */
+  if (opt_fastq_minovlen < 5)
+    {
+      opt_fastq_minovlen = 5;
+    }
+  if (opt_fastq_minovlen < 9)
+    {
+      merge_mindiagcount = opt_fastq_minovlen - 4;
+      merge_minscore = 1.6 * opt_fastq_minovlen;
+    }
+
   precompute_qual();
 }
 
@@ -1731,9 +1744,9 @@ auto mergepairs_single(const char * fwd_seq,
 
   if (md.merged)
     {
-      result->merged_length = static_cast<int>(md.merged_length);
       int copy_len = std::min(static_cast<int>(md.merged_length),
                               static_cast<int>(sizeof(result->merged_sequence) - 1));
+      result->merged_length = copy_len;
       std::memcpy(result->merged_sequence, md.merged_sequence.data(), copy_len);
       result->merged_sequence[copy_len] = '\0';
       std::memcpy(result->merged_quality, md.merged_quality_v.data(), copy_len);

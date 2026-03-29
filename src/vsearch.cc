@@ -1022,6 +1022,56 @@ auto vsearch_apply_defaults_fixups() -> void
         }
     }
 
+
+  /* opt_weak_id default (10.0) is a sentinel meaning "not set by user".
+     Clamp to opt_id so the acceptance check in search_acceptable_aligned
+     doesn't reject everything. Only clamp when opt_id has been set to
+     a real value (>= 0). For chimera detection, opt_id is set later by
+     chimera_detect_init, which re-checks opt_weak_id. */
+  if (opt_id >= 0.0 and opt_weak_id > opt_id)
+    {
+      opt_weak_id = opt_id;
+    }
+
+  /* Resolve opt_threads sentinel: 0 means "auto-detect".
+     The CLI resolves this in command dispatch; library callers need it
+     resolved here so that dust_all() and other threaded functions work. */
+  if (opt_threads == 0)
+    {
+      opt_threads = arch_get_cores();
+    }
+
+  /* Resolve opt_maxrejects sentinel: -1 means "not set by user".
+     CLI resolves to 8 (cluster_fast) or 32 (others). Default to 32. */
+  if (opt_maxrejects < 0)
+    {
+      opt_maxrejects = 32;
+    }
+
+  /* Validate opt_wordlength — 0 is a sentinel meaning "not set".
+     A wordlength of 0 destroys the k-mer index (hash size = 1).
+     Library users MUST set this before calling fixups. */
+  if (opt_wordlength == 0)
+    {
+      opt_wordlength = 8;
+    }
+
+  /* Adjust gap-open penalties: subtract the first-nucleotide extension cost.
+     The rest of the code assumes gap_open does NOT include the first
+     extension. The CLI also does this in args_init() before calling fixups,
+     so use a static flag to ensure the adjustment happens exactly once. */
+  static bool gap_adjusted = false;
+  if (!gap_adjusted)
+    {
+      opt_gap_open_query_left -= opt_gap_extension_query_left;
+      opt_gap_open_target_left -= opt_gap_extension_target_left;
+      opt_gap_open_query_interior -= opt_gap_extension_query_interior;
+      opt_gap_open_target_interior -= opt_gap_extension_target_interior;
+      opt_gap_open_query_right -= opt_gap_extension_query_right;
+      opt_gap_open_target_right -= opt_gap_extension_target_right;
+      gap_adjusted = true;
+    }
+
   /* Note: opt_minsize is NOT resolved here — it has command-specific
      defaults (1 for most commands, 8 for cluster_unoise).
      Library users should set opt_minsize explicitly if needed. */

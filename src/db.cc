@@ -435,11 +435,21 @@ auto db_free() -> void
   if (datap != nullptr)
     {
       xfree(datap);
+      datap = nullptr;
     }
   if (seqindex != nullptr)
     {
       xfree(seqindex);
+      seqindex = nullptr;
     }
+  sequences = 0;
+  nucleotides = 0;
+  longest = 0;
+  shortest = std::numeric_limits<uint64_t>::max();
+  longestheader = 0;
+  dataalloc = 0;
+  datalen = 0;
+  seqindex_alloc = 0;
 }
 
 

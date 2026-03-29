@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "align_simd.h"
 #include "cluster.h"
+#include "searchcore.h"
 #include "attributes.h"
 #include "dbindex.h"
 #include "linmemalign.h"
@@ -1830,15 +1831,23 @@ auto cluster_session_init(struct cluster_session_s * cs) -> void
      - by length (descending) for cluster_fast behavior
      - by abundance (descending) for cluster_size behavior */
 
-  /* Set search parameters matching the CLI cluster path */
-  tophits = opt_maxaccepts + opt_maxrejects;
+  /* Set search parameters matching the CLI cluster path.
+     seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
+     MAXDELAYED (8) is needed as safety buffer for align_delayed().
+     Clamp tophits to seqcount to avoid oversized allocations. */
+  seqcount = static_cast<int>(db_getsequencecount());
+  tophits = opt_maxaccepts + opt_maxrejects + MAXDELAYED;
+  if (tophits > seqcount)
+    {
+      tophits = seqcount;
+    }
 
   cs->si = new searchinfo_s {};
   cluster_query_init(cs->si);
   cs->si->strand = 0;
 
   cs->cluster_count = 0;
-  cs->seqcount = static_cast<int>(db_getsequencecount());
+  cs->seqcount = seqcount;
 }
 
 
@@ -1875,7 +1884,10 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                     db_getheader(best->target));
       if (best->nwalignment != nullptr)
         {
-          xfree(best->nwalignment);
+          int n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
+                                best->nwalignment);
+          result->cigar_truncated =
+            (n >= static_cast<int>(sizeof(result->cigar)));
         }
     }
   else
@@ -1893,6 +1905,17 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
       dbindex_addsequence(seqno, opt_qmask);
       ++cs->cluster_count;
+    }
+
+  /* Free ALL hit alignments (not just the best one).
+     search_onequery / align_delayed allocates nwalignment for each aligned hit. */
+  for (int i = 0; i < cs->si->hit_count; ++i)
+    {
+      if (cs->si->hits[i].aligned && cs->si->hits[i].nwalignment != nullptr)
+        {
+          xfree(cs->si->hits[i].nwalignment);
+          cs->si->hits[i].nwalignment = nullptr;
+        }
     }
 }
 

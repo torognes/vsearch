@@ -74,6 +74,8 @@ struct cluster_result_s {
   int centroid_seqno;          /* database seqno of the cluster centroid */
   char centroid_label[1024];   /* centroid header (may truncate) */
   double identity;             /* identity to centroid (100.0 if is_centroid) */
+  char cigar[4096];            /* CIGAR alignment string (empty if centroid) */
+  bool cigar_truncated;        /* true if cigar was truncated to fit buffer */
 };
 
 /* Opaque session state for incremental clustering. */

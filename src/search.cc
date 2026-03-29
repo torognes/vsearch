@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "search.h"
+#include "searchcore.h"
 #include "align_simd.h"
 #include "dbindex.h"
 #include "mask.h"
@@ -1009,7 +1010,16 @@ auto search_init(struct searchinfo_s * si) -> void
 {
   /* Initialize per-thread search state for library use.
      Assumes global opt_* variables and database are already set up.
-     Mirrors search_thread_init but works on caller-provided state. */
+     Sets seqcount and tophits (file-statics) matching the setup that
+     usearch_global() / search_prep() does internally.
+     MAXDELAYED (8) is needed as safety buffer for align_delayed().
+     Clamp tophits to seqcount to avoid oversized allocations. */
+  seqcount = static_cast<int>(db_getsequencecount());
+  tophits = opt_maxaccepts + opt_maxrejects + MAXDELAYED;
+  if (tophits > seqcount)
+    {
+      tophits = seqcount;
+    }
   search_thread_init(si);
 }
 

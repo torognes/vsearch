@@ -92,7 +92,8 @@ auto mergepairs_init() -> void;
    result: output struct populated on return.
    Returns 0 on success (merged), -1 on failure (not merged).
 
-   Thread-safe: each call is independent (no shared mutable state).
+   Thread-safe after mergepairs_init() completes. mergepairs_init()
+   must NOT run concurrently with any mergepairs_single() call.
 
    Relevant opt_* overrides (after vsearch_init_defaults):
      opt_fastq_minovlen   — minimum overlap length (default 10)
