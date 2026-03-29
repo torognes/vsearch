@@ -59,3 +59,47 @@
 */
 
 auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void;
+
+/* === Library API for in-memory dereplication === */
+
+/* Result for one unique sequence, populated by derep_get_results(). */
+struct derep_result_s {
+  const char * header;    /* representative header (owned by session — valid until cleanup) */
+  const char * sequence;  /* normalized sequence: uppercase DNA, U→T (owned by session) */
+  uint64_t abundance;     /* total abundance (sum of all identical sequences) */
+  uint64_t seqlen;        /* sequence length */
+  int count;              /* number of input sequences that collapsed into this */
+};
+
+/* Opaque session state. */
+struct derep_session_s;
+
+auto derep_session_alloc() -> struct derep_session_s *;
+auto derep_session_free(struct derep_session_s * ds) -> void;
+
+/* Initialize a dereplication session.
+   Does NOT require a loaded database — sequences are added via derep_add_sequence.
+   Call vsearch_init_defaults() + vsearch_apply_defaults_fixups() before this. */
+auto derep_session_init(struct derep_session_s * ds) -> void;
+
+/* Add a single sequence to the dereplication session.
+   Sequences are normalized (uppercase, U→T) internally.
+   abundance: the abundance of this input sequence (typically 1). */
+auto derep_add_sequence(struct derep_session_s * ds,
+                        const char * header,
+                        const char * sequence,
+                        int seqlen,
+                        int64_t abundance) -> void;
+
+/* Finalize and retrieve results, sorted by abundance (descending).
+   results: caller-provided array of at least max_results elements.
+   max_results: maximum number of unique sequences to return.
+   result_count: set to actual number of results returned.
+   Results point into session-owned memory (valid until cleanup). */
+auto derep_get_results(struct derep_session_s * ds,
+                       struct derep_result_s * results,
+                       int max_results,
+                       int * result_count) -> void;
+
+/* Clean up session resources. Call before derep_session_free(). */
+auto derep_session_cleanup(struct derep_session_s * ds) -> void;

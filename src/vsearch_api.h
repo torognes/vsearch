@@ -70,6 +70,7 @@
 #include "cluster.h"
 #include "db.h"
 #include "dbindex.h"
+#include "derep.h"
 #include "fastq_mergepairs.h"
 #include "mask.h"
 #include "search.h"

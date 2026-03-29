@@ -136,7 +136,9 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
 }
 
 
-auto dust(char * seq, int len) -> void
+/* Core DUST implementation with explicit hardmask parameter.
+   Thread-safe: does not read any globals. */
+static auto dust_core(char * seq, int len, bool use_hardmask) -> void
 {
   static constexpr auto dust_level = 20;
   static constexpr auto half_dust_window = dust_window / 2;
@@ -146,13 +148,8 @@ auto dust(char * seq, int len) -> void
   /* make a local copy of the original sequence */
   std::vector<char> local_seq(len + 1);
   strcpy(local_seq.data(), seq);
-  // refactoring: <string>
-  // std::string local_seq2;
-  // local_seq2.reserve(len + 1);
-  // local_seq2.insert(0, m);
-  // local_seq2.insert(len, 1, '\0');
 
-  if (opt_hardmask == 0)
+  if (!use_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
       for (auto i = 0; i < len; i++)
@@ -169,7 +166,7 @@ auto dust(char * seq, int len) -> void
 
       if (v > dust_level)
         {
-          if (opt_hardmask != 0)
+          if (use_hardmask)
             {
               for (auto j = a + i; j <= b + i; j++)
                 {
@@ -190,6 +187,12 @@ auto dust(char * seq, int len) -> void
             }
         }
     }
+}
+
+
+auto dust(char * seq, int len) -> void
+{
+  dust_core(seq, len, opt_hardmask != 0);
 }
 
 
@@ -280,6 +283,12 @@ auto hardmask_all() -> void
     {
       hardmask(db_getsequence(i), db_getsequencelen(i));
     }
+}
+
+
+auto dust_single(char * seq, int len, bool use_hardmask) -> void
+{
+  dust_core(seq, len, use_hardmask);
 }
 
 

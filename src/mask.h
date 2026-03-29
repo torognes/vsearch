@@ -74,3 +74,12 @@ auto dust(char * seq, int len) -> void;
 auto hardmask(char * seq, int len) -> void;
 auto dust_all() -> void;
 auto hardmask_all() -> void;
+
+/* === Library API for single-sequence masking === */
+
+/* Apply DUST low-complexity masking to a single sequence in-place.
+   Does NOT require database loading — works on any null-terminated sequence.
+   use_hardmask: if false, soft-mask (lowercase); if true, hard-mask ('N').
+   The sequence is modified in-place.
+   Thread-safe: does not read or write any global state. */
+auto dust_single(char * seq, int len, bool use_hardmask) -> void;
