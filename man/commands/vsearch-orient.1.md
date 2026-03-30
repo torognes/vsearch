@@ -131,8 +131,8 @@ vsearch \
     --fastaout query_oriented.fasta
 ```
 
-Search for mis-oriented in a set of reference sequences *db.fasta* by
-comparing it to itself. Write the results to the table
+Search for mis-oriented sequences in a set of reference sequences
+*db.fasta* by comparing it to itself. Write the results to the table
 *db_outliers.table*:
 
 ```sh
