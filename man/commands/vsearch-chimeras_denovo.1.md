@@ -111,7 +111,8 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 
 #(./fragments/option_chimeras_parts.md)
 
-#(./fragments/option_sizein_implied.md)
+#(./fragments/option_sizein.md)
+: Always implied.
 
 #(./fragments/option_xn.md)
 
@@ -155,6 +156,7 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 #(./fragments/option_sample.md)
 
 #(./fragments/option_sizeout.md)
+: Always implied.
 
 #(./fragments/option_xee.md)
 
