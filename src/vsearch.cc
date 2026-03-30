@@ -103,6 +103,7 @@
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -776,8 +777,12 @@ auto args_getdouble(char * arg) -> double
    Note: allocates opt_ee_cutoffs_values via xmalloc. Caller is responsible
    for freeing it (or calling vsearch_init_defaults again, which leaks the
    old allocation — acceptable for single-init library use). */
+
+static std::mutex session_mutex;
+
 auto vsearch_init_defaults() -> void
 {
+  session_mutex.lock();
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
@@ -991,6 +996,12 @@ auto vsearch_init_defaults() -> void
   opt_xlength = false;
   opt_xn = 8.0;
   opt_xsize = false;
+}
+
+
+auto vsearch_session_end() -> void
+{
+  session_mutex.unlock();
 }
 
 

@@ -103,6 +103,7 @@ int main() {
     search_info_free(si);
     dbindex_free();
     db_free();
+    vsearch_session_end();
 
     return 0;
 }

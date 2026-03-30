@@ -80,10 +80,17 @@ All vsearch state is global. There is no context object. This means:
 
 **Re-initialization is supported.** You can run multiple sequential
 sessions in the same process by repeating the full initialization
-sequence (steps 1-11) for each session. Each call to
+sequence (steps 1-12) for each session. Each call to
 `vsearch_apply_defaults_fixups()` correctly re-applies gap penalty
 adjustments from the freshly-reset defaults. See
 `examples/example_reinit.cc` for a tested example.
+
+**Session locking.** `vsearch_init_defaults()` acquires a mutex that
+blocks concurrent callers until `vsearch_session_end()` releases it.
+This prevents two threads from corrupting shared global state. You
+**must** call `vsearch_session_end()` after each session's cleanup;
+omitting it will cause the next `vsearch_init_defaults()` to block
+indefinitely.
 
 ## Database management
 
@@ -118,6 +125,7 @@ dbindex_addallsequences(opt_dbmask);
 ```c
 dbindex_free();
 db_free();
+vsearch_session_end();  // release session lock
 ```
 
 ### Notes
@@ -287,6 +295,7 @@ void detect_chimeras(const char **headers, const char **sequences,
     chimera_info_free(ci);
     dbindex_free();
     db_free();
+    vsearch_session_end();
 }
 ```
 
@@ -296,8 +305,9 @@ void detect_chimeras(const char **headers, const char **sequences,
 
 | Function | Description |
 |----------|-------------|
-| `vsearch_init_defaults()` | Set all opt_* globals to CLI defaults. Call once before any other function. |
+| `vsearch_init_defaults()` | Set all opt_* globals to CLI defaults. Acquires session mutex (blocks if another session is active). |
 | `vsearch_apply_defaults_fixups()` | Resolve sentinel values. Call after setting overrides. |
+| `vsearch_session_end()` | Release session mutex. Call after all cleanup is complete. |
 
 ### Database
 

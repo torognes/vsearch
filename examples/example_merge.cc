@@ -95,5 +95,7 @@ int main() {
         return 1;
     }
 
+    vsearch_session_end();
+
     return 0;
 }

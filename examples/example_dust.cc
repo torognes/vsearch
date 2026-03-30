@@ -63,5 +63,7 @@ int main() {
         std::printf(">%s\n%s\n", labels[i].c_str(), buf.data());
     }
 
+    vsearch_session_end();
+
     return 0;
 }

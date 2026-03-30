@@ -43,6 +43,7 @@
  *  10. chimera_detect_cleanup() +    — teardown
  *      chimera_info_free()
  *  11. dbindex_free() + db_free()    — release database
+ *  12. vsearch_session_end()         — release session lock
  *
  * === Thread safety ===
  *
@@ -50,7 +51,13 @@
  * - Step 9 (detection): thread-safe IF each thread has its own
  *   chimera_info_s (from chimera_info_alloc + chimera_detect_init).
  *   The global database and k-mer index are read-only after step 7.
- * - Steps 10-11 (cleanup): single-threaded only
+ * - Steps 10-12 (cleanup): single-threaded only
+ *
+ * vsearch_init_defaults() acquires a session mutex that blocks
+ * concurrent callers until vsearch_session_end() releases it.
+ * This prevents two threads from corrupting shared global state.
+ * Forgetting to call vsearch_session_end() will cause the next
+ * vsearch_init_defaults() call to block indefinitely.
  *
  * === Global state warning ===
  *
@@ -63,7 +70,7 @@
  * === Re-initialization ===
  *
  * Multiple sequential sessions in the same process are supported.
- * Repeat the full initialization sequence (steps 1-11) for each
+ * Repeat the full initialization sequence (steps 1-12) for each
  * session. vsearch_apply_defaults_fixups() correctly re-applies gap
  * penalty adjustments from the freshly-reset defaults each time.
  */
@@ -87,8 +94,16 @@
 
 /* Set all opt_* globals to their CLI-equivalent default values.
    Must be called once before any other vsearch function.
-   Allocates opt_ee_cutoffs_values via xmalloc. */
+   Allocates opt_ee_cutoffs_values via xmalloc.
+   Acquires the session mutex — blocks if another session is active.
+   Caller MUST call vsearch_session_end() when the session is done. */
 auto vsearch_init_defaults() -> void;
+
+/* Release the session mutex acquired by vsearch_init_defaults().
+   Call after all cleanup (dbindex_free, db_free, etc.) is complete.
+   Omitting this call will cause the next vsearch_init_defaults() to
+   block indefinitely. */
+auto vsearch_session_end() -> void;
 
 /* Resolve sentinel values in opt_* globals to computed defaults.
    Call after vsearch_init_defaults() and after setting any overrides.

@@ -114,6 +114,7 @@ static session_results run_session(
     chimera_info_free(ci);
     dbindex_free();
     db_free();
+    vsearch_session_end();
 
     return results;
 }

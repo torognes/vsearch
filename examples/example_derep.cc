@@ -82,6 +82,7 @@ int main() {
     /* 6. Cleanup */
     derep_session_cleanup(ds);
     derep_session_free(ds);
+    vsearch_session_end();
 
     return 0;
 }
