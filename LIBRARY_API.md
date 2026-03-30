@@ -78,6 +78,13 @@ All vsearch state is global. There is no context object. This means:
 - Calling `vsearch_init_defaults()` resets ALL options, including any
   you may have set from a previous session
 
+**Re-initialization is supported.** You can run multiple sequential
+sessions in the same process by repeating the full initialization
+sequence (steps 1-11) for each session. Each call to
+`vsearch_apply_defaults_fixups()` correctly re-applies gap penalty
+adjustments from the freshly-reset defaults. See
+`examples/example_reinit.cc` for a tested example.
+
 ## Database management
 
 vsearch uses a global sequence database. Sequences are loaded via

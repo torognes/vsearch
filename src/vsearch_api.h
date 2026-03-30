@@ -59,6 +59,13 @@
  * vsearch_apply_defaults_fixups(). Missing or wrong globals cause
  * silent search failures (e.g., wrong gap penalties → rejected
  * candidates, wrong opt_minwordmatches → no k-mer matches).
+ *
+ * === Re-initialization ===
+ *
+ * Multiple sequential sessions in the same process are supported.
+ * Repeat the full initialization sequence (steps 1-11) for each
+ * session. vsearch_apply_defaults_fixups() correctly re-applies gap
+ * penalty adjustments from the freshly-reset defaults each time.
  */
 
 /* Aggregate header — includes config.h, system headers, and all

@@ -19,7 +19,7 @@ LDFLAGS = $(VSEARCH_LIB) -lpthread -ldl
 
 SHELL = /bin/bash
 
-EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep
+EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep example_reinit
 
 all: $(EXAMPLES)
 
@@ -39,6 +39,9 @@ example_dust: example_dust.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 example_derep: example_derep.cc $(VSEARCH_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+example_reinit: example_reinit.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 test: $(EXAMPLES)
@@ -77,6 +80,11 @@ test: $(EXAMPLES)
 	@diff /tmp/test_derep.fasta data/expected_derep.fasta \
 		&& echo "PASS: derep output matches vsearch" \
 		|| (echo "FAIL: derep output differs"; diff /tmp/test_derep.fasta data/expected_derep.fasta | head -20; exit 1)
+	@echo ""
+	@echo "=== Running example_reinit ==="
+	./example_reinit \
+		&& echo "PASS: re-initialization produces correct results" \
+		|| (echo "FAIL: re-initialization test failed"; exit 1)
 	@echo ""
 	@echo "All tests passed."
 

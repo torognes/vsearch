@@ -1058,19 +1058,14 @@ auto vsearch_apply_defaults_fixups() -> void
 
   /* Adjust gap-open penalties: subtract the first-nucleotide extension cost.
      The rest of the code assumes gap_open does NOT include the first
-     extension. The CLI also does this in args_init() before calling fixups,
-     so use a static flag to ensure the adjustment happens exactly once. */
-  static bool gap_adjusted = false;
-  if (!gap_adjusted)
-    {
-      opt_gap_open_query_left -= opt_gap_extension_query_left;
-      opt_gap_open_target_left -= opt_gap_extension_target_left;
-      opt_gap_open_query_interior -= opt_gap_extension_query_interior;
-      opt_gap_open_target_interior -= opt_gap_extension_target_interior;
-      opt_gap_open_query_right -= opt_gap_extension_query_right;
-      opt_gap_open_target_right -= opt_gap_extension_target_right;
-      gap_adjusted = true;
-    }
+     extension. Safe to call repeatedly — vsearch_init_defaults() resets
+     opt_gap_open_* to their raw (pre-adjustment) values each time. */
+  opt_gap_open_query_left -= opt_gap_extension_query_left;
+  opt_gap_open_target_left -= opt_gap_extension_target_left;
+  opt_gap_open_query_interior -= opt_gap_extension_query_interior;
+  opt_gap_open_target_interior -= opt_gap_extension_target_interior;
+  opt_gap_open_query_right -= opt_gap_extension_query_right;
+  opt_gap_open_target_right -= opt_gap_extension_target_right;
 
   /* Note: opt_minsize is NOT resolved here — it has command-specific
      defaults (1 for most commands, 8 for cluster_unoise).
@@ -5044,32 +5039,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* adapt/adjust parameters */
 
-#if 1
-
-  /*
-    Adjust gap open penalty according to convention.
-
-    The specified gap open penalties include the penalty for
-    a single nucleotide gap:
-
-    gap penalty = gap open penalty + (gap length - 1) * gap extension penalty
-
-    The rest of the code assumes the first nucleotide gap penalty is not
-    included in the gap opening penalty.
-  */
-
-  opt_gap_open_query_left -= opt_gap_extension_query_left;
-  opt_gap_open_target_left -= opt_gap_extension_target_left;
-  opt_gap_open_query_interior -= opt_gap_extension_query_interior;
-  opt_gap_open_target_interior -= opt_gap_extension_target_interior;
-  opt_gap_open_query_right -= opt_gap_extension_query_right;
-  opt_gap_open_target_right -= opt_gap_extension_target_right;
-
-#endif
-
-  /* Resolve sentinel defaults (maxhits, minwordmatches, minsize).
-     Generic fixups are in vsearch_apply_defaults_fixups(); command-specific
-     overrides (abskew, minsize for unoise) follow below. */
+  /* Resolve sentinel defaults and adjust gap penalties.
+     Generic fixups (including gap-open adjustment) are in
+     vsearch_apply_defaults_fixups(); command-specific overrides
+     (abskew, minsize for unoise) follow below. */
   vsearch_apply_defaults_fixups();
 
   /* set default opt_minsize depending on command */
