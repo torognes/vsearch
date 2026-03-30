@@ -15,17 +15,22 @@ symbol and the first space, tabulation, or new line symbol, unless the
 `--notrunclabels` option is in effect, in which case the entire line
 is included.
 
-The *header* should contain printable ASCII characters (33-126). The
-program will terminate with a fatal error if there are unprintable
-ASCII characters (see `ascii(7)`). A warning will be issued if
-non-ASCII characters (128-255) are encountered.
+The *header* should contain printable ASCII characters (values ranging
+from 33 to 126, see `ascii(7)`). If unprintable ASCII characters are
+encountered, vsearch terminates with a fatal error. If non-ASCII
+characters are encountered (values ranging from 128 to 255), vsearch
+emits a warning.
 
 When using the option `--sizein`, if the header matches the patterns
 `>[;]size=integer;identifier`, `>identifier;size=integer;identifier`,
 or `>identifier;size=integer[;]`, vsearch will interpret *integer* as
 the number of occurrences (or abundance) of the sequence in the
-study. That abundance information is used or created during chimera
+study. This abundance information is used, or created, during chimera
 detection, clustering, dereplication, sorting and searching.
+
+
+(TBD: describe sequences)
+
 
 #(./fragments/format_sequence.md)
 
