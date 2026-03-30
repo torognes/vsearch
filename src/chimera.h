@@ -99,14 +99,35 @@ auto chimera_info_alloc() -> struct chimera_info_s *;
    Does NOT call chimera_detect_cleanup — call that first if init was called. */
 auto chimera_info_free(struct chimera_info_s * ci) -> void;
 
-/* Initialize chimera detection subsystem for library use.
-   Must call before chimera_detect_single.
-   Sets search-shaping globals (opt_maxaccepts, opt_maxrejects, tophits, etc.)
-   that chimera() normally sets but the library API path bypasses.
+/* === Session-level initialization (call once per session) === */
+
+/* Initialize chimera detection session: set search-shaping globals
+   and init static mutexes. Call once after DB is loaded and indexed,
+   before creating per-thread handles.
    Requires: global opt_* scoring/penalty variables already set,
    global db + dbindex loaded and indexed.
-   ci is per-thread working state — each thread must have its own instance.
-   Do NOT share ci across threads. */
+   Overwrites: opt_maxaccepts, opt_maxrejects, opt_id, opt_weak_id,
+   tophits, and (denovo only) opt_self, opt_selfid, opt_maxsizeratio. */
+auto chimera_session_init() -> void;
+
+/* Destroy static mutexes. Call once after all per-thread handles are
+   cleaned up. */
+auto chimera_session_cleanup() -> void;
+
+/* === Per-thread initialization (call once per thread) === */
+
+/* Initialize per-thread chimera working state: SIMD aligners, k-mer
+   finders, working buffers. Safe to call for multiple ci instances
+   after chimera_session_init(). ci must not be shared across threads. */
+auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void;
+
+/* Free per-thread resources allocated by chimera_detect_thread_init. */
+auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
+
+/* === Convenience wrappers (single-threaded use) === */
+
+/* Convenience: chimera_session_init() + chimera_detect_thread_init(ci).
+   Use when only one chimera_info_s exists per session. */
 auto chimera_detect_init(struct chimera_info_s * ci) -> void;
 
 /* Detect chimera for a single query sequence.
@@ -125,7 +146,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
                            int query_size,
                            struct chimera_result_s * result) -> int;
 
-/* Clean up per-thread chimera working state.
-   Frees all resources allocated by chimera_detect_init (SIMD aligners,
-   unique k-mer finders, minheaps, CIGAR strings). */
+/* Convenience: chimera_detect_thread_cleanup(ci) + chimera_session_cleanup().
+   Tears down BOTH per-thread and session-level state.
+   Use when only one chimera_info_s exists per session. */
 auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;

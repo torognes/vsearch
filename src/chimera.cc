@@ -2693,16 +2693,20 @@ auto chimera_info_free(struct chimera_info_s * ci) -> void
     }
 }
 
-auto chimera_detect_init(struct chimera_info_s * ci) -> void
+auto chimera_session_init() -> void
 {
-  /* Initialize the per-thread chimera working state.
+  /* Session-level initialization for chimera detection.
+     Sets search-shaping globals that chimera() normally sets but
+     the library API path bypasses, and initializes static mutexes
+     used by eval_parents/eval_parents_long.
+
+     Call once after DB is loaded and indexed, before creating
+     per-thread chimera_info_s handles.
+
      Assumes global opt_* variables are already set (at minimum:
      opt_match, opt_mismatch, opt_gap_*, opt_minh, opt_xn, opt_dn,
      opt_mindiv, opt_mindiffs, opt_abskew, opt_dbmask, opt_qmask,
-     opt_wordlength) and the global db + dbindex are loaded.
-
-     Sets search-shaping globals that chimera() normally sets but
-     the library API path bypasses. */
+     opt_wordlength). */
 
   /* Override search parameters to chimera detection defaults.
      These must match what chimera() sets in the CLI path (lines 2311-2329).
@@ -2719,11 +2723,13 @@ auto chimera_detect_init(struct chimera_info_s * ci) -> void
   tophits = opt_maxaccepts + opt_maxrejects;
 
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
-     themselves as candidate parents. Matches chimera() CLI setup. */
+     themselves as candidate parents, and set opt_maxsizeratio for
+     abundance skew filtering. Matches chimera() CLI setup. */
   if (opt_uchime_ref == nullptr)
     {
       opt_self = 1;
       opt_selfid = 1;
+      opt_maxsizeratio = 1.0 / opt_abskew;
     }
 
   /* Initialize mutexes for the API path. The CLI path initializes these
@@ -2732,6 +2738,23 @@ auto chimera_detect_init(struct chimera_info_s * ci) -> void
      doesn't use, but the lock is still taken). */
   xpthread_mutex_init(&mutex_input, nullptr);
   xpthread_mutex_init(&mutex_output, nullptr);
+}
+
+
+auto chimera_session_cleanup() -> void
+{
+  xpthread_mutex_destroy(&mutex_input);
+  xpthread_mutex_destroy(&mutex_output);
+}
+
+
+auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
+{
+  /* Per-thread initialization: SIMD aligners, k-mer finders, working
+     buffers. Safe to call concurrently for different ci instances.
+     Requires chimera_session_init() to have been called first. */
+  assert(tophits > 0
+         && "chimera_session_init() must be called before chimera_detect_thread_init()");
 
   chimera_thread_init(ci);
 
@@ -2756,6 +2779,17 @@ auto chimera_detect_init(struct chimera_info_s * ci) -> void
   scoring.gap_extension_query_right = opt_gap_extension_query_right;
   scoring.gap_extension_target_right = opt_gap_extension_target_right;
   ci->api_lma_ptr.reset(new LinearMemoryAligner(scoring));
+}
+
+
+auto chimera_detect_init(struct chimera_info_s * ci) -> void
+{
+  /* Convenience wrapper: session init + per-thread init in one call.
+     Use for single-threaded detection (one chimera_info_s per session).
+     For multi-threaded detection, call chimera_session_init() once then
+     chimera_detect_thread_init() per thread. */
+  chimera_session_init();
+  chimera_detect_thread_init(ci);
 }
 
 auto chimera_detect_single(struct chimera_info_s * ci,
@@ -2808,11 +2842,11 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   return 0;
 }
 
-auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
+auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void
 {
-  /* Use chimera_thread_exit which properly frees all resources
-     (search16, unique, minheap) allocated by chimera_thread_init.
-     Also free any CIGAR strings from the last detection. */
+  /* Per-thread cleanup: frees all resources allocated by
+     chimera_detect_thread_init (SIMD aligners, unique k-mer finders,
+     minheaps, CIGAR strings, linear memory aligner). */
   for (auto & p : ci->nwcigar)
     {
       if (p != nullptr)
@@ -2827,8 +2861,15 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
   ci->api_lma_ptr.reset();
   ci->api_allhits_list.clear();
   ci->api_allhits_list.shrink_to_fit();
+}
 
-  /* Destroy mutexes initialized by chimera_detect_init */
-  xpthread_mutex_destroy(&mutex_input);
-  xpthread_mutex_destroy(&mutex_output);
+
+auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
+{
+  /* Convenience wrapper: per-thread cleanup + session cleanup in one call.
+     Use for single-threaded detection (one chimera_info_s per session).
+     For multi-threaded detection, call chimera_detect_thread_cleanup()
+     per thread, then chimera_session_cleanup() once. */
+  chimera_detect_thread_cleanup(ci);
+  chimera_session_cleanup();
 }

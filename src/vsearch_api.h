@@ -37,21 +37,27 @@
  *   6. dust_all()                    — apply DUST masking
  *   7. dbindex_prepare() +           — build k-mer index
  *      dbindex_addallsequences()
- *   8. chimera_info_alloc() +        — per-thread working state
- *      chimera_detect_init()
- *   9. chimera_detect_single()       — per-query detection
- *  10. chimera_detect_cleanup() +    — teardown
- *      chimera_info_free()
- *  11. dbindex_free() + db_free()    — release database
- *  12. vsearch_session_end()         — release session lock
+ *   8. chimera_session_init()        — session-level chimera setup
+ *   9. chimera_info_alloc() +        — per-thread working state
+ *      chimera_detect_thread_init()     (repeat for each thread)
+ *  10. chimera_detect_single()       — per-query detection
+ *  11. chimera_detect_thread_cleanup() + — per-thread teardown
+ *      chimera_info_free()              (repeat for each thread)
+ *  12. chimera_session_cleanup()     — session-level chimera teardown
+ *  13. dbindex_free() + db_free()    — release database
+ *  14. vsearch_session_end()         — release session lock
+ *
+ * For single-threaded use, steps 8-9 can be replaced with
+ * chimera_detect_init(ci) and steps 11-12 with chimera_detect_cleanup(ci).
  *
  * === Thread safety ===
  *
- * - Steps 1-7 (initialization): single-threaded only
- * - Step 9 (detection): thread-safe IF each thread has its own
- *   chimera_info_s (from chimera_info_alloc + chimera_detect_init).
+ * - Steps 1-8 (initialization): single-threaded only
+ * - Step 9 (per-thread init): safe for different ci instances
+ * - Step 10 (detection): thread-safe IF each thread has its own
+ *   chimera_info_s (from chimera_info_alloc + chimera_detect_thread_init).
  *   The global database and k-mer index are read-only after step 7.
- * - Steps 10-12 (cleanup): single-threaded only
+ * - Steps 11-14 (cleanup): single-threaded only
  *
  * vsearch_init_defaults() acquires a session mutex that blocks
  * concurrent callers until vsearch_session_end() releases it.

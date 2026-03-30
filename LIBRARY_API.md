@@ -148,33 +148,47 @@ SIMD-optimized Needleman-Wunsch alignment.
 ### Per-thread working state
 
 Each thread needs its own `chimera_info_s` instance. This is an opaque
-type — allocate and free via the API functions:
+type — allocate and free via the API functions.
+
+**Single-threaded** (convenience wrappers):
 
 ```c
-// Allocate opaque working state (one per thread)
 struct chimera_info_s * ci = chimera_info_alloc();
+chimera_detect_init(ci);    // session init + per-thread init
 
-// Initialize search infrastructure (SIMD aligners, k-mer finders, heaps)
-// Must be called AFTER database is loaded and indexed.
-chimera_detect_init(ci);
+chimera_detect_single(ci, query_seq, query_head, query_len, 1, &result);
 
-// Run detection for each query
-struct chimera_result_s result;
-chimera_detect_single(ci,
-                      query_sequence,  // null-terminated, uppercase DNA
-                      query_header,    // null-terminated
-                      query_length,    // strlen(query_sequence)
-                      query_abundance, // 1 for uchime_ref
-                      &result);
-
-// result.flag is 'Y' (chimera), 'N' (non-chimera), or '?' (borderline)
-// result.score is the h-score
-// result.parent_a_label, result.parent_b_label are populated for Y/?
-
-// Cleanup (reverse order of init)
-chimera_detect_cleanup(ci);
+chimera_detect_cleanup(ci); // per-thread cleanup + session cleanup
 chimera_info_free(ci);
 ```
+
+**Multi-threaded** (split API — required for multiple handles):
+
+```c
+// Session init: once, single-threaded
+chimera_session_init();
+
+// Per-thread init: one handle per thread
+struct chimera_info_s * ci1 = chimera_info_alloc();
+chimera_detect_thread_init(ci1);
+struct chimera_info_s * ci2 = chimera_info_alloc();
+chimera_detect_thread_init(ci2);
+
+// Detection: thread-safe with per-thread handles
+// thread 1: chimera_detect_single(ci1, ...)
+// thread 2: chimera_detect_single(ci2, ...)
+
+// Per-thread cleanup
+chimera_detect_thread_cleanup(ci1);
+chimera_info_free(ci1);
+chimera_detect_thread_cleanup(ci2);
+chimera_info_free(ci2);
+
+// Session cleanup: once, single-threaded
+chimera_session_cleanup();
+```
+
+See `examples/example_reinit.cc` for a working multi-handle test.
 
 ### Result struct
 
@@ -232,10 +246,14 @@ are doing.
 ### Thread safety
 
 - **Database loading** (steps 1-7): single-threaded only.
+- **Session init** (`chimera_session_init`): single-threaded only.
+- **Per-thread init** (`chimera_detect_thread_init`): safe for different
+  ci instances after `chimera_session_init` completes.
 - **Detection** (`chimera_detect_single`): thread-safe if each thread
   has its own `chimera_info_s`. The global database and k-mer index
   are read-only after indexing.
-- **Cleanup**: single-threaded only.
+- **Cleanup**: join all detection threads before calling per-thread
+  cleanup, then session cleanup. Single-threaded only.
 
 ### De novo mode
 
@@ -333,11 +351,15 @@ void detect_chimeras(const char **headers, const char **sequences,
 
 | Function | Description |
 |----------|-------------|
+| `chimera_session_init()` | Session-level: set search globals, init mutexes. Call once after DB indexed. |
+| `chimera_session_cleanup()` | Session-level: destroy mutexes. Call once after all per-thread cleanup. |
 | `chimera_info_alloc()` | Allocate opaque per-thread working state. |
 | `chimera_info_free(ci)` | Free per-thread state (null-safe). |
-| `chimera_detect_init(ci)` | Initialize search infrastructure. Call after DB is indexed. |
+| `chimera_detect_thread_init(ci)` | Per-thread: init SIMD aligners, k-mer finders. Call after `chimera_session_init`. |
+| `chimera_detect_thread_cleanup(ci)` | Per-thread: free resources. Call before `chimera_info_free`. |
 | `chimera_detect_single(ci, ...)` | Detect chimera for one query. Thread-safe with per-thread ci. |
-| `chimera_detect_cleanup(ci)` | Free search infrastructure. Call before `chimera_info_free`. |
+| `chimera_detect_init(ci)` | Convenience: `chimera_session_init` + `chimera_detect_thread_init`. Single-threaded only. |
+| `chimera_detect_cleanup(ci)` | Convenience: `chimera_detect_thread_cleanup` + `chimera_session_cleanup`. Single-threaded only. |
 
 ### Global search
 

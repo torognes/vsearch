@@ -187,5 +187,79 @@ int main() {
         "PASS: %zu queries, gap penalties correct, results identical across sessions\n",
         s1.flags.size());
 
+    /* === Test 2: Multi-handle via split API ===
+       Create two chimera_info_s handles using the session/thread split.
+       This was impossible before the fix — chimera_detect_init() would
+       fatal on the second call due to re-initializing an active mutex. */
+    std::fprintf(stderr, "Multi-handle test...\n");
+
+    vsearch_init_defaults();
+    opt_wordlength = 8;
+    vsearch_apply_defaults_fixups();
+
+    db_init();
+    for (size_t i = 0; i < ref_labels.size(); i++) {
+        db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
+               nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
+    }
+    dust_all();
+    dbindex_prepare(1, opt_dbmask);
+    dbindex_addallsequences(opt_dbmask);
+
+    /* Session init once, then two per-thread handles */
+    chimera_session_init();
+
+    struct chimera_info_s * ci1 = chimera_info_alloc();
+    chimera_detect_thread_init(ci1);
+
+    struct chimera_info_s * ci2 = chimera_info_alloc();
+    chimera_detect_thread_init(ci2);
+
+    /* Run same queries through both handles and compare with session 1 */
+    for (size_t i = 0; i < query_labels.size(); i++) {
+        struct chimera_result_s r1, r2;
+        chimera_detect_single(ci1,
+                              query_seqs[i].c_str(),
+                              query_labels[i].c_str(),
+                              static_cast<int>(query_seqs[i].size()),
+                              1, &r1);
+        chimera_detect_single(ci2,
+                              query_seqs[i].c_str(),
+                              query_labels[i].c_str(),
+                              static_cast<int>(query_seqs[i].size()),
+                              1, &r2);
+
+        /* Both handles must produce same result as session 1 */
+        if (r1.flag != s1.flags[i] || r2.flag != s1.flags[i]) {
+            std::fprintf(stderr,
+                "FAIL: multi-handle query %zu flag mismatch: "
+                "ci1=%c ci2=%c expected=%c\n",
+                i, r1.flag, r2.flag, s1.flags[i]);
+            return 1;
+        }
+        if (r1.score != s1.scores[i] || r2.score != s1.scores[i]) {
+            std::fprintf(stderr,
+                "FAIL: multi-handle query %zu score mismatch: "
+                "ci1=%.4f ci2=%.4f expected=%.4f\n",
+                i, r1.score, r2.score, s1.scores[i]);
+            return 1;
+        }
+    }
+
+    /* Per-thread cleanup, then session cleanup */
+    chimera_detect_thread_cleanup(ci1);
+    chimera_info_free(ci1);
+    chimera_detect_thread_cleanup(ci2);
+    chimera_info_free(ci2);
+    chimera_session_cleanup();
+
+    dbindex_free();
+    db_free();
+    vsearch_session_end();
+
+    std::fprintf(stderr,
+        "PASS: multi-handle detection, %zu queries identical across 2 handles\n",
+        query_labels.size());
+
     return 0;
 }
