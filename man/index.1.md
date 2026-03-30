@@ -52,6 +52,14 @@ vsearch.
 
 --->
 
+`-h`, `--help`
+: Write a brief information about all commands and options.
+
+`-v`, `--version`
+: Write version information, a citation for the vsearch publication,
+  and the support status for gzip- and bzip2-compressed input files.
+
+
 ## FASTA/FASTQ/SFF file processing:
 
 **[`vsearch-fasta2fastq(1)`](./commands/vsearch-fasta2fastq.1.md)**
