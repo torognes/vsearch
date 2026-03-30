@@ -15,8 +15,8 @@ commands and options
 
 # DESCRIPTION
 
-The vsearch command `--help` writes a list of available commands and
-options, organized by theme.
+The vsearch command `--help` writes a theme-organized list of commands
+and options to the *standard output* `stdout(3)`.
 
 
 # OPTIONS
