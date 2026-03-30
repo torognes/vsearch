@@ -241,7 +241,7 @@ downstream of the motif on the reverse strand:
 
 # SEE ALSO
 
-[`vsearch-fastx_revcomp(1)`](./vsearch-fastx_revcomp.1.md),
+[`vsearch-fastx_revcomp(1)`](./vsearch-fastx_revcomp.1.md)
 
 
 #(./fragments/footer.md)
