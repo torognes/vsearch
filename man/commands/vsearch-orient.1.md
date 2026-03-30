@@ -57,7 +57,7 @@ At least one of `--fastaout`, `--fastqout`, `--notmatched`,
   their original format.
 
 `--tabbedout` *filename*
-: Write the resuls to a four-column tab-delimited file with the
+: Write the results to a four-column tab-delimited file with the
   specified *filename*. Columns are:
 
     1. query label
