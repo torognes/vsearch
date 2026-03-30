@@ -52,7 +52,7 @@ vsearch.
 
 --->
 
-`-h`, `--help`
+**[`vsearch-help(1)`](./commands/vsearch-help.1.md)**
 : Write a brief information about all commands and options.
 
 `-v`, `--version`
