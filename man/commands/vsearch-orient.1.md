@@ -16,9 +16,9 @@ fastq sequences
 # DESCRIPTION
 
 The vsearch command `--orient` detects if input sequences are in the
-same orientation as sequences in the reference database specified with
-the `--db` option. Detection is based on the number of common *words*
-(*k*-mers) of length 12.
+same orientation as the sequences in the reference database specified
+with the `--db` option. Detection is based on the number of common
+*words* (*k*-mers) of length 12.
 
 Each reference sequence is decomposed into a set of words. The forward
 (+) and reverse-complement (-) strands of each input sequence are also
