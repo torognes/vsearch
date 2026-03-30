@@ -55,7 +55,7 @@ vsearch.
 **[`vsearch-help(1)`](./commands/vsearch-help.1.md)**
 : Write a brief information about all commands and options.
 
-`-v`, `--version`
+**[`vsearch-version(1)`](./commands/vsearch-version.1.md)**
 : Write version information, a citation for the vsearch publication,
   and the support status for gzip- and bzip2-compressed input files.
 
