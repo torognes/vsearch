@@ -1798,6 +1798,7 @@ auto cluster_unoise(char * cmdline, char * progheader) -> void
 
 struct cluster_session_s {
   struct searchinfo_s * si = nullptr;
+  struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
   int cluster_count = 0;
   int seqcount = 0;
   std::map<int, int> centroid_cluster_ids;  /* seqno → cluster_id for centroids */
@@ -1846,6 +1847,13 @@ auto cluster_session_init(struct cluster_session_s * cs) -> void
   cluster_query_init(cs->si);
   cs->si->strand = 0;
 
+  if (opt_strand > 1)
+    {
+      cs->si_minus = new searchinfo_s {};
+      cluster_query_init(cs->si_minus);
+      cs->si_minus->strand = 1;
+    }
+
   cs->cluster_count = 0;
   cs->seqcount = seqcount;
 }
@@ -1869,7 +1877,22 @@ auto cluster_assign_single(struct cluster_session_s * cs,
   cs->si->strand = 0;
   cluster_query_core(cs->si);
 
-  struct hit * best = search_findbest2_byid(cs->si, nullptr);
+  if (opt_strand > 1)
+    {
+      cs->si_minus->query_no = seqno;
+      cs->si_minus->strand = 1;
+      cluster_query_core(cs->si_minus);
+    }
+
+  struct hit * best = nullptr;
+  if (opt_sizeorder)
+    {
+      best = search_findbest2_bysize(cs->si, cs->si_minus);
+    }
+  else
+    {
+      best = search_findbest2_byid(cs->si, cs->si_minus);
+    }
 
   if (best != nullptr)
     {
@@ -1907,14 +1930,18 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       ++cs->cluster_count;
     }
 
-  /* Free ALL hit alignments (not just the best one).
+  /* Free ALL hit alignments for both strands.
      search_onequery / align_delayed allocates nwalignment for each aligned hit. */
-  for (int i = 0; i < cs->si->hit_count; ++i)
+  for (int s = 0; s < opt_strand; s++)
     {
-      if (cs->si->hits[i].aligned && cs->si->hits[i].nwalignment != nullptr)
+      struct searchinfo_s * si = (s != 0) ? cs->si_minus : cs->si;
+      for (int i = 0; i < si->hit_count; ++i)
         {
-          xfree(cs->si->hits[i].nwalignment);
-          cs->si->hits[i].nwalignment = nullptr;
+          if (si->hits[i].aligned && si->hits[i].nwalignment != nullptr)
+            {
+              xfree(si->hits[i].nwalignment);
+              si->hits[i].nwalignment = nullptr;
+            }
         }
     }
 }
@@ -1927,5 +1954,11 @@ auto cluster_session_cleanup(struct cluster_session_s * cs) -> void
       cluster_query_exit(cs->si);
       delete cs->si;
       cs->si = nullptr;
+    }
+  if (cs->si_minus != nullptr)
+    {
+      cluster_query_exit(cs->si_minus);
+      delete cs->si_minus;
+      cs->si_minus = nullptr;
     }
 }
