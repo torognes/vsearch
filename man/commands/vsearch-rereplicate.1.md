@@ -108,7 +108,8 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md)
+[`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md),
+[`vsearch-fasta(5)`](./vsearch-fasta.5.md)
 
 
 #(./fragments/footer.md)
