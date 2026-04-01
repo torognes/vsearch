@@ -1,6 +1,6 @@
 bin_PROGRAMS = $(top_builddir)/bin/vsearch
 
-AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes
+AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes -I$(top_srcdir)/third_party/simde
 
 # Conditionally set profiling based on ENABLE_PROFILING
 if ENABLE_PROFILING
@@ -14,7 +14,9 @@ if TARGET_AARCH64
 AM_CFLAGS += -march=armv8-a+simd -mtune=generic
 else
 if TARGET_X86_64
+if !TARGET_APPLE
 AM_CFLAGS += -march=x86-64 -mtune=generic
+endif
 endif
 endif
 endif
