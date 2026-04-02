@@ -105,6 +105,7 @@ AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
 AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")
 AM_CONDITIONAL(TARGET_APPLE, test "x${target_apple}" = "xyes")
+AM_CONDITIONAL(TARGET_X86_64_SIMD, test "x${target_x86_64}" = "xyes" -a "x${target_apple}" != "xyes")
 AM_PROG_CC_C_O
 
 AC_CONFIG_FILES([Makefile

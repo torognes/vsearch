@@ -651,6 +651,8 @@ CCDEPMODE
 ac_ct_CC
 CFLAGS
 CC
+TARGET_X86_64_SIMD_FALSE
+TARGET_X86_64_SIMD_TRUE
 TARGET_APPLE_FALSE
 TARGET_APPLE_TRUE
 TARGET_X86_64_FALSE
@@ -5455,6 +5457,14 @@ else
   TARGET_APPLE_FALSE=
 fi
 
+ if test "x${target_x86_64}" = "xyes" -a "x${target_apple}" != "xyes"; then
+  TARGET_X86_64_SIMD_TRUE=
+  TARGET_X86_64_SIMD_FALSE='#'
+else
+  TARGET_X86_64_SIMD_TRUE='#'
+  TARGET_X86_64_SIMD_FALSE=
+fi
+
 
 
 
@@ -6597,6 +6607,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${TARGET_APPLE_TRUE}" && test -z "${TARGET_APPLE_FALSE}"; then
   as_fn_error $? "conditional \"TARGET_APPLE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${TARGET_X86_64_SIMD_TRUE}" && test -z "${TARGET_X86_64_SIMD_FALSE}"; then
+  as_fn_error $? "conditional \"TARGET_X86_64_SIMD\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then

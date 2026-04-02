@@ -98,7 +98,7 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 @ENABLE_PROFILING_TRUE@am__append_1 = -pg -O1
 @TARGET_PPC_TRUE@am__append_2 = -mcpu=powerpc64le -maltivec
 @TARGET_AARCH64_TRUE@@TARGET_PPC_FALSE@am__append_3 = -march=armv8-a+simd -mtune=generic
-@TARGET_AARCH64_FALSE@@TARGET_APPLE_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_TRUE@am__append_4 = -march=x86-64 -mtune=generic
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_SIMD_TRUE@am__append_4 = -march=x86-64 -mtune=generic
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 # next warnings to activate:
@@ -168,8 +168,8 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
 	vsearch.h vsearch_api.h xstring.h
 am__objects_1 =
-@TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
-@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_X86_64_SIMD_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
+@TARGET_X86_64_SIMD_FALSE@	$(am__objects_1)
 libcpu_a_OBJECTS = $(am_libcpu_a_OBJECTS)
 libcpu_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_pic_a_RANLIB = $(RANLIB)
@@ -191,9 +191,9 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
 	vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
-@TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
-@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_X86_64_SIMD_FALSE@am_libcpu_pic_a_OBJECTS =  \
+@TARGET_X86_64_SIMD_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_SIMD_FALSE@	$(am__objects_1)
 libcpu_pic_a_OBJECTS = $(am_libcpu_pic_a_OBJECTS)
 libcpu_sse2_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_a_RANLIB = $(RANLIB)
@@ -215,9 +215,9 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
 	vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
-@TARGET_X86_64_TRUE@	$(am__objects_1)
+@TARGET_X86_64_SIMD_TRUE@am_libcpu_sse2_a_OBJECTS =  \
+@TARGET_X86_64_SIMD_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_SIMD_TRUE@	$(am__objects_1)
 libcpu_sse2_a_OBJECTS = $(am_libcpu_sse2_a_OBJECTS)
 libcpu_sse2_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_pic_a_RANLIB = $(RANLIB)
@@ -239,9 +239,9 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
 	vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
-@TARGET_X86_64_TRUE@	$(am__objects_1)
+@TARGET_X86_64_SIMD_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
+@TARGET_X86_64_SIMD_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_SIMD_TRUE@	$(am__objects_1)
 libcpu_sse2_pic_a_OBJECTS = $(am_libcpu_sse2_pic_a_OBJECTS)
 libcpu_ssse3_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_a_RANLIB = $(RANLIB)
@@ -263,9 +263,9 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
 	vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
-@TARGET_X86_64_TRUE@	$(am__objects_1)
+@TARGET_X86_64_SIMD_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
+@TARGET_X86_64_SIMD_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_SIMD_TRUE@	$(am__objects_1)
 libcpu_ssse3_a_OBJECTS = $(am_libcpu_ssse3_a_OBJECTS)
 libcpu_ssse3_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_pic_a_RANLIB = $(RANLIB)
@@ -287,9 +287,9 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
 	vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
-@TARGET_X86_64_TRUE@	$(am__objects_1)
+@TARGET_X86_64_SIMD_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
+@TARGET_X86_64_SIMD_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_SIMD_TRUE@	$(am__objects_1)
 libcpu_ssse3_pic_a_OBJECTS = $(am_libcpu_ssse3_pic_a_OBJECTS)
 libvsearch_core_a_AR = $(AR) $(ARFLAGS)
 libvsearch_core_a_RANLIB = $(RANLIB)
@@ -387,12 +387,13 @@ am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
 	$(am__objects_3)
 __top_builddir__bin_vsearch_OBJECTS =  \
 	$(am___top_builddir__bin_vsearch_OBJECTS)
-@TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
-@TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@	libcityhash.a libcpu.a
-@TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
-@TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@	libcityhash.a \
-@TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@	libcpu_ssse3.a \
-@TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@	libcpu_sse2.a
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_FALSE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_FALSE@	libcityhash.a \
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_FALSE@	libcpu.a
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_TRUE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_TRUE@	libcityhash.a \
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_TRUE@	libcpu_ssse3.a \
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_TRUE@	libcpu_sse2.a
 @TARGET_WIN_TRUE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
 @TARGET_WIN_TRUE@	libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 __top_builddir__bin_vsearch_LINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
@@ -771,20 +772,20 @@ vsearch.h \
 vsearch_api.h \
 xstring.h
 
-@TARGET_X86_64_TRUE@libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_TRUE@libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-@TARGET_X86_64_TRUE@libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_TRUE@libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
+@TARGET_X86_64_SIMD_TRUE@libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_SIMD_TRUE@libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
+@TARGET_X86_64_SIMD_TRUE@libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_SIMD_TRUE@libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
 # PIC variants for static library embedding
-@TARGET_X86_64_TRUE@libcpu_sse2_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_TRUE@libcpu_sse2_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2 -fPIC
-@TARGET_X86_64_TRUE@libcpu_ssse3_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_TRUE@libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3 -fPIC
-@TARGET_X86_64_FALSE@noinst_LIBRARIES = libcpu.a libcpu_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
-@TARGET_X86_64_TRUE@noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcpu_sse2_pic.a libcpu_ssse3_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
-@TARGET_X86_64_FALSE@libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_FALSE@libcpu_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_FALSE@libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
+@TARGET_X86_64_SIMD_TRUE@libcpu_sse2_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_SIMD_TRUE@libcpu_sse2_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2 -fPIC
+@TARGET_X86_64_SIMD_TRUE@libcpu_ssse3_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_SIMD_TRUE@libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3 -fPIC
+@TARGET_X86_64_SIMD_FALSE@noinst_LIBRARIES = libcpu.a libcpu_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
+@TARGET_X86_64_SIMD_TRUE@noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcpu_sse2_pic.a libcpu_ssse3_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
+@TARGET_X86_64_SIMD_FALSE@libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_SIMD_FALSE@libcpu_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_SIMD_FALSE@libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
 libcityhash_a_SOURCES = city.cc city.h
 libcityhash_pic_a_SOURCES = city.cc city.h
 @TARGET_WIN_FALSE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
@@ -792,11 +793,11 @@ libcityhash_pic_a_SOURCES = city.cc city.h
 @TARGET_WIN_FALSE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -fPIC
 @TARGET_WIN_TRUE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -D_MSC_VER -fPIC
 @TARGET_WIN_TRUE@__top_builddir__bin_vsearch_LDFLAGS = -static
-@TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
-@TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_FALSE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_TRUE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 @TARGET_WIN_TRUE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
-@TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_pic.a
-@TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_FALSE@VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_pic.a
+@TARGET_WIN_FALSE@@TARGET_X86_64_SIMD_TRUE@VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 @TARGET_WIN_TRUE@VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 
 # Common source files shared between the executable and the static library.
