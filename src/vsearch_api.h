@@ -27,7 +27,8 @@
  * any other function. The required sequence is:
  *
  *   1. vsearch_init_defaults()       — set all ~200 opt_* globals to
- *                                      safe CLI-equivalent defaults
+ *                                      safe library defaults (quiet,
+ *                                      no progress output)
  *   2. Override any opt_* globals    — e.g., opt_wordlength = 8 for
  *      needed for your use case        chimera detection
  *   3. vsearch_apply_defaults_fixups() — resolve sentinel values

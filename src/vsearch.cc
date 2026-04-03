@@ -933,7 +933,7 @@ auto vsearch_init_defaults() -> void
   opt_mothur_shared_out = nullptr;
   opt_msaout = nullptr;
   opt_n_mismatch = false;
-  opt_no_progress = false;
+  opt_no_progress = true;
   opt_nonchimeras = nullptr;
   opt_notmatched = nullptr;
   opt_notmatched = nullptr;
@@ -946,7 +946,7 @@ auto vsearch_init_defaults() -> void
   opt_qmask = MASK_DUST;
   opt_qsegout = nullptr;
   opt_query_cov = 0.0;
-  opt_quiet = false;
+  opt_quiet = true;
   opt_randseed = 0;
   opt_relabel = nullptr;
   opt_relabel_keep = false;
@@ -1095,6 +1095,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   parameters.progname = argv[0];
 
   /* Defaults are now set by vsearch_init_defaults() above. */
+
+  /* Library defaults to quiet; CLI needs output. */
+  opt_quiet = false;
+  opt_no_progress = false;
 
   /* opt_* defaults removed — now in vsearch_init_defaults() */
   opterr = 1;
