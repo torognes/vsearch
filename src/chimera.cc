@@ -101,7 +101,6 @@
 */
 
 /* global constants/data, no need for synchronization */
-static auto parts = 0;
 constexpr auto maxparts = 100;
 constexpr auto window = 32;
 constexpr auto few = 4;
@@ -191,6 +190,8 @@ struct chimera_info_s
 
   double best_h = 0;
 
+  int parts = 0;  /* number of query parts for chimera detection */
+
   /* API result fields — populated by eval_parents when result_out is set */
   struct chimera_result_s * result_out = nullptr;
 
@@ -224,22 +225,22 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   if (opt_chimeras_denovo != nullptr)
     {
       if (opt_chimeras_parts == 0) {
-        parts = (chimera_info->query_len + 99) / 100; // one part per 100bp by default
+        chimera_info->parts = (chimera_info->query_len + 99) / 100;
       }
       else {
-        parts = opt_chimeras_parts;
+        chimera_info->parts = opt_chimeras_parts;
       }
-      if (parts < 2) {
-        parts = 2;
+      if (chimera_info->parts < 2) {
+        chimera_info->parts = 2;
       }
-      else if (parts > maxparts) {
-        parts = maxparts;
+      else if (chimera_info->parts > maxparts) {
+        chimera_info->parts = maxparts;
       }
     }
   else
     {
       /* default for uchime, uchime2, and uchime3 */
-      parts = 4;
+      chimera_info->parts = 4;
     }
 
   const int maxhlen = std::max(chimera_info->query_head_len, 1);
@@ -282,7 +283,8 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
     }
 
   // resize query parts if longer than earlier, minimum 100
-  const int maxpartlen = std::max((maxqlen + parts - 1) / parts, 100);
+  const int maxpartlen =
+    std::max((maxqlen + chimera_info->parts - 1) / chimera_info->parts, 100);
   if (maxpartlen > chimera_info->part_alloc)
     {
       for (auto & query_info: chimera_info->si)
@@ -1834,9 +1836,10 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 {
   auto rest = chimera_info->query_len;
   auto * cursor = chimera_info->query_seq.data();
-  for (auto i = 0; i < parts; ++i)
+  for (auto i = 0; i < chimera_info->parts; ++i)
     {
-      auto const length = (rest + (parts - i - 1)) / (parts - i);
+      auto const length =
+        (rest + (chimera_info->parts - i - 1)) / (chimera_info->parts - i);
 
       auto & search_info = chimera_info->si[i];
 
@@ -1908,10 +1911,10 @@ static auto chimera_process_query(struct chimera_info_s * ci,
   ci->best_h = 0.0;
   auto allhits_count = 0;
 
-  if (ci->query_len >= parts)
+  if (ci->query_len >= ci->parts)
     {
       std::vector<struct hit> hits;
-      for (auto i = 0; i < parts; ++i)
+      for (auto i = 0; i < ci->parts; ++i)
         {
           search_onequery(&ci->si[i], opt_qmask);
           search_joinhits(&ci->si[i], nullptr, hits);
@@ -2872,4 +2875,152 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
      per thread, then chimera_session_cleanup() once. */
   chimera_detect_thread_cleanup(ci);
   chimera_session_cleanup();
+}
+
+
+/* === Batch chimera detection API === */
+
+
+struct chimera_batch_context_s {
+  const char ** query_seqs;
+  const char ** query_heads;
+  const int * query_lens;
+  const int * query_sizes;
+  int query_count;
+  struct chimera_result_s * results;
+
+  /* per-thread chimera state arrays (sized to opt_threads) */
+  struct chimera_info_s ** ci_array;
+
+  /* work-stealing counter */
+  pthread_mutex_t mutex;
+  int next_query;
+};
+
+
+struct chimera_batch_worker_arg_s {
+  struct chimera_batch_context_s * ctx;
+  int thread_id;
+};
+
+
+static auto chimera_batch_worker_fn(void * vp) -> void *
+{
+  auto * arg = static_cast<struct chimera_batch_worker_arg_s *>(vp);
+  auto * ctx = arg->ctx;
+  struct chimera_info_s * ci = ctx->ci_array[arg->thread_id];
+
+  while (true)
+    {
+      xpthread_mutex_lock(&ctx->mutex);
+      int const qi = ctx->next_query++;
+      xpthread_mutex_unlock(&ctx->mutex);
+
+      if (qi >= ctx->query_count)
+        {
+          break;
+        }
+
+      chimera_detect_single(ci,
+                            ctx->query_seqs[qi],
+                            ctx->query_heads[qi],
+                            ctx->query_lens[qi],
+                            ctx->query_sizes[qi],
+                            &ctx->results[qi]);
+    }
+
+  return nullptr;
+}
+
+
+auto chimera_detect_batch(const char ** query_seqs,
+                          const char ** query_heads,
+                          const int * query_lens,
+                          const int * query_sizes,
+                          int query_count,
+                          struct chimera_result_s * results) -> void
+{
+  if (query_count <= 0)
+    {
+      return;
+    }
+
+  int const nthreads = std::max(1, static_cast<int>(opt_threads));
+
+  /* Save globals that chimera_session_init will clobber */
+  int64_t const saved_maxaccepts = opt_maxaccepts;
+  int64_t const saved_maxrejects = opt_maxrejects;
+  double const saved_id = opt_id;
+  double const saved_weak_id = opt_weak_id;
+  bool const saved_self = opt_self;
+  bool const saved_selfid = opt_selfid;
+  double const saved_maxsizeratio = opt_maxsizeratio;
+
+  /* Session-level init (sets search-shaping globals, init mutexes) */
+  chimera_session_init();
+
+  /* Allocate per-thread chimera state */
+  struct chimera_batch_context_s ctx;
+  ctx.query_seqs = query_seqs;
+  ctx.query_heads = query_heads;
+  ctx.query_lens = query_lens;
+  ctx.query_sizes = query_sizes;
+  ctx.query_count = query_count;
+  ctx.results = results;
+  ctx.next_query = 0;
+
+  ctx.ci_array = (struct chimera_info_s **)
+    xmalloc(nthreads * sizeof(struct chimera_info_s *));
+
+  for (int t = 0; t < nthreads; t++)
+    {
+      ctx.ci_array[t] = chimera_info_alloc();
+      chimera_detect_thread_init(ctx.ci_array[t]);
+    }
+
+  xpthread_mutex_init(&ctx.mutex, nullptr);
+
+  /* Launch worker threads */
+  std::vector<pthread_t> threads(nthreads);
+  std::vector<struct chimera_batch_worker_arg_s> args(nthreads);
+  pthread_attr_t batch_attr;
+  xpthread_attr_init(&batch_attr);
+  xpthread_attr_setdetachstate(&batch_attr, PTHREAD_CREATE_JOINABLE);
+
+  for (int t = 0; t < nthreads; t++)
+    {
+      args[t].ctx = &ctx;
+      args[t].thread_id = t;
+      xpthread_create(&threads[t], &batch_attr,
+                      chimera_batch_worker_fn, &args[t]);
+    }
+
+  /* Join threads */
+  for (int t = 0; t < nthreads; t++)
+    {
+      xpthread_join(threads[t], nullptr);
+    }
+
+  xpthread_attr_destroy(&batch_attr);
+  xpthread_mutex_destroy(&ctx.mutex);
+
+  /* Cleanup per-thread state */
+  for (int t = 0; t < nthreads; t++)
+    {
+      chimera_detect_thread_cleanup(ctx.ci_array[t]);
+      chimera_info_free(ctx.ci_array[t]);
+    }
+  xfree(ctx.ci_array);
+
+  /* Session-level cleanup */
+  chimera_session_cleanup();
+
+  /* Restore globals that chimera_session_init clobbered */
+  opt_maxaccepts = saved_maxaccepts;
+  opt_maxrejects = saved_maxrejects;
+  opt_id = saved_id;
+  opt_weak_id = saved_weak_id;
+  opt_self = saved_self;
+  opt_selfid = saved_selfid;
+  opt_maxsizeratio = saved_maxsizeratio;
 }

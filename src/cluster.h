@@ -104,6 +104,18 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                             int seqno,
                             struct cluster_result_s * result) -> void;
 
+/* Assign a contiguous batch of database sequences to clusters.
+   Internally parallelizes the search phase across opt_threads, then
+   processes results sequentially with intra-batch fixup for centroids
+   discovered within the same batch.
+   Must be called with ascending, non-overlapping seqno ranges.
+   results: caller-allocated array of count elements.
+   NOT safe to call concurrently with any other cluster API call. */
+auto cluster_assign_batch(struct cluster_session_s * cs,
+                          int start_seqno,
+                          int count,
+                          struct cluster_result_s * results) -> void;
+
 /* Clean up clustering session resources.
    Call before cluster_session_free(). */
 auto cluster_session_cleanup(struct cluster_session_s * cs) -> void;

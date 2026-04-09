@@ -1,12 +1,10 @@
 /*
  * example_cluster.cc — Sequence clustering using the vsearch library API.
  *
- * Loads sequences from a FASTA file, sorts by length (descending), and
- * clusters them greedily at a given identity threshold. Each unmatched
- * sequence becomes a new centroid; matched sequences join the best
- * centroid's cluster.
+ * Part 1: Loads sequences from a FASTA file, sorts by length (descending),
+ * and clusters them greedily at a given identity threshold. Output: UC format.
  *
- * Output: UC format (S/H/C records) matching vsearch --cluster_fast --uc.
+ * Part 2: Self-validating batch vs sequential comparison.
  *
  * Build:  g++ -std=c++11 -O2 -I../src -o example_cluster example_cluster.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_cluster
@@ -15,6 +13,7 @@
 
 #include "vsearch_api.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -45,16 +44,15 @@ static void read_fasta(const char * path,
 }
 
 
-int main() {
-    /* 1. Initialize vsearch globals */
+/* --- Part 1: UC output for diff comparison --- */
+static int run_cluster_uc() {
     vsearch_init_defaults();
     opt_wordlength = 8;
-    opt_id = 0.70;             /* 70% identity threshold */
-    opt_maxaccepts = 1;        /* accept first hit above threshold */
-    opt_maxrejects = 32;       /* search depth */
+    opt_id = 0.70;
+    opt_maxaccepts = 1;
+    opt_maxrejects = 32;
     vsearch_apply_defaults_fixups();
 
-    /* 2. Load sequences — vsearch --cluster_fast sorts by length */
     std::vector<std::string> labels, seqs;
     read_fasta("data/chimera_ref.fasta", labels, seqs);
 
@@ -64,19 +62,12 @@ int main() {
                nullptr, labels[i].size(), seqs[i].size(), 1);
     }
     dust_all();
-
-    /* Sort by length (descending) — matches --cluster_fast behavior */
     db_sortbylength();
-
-    /* Prepare k-mer index but do NOT index all sequences.
-       Centroids are indexed incrementally during clustering. */
     dbindex_prepare(1, opt_qmask);
 
-    /* 3. Initialize clustering session */
     struct cluster_session_s * cs = cluster_session_alloc();
     cluster_session_init(cs);
 
-    /* 4. Cluster all sequences sequentially */
     int seqcount = static_cast<int>(db_getsequencecount());
     std::vector<struct cluster_result_s> results(seqcount);
     std::vector<int> cluster_sizes;
@@ -90,17 +81,14 @@ int main() {
         }
     }
 
-    /* 5. Output in UC format (S/H records, then C records) */
     for (int i = 0; i < seqcount; i++) {
         auto const & r = results[i];
         if (r.is_centroid) {
-            /* S record: cluster seed */
             std::printf("S\t%d\t%lu\t*\t*\t*\t*\t*\t%s\t*\n",
                         r.cluster_id,
                         (unsigned long) db_getsequencelen(i),
                         db_getheader(i));
         } else {
-            /* H record: hit assigned to cluster */
             std::printf("H\t%d\t%lu\t%.1f\t+\t0\t0\t%s\t%s\t%s\n",
                         r.cluster_id,
                         (unsigned long) db_getsequencelen(i),
@@ -111,9 +99,7 @@ int main() {
         }
     }
 
-    /* C records: cluster summaries */
     for (int c = 0; c < static_cast<int>(cluster_sizes.size()); c++) {
-        /* Find centroid label for this cluster */
         for (int i = 0; i < seqcount; i++) {
             if (results[i].is_centroid && results[i].cluster_id == c) {
                 std::printf("C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
@@ -123,7 +109,6 @@ int main() {
         }
     }
 
-    /* 6. Cleanup */
     cluster_session_cleanup(cs);
     cluster_session_free(cs);
     dbindex_free();
@@ -131,4 +116,113 @@ int main() {
     vsearch_session_end();
 
     return 0;
+}
+
+
+/* --- Part 2: Self-validating batch vs sequential comparison --- */
+static int run_batch_tests()
+{
+  int failures = 0;
+
+  vsearch_init_defaults();
+  opt_wordlength = 8;
+  opt_id = 0.70;
+  opt_maxaccepts = 1;
+  opt_maxrejects = 32;
+  opt_threads = 2;
+  vsearch_apply_defaults_fixups();
+
+  std::vector<std::string> labels, seqs;
+  read_fasta("data/chimera_ref.fasta", labels, seqs);
+
+  db_init();
+  for (size_t i = 0; i < labels.size(); i++)
+    {
+      db_add(false, labels[i].c_str(), seqs[i].c_str(),
+             nullptr, labels[i].size(), seqs[i].size(), 1);
+    }
+  dust_all();
+  db_sortbylength();
+
+  int const sc = static_cast<int>(db_getsequencecount());
+
+  /* Sequential: use cluster_assign_single one at a time */
+  dbindex_prepare(1, opt_qmask);
+  struct cluster_session_s * cs_seq = cluster_session_alloc();
+  cluster_session_init(cs_seq);
+
+  std::vector<struct cluster_result_s> seq_results(sc);
+  for (int i = 0; i < sc; i++)
+    {
+      cluster_assign_single(cs_seq, i, &seq_results[i]);
+    }
+
+  cluster_session_cleanup(cs_seq);
+  cluster_session_free(cs_seq);
+  dbindex_free();
+
+  /* Batch: use cluster_assign_batch for all at once */
+  dbindex_prepare(1, opt_qmask);
+  struct cluster_session_s * cs_batch = cluster_session_alloc();
+  cluster_session_init(cs_batch);
+
+  std::vector<struct cluster_result_s> batch_results(sc);
+  cluster_assign_batch(cs_batch, 0, sc, batch_results.data());
+
+  cluster_session_cleanup(cs_batch);
+  cluster_session_free(cs_batch);
+  dbindex_free();
+
+  /* Compare results */
+  for (int i = 0; i < sc; i++)
+    {
+      auto const & sr = seq_results[i];
+      auto const & br = batch_results[i];
+
+      bool mismatch = (sr.is_centroid != br.is_centroid) ||
+                      (sr.cluster_id != br.cluster_id) ||
+                      (sr.centroid_seqno != br.centroid_seqno);
+      if (!sr.is_centroid)
+        {
+          mismatch = mismatch ||
+            (std::fabs(sr.identity - br.identity) > 0.01) ||
+            (std::strcmp(sr.cigar, br.cigar) != 0);
+        }
+      if (mismatch)
+        {
+          std::fprintf(stderr,
+                       "FAIL: batch cluster seq %d: "
+                       "centroid=%d/cid=%d/cseq=%d/id=%.1f/cigar=%s "
+                       "!= centroid=%d/cid=%d/cseq=%d/id=%.1f/cigar=%s\n",
+                       i,
+                       br.is_centroid, br.cluster_id,
+                       br.centroid_seqno, br.identity, br.cigar,
+                       sr.is_centroid, sr.cluster_id,
+                       sr.centroid_seqno, sr.identity, sr.cigar);
+          ++failures;
+        }
+    }
+
+  if (failures == 0)
+    {
+      std::fprintf(stderr, "PASS: batch cluster matches sequential "
+                   "(%d sequences, %ld threads)\n", sc, (long) opt_threads);
+    }
+
+  db_free();
+  vsearch_session_end();
+
+  return failures;
+}
+
+
+int main() {
+    int rc = run_cluster_uc();
+    if (rc != 0)
+      {
+        return rc;
+      }
+
+    int failures = run_batch_tests();
+    return failures == 0 ? 0 : 1;
 }

@@ -150,3 +150,21 @@ auto chimera_detect_single(struct chimera_info_s * ci,
    Tears down BOTH per-thread and session-level state.
    Use when only one chimera_info_s exists per session. */
 auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
+
+
+/* === Batch chimera detection API === */
+
+/* Detect chimeras for a batch of queries.
+   Internally parallelizes across opt_threads.
+   Manages session init/cleanup internally — caller must NOT call
+   chimera_session_init/cleanup around this function.
+   NOT safe to call concurrently with any other chimera API call.
+   Creates and destroys a thread pool per call.
+   Requires: global opt_* set, database loaded and indexed.
+   results: caller-allocated array of query_count elements. */
+auto chimera_detect_batch(const char ** query_seqs,
+                          const char ** query_heads,
+                          const int * query_lens,
+                          const int * query_sizes,
+                          int query_count,
+                          struct chimera_result_s * results) -> void;

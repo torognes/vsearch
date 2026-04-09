@@ -1117,3 +1117,478 @@ auto search_cleanup(struct searchinfo_s * si) -> void
 {
   search_thread_exit(si);
 }
+
+
+/* === Session-based search API (supports both-strand search) === */
+
+
+struct search_session_s {
+  struct searchinfo_s * si_plus = nullptr;
+  struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
+};
+
+
+auto search_session_alloc() -> struct search_session_s *
+{
+  return new search_session_s {};
+}
+
+
+auto search_session_free(struct search_session_s * ss) -> void
+{
+  if (ss != nullptr)
+    {
+      search_session_cleanup(ss);
+      delete ss;
+    }
+}
+
+
+auto search_session_init(struct search_session_s * ss) -> void
+{
+  /* Initialize search session for library use.
+     Mirrors cluster_session_init: sets file-static seqcount/tophits,
+     allocates si_plus (always) and si_minus (when opt_strand > 1). */
+  seqcount = static_cast<int>(db_getsequencecount());
+  tophits = opt_maxaccepts + opt_maxrejects + MAXDELAYED;
+  if (tophits > seqcount)
+    {
+      tophits = seqcount;
+    }
+
+  ss->si_plus = new searchinfo_s {};
+  search_thread_init(ss->si_plus);
+  ss->si_plus->strand = 0;
+
+  if (opt_strand > 1)
+    {
+      ss->si_minus = new searchinfo_s {};
+      search_thread_init(ss->si_minus);
+      ss->si_minus->strand = 1;
+    }
+}
+
+
+auto search_single(struct search_session_s * ss,
+                   const char * query_seq,
+                   const char * query_head,
+                   int query_len,
+                   int query_size,
+                   struct search_result_s * results,
+                   int max_results,
+                   int * result_count) -> void
+{
+  int const head_len = std::strlen(query_head);
+
+  /* Populate plus strand with raw (unmasked) query */
+  struct searchinfo_s * si = ss->si_plus;
+  si->query_head_len = head_len;
+  si->qseqlen = query_len;
+  si->query_no = 0;
+  si->qsize = query_size;
+  si->strand = 0;
+
+  if (si->query_head_len + 1 > si->query_head_alloc)
+    {
+      si->query_head_alloc = si->query_head_len + 2001;
+      si->query_head = (char *)
+        xrealloc(si->query_head, (size_t) (si->query_head_alloc));
+    }
+  if (si->qseqlen + 1 > si->seq_alloc)
+    {
+      si->seq_alloc = si->qseqlen + 2001;
+      si->qsequence = (char *)
+        xrealloc(si->qsequence, (size_t) (si->seq_alloc));
+    }
+
+  std::strcpy(si->query_head, query_head);
+  std::strcpy(si->qsequence, query_seq);
+
+  /* Populate minus strand from raw input BEFORE masking either strand.
+     The CLI (search_thread_run lines 411-428) takes the RC of the unmasked
+     sequence, then masks each strand independently. */
+  if (opt_strand > 1)
+    {
+      struct searchinfo_s * si_m = ss->si_minus;
+      si_m->query_head_len = head_len;
+      si_m->qseqlen = query_len;
+      si_m->query_no = 0;
+      si_m->qsize = query_size;
+      si_m->strand = 1;
+
+      if (si_m->query_head_len + 1 > si_m->query_head_alloc)
+        {
+          si_m->query_head_alloc = si_m->query_head_len + 2001;
+          si_m->query_head = (char *)
+            xrealloc(si_m->query_head, (size_t) (si_m->query_head_alloc));
+        }
+      if (si_m->qseqlen + 1 > si_m->seq_alloc)
+        {
+          si_m->seq_alloc = si_m->qseqlen + 2001;
+          si_m->qsequence = (char *)
+            xrealloc(si_m->qsequence, (size_t) (si_m->seq_alloc));
+        }
+
+      std::strcpy(si_m->query_head, query_head);
+      reverse_complement(si_m->qsequence, si->qsequence, si->qseqlen);
+    }
+
+  /* Mask and search each strand independently */
+  for (int s = 0; s < opt_strand; s++)
+    {
+      struct searchinfo_s * strand_si =
+        (s != 0) ? ss->si_minus : ss->si_plus;
+
+      if (opt_qmask == MASK_DUST)
+        {
+          dust(strand_si->qsequence, strand_si->qseqlen);
+        }
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+        {
+          hardmask(strand_si->qsequence, strand_si->qseqlen);
+        }
+
+      search_onequery(strand_si, opt_qmask);
+    }
+
+  /* Merge hits from both strands */
+  std::vector<struct hit> hits;
+  search_joinhits(ss->si_plus,
+                  opt_strand > 1 ? ss->si_minus : nullptr,
+                  hits);
+
+  /* Populate results (search_joinhits returns only accepted/weak hits) */
+  int count = 0;
+  for (auto const & h : hits)
+    {
+      if (count >= max_results)
+        {
+          break;
+        }
+      auto & r = results[count];
+      r.target = h.target;
+      std::snprintf(r.target_label, sizeof(r.target_label), "%.*s",
+                    (int) db_getheaderlen(h.target),
+                    db_getheader(h.target));
+      r.id = h.id;
+      r.matches = h.matches;
+      r.mismatches = h.mismatches;
+      r.gaps = h.nwgaps;
+      r.alignment_length = h.nwalignmentlength;
+      r.query_length = si->qseqlen;
+      r.target_length = (int) db_getsequencelen(h.target);
+      r.accepted = h.accepted;
+      r.strand = h.strand;
+      ++count;
+    }
+  *result_count = count;
+
+  /* Free alignment strings directly from si->hits (not the joinhits copy)
+     to avoid dangling pointers. Follows cluster_assign_single pattern. */
+  for (int s = 0; s < opt_strand; s++)
+    {
+      struct searchinfo_s * strand_si =
+        (s != 0) ? ss->si_minus : ss->si_plus;
+      for (int i = 0; i < strand_si->hit_count; ++i)
+        {
+          if (strand_si->hits[i].aligned &&
+              strand_si->hits[i].nwalignment != nullptr)
+            {
+              xfree(strand_si->hits[i].nwalignment);
+              strand_si->hits[i].nwalignment = nullptr;
+            }
+        }
+    }
+}
+
+
+auto search_session_cleanup(struct search_session_s * ss) -> void
+{
+  if (ss->si_plus != nullptr)
+    {
+      search_thread_exit(ss->si_plus);
+      delete ss->si_plus;
+      ss->si_plus = nullptr;
+    }
+  if (ss->si_minus != nullptr)
+    {
+      search_thread_exit(ss->si_minus);
+      delete ss->si_minus;
+      ss->si_minus = nullptr;
+    }
+}
+
+
+/* === Batch search API === */
+
+
+/* Shared state for batch search worker threads */
+struct search_batch_context_s {
+  const char ** query_seqs;
+  const char ** query_heads;
+  const int * query_lens;
+  const int * query_sizes;
+  int query_count;
+  struct search_result_s * results;
+  int max_results_per_query;
+  int * result_counts;
+
+  /* per-thread search state arrays (sized to opt_threads) */
+  struct searchinfo_s * batch_si_plus;
+  struct searchinfo_s * batch_si_minus;  /* nullptr when opt_strand == 1 */
+
+  /* work-stealing counter */
+  pthread_mutex_t mutex;
+  int next_query;
+};
+
+
+struct search_batch_worker_arg_s {
+  struct search_batch_context_s * ctx;
+  int thread_id;
+};
+
+
+static auto search_batch_worker_fn(void * vp) -> void *
+{
+  auto * arg = static_cast<struct search_batch_worker_arg_s *>(vp);
+  auto * ctx = arg->ctx;
+  int const tid = arg->thread_id;
+
+  struct searchinfo_s * my_si_plus = ctx->batch_si_plus + tid;
+  struct searchinfo_s * my_si_minus =
+    (ctx->batch_si_minus != nullptr) ? ctx->batch_si_minus + tid : nullptr;
+
+  while (true)
+    {
+      /* grab next query */
+      xpthread_mutex_lock(&ctx->mutex);
+      int const qi = ctx->next_query++;
+      xpthread_mutex_unlock(&ctx->mutex);
+
+      if (qi >= ctx->query_count)
+        {
+          break;
+        }
+
+      char const * qseq = ctx->query_seqs[qi];
+      char const * qhead = ctx->query_heads[qi];
+      int const qlen = ctx->query_lens[qi];
+      int const qsize = ctx->query_sizes[qi];
+      int const head_len = std::strlen(qhead);
+
+      /* Populate plus strand with raw input */
+      my_si_plus->query_head_len = head_len;
+      my_si_plus->qseqlen = qlen;
+      my_si_plus->query_no = qi;
+      my_si_plus->qsize = qsize;
+      my_si_plus->strand = 0;
+
+      if (my_si_plus->query_head_len + 1 > my_si_plus->query_head_alloc)
+        {
+          my_si_plus->query_head_alloc = my_si_plus->query_head_len + 2001;
+          my_si_plus->query_head = (char *)
+            xrealloc(my_si_plus->query_head,
+                     (size_t) (my_si_plus->query_head_alloc));
+        }
+      if (my_si_plus->qseqlen + 1 > my_si_plus->seq_alloc)
+        {
+          my_si_plus->seq_alloc = my_si_plus->qseqlen + 2001;
+          my_si_plus->qsequence = (char *)
+            xrealloc(my_si_plus->qsequence,
+                     (size_t) (my_si_plus->seq_alloc));
+        }
+
+      std::strcpy(my_si_plus->query_head, qhead);
+      std::strcpy(my_si_plus->qsequence, qseq);
+
+      /* Populate minus strand from raw input BEFORE masking */
+      if (my_si_minus != nullptr)
+        {
+          my_si_minus->query_head_len = head_len;
+          my_si_minus->qseqlen = qlen;
+          my_si_minus->query_no = qi;
+          my_si_minus->qsize = qsize;
+          my_si_minus->strand = 1;
+
+          if (my_si_minus->query_head_len + 1 > my_si_minus->query_head_alloc)
+            {
+              my_si_minus->query_head_alloc =
+                my_si_minus->query_head_len + 2001;
+              my_si_minus->query_head = (char *)
+                xrealloc(my_si_minus->query_head,
+                         (size_t) (my_si_minus->query_head_alloc));
+            }
+          if (my_si_minus->qseqlen + 1 > my_si_minus->seq_alloc)
+            {
+              my_si_minus->seq_alloc = my_si_minus->qseqlen + 2001;
+              my_si_minus->qsequence = (char *)
+                xrealloc(my_si_minus->qsequence,
+                         (size_t) (my_si_minus->seq_alloc));
+            }
+
+          std::strcpy(my_si_minus->query_head, qhead);
+          reverse_complement(my_si_minus->qsequence,
+                             my_si_plus->qsequence,
+                             my_si_plus->qseqlen);
+        }
+
+      /* Mask and search each strand independently */
+      for (int s = 0; s < opt_strand; s++)
+        {
+          struct searchinfo_s * strand_si =
+            (s != 0) ? my_si_minus : my_si_plus;
+
+          if (opt_qmask == MASK_DUST)
+            {
+              dust(strand_si->qsequence, strand_si->qseqlen);
+            }
+          else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+            {
+              hardmask(strand_si->qsequence, strand_si->qseqlen);
+            }
+
+          search_onequery(strand_si, opt_qmask);
+        }
+
+      /* Merge hits from both strands */
+      std::vector<struct hit> hits;
+      search_joinhits(my_si_plus,
+                      opt_strand > 1 ? my_si_minus : nullptr,
+                      hits);
+
+      /* Populate results for this query */
+      struct search_result_s * qresults =
+        ctx->results + qi * ctx->max_results_per_query;
+      int count = 0;
+      for (auto const & h : hits)
+        {
+          if (count >= ctx->max_results_per_query)
+            {
+              break;
+            }
+          auto & r = qresults[count];
+          r.target = h.target;
+          std::snprintf(r.target_label, sizeof(r.target_label), "%.*s",
+                        (int) db_getheaderlen(h.target),
+                        db_getheader(h.target));
+          r.id = h.id;
+          r.matches = h.matches;
+          r.mismatches = h.mismatches;
+          r.gaps = h.nwgaps;
+          r.alignment_length = h.nwalignmentlength;
+          r.query_length = qlen;
+          r.target_length = (int) db_getsequencelen(h.target);
+          r.accepted = h.accepted;
+          r.strand = h.strand;
+          ++count;
+        }
+      ctx->result_counts[qi] = count;
+
+      /* Free alignment strings from si->hits directly */
+      for (int s = 0; s < opt_strand; s++)
+        {
+          struct searchinfo_s * strand_si =
+            (s != 0) ? my_si_minus : my_si_plus;
+          for (int i = 0; i < strand_si->hit_count; ++i)
+            {
+              if (strand_si->hits[i].aligned &&
+                  strand_si->hits[i].nwalignment != nullptr)
+                {
+                  xfree(strand_si->hits[i].nwalignment);
+                  strand_si->hits[i].nwalignment = nullptr;
+                }
+            }
+        }
+    }
+
+  return nullptr;
+}
+
+
+auto search_batch(const char ** query_seqs,
+                  const char ** query_heads,
+                  const int * query_lens,
+                  const int * query_sizes,
+                  int query_count,
+                  struct search_result_s * results,
+                  int max_results_per_query,
+                  int * result_counts) -> void
+{
+  /* Set up file-statics needed by search_thread_init */
+  seqcount = static_cast<int>(db_getsequencecount());
+  tophits = opt_maxaccepts + opt_maxrejects + MAXDELAYED;
+  if (tophits > seqcount)
+    {
+      tophits = seqcount;
+    }
+
+  int const nthreads = static_cast<int>(opt_threads);
+
+  /* Allocate per-thread search state */
+  struct search_batch_context_s ctx;
+  ctx.query_seqs = query_seqs;
+  ctx.query_heads = query_heads;
+  ctx.query_lens = query_lens;
+  ctx.query_sizes = query_sizes;
+  ctx.query_count = query_count;
+  ctx.results = results;
+  ctx.max_results_per_query = max_results_per_query;
+  ctx.result_counts = result_counts;
+  ctx.next_query = 0;
+
+  ctx.batch_si_plus = (struct searchinfo_s *)
+    xmalloc(nthreads * sizeof(struct searchinfo_s));
+  if (opt_strand > 1)
+    {
+      ctx.batch_si_minus = (struct searchinfo_s *)
+        xmalloc(nthreads * sizeof(struct searchinfo_s));
+    }
+  else
+    {
+      ctx.batch_si_minus = nullptr;
+    }
+
+  xpthread_mutex_init(&ctx.mutex, nullptr);
+
+  /* Init per-thread state and launch threads */
+  std::vector<pthread_t> threads(nthreads);
+  std::vector<struct search_batch_worker_arg_s> args(nthreads);
+  pthread_attr_t batch_attr;
+  xpthread_attr_init(&batch_attr);
+  xpthread_attr_setdetachstate(&batch_attr, PTHREAD_CREATE_JOINABLE);
+
+  for (int t = 0; t < nthreads; t++)
+    {
+      std::memset(ctx.batch_si_plus + t, 0, sizeof(struct searchinfo_s));
+      search_thread_init(ctx.batch_si_plus + t);
+      if (ctx.batch_si_minus != nullptr)
+        {
+          std::memset(ctx.batch_si_minus + t, 0, sizeof(struct searchinfo_s));
+          search_thread_init(ctx.batch_si_minus + t);
+        }
+      args[t].ctx = &ctx;
+      args[t].thread_id = t;
+      xpthread_create(&threads[t], &batch_attr,
+                      search_batch_worker_fn, &args[t]);
+    }
+
+  /* Join and cleanup */
+  for (int t = 0; t < nthreads; t++)
+    {
+      xpthread_join(threads[t], nullptr);
+      search_thread_exit(ctx.batch_si_plus + t);
+      if (ctx.batch_si_minus != nullptr)
+        {
+          search_thread_exit(ctx.batch_si_minus + t);
+        }
+    }
+
+  xpthread_attr_destroy(&batch_attr);
+  xpthread_mutex_destroy(&ctx.mutex);
+  xfree(ctx.batch_si_plus);
+  if (ctx.batch_si_minus != nullptr)
+    {
+      xfree(ctx.batch_si_minus);
+    }
+}
