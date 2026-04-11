@@ -32,7 +32,10 @@ The padding sequence defaults to `NNNNNNNN` (eight N's) and can be
 changed with `--join_padgap`. The corresponding quality string
 defaults to `IIIIIIII` (quality score 40, error probability 0.0001)
 and can be changed with `--join_padgapq`. Joined sequences are written
-to `--fastaout` and/or `--fastqout`.
+to `--fastaout` and/or `--fastqout`. See
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for more
+information on these formats.
 
 Note that reads are joined, not merged. To merge overlapping
 paired-end reads, see
@@ -51,11 +54,13 @@ At least one of `--fastaout` or `--fastqout` must also be specified.
 ## core options
 
 `--fastaout` *filename*
-: Write the joined sequences to *filename*, in fasta format. Quality
-  scores are not written.
+: Write the joined sequences to *filename*, in fasta format (see
+  [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)). Quality scores
+  are not written.
 
 `--fastqout` *filename*
-: Write the joined sequences to *filename*, in fastq format.
+: Write the joined sequences to *filename*, in fastq format (see
+  [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)).
 
 #(./fragments/option_join_padgap.md)
 
@@ -141,6 +146,9 @@ vsearch \
 
 [`vsearch-fastq_mergepairs(1)`](./vsearch-fastq_mergepairs.1.md) for
 merging overlapping paired-end reads.
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md),
+[`vsearch-expected_error(7)`](../misc/vsearch-expected_error.7.md)
 
 
 #(./fragments/footer.md)
