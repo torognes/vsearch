@@ -123,7 +123,9 @@ vsearch \
 
 Sorting operations (complementary to shuffling):
 [`vsearch-sortbylength(1)`](./vsearch-sortbylength.1.md),
-[`vsearch-sortbysize(1)`](./vsearch-sortbysize.1.md)
+[`vsearch-sortbysize(1)`](./vsearch-sortbysize.1.md),
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
 
 
 #(./fragments/footer.md)

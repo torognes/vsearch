@@ -16,7 +16,7 @@ vsearch \-\-rereplicate --- use abundance values to rereplicate fasta sequences
 
 The vsearch command `--rereplicate` uses abundance values contained in
 fasta header annotations (`;size=n`) to rereplicate sequences. An
-input fasta entry is rereplicated *n* times if its abudance is *n*
+input fasta entry is rereplicated *n* times if its abundance is *n*
 (`;size=n`) (option `--sizein` is always implied). If abundance
 annotations are missing, a warning is emitted. The label of the output
 sequence remains the same, unless `--relabel`, `--relabel_self`,
@@ -108,8 +108,12 @@ vsearch \
 
 # SEE ALSO
 
+[`vsearch-derep_fulllength(1)`](./vsearch-derep_fulllength.1.md),
+[`vsearch-derep_id(1)`](./vsearch-derep_id.1.md),
+[`vsearch-derep_prefix(1)`](./vsearch-derep_prefix.1.md),
+[`vsearch-derep_smallmem(1)`](./vsearch-derep_smallmem.1.md),
 [`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md),
-[`vsearch-fasta(5)`](./vsearch-fasta.5.md)
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)
 
 
 #(./fragments/footer.md)
