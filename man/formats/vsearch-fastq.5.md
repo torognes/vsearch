@@ -1,4 +1,4 @@
-% vsearch-fastq(5) version 2.30.4 | vsearch file formats
+% vsearch-fastq(5) version 2.30.6 | vsearch file formats
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(../commands/fragments/date.md)
 
