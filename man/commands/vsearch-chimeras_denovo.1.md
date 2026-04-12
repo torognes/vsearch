@@ -9,18 +9,18 @@ vsearch \-\-chimeras_denovo --- detect chimeras *de novo* in long exact sequence
 
 # SYNOPSIS
 
-| **vsearch** **\-\-chimeras_denovo** _inputfile_ (\-\-chimeras | \-\-nonchimeras | \-\-alnout | \-\-tabbedout) _outputfile_ \[_options_]
+| **vsearch** **\-\-chimeras_denovo** _inputfile_ (**\-\-chimeras** | **\-\-nonchimeras** | **\-\-alnout** | **\-\-tabbedout**) _outputfile_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--chimeras_denovo` detect chimeras *de novo*
+The vsearch command `--chimeras_denovo` detects chimeras *de novo*
 (i.e. without external references) in long exact sequences
-(*inputfile*, in fasta or fastq format). It uses a modified uchime
+(*inputfile*, in fasta or fastq format). It uses a modified UCHIME
 algorithm that can automatically adapt to a wide range of sequence
 lengths.
 
-Abundance annotations (pattern '[>@;]size=integer[;]') present in
+Abundance annotations (pattern `[>@;]size=integer[;]`) present in
 sequence headers are taken into account by default. This means that
 option `--sizein` is always implied, and does not need to be
 specified.
@@ -50,8 +50,8 @@ Ids.  QA 80.00%, QB 80.00%, QC 0.00%, QT 80.00%, QModel 100.00%, Div. +25.00%
 ```
 
 Lowercase positions indicate a mismatch between the parent and the
-query. The line Diffs indicates the positions that favor a particular
-parent when modeling the chimera. The line Ids gives global similarity
+query. The line Diffs indicates the positions that favour a particular
+parent when modelling the chimera. The line Ids gives global similarity
 percentages with the different parents (QA, QB, and QC), the closest
 parent (QT), the model (QModel, always 100.00%), and the divergence of
 the model with the closest parent (Div). If there are only two parents
@@ -63,40 +63,20 @@ only QA, QB and QC are reported.
 
 ## mandatory options
 
-At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
-`--tabbedout` must be specified.
+`--chimeras_denovo` *inputfile*
+: Detect chimeras *de novo* in *inputfile* (fasta or fastq format)
+  using a modified UCHIME algorithm that adapts to a wide range of
+  sequence lengths. This option is mandatory.
 
-`--alnout` *filename*
-: Write multi-way alignments to *filename* using a human-readable
-  format (see example above). Use `--alignwidth` to set the alignment
-  width (60 nucleotides by default).
+At least one of the following output options must be specified:
+
+#(./fragments/option_alnout_chimeras.md)
 
 #(./fragments/option_chimeras.md)
 
 #(./fragments/option_nonchimeras.md)
 
-`--tabbedout` *filename*
-: Write the results to a eighteen-column tab-delimited file with the
-  specified *filename*. Columns are:
-
-    1.  score: dummy value, always set to 99.9999
-    2.  query header
-    3.  parent A header
-    4.  parent B header
-    5.  parent C header ("*" if there are only two parents)
-    6.  QModel: max global similarity percentage (always 100.0%)
-    7.  QA: global similarity percentage with parent A
-    8.  QB: global similarity percentage with parent B
-    9.  QC: global similarity percentage with parent C (0.00 if there are only two parents)
-    10.  QT: highest similarity percentage with a parent
-    11.  left yes: ignored, always set to zero
-    12.  left no: ignored, always set to zero
-    13.  left abstain: ignored, always set to zero
-    14.  right yes: ignored, always set to zero
-    15.  right no: ignored, always set to zero
-    16.  right abstain: ignored, always set to zero
-    17.  dummy value, always set to 0.00
-    18.  chimeric status, always set to Y (only chimeras are reported)
+#(./fragments/option_tabbedout_chimeras_denovo.md)
 
 
 ## core options
@@ -156,7 +136,6 @@ At least one of `--alnout`, `--chimeras`, `--nonchimeras`, and
 #(./fragments/option_sample.md)
 
 #(./fragments/option_sizeout.md)
-: Always implied.
 
 #(./fragments/option_xee.md)
 
@@ -184,16 +163,6 @@ model. Modify with caution.
 #(./fragments/option_threads_not_multithreaded.md)
 
 
-## unsupported options
-
-The following options are not yet supported by the `--chimeras_denovo`
-command:
-
-#(./fragments/option_bzip2_decompress.md)
-
-#(./fragments/option_gzip_decompress.md)
-
-
 # EXAMPLES
 
 A simple way to filter out chimeras:
@@ -205,8 +174,8 @@ vsearch \
     --nonchimeras clean.fasta
 ```
 
-Add option `--tabbedout` to log the name of the sequences identified
-as chimeras, and option `--log` to record run parameters:
+Add option `--tabbedout` to log the sequences identified as chimeras,
+and option `--log` to record run parameters:
 
 ```sh
 vsearch \
@@ -220,10 +189,11 @@ vsearch \
 
 # SEE ALSO
 
-[`vsearch-uchime_denovo(1)`](./commands/vsearch-uchime_denovo.1.md),
-[`vsearch-uchime2_denovo(1)`](../formats/vsearch-uchime2_denovo.1.md),
-[`vsearch-uchime3_denovo(1)`](../formats/vsearch-uchime3_denovo.1.md),
-[`vsearch-uchime_ref(1)`](../formats/vsearch-uchime_ref.1.md)
+[`vsearch-uchime_denovo(1)`](./vsearch-uchime_denovo.1.md),
+[`vsearch-uchime2_denovo(1)`](./vsearch-uchime2_denovo.1.md),
+[`vsearch-uchime3_denovo(1)`](./vsearch-uchime3_denovo.1.md),
+[`vsearch-uchime_ref(1)`](./vsearch-uchime_ref.1.md),
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)
 
 
 #(./fragments/footer.md)
