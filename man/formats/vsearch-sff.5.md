@@ -20,7 +20,7 @@ Original NCBI documentation available at:
 <https://www.ncbi.nlm.nih.gov/Traces/trace.cgi?view=doc_formats#sffhere>
 
 If unavailable, it can be recovered from <https://web.archive.org>. We
-provide this modified version for preservation purpose.
+provide this modified version for preservation purposes.
 
 The proposed SFF file format (version 1) is a container file for
 storing one or many 454 reads. 454 reads differ from standard
@@ -44,8 +44,14 @@ below. The sections adhere to the following rules:
 
 - The standard Unix types `uint8_t`, `uint16_t`, `uint32_t` and
   `uint64_t` are used to define 1, 2, 4 and 8-byte numeric values.
-- All multi-byte numeric values are stored using big endian byte-order
-  (same as the Standard Chromatogram Format, or SCF, file format).
+- All multi-byte numeric values are stored in *big endian* byte order
+  (also called network byte order; same as the Standard Chromatogram
+  Format, SCF). *Endianness* refers to the order in which the bytes of
+  a multi-byte value are stored in a file or in memory: in *big endian*
+  order, the most significant byte is stored first, at the lowest
+  address. This contrasts with *little endian* order, where the least
+  significant byte comes first — the convention used by most modern
+  processors (x86, ARM).
 - All character fields use single-byte ASCII characters.
 - Each section definition ends with an `eight_byte_padding` field,
   which consists of 0 to 7 bytes of padding, so that the length of
@@ -72,7 +78,6 @@ The *common header* section consists of the following fields:
  eight_byte_padding         uint8_t[*]
 ```
 
-            
 where the following properties are true for these fields:
 
 - The `magic_number` field value is 0x2E736666, the `uint32_t`
@@ -92,11 +97,11 @@ where the following properties are true for these fields:
   reads. Note: The `key_sequence` field is not null-terminated.
 - The `number_of_flows_per_read` should be set to the number of flows
   for each of the reads in the file.
-- The `flowgram_format`_code should be set to the format used to
+- The `flowgram_format_code` should be set to the format used to
   encode each of the flowgram values for each read.
   - Note: Currently, only one flowgram format has been adopted, so
     this value should be set to 1.
-  - The flowgram format code 1 stores each value as a uint16_t, where
+  - The flowgram format code 1 stores each value as a `uint16_t`, where
     the floating point flowgram value is encoded as "(int)
     round(value * 100.0)", and decoded as "(storedvalue * 1.0 /
     100.0)".
@@ -127,7 +132,6 @@ sections. The *read header* section consists of the following fields:
  eight_byte_padding         uint8_t[*]
 ```
 
-
 where these fields have the following properties:
 
 - `read_header_length` should be set to the length of the read header
@@ -148,12 +152,12 @@ where these fields have the following properties:
   - If a clipping value is not computed, the field should be set to 0.
   - Thus, the first base of the insert is:
 
-```
-  max(
-   1,
-   max(`clip_qual_left`, `clip_adapter_left`)
-     )
-```
+    ```text
+    max(
+     1,
+     max(clip_qual_left, clip_adapter_left)
+       )
+    ```
 
 - The `clip_qual_right` and `clip_adapter_right` fields should be set
   to the position of the last base before the clipping point, for
@@ -161,16 +165,15 @@ where these fields have the following properties:
   a combined clipping position is computed, it should be stored in
   `clip_qual_right`.
   - The position values use 1-based indexing.
-  - If a clipping value is (not?) computed, the field should be set to
-    0.
+  - If a clipping value is not computed, the field should be set to 0.
   - Thus, the last base of the insert is:
 
-```
-  min(
-   (`clip_qual_right`    == 0 ? `number_of_bases` : `clip_qual_right`),
-   (`clip_adapter_right` == 0 ? `number_of_bases` : `clip_adapter_right`)
-     )
-```
+    ```text
+    min(
+     (clip_qual_right    == 0 ? number_of_bases : clip_qual_right),
+     (clip_adapter_right == 0 ? number_of_bases : clip_adapter_right)
+       )
+    ```
 
 ## Read Data Section
 
@@ -218,13 +221,12 @@ two fields:
  index_version              char[4]
 ```
 
-followed by the actual `index data` (*n* bytes) and a
-`eight_byte_padding` field, so that the (total?) length of the index
+followed by the actual index data (*n* bytes) and a
+`eight_byte_padding` field, so that the total length of the index
 section is divisible by 8. The format of the rest of the index data is
 specific to the indexing method used. Currently, there are no
 officially supported indexing formats. The `index_length` given in the
-common header should include the bytes of these fields and the padding
-(unclear!).
+common header should include the bytes of these fields and the padding.
 
 
 ## Computing Lengths and Scanning the File
@@ -259,7 +261,7 @@ accessing each read's data:
     - Read 16 bytes and extract the `read_header_length`,
       `name_length` and `number_of_bases` values.
     - Read the next "`read_header_length - 16`" bytes to read the name.
-    - At this point, a test of the `name` field can be perform, to
+    - At this point, a test of the `name` field can be performed, to
       determine whether to read or skip this entry.
     - Compute the `read_data_length` as: `number_of_flows *
       flowgram_bytes_per_flow + 3 * number_of_bases`, rounded up to
@@ -270,7 +272,9 @@ accessing each read's data:
 
 # SEE ALSO
 
-[`vsearch-fasta(5)`](./vsearch-fasta.5.md), [`vsearch-fastq(5)`](./vsearch-fastq.5.md)
+[`vsearch-sff_convert(1)`](../commands/vsearch-sff_convert.1.md),
+[`vsearch-fasta(5)`](./vsearch-fasta.5.md),
+[`vsearch-fastq(5)`](./vsearch-fastq.5.md)
 
 
 #(../commands/fragments/footer.md)
