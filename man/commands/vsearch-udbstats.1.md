@@ -28,8 +28,7 @@ of the UDB file format.
 ## mandatory options
 
 `--udbstats` *udbfile*
-: Read the UDB database *udbfile* and report word statistics. This
-  option is mandatory.
+: Read the UDB database *udbfile* and report word statistics.
 
 
 ## secondary options
