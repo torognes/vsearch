@@ -285,7 +285,8 @@ vsearch \
 [`vsearch-derep_fulllength(1)`](./vsearch-derep_fulllength.1.md),
 [`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md),
 [`vsearch-uchime_denovo(1)`](./vsearch-uchime_denovo.1.md),
-[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
+[`vsearch-userfields(7)`](../misc/vsearch-userfields.7.md)
 
 
 #(./fragments/footer.md)
