@@ -1,0 +1,3 @@
+`--maxsl` *real*
+: Reject the sequence match if the shorter/longer sequence length
+  ratio is greater than *real*.
