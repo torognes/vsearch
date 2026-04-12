@@ -4,75 +4,69 @@
 
 # NAME
 
-vsearch \-\-orient --- use a reference database to orient fasta or
-fastq sequences
+vsearch \-\-orient --- use a reference database to orient fasta or fastq sequences
 
 
 # SYNOPSIS
 
-| **vsearch** **\-\-orient** _fastxfile_ \-\-db (_fastxfile_ | _udbfile_) (\-\-fastaout | \-\-fastqout | \-\-notmatched | \-\-tabbedout) _outputfile_ \[_options_]
+| **vsearch** **\-\-orient** _fastxfile_ **\-\-db** (_fastxfile_ | _udbfile_) (**\-\-fastaout** | **\-\-fastqout** | **\-\-notmatched** | **\-\-tabbedout**) _outputfile_ \[_options_]
 
 
 # DESCRIPTION
 
-The vsearch command `--orient` detects if input sequences are in the
-same orientation as the sequences in the reference database specified
-with the `--db` option. Detection is based on the number of common
-*words* (*k*-mers) of length 12.
+The vsearch command `--orient` detects the orientation of input sequences by
+comparing them to a reference database specified with `--db`. The two strands
+of each input sequence are decomposed into words (*k*-mers) of length
+`--wordlength` (default 12) and compared against words from the database. If
+one strand matches at least 4 times as many words as the other, that strand is
+selected as the correct orientation. Otherwise, the orientation is reported as
+undetermined (?).
 
-Each reference sequence is decomposed into a set of words. The forward
-(+) and reverse-complement (-) strands of each input sequence are also
-decomposed into sets of words. If a strand shares 4 times (or more)
-words with a reference sequence than the other strand, then it is
-chosen. Otherwise, the input sequence is marked as undetermined (?).
+Correctly oriented sequences are written with `--fastaout` or `--fastqout`.
+Sequences with undetermined orientation are written with `--notmatched`. A
+summary table can be written with `--tabbedout`. At least one output option is
+required.
+
+To illustrate the three possible outcomes for an input sequence:
+
+```text
+Outcome  Symbol  Meaning
+-------  ------  --------------------------------------------------
+forward  +       forward strand matches the database
+reverse  -       reverse-complementary strand matches the database
+unknown  ?       neither strand clearly matches (written to --notmatched)
+```
 
 
 # OPTIONS
 
 ## mandatory options
 
-`--db` *filename*
-: Read the reference database from the given fasta, fastq, or UDB
-  *filename*. Only UDB files created with a `--wordlength` of 12 are
-  accepted (see
-  [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md) for
-  more details).
+#(./fragments/option_db_orient.md)
 
-At least one of `--fastaout`, `--fastqout`, `--notmatched`,
-`--tabbedout` must also be specified.
+At least one of the following output options is required:
+
+#(./fragments/option_fastaout_orient.md)
+
+#(./fragments/option_fastqout_orient.md)
+
+#(./fragments/option_notmatched_orient.md)
+
+#(./fragments/option_tabbedout_orient.md)
 
 
 ## core options
 
-`--fastaout` *filename*
-: Write the correctly oriented sequences to *filename*, in fasta
-  format.
-
-`--fastqout` *filename*
-: Write the correctly oriented sequences to *filename*, in fastq
-  format (requires a fastq input).
-
-`--notmatched` *filename*
-: Write the sequences with undetermined direction to *filename*, in
-  their original format.
-
-`--tabbedout` *filename*
-: Write the results to a four-column tab-delimited file with the
-  specified *filename*. Columns are:
-
-    1. query label
-    2. direction (+, -, or ?)
-    3. number of matching words on the forward strand
-    4. number of matching words on the reverse complementary strand
+#(./fragments/option_wordlength.md)
 
 
 ## secondary options
 
 #(./fragments/option_bzip2_decompress.md)
 
-#(./fragments/option_fasta_width.md)
-
 #(./fragments/option_dbmask.md)
+
+#(./fragments/option_fasta_width.md)
 
 #(./fragments/option_gzip_decompress.md)
 
@@ -120,9 +114,7 @@ At least one of `--fastaout`, `--fastqout`, `--notmatched`,
 
 # EXAMPLES
 
-Use the sequences in *db.fastq* to orient the sequences in
-*query.fastq*. Write the results to *query_oriented.fasta*, in fasta
-format:
+Use a reference database to orient sequences from a fastq file:
 
 ```sh
 vsearch \
@@ -131,22 +123,31 @@ vsearch \
     --fastaout query_oriented.fasta
 ```
 
-Search for mis-oriented sequences in a set of reference sequences
-*db.fasta* by comparing it to itself. Write the results to the table
-*db_outliers.table*:
+Search for mis-oriented sequences by comparing a database against itself,
+writing a summary table:
 
 ```sh
 vsearch \
     --orient db.fasta \
     --db db.fasta \
-    --tabbedout db_outliers.table
+    --tabbedout db_outliers.tsv
+```
+
+Orient sequences and collect those with undetermined orientation separately:
+
+```sh
+vsearch \
+    --orient query.fasta \
+    --db db.fasta \
+    --fastaout oriented.fasta \
+    --notmatched undetermined.fasta
 ```
 
 
 # SEE ALSO
 
 [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md),
-[`vsearch-udb(5)`](./vsearch-udb.5.md)
+[`vsearch-udb(5)`](../formats/vsearch-udb.5.md)
 
 
 #(./fragments/footer.md)
