@@ -13,7 +13,10 @@ The option `--userfields` selects and orders the columns written to a
 `--userout` file. Fields are separated by `+`:
 
 ```sh
-vsearch --usearch_global queries.fasta --db db.fasta --id 0.97 \
+vsearch \
+    --usearch_global queries.fasta \
+    --db db.fasta \
+    --id 0.97 \
     --userout results.tsv \
     --userfields query+target+id+alnlen+mism+opens
 ```
@@ -22,7 +25,7 @@ When a query has no match (reported only with `--output_no_hits`),
 numeric fields are set to 0, string fields are empty, and `target` is
 set to `*`, unless noted otherwise.
 
-Fields are listed alphabetically below. See also
+Fields are grouped thematically below. See also
 [`vsearch-pairwise_alignment_parameters(7)`](./vsearch-pairwise_alignment_parameters.7.md)
 for a description of the alignment model and identity definitions.
 
