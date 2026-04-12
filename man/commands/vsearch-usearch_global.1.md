@@ -217,7 +217,7 @@ option.
 
 #(./fragments/option_weak_id.md)
 
-#(./fragments/option_wordlength.md)
+#(./fragments/option_wordlength_8.md)
 
 #(./fragments/option_xee.md)
 
