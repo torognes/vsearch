@@ -1,0 +1,209 @@
+% vsearch-uchime_denovo(1) version 2.30.4 | vsearch manual
+% Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
+#(./fragments/date.md)
+
+# NAME
+
+vsearch \-\-uchime_denovo --- detect chimeras *de novo* using the UCHIME algorithm
+
+
+# SYNOPSIS
+
+| **vsearch** **\-\-uchime_denovo** _fastafile_ (**\-\-chimeras** | **\-\-nonchimeras** | **\-\-uchimealns** | **\-\-uchimeout**) _filename_ \[_options_]
+
+
+# DESCRIPTION
+
+The vsearch command `--uchime_denovo` detects chimeric sequences
+present in the fasta-formatted *fastafile*, without the use of
+external references (*de novo*). Sequences are compared on their
+*plus* strand only.
+
+Chimera detection is based on a scoring function controlled by five
+options: `--dn`, `--mindiffs`, `--mindiv`, `--minh`, and `--xn`. The
+algorithm identifies candidate chimeras by finding three-way
+alignments where a query sequence can be modelled as a mosaic of two
+parent sequences.
+
+Input sequences must carry abundance annotations in their headers
+(e.g. `;size=integer;`). `--sizein` is always implied; it does not
+need to be specified. Sequences are automatically sorted by decreasing
+abundance before chimera detection. The assumption is that chimeras
+appear later in the PCR amplification process and are therefore less
+abundant than their parents (see `--abskew`).
+
+At least one output option must be specified.
+
+See also `--uchime2_denovo` and `--uchime3_denovo` for improved
+algorithms designed for denoised amplicons, and `--uchime_ref` for
+reference-based chimera detection.
+
+
+# OPTIONS
+
+## mandatory options
+
+`--uchime_denovo` *fastafile*
+: Detect chimeras *de novo* in the fasta-formatted *fastafile*. This
+  option is mandatory.
+
+At least one of the following output options must be specified:
+
+#(./fragments/option_borderline.md)
+
+#(./fragments/option_chimeras.md)
+
+#(./fragments/option_nonchimeras.md)
+
+#(./fragments/option_uchimealns.md)
+
+#(./fragments/option_uchimeout.md)
+
+
+## core options
+
+#(./fragments/option_abskew_2.md)
+
+#(./fragments/option_dn.md)
+
+#(./fragments/option_mindiffs.md)
+
+#(./fragments/option_mindiv.md)
+
+#(./fragments/option_minh.md)
+
+#(./fragments/option_sizein.md)
+: Always implied.
+
+#(./fragments/option_uchimeout5.md)
+
+#(./fragments/option_xn.md)
+
+
+## secondary options
+
+#(./fragments/option_alignwidth_80.md)
+
+#(./fragments/option_fasta_score.md)
+
+#(./fragments/option_fasta_width.md)
+
+#(./fragments/option_hardmask.md)
+
+#(./fragments/option_label_suffix.md)
+
+#(./fragments/option_lengthout.md)
+
+#(./fragments/option_log.md)
+
+#(./fragments/option_maxseqlength.md)
+
+#(./fragments/option_minseqlength_32.md)
+
+#(./fragments/option_no_progress.md)
+
+#(./fragments/option_notrunclabels.md)
+
+#(./fragments/option_qmask.md)
+
+#(./fragments/option_quiet.md)
+
+#(./fragments/option_relabel.md)
+
+#(./fragments/option_relabel_keep.md)
+
+#(./fragments/option_relabel_md5.md)
+
+#(./fragments/option_relabel_self.md)
+
+#(./fragments/option_relabel_sha1.md)
+
+#(./fragments/option_sample.md)
+
+#(./fragments/option_sizeout.md)
+
+#(./fragments/option_xee.md)
+
+#(./fragments/option_xlength.md)
+
+#(./fragments/option_xsize.md)
+
+
+## pairwise alignment options
+
+These options modify the parameters of the pairwise alignment model.
+Modify with caution.
+
+#(./fragments/option_gapext.md)
+
+#(./fragments/option_gapopen.md)
+
+#(./fragments/option_match.md)
+
+#(./fragments/option_mismatch.md)
+
+
+## ignored options
+
+#(./fragments/option_threads_not_multithreaded.md)
+
+
+# EXAMPLES
+
+Detect chimeras *de novo* and write non-chimeric sequences to a file:
+
+```sh
+vsearch \
+    --uchime_denovo amplicons.fasta \
+    --sizein \
+    --nonchimeras clean.fasta
+```
+
+Also write chimeras and borderline cases to separate files, and
+record detection scores:
+
+```sh
+vsearch \
+    --uchime_denovo amplicons.fasta \
+    --sizein \
+    --nonchimeras clean.fasta \
+    --chimeras chimeras.fasta \
+    --borderline borderline.fasta \
+    --fasta_score
+```
+
+A typical amplicon sequencing workflow: dereplicate, denoise, then
+remove chimeras:
+
+```sh
+vsearch \
+    --derep_fulllength reads.fasta \
+    --sizeout \
+    --output derep.fasta
+
+vsearch \
+    --cluster_unoise derep.fasta \
+    --sizein \
+    --sizeout \
+    --centroids denoised.fasta
+
+vsearch \
+    --uchime_denovo denoised.fasta \
+    --sizein \
+    --nonchimeras amplicons.fasta
+```
+
+
+# SEE ALSO
+
+[`vsearch-uchime2_denovo(1)`](./vsearch-uchime2_denovo.1.md),
+[`vsearch-uchime3_denovo(1)`](./vsearch-uchime3_denovo.1.md),
+[`vsearch-uchime_ref(1)`](./vsearch-uchime_ref.1.md),
+[`vsearch-chimeras_denovo(1)`](./vsearch-chimeras_denovo.1.md),
+[`vsearch-cluster_unoise(1)`](./vsearch-cluster_unoise.1.md),
+[`vsearch-derep_fulllength(1)`](./vsearch-derep_fulllength.1.md),
+[`vsearch-sortbysize(1)`](./vsearch-sortbysize.1.md),
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)
+
+
+#(./fragments/footer.md)
