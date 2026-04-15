@@ -24,11 +24,12 @@ simple repeats in sequences from a fasta file (see
 is specified with `--output`, in fasta format.
 
 Masking is controlled with the `--qmask` option, which accepts three
-values: `dust` (default), `soft`, or `none`. With `dust`, low-complexity
-regions are identified with the DUST algorithm and represented as
-lowercase letters in the output. With `soft`, lowercase letters in the
-input are treated as masked and preserved as-is. With `none`, no masking
-is applied.
+values: `dust` (default), `soft`, or `none`. With `dust`,
+low-complexity regions are identified with the DUST algorithm
+(R. Tatusov and D.J. Lipman, unpublished) and represented as lowercase
+letters in the output. With `soft`, lowercase letters in the input are
+treated as masked and preserved as-is. With `none`, no masking is
+applied.
 
 By default, masked regions are written as lowercase letters (soft
 masking). When `--hardmask` is specified, masked regions are replaced
