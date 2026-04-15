@@ -44,11 +44,7 @@ At least one of the following output options is required:
 
 ## core options
 
-#(./fragments/option_fastq_ascii.md)
-
-#(./fragments/option_fastq_qmax.md)
-
-#(./fragments/option_fastq_qmin.md)
+None
 
 
 ## secondary options
@@ -95,6 +91,13 @@ At least one of the following output options is required:
 
 
 ## ignored options
+
+`--fastq_ascii` 33|64
+: Option is ignored and has no effect.
+
+#(./fragments/option_fastq_qmax_ignored.md)
+
+#(./fragments/option_fastq_qmin_ignored.md)
 
 #(./fragments/option_threads_not_multithreaded.md)
 
