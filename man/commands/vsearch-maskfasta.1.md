@@ -52,13 +52,6 @@ with N's instead.
 #(./fragments/option_qmask.md)
 
 
-### filtering
-
-#(./fragments/option_max_unmasked_pct.md)
-
-#(./fragments/option_min_unmasked_pct.md)
-
-
 ## secondary options
 
 #(./fragments/option_bzip2_decompress.md)
@@ -106,6 +99,15 @@ with N's instead.
 #(./fragments/option_xlength.md)
 
 #(./fragments/option_xsize.md)
+
+
+## ignored options
+
+`--max_unmasked_pct` *real*
+: Option is ignored and has no effect.
+
+`--min_unmasked_pct` *real*
+: Option is ignored and has no effect.
 
 
 # EXAMPLES
