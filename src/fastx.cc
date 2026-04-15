@@ -433,8 +433,6 @@ auto fastx_open(char const * filename) -> fastx_handle
             }
 
           fatal("File type not recognized.");
-
-          return nullptr;
         }
     }
 
