@@ -83,10 +83,10 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   auto * input_handle = fastx_open(parameters.opt_fastx_revcomp);
 
-  if (input_handle == nullptr)
-    {
-      fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
-    }
+  // if (input_handle == nullptr)
+  //   {
+  //     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
+  //   }
 
   if ((parameters.opt_fastqout != nullptr) && ! (input_handle->is_fastq || input_handle->is_empty))
     {
