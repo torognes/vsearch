@@ -96,9 +96,13 @@ is multi-threaded.
 
 #(./fragments/option_log.md)
 
-#(./fragments/option_maxseqlength.md)
+`--maxseqlength` *positive integer*
+: Discard database sequences longer than *positive integer* (50,000
+  nucleotides by default).
 
-#(./fragments/option_minseqlength_32.md)
+`--minseqlength` *positive integer*
+: Discard database sequences shorter than *positive integer* (32
+  nucleotides by default).
 
 #(./fragments/option_no_progress.md)
 
