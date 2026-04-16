@@ -63,6 +63,11 @@ None
 
 #(./fragments/option_no_progress.md)
 
+`--notrunclabels`
+: Retain whole sequence headers in output files. With the vsearch
+  command `--fastx_revcomp`, sequence headers are never truncated, so
+  this option has no visible effect.
+
 #(./fragments/option_notrunclabels.md)
 
 #(./fragments/option_quiet.md)
