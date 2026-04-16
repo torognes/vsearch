@@ -106,7 +106,7 @@ is multi-threaded.
 
 #(./fragments/option_quiet.md)
 
-#(./fragments/option_wordlength.md)
+#(./fragments/option_wordlength_8.md)
 
 
 # EXAMPLES
