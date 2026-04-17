@@ -318,6 +318,7 @@ vsearch \
 [`vsearch-allpairs_global(1)`](./vsearch-allpairs_global.1.md),
 [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md),
 [`vsearch-sintax(1)`](./vsearch-sintax.1.md),
+[`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md),
 [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md),
 [`vsearch-udb(5)`](../formats/vsearch-udb.5.md),

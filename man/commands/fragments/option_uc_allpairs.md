@@ -11,6 +11,7 @@
     6. not used, always `0`;
     7. not used, always `0`;
     8. CIGAR alignment string (M, D, I; `=` if query and target are identical
-       ignoring terminal gaps);
+       ignoring terminal gaps); see
+       [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md);
     9. query label;
     10. target label.

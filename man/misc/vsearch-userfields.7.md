@@ -33,17 +33,21 @@ for a description of the alignment model and identity definitions.
 ## Alignment representation
 
 `aln`
-: Pairwise alignment encoded as a run-length string of operation
-  characters: `M` (match or mismatch, i.e. not a gap), `D` (deletion,
-  i.e. a gap in the query), `I` (insertion, i.e. a gap in the target).
-  Empty if there is no alignment.
+: Pairwise alignment encoded as a string of operation characters: `M`
+  (match or mismatch, i.e. not a gap), `D` (deletion, i.e. a gap in
+  the query), `I` (insertion, i.e. a gap in the target). Empty if
+  there is no alignment. See
+  [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a description
+  of the operation alphabet.
 
 `caln`
 : Compact pairwise alignment in CIGAR format (Compact Idiosyncratic
   Gapped Alignment Report): `M` (match or mismatch), `D` (deletion),
   `I` (insertion). The equal sign `=` indicates that the query is
   identical to the centroid sequence (ignoring terminal gaps). Empty if
-  there is no alignment.
+  there is no alignment. See
+  [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a complete
+  description.
 
 `qrow`
 : Query segment as seen in the pairwise alignment, with gap characters

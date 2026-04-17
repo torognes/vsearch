@@ -229,6 +229,10 @@ as used by vsearch.
 
 # FILE FORMATS
 
+**[`vsearch-cigar(5)`](./formats/vsearch-cigar.5.md)**
+: The CIGAR (Compact Idiosyncratic Gapped Alignment Report) format,
+  used by vsearch to encode pairwise alignments.
+
 **[`vsearch-fasta(5)`](./formats/vsearch-fasta.5.md)**
 : The fasta format, as used by vsearch.
 
