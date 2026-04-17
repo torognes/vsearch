@@ -331,7 +331,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
     {
       count_t const count = searchinfo->kmers[i];
       auto const seqno = dbindex_getmapping(i);
-      unsigned int const length = db_getsequencelen(best.seqno);
+      unsigned int const length = db_getsequencelen(seqno);
 
       if (count > best.count)
         {
