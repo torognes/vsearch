@@ -267,17 +267,21 @@ auto fastx_open(char const * filename) -> fastx_handle
       input_handle->file_size = fs.st_size;
     }
 
-  if (opt_gzip_decompress)
+  if (input_handle->is_pipe)
     {
-      input_handle->format = Format::gzip;
-    }
-  else if (opt_bzip2_decompress)
-    {
-      input_handle->format = Format::bzip;
-    }
-  else if (input_handle->is_pipe)
-    {
-      input_handle->format = Format::plain;
+      /* pipes cannot be rewound, so rely on the user-provided flags */
+      if (opt_gzip_decompress)
+        {
+          input_handle->format = Format::gzip;
+        }
+      else if (opt_bzip2_decompress)
+        {
+          input_handle->format = Format::bzip;
+        }
+      else
+        {
+          input_handle->format = Format::plain;
+        }
     }
   else
     {
