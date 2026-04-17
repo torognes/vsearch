@@ -267,9 +267,12 @@ auto fastx_open(char const * filename) -> fastx_handle
       input_handle->file_size = fs.st_size;
     }
 
-  if (input_handle->is_pipe)
+  bool const is_stdin = (std::strcmp(filename, "-") == 0);
+
+  if (input_handle->is_pipe and is_stdin)
     {
-      /* pipes cannot be rewound, so rely on the user-provided flags */
+      /* stdin cannot be rewound or peeked without consuming bytes,
+         so rely on the user-provided flags */
       if (opt_gzip_decompress)
         {
           input_handle->format = Format::gzip;
@@ -282,6 +285,15 @@ auto fastx_open(char const * filename) -> fastx_handle
         {
           input_handle->format = Format::plain;
         }
+    }
+  else if (input_handle->is_pipe)
+    {
+      /* non-stdin pipe (e.g. bash process substitution, named FIFO):
+         the decompress flags were meant for stdin, not for arbitrary
+         pipes wired in by the shell. Assume plain; compressed inputs
+         should be passed as a regular file or pre-decompressed
+         upstream of the pipe. */
+      input_handle->format = Format::plain;
     }
   else
     {
