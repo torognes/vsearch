@@ -72,8 +72,10 @@ int main() {
         return 1;
     }
 
-    /* 4. Merge the pair */
-    struct merge_result_s result;
+    /* 4. Merge the pair. The result owns xmalloc'd merged_sequence and
+       merged_quality buffers that must be released with
+       merge_result_free() (no fixed upper bound on merged length). */
+    struct merge_result_s result = {};
     int rc = mergepairs_single(fwd_seq.c_str(), fwd_qual.c_str(),
                                static_cast<int>(fwd_seq.size()),
                                rev_seq.c_str(), rev_qual.c_str(),
@@ -92,9 +94,11 @@ int main() {
         }
     } else {
         std::fprintf(stderr, "Merge failed\n");
+        merge_result_free(&result);
         return 1;
     }
 
+    merge_result_free(&result);
     vsearch_session_end();
 
     return 0;

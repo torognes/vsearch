@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void;
 
 /* === Library API for in-memory dereplication === */

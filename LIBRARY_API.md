@@ -6,6 +6,41 @@ library API: build integration, initialization protocol, available
 operations, result structures, error handling, memory ownership, thread
 safety, and platform support.
 
+## API version
+
+The API version is exposed both at compile time and at runtime:
+
+```cpp
+#include "vsearch_api.h"
+
+// Compile-time:
+#if VSEARCH_API_VERSION < 1002000  // less than 1.2.0
+#error "vsearch 1.2.0 or later required"
+#endif
+
+// Runtime:
+int v = vsearch_api_version();          // MAJOR*1000000 + MINOR*1000 + PATCH
+const char * s = vsearch_api_version_string();  // "MAJOR.MINOR.PATCH"
+```
+
+The numeric version (`VSEARCH_API_VERSION`) is encoded as
+`MAJOR * 1000000 + MINOR * 1000 + PATCH` (same convention as OpenSSL
+and libcurl), so each component may range `0..999` without collision.
+The three components are also available individually as
+`VSEARCH_API_VERSION_MAJOR`, `_MINOR`, and `_PATCH`.
+
+### Version bump rules (semver)
+
+- **MAJOR** — incompatible changes: removing, renaming, or retyping a
+  public function; removing or reordering a field in a result struct;
+  changing the semantics of an existing function. Pre-1.0
+  (`MAJOR == 0`) the API is considered unstable and MINOR bumps may
+  also break compatibility.
+- **MINOR** — backward-compatible additions: new public functions,
+  new fields appended to a result struct, new `opt_*` globals.
+- **PATCH** — backward-compatible fixes that don't change the API
+  surface (bug fixes, doc updates, internal refactors).
+
 ## Table of contents
 
 - [Building](#building)
@@ -187,7 +222,7 @@ Repeat the full sequence (init → configure → fixups → work → cleanup
 globals to fresh defaults, and `vsearch_apply_defaults_fixups()`
 correctly re-applies gap penalty adjustments each time.
 
-See `examples/example_reinit.cc` for a tested multi-session example.
+See `api_examples/example_reinit.cc` for a tested multi-session example.
 
 ### Initialization functions
 
@@ -431,20 +466,36 @@ above a minimum identity threshold.
 opt_id = 0.97;           // minimum 97% identity
 opt_maxaccepts = 3;      // return up to 3 hits
 opt_maxrejects = 16;     // give up after 16 rejects
+opt_strand = 2;          // optional: search both strands
 
-// Allocate and initialize per-thread state
-struct searchinfo_s * si = search_info_alloc();
-search_init(si);         // call after DB indexed
+// Allocate and initialize the session
+struct search_session_s * ss = search_session_alloc();
+search_session_init(ss);  // call after DB indexed
 
 // Search queries
 struct search_result_s results[10];
 int result_count;
-search_single(si, query_seq, query_head, query_len,
-              query_abundance, results, 10, &result_count);
+search_session_single(ss, query_seq, query_head, query_len,
+                      query_abundance, results, 10, &result_count);
+
+// Target headers are looked up from the database by index
+for (int i = 0; i < result_count; i++) {
+    printf("%s\t%s\t%.1f\n",
+           query_head,
+           db_getheader(results[i].target),
+           results[i].id);
+}
 
 // Cleanup
-search_cleanup(si);
-search_info_free(si);
+search_session_cleanup(ss);
+search_session_free(ss);
+```
+
+For bulk workloads, `search_batch()` parallelizes across `opt_threads`:
+
+```cpp
+search_batch(q_seqs, q_heads, q_lens, q_sizes, query_count,
+             results, max_results_per_query, result_counts);
 ```
 
 ### Result structure
@@ -453,8 +504,7 @@ search_info_free(si);
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `target` | `int` | Database sequence index. |
-| `target_label` | `char[1024]` | Target header (truncated to 1023 chars). |
+| `target` | `int` | Database sequence index. Use `db_getheader(target)` for the header string and `db_getsequence(target)` for the sequence. |
 | `id` | `double` | Percent identity (per `opt_iddef`). |
 | `matches` | `int` | Matching columns. |
 | `mismatches` | `int` | Mismatching columns. |
@@ -463,6 +513,7 @@ search_info_free(si);
 | `query_length` | `int` | Query sequence length. |
 | `target_length` | `int` | Target sequence length. |
 | `accepted` | `bool` | Whether hit passed the identity threshold. |
+| `strand` | `int` | `0` = plus strand, `1` = minus strand (when `opt_strand > 1`). |
 
 Results are ordered by identity (descending). The caller provides the
 result array and its capacity; `result_count` is set to the number of
@@ -477,16 +528,18 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 | `opt_maxrejects` | `int64_t` | 32 | Stop after N rejected candidates. |
 | `opt_iddef` | `int64_t` | 2 | Identity definition (0–4). |
 | `opt_wordlength` | `int64_t` | 8 | K-mer length for candidate selection. |
+| `opt_strand` | `int64_t` | 1 | 1 = plus strand only, 2 = both strands. |
 
 ### Functions
 
 | Function | Description |
 |----------|-------------|
-| `search_info_alloc()` | Allocate opaque per-thread state. Returns heap pointer. |
-| `search_info_free(si)` | Free per-thread state. Null-safe. |
-| `search_init(si)` | Initialize SIMD aligners and k-mer finders. Call after DB indexed. |
-| `search_single(si, seq, head, len, size, results, max, count)` | Search one query. Thread-safe with per-thread si. |
-| `search_cleanup(si)` | Free search resources. Call before `search_info_free`. |
+| `search_session_alloc()` | Allocate opaque session state. |
+| `search_session_free(ss)` | Free session state. Null-safe (cleanup is implicit). |
+| `search_session_init(ss)` | Initialize session. Call after DB indexed. Respects `opt_strand`. |
+| `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand > 1`). One session per process; do not share across threads. |
+| `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
+| `search_batch(seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search. Internally uses `opt_threads`. |
 
 ---
 
@@ -621,16 +674,20 @@ consensus sequence with combined quality scores.
 // Initialize quality score lookup table (once)
 mergepairs_init();
 
-// Merge one pair
-struct merge_result_s result;
+// Merge one pair. Zero-initialize so the pointers start at nullptr.
+struct merge_result_s result = {};
 int rc = mergepairs_single(
     fwd_seq, fwd_qual, fwd_len,
     rev_seq, rev_qual, rev_len,
     fwd_header, rev_header, &result);
 
 if (rc == 0 && result.merged) {
-    // result.merged_sequence, result.merged_quality, etc.
+    // use result.merged_sequence / result.merged_quality
+    //   (null-terminated, length == result.merged_length)
 }
+
+// Release caller-owned buffers before reusing or discarding result
+merge_result_free(&result);
 ```
 
 No per-thread state is needed. Each call to `mergepairs_single()` is
@@ -642,14 +699,19 @@ fully independent and thread-safe after `mergepairs_init()`.
 |-------|------|-------------|
 | `merged` | `bool` | `true` if merge succeeded. |
 | `merged_length` | `int` | Length of merged sequence. |
-| `merged_sequence` | `char[10000]` | Merged DNA sequence (null-terminated). |
-| `merged_quality` | `char[10000]` | Merged quality string (null-terminated). |
+| `merged_sequence` | `char *` | `xmalloc`'d merged DNA (null-terminated), sized to `merged_length + 1`. `nullptr` on failure or before first call. Caller must release via `merge_result_free()`. |
+| `merged_quality` | `char *` | `xmalloc`'d quality (null-terminated). Ownership matches `merged_sequence`. |
 | `ee_merged` | `double` | Expected errors in merged sequence. |
 | `ee_fwd` | `double` | Expected errors from forward read. |
 | `ee_rev` | `double` | Expected errors from reverse read. |
 | `fwd_errors` | `int` | Mismatches attributed to forward read. |
 | `rev_errors` | `int` | Mismatches attributed to reverse read. |
 | `overlap_length` | `int` | Length of overlap region. |
+
+Buffers grow as needed — there is no fixed upper bound on merged
+length. Each call to `mergepairs_single()` overwrites the pointer
+fields without freeing them, so reuse the same struct only after
+calling `merge_result_free()` between calls.
 
 ### Key options
 
@@ -669,7 +731,8 @@ fully independent and thread-safe after `mergepairs_init()`.
 | Function | Description |
 |----------|-------------|
 | `mergepairs_init()` | Initialize quality lookup table. Call once before any merging. |
-| `mergepairs_single(fwd_s, fwd_q, fwd_l, rev_s, rev_q, rev_l, fwd_h, rev_h, result)` | Merge one pair. Returns 0 on success, -1 on failure. Thread-safe. |
+| `mergepairs_single(fwd_s, fwd_q, fwd_l, rev_s, rev_q, rev_l, fwd_h, rev_h, result)` | Merge one pair. Allocates `result->merged_sequence` / `merged_quality` via xmalloc. Returns 0 on success, -1 on failure. Thread-safe. |
+| `merge_result_free(result)` | Free the merged sequence/quality buffers and null the pointers. Null-safe on either field. |
 
 ---
 
@@ -838,7 +901,7 @@ freed by the matching free function:
 | Allocate | Free | Notes |
 |----------|------|-------|
 | `chimera_info_alloc()` | `chimera_info_free(ci)` | Call cleanup first. |
-| `search_info_alloc()` | `search_info_free(si)` | Call cleanup first. |
+| `search_session_alloc()` | `search_session_free(ss)` | Call cleanup first. |
 | `cluster_session_alloc()` | `cluster_session_free(cs)` | Call cleanup first. |
 | `derep_session_alloc()` | `derep_session_free(ds)` | Call cleanup first. |
 
@@ -846,15 +909,18 @@ All free functions are null-safe.
 
 ### Fixed-size buffers in result structs
 
-Several result structs use fixed-size character buffers:
+Several result structs still use fixed-size character buffers:
 
 | Buffer | Size | Truncation |
 |--------|------|------------|
 | `chimera_result_s` labels | 1024 chars | Silent truncation to 1023 + null. |
 | `cluster_result_s.centroid_label` | 1024 chars | Silent truncation. |
 | `cluster_result_s.cigar` | 4096 chars | Truncation flagged via `cigar_truncated`. |
-| `search_result_s.target_label` | 1024 chars | Silent truncation. |
-| `merge_result_s` sequences | 10000 chars | Silent truncation. |
+
+`merge_result_s.merged_sequence` / `merged_quality` are dynamically
+allocated by `mergepairs_single()` and owned by the caller — release
+with `merge_result_free()`. `search_result_s` no longer carries a
+target header copy; look it up with `db_getheader(result.target)`.
 
 ### Database pointers
 
@@ -883,7 +949,7 @@ only while the database is loaded (until `db_free()` is called).
 | Index building (`dbindex_prepare`, `dbindex_addallsequences`) | Single-threaded. |
 | Session init (`chimera_session_init`, etc.) | Single-threaded. |
 | Per-thread init (`chimera_detect_thread_init`, etc.) | Safe for different instances. |
-| Computation (`chimera_detect_single`, `search_single`, etc.) | Thread-safe with per-thread state. |
+| Computation (`chimera_detect_single`, `search_session_single`, etc.) | Thread-safe with per-thread state. |
 | Cleanup | Single-threaded. Join all threads first. |
 
 ### Rules
@@ -892,7 +958,7 @@ only while the database is loaded (until `db_free()` is called).
    initialization but does not protect against misuse within a session.
 
 2. **Each thread gets its own state object.** Never share
-   `chimera_info_s`, `searchinfo_s`, or `cluster_session_s` across
+   `chimera_info_s`, `search_session_s`, or `cluster_session_s` across
    threads.
 
 3. **Database is read-only during computation.** After indexing
@@ -955,7 +1021,7 @@ Clang). SIMD instruction flags (`-msse2`, `-mssse3`) are applied when
 
 ## Examples
 
-Working examples are in the `examples/` directory. Each demonstrates a
+Working examples are in the `api_examples/` directory. Each demonstrates a
 complete lifecycle: initialization, database loading, computation, and
 cleanup.
 
@@ -973,7 +1039,7 @@ cleanup.
 ### Building examples
 
 ```bash
-cd examples
+cd api_examples
 g++ -std=c++11 -O2 -I../src -o example_chimera example_chimera.cc \
     ../src/libvsearch.a -lpthread -ldl
 ./example_chimera
@@ -1004,22 +1070,23 @@ int main() {
     dbindex_addallsequences(opt_dbmask);
 
     // Search
-    struct searchinfo_s * si = search_info_alloc();
-    search_init(si);
+    struct search_session_s * ss = search_session_alloc();
+    search_session_init(ss);
 
     const char * qh = "query1";
     const char * qs = "ACGTACGTACGTACGTACGT";
     struct search_result_s results[5];
     int count;
-    search_single(si, qs, qh, strlen(qs), 1, results, 5, &count);
+    search_session_single(ss, qs, qh, strlen(qs), 1, results, 5, &count);
 
     for (int i = 0; i < count; i++) {
-        printf("%s\t%s\t%.1f%%\n", qh, results[i].target_label, results[i].id);
+        printf("%s\t%s\t%.1f%%\n",
+               qh, db_getheader(results[i].target), results[i].id);
     }
 
     // Cleanup
-    search_cleanup(si);
-    search_info_free(si);
+    search_session_cleanup(ss);
+    search_session_free(ss);
     dbindex_free();
     db_free();
     vsearch_session_end();

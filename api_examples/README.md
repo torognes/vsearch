@@ -46,7 +46,7 @@ vsearch --uchime_ref data/chimera_queries.fasta \
 
 ### example_search
 
-Global sequence search using `search_single()`.
+Global sequence search using `search_session_single()`.
 
 Equivalent to:
 ```bash

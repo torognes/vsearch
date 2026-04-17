@@ -988,137 +988,6 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
 }
 
 
-/* === Library API for embedding global search === */
-
-
-auto search_info_alloc() -> struct searchinfo_s *
-{
-  return new searchinfo_s {};
-}
-
-
-auto search_info_free(struct searchinfo_s * si) -> void
-{
-  if (si != nullptr)
-    {
-      delete si;
-    }
-}
-
-
-auto search_init(struct searchinfo_s * si) -> void
-{
-  /* Initialize per-thread search state for library use.
-     Assumes global opt_* variables and database are already set up.
-     Sets seqcount and tophits (file-statics) matching the setup that
-     usearch_global() / search_prep() does internally.
-     MAXDELAYED (8) is needed as safety buffer for align_delayed().
-     Clamp tophits to seqcount to avoid oversized allocations. */
-  seqcount = static_cast<int>(db_getsequencecount());
-  tophits = opt_maxaccepts + opt_maxrejects + MAXDELAYED;
-  if (tophits > seqcount)
-    {
-      tophits = seqcount;
-    }
-  search_thread_init(si);
-}
-
-
-auto search_single(struct searchinfo_s * si,
-                    const char * query_seq,
-                    const char * query_head,
-                    int query_len,
-                    int query_size,
-                    struct search_result_s * results,
-                    int max_results,
-                    int * result_count) -> void
-{
-  /* Populate query in the searchinfo_s. */
-  si->query_head_len = std::strlen(query_head);
-  si->qseqlen = query_len;
-  si->query_no = 0;
-  si->qsize = query_size;
-  si->strand = 0;
-
-  /* Allocate or grow header/sequence buffers */
-  if (si->query_head_len + 1 > si->query_head_alloc)
-    {
-      si->query_head_alloc = si->query_head_len + 2001;
-      si->query_head = (char *)
-        xrealloc(si->query_head, (size_t) (si->query_head_alloc));
-    }
-  if (si->qseqlen + 1 > si->seq_alloc)
-    {
-      si->seq_alloc = si->qseqlen + 2001;
-      si->qsequence = (char *)
-        xrealloc(si->qsequence, (size_t) (si->seq_alloc));
-    }
-
-  std::strcpy(si->query_head, query_head);
-  std::strcpy(si->qsequence, query_seq);
-
-  /* Mask query */
-  if (opt_qmask == MASK_DUST)
-    {
-      dust(si->qsequence, si->qseqlen);
-    }
-  else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
-    {
-      hardmask(si->qsequence, si->qseqlen);
-    }
-
-  /* Perform search */
-  search_onequery(si, opt_qmask);
-
-  /* Collect hits */
-  std::vector<struct hit> hits;
-  search_joinhits(si, nullptr, hits);
-
-  /* Populate results */
-  int count = 0;
-  for (auto const & hit : hits)
-    {
-      if (count >= max_results)
-        {
-          break;
-        }
-      if (hit.accepted || hit.weak)
-        {
-          auto & r = results[count];
-          r.target = hit.target;
-          std::snprintf(r.target_label, sizeof(r.target_label), "%.*s",
-                        (int) db_getheaderlen(hit.target),
-                        db_getheader(hit.target));
-          r.id = hit.id;
-          r.matches = hit.matches;
-          r.mismatches = hit.mismatches;
-          r.gaps = hit.nwgaps;
-          r.alignment_length = hit.nwalignmentlength;
-          r.query_length = si->qseqlen;
-          r.target_length = (int) db_getsequencelen(hit.target);
-          r.accepted = hit.accepted;
-          ++count;
-        }
-    }
-  *result_count = count;
-
-  /* Free alignment strings */
-  for (auto const & hit : hits)
-    {
-      if (hit.aligned && hit.nwalignment != nullptr)
-        {
-          xfree(hit.nwalignment);
-        }
-    }
-}
-
-
-auto search_cleanup(struct searchinfo_s * si) -> void
-{
-  search_thread_exit(si);
-}
-
-
 /* === Session-based search API (supports both-strand search) === */
 
 
@@ -1169,14 +1038,14 @@ auto search_session_init(struct search_session_s * ss) -> void
 }
 
 
-auto search_single(struct search_session_s * ss,
-                   const char * query_seq,
-                   const char * query_head,
-                   int query_len,
-                   int query_size,
-                   struct search_result_s * results,
-                   int max_results,
-                   int * result_count) -> void
+auto search_session_single(struct search_session_s * ss,
+                           const char * query_seq,
+                           const char * query_head,
+                           int query_len,
+                           int query_size,
+                           struct search_result_s * results,
+                           int max_results,
+                           int * result_count) -> void
 {
   int const head_len = std::strlen(query_head);
 
@@ -1267,9 +1136,6 @@ auto search_single(struct search_session_s * ss,
         }
       auto & r = results[count];
       r.target = h.target;
-      std::snprintf(r.target_label, sizeof(r.target_label), "%.*s",
-                    (int) db_getheaderlen(h.target),
-                    db_getheader(h.target));
       r.id = h.id;
       r.matches = h.matches;
       r.mismatches = h.mismatches;
@@ -1469,9 +1335,6 @@ static auto search_batch_worker_fn(void * vp) -> void *
             }
           auto & r = qresults[count];
           r.target = h.target;
-          std::snprintf(r.target_label, sizeof(r.target_label), "%.*s",
-                        (int) db_getheaderlen(h.target),
-                        db_getheader(h.target));
           r.id = h.id;
           r.matches = h.matches;
           r.mismatches = h.mismatches;

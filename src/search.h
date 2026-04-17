@@ -64,36 +64,22 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
 
 /* === Library API for embedding global search === */
 
-/* Result of a single search hit. */
+/* Result of a single search hit. The target's header can be obtained
+   with db_getheader(result.target). */
 struct search_result_s {
   int target;                  /* database sequence index */
-  char target_label[1024];     /* target header (may truncate) */
   double id;                   /* percent identity (method per opt_iddef) */
   int matches;                 /* matching columns */
   int mismatches;              /* mismatching columns */
   int gaps;                    /* gap columns */
   int alignment_length;        /* total alignment length */
-  int query_length;            /* query sequence length */
+  int query_length;            /* query sequence length (post-mask;
+                                  identical to input length since
+                                  DUST/soft masking preserve length) */
   int target_length;           /* target sequence length */
   bool accepted;               /* true if passed identity threshold */
   int strand;                  /* 0 = plus, 1 = minus */
 };
-
-/* Deprecated: use search_session_s API instead.
-   This API only searches the plus strand regardless of opt_strand. */
-struct searchinfo_s;
-auto search_info_alloc() -> struct searchinfo_s *;
-auto search_info_free(struct searchinfo_s * si) -> void;
-auto search_init(struct searchinfo_s * si) -> void;
-auto search_single(struct searchinfo_s * si,
-                    const char * query_seq,
-                    const char * query_head,
-                    int query_len,
-                    int query_size,
-                    struct search_result_s * results,
-                    int max_results,
-                    int * result_count) -> void;
-auto search_cleanup(struct searchinfo_s * si) -> void;
 
 
 /* === Session-based search API (supports both-strand search) === */
@@ -117,14 +103,14 @@ auto search_session_init(struct search_session_s * ss) -> void;
    result_count: number of results populated on return.
    Results are ordered by identity (descending).
    result.strand indicates which strand matched (0=plus, 1=minus). */
-auto search_single(struct search_session_s * ss,
-                   const char * query_seq,
-                   const char * query_head,
-                   int query_len,
-                   int query_size,
-                   struct search_result_s * results,
-                   int max_results,
-                   int * result_count) -> void;
+auto search_session_single(struct search_session_s * ss,
+                           const char * query_seq,
+                           const char * query_head,
+                           int query_len,
+                           int query_size,
+                           struct search_result_s * results,
+                           int max_results,
+                           int * result_count) -> void;
 
 /* Clean up search session state.
    Call before search_session_free(). */
@@ -139,6 +125,8 @@ auto search_session_cleanup(struct search_session_s * ss) -> void;
    NOT safe to call concurrently with any other search/session/init call.
    Creates and destroys a thread pool per call; callers processing a
    stream of queries should submit large batches to amortize this cost.
+   As a rule of thumb, aim for at least 10 * opt_threads queries per
+   call — below that, thread-pool setup dominates per-query cost.
    results: caller-allocated array of (query_count * max_results_per_query).
    result_counts: caller-allocated array of query_count elements.
    Each query gets up to max_results_per_query hits, ordered by identity. */

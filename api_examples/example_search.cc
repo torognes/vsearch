@@ -98,19 +98,19 @@ static int run_search_tsv() {
         struct search_result_s results[16];
         int count = 0;
 
-        search_single(ss,
-                      query_seqs[i].c_str(),
-                      query_labels[i].c_str(),
-                      static_cast<int>(query_seqs[i].size()),
-                      1,
-                      results,
-                      3,
-                      &count);
+        search_session_single(ss,
+                              query_seqs[i].c_str(),
+                              query_labels[i].c_str(),
+                              static_cast<int>(query_seqs[i].size()),
+                              1,
+                              results,
+                              3,
+                              &count);
 
         for (int j = 0; j < count; j++) {
             std::printf("%s\t%s\t%.1f\n",
                         query_labels[i].c_str(),
-                        results[j].target_label,
+                        db_getheader(results[j].target),
                         results[j].id);
         }
     }
@@ -165,14 +165,14 @@ static int run_batch_tests()
 
   for (int i = 0; i < nq; i++)
     {
-      search_single(ss,
-                    query_seqs[i].c_str(),
-                    query_labels[i].c_str(),
-                    static_cast<int>(query_seqs[i].size()),
-                    1,
-                    &seq_results[i * max_per_query],
-                    max_per_query,
-                    &seq_counts[i]);
+      search_session_single(ss,
+                            query_seqs[i].c_str(),
+                            query_labels[i].c_str(),
+                            static_cast<int>(query_seqs[i].size()),
+                            1,
+                            &seq_results[i * max_per_query],
+                            max_per_query,
+                            &seq_counts[i]);
     }
 
   search_session_cleanup(ss);
@@ -268,14 +268,14 @@ static bool search_rc_finds_hit(const std::string & fwd,
   struct search_result_s results[4];
   int count = 0;
 
-  search_single(ss,
-                rev.c_str(),
-                "rev_query",
-                static_cast<int>(rev.size()),
-                1,
-                results,
-                1,
-                &count);
+  search_session_single(ss,
+                        rev.c_str(),
+                        "rev_query",
+                        static_cast<int>(rev.size()),
+                        1,
+                        results,
+                        1,
+                        &count);
 
   bool found = (count > 0) && results[0].accepted;
   if (found && out_strand != nullptr)

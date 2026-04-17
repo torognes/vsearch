@@ -64,12 +64,22 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void;
 
 /* === Library API for embedding paired-end merging === */
 
-/* Result of merging a single read pair. */
+/* Result of merging a single read pair.
+
+   The merged_sequence and merged_quality buffers are allocated by
+   mergepairs_single() with xmalloc (sized to the actual merge length,
+   with no fixed upper bound). The caller owns the allocations and
+   MUST release them with merge_result_free() once done. Both pointers
+   are null when merge_result_s is zero-initialized and when the merge
+   fails. Quality is null-terminated ASCII; sequence is null-terminated
+   DNA. */
 struct merge_result_s {
   bool merged;                 /* true if merge succeeded */
   int merged_length;           /* length of merged sequence */
-  char merged_sequence[10000]; /* merged DNA sequence (null-terminated) */
-  char merged_quality[10000];  /* merged quality string (null-terminated) */
+  char * merged_sequence;      /* xmalloc'd DNA sequence, null-terminated
+                                  (nullptr on failure or before first call) */
+  char * merged_quality;       /* xmalloc'd quality string, null-terminated
+                                  (nullptr on failure or before first call) */
   double ee_merged;            /* expected errors in merged sequence */
   double ee_fwd;               /* expected errors from forward read */
   double ee_rev;               /* expected errors from reverse read */
@@ -89,8 +99,16 @@ auto mergepairs_init() -> void;
    fwd_qual/rev_qual: null-terminated quality strings (ASCII-encoded).
    fwd_len/rev_len: sequence lengths.
    fwd_header/rev_header: null-terminated read headers.
-   result: output struct populated on return.
-   Returns 0 on success (merged), -1 on failure (not merged).
+   result: output struct populated on return. On success the
+     merged_sequence and merged_quality pointers are heap-allocated
+     by this function; the caller MUST release them with
+     merge_result_free() to avoid leaks. Each call overwrites the
+     pointer fields unconditionally, so any previously-allocated
+     buffers in *result are leaked if the caller has not already
+     called merge_result_free(). Reuse the same struct only after
+     calling merge_result_free() between calls.
+   Returns 0 on success (merged), -1 on failure (not merged; pointers
+   are set to nullptr).
 
    Thread-safe after mergepairs_init() completes. mergepairs_init()
    must NOT run concurrently with any mergepairs_single() call.
@@ -113,3 +131,8 @@ auto mergepairs_single(const char * fwd_seq,
                         const char * fwd_header,
                         const char * rev_header,
                         struct merge_result_s * result) -> int;
+
+/* Release the merged_sequence and merged_quality buffers owned by
+   *result and set both pointers to nullptr. Null-safe on either field.
+   Leaves the scalar fields (merged_length, ee_*, etc.) untouched. */
+auto merge_result_free(struct merge_result_s * result) -> void;

@@ -1738,19 +1738,23 @@ auto mergepairs_single(const char * fwd_seq,
   struct kh_handle_s kmerhash;
   process(md, kmerhash);
 
-  /* Populate result */
+  /* Populate result. Zero all fields including the pointers so that a
+     failed merge leaves nullptr pointers for the caller. On success
+     the buffers are xmalloc'd to the exact merged length; the caller
+     owns them and must release via merge_result_free(). */
   std::memset(result, 0, sizeof(*result));
   result->merged = md.merged;
 
   if (md.merged)
     {
-      int copy_len = std::min(static_cast<int>(md.merged_length),
-                              static_cast<int>(sizeof(result->merged_sequence) - 1));
-      result->merged_length = copy_len;
-      std::memcpy(result->merged_sequence, md.merged_sequence.data(), copy_len);
-      result->merged_sequence[copy_len] = '\0';
-      std::memcpy(result->merged_quality, md.merged_quality_v.data(), copy_len);
-      result->merged_quality[copy_len] = '\0';
+      int const len = static_cast<int>(md.merged_length);
+      result->merged_length = len;
+      result->merged_sequence = static_cast<char *>(xmalloc(len + 1));
+      result->merged_quality = static_cast<char *>(xmalloc(len + 1));
+      std::memcpy(result->merged_sequence, md.merged_sequence.data(), len);
+      result->merged_sequence[len] = '\0';
+      std::memcpy(result->merged_quality, md.merged_quality_v.data(), len);
+      result->merged_quality[len] = '\0';
       result->ee_merged = md.ee_merged;
       result->ee_fwd = md.ee_fwd;
       result->ee_rev = md.ee_rev;
@@ -1761,4 +1765,23 @@ auto mergepairs_single(const char * fwd_seq,
     }
 
   return -1;  /* merge failed */
+}
+
+
+auto merge_result_free(struct merge_result_s * result) -> void
+{
+  if (result == nullptr)
+    {
+      return;
+    }
+  if (result->merged_sequence != nullptr)
+    {
+      xfree(result->merged_sequence);
+      result->merged_sequence = nullptr;
+    }
+  if (result->merged_quality != nullptr)
+    {
+      xfree(result->merged_quality);
+      result->merged_quality = nullptr;
+    }
 }

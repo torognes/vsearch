@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "vsearch_api.h"
 #include "allpairs.h"
 #include "chimera.h"
 #include "cluster.h"
@@ -779,6 +780,16 @@ auto args_getdouble(char * arg) -> double
    old allocation — acceptable for single-init library use). */
 
 static std::mutex session_mutex;
+
+auto vsearch_api_version() -> int
+{
+  return VSEARCH_API_VERSION;
+}
+
+auto vsearch_api_version_string() -> const char *
+{
+  return VSEARCH_API_VERSION_STRING;
+}
 
 auto vsearch_init_defaults() -> void
 {
