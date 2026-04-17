@@ -11,6 +11,7 @@
     5. match orientation `+` or `-` (`.` for N);
     6. not used; `0` (H) or `*` (N);
     7. not used; `0` (H) or `*` (N);
-    8. CIGAR alignment string (`*` for N);
+    8. CIGAR alignment string (`*` for N); see
+       [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md);
     9. query label;
     10. target label (`*` for N).

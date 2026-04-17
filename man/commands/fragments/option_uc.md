@@ -10,6 +10,7 @@
     5. match orientation `+` or `-` (`H`), or `*` (`S`, `C`);
     6. not used; always `0` (`H`) or `*` (`S`, `C`);
     7. not used; always `0` (`H`) or `*` (`S`, `C`);
-    8. CIGAR alignment string (`H`), or `*` (`S`, `C`);
+    8. CIGAR alignment string (`H`), or `*` (`S`, `C`); see
+       [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md);
     9. query label (`H`), or centroid label (`S`, `C`);
     10. centroid label (`H`), or `*` (`S`, `C`).
