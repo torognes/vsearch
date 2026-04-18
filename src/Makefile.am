@@ -44,7 +44,7 @@ else
 AM_CFLAGS += -DNDEBUG
 endif
 
-AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
+AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
 
