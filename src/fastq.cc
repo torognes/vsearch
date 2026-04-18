@@ -62,6 +62,7 @@
 #include "attributes.h"
 #include "utils/fatal.hpp"
 #include <array>
+#include <cassert>  // assert
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
@@ -286,6 +287,7 @@ auto fastq_open(const char * filename) -> fastx_handle
       fatal("FASTQ file expected, FASTA file found (%s)", filename);
     }
 
+  assert(input_handle != nullptr);
   return input_handle;
 }
 
