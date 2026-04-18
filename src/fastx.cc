@@ -65,6 +65,7 @@
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 #include <algorithm>  // std::find_first_of
 #include <array>
+#include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fopen, std::size_t, std::fread, std::fileno
@@ -465,6 +466,7 @@ auto fastx_open(char const * filename) -> fastx_handle
   input_handle->lineno_start = 1;
   input_handle->seqno = -1;
 
+  assert(input_handle != nullptr);
   return input_handle;
 }
 
