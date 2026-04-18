@@ -248,11 +248,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   auto * input_handle = fastx_open(input_filename);
 
-  if (input_handle == nullptr)
-    {
-      fatal("Unrecognized input file type (not proper FASTA or FASTQ format)");  // unreachable? case already handled in fastx_open(), assert(h != nullptr) should always be true
-    }
-
   if (not fastx_is_empty(input_handle))
     {
       if (fastx_is_fastq(input_handle))

@@ -205,11 +205,6 @@ auto db_read(const char * filename, int upcase) -> void
 {
   h = fastx_open(filename);
 
-  if (h == nullptr)
-    {
-      fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
-    }
-
   is_fastq = fastx_is_fastq(h);
 
   int64_t const filesize = fastx_get_size(h);

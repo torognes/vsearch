@@ -269,11 +269,6 @@ auto filter(bool const fastq_only, char * filename) -> void
   auto * forward_handle = fastx_open(filename);
   fastx_handle reverse_handle = nullptr;  // refactoring: direct initialization
 
-  if (forward_handle == nullptr)
-    {
-      fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
-    }
-
   if (not (forward_handle->is_fastq or forward_handle->is_empty))
     {
       if (fastq_only)
@@ -301,11 +296,6 @@ auto filter(bool const fastq_only, char * filename) -> void
   if (opt_reverse != nullptr)
     {
       reverse_handle = fastx_open(opt_reverse);
-
-      if (reverse_handle == nullptr)
-        {
-          fatal("Unrecognized file type (not proper FASTA or FASTQ format) for reverse reads");
-        }
 
       if (forward_handle->is_fastq != reverse_handle->is_fastq)
         {
