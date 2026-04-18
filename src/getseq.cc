@@ -381,11 +381,6 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
 
   h1 = fastx_open(filename);
 
-  if (h1 == nullptr)
-    {
-      fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
-    }
-
   if (((opt_fastqout != nullptr) or (opt_notmatchedfq != nullptr)) and not (h1->is_fastq or h1->is_empty))
     {
       fatal("Cannot write FASTQ output from FASTA input");

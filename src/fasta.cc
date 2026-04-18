@@ -63,6 +63,7 @@
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::min
 #include <array>
+#include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
@@ -171,6 +172,7 @@ auto fasta_open(const char * filename) -> fastx_handle
       fatal("FASTA file expected, FASTQ file found (%s)", filename);
     }
 
+  assert(input_handle != nullptr);
   return input_handle;
 }
 
