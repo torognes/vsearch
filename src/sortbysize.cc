@@ -109,7 +109,7 @@ namespace {
 
   auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
     auto compare_sequences = [](struct sortinfo_size_s const & lhs,
-                                struct sortinfo_size_s const & rhs) -> bool {
+                                struct sortinfo_size_s const & rhs) noexcept -> bool {
       // highest abundance first...
       if (lhs.size < rhs.size) {
         return false;
@@ -131,7 +131,7 @@ namespace {
 
 
   // refactoring C++17 [[nodiscard]]
-  auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) -> double
+  auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) noexcept -> double
   {
     // function returns a round value or a value with a remainder of 0.5
     static constexpr double half = 0.5;
