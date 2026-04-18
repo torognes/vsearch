@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #define _GNU_SOURCE 1
 #define __STDC_CONSTANT_MACROS 1
 #define __STDC_FORMAT_MACROS 1
@@ -562,3 +564,7 @@ struct Parameters {
   bool opt_xlength = false;
   bool opt_xsize = false;
 };
+
+/* Library API: global initialization */
+auto vsearch_init_defaults() -> void;
+auto vsearch_apply_defaults_fixups() -> void;

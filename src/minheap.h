@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 struct topscore
 {
   unsigned int count;

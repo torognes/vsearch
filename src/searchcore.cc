@@ -115,9 +115,10 @@ namespace {
 
   auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
-    for (auto const & hit : make_hits_span(search_info)) {
+    for (auto & hit : make_hits_span(search_info)) {
       if (not (hit.accepted or hit.weak) and hit.aligned) {
         xfree(hit.nwalignment);
+        hit.nwalignment = nullptr;
       }
     }
   }

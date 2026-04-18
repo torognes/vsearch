@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 using CELL = signed short;
 using WORD = unsigned short;
 using BYTE = unsigned char;

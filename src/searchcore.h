@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "linmemalign.h"
 #include <array>
 #include <vector>

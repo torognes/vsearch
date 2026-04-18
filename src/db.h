@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::size_t
 
@@ -101,6 +103,19 @@ inline auto db_getheaderlen(uint64_t seqno) -> uint64_t
 {
   return seqindex[seqno].headerlen;
 }
+
+/* Reset database state for library use.
+   Call before the first db_add() when building a DB programmatically
+   (not via db_read). Sets shortest to UINT64_MAX so min-tracking works. */
+auto db_init() -> void;
+
+auto db_add(bool is_fastq,
+            char const * header,
+            char const * sequence,
+            char const * quality,
+            size_t headerlength,
+            size_t sequencelength,
+            int64_t abundance) -> void;
 
 auto db_read(const char * filename, int upcase) -> void;
 auto db_free() -> void;

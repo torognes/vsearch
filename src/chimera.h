@@ -58,6 +58,113 @@
 
 */
 
+#pragma once
+
 constexpr auto maxparents = 20; /* max, could be fewer */
 
 auto chimera(struct Parameters const & parameters) -> void;
+
+/* === Library API for embedding chimera detection === */
+
+/* Result of chimera detection for a single query.
+   Fields match vsearch's --uchimeout 18-column format.
+   For non-chimeric results (flag='N'), only query_label and flag are
+   populated; all other fields are zero.
+   Labels may be silently truncated to 1023 characters. */
+struct chimera_result_s {
+  double score;               /* h-score */
+  char query_label[1024];     /* query header (may truncate) */
+  char parent_a_label[1024];  /* parent A header (or empty if none) */
+  char parent_b_label[1024];  /* parent B header (or empty if none) */
+  char closest_parent_label[1024]; /* closest parent header */
+  double id_query_model;      /* query-to-model identity % */
+  double id_query_a;          /* query-to-parentA identity % */
+  double id_query_b;          /* query-to-parentB identity % */
+  double id_a_b;              /* parentA-to-parentB identity % */
+  double id_query_top;        /* query-to-closest-parent identity % */
+  int left_yes, left_no, left_abstain;
+  int right_yes, right_no, right_abstain;
+  double divergence;
+  char flag;                  /* 'Y', 'N', or '?' */
+};
+
+struct chimera_info_s;
+
+/* Allocate an opaque chimera_info_s on the heap.
+   Callers that cannot see the full struct definition use this
+   instead of stack/member allocation. Free with chimera_info_free(). */
+auto chimera_info_alloc() -> struct chimera_info_s *;
+
+/* Free a chimera_info_s allocated by chimera_info_alloc().
+   Does NOT call chimera_detect_cleanup — call that first if init was called. */
+auto chimera_info_free(struct chimera_info_s * ci) -> void;
+
+/* === Session-level initialization (call once per session) === */
+
+/* Initialize chimera detection session: set search-shaping globals
+   and init static mutexes. Call once after DB is loaded and indexed,
+   before creating per-thread handles.
+   Requires: global opt_* scoring/penalty variables already set,
+   global db + dbindex loaded and indexed.
+   Overwrites: opt_maxaccepts, opt_maxrejects, opt_id, opt_weak_id,
+   tophits, and (denovo only) opt_self, opt_selfid, opt_maxsizeratio. */
+auto chimera_session_init() -> void;
+
+/* Destroy static mutexes. Call once after all per-thread handles are
+   cleaned up. */
+auto chimera_session_cleanup() -> void;
+
+/* === Per-thread initialization (call once per thread) === */
+
+/* Initialize per-thread chimera working state: SIMD aligners, k-mer
+   finders, working buffers. Safe to call for multiple ci instances
+   after chimera_session_init(). ci must not be shared across threads. */
+auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void;
+
+/* Free per-thread resources allocated by chimera_detect_thread_init. */
+auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
+
+/* === Convenience wrappers (single-threaded use) === */
+
+/* Convenience: chimera_session_init() + chimera_detect_thread_init(ci).
+   Use when only one chimera_info_s exists per session. */
+auto chimera_detect_init(struct chimera_info_s * ci) -> void;
+
+/* Detect chimera for a single query sequence.
+   Supports both uchime_ref and uchime_denovo modes (based on opt_chimeras_denovo).
+   ci: per-thread working state (from chimera_detect_init). NOT thread-safe if shared.
+   query_seq: null-terminated query sequence (DNA, uppercase).
+   query_head: null-terminated query header.
+   query_len: length of query sequence.
+   query_size: abundance (1 for uchime_ref, actual count for uchime_denovo).
+   result: output struct populated on return.
+   Returns 0 on success. */
+auto chimera_detect_single(struct chimera_info_s * ci,
+                           const char * query_seq,
+                           const char * query_head,
+                           int query_len,
+                           int query_size,
+                           struct chimera_result_s * result) -> int;
+
+/* Convenience: chimera_detect_thread_cleanup(ci) + chimera_session_cleanup().
+   Tears down BOTH per-thread and session-level state.
+   Use when only one chimera_info_s exists per session. */
+auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
+
+
+/* === Batch chimera detection API === */
+
+/* Detect chimeras for a batch of queries.
+   Internally parallelizes across opt_threads.
+   Manages session init/cleanup internally — caller must NOT call
+   chimera_session_init/cleanup around this function.
+   NOT safe to call concurrently with any other chimera API call.
+   Creates and destroys a thread pool per call.
+   Requires: global opt_* set, database loaded and indexed.
+   results: caller-allocated array of query_count elements. */
+auto chimera_detect_batch(const char ** query_seqs,
+                          const char ** query_heads,
+                          const int * query_lens,
+                          const int * query_sizes,
+                          int query_count,
+                          struct chimera_result_s * results) -> void;

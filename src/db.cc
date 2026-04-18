@@ -88,6 +88,25 @@ seqinfo_t * seqindex = nullptr;
 char * datap = nullptr;
 
 
+/* Reset database state for library use.
+   Must be called before the first db_add() when not using db_read().
+   Frees any previously allocated data, then resets all counters.
+   Sets shortest to UINT64_MAX so min-tracking works correctly. */
+auto db_init() -> void
+{
+  db_free();
+  is_fastq = false;
+  sequences = 0;
+  nucleotides = 0;
+  longest = 0;
+  shortest = std::numeric_limits<uint64_t>::max();
+  longestheader = 0;
+  dataalloc = 0;
+  datalen = 0;
+  seqindex_alloc = 0;
+}
+
+
 auto db_setinfo(bool new_is_fastq,
                 uint64_t new_sequences,
                 uint64_t new_nucleotides,
@@ -416,11 +435,21 @@ auto db_free() -> void
   if (datap != nullptr)
     {
       xfree(datap);
+      datap = nullptr;
     }
   if (seqindex != nullptr)
     {
       xfree(seqindex);
+      seqindex = nullptr;
     }
+  sequences = 0;
+  nucleotides = 0;
+  longest = 0;
+  shortest = std::numeric_limits<uint64_t>::max();
+  longestheader = 0;
+  dataalloc = 0;
+  datalen = 0;
+  seqindex_alloc = 0;
 }
 
 
