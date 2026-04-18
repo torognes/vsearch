@@ -220,11 +220,6 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   auto * input_handle = fastq_open(parameters.opt_fastq_convert);
 
-  if (input_handle == nullptr)
-    {
-      fatal("Unable to open FASTQ file");
-    }
-
   auto const filesize = fastq_get_size(input_handle);
 
   std::FILE * fp_fastqout = nullptr;
