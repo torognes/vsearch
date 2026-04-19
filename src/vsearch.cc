@@ -3999,6 +3999,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_fastaout,
         option_fastqout,
         option_gzip_decompress,
+        option_hardmask,
         option_label_suffix,
         option_lengthout,
         option_log,

@@ -70,6 +70,8 @@ At least one of the following output options is required:
 
 #(./fragments/option_gzip_decompress.md)
 
+#(./fragments/option_hardmask.md)
+
 #(./fragments/option_label_suffix.md)
 
 #(./fragments/option_lengthout.md)
