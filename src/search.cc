@@ -1423,11 +1423,11 @@ auto search_batch(const char ** query_seqs,
 
   for (int t = 0; t < nthreads; t++)
     {
-      std::memset(ctx.batch_si_plus + t, 0, sizeof(struct searchinfo_s));
+      std::memset((void*)(ctx.batch_si_plus + t), 0, sizeof(struct searchinfo_s));
       search_thread_init(ctx.batch_si_plus + t);
       if (ctx.batch_si_minus != nullptr)
         {
-          std::memset(ctx.batch_si_minus + t, 0, sizeof(struct searchinfo_s));
+          std::memset((void*)(ctx.batch_si_minus + t), 0, sizeof(struct searchinfo_s));
           search_thread_init(ctx.batch_si_minus + t);
         }
       args[t].ctx = &ctx;

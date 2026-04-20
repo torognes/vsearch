@@ -1980,12 +1980,12 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
   for (int i = 0; i < max_queries; i++)
     {
-      std::memset(si_plus + i, 0, sizeof(struct searchinfo_s));
+      std::memset((void*)(si_plus + i), 0, sizeof(struct searchinfo_s));
       cluster_query_init(si_plus + i);
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
-          std::memset(si_minus + i, 0, sizeof(struct searchinfo_s));
+          std::memset((void*)(si_minus + i), 0, sizeof(struct searchinfo_s));
           cluster_query_init(si_minus + i);
           si_minus[i].strand = 1;
         }
