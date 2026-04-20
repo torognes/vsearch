@@ -782,7 +782,7 @@ auto args_getdouble(char * arg) -> double
    for freeing it (or calling vsearch_init_defaults again, which leaks the
    old allocation — acceptable for single-init library use). */
 
-static pthread_mutex_t session_mutex;
+static pthread_mutex_t session_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 auto vsearch_api_version() -> int
 {
@@ -1016,6 +1016,7 @@ auto vsearch_init_defaults() -> void
 auto vsearch_session_end() -> void
 {
   xpthread_mutex_unlock(&session_mutex);
+  xpthread_mutex_destroy(&session_mutex);
 }
 
 
