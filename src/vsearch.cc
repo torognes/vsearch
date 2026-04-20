@@ -341,8 +341,11 @@ int64_t avx2_present = 0;
 
 static std::array<char, max_line_length> prog_header {{}};
 static char * cmdline;
+
+#ifndef VSEARCH_NO_MAIN
 static time_t time_start;
 static time_t time_finish;
+#endif
 
 std::FILE * fp_log = nullptr;
 
