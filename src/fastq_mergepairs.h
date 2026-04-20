@@ -58,4 +58,81 @@
 
 */
 
+#pragma once
+
 auto fastq_mergepairs(struct Parameters const & parameters) -> void;
+
+/* === Library API for embedding paired-end merging === */
+
+/* Result of merging a single read pair.
+
+   The merged_sequence and merged_quality buffers are allocated by
+   mergepairs_single() with xmalloc (sized to the actual merge length,
+   with no fixed upper bound). The caller owns the allocations and
+   MUST release them with merge_result_free() once done. Both pointers
+   are null when merge_result_s is zero-initialized and when the merge
+   fails. Quality is null-terminated ASCII; sequence is null-terminated
+   DNA. */
+struct merge_result_s {
+  bool merged;                 /* true if merge succeeded */
+  int merged_length;           /* length of merged sequence */
+  char * merged_sequence;      /* xmalloc'd DNA sequence, null-terminated
+                                  (nullptr on failure or before first call) */
+  char * merged_quality;       /* xmalloc'd quality string, null-terminated
+                                  (nullptr on failure or before first call) */
+  double ee_merged;            /* expected errors in merged sequence */
+  double ee_fwd;               /* expected errors from forward read */
+  double ee_rev;               /* expected errors from reverse read */
+  int fwd_errors;              /* mismatches attributed to forward read */
+  int rev_errors;              /* mismatches attributed to reverse read */
+  int overlap_length;          /* length of overlap region */
+};
+
+/* Initialize the quality score lookup table.
+   Must be called once before mergepairs_single().
+   Requires: opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax set
+   (vsearch_init_defaults provides correct values). */
+auto mergepairs_init() -> void;
+
+/* Merge a single forward/reverse read pair.
+   fwd_seq/rev_seq: null-terminated DNA sequences.
+   fwd_qual/rev_qual: null-terminated quality strings (ASCII-encoded).
+   fwd_len/rev_len: sequence lengths.
+   fwd_header/rev_header: null-terminated read headers.
+   result: output struct populated on return. On success the
+     merged_sequence and merged_quality pointers are heap-allocated
+     by this function; the caller MUST release them with
+     merge_result_free() to avoid leaks. Each call overwrites the
+     pointer fields unconditionally, so any previously-allocated
+     buffers in *result are leaked if the caller has not already
+     called merge_result_free(). Reuse the same struct only after
+     calling merge_result_free() between calls.
+   Returns 0 on success (merged), -1 on failure (not merged; pointers
+   are set to nullptr).
+
+   Thread-safe after mergepairs_init() completes. mergepairs_init()
+   must NOT run concurrently with any mergepairs_single() call.
+
+   Relevant opt_* overrides (after vsearch_init_defaults):
+     opt_fastq_minovlen   — minimum overlap length (default 10)
+     opt_fastq_maxdiffs   — max mismatches in overlap (default 10)
+     opt_fastq_maxdiffpct — max mismatch % in overlap (default 100.0)
+     opt_fastq_maxee      — max expected errors (default unlimited)
+     opt_fastq_minlen     — min merged length (default 1)
+     opt_fastq_maxlen     — max merged length (default unlimited)
+     opt_fastq_maxns      — max Ns allowed (default unlimited)
+     opt_fastq_ascii      — quality ASCII offset (default 33) */
+auto mergepairs_single(const char * fwd_seq,
+                        const char * fwd_qual,
+                        int fwd_len,
+                        const char * rev_seq,
+                        const char * rev_qual,
+                        int rev_len,
+                        const char * fwd_header,
+                        const char * rev_header,
+                        struct merge_result_s * result) -> int;
+
+/* Release the merged_sequence and merged_quality buffers owned by
+   *result and set both pointers to nullptr. Null-safe on either field.
+   Leaves the scalar fields (merged_length, ee_*, etc.) untouched. */
+auto merge_result_free(struct merge_result_s * result) -> void;

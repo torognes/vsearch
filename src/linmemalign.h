@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #ifndef LINMEMALIGN_HPP
 #define LINMEMALIGN_HPP
 

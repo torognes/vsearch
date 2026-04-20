@@ -84,6 +84,7 @@
 #include <cstring>  // std::strlen, std::strcpy
 #include <iterator>  // std::next
 #include <limits>
+#include <memory>
 #include <numeric>  // std::accumulate
 #include <pthread.h>
 #include <vector>
@@ -100,7 +101,6 @@
 */
 
 /* global constants/data, no need for synchronization */
-static auto parts = 0;
 constexpr auto maxparts = 100;
 constexpr auto window = 32;
 constexpr auto few = 4;
@@ -189,6 +189,16 @@ struct chimera_info_s
   std::vector<bool> ignore;
 
   double best_h = 0;
+
+  int parts = 0;  /* number of query parts for chimera detection */
+
+  /* API result fields — populated by eval_parents when result_out is set */
+  struct chimera_result_s * result_out = nullptr;
+
+  /* API per-thread working state — initialized by chimera_detect_init,
+     reused across chimera_detect_single calls */
+  std::vector<struct hit> api_allhits_list;
+  std::unique_ptr<LinearMemoryAligner> api_lma_ptr;
 };
 
 
@@ -215,22 +225,22 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   if (opt_chimeras_denovo != nullptr)
     {
       if (opt_chimeras_parts == 0) {
-        parts = (chimera_info->query_len + 99) / 100; // one part per 100bp by default
+        chimera_info->parts = (chimera_info->query_len + 99) / 100;
       }
       else {
-        parts = opt_chimeras_parts;
+        chimera_info->parts = opt_chimeras_parts;
       }
-      if (parts < 2) {
-        parts = 2;
+      if (chimera_info->parts < 2) {
+        chimera_info->parts = 2;
       }
-      else if (parts > maxparts) {
-        parts = maxparts;
+      else if (chimera_info->parts > maxparts) {
+        chimera_info->parts = maxparts;
       }
     }
   else
     {
       /* default for uchime, uchime2, and uchime3 */
-      parts = 4;
+      chimera_info->parts = 4;
     }
 
   const int maxhlen = std::max(chimera_info->query_head_len, 1);
@@ -273,7 +283,8 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
     }
 
   // resize query parts if longer than earlier, minimum 100
-  const int maxpartlen = std::max((maxqlen + parts - 1) / parts, 100);
+  const int maxpartlen =
+    std::max((maxqlen + chimera_info->parts - 1) / chimera_info->parts, 100);
   if (maxpartlen > chimera_info->part_alloc)
     {
       for (auto & query_info: chimera_info->si)
@@ -961,6 +972,43 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
   double const QM = 100.00;
   double const divfrac = 100.00 * (QM - QT) / QT;  // divergence of the model with the closest parent
 
+  /* Populate API result struct if requested */
+  if (ci->result_out != nullptr)
+    {
+      auto * r = ci->result_out;
+      r->score = 99.9999;  /* chimeras_denovo always reports chimeric */
+      std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
+                    ci->query_head_len, ci->query_head.data());
+      std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
+                    (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+      std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
+                    (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+      /* closest parent = max of QA, QB */
+      if (QA >= QB)
+        {
+          std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
+                        "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+        }
+      else
+        {
+          std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
+                        "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+        }
+      r->id_query_model = QM;
+      r->id_query_a = QA;
+      r->id_query_b = QB;
+      r->id_a_b = QC;  /* AB not computed in long path; use QC as proxy */
+      r->id_query_top = QT;
+      r->left_yes = 0;
+      r->left_no = 0;
+      r->left_abstain = 0;
+      r->right_yes = 0;
+      r->right_no = 0;
+      r->right_abstain = 0;
+      r->divergence = divfrac;
+      r->flag = 'Y';  /* eval_parents_long is always chimeric */
+    }
+
   xpthread_mutex_lock(&mutex_output);
 
   if ((opt_alnout != nullptr) and (status == Status::chimeric))
@@ -1521,6 +1569,43 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               }
           }
 
+      /* Populate API result struct if requested */
+      if (ci->result_out != nullptr)
+        {
+          auto * r = ci->result_out;
+          r->score = best_h;
+          std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
+                        ci->query_head_len, ci->query_head.data());
+          std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
+                        (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+          std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
+                        (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+          if (QA >= QB)
+            {
+              std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
+                            "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+            }
+          else
+            {
+              std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
+                            "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+            }
+          r->id_query_model = QM;
+          r->id_query_a = QA;
+          r->id_query_b = QB;
+          r->id_a_b = AB;
+          r->id_query_top = QT;
+          r->left_yes = best_left_y;
+          r->left_no = best_left_n;
+          r->left_abstain = best_left_a;
+          r->right_yes = best_right_y;
+          r->right_no = best_right_n;
+          r->right_abstain = best_right_a;
+          r->divergence = divdiff;
+          r->flag = (status == Status::chimeric) ? 'Y' :
+                    (status == Status::low_score ? 'N' : '?');
+        }
+
       /* print alignment */
 
       xpthread_mutex_lock(&mutex_output);
@@ -1751,9 +1836,10 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 {
   auto rest = chimera_info->query_len;
   auto * cursor = chimera_info->query_seq.data();
-  for (auto i = 0; i < parts; ++i)
+  for (auto i = 0; i < chimera_info->parts; ++i)
     {
-      auto const length = (rest + (parts - i - 1)) / (parts - i);
+      auto const length =
+        (rest + (chimera_info->parts - i - 1)) / (chimera_info->parts - i);
 
       auto & search_info = chimera_info->si[i];
 
@@ -1805,6 +1891,176 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   for (auto & a_search_info : ci->si) {
     query_exit(&a_search_info);
   }
+}
+
+
+/* Process a single query that has already been loaded into ci.
+   Shared by chimera_thread_core (CLI) and chimera_detect_single (API).
+   ci->query_seq, query_head, query_len, query_head_len, query_size must
+   be populated. allhits_list must be pre-allocated to maxcandidates.
+   lma is the per-thread linear memory aligner (fallback for SIMD overflow). */
+static auto chimera_process_query(struct chimera_info_s * ci,
+                                  std::vector<struct hit> & allhits_list,
+                                  LinearMemoryAligner & lma) -> Status
+{
+  /* partition query */
+  partition_query(ci);
+
+  /* perform searches and collect candidate parents */
+  ci->cand_count = 0;
+  ci->best_h = 0.0;
+  auto allhits_count = 0;
+
+  if (ci->query_len >= ci->parts)
+    {
+      std::vector<struct hit> hits;
+      for (auto i = 0; i < ci->parts; ++i)
+        {
+          search_onequery(&ci->si[i], opt_qmask);
+          search_joinhits(&ci->si[i], nullptr, hits);
+          for (auto & hit : hits) {
+            if (hit.accepted and allhits_count < maxcandidates)
+              {
+                allhits_list[allhits_count] = hit;
+                ++allhits_count;
+              }
+            else
+              {
+                // Unallocate alignments for weak hits
+                if (hit.nwalignment)
+                  {
+                    xfree(hit.nwalignment);
+                    hit.nwalignment = nullptr;
+                  }
+              }
+          }
+          hits.clear();
+        }
+    }
+
+  for (auto i = 0; i < allhits_count; ++i)
+    {
+      unsigned int const target = allhits_list[i].target;
+
+      /* skip duplicates */
+      auto k = 0;
+      for (k = 0; k < ci->cand_count; ++k)
+        {
+          if (ci->cand_list[k] == target)
+            {
+              break;
+            }
+        }
+
+      if (k == ci->cand_count)
+        {
+          ci->cand_list[ci->cand_count] = target;
+          ++ci->cand_count;
+        }
+
+      /* deallocate cigar */
+      if (allhits_list[i].nwalignment != nullptr)
+        {
+          xfree(allhits_list[i].nwalignment);
+          allhits_list[i].nwalignment = nullptr;
+        }
+    }
+
+
+  /* align full query to each candidate */
+
+  search16_qprep(ci->s, ci->query_seq.data(), ci->query_len);
+
+  search16(ci->s,
+           ci->cand_count,
+           ci->cand_list.data(),
+           ci->snwscore.data(),
+           ci->snwalignmentlength.data(),
+           ci->snwmatches.data(),
+           ci->snwmismatches.data(),
+           ci->snwgaps.data(),
+           ci->nwcigar.data());
+
+  for (auto i = 0; i < ci->cand_count; ++i)
+    {
+      int64_t const target = ci->cand_list[i];
+      int64_t nwscore = ci->snwscore[i];
+      char * nwcigar = nullptr;
+      int64_t nwalignmentlength = 0;
+      int64_t nwmatches = 0;
+      int64_t nwmismatches = 0;
+      int64_t nwgaps = 0;
+
+      if (nwscore == std::numeric_limits<short>::max())
+        {
+          /* In case the SIMD aligner cannot align,
+             perform a new alignment with the
+             linear memory aligner */
+
+          auto * tseq = db_getsequence(target);
+          int64_t const tseqlen = db_getsequencelen(target);
+
+          if (ci->nwcigar[i] != nullptr)
+            {
+              xfree(ci->nwcigar[i]);
+            }
+
+          nwcigar = xstrdup(lma.align(ci->query_seq.data(),
+                                      tseq,
+                                      ci->query_len,
+                                      tseqlen));
+          lma.alignstats(nwcigar,
+                         ci->query_seq.data(),
+                         tseq,
+                         & nwscore,
+                         & nwalignmentlength,
+                         & nwmatches,
+                         & nwmismatches,
+                         & nwgaps);
+
+          ci->nwcigar[i] = nwcigar;
+          ci->nwscore[i] = nwscore;
+          ci->nwalignmentlength[i] = nwalignmentlength;
+          ci->nwmatches[i] = nwmatches;
+          ci->nwmismatches[i] = nwmismatches;
+          ci->nwgaps[i] = nwgaps;
+        }
+      else
+        {
+          ci->nwscore[i] = ci->snwscore[i];
+          ci->nwalignmentlength[i] = ci->snwalignmentlength[i];
+          ci->nwmatches[i] = ci->snwmatches[i];
+          ci->nwmismatches[i] = ci->snwmismatches[i];
+          ci->nwgaps[i] = ci->snwgaps[i];
+        }
+    }
+
+
+  /* find the best pair of parents, then compute score for them */
+
+  if (opt_chimeras_denovo != nullptr)
+    {
+      /* long high-quality reads */
+      if (find_best_parents_long(ci) != 0)
+        {
+          return eval_parents_long(ci);
+        }
+      else
+        {
+          return Status::no_parents;
+        }
+    }
+  else
+    {
+      if (find_best_parents(ci) != 0)
+        {
+          return eval_parents(ci);
+        }
+      else
+        {
+          return Status::no_parents;
+        }
+    }
 }
 
 
@@ -1887,166 +2143,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
       xpthread_mutex_unlock(&mutex_input);
 
-      auto status = Status::no_parents;
-
-      /* partition query */
-      partition_query(ci);
-
-      /* perform searches and collect candidate parents */
-      ci->cand_count = 0;
-      ci->best_h = 0.0;
-      auto allhits_count = 0;
-
-      if (ci->query_len >= parts)
-        {
-          std::vector<struct hit> hits;
-          for (auto i = 0; i < parts; ++i)
-            {
-              search_onequery(&ci->si[i], opt_qmask);
-              search_joinhits(&ci->si[i], nullptr, hits);
-              for (auto & hit : hits) {
-                if (hit.accepted)
-                  {
-                    allhits_list[allhits_count] = hit;
-                    ++allhits_count;
-                  }
-                else
-                  {
-                    // Unallocate alignments for weak hits
-                    if (hit.nwalignment)
-                      {
-                        xfree(hit.nwalignment);
-                        hit.nwalignment = nullptr;
-                      }
-                  }
-              }
-              hits.clear();
-            }
-        }
-
-      for (auto i = 0; i < allhits_count; ++i)
-        {
-          unsigned int const target = allhits_list[i].target;
-
-          /* skip duplicates */
-          auto k = 0;
-          for (k = 0; k < ci->cand_count; ++k)
-            {
-              if (ci->cand_list[k] == target)
-                {
-                  break;
-                }
-            }
-
-          if (k == ci->cand_count)
-            {
-              ci->cand_list[ci->cand_count] = target;
-              ++ci->cand_count;
-            }
-
-          /* deallocate cigar */
-          if (allhits_list[i].nwalignment != nullptr)
-            {
-              xfree(allhits_list[i].nwalignment);
-              allhits_list[i].nwalignment = nullptr;
-            }
-        }
-
-
-      /* align full query to each candidate */
-
-      search16_qprep(ci->s, ci->query_seq.data(), ci->query_len);
-
-      search16(ci->s,
-               ci->cand_count,
-               ci->cand_list.data(),
-               ci->snwscore.data(),
-               ci->snwalignmentlength.data(),
-               ci->snwmatches.data(),
-               ci->snwmismatches.data(),
-               ci->snwgaps.data(),
-               ci->nwcigar.data());
-
-      for (auto i = 0; i < ci->cand_count; ++i)
-        {
-          int64_t const target = ci->cand_list[i];
-          int64_t nwscore = ci->snwscore[i];
-          char * nwcigar = nullptr;
-          int64_t nwalignmentlength = 0;
-          int64_t nwmatches = 0;
-          int64_t nwmismatches = 0;
-          int64_t nwgaps = 0;
-
-          if (nwscore == std::numeric_limits<short>::max())
-            {
-              /* In case the SIMD aligner cannot align,
-                 perform a new alignment with the
-                 linear memory aligner */
-
-              auto * tseq = db_getsequence(target);
-              int64_t const tseqlen = db_getsequencelen(target);
-
-              if (ci->nwcigar[i] != nullptr)
-                {
-                  xfree(ci->nwcigar[i]);
-                }
-
-              nwcigar = xstrdup(lma.align(ci->query_seq.data(),
-                                          tseq,
-                                          ci->query_len,
-                                          tseqlen));
-              lma.alignstats(nwcigar,
-                             ci->query_seq.data(),
-                             tseq,
-                             & nwscore,
-                             & nwalignmentlength,
-                             & nwmatches,
-                             & nwmismatches,
-                             & nwgaps);
-
-              ci->nwcigar[i] = nwcigar;
-              ci->nwscore[i] = nwscore;
-              ci->nwalignmentlength[i] = nwalignmentlength;
-              ci->nwmatches[i] = nwmatches;
-              ci->nwmismatches[i] = nwmismatches;
-              ci->nwgaps[i] = nwgaps;
-            }
-          else
-            {
-              ci->nwscore[i] = ci->snwscore[i];
-              ci->nwalignmentlength[i] = ci->snwalignmentlength[i];
-              ci->nwmatches[i] = ci->snwmatches[i];
-              ci->nwmismatches[i] = ci->snwmismatches[i];
-              ci->nwgaps[i] = ci->snwgaps[i];
-            }
-        }
-
-
-      /* find the best pair of parents, then compute score for them */
-
-      if (opt_chimeras_denovo != nullptr)
-        {
-          /* long high-quality reads */
-          if (find_best_parents_long(ci) != 0)
-            {
-              status = eval_parents_long(ci);
-            }
-          else
-            {
-              status = Status::no_parents;
-            }
-        }
-      else
-        {
-          if (find_best_parents(ci) != 0)
-            {
-              status = eval_parents(ci);
-            }
-          else
-            {
-              status = Status::no_parents;
-            }
-        }
+      auto const status = chimera_process_query(ci, allhits_list, lma);
 
       /* output results */
 
@@ -2581,4 +2678,349 @@ auto chimera(struct Parameters const & parameters) -> void
   close_chimera_file(fp_chimeras);
 
   show_rusage();
+}
+
+
+/* === Library API implementation === */
+
+auto chimera_info_alloc() -> struct chimera_info_s *
+{
+  return new chimera_info_s {};
+}
+
+auto chimera_info_free(struct chimera_info_s * ci) -> void
+{
+  if (ci != nullptr)
+    {
+      delete ci;
+    }
+}
+
+auto chimera_session_init() -> void
+{
+  /* Session-level initialization for chimera detection.
+     Sets search-shaping globals that chimera() normally sets but
+     the library API path bypasses, and initializes static mutexes
+     used by eval_parents/eval_parents_long.
+
+     Call once after DB is loaded and indexed, before creating
+     per-thread chimera_info_s handles.
+
+     Assumes global opt_* variables are already set (at minimum:
+     opt_match, opt_mismatch, opt_gap_*, opt_minh, opt_xn, opt_dn,
+     opt_mindiv, opt_mindiffs, opt_abskew, opt_dbmask, opt_qmask,
+     opt_wordlength). */
+
+  /* Override search parameters to chimera detection defaults.
+     These must match what chimera() sets in the CLI path (lines 2311-2329).
+     opt_weak_id defaults to 10.0 (sentinel) — clamp to opt_id so the
+     acceptance check in search_acceptable_aligned doesn't reject everything.
+     The CLI does this in command dispatch after option parsing. */
+  opt_maxaccepts = few;
+  opt_maxrejects = rejects;
+  opt_id = chimera_id;
+  if (opt_weak_id > opt_id)
+    {
+      opt_weak_id = opt_id;
+    }
+  tophits = opt_maxaccepts + opt_maxrejects;
+
+  /* For denovo mode, set opt_self/opt_selfid so sequences don't match
+     themselves as candidate parents, and set opt_maxsizeratio for
+     abundance skew filtering. Matches chimera() CLI setup. */
+  if (opt_uchime_ref == nullptr)
+    {
+      opt_self = 1;
+      opt_selfid = 1;
+      opt_maxsizeratio = 1.0 / opt_abskew;
+    }
+
+  /* Initialize mutexes for the API path. The CLI path initializes these
+     in chimera(), but the API bypasses chimera(). eval_parents and
+     eval_parents_long acquire mutex_output for file output (which the API
+     doesn't use, but the lock is still taken). */
+  xpthread_mutex_init(&mutex_input, nullptr);
+  xpthread_mutex_init(&mutex_output, nullptr);
+}
+
+
+auto chimera_session_cleanup() -> void
+{
+  xpthread_mutex_destroy(&mutex_input);
+  xpthread_mutex_destroy(&mutex_output);
+}
+
+
+auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
+{
+  /* Per-thread initialization: SIMD aligners, k-mer finders, working
+     buffers. Safe to call concurrently for different ci instances.
+     Requires chimera_session_init() to have been called first. */
+  assert(tophits > 0
+         && "chimera_session_init() must be called before chimera_detect_thread_init()");
+
+  chimera_thread_init(ci);
+
+  /* Allocate per-thread working state for chimera_process_query.
+     These mirror the locals in chimera_thread_core but persist
+     across calls to chimera_detect_single. */
+  ci->api_allhits_list.resize(maxcandidates);
+
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
+  scoring.gap_open_query_left = opt_gap_open_query_left;
+  scoring.gap_open_target_left = opt_gap_open_target_left;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
+  scoring.gap_open_target_interior = opt_gap_open_target_interior;
+  scoring.gap_open_query_right = opt_gap_open_query_right;
+  scoring.gap_open_target_right = opt_gap_open_target_right;
+  scoring.gap_extension_query_left = opt_gap_extension_query_left;
+  scoring.gap_extension_target_left = opt_gap_extension_target_left;
+  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
+  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
+  scoring.gap_extension_query_right = opt_gap_extension_query_right;
+  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  ci->api_lma_ptr.reset(new LinearMemoryAligner(scoring));
+}
+
+
+auto chimera_detect_init(struct chimera_info_s * ci) -> void
+{
+  /* Convenience wrapper: session init + per-thread init in one call.
+     Use for single-threaded detection (one chimera_info_s per session).
+     For multi-threaded detection, call chimera_session_init() once then
+     chimera_detect_thread_init() per thread. */
+  chimera_session_init();
+  chimera_detect_thread_init(ci);
+}
+
+auto chimera_detect_single(struct chimera_info_s * ci,
+                           const char * query_seq,
+                           const char * query_head,
+                           int query_len,
+                           int query_size,
+                           struct chimera_result_s * result) -> int
+{
+  /* Populate query in the chimera_info_s.
+     ci is per-thread state — must NOT be shared across threads. */
+  ci->query_no = 0;
+  ci->query_head_len = std::strlen(query_head);
+  ci->query_len = query_len;
+  ci->query_size = query_size;
+
+  realloc_arrays(ci);
+
+  std::strcpy(ci->query_head.data(), query_head);
+  std::strcpy(ci->query_seq.data(), query_seq);
+
+  /* Clear result. Non-chimeric results will have only query_label and
+     flag='N' populated; all other fields remain zero. */
+  std::memset(result, 0, sizeof(*result));
+  ci->result_out = result;
+
+  /* Use the SAME processing code as the CLI path */
+  auto const status = chimera_process_query(ci, ci->api_allhits_list,
+                                            *ci->api_lma_ptr);
+
+  if (status == Status::no_parents)
+    {
+      /* Populate result for no-parents case */
+      std::snprintf(result->query_label, sizeof(result->query_label), "%.*s",
+                    ci->query_head_len, ci->query_head.data());
+      result->flag = 'N';
+    }
+
+  /* Free CIGAR strings from this detection */
+  for (auto i = 0; i < ci->cand_count; ++i)
+    {
+      if (ci->nwcigar[i] != nullptr)
+        {
+          xfree(ci->nwcigar[i]);
+          ci->nwcigar[i] = nullptr;
+        }
+    }
+
+  ci->result_out = nullptr;
+  return 0;
+}
+
+auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void
+{
+  /* Per-thread cleanup: frees all resources allocated by
+     chimera_detect_thread_init (SIMD aligners, unique k-mer finders,
+     minheaps, CIGAR strings, linear memory aligner). */
+  for (auto & p : ci->nwcigar)
+    {
+      if (p != nullptr)
+        {
+          xfree(p);
+          p = nullptr;
+        }
+    }
+  chimera_thread_exit(ci);
+
+  /* Release API working state */
+  ci->api_lma_ptr.reset();
+  ci->api_allhits_list.clear();
+  ci->api_allhits_list.shrink_to_fit();
+}
+
+
+auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
+{
+  /* Convenience wrapper: per-thread cleanup + session cleanup in one call.
+     Use for single-threaded detection (one chimera_info_s per session).
+     For multi-threaded detection, call chimera_detect_thread_cleanup()
+     per thread, then chimera_session_cleanup() once. */
+  chimera_detect_thread_cleanup(ci);
+  chimera_session_cleanup();
+}
+
+
+/* === Batch chimera detection API === */
+
+
+struct chimera_batch_context_s {
+  const char ** query_seqs;
+  const char ** query_heads;
+  const int * query_lens;
+  const int * query_sizes;
+  int query_count;
+  struct chimera_result_s * results;
+
+  /* per-thread chimera state arrays (sized to opt_threads) */
+  struct chimera_info_s ** ci_array;
+
+  /* work-stealing counter */
+  pthread_mutex_t mutex;
+  int next_query;
+};
+
+
+struct chimera_batch_worker_arg_s {
+  struct chimera_batch_context_s * ctx;
+  int thread_id;
+};
+
+
+static auto chimera_batch_worker_fn(void * vp) -> void *
+{
+  auto * arg = static_cast<struct chimera_batch_worker_arg_s *>(vp);
+  auto * ctx = arg->ctx;
+  struct chimera_info_s * ci = ctx->ci_array[arg->thread_id];
+
+  while (true)
+    {
+      xpthread_mutex_lock(&ctx->mutex);
+      int const qi = ctx->next_query++;
+      xpthread_mutex_unlock(&ctx->mutex);
+
+      if (qi >= ctx->query_count)
+        {
+          break;
+        }
+
+      chimera_detect_single(ci,
+                            ctx->query_seqs[qi],
+                            ctx->query_heads[qi],
+                            ctx->query_lens[qi],
+                            ctx->query_sizes[qi],
+                            &ctx->results[qi]);
+    }
+
+  return nullptr;
+}
+
+
+auto chimera_detect_batch(const char ** query_seqs,
+                          const char ** query_heads,
+                          const int * query_lens,
+                          const int * query_sizes,
+                          int query_count,
+                          struct chimera_result_s * results) -> void
+{
+  if (query_count <= 0)
+    {
+      return;
+    }
+
+  int const nthreads = std::max(1, static_cast<int>(opt_threads));
+
+  /* Save globals that chimera_session_init will clobber */
+  int64_t const saved_maxaccepts = opt_maxaccepts;
+  int64_t const saved_maxrejects = opt_maxrejects;
+  double const saved_id = opt_id;
+  double const saved_weak_id = opt_weak_id;
+  bool const saved_self = opt_self;
+  bool const saved_selfid = opt_selfid;
+  double const saved_maxsizeratio = opt_maxsizeratio;
+
+  /* Session-level init (sets search-shaping globals, init mutexes) */
+  chimera_session_init();
+
+  /* Allocate per-thread chimera state */
+  struct chimera_batch_context_s ctx;
+  ctx.query_seqs = query_seqs;
+  ctx.query_heads = query_heads;
+  ctx.query_lens = query_lens;
+  ctx.query_sizes = query_sizes;
+  ctx.query_count = query_count;
+  ctx.results = results;
+  ctx.next_query = 0;
+
+  ctx.ci_array = (struct chimera_info_s **)
+    xmalloc(nthreads * sizeof(struct chimera_info_s *));
+
+  for (int t = 0; t < nthreads; t++)
+    {
+      ctx.ci_array[t] = chimera_info_alloc();
+      chimera_detect_thread_init(ctx.ci_array[t]);
+    }
+
+  xpthread_mutex_init(&ctx.mutex, nullptr);
+
+  /* Launch worker threads */
+  std::vector<pthread_t> threads(nthreads);
+  std::vector<struct chimera_batch_worker_arg_s> args(nthreads);
+  pthread_attr_t batch_attr;
+  xpthread_attr_init(&batch_attr);
+  xpthread_attr_setdetachstate(&batch_attr, PTHREAD_CREATE_JOINABLE);
+
+  for (int t = 0; t < nthreads; t++)
+    {
+      args[t].ctx = &ctx;
+      args[t].thread_id = t;
+      xpthread_create(&threads[t], &batch_attr,
+                      chimera_batch_worker_fn, &args[t]);
+    }
+
+  /* Join threads */
+  for (int t = 0; t < nthreads; t++)
+    {
+      xpthread_join(threads[t], nullptr);
+    }
+
+  xpthread_attr_destroy(&batch_attr);
+  xpthread_mutex_destroy(&ctx.mutex);
+
+  /* Cleanup per-thread state */
+  for (int t = 0; t < nthreads; t++)
+    {
+      chimera_detect_thread_cleanup(ctx.ci_array[t]);
+      chimera_info_free(ctx.ci_array[t]);
+    }
+  xfree(ctx.ci_array);
+
+  /* Session-level cleanup */
+  chimera_session_cleanup();
+
+  /* Restore globals that chimera_session_init clobbered */
+  opt_maxaccepts = saved_maxaccepts;
+  opt_maxrejects = saved_maxrejects;
+  opt_id = saved_id;
+  opt_weak_id = saved_weak_id;
+  opt_self = saved_self;
+  opt_selfid = saved_selfid;
+  opt_maxsizeratio = saved_maxsizeratio;
 }

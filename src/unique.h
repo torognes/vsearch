@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 struct bucket_s;
 struct uhandle_s;
 

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "derep.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/seqcmp.hpp"
@@ -74,29 +75,52 @@
 #include <vector>
 
 
+// refactoring:
+// replace with std::unordered_map (default hashing)
+// if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
+// then make a CityHash hasher object and use it with std::unordered_map
+using Hash = decltype(&hash_cityhash64);
+static Hash hash_function = hash_cityhash64;
+
+
+struct bucket
+{
+  uint64_t hash = 0;
+  unsigned int seqno_first = 0;
+  unsigned int seqno_last = 0;
+  unsigned int size = 0;
+  unsigned int count = 0;
+  unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
+  bool deleted = false;
+  char * header = nullptr;
+  char * seq = nullptr;
+  char * qual = nullptr;
+};
+
+
+static auto rehash(std::vector<struct bucket> & hashtable) -> void
+{
+  // new double-size hash table
+  uint64_t const new_hashtable_size = 2 * hashtable.size();
+  uint64_t const new_hash_mask = new_hashtable_size - 1;
+  std::vector<struct bucket> new_hashtable(new_hashtable_size);
+
+  // rehash all entries from the old to the new table
+  for (auto const & old_bucket : hashtable) {
+    if (old_bucket.size != 0U) {
+      auto new_index = old_bucket.hash & new_hash_mask;
+      while (new_hashtable[new_index].size != 0U) {
+        new_index = (new_index + 1) & new_hash_mask;
+      }
+      new_hashtable[new_index] = old_bucket;
+    }
+  }
+  hashtable.swap(new_hashtable);
+}
+
+
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-
-  // refactoring:
-  // replace with std::unordered_map (default hashing)
-  // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
-  // then make a CityHash hasher object and use it with std::unordered_map
-  using Hash = decltype(&hash_cityhash64);
-  Hash hash_function = hash_cityhash64;
-
-
-  struct bucket
-  {
-    uint64_t hash = 0;
-    unsigned int seqno_first = 0;
-    unsigned int seqno_last = 0;
-    unsigned int size = 0;
-    unsigned int count = 0;
-    bool deleted = false;
-    char * header = nullptr;
-    char * seq = nullptr;
-    char * qual = nullptr;
-  };
 
 
   auto count_selected(std::vector<struct bucket> const & hashtable,
@@ -135,27 +159,6 @@ namespace {
     // limit risk of integer additon overflow:
     // a >= b ; (a + b) / 2 == b + (a - b) / 2
     return rhs_size + ((lhs_size - rhs_size) * half);
-  }
-
-
-  auto rehash(std::vector<struct bucket> & hashtable) -> void
-  {
-    // new double-size hash table
-    uint64_t const new_hashtable_size = 2 * hashtable.size();
-    uint64_t const new_hash_mask = new_hashtable_size - 1;
-    std::vector<struct bucket> new_hashtable(new_hashtable_size);
-
-    // rehash all entries from the old to the new table
-    for (auto const & old_bucket : hashtable) {
-      if (old_bucket.size != 0U) {
-        auto new_index = old_bucket.hash & new_hash_mask;
-        while (new_hashtable[new_index].size != 0U) {
-          new_index = (new_index + 1) & new_hash_mask;
-        }
-        new_hashtable[new_index] = old_bucket;
-      }
-    }
-    hashtable.swap(new_hashtable);
   }
 
 
@@ -945,4 +948,175 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   show_rusage();
 
   show_rusage();
+}
+
+
+/* === Library API implementation === */
+
+struct derep_session_s {
+  std::vector<struct bucket> hashtable;
+  uint64_t hashtablesize = 0;
+  uint64_t hash_mask = 0;
+  uint64_t alloc_clusters = 0;
+  uint64_t clusters = 0;
+  unsigned int next_seqno = 0;  /* insertion counter for deterministic sort order */
+  std::vector<char> seq_up;
+  bool finalized = false;
+};
+
+
+auto derep_session_alloc() -> struct derep_session_s *
+{
+  return new derep_session_s {};
+}
+
+
+auto derep_session_free(struct derep_session_s * ds) -> void
+{
+  if (ds != nullptr)
+    {
+      derep_session_cleanup(ds);
+      delete ds;
+    }
+}
+
+
+auto derep_session_init(struct derep_session_s * ds) -> void
+{
+  ds->alloc_clusters = 1024;
+  ds->hashtablesize = 2 * ds->alloc_clusters;
+  ds->hash_mask = ds->hashtablesize - 1;
+  ds->hashtable.resize(ds->hashtablesize);
+  ds->seq_up.resize(1024);
+  ds->clusters = 0;
+  ds->next_seqno = 0;
+  ds->finalized = false;
+}
+
+
+auto derep_add_sequence(struct derep_session_s * ds,
+                        const char * header,
+                        const char * sequence,
+                        int seqlen,
+                        int64_t abundance) -> void
+{
+  if (seqlen <= 0)
+    {
+      return;
+    }
+
+  if (ds->finalized)
+    {
+      ds->finalized = false;  /* allow re-sort on next get_results */
+    }
+
+  /* Grow seq_up buffer if needed */
+  if (seqlen + 1 > static_cast<int>(ds->seq_up.size()))
+    {
+      ds->seq_up.resize(seqlen + 1);
+    }
+
+  /* Normalize: uppercase, U→T */
+  string_normalize(ds->seq_up.data(), sequence, seqlen);
+
+  /* Rehash if needed */
+  if (ds->clusters + 1 > ds->alloc_clusters)
+    {
+      ds->alloc_clusters *= 2;
+      rehash(ds->hashtable);
+      ds->hashtablesize = ds->hashtable.size();
+      ds->hash_mask = ds->hashtablesize - 1;
+    }
+
+  /* Hash and probe */
+  auto const hash = hash_cityhash64(ds->seq_up.data(), seqlen);
+  auto j = hash & ds->hash_mask;
+  auto * bp = &ds->hashtable[j];
+
+  while ((bp->size != 0U) and
+         ((hash != bp->hash) or
+          (seqcmp(ds->seq_up.data(), bp->seq, seqlen) != 0)))
+    {
+      j = (j + 1) & ds->hash_mask;
+      bp = &ds->hashtable[j];
+    }
+
+  if (bp->size != 0U)
+    {
+      /* Existing unique sequence — merge */
+      bp->size += abundance;
+      ++bp->count;
+    }
+  else
+    {
+      /* New unique sequence */
+      bp->size = abundance;
+      bp->hash = hash;
+      bp->seq = xstrdup(ds->seq_up.data());
+      bp->header = xstrdup(header);
+      bp->count = 1;
+      bp->seqlen = seqlen;
+      bp->qual = nullptr;
+      bp->seqno_first = ds->next_seqno;
+      bp->seqno_last = ds->next_seqno;
+      ++ds->clusters;
+    }
+  ++ds->next_seqno;
+}
+
+
+auto derep_get_results(struct derep_session_s * ds,
+                       struct derep_result_s * results,
+                       int max_results,
+                       int * result_count) -> void
+{
+  if (!ds->finalized)
+    {
+      /* Sort the hashtable — same comparator as CLI */
+      std::qsort(ds->hashtable.data(), ds->hashtablesize,
+                  sizeof(struct bucket), derep_compare_full);
+      ds->finalized = true;
+    }
+
+  int count = 0;
+  for (uint64_t i = 0; i < ds->hashtablesize and count < max_results; ++i)
+    {
+      auto const & b = ds->hashtable[i];
+      if (b.size == 0U)
+        {
+          break;  /* sorted: all empty buckets are at the end */
+        }
+      results[count].header = b.header;
+      results[count].sequence = b.seq;
+      results[count].abundance = b.size;
+      results[count].seqlen = b.seqlen;
+      results[count].count = b.count;
+      ++count;
+    }
+  *result_count = count;
+}
+
+
+auto derep_session_cleanup(struct derep_session_s * ds) -> void
+{
+  for (auto & b : ds->hashtable)
+    {
+      if (b.size == 0U)
+        {
+          continue;
+        }
+      if (b.seq != nullptr)
+        {
+          xfree(b.seq);
+          b.seq = nullptr;
+        }
+      if (b.header != nullptr)
+        {
+          xfree(b.header);
+          b.header = nullptr;
+        }
+    }
+  ds->hashtable.clear();
+  ds->clusters = 0;
+  ds->finalized = false;
 }

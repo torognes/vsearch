@@ -60,6 +60,8 @@
 
 #include "vsearch.h"
 #include "align_simd.h"
+#include "cluster.h"
+#include "searchcore.h"
 #include "attributes.h"
 #include "dbindex.h"
 #include "linmemalign.h"
@@ -78,6 +80,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strcpy, std::strlen
 #include <limits>
+#include <map>
 #include <pthread.h>
 #include <utility>  // std::get
 #include <vector>
@@ -1787,4 +1790,604 @@ auto cluster_size(char * cmdline, char * progheader) -> void
 auto cluster_unoise(char * cmdline, char * progheader) -> void
 {
   cluster(opt_cluster_unoise, cmdline, progheader);
+}
+
+
+/* === Library API for embedding clustering === */
+
+
+struct cluster_session_s {
+  struct searchinfo_s * si = nullptr;
+  struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
+  int cluster_count = 0;
+  int seqcount = 0;
+  std::map<int, int> centroid_cluster_ids;  /* seqno → cluster_id for centroids */
+};
+
+
+auto cluster_session_alloc() -> struct cluster_session_s *
+{
+  return new cluster_session_s {};
+}
+
+
+auto cluster_session_free(struct cluster_session_s * cs) -> void
+{
+  if (cs != nullptr)
+    {
+      delete cs;
+    }
+}
+
+
+auto cluster_session_init(struct cluster_session_s * cs) -> void
+{
+  /* Initialize clustering session for library use.
+     Assumes global opt_* variables and database are already set up
+     (sequences loaded, masked, and dbindex_prepare called with
+     bitmap=1 but WITHOUT dbindex_addallsequences — centroids are
+     indexed incrementally as they are discovered).
+
+     The database must be pre-sorted:
+     - by length (descending) for cluster_fast behavior
+     - by abundance (descending) for cluster_size behavior */
+
+  /* Set search parameters matching the CLI cluster path.
+     seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
+     MAXDELAYED (8) is needed as safety buffer for align_delayed().
+     Clamp tophits to seqcount to avoid oversized allocations. */
+  seqcount = static_cast<int>(db_getsequencecount());
+  tophits = opt_maxaccepts + opt_maxrejects + MAXDELAYED;
+  if (tophits > seqcount)
+    {
+      tophits = seqcount;
+    }
+
+  cs->si = new searchinfo_s {};
+  cluster_query_init(cs->si);
+  cs->si->strand = 0;
+
+  if (opt_strand > 1)
+    {
+      cs->si_minus = new searchinfo_s {};
+      cluster_query_init(cs->si_minus);
+      cs->si_minus->strand = 1;
+    }
+
+  cs->cluster_count = 0;
+  cs->seqcount = seqcount;
+}
+
+
+auto cluster_assign_single(struct cluster_session_s * cs,
+                            int seqno,
+                            struct cluster_result_s * result) -> void
+{
+  /* Assign a single database sequence to a cluster.
+     Must be called in order (seqno 0, 1, 2, ...).
+     Each call either assigns the sequence to an existing cluster
+     (if a match is found above opt_id threshold) or creates a new
+     cluster with this sequence as the centroid.
+
+     New centroids are automatically indexed for subsequent queries. */
+
+  std::memset(result, 0, sizeof(*result));
+
+  cs->si->query_no = seqno;
+  cs->si->strand = 0;
+  cluster_query_core(cs->si);
+
+  if (opt_strand > 1)
+    {
+      cs->si_minus->query_no = seqno;
+      cs->si_minus->strand = 1;
+      cluster_query_core(cs->si_minus);
+    }
+
+  struct hit * best = nullptr;
+  if (opt_sizeorder)
+    {
+      best = search_findbest2_bysize(cs->si, cs->si_minus);
+    }
+  else
+    {
+      best = search_findbest2_byid(cs->si, cs->si_minus);
+    }
+
+  if (best != nullptr)
+    {
+      /* Match found — assign to existing cluster */
+      result->is_centroid = false;
+      result->cluster_id = cs->centroid_cluster_ids.at(best->target);
+      result->centroid_seqno = best->target;
+      result->identity = best->id;
+      std::snprintf(result->centroid_label, sizeof(result->centroid_label),
+                    "%.*s",
+                    (int) db_getheaderlen(best->target),
+                    db_getheader(best->target));
+      if (best->nwalignment != nullptr)
+        {
+          int n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
+                                best->nwalignment);
+          result->cigar_truncated =
+            (n >= static_cast<int>(sizeof(result->cigar)));
+        }
+    }
+  else
+    {
+      /* No match — this sequence becomes a new centroid */
+      result->is_centroid = true;
+      result->cluster_id = cs->cluster_count;
+      result->centroid_seqno = seqno;
+      result->identity = 100.0;
+      std::snprintf(result->centroid_label, sizeof(result->centroid_label),
+                    "%.*s",
+                    (int) db_getheaderlen(seqno),
+                    db_getheader(seqno));
+
+      cs->centroid_cluster_ids[seqno] = cs->cluster_count;
+      dbindex_addsequence(seqno, opt_qmask);
+      ++cs->cluster_count;
+    }
+
+  /* Free ALL hit alignments for both strands.
+     search_onequery / align_delayed allocates nwalignment for each aligned hit. */
+  for (int s = 0; s < opt_strand; s++)
+    {
+      struct searchinfo_s * si = (s != 0) ? cs->si_minus : cs->si;
+      for (int i = 0; i < si->hit_count; ++i)
+        {
+          if (si->hits[i].aligned && si->hits[i].nwalignment != nullptr)
+            {
+              xfree(si->hits[i].nwalignment);
+              si->hits[i].nwalignment = nullptr;
+            }
+        }
+    }
+}
+
+
+auto cluster_assign_batch(struct cluster_session_s * cs,
+                          int start_seqno,
+                          int count,
+                          struct cluster_result_s * results) -> void
+{
+  if (count <= 0)
+    {
+      return;
+    }
+
+  constexpr int queries_per_thread = 1;
+  int const max_queries =
+    queries_per_thread * static_cast<int>(opt_threads);
+
+  /* Save file-statics used by cluster_worker / threads infrastructure */
+  struct searchinfo_s * saved_si_plus = si_plus;
+  struct searchinfo_s * saved_si_minus = si_minus;
+
+  /* Allocate per-thread search state for the batch */
+  si_plus = (struct searchinfo_s *)
+    xmalloc(max_queries * sizeof(struct searchinfo_s));
+  if (opt_strand > 1)
+    {
+      si_minus = (struct searchinfo_s *)
+        xmalloc(max_queries * sizeof(struct searchinfo_s));
+    }
+  else
+    {
+      si_minus = nullptr;
+    }
+
+  for (int i = 0; i < max_queries; i++)
+    {
+      std::memset(si_plus + i, 0, sizeof(struct searchinfo_s));
+      cluster_query_init(si_plus + i);
+      si_plus[i].strand = 0;
+      if (opt_strand > 1)
+        {
+          std::memset(si_minus + i, 0, sizeof(struct searchinfo_s));
+          cluster_query_init(si_minus + i);
+          si_minus[i].strand = 1;
+        }
+    }
+
+  /* Scoring for intra-batch fixup alignment */
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
+  scoring.gap_open_query_left = opt_gap_open_query_left;
+  scoring.gap_open_target_left = opt_gap_open_target_left;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
+  scoring.gap_open_target_interior = opt_gap_open_target_interior;
+  scoring.gap_open_query_right = opt_gap_open_query_right;
+  scoring.gap_open_target_right = opt_gap_open_target_right;
+  scoring.gap_extension_query_left = opt_gap_extension_query_left;
+  scoring.gap_extension_target_left = opt_gap_extension_target_left;
+  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
+  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
+  scoring.gap_extension_query_right = opt_gap_extension_query_right;
+  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+
+  LinearMemoryAligner lma(scoring);
+
+  std::vector<int> extra_list(max_queries);
+
+  /* Create thread pool */
+  threads_init();
+
+  int seqno = start_seqno;
+  int const end_seqno = start_seqno + count;
+
+  while (seqno < end_seqno)
+    {
+      /* Load batch of queries */
+      int queries = 0;
+      for (int i = 0; i < max_queries; i++)
+        {
+          if (seqno < end_seqno)
+            {
+              si_plus[i].query_no = seqno;
+              si_plus[i].strand = 0;
+
+              if (opt_strand > 1)
+                {
+                  si_minus[i].query_no = seqno;
+                  si_minus[i].strand = 1;
+                }
+
+              ++queries;
+              ++seqno;
+            }
+        }
+
+      /* Parallel search phase */
+      threads_wakeup(queries);
+
+      /* Serial analysis with intra-batch fixup
+         (adapted from cluster_core_parallel lines 725-1053) */
+      int extra_count = 0;
+
+      for (int i = 0; i < queries; i++)
+        {
+          struct searchinfo_s * si_p = si_plus + i;
+          struct searchinfo_s * si_m =
+            opt_strand > 1 ? si_minus + i : nullptr;
+
+          for (int s = 0; s < opt_strand; s++)
+            {
+              struct searchinfo_s * si = (s != 0) ? si_m : si_p;
+
+              int added = 0;
+
+              if (extra_count != 0)
+                {
+                  /* Check hits against centroids discovered in this batch */
+                  for (int j = 0; j < extra_count; j++)
+                    {
+                      struct searchinfo_s const * sic =
+                        si_plus + extra_list[j];
+
+                      auto const shared =
+                        unique_count_shared(*si->uh,
+                                            opt_wordlength,
+                                            sic->kmersamplecount,
+                                            sic->kmersample);
+
+                      if (search_enough_kmers(*si, shared))
+                        {
+                          unsigned int const length = sic->qseqlen;
+
+                          int x = si->hit_count;
+                          while ((x > 0) and
+                                 ((si->hits[x - 1].count < shared) or
+                                  ((si->hits[x - 1].count == shared) and
+                                   (db_getsequencelen(si->hits[x - 1].target)
+                                    > length))))
+                            {
+                              --x;
+                            }
+
+                          if (x < opt_maxaccepts + opt_maxrejects - 1)
+                            {
+                              if (si->hit_count >=
+                                  opt_maxaccepts + opt_maxrejects - 1)
+                                {
+                                  if (si->hits[si->hit_count - 1].aligned)
+                                    {
+                                      xfree(si->hits[si->hit_count - 1]
+                                                .nwalignment);
+                                    }
+                                  --si->hit_count;
+                                }
+
+                              for (int z = si->hit_count; z > x; z--)
+                                {
+                                  si->hits[z] = si->hits[z - 1];
+                                }
+
+                              struct hit * hit = si->hits + x;
+                              ++si->hit_count;
+
+                              hit->target = sic->query_no;
+                              hit->strand = si->strand;
+                              hit->count = shared;
+                              hit->accepted = false;
+                              hit->rejected = false;
+                              hit->aligned = false;
+                              hit->weak = false;
+                              hit->nwalignment = nullptr;
+
+                              ++added;
+                            }
+                        }
+                    }
+                }
+
+              /* Re-evaluate hits if new candidates were added */
+              if (added != 0)
+                {
+                  si->rejects = 0;
+                  si->accepts = 0;
+
+                  for (int t = 0; t < si->hit_count; t++)
+                    {
+                      si->hits[t].accepted = false;
+                      si->hits[t].rejected = false;
+                    }
+
+                  for (int t = 0;
+                       (si->accepts < opt_maxaccepts) and
+                         (si->rejects < opt_maxrejects) and
+                         (t < si->hit_count);
+                       ++t)
+                    {
+                      struct hit * hit = si->hits + t;
+
+                      if (not hit->aligned)
+                        {
+                          unsigned int const target = hit->target;
+                          if (search_acceptable_unaligned(*si, target))
+                            {
+                              unsigned int nwtarget = target;
+
+                              int64_t nwscore = 0;
+                              int64_t nwalignmentlength = 0;
+                              int64_t nwmatches = 0;
+                              int64_t nwmismatches = 0;
+                              int64_t nwgaps = 0;
+                              char * nwcigar = nullptr;
+
+                              CELL snwscore = 0;
+                              unsigned short snwalignmentlength = 0;
+                              unsigned short snwmatches = 0;
+                              unsigned short snwmismatches = 0;
+                              unsigned short snwgaps = 0;
+
+                              search16(si->s,
+                                       1,
+                                       &nwtarget,
+                                       &snwscore,
+                                       &snwalignmentlength,
+                                       &snwmatches,
+                                       &snwmismatches,
+                                       &snwgaps,
+                                       &nwcigar);
+
+                              int64_t const tseqlen =
+                                db_getsequencelen(target);
+
+                              if (snwscore ==
+                                  std::numeric_limits<short>::max())
+                                {
+                                  char * tseq = db_getsequence(target);
+
+                                  if (nwcigar != nullptr)
+                                    {
+                                      xfree(nwcigar);
+                                    }
+
+                                  nwcigar =
+                                    xstrdup(lma.align(si->qsequence,
+                                                      tseq,
+                                                      si->qseqlen,
+                                                      tseqlen));
+
+                                  lma.alignstats(nwcigar,
+                                                 si->qsequence,
+                                                 tseq,
+                                                 &nwscore,
+                                                 &nwalignmentlength,
+                                                 &nwmatches,
+                                                 &nwmismatches,
+                                                 &nwgaps);
+                                }
+                              else
+                                {
+                                  nwscore = snwscore;
+                                  nwalignmentlength = snwalignmentlength;
+                                  nwmatches = snwmatches;
+                                  nwmismatches = snwmismatches;
+                                  nwgaps = snwgaps;
+                                }
+
+                              int64_t const nwdiff =
+                                nwalignmentlength - nwmatches;
+                              int64_t const nwindels =
+                                nwdiff - nwmismatches;
+
+                              hit->aligned = true;
+                              hit->nwalignment = nwcigar;
+                              hit->nwscore = nwscore;
+                              hit->nwdiff = nwdiff;
+                              hit->nwgaps = nwgaps;
+                              hit->nwindels = nwindels;
+                              hit->nwalignmentlength = nwalignmentlength;
+                              hit->matches = nwmatches;
+                              hit->mismatches = nwmismatches;
+
+                              hit->nwid = 100.0 *
+                                (nwalignmentlength - hit->nwdiff) /
+                                nwalignmentlength;
+
+                              hit->shortest =
+                                std::min(si->qseqlen,
+                                         static_cast<int>(tseqlen));
+                              hit->longest =
+                                std::max(si->qseqlen,
+                                         static_cast<int>(tseqlen));
+
+                              align_trim(hit);
+                            }
+                          else
+                            {
+                              hit->rejected = true;
+                              ++si->rejects;
+                            }
+                        }
+
+                      if (not hit->rejected)
+                        {
+                          if (search_acceptable_aligned(*si, hit))
+                            {
+                              ++si->accepts;
+                            }
+                          else
+                            {
+                              ++si->rejects;
+                            }
+                        }
+                    }
+
+                  /* delete undetermined hits */
+                  int new_hit_count = si->hit_count;
+                  for (int t = si->hit_count - 1; t >= 0; t--)
+                    {
+                      struct hit const * hit = si->hits + t;
+                      if (not hit->accepted and not hit->rejected)
+                        {
+                          new_hit_count = t;
+                          if (hit->aligned)
+                            {
+                              xfree(hit->nwalignment);
+                            }
+                        }
+                    }
+                  si->hit_count = new_hit_count;
+                }
+            }
+
+          /* Find best hit across strands */
+          struct hit * best = nullptr;
+          if (opt_sizeorder)
+            {
+              best = search_findbest2_bysize(si_p, si_m);
+            }
+          else
+            {
+              best = search_findbest2_byid(si_p, si_m);
+            }
+
+          int const myseqno = si_p->query_no;
+          int const ri = myseqno - start_seqno;
+          std::memset(&results[ri], 0, sizeof(results[ri]));
+
+          if (best != nullptr)
+            {
+              /* Match found — assign to existing cluster */
+              results[ri].is_centroid = false;
+              results[ri].cluster_id =
+                cs->centroid_cluster_ids.at(best->target);
+              results[ri].centroid_seqno = best->target;
+              results[ri].identity = best->id;
+              std::snprintf(results[ri].centroid_label,
+                            sizeof(results[ri].centroid_label),
+                            "%.*s",
+                            (int) db_getheaderlen(best->target),
+                            db_getheader(best->target));
+              if (best->nwalignment != nullptr)
+                {
+                  int n = std::snprintf(results[ri].cigar,
+                                        sizeof(results[ri].cigar),
+                                        "%s", best->nwalignment);
+                  results[ri].cigar_truncated =
+                    (n >= static_cast<int>(sizeof(results[ri].cigar)));
+                }
+            }
+          else
+            {
+              /* No match — new centroid */
+              extra_list[extra_count] = i;
+              ++extra_count;
+
+              results[ri].is_centroid = true;
+              results[ri].cluster_id = cs->cluster_count;
+              results[ri].centroid_seqno = myseqno;
+              results[ri].identity = 100.0;
+              std::snprintf(results[ri].centroid_label,
+                            sizeof(results[ri].centroid_label),
+                            "%.*s",
+                            (int) db_getheaderlen(myseqno),
+                            db_getheader(myseqno));
+
+              cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
+              dbindex_addsequence(myseqno, opt_qmask);
+              ++cs->cluster_count;
+            }
+
+          /* Free alignment strings for both strands */
+          for (int s = 0; s < opt_strand; s++)
+            {
+              struct searchinfo_s * strand_si =
+                (s != 0) ? si_m : si_p;
+              for (int j = 0; j < strand_si->hit_count; j++)
+                {
+                  if (strand_si->hits[j].aligned &&
+                      strand_si->hits[j].nwalignment != nullptr)
+                    {
+                      xfree(strand_si->hits[j].nwalignment);
+                      strand_si->hits[j].nwalignment = nullptr;
+                    }
+                }
+            }
+        }
+    }
+
+  /* Destroy thread pool */
+  threads_exit();
+
+  /* Clean up batch search state */
+  for (int i = 0; i < max_queries; i++)
+    {
+      cluster_query_exit(si_plus + i);
+      if (opt_strand > 1)
+        {
+          cluster_query_exit(si_minus + i);
+        }
+    }
+  xfree(si_plus);
+  if (si_minus != nullptr)
+    {
+      xfree(si_minus);
+    }
+
+  /* Restore file-statics */
+  si_plus = saved_si_plus;
+  si_minus = saved_si_minus;
+}
+
+
+auto cluster_session_cleanup(struct cluster_session_s * cs) -> void
+{
+  if (cs->si != nullptr)
+    {
+      cluster_query_exit(cs->si);
+      delete cs->si;
+      cs->si = nullptr;
+    }
+  if (cs->si_minus != nullptr)
+    {
+      cluster_query_exit(cs->si_minus);
+      delete cs->si_minus;
+      cs->si_minus = nullptr;
+    }
 }

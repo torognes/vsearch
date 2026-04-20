@@ -1,0 +1,10 @@
+>clean_seq
+acgtacgtacgtacgtacgtacgtacgtacgt
+>low_complexity
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+>mixed_seq
+ACGTACGTACGTACGTaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaCGTACGTACGTACGT
+>short_repeat
+atatatatatatatatatatatatatatatatat
+>gc_rich_repeat
+gcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgcgc

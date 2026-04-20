@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "vsearch_api.h"
 #include "allpairs.h"
 #include "chimera.h"
 #include "cluster.h"
@@ -103,6 +104,7 @@
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -766,16 +768,34 @@ auto args_getdouble(char * arg) -> double
 }
 
 
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+/* Initialize all global opt_* variables to their default values.
+   This is the library-API equivalent of the defaults block in args_init().
+   Must be called before using any vsearch library function.
+
+   After calling this, the caller should override any options needed
+   for their specific use case (e.g., chimera detection parameters).
+
+   Note: allocates opt_ee_cutoffs_values via xmalloc. Caller is responsible
+   for freeing it (or calling vsearch_init_defaults again, which leaks the
+   old allocation — acceptable for single-init library use). */
+
+static std::mutex session_mutex;
+
+auto vsearch_api_version() -> int
 {
-  /* Set defaults */
+  return VSEARCH_API_VERSION;
+}
+
+auto vsearch_api_version_string() -> const char *
+{
+  return VSEARCH_API_VERSION_STRING;
+}
+
+auto vsearch_init_defaults() -> void
+{
+  session_mutex.lock();
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
-  static constexpr auto number_of_commands = std::size_t{50};
-  static constexpr auto number_of_options = std::size_t{247};
-  static constexpr auto max_number_of_options_per_command = std::size_t{99};
-
-  parameters.progname = argv[0];
 
   opt_abskew = 0.0;
   opt_acceptall = 0;
@@ -804,6 +824,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_dbnotmatched = nullptr;
   opt_dn = 1.4;
   opt_ee_cutoffs_count = 3;
+  if (opt_ee_cutoffs_values != nullptr)
+    {
+      xfree(opt_ee_cutoffs_values);
+    }
   opt_ee_cutoffs_values = (double *) xmalloc(opt_ee_cutoffs_count * sizeof(double));
   opt_ee_cutoffs_values[0] = 0.5;
   opt_ee_cutoffs_values[1] = 1.0;
@@ -920,7 +944,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_mothur_shared_out = nullptr;
   opt_msaout = nullptr;
   opt_n_mismatch = false;
-  opt_no_progress = false;
+  opt_no_progress = true;
   opt_nonchimeras = nullptr;
   opt_notmatched = nullptr;
   opt_notmatched = nullptr;
@@ -933,7 +957,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_qmask = MASK_DUST;
   opt_qsegout = nullptr;
   opt_query_cov = 0.0;
-  opt_quiet = false;
+  opt_quiet = true;
   opt_randseed = 0;
   opt_relabel = nullptr;
   opt_relabel_keep = false;
@@ -983,7 +1007,111 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   opt_xlength = false;
   opt_xn = 8.0;
   opt_xsize = false;
+}
 
+
+auto vsearch_session_end() -> void
+{
+  session_mutex.unlock();
+}
+
+
+/* Apply post-parsing fixups to global options.
+   Resolves sentinel values (e.g., opt_minwordmatches=-1, opt_maxhits=0)
+   to their computed defaults. Call after vsearch_init_defaults() and
+   after setting any option overrides (e.g., opt_wordlength).
+
+   In the CLI path, args_init() calls this implicitly at the end of
+   option parsing. Library users must call it explicitly after setting
+   their overrides. */
+auto vsearch_apply_defaults_fixups() -> void
+{
+  if (opt_maxhits == 0)
+    {
+      opt_maxhits = int64_max;
+    }
+
+  if (opt_minwordmatches < 0)
+    {
+      if (opt_wordlength >= 0 and
+          opt_wordlength < static_cast<int64_t>(minwordmatches_defaults.size()))
+        {
+          opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
+        }
+      else
+        {
+          opt_minwordmatches = 0;
+        }
+    }
+
+
+  /* opt_weak_id default (10.0) is a sentinel meaning "not set by user".
+     Clamp to opt_id so the acceptance check in search_acceptable_aligned
+     doesn't reject everything. Only clamp when opt_id has been set to
+     a real value (>= 0). For chimera detection, opt_id is set later by
+     chimera_detect_init, which re-checks opt_weak_id. */
+  if (opt_id >= 0.0 and opt_weak_id > opt_id)
+    {
+      opt_weak_id = opt_id;
+    }
+
+  /* Resolve opt_threads sentinel: 0 means "auto-detect".
+     The CLI resolves this in command dispatch; library callers need it
+     resolved here so that dust_all() and other threaded functions work. */
+  if (opt_threads == 0)
+    {
+      opt_threads = arch_get_cores();
+    }
+
+  /* Resolve opt_maxrejects sentinel: -1 means "not set by user".
+     CLI resolves to 8 (cluster_fast) or 32 (others). Default to 32. */
+  if (opt_maxrejects < 0)
+    {
+      opt_maxrejects = 32;
+    }
+
+  /* Validate opt_wordlength — 0 is a sentinel meaning "not set".
+     A wordlength of 0 destroys the k-mer index (hash size = 1).
+     Library users MUST set this before calling fixups. */
+  if (opt_wordlength == 0)
+    {
+      opt_wordlength = 8;
+    }
+
+  /* Adjust gap-open penalties: subtract the first-nucleotide extension cost.
+     The rest of the code assumes gap_open does NOT include the first
+     extension. Safe to call repeatedly — vsearch_init_defaults() resets
+     opt_gap_open_* to their raw (pre-adjustment) values each time. */
+  opt_gap_open_query_left -= opt_gap_extension_query_left;
+  opt_gap_open_target_left -= opt_gap_extension_target_left;
+  opt_gap_open_query_interior -= opt_gap_extension_query_interior;
+  opt_gap_open_target_interior -= opt_gap_extension_target_interior;
+  opt_gap_open_query_right -= opt_gap_extension_query_right;
+  opt_gap_open_target_right -= opt_gap_extension_target_right;
+
+  /* Note: opt_minsize is NOT resolved here — it has command-specific
+     defaults (1 for most commands, 8 for cluster_unoise).
+     Library users should set opt_minsize explicitly if needed. */
+}
+
+
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+{
+  vsearch_init_defaults();
+
+  static constexpr auto number_of_commands = std::size_t{50};
+  static constexpr auto number_of_options = std::size_t{247};
+  static constexpr auto max_number_of_options_per_command = std::size_t{99};
+
+  parameters.progname = argv[0];
+
+  /* Defaults are now set by vsearch_init_defaults() above. */
+
+  /* Library defaults to quiet; CLI needs output. */
+  opt_quiet = false;
+  opt_no_progress = false;
+
+  /* opt_* defaults removed — now in vsearch_init_defaults() */
   opterr = 1;
 
   enum
@@ -4938,40 +5066,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* adapt/adjust parameters */
 
-#if 1
-
-  /*
-    Adjust gap open penalty according to convention.
-
-    The specified gap open penalties include the penalty for
-    a single nucleotide gap:
-
-    gap penalty = gap open penalty + (gap length - 1) * gap extension penalty
-
-    The rest of the code assumes the first nucleotide gap penalty is not
-    included in the gap opening penalty.
-  */
-
-  opt_gap_open_query_left -= opt_gap_extension_query_left;
-  opt_gap_open_target_left -= opt_gap_extension_target_left;
-  opt_gap_open_query_interior -= opt_gap_extension_query_interior;
-  opt_gap_open_target_interior -= opt_gap_extension_target_interior;
-  opt_gap_open_query_right -= opt_gap_extension_query_right;
-  opt_gap_open_target_right -= opt_gap_extension_target_right;
-
-#endif
-
-  /* set defaults parameters, if not specified */
-
-  if (opt_maxhits == 0)
-    {
-      opt_maxhits = int64_max;
-    }
-
-  if (opt_minwordmatches < 0)
-    {
-      opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
-    }
+  /* Resolve sentinel defaults and adjust gap penalties.
+     Generic fixups (including gap-open adjustment) are in
+     vsearch_apply_defaults_fixups(); command-specific overrides
+     (abskew, minsize for unoise) follow below. */
+  vsearch_apply_defaults_fixups();
 
   /* set default opt_minsize depending on command */
   if (parameters.opt_minsize == 0)
@@ -5902,6 +6001,11 @@ auto show_header(struct Parameters const & parameters) -> void {
 }
 
 
+/* When building as a library (VSEARCH_NO_MAIN), exclude main() to avoid
+   symbol conflicts with the embedding application's entry point.
+   All global variable definitions and helper functions above remain
+   available — only the CLI entry point is excluded. */
+#ifndef VSEARCH_NO_MAIN
 auto main(int argc, char** argv) -> int
 {
   struct Parameters parameters;
@@ -6157,3 +6261,4 @@ auto main(int argc, char** argv) -> int
   xfree(cmdline);
   dynlibs_close();
 }
+#endif /* VSEARCH_NO_MAIN */

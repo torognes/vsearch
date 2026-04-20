@@ -58,7 +58,64 @@
 
 */
 
+#pragma once
+
 auto cluster_smallmem(char * cmdline, char * progheader) -> void;
 auto cluster_fast(char * cmdline, char * progheader) -> void;
 auto cluster_size(char * cmdline, char * progheader) -> void;
 auto cluster_unoise(char * cmdline, char * progheader) -> void;
+
+/* === Library API for embedding clustering === */
+
+/* Result of assigning a single sequence to a cluster. */
+struct cluster_result_s {
+  bool is_centroid;            /* true if this sequence started a new cluster */
+  int cluster_id;              /* cluster number (0-based) */
+  int centroid_seqno;          /* database seqno of the cluster centroid */
+  char centroid_label[1024];   /* centroid header (may truncate) */
+  double identity;             /* identity to centroid (100.0 if is_centroid) */
+  char cigar[4096];            /* CIGAR alignment string (empty if centroid) */
+  bool cigar_truncated;        /* true if cigar was truncated to fit buffer */
+};
+
+/* Opaque session state for incremental clustering. */
+struct cluster_session_s;
+
+/* Allocate/free a clustering session. */
+auto cluster_session_alloc() -> struct cluster_session_s *;
+auto cluster_session_free(struct cluster_session_s * cs) -> void;
+
+/* Initialize a clustering session.
+   Requires: global opt_* set (including opt_id for identity threshold),
+   database loaded, masked, and dbindex_prepare() called with bitmap=1.
+   Do NOT call dbindex_addallsequences — centroids are indexed
+   incrementally as they are discovered.
+
+   Database must be pre-sorted by length (cluster_fast) or
+   abundance (cluster_size) before loading. */
+auto cluster_session_init(struct cluster_session_s * cs) -> void;
+
+/* Assign a single database sequence to a cluster.
+   Must be called sequentially (seqno 0, 1, 2, ...).
+   Sequences matching an existing centroid (above opt_id) are assigned
+   to that cluster. Unmatched sequences become new centroids.
+   Single-threaded only. */
+auto cluster_assign_single(struct cluster_session_s * cs,
+                            int seqno,
+                            struct cluster_result_s * result) -> void;
+
+/* Assign a contiguous batch of database sequences to clusters.
+   Internally parallelizes the search phase across opt_threads, then
+   processes results sequentially with intra-batch fixup for centroids
+   discovered within the same batch.
+   Must be called with ascending, non-overlapping seqno ranges.
+   results: caller-allocated array of count elements.
+   NOT safe to call concurrently with any other cluster API call. */
+auto cluster_assign_batch(struct cluster_session_s * cs,
+                          int start_seqno,
+                          int count,
+                          struct cluster_result_s * results) -> void;
+
+/* Clean up clustering session resources.
+   Call before cluster_session_free(). */
+auto cluster_session_cleanup(struct cluster_session_s * cs) -> void;
