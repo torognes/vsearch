@@ -1417,6 +1417,9 @@ auto search16(s16info_s * s,
   uint64_t next_id = 0;
   uint64_t done = 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma clang diagnostic ignored "-Wc99-extensions"
   T0 = v_init(-1, 0, 0, 0, 0, 0, 0, 0);
 
   R_query_left = v_dup(s->penalty_gap_extension_query_left);
@@ -1440,6 +1443,7 @@ auto search16(s16info_s * s,
   QR_target_right  = v_dup((s->penalty_gap_open_target_right +
                             s->penalty_gap_extension_target_right));
   R_target_right  = v_dup(s->penalty_gap_extension_target_right);
+#pragma GCC diagnostic pop
 
   hep = (VECTOR_SHORT *) hearray;
   qp = (VECTOR_SHORT **) q_start;
