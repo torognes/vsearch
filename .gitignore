@@ -10,12 +10,16 @@
 .dirstamp
 /autom4te.cache
 /bin
+/configure
 /docs
 /man/manpages
 /config.h
 /config.log
 /config.status
 /stamp-h1
+/Makefile
+/src/Makefile
+/man/Makefile
 .vscode
 .DS_Store
 .Tpo
