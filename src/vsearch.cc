@@ -1016,7 +1016,6 @@ auto vsearch_init_defaults() -> void
 auto vsearch_session_end() -> void
 {
   xpthread_mutex_unlock(&session_mutex);
-  xpthread_mutex_destroy(&session_mutex);
 }
 
 
