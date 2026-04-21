@@ -8,6 +8,13 @@
 .cache/
 .deps
 .dirstamp
+/api_examples/example_chimera
+/api_examples/example_cluster
+/api_examples/example_derep
+/api_examples/example_dust
+/api_examples/example_merge
+/api_examples/example_reinit
+/api_examples/example_search
 /autom4te.cache
 /bin
 /configure
