@@ -696,7 +696,7 @@ AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes \
 	-I$(top_srcdir)/third_party/simde $(am__append_1) \
 	$(am__append_2) $(am__append_3) $(am__append_4) \
 	$(am__append_5) $(am__append_6)
-AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11
+AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 VSEARCHHEADERS = \
 align_simd.h \
 allpairs.h \
