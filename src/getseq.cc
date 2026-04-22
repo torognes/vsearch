@@ -133,6 +133,11 @@ auto read_labels_file(char * filename) -> void
           --length;
         }
 
+      // silently skip empty lines: an empty label would match every
+      // header, and storing an empty std::vector<char> would make
+      // label.data() return nullptr, crashing downstream scanners
+      if (length == 0) { continue; }
+
       labels_longest = std::max(length, labels_longest);
 
       if (labels_count + 1 > labels_alloc)
@@ -264,19 +269,26 @@ auto test_label_match(fastx_handle input_handle) -> bool
     }
   else if (opt_label_words != nullptr)
     {
-      for (auto & label: labels_data) {
+      char const * const header_end = std::next(header, hlen);
+      for (auto const & label: labels_data) {
+        // labels read from a file are stored as std::vector<char>
+        // without a trailing '\0', so the needle length must come from
+        // label.size() and the search must be range-based; strlen and
+        // strstr would read past the vector's storage
         char const * needle = label.data();
+        int wlen = static_cast<int>(label.size());
         if (opt_label_field != nullptr)
           {
             std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
             needle = field_buffer.data();
+            wlen = field_len + 1 + static_cast<int>(label.size());
           }
-        int const wlen = std::strlen(needle);
+        char const * const needle_end = std::next(needle, wlen);
         char const * hit = header;
         while (true)
           {
-            hit = std::strstr(hit, needle);
-            if (hit == nullptr) {
+            hit = std::search(hit, header_end, needle, needle_end);
+            if (hit == header_end) {
               break;
             }
             if (opt_label_field != nullptr)
