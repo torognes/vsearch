@@ -133,6 +133,11 @@ auto read_labels_file(char * filename) -> void
           --length;
         }
 
+      // silently skip empty lines: an empty label would match every
+      // header, and storing an empty std::vector<char> would make
+      // label.data() return nullptr, crashing downstream scanners
+      if (length == 0) { continue; }
+
       labels_longest = std::max(length, labels_longest);
 
       if (labels_count + 1 > labels_alloc)
