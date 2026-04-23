@@ -95,6 +95,7 @@
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
+#include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
 #include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
@@ -748,8 +749,9 @@ auto args_getlong(char * arg) -> int64_t
 {
   int len = 0;
   int64_t temp = 0;
-  auto const ret = std::sscanf(arg, "%" PRId64 "%n", &temp, &len);
-  if ((ret == 0) or (((unsigned int) len) < std::strlen(arg)))
+  errno = 0;
+  auto const ret = std::sscanf(arg, "%" SCNd64 "%n", &temp, &len);
+  if ((ret == 0) or (((unsigned int) len) < std::strlen(arg)) or (errno == ERANGE))
     {
       fatal("Illegal option argument");
     }
@@ -761,9 +763,10 @@ auto args_getdouble(char * arg) -> double
 {
   int len = 0;
   double temp = 0;
+  errno = 0;
   auto const ret = std::sscanf(arg, "%lf%n", &temp, &len);
 
-  if ((ret == 0) or (((unsigned int) len) < std::strlen(arg)))
+  if ((ret == 0) or (((unsigned int) len) < std::strlen(arg)) or (errno == ERANGE))
     {
       fatal("Illegal option argument");
     }
