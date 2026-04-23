@@ -420,6 +420,34 @@ auto merge_sym(char * sym,       char * qual,
 }
 
 
+auto fprintf_ee_value(std::FILE * output_handle, double const expected_error) -> void
+{
+  /* mirror the variable-precision format used in fasta/fastq output
+     (see fasta_print_general) so eetabbedout preserves small EE values */
+  if (expected_error < 0.000000001) {
+    std::fprintf(output_handle, "%.13lf", expected_error);
+  } else if (expected_error < 0.00000001) {
+    std::fprintf(output_handle, "%.12lf", expected_error);
+  } else if (expected_error < 0.0000001) {
+    std::fprintf(output_handle, "%.11lf", expected_error);
+  } else if (expected_error < 0.000001) {
+    std::fprintf(output_handle, "%.10lf", expected_error);
+  } else if (expected_error < 0.00001) {
+    std::fprintf(output_handle, "%.9lf", expected_error);
+  } else if (expected_error < 0.0001) {
+    std::fprintf(output_handle, "%.8lf", expected_error);
+  } else if (expected_error < 0.001) {
+    std::fprintf(output_handle, "%.7lf", expected_error);
+  } else if (expected_error < 0.01) {
+    std::fprintf(output_handle, "%.6lf", expected_error);
+  } else if (expected_error < 0.1) {
+    std::fprintf(output_handle, "%.5lf", expected_error);
+  } else {
+    std::fprintf(output_handle, "%.4lf", expected_error);
+  }
+}
+
+
 auto keep(merge_data_t const & a_read_pair) -> void
 {
   ++merged;
@@ -465,8 +493,11 @@ auto keep(merge_data_t const & a_read_pair) -> void
 
   if (opt_eetabbedout != nullptr)
     {
-      fprintf(fp_eetabbedout, "%.2lf\t%.2lf\t%" PRId64 "\t%" PRId64 "\n",
-              a_read_pair.ee_fwd, a_read_pair.ee_rev, a_read_pair.fwd_errors, a_read_pair.rev_errors);
+      fprintf_ee_value(fp_eetabbedout, a_read_pair.ee_fwd);
+      std::fprintf(fp_eetabbedout, "\t");
+      fprintf_ee_value(fp_eetabbedout, a_read_pair.ee_rev);
+      std::fprintf(fp_eetabbedout, "\t%" PRId64 "\t%" PRId64 "\n",
+                   a_read_pair.fwd_errors, a_read_pair.rev_errors);
     }
 }
 
