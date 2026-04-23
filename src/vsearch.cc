@@ -5962,6 +5962,14 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
   if (opt_fastq_maxdiffs < 0) {
     fatal("Argument to --fastq_maxdiffs must be positive");
   }
+  if (opt_fastq_maxee <= 0.0) {
+    /* expected error is the sum of per-base error probabilities;
+       probabilities are strictly positive (min quality score is 93,
+       corresponding to probability ~1e-9.3), so the sum cannot be
+       zero or negative. A null or negative threshold would always
+       reject every read and is almost certainly a user mistake. */
+    fatal("Argument to --fastq_maxee must be a strictly positive number");
+  }
   if (opt_fastq_maxlen < 1) {
     fatal("Argument to --fastq_maxlen must be a positive integer");
   }
