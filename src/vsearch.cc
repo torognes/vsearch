@@ -5962,6 +5962,32 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
   if (opt_fastq_maxdiffs < 0) {
     fatal("Argument to --fastq_maxdiffs must be positive");
   }
+  if (opt_fastq_maxlen < 1) {
+    fatal("Argument to --fastq_maxlen must be a positive integer");
+  }
+  if (opt_fastq_minlen < 1) {
+    fatal("Argument to --fastq_minlen must be a positive integer");
+  }
+  if (opt_fastq_maxns < 0) {
+    fatal("Argument to --fastq_maxns must be a non-negative integer");
+  }
+  if (opt_fastq_maxmergelen < 1) {
+    fatal("Argument to --fastq_maxmergelen must be a positive integer");
+  }
+  if (opt_fastq_minmergelen < 0) {
+    fatal("Argument to --fastq_minmergelen must be a non-negative integer");
+  }
+  {
+    /* Quality score range: 0..93 (Phred scores encoded in fastq).
+       The default value is std::numeric_limits<long>::min(), meaning
+       "no truncation"; skip the range check in that case so the default
+       is preserved. */
+    static constexpr auto long_min = std::numeric_limits<long>::min();
+    if ((opt_fastq_truncqual != long_min) and
+        ((opt_fastq_truncqual < 0) or (opt_fastq_truncqual > 93))) {
+      fatal("Argument to --fastq_truncqual must be in range 0..93");
+    }
+  }
   fastq_mergepairs(parameters);
 }
 
