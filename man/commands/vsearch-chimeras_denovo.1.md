@@ -113,7 +113,7 @@ At least one of the following output options must be specified:
 
 #(./fragments/option_maxseqlength.md)
 
-#(./fragments/option_minseqlength_32.md)
+#(./fragments/option_minseqlength_1.md)
 
 #(./fragments/option_no_progress.md)
 
