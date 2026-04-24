@@ -83,12 +83,14 @@ static uint64_t progress_next;
 static uint64_t progress_size;
 static uint64_t progress_pct;
 static bool progress_show;
+static bool progress_interactive;
 
 
 // refactoring: make a progress object, with an .update() method and automatic closure?
 auto progress_init(char const * prompt, uint64_t const size) -> void
 {
-  progress_show = (isatty(fileno(stderr)) != 0) and (not opt_quiet) and (not opt_no_progress);
+  progress_interactive = (isatty(fileno(stderr)) != 0);
+  progress_show = (not opt_quiet) and (not opt_no_progress);
   progress_prompt = prompt;
   progress_size = size;
   progress_pct = 0;
@@ -97,7 +99,10 @@ auto progress_init(char const * prompt, uint64_t const size) -> void
   if (opt_quiet) { return; }
   std::fprintf(stderr, "%s", prompt);
   if (not progress_show) { return; }
-  std::fprintf(stderr, " %d%%", 0);
+  // TTY: " 0%" stays on the same line, later overwritten with \r.
+  // non-TTY (e.g. redirected to a log file): append \n so each tick is a
+  // separate, readable line instead of a \r-laden mess.
+  std::fprintf(stderr, " %d%%%s", 0, progress_interactive ? "" : "\n");
 }
 
 
@@ -105,14 +110,25 @@ auto progress_update(uint64_t const progress) -> void
 {
   if ((progress < progress_next) or not progress_show) { return; }
   if (progress_size == 0) {
-    std::fprintf(stderr, "  \r%s 0%%", progress_prompt);
+    // empty input: progress cannot be computed; only emit in TTY mode
+    // because this branch fires on every call and would spam a log file
+    if (progress_interactive) {
+      std::fprintf(stderr, "  \r%s 0%%", progress_prompt);
+    }
     return;
   }
   progress_pct = one_hundred_percent * progress / progress_size;
-  std::fprintf(stderr,
-          "  \r%s %" PRIu64 "%%",
-          progress_prompt,
-          progress_pct);
+  if (progress_interactive) {
+    std::fprintf(stderr,
+            "  \r%s %" PRIu64 "%%",
+            progress_prompt,
+            progress_pct);
+  } else {
+    std::fprintf(stderr,
+            "%s %" PRIu64 "%%\n",
+            progress_prompt,
+            progress_pct);
+  }
   progress_next = (((progress_pct + 1) * progress_size) + nighty_nine_percent) / one_hundred_percent;
 }
 
@@ -122,7 +138,11 @@ auto progress_done() -> void
   if (opt_quiet) { return; }
   if (progress_show)
     {
-      std::fprintf(stderr, "  \r%s", progress_prompt);
+      if (progress_interactive) {
+        std::fprintf(stderr, "  \r%s", progress_prompt);
+      } else {
+        std::fprintf(stderr, "%s", progress_prompt);
+      }
     }
   std::fprintf(stderr, " %lu%%\n", one_hundred_percent);
 }
