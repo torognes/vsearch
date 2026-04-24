@@ -1,7 +1,7 @@
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
-.TH vsearch 1 "March 27, 2026" "version 2.30.6" "USER COMMANDS"
+.TH vsearch 1 "April 29, 2026" "version 2.31.0" "USER COMMANDS"
 .\" ============================================================================
 .SH NAME
 vsearch \(em a versatile open-source tool for microbiome analysis,
@@ -5231,6 +5231,59 @@ for reporting this issue.
 improve: code refactoring
 .IP -
 improve: code coverage of our test-suite
+.TP
+.BR v2.31.0\~ "released April 29th, 2026"
+This release includes the following changes:
+.RS
+.IP - 2
+fix: \-\-fastx_getseqs \-\-label_words out-of-bounds memory issue
+.IP -
+fix: \-\-fastx_getsubseq now writes non-matching sequences in full (no trimming)
+.IP -
+fix: sintax's tie-breaking mechanism
+.IP -
+fix: limit the scope of decompress options (\-\-gzip_decompress and
+\-\-bzip2_decompress) to stdin
+.IP -
+fix: option \-\-sample now properly truncates at first ';' or blank
+.IP -
+fix: option \-\-wordlength now checks for values outside the range 3-15
+.IP -
+fix: option \-\-fasta_width now checks for negative values
+.IP -
+fix: option \-\-maxseqlength now checks for null and negative values
+.IP -
+change: restore progress indicator when stderr is not a terminal. One
+line per progress step. This changes behavior present since v1.10.0.
+.IP -
+change: \-\-fastq_mergepairs now honors \-\-sizeout and appends
+ ;size=1 to merged and not-merged output headers
+.IP -
+change: \-\-fastq_filter / \-\-fastx_filter: now reject out-of-domain
+values for \-\-fastq_maxee, \-\-fastq_maxee_rate, \-\-fastq_truncee,
+\-\-fastq_maxlen, \-\-fastq_maxns, \-\-fastq_minlen,
+\-\-fastq_trunclen, \-\-fastq_trunclen_keep, \-\-fastq_truncqual,
+\-\-fastq_stripleft, and \-\-fastq_stripright
+.IP -
+change: option \-\-eetabbedout now prints EE values with more digits
+(more precise values)
+.IP -
+change: \-\-fastx_getseqs \-\-label_words now silently skips empty lines
+.IP -
+add: online documentation for all vsearch commands
+(https://torognes.github.io/vsearch/). Note to users: this is still a
+draft, the manpages are not yet available from the command line, only
+online
+.IP -
+add: command \-\-orient now supports option \-\-hardmask
+.IP -
+add: compilation flag -fno-exceptions
+.IP -
+add: static library API for vsearch (contributed by @wasade)
+.IP -
+improve: code refactoring
+.IP -
+improve: code coverage of our test-suite (8,930 active tests)
 .RE
 .\" ============================================================================
 .\" TODO:
