@@ -410,12 +410,13 @@ fatal error messages.
 .TAG sample
 .TP
 .BI \-\-sample\~ string
-When writing FASTA or FASTQ files, add the the given sample identifier
+When writing FASTA or FASTQ files, add the given sample identifier
 \fIstring\fR to sequence headers. For instance, if the given string is
-ABC, the text ";sample=ABC" will be added to the header. Note that
-\fIstring\fR will be truncated at the first ';' or blank
-character. Other characters (alphabetical, numerical and punctuations)
-are accepted.
+ABC, the text ";sample=ABC" will be added to the header. \fIstring\fR
+is silently truncated at the first ';' or whitespace character
+(space, tab, newline, carriage return, vertical tab or form feed), so
+such characters should not be used in \fIstring\fR. Other characters
+(alphabetical, numerical and punctuations) are accepted.
 .TAG threads
 .TP
 .BI \-\-threads\~ "positive integer"
