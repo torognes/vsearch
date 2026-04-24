@@ -50,8 +50,6 @@ reference database.
 
 At least one of the following output options must be specified:
 
-#(./fragments/option_borderline.md)
-
 #(./fragments/option_chimeras.md)
 
 #(./fragments/option_nonchimeras.md)
@@ -59,6 +57,11 @@ At least one of the following output options must be specified:
 #(./fragments/option_uchimealns.md)
 
 #(./fragments/option_uchimeout.md)
+
+The `--borderline` option can also produce output, but only when
+combined with at least one of the output options listed above:
+
+#(./fragments/option_borderline.md)
 
 
 ## core options
