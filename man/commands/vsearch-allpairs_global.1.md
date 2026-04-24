@@ -9,7 +9,7 @@ vsearch \-\-allpairs_global --- perform global pairwise alignments of all sequen
 
 # SYNOPSIS
 
-| **vsearch** **\-\-allpairs_global** _fastafile_ (**\-\-acceptall** | **\-\-id** _real_) (**\-\-alnout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-notmatched** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-allpairs_global** _fastafile_ (**\-\-acceptall** | **\-\-id** _real_) (**\-\-alnout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-notmatched** | **\-\-samout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
@@ -28,6 +28,12 @@ Masking is applied as specified with `--qmask` and `--hardmask`.
 
 At least one output option must be specified. This command is
 multi-threaded.
+
+The `--qsegout` and `--tsegout` options do not count as sole output
+options: when either is used on its own, vsearch rejects the run
+with "No output files specified". They can still be used, but only
+in combination with one of the output options listed in the
+SYNOPSIS.
 
 To illustrate the comparisons performed on a three-sequence file:
 
