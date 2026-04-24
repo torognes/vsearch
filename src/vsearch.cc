@@ -102,7 +102,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::sscanf, std::fclose, std::snprintf, std::printf, std::strcat
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::strlen, std::memset
+#include <cstring>  // std::strlen, std::memset, std::strcspn
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
@@ -1673,6 +1673,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_wordlength:
           opt_wordlength = args_getlong(optarg);
+          /* 0 is reserved as the "not set" sentinel (resolved later
+             to a command-specific default); reject an explicit 0 so
+             the user-facing range matches the manpage (3..15). */
+          if ((opt_wordlength < 3) or (opt_wordlength > 15))
+            {
+              fatal("Argument to --wordlength must be in the range 3 to 15");
+            }
           break;
 
         case option_match:
@@ -2708,6 +2715,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_sample:
+          /* truncate at first ';' or blank, per manpage: these
+             characters are header separators in fasta/fastq labels
+             and would break downstream parsing if left in. */
+          optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0';
           opt_sample = optarg;
           parameters.opt_sample = optarg;
           break;
@@ -5057,6 +5068,18 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       ((opt_chimeras_parts < 2) or (opt_chimeras_parts > 100)))
     {
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
+    }
+
+  /* --fasta_width accepts 0 to disable line wrapping (documented);
+     reject only negative values. */
+  if (opt_fasta_width < 0)
+    {
+      fatal("The argument to --fasta_width cannot be negative");
+    }
+
+  if (opt_maxseqlength < 1)
+    {
+      fatal("The argument to --maxseqlength must be a positive integer");
     }
 
   if (parameters.opt_chimeras_denovo != nullptr)
