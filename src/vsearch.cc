@@ -5059,6 +5059,18 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
     }
 
+  /* --fasta_width accepts 0 to disable line wrapping (documented);
+     reject only negative values. */
+  if (opt_fasta_width < 0)
+    {
+      fatal("The argument to --fasta_width cannot be negative");
+    }
+
+  if (opt_maxseqlength < 1)
+    {
+      fatal("The argument to --maxseqlength must be a positive integer");
+    }
+
   if (parameters.opt_chimeras_denovo != nullptr)
     {
       if (not options_selected[option_alignwidth])
