@@ -204,6 +204,8 @@ struct merge_data_s
   int64_t rev_length = 0;
   int64_t fwd_trunc = 0;
   int64_t rev_trunc = 0;
+  int64_t fwd_abundance = 1;
+  int64_t rev_abundance = 1;
   int64_t pair_no = 0;
   std::vector<char> merged_sequence;
   std::vector<char> merged_quality_v;
@@ -441,7 +443,7 @@ auto keep(merge_data_t const & a_read_pair) -> void
                           a_read_pair.fwd_header.data(),
                           std::strlen(a_read_pair.fwd_header.data()),
                           a_read_pair.merged_quality_v.data(),
-                          0,
+                          static_cast<int>(a_read_pair.fwd_abundance),
                           merged,
                           a_read_pair.ee_merged);
     }
@@ -454,7 +456,7 @@ auto keep(merge_data_t const & a_read_pair) -> void
                           a_read_pair.merged_length,
                           a_read_pair.fwd_header.data(),
                           std::strlen(a_read_pair.fwd_header.data()),
-                          0,
+                          static_cast<int>(a_read_pair.fwd_abundance),
                           merged,
                           a_read_pair.ee_merged,
                           -1,
@@ -549,7 +551,7 @@ auto discard(merge_data_t const & a_read_pair) -> void
                           a_read_pair.fwd_header.data(),
                           std::strlen(a_read_pair.fwd_header.data()),
                           a_read_pair.fwd_quality.data(),
-                          0,
+                          static_cast<int>(a_read_pair.fwd_abundance),
                           notmerged,
                           -1.0);
     }
@@ -562,7 +564,7 @@ auto discard(merge_data_t const & a_read_pair) -> void
                           a_read_pair.rev_header.data(),
                           std::strlen(a_read_pair.rev_header.data()),
                           a_read_pair.rev_quality.data(),
-                          0,
+                          static_cast<int>(a_read_pair.rev_abundance),
                           notmerged,
                           -1.0);
     }
@@ -575,7 +577,7 @@ auto discard(merge_data_t const & a_read_pair) -> void
                           a_read_pair.fwd_length,
                           a_read_pair.fwd_header.data(),
                           std::strlen(a_read_pair.fwd_header.data()),
-                          0,
+                          static_cast<int>(a_read_pair.fwd_abundance),
                           notmerged,
                           -1.0,
                           -1, -1,
@@ -590,7 +592,7 @@ auto discard(merge_data_t const & a_read_pair) -> void
                           a_read_pair.rev_length,
                           a_read_pair.rev_header.data(),
                           std::strlen(a_read_pair.rev_header.data()),
-                          0,
+                          static_cast<int>(a_read_pair.rev_abundance),
                           notmerged,
                           -1.0,
                           -1, -1,
@@ -1085,6 +1087,9 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
         fastq_get_quality(fastq_rev),
         fastq_get_quality_length(fastq_rev)};
       std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair.rev_quality.begin());
+
+      a_read_pair.fwd_abundance = fastq_get_abundance(fastq_fwd);
+      a_read_pair.rev_abundance = fastq_get_abundance(fastq_rev);
 
       a_read_pair.merged_sequence[0] = 0;
       a_read_pair.merged_quality_v[0] = 0;
