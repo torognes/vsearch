@@ -17,8 +17,8 @@ vsearch \-\-uchime_ref --- detect chimeras using a reference database
 The vsearch command `--uchime_ref` detects chimeric sequences present
 in the fasta-formatted *fastafile* by comparing them against a
 reference database of chimera-free sequences (option `--db`).
-Sequences are compared on their *plus* strand only (or both strands
-with `--strand both`).
+Sequences are compared on their *plus* strand only; `--strand both`
+is not supported by `--uchime_ref` and is rejected.
 
 Chimera detection is based on a scoring function controlled by five
 options: `--dn`, `--mindiffs`, `--mindiv`, `--minh`, and `--xn`. The
@@ -78,8 +78,6 @@ At least one of the following output options must be specified:
 #(./fragments/option_self_uchime_ref.md)
 
 #(./fragments/option_selfid_uchime_ref.md)
-
-#(./fragments/option_strand.md)
 
 #(./fragments/option_threads.md)
 
@@ -180,13 +178,13 @@ vsearch \
     --uchimeout chimera_report.tsv
 ```
 
-Check both strands and write all three output categories:
+Write all three output categories (chimeras, non-chimeras and
+borderline entries):
 
 ```sh
 vsearch \
     --uchime_ref amplicons.fasta \
     --db silva_138_db.fasta \
-    --strand both \
     --nonchimeras clean.fasta \
     --chimeras chimeras.fasta \
     --borderline borderline.fasta
