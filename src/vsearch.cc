@@ -1673,6 +1673,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_wordlength:
           opt_wordlength = args_getlong(optarg);
+          /* 0 is reserved as the "not set" sentinel (resolved later
+             to a command-specific default); reject an explicit 0 so
+             the user-facing range matches the manpage (3..15). */
+          if ((opt_wordlength < 3) or (opt_wordlength > 15))
+            {
+              fatal("Argument to --wordlength must be in the range 3 to 15");
+            }
           break;
 
         case option_match:
