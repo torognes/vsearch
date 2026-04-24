@@ -450,20 +450,20 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
     {
       bool const match = test_label_match(h1);
 
-      int64_t start = 1;
-      int64_t end = fastx_get_sequence_length(h1);
-      if (parameters.opt_fastx_getsubseq != nullptr)
-        {
-          start = std::max(opt_subseq_start, start);
-          end = std::min(opt_subseq_end, end);
-        }
-      int64_t const length = end - start + 1;
-
       if (match)
         {
           /* keep the sequence(s) */
 
           ++kept;
+
+          int64_t start = 1;
+          int64_t end = fastx_get_sequence_length(h1);
+          if (parameters.opt_fastx_getsubseq != nullptr)
+            {
+              start = std::max(opt_subseq_start, start);
+              end = std::min(opt_subseq_end, end);
+            }
+          int64_t const length = end - start + 1;
 
           if (opt_fastaout != nullptr)
             {
@@ -497,15 +497,19 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
         }
       else
         {
-          /* discard the sequence */
+          /* discard the sequence: non-matching sequences are always
+             written in full, even when --subseq_start/--subseq_end
+             are set (see vsearch-fastx_getsubseq(1)) */
 
           ++discarded;
+
+          int64_t const length = fastx_get_sequence_length(h1);
 
           if (opt_notmatched != nullptr)
             {
               fasta_print_general(fp_notmatched,
                                   nullptr,
-                                  fastx_get_sequence(h1) + start - 1,
+                                  fastx_get_sequence(h1),
                                   length,
                                   fastx_get_header(h1),
                                   fastx_get_header_length(h1),
@@ -521,11 +525,11 @@ auto getseq(struct Parameters const & parameters, char * filename) -> void
           if (opt_notmatchedfq != nullptr)
             {
               fastq_print_general(fp_notmatchedfq,
-                                  fastx_get_sequence(h1) + start - 1,
+                                  fastx_get_sequence(h1),
                                   length,
                                   fastx_get_header(h1),
                                   fastx_get_header_length(h1),
-                                  fastx_get_quality(h1) + start - 1,
+                                  fastx_get_quality(h1),
                                   fastx_get_abundance(h1),
                                   discarded,
                                   -1.0);
