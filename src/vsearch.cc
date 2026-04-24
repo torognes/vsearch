@@ -102,7 +102,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::sscanf, std::fclose, std::snprintf, std::printf, std::strcat
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::strlen, std::memset
+#include <cstring>  // std::strlen, std::memset, std::strcspn
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
@@ -2708,6 +2708,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_sample:
+          /* truncate at first ';' or blank, per manpage: these
+             characters are header separators in fasta/fastq labels
+             and would break downstream parsing if left in. */
+          optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0';
           opt_sample = optarg;
           parameters.opt_sample = optarg;
           break;
