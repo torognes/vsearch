@@ -49,11 +49,16 @@ for either to be retained; if one fails, both are discarded.
 
 When the input is in fasta format, the following options are not
 accepted because quality scores are not available: `--eeout`,
-`--fastq_ascii`, `--fastq_eeout`, `--fastq_maxee`,
-`--fastq_maxee_rate`, `--fastq_minqual`, `--fastq_qmax`,
-`--fastq_qmin`, `--fastq_truncee`, `--fastq_truncee_rate`,
-`--fastq_truncqual`, `--fastqout`, `--fastqout_discarded`,
-`--fastqout_discarded_rev`, and `--fastqout_rev`.
+`--fastq_eeout`, `--fastq_maxee`, `--fastq_maxee_rate`,
+`--fastq_minqual`, `--fastq_truncee`, `--fastq_truncee_rate`,
+`--fastqout`, `--fastqout_discarded`, `--fastqout_discarded_rev`, and
+`--fastqout_rev`. The following options are silently ignored when
+reading fasta: `--fastq_ascii`, `--fastq_qmax`, `--fastq_qmin`, and
+`--fastq_truncqual`.
+
+Sequence headers are not truncated at whitespace by this command,
+regardless of input format. The `--notrunclabels` option is therefore
+effectively a no-op with `--fastx_filter`.
 
 After processing, vsearch reports the number of sequences kept and
 discarded, and how many of the kept sequences were trimmed. Use

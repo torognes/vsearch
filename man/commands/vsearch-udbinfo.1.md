@@ -15,7 +15,7 @@ vsearch \-\-udbinfo --- show information about a UDB database file
 # DESCRIPTION
 
 The vsearch command `--udbinfo` reads a UDB database file and writes
-information about it to the *standard output* `stdout(3)`. The
+information about it to the *standard error* `stderr(3)`. The
 information includes the number of sequences, the word length used for
 the index, and masking settings.
 

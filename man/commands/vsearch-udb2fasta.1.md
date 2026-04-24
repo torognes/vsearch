@@ -20,6 +20,13 @@ its sequences to a fasta file. This is the reverse of
 
 Both `--udb2fasta` and `--output` must be specified.
 
+Note that UDB files do not store abundance annotations:
+`--makeudb_usearch` does not accept `--sizein` and discards any
+`size=integer` information present in the input fasta. As a
+consequence, using `--sizeout` with `--udb2fasta` emits `size=1` for
+every entry, regardless of the abundance values of the original input
+fasta.
+
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
 of the UDB file format.
 

@@ -15,8 +15,8 @@ vsearch \-\-udbstats --- report statistics about indexed words in a UDB database
 # DESCRIPTION
 
 The vsearch command `--udbstats` reads a UDB database file and writes
-statistics about its indexed words (*k*-mers) to the *standard output*
-`stdout(3)`. The report gives the distribution of word frequencies
+statistics about its indexed words (*k*-mers) to the *standard error*
+`stderr(3)`. The report gives the distribution of word frequencies
 across the indexed sequences in the database.
 
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
