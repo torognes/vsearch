@@ -1,4 +1,4 @@
-% vsearch-help(1) version 2.30.6 | vsearch manual
+% vsearch-help(1) version 2.31.0 | vsearch manual
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(./fragments/date.md)
 

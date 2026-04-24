@@ -1,4 +1,4 @@
-% vsearch-cigar(5) version 2.30.6 | vsearch file formats
+% vsearch-cigar(5) version 2.31.0 | vsearch file formats
 % Torbjørn Rognes, Tomás Flouri, and Frédéric Mahé
 #(../commands/fragments/date.md)
 
