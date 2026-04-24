@@ -636,6 +636,8 @@ auto filter(bool const fastq_only, char * filename) -> void
 namespace {
 
   auto check_parameters(struct Parameters const & parameters) -> void {
+    static constexpr auto long_min = std::numeric_limits<long>::min();
+
     auto const is_negative = std::signbit(parameters.opt_fastq_truncee_rate);
     if (is_negative) {
       fatal("--fastq_truncee_rate cannot be negative");
@@ -643,6 +645,64 @@ namespace {
 
     if (parameters.opt_fastq_minqual < 0) {
       fatal("--fastq_minqual cannot be negative");
+    }
+
+    /* Reject out-of-domain values, matching the "positive integer" /
+       "real" contract stated in the vsearch manual page. */
+
+    if (opt_fastq_maxee <= 0.0) {
+      /* expected error is the sum of per-base error probabilities;
+         probabilities are strictly positive (min quality score is 93,
+         giving ~10^-9.3 > 0), so EE > 0. A threshold of 0.0 or below
+         would reject every read -- almost certainly a user mistake. */
+      fatal("Argument to --fastq_maxee must be positive");
+    }
+
+    if (std::signbit(opt_fastq_maxee_rate)) {
+      fatal("Argument to --fastq_maxee_rate cannot be negative");
+    }
+
+    if (std::signbit(opt_fastq_truncee)) {
+      fatal("Argument to --fastq_truncee cannot be negative");
+    }
+
+    if (opt_fastq_maxlen < 1) {
+      fatal("Argument to --fastq_maxlen must be a positive integer");
+    }
+
+    if (opt_fastq_maxns < 0) {
+      fatal("Argument to --fastq_maxns must be a non-negative integer");
+    }
+
+    if (opt_fastq_minlen < 1) {
+      fatal("Argument to --fastq_minlen must be a positive integer");
+    }
+
+    /* Default sentinel is -1 ("not set"); preserve it but reject any
+       other non-positive value. */
+    if ((opt_fastq_trunclen != -1) and (opt_fastq_trunclen < 1)) {
+      fatal("Argument to --fastq_trunclen must be a positive integer");
+    }
+
+    if ((opt_fastq_trunclen_keep != -1) and (opt_fastq_trunclen_keep < 1)) {
+      fatal("Argument to --fastq_trunclen_keep must be a positive integer");
+    }
+
+    /* Quality score range: 0..93 (Phred scores encoded in fastq).
+       The default value is std::numeric_limits<long>::min(), meaning
+       "no truncation"; skip the range check in that case so the
+       default is preserved. */
+    if ((opt_fastq_truncqual != long_min) and
+        ((opt_fastq_truncqual < 0) or (opt_fastq_truncqual > 93))) {
+      fatal("Argument to --fastq_truncqual must be in range 0..93");
+    }
+
+    if (opt_fastq_stripleft < 0) {
+      fatal("Argument to --fastq_stripleft must be a non-negative integer");
+    }
+
+    if (opt_fastq_stripright < 0) {
+      fatal("Argument to --fastq_stripright must be a non-negative integer");
     }
   }
 
