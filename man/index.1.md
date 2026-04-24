@@ -1170,3 +1170,43 @@ or minor bug releases may not be mentioned):
       AntoninLCH for reporting this issue,
     - improve: code refactoring,
     - improve: code coverage of our test-suite.
+
+**v2.31.0** released April 29th, 2026
+:   Includes the following changes:
+
+    - fix: `--fastx_getseqs --label_words` out-of-bounds memory issue
+    - fix: `--fastx_getsubseq` now writes non-matching sequences in
+      full (no trimming)
+    - fix: sintax's tie-breaking mechanism
+    - fix: limit the scope of decompress options (`--gzip_decompress`
+      and `--bzip2_decompress`) to `stdin`
+    - fix: option `--sample` now properly truncates at first ';' or
+      blank
+    - fix: option `--wordlength` now checks for values outside the
+      range 3-15
+    - fix: option `--fasta_width` now checks for negative values
+    - fix: option `--maxseqlength` now checks for null and negative
+      values
+    - change: restore progress indicator when stderr is not a
+      terminal. One line per progress step. This changes behavior
+      present since v1.10.0.
+    - change: `--fastq_mergepairs` now honors `--sizeout` and appends
+      `;size=1` to merged and not-merged output headers
+    - change: `--fastq_filter` and `--fastx_filter`: now reject
+    out-of-domain values for `--fastq_maxee`, `--fastq_maxee_rate`,
+    `--fastq_truncee`, `--fastq_maxlen`, `--fastq_maxns`,
+    `--fastq_minlen`, `--fastq_trunclen`, `--fastq_trunclen_keep`,
+    `--fastq_truncqual`, `--fastq_stripleft`, and `--fastq_stripright`
+    - change: option `--eetabbedout` now prints EE values with more
+      digits (more precise values)
+    - change: `--fastx_getseqs --label_words` now silently skips empty
+      lines
+    - add: online documentation for all `vsearch` commands
+      (https://torognes.github.io/vsearch/). Note to users: this is
+      still a draft, the manpages are not yet available from the
+      command line, only online
+    - add: command `--orient` now supports option `--hardmask`
+    - add: compilation flag `-fno-exceptions`
+    - add: static library API for vsearch (contributed by @wasade)
+    - improve: code refactoring
+    - improve: code coverage of our test-suite (8,930 active tests)
