@@ -693,9 +693,8 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes \
-	-I$(top_srcdir)/third_party/simde $(am__append_1) \
-	$(am__append_2) $(am__append_3) $(am__append_4) \
-	$(am__append_5) $(am__append_6)
+	$(am__append_1) $(am__append_2) $(am__append_3) \
+	$(am__append_4) $(am__append_5) $(am__append_6)
 AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 VSEARCHHEADERS = \
 align_simd.h \
@@ -868,6 +867,7 @@ utils/seqcmp.cpp \
 vsearch.cc
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)
+.DEFAULT_GOAL = ../bin/vsearch
 
 # Static library core — same sources as the executable, compiled with -fPIC
 # for embedding into shared libraries (e.g., DuckDB extensions).
