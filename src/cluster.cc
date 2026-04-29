@@ -621,6 +621,267 @@ auto compare_kmersample(const void * a, const void * b) -> int
   return 0;
 }
 
+static auto evaluate_extra_hits(struct searchinfo_s * si,
+                                const int * extra_list,
+                                int extra_count,
+                                LinearMemoryAligner & lma) -> void
+{
+  int added = 0;
+
+  if (extra_count != 0)
+    {
+      /* Check if there is a hit with one of the non-matching
+         extra sequences just analysed in this round */
+
+      for (int j = 0; j < extra_count; j++)
+        {
+          struct searchinfo_s const * sic = si_plus + extra_list[j];
+
+          /* find the number of shared unique kmers */
+          auto const shared
+            = unique_count_shared(*si->uh,
+                                  opt_wordlength,
+                                  sic->kmersamplecount,
+                                  sic->kmersample);
+
+          /* check if min number of shared kmers is satisfied */
+          if (search_enough_kmers(*si, shared))
+            {
+              unsigned int const length = sic->qseqlen;
+
+              /* Go through the list of hits and see if the current
+                 match is better than any on the list in terms of
+                 more shared kmers (or shorter length if equal
+                 no of kmers). Determine insertion point (x). */
+
+              int x = si->hit_count;
+              while ((x > 0) and
+                     ((si->hits[x - 1].count < shared) or
+                      ((si->hits[x - 1].count == shared) and
+                       (db_getsequencelen(si->hits[x - 1].target)
+                        > length))))
+                {
+                  --x;
+                }
+
+              if (x < opt_maxaccepts + opt_maxrejects - 1)
+                {
+                  /* insert into list at position x */
+
+                  /* trash bottom element if no more space */
+                  if (si->hit_count >= opt_maxaccepts + opt_maxrejects - 1)
+                    {
+                      if (si->hits[si->hit_count-1].aligned)
+                        {
+                          xfree(si->hits[si->hit_count - 1].nwalignment);
+                        }
+                      --si->hit_count;
+                    }
+
+                  /* move the rest down */
+                  for (int z = si->hit_count; z > x; z--)
+                    {
+                      si->hits[z] = si->hits[z - 1];
+                    }
+
+                  /* init new hit */
+                  struct hit * hit = si->hits + x;
+                  ++si->hit_count;
+
+                  hit->target = sic->query_no;
+                  hit->strand = si->strand;
+                  hit->count = shared;
+                  hit->accepted = false;
+                  hit->rejected = false;
+                  hit->aligned = false;
+                  hit->weak = false;
+                  hit->nwalignment = nullptr;
+
+                  ++added;
+                }
+            }
+        }
+    }
+
+  /* now go through the hits and determine final status of each */
+
+  if (added != 0)
+    {
+      si->rejects = 0;
+      si->accepts = 0;
+
+      /* set all statuses to undetermined */
+
+      for (int t = 0; t < si->hit_count; t++)
+        {
+          si->hits[t].accepted = false;
+          si->hits[t].rejected = false;
+        }
+
+      for (int t = 0;
+           (si->accepts < opt_maxaccepts) and
+             (si->rejects < opt_maxrejects) and
+             (t < si->hit_count);
+           ++t)
+        {
+          struct hit * hit = si->hits + t;
+
+          if (not hit->aligned)
+            {
+              /* Test accept/reject criteria before alignment */
+              unsigned int const target = hit->target;
+              if (search_acceptable_unaligned(*si, target))
+                {
+                  /* perform vectorized alignment */
+                  /* but only using 1 sequence ! */
+
+                  unsigned int nwtarget = target;
+
+                  int64_t nwscore = 0;
+                  int64_t nwalignmentlength = 0;
+                  int64_t nwmatches = 0;
+                  int64_t nwmismatches = 0;
+                  int64_t nwgaps = 0;
+                  char * nwcigar = nullptr;
+
+                  /* short variants for simd aligner */
+                  CELL snwscore = 0;
+                  unsigned short snwalignmentlength = 0;
+                  unsigned short snwmatches = 0;
+                  unsigned short snwmismatches = 0;
+                  unsigned short snwgaps = 0;
+
+                  search16(si->s,
+                           1,
+                           & nwtarget,
+                           & snwscore,
+                           & snwalignmentlength,
+                           & snwmatches,
+                           & snwmismatches,
+                           & snwgaps,
+                           & nwcigar);
+
+                  int64_t const tseqlen = db_getsequencelen(target);
+
+                  if (snwscore == std::numeric_limits<short>::max())
+                    {
+                      /* In case the SIMD aligner cannot align,
+                         perform a new alignment with the
+                         linear memory aligner */
+
+                      char * tseq = db_getsequence(target);
+
+                      if (nwcigar != nullptr)
+                        {
+                          xfree(nwcigar);
+                        }
+
+                      nwcigar = xstrdup(lma.align(si->qsequence,
+                                                  tseq,
+                                                  si->qseqlen,
+                                                  tseqlen));
+
+                      lma.alignstats(nwcigar,
+                                     si->qsequence,
+                                     tseq,
+                                     & nwscore,
+                                     & nwalignmentlength,
+                                     & nwmatches,
+                                     & nwmismatches,
+                                     & nwgaps);
+                    }
+                  else
+                    {
+                      nwscore = snwscore;
+                      nwalignmentlength = snwalignmentlength;
+                      nwmatches = snwmatches;
+                      nwmismatches = snwmismatches;
+                      nwgaps = snwgaps;
+                    }
+
+
+                  int64_t const nwdiff = nwalignmentlength - nwmatches;
+                  int64_t const nwindels = nwdiff - nwmismatches;
+
+                  hit->aligned = true;
+                  hit->nwalignment = nwcigar;
+                  hit->nwscore = nwscore;
+                  hit->nwdiff = nwdiff;
+                  hit->nwgaps = nwgaps;
+                  hit->nwindels = nwindels;
+                  hit->nwalignmentlength = nwalignmentlength;
+                  hit->matches = nwmatches;
+                  hit->mismatches = nwmismatches;
+
+                  hit->nwid = 100.0 *
+                    (nwalignmentlength - hit->nwdiff) /
+                    nwalignmentlength;
+
+                  hit->shortest = std::min(si->qseqlen, static_cast<int>(tseqlen));
+                  hit->longest = std::max(si->qseqlen, static_cast<int>(tseqlen));
+
+                  /* trim alignment and compute numbers
+                     excluding terminal gaps */
+                  align_trim(hit);
+                }
+              else
+                {
+                  /* rejection without alignment */
+                  hit->rejected = true;
+                  ++si->rejects;
+                }
+            }
+
+          if (not hit->rejected)
+            {
+              /* test accept/reject criteria after alignment */
+              if (search_acceptable_aligned(*si, hit))
+                {
+                  ++si->accepts;
+                }
+              else
+                {
+                  ++si->rejects;
+                }
+            }
+        }
+
+      /* delete all undetermined hits */
+
+      int new_hit_count = si->hit_count;
+      for (int t = si->hit_count - 1; t >= 0; t--)
+        {
+          struct hit const * hit = si->hits + t;
+          if (not hit->accepted and not hit->rejected)
+            {
+              new_hit_count = t;
+              if (hit->aligned)
+                {
+                  xfree(hit->nwalignment);
+                }
+            }
+        }
+      si->hit_count = new_hit_count;
+    }
+}
+
+static auto free_hit_alignments(struct searchinfo_s * si_p,
+                                struct searchinfo_s * si_m) -> void
+{
+  /* free alignments */
+  for (int s = 0; s < opt_strand; s++)
+    {
+      struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
+      for (int j = 0; j < si->hit_count; j++)
+        {
+          if ((si->hits[j].aligned) && (si->hits[j].nwalignment != nullptr))
+            {
+              xfree(si->hits[j].nwalignment);
+              si->hits[j].nwalignment = nullptr;
+            }
+        }
+    }
+}
 
 auto cluster_core_parallel() -> void
 {
@@ -733,243 +994,7 @@ auto cluster_core_parallel() -> void
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              int added = 0;
-
-              if (extra_count != 0)
-                {
-                  /* Check if there is a hit with one of the non-matching
-                     extra sequences just analysed in this round */
-
-                  for (int j = 0; j < extra_count; j++)
-                    {
-                      struct searchinfo_s const * sic = si_plus + extra_list[j];
-
-                      /* find the number of shared unique kmers */
-                      auto const shared
-                        = unique_count_shared(*si->uh,
-                                              opt_wordlength,
-                                              sic->kmersamplecount,
-                                              sic->kmersample);
-
-                      /* check if min number of shared kmers is satisfied */
-                      if (search_enough_kmers(*si, shared))
-                        {
-                          unsigned int const length = sic->qseqlen;
-
-                          /* Go through the list of hits and see if the current
-                             match is better than any on the list in terms of
-                             more shared kmers (or shorter length if equal
-                             no of kmers). Determine insertion point (x). */
-
-                          int x = si->hit_count;
-                          while ((x > 0) and
-                                 ((si->hits[x - 1].count < shared) or
-                                  ((si->hits[x - 1].count == shared) and
-                                   (db_getsequencelen(si->hits[x - 1].target)
-                                    > length))))
-                            {
-                              --x;
-                            }
-
-                          if (x < opt_maxaccepts + opt_maxrejects - 1)
-                            {
-                              /* insert into list at position x */
-
-                              /* trash bottom element if no more space */
-                              if (si->hit_count >= opt_maxaccepts + opt_maxrejects - 1)
-                                {
-                                  if (si->hits[si->hit_count-1].aligned)
-                                    {
-                                      xfree(si->hits[si->hit_count - 1].nwalignment);
-                                    }
-                                  --si->hit_count;
-                                }
-
-                              /* move the rest down */
-                              for (int z = si->hit_count; z > x; z--)
-                                {
-                                  si->hits[z] = si->hits[z - 1];
-                                }
-
-                              /* init new hit */
-                              struct hit * hit = si->hits + x;
-                              ++si->hit_count;
-
-                              hit->target = sic->query_no;
-                              hit->strand = si->strand;
-                              hit->count = shared;
-                              hit->accepted = false;
-                              hit->rejected = false;
-                              hit->aligned = false;
-                              hit->weak = false;
-                              hit->nwalignment = nullptr;
-
-                              ++added;
-                            }
-                        }
-                    }
-                }
-
-              /* now go through the hits and determine final status of each */
-
-              if (added != 0)
-                {
-                  si->rejects = 0;
-                  si->accepts = 0;
-
-                  /* set all statuses to undetermined */
-
-                  for (int t = 0; t < si->hit_count; t++)
-                    {
-                      si->hits[t].accepted = false;
-                      si->hits[t].rejected = false;
-                    }
-
-                  for (int t = 0;
-                      (si->accepts < opt_maxaccepts) and
-                        (si->rejects < opt_maxrejects) and
-                        (t < si->hit_count);
-                      ++t)
-                    {
-                      struct hit * hit = si->hits + t;
-
-                      if (not hit->aligned)
-                        {
-                          /* Test accept/reject criteria before alignment */
-                          unsigned int const target = hit->target;
-                          if (search_acceptable_unaligned(*si, target))
-                            {
-                              /* perform vectorized alignment */
-                              /* but only using 1 sequence ! */
-
-                              unsigned int nwtarget = target;
-
-                              int64_t nwscore = 0;
-                              int64_t nwalignmentlength = 0;
-                              int64_t nwmatches = 0;
-                              int64_t nwmismatches = 0;
-                              int64_t nwgaps = 0;
-                              char * nwcigar = nullptr;
-
-                              /* short variants for simd aligner */
-                              CELL snwscore = 0;
-                              unsigned short snwalignmentlength = 0;
-                              unsigned short snwmatches = 0;
-                              unsigned short snwmismatches = 0;
-                              unsigned short snwgaps = 0;
-
-                              search16(si->s,
-                                       1,
-                                       & nwtarget,
-                                       & snwscore,
-                                       & snwalignmentlength,
-                                       & snwmatches,
-                                       & snwmismatches,
-                                       & snwgaps,
-                                       & nwcigar);
-
-                              int64_t const tseqlen = db_getsequencelen(target);
-
-                              if (snwscore == std::numeric_limits<short>::max())
-                                {
-                                  /* In case the SIMD aligner cannot align,
-                                     perform a new alignment with the
-                                     linear memory aligner */
-
-                                  char * tseq = db_getsequence(target);
-
-                                  if (nwcigar != nullptr)
-                                    {
-                                      xfree(nwcigar);
-                                    }
-
-                                  nwcigar = xstrdup(lma.align(si->qsequence,
-                                                              tseq,
-                                                              si->qseqlen,
-                                                              tseqlen));
-
-                                  lma.alignstats(nwcigar,
-                                                 si->qsequence,
-                                                 tseq,
-                                                 & nwscore,
-                                                 & nwalignmentlength,
-                                                 & nwmatches,
-                                                 & nwmismatches,
-                                                 & nwgaps);
-                                }
-                              else
-                                {
-                                  nwscore = snwscore;
-                                  nwalignmentlength = snwalignmentlength;
-                                  nwmatches = snwmatches;
-                                  nwmismatches = snwmismatches;
-                                  nwgaps = snwgaps;
-                                }
-
-
-                              int64_t const nwdiff = nwalignmentlength - nwmatches;
-                              int64_t const nwindels = nwdiff - nwmismatches;
-
-                              hit->aligned = true;
-                              hit->nwalignment = nwcigar;
-                              hit->nwscore = nwscore;
-                              hit->nwdiff = nwdiff;
-                              hit->nwgaps = nwgaps;
-                              hit->nwindels = nwindels;
-                              hit->nwalignmentlength = nwalignmentlength;
-                              hit->matches = nwmatches;
-                              hit->mismatches = nwmismatches;
-
-                              hit->nwid = 100.0 *
-                                (nwalignmentlength - hit->nwdiff) /
-                                nwalignmentlength;
-
-                              hit->shortest = std::min(si->qseqlen, static_cast<int>(tseqlen));
-                              hit->longest = std::max(si->qseqlen, static_cast<int>(tseqlen));
-
-                              /* trim alignment and compute numbers
-                                 excluding terminal gaps */
-                              align_trim(hit);
-                            }
-                          else
-                            {
-                              /* rejection without alignment */
-                              hit->rejected = true;
-                              ++si->rejects;
-                            }
-                        }
-
-                      if (not hit->rejected)
-                        {
-                          /* test accept/reject criteria after alignment */
-                          if (search_acceptable_aligned(*si, hit))
-                            {
-                              ++si->accepts;
-                            }
-                          else
-                            {
-                              ++si->rejects;
-                            }
-                        }
-                    }
-
-                  /* delete all undetermined hits */
-
-                  int new_hit_count = si->hit_count;
-                  for (int t = si->hit_count - 1; t >= 0; t--)
-                    {
-                      struct hit const * hit = si->hits + t;
-                      if (not hit->accepted and not hit->rejected)
-                        {
-                          new_hit_count = t;
-                          if (hit->aligned)
-                            {
-                              xfree(hit->nwalignment);
-                            }
-                        }
-                    }
-                  si->hit_count = new_hit_count;
-                }
+              evaluate_extra_hits(si, extra_list.data(), extra_count, lma);
             }
 
           /* find best hit */
@@ -1033,21 +1058,7 @@ auto cluster_core_parallel() -> void
               ++clusters;
             }
 
-          /* free alignments */
-          for (int s = 0; s < opt_strand; s++)
-            {
-              struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
-              for (int j = 0; j < si->hit_count; j++)
-                {
-                  if (si->hits[j].aligned)
-                    {
-                      if (si->hits[j].nwalignment != nullptr)
-                        {
-                          xfree(si->hits[j].nwalignment);
-                        }
-                    }
-                }
-            }
+          free_hit_alignments(si_p, si_m);
 
           sum_nucleotides += si_p->qseqlen;
         }
@@ -1160,21 +1171,7 @@ auto cluster_core_serial() -> void
           ++clusters;
         }
 
-      /* free alignments */
-      for (int s = 0; s < opt_strand; s++)
-        {
-          struct searchinfo_s const * si = (s != 0) ? si_m.data() : si_p.data();
-          for (int i = 0; i < si->hit_count; i++)
-            {
-              if (si->hits[i].aligned)
-                {
-                  if (si->hits[i].nwalignment != nullptr)
-                    {
-                      xfree(si->hits[i].nwalignment);
-                    }
-                }
-            }
-        }
+      free_hit_alignments(si_p.data(), si_m.data());
 
       progress_update(seqno);
     }
@@ -1932,18 +1929,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
   /* Free ALL hit alignments for both strands.
      search_onequery / align_delayed allocates nwalignment for each aligned hit. */
-  for (int s = 0; s < opt_strand; s++)
-    {
-      struct searchinfo_s * si = (s != 0) ? cs->si_minus : cs->si;
-      for (int i = 0; i < si->hit_count; ++i)
-        {
-          if (si->hits[i].aligned && si->hits[i].nwalignment != nullptr)
-            {
-              xfree(si->hits[i].nwalignment);
-              si->hits[i].nwalignment = nullptr;
-            }
-        }
-    }
+  free_hit_alignments(cs->si, cs->si_minus);
 }
 
 
@@ -2057,223 +2043,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              int added = 0;
-
-              if (extra_count != 0)
-                {
-                  /* Check hits against centroids discovered in this batch */
-                  for (int j = 0; j < extra_count; j++)
-                    {
-                      struct searchinfo_s const * sic =
-                        si_plus + extra_list[j];
-
-                      auto const shared =
-                        unique_count_shared(*si->uh,
-                                            opt_wordlength,
-                                            sic->kmersamplecount,
-                                            sic->kmersample);
-
-                      if (search_enough_kmers(*si, shared))
-                        {
-                          unsigned int const length = sic->qseqlen;
-
-                          int x = si->hit_count;
-                          while ((x > 0) and
-                                 ((si->hits[x - 1].count < shared) or
-                                  ((si->hits[x - 1].count == shared) and
-                                   (db_getsequencelen(si->hits[x - 1].target)
-                                    > length))))
-                            {
-                              --x;
-                            }
-
-                          if (x < opt_maxaccepts + opt_maxrejects - 1)
-                            {
-                              if (si->hit_count >=
-                                  opt_maxaccepts + opt_maxrejects - 1)
-                                {
-                                  if (si->hits[si->hit_count - 1].aligned)
-                                    {
-                                      xfree(si->hits[si->hit_count - 1]
-                                                .nwalignment);
-                                    }
-                                  --si->hit_count;
-                                }
-
-                              for (int z = si->hit_count; z > x; z--)
-                                {
-                                  si->hits[z] = si->hits[z - 1];
-                                }
-
-                              struct hit * hit = si->hits + x;
-                              ++si->hit_count;
-
-                              hit->target = sic->query_no;
-                              hit->strand = si->strand;
-                              hit->count = shared;
-                              hit->accepted = false;
-                              hit->rejected = false;
-                              hit->aligned = false;
-                              hit->weak = false;
-                              hit->nwalignment = nullptr;
-
-                              ++added;
-                            }
-                        }
-                    }
-                }
-
-              /* Re-evaluate hits if new candidates were added */
-              if (added != 0)
-                {
-                  si->rejects = 0;
-                  si->accepts = 0;
-
-                  for (int t = 0; t < si->hit_count; t++)
-                    {
-                      si->hits[t].accepted = false;
-                      si->hits[t].rejected = false;
-                    }
-
-                  for (int t = 0;
-                       (si->accepts < opt_maxaccepts) and
-                         (si->rejects < opt_maxrejects) and
-                         (t < si->hit_count);
-                       ++t)
-                    {
-                      struct hit * hit = si->hits + t;
-
-                      if (not hit->aligned)
-                        {
-                          unsigned int const target = hit->target;
-                          if (search_acceptable_unaligned(*si, target))
-                            {
-                              unsigned int nwtarget = target;
-
-                              int64_t nwscore = 0;
-                              int64_t nwalignmentlength = 0;
-                              int64_t nwmatches = 0;
-                              int64_t nwmismatches = 0;
-                              int64_t nwgaps = 0;
-                              char * nwcigar = nullptr;
-
-                              CELL snwscore = 0;
-                              unsigned short snwalignmentlength = 0;
-                              unsigned short snwmatches = 0;
-                              unsigned short snwmismatches = 0;
-                              unsigned short snwgaps = 0;
-
-                              search16(si->s,
-                                       1,
-                                       &nwtarget,
-                                       &snwscore,
-                                       &snwalignmentlength,
-                                       &snwmatches,
-                                       &snwmismatches,
-                                       &snwgaps,
-                                       &nwcigar);
-
-                              int64_t const tseqlen =
-                                db_getsequencelen(target);
-
-                              if (snwscore ==
-                                  std::numeric_limits<short>::max())
-                                {
-                                  char * tseq = db_getsequence(target);
-
-                                  if (nwcigar != nullptr)
-                                    {
-                                      xfree(nwcigar);
-                                    }
-
-                                  nwcigar =
-                                    xstrdup(lma.align(si->qsequence,
-                                                      tseq,
-                                                      si->qseqlen,
-                                                      tseqlen));
-
-                                  lma.alignstats(nwcigar,
-                                                 si->qsequence,
-                                                 tseq,
-                                                 &nwscore,
-                                                 &nwalignmentlength,
-                                                 &nwmatches,
-                                                 &nwmismatches,
-                                                 &nwgaps);
-                                }
-                              else
-                                {
-                                  nwscore = snwscore;
-                                  nwalignmentlength = snwalignmentlength;
-                                  nwmatches = snwmatches;
-                                  nwmismatches = snwmismatches;
-                                  nwgaps = snwgaps;
-                                }
-
-                              int64_t const nwdiff =
-                                nwalignmentlength - nwmatches;
-                              int64_t const nwindels =
-                                nwdiff - nwmismatches;
-
-                              hit->aligned = true;
-                              hit->nwalignment = nwcigar;
-                              hit->nwscore = nwscore;
-                              hit->nwdiff = nwdiff;
-                              hit->nwgaps = nwgaps;
-                              hit->nwindels = nwindels;
-                              hit->nwalignmentlength = nwalignmentlength;
-                              hit->matches = nwmatches;
-                              hit->mismatches = nwmismatches;
-
-                              hit->nwid = 100.0 *
-                                (nwalignmentlength - hit->nwdiff) /
-                                nwalignmentlength;
-
-                              hit->shortest =
-                                std::min(si->qseqlen,
-                                         static_cast<int>(tseqlen));
-                              hit->longest =
-                                std::max(si->qseqlen,
-                                         static_cast<int>(tseqlen));
-
-                              align_trim(hit);
-                            }
-                          else
-                            {
-                              hit->rejected = true;
-                              ++si->rejects;
-                            }
-                        }
-
-                      if (not hit->rejected)
-                        {
-                          if (search_acceptable_aligned(*si, hit))
-                            {
-                              ++si->accepts;
-                            }
-                          else
-                            {
-                              ++si->rejects;
-                            }
-                        }
-                    }
-
-                  /* delete undetermined hits */
-                  int new_hit_count = si->hit_count;
-                  for (int t = si->hit_count - 1; t >= 0; t--)
-                    {
-                      struct hit const * hit = si->hits + t;
-                      if (not hit->accepted and not hit->rejected)
-                        {
-                          new_hit_count = t;
-                          if (hit->aligned)
-                            {
-                              xfree(hit->nwalignment);
-                            }
-                        }
-                    }
-                  si->hit_count = new_hit_count;
-                }
+              evaluate_extra_hits(si, extra_list.data(), extra_count, lma);
             }
 
           /* Find best hit across strands */
@@ -2334,21 +2104,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               ++cs->cluster_count;
             }
 
-          /* Free alignment strings for both strands */
-          for (int s = 0; s < opt_strand; s++)
-            {
-              struct searchinfo_s * strand_si =
-                (s != 0) ? si_m : si_p;
-              for (int j = 0; j < strand_si->hit_count; j++)
-                {
-                  if (strand_si->hits[j].aligned &&
-                      strand_si->hits[j].nwalignment != nullptr)
-                    {
-                      xfree(strand_si->hits[j].nwalignment);
-                      strand_si->hits[j].nwalignment = nullptr;
-                    }
-                }
-            }
+          free_hit_alignments(si_p, si_m);
         }
     }
 
