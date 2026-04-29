@@ -3,14 +3,15 @@ WORKDIR /opt/vsearch
 COPY . .
 RUN apt-get update
 RUN apt-get -y install \
-	autoconf \
-	automake \
-	g++ \
-	ghostscript \
-	groff \
-	libbz2-dev \
-	make \
-	zlib1g-dev
+    autoconf \
+    automake \
+    g++ \
+    ghostscript \
+    groff \
+    libbz2-dev \
+    libsimde-dev \
+    make \
+    zlib1g-dev
 RUN ./autogen.sh
 RUN ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 RUN make clean

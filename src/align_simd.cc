@@ -1418,8 +1418,11 @@ auto search16(s16info_s * s,
   uint64_t done = 0;
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
+#ifdef __clang__
 #pragma clang diagnostic ignored "-Wc99-extensions"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
   T0 = v_init(-1, 0, 0, 0, 0, 0, 0, 0);
 
   R_query_left = v_dup(s->penalty_gap_extension_query_left);

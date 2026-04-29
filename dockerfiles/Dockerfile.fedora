@@ -3,14 +3,15 @@ WORKDIR /opt/vsearch
 COPY . .
 RUN yum update -y
 RUN yum -y install \
-    	autoconf \
-	automake \
-	bzip2-devel \
-	gcc-c++ \
-	ghostscript \
-	groff-base \
-	make \
-	zlib-devel
+    autoconf \
+    automake \
+    bzip2-devel \
+    gcc-c++ \
+    ghostscript \
+    groff-base \
+    make \
+    simde-devel \
+    zlib-devel
 RUN ./autogen.sh
 RUN ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 RUN make clean
