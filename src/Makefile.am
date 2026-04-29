@@ -236,6 +236,8 @@ vsearch.cc
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)
 
+.DEFAULT_GOAL = ../bin/vsearch
+
 # Static library core — same sources as the executable, compiled with -fPIC
 # for embedding into shared libraries (e.g., DuckDB extensions).
 libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN
