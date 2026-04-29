@@ -364,6 +364,52 @@ auto search_query(int64_t t) -> int
 }
 
 
+static auto populate_si(struct searchinfo_s * si,
+                        const char * head,
+                        int head_len,
+                        const char * seq,
+                        int seq_len,
+                        int query_no,
+                        int qsize,
+                        int strand) -> void
+{
+  si->query_head_len = head_len;
+  si->qseqlen = seq_len;
+  si->query_no = query_no;
+  si->qsize = qsize;
+  si->strand = strand;
+
+  /* allocate more memory for header and sequence, if necessary */
+
+  if (si->query_head_len + 1 > si->query_head_alloc)
+    {
+      si->query_head_alloc = si->query_head_len + 2001;
+      si->query_head = (char *)
+        xrealloc(si->query_head, (size_t) (si->query_head_alloc));
+    }
+
+  if (si->qseqlen + 1 > si->seq_alloc)
+    {
+      si->seq_alloc = si->qseqlen + 2001;
+      si->qsequence = (char *)
+        xrealloc(si->qsequence, (size_t) (si->seq_alloc));
+    }
+
+  /* copy header */
+  strcpy(si->query_head, head);
+
+  /* copy or reverse-complement sequence */
+  if (strand == 0)
+    {
+      strcpy(si->qsequence, seq);
+    }
+  else
+    {
+      reverse_complement(si->qsequence, seq, seq_len);
+    }
+}
+
+
 auto search_thread_run(int64_t t) -> void
 {
   while (true)
@@ -381,36 +427,14 @@ auto search_thread_run(int64_t t) -> void
           int const query_no = fastx_get_seqno(query_fastx_h);
           int const qsize = fastx_get_abundance(query_fastx_h);
 
-          for (int s = 0; s < opt_strand; s++)
-            {
-              struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
-
-              si->query_head_len = query_head_len;
-              si->qseqlen = qseqlen;
-              si->query_no = query_no;
-              si->qsize = qsize;
-              si->strand = s;
-
-              /* allocate more memory for header and sequence, if necessary */
-
-              if (si->query_head_len + 1 > si->query_head_alloc)
-                {
-                  si->query_head_alloc = si->query_head_len + 2001;
-                  si->query_head = (char *)
-                    xrealloc(si->query_head, (size_t) (si->query_head_alloc));
-                }
-
-              if (si->qseqlen + 1 > si->seq_alloc)
-                {
-                  si->seq_alloc = si->qseqlen + 2001;
-                  si->qsequence = (char *)
-                    xrealloc(si->qsequence, (size_t) (si->seq_alloc));
-                }
-            }
-
-          /* plus strand: copy header and sequence */
-          strcpy(si_plus[t].query_head, qhead);
-          strcpy(si_plus[t].qsequence, qseq);
+          populate_si(si_plus + t,
+                      qhead,
+                      query_head_len,
+                      qseq,
+                      qseqlen,
+                      query_no,
+                      qsize,
+                      0);
 
           /* get progress as amount of input file read */
           uint64_t const progress = fastx_get_position(query_fastx_h);
@@ -418,13 +442,16 @@ auto search_thread_run(int64_t t) -> void
           /* let other threads read input */
           xpthread_mutex_unlock(&mutex_input);
 
-          /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
             {
-              strcpy(si_minus[t].query_head, si_plus[t].query_head);
-              reverse_complement(si_minus[t].qsequence,
-                                 si_plus[t].qsequence,
-                                 si_plus[t].qseqlen);
+              populate_si(si_minus + t,
+                          si_plus[t].query_head,
+                          query_head_len,
+                          si_plus[t].qsequence,
+                          qseqlen,
+                          query_no,
+                          qsize,
+                          1);
             }
 
           int const match = search_query(t);
@@ -1048,58 +1075,27 @@ auto search_session_single(struct search_session_s * ss,
                            int * result_count) -> void
 {
   int const head_len = std::strlen(query_head);
-
-  /* Populate plus strand with raw (unmasked) query */
   struct searchinfo_s * si = ss->si_plus;
-  si->query_head_len = head_len;
-  si->qseqlen = query_len;
-  si->query_no = 0;
-  si->qsize = query_size;
-  si->strand = 0;
 
-  if (si->query_head_len + 1 > si->query_head_alloc)
-    {
-      si->query_head_alloc = si->query_head_len + 2001;
-      si->query_head = (char *)
-        xrealloc(si->query_head, (size_t) (si->query_head_alloc));
-    }
-  if (si->qseqlen + 1 > si->seq_alloc)
-    {
-      si->seq_alloc = si->qseqlen + 2001;
-      si->qsequence = (char *)
-        xrealloc(si->qsequence, (size_t) (si->seq_alloc));
-    }
+  populate_si(ss->si_plus,
+              query_head,
+              head_len,
+              query_seq,
+              query_len,
+              0,
+              query_size,
+              0);
 
-  std::strcpy(si->query_head, query_head);
-  std::strcpy(si->qsequence, query_seq);
-
-  /* Populate minus strand from raw input BEFORE masking either strand.
-     The CLI (search_thread_run lines 411-428) takes the RC of the unmasked
-     sequence, then masks each strand independently. */
   if (opt_strand > 1)
     {
-      struct searchinfo_s * si_m = ss->si_minus;
-      si_m->query_head_len = head_len;
-      si_m->qseqlen = query_len;
-      si_m->query_no = 0;
-      si_m->qsize = query_size;
-      si_m->strand = 1;
-
-      if (si_m->query_head_len + 1 > si_m->query_head_alloc)
-        {
-          si_m->query_head_alloc = si_m->query_head_len + 2001;
-          si_m->query_head = (char *)
-            xrealloc(si_m->query_head, (size_t) (si_m->query_head_alloc));
-        }
-      if (si_m->qseqlen + 1 > si_m->seq_alloc)
-        {
-          si_m->seq_alloc = si_m->qseqlen + 2001;
-          si_m->qsequence = (char *)
-            xrealloc(si_m->qsequence, (size_t) (si_m->seq_alloc));
-        }
-
-      std::strcpy(si_m->query_head, query_head);
-      reverse_complement(si_m->qsequence, si->qsequence, si->qseqlen);
+      populate_si(ss->si_minus,
+                  query_head,
+                  head_len,
+                  query_seq,
+                  query_len,
+                  0,
+                  query_size,
+                  1);
     }
 
   /* Mask and search each strand independently */
@@ -1243,60 +1239,25 @@ static auto search_batch_worker_fn(void * vp) -> void *
       int const qsize = ctx->query_sizes[qi];
       int const head_len = std::strlen(qhead);
 
-      /* Populate plus strand with raw input */
-      my_si_plus->query_head_len = head_len;
-      my_si_plus->qseqlen = qlen;
-      my_si_plus->query_no = qi;
-      my_si_plus->qsize = qsize;
-      my_si_plus->strand = 0;
+      populate_si(my_si_plus,
+                  qhead,
+                  head_len,
+                  qseq,
+                  qlen,
+                  qi,
+                  qsize,
+                  0);
 
-      if (my_si_plus->query_head_len + 1 > my_si_plus->query_head_alloc)
-        {
-          my_si_plus->query_head_alloc = my_si_plus->query_head_len + 2001;
-          my_si_plus->query_head = (char *)
-            xrealloc(my_si_plus->query_head,
-                     (size_t) (my_si_plus->query_head_alloc));
-        }
-      if (my_si_plus->qseqlen + 1 > my_si_plus->seq_alloc)
-        {
-          my_si_plus->seq_alloc = my_si_plus->qseqlen + 2001;
-          my_si_plus->qsequence = (char *)
-            xrealloc(my_si_plus->qsequence,
-                     (size_t) (my_si_plus->seq_alloc));
-        }
-
-      std::strcpy(my_si_plus->query_head, qhead);
-      std::strcpy(my_si_plus->qsequence, qseq);
-
-      /* Populate minus strand from raw input BEFORE masking */
       if (my_si_minus != nullptr)
         {
-          my_si_minus->query_head_len = head_len;
-          my_si_minus->qseqlen = qlen;
-          my_si_minus->query_no = qi;
-          my_si_minus->qsize = qsize;
-          my_si_minus->strand = 1;
-
-          if (my_si_minus->query_head_len + 1 > my_si_minus->query_head_alloc)
-            {
-              my_si_minus->query_head_alloc =
-                my_si_minus->query_head_len + 2001;
-              my_si_minus->query_head = (char *)
-                xrealloc(my_si_minus->query_head,
-                         (size_t) (my_si_minus->query_head_alloc));
-            }
-          if (my_si_minus->qseqlen + 1 > my_si_minus->seq_alloc)
-            {
-              my_si_minus->seq_alloc = my_si_minus->qseqlen + 2001;
-              my_si_minus->qsequence = (char *)
-                xrealloc(my_si_minus->qsequence,
-                         (size_t) (my_si_minus->seq_alloc));
-            }
-
-          std::strcpy(my_si_minus->query_head, qhead);
-          reverse_complement(my_si_minus->qsequence,
-                             my_si_plus->qsequence,
-                             my_si_plus->qseqlen);
+          populate_si(my_si_minus,
+                      qhead,
+                      head_len,
+                      qseq,
+                      qlen,
+                      qi,
+                      qsize,
+                      1);
         }
 
       /* Mask and search each strand independently */
