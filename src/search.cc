@@ -288,7 +288,8 @@ auto search_output_results(std::vector<struct hit> const & hits,
                               qsize,
                               count_matched,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
     }
   else
@@ -305,7 +306,8 @@ auto search_output_results(std::vector<struct hit> const & hits,
                               qsize,
                               count_notmatched,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
     }
 
@@ -977,7 +979,8 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
                                       dbmatched[i],
                                       count_dbmatched,
                                       -1.0,
-                                      -1, -1, nullptr, 0.0);
+                                      -1, -1, nullptr, 0.0,
+                                      0);
                 }
             }
           else
@@ -994,7 +997,8 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
                                       db_getabundance(i),
                                       count_dbnotmatched,
                                       -1.0,
-                                      -1, -1, nullptr, 0.0);
+                                      -1, -1, nullptr, 0.0,
+                                      0);
                 }
             }
         }

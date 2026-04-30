@@ -431,7 +431,8 @@ auto filter(bool const fastq_only, char * filename) -> void
                                   -1,
                                   -1,
                                   nullptr,
-                                  0.0);
+                                  0.0,
+                                  0);
             }
 
           if (opt_fastqout_discarded != nullptr)
@@ -463,7 +464,8 @@ auto filter(bool const fastq_only, char * filename) -> void
                                       -1,
                                       -1,
                                       nullptr,
-                                      0.0);
+                                      0.0,
+                                      0);
                 }
 
               if (opt_fastqout_discarded_rev != nullptr)
@@ -505,7 +507,8 @@ auto filter(bool const fastq_only, char * filename) -> void
                                   -1,
                                   -1,
                                   nullptr,
-                                  0.0);
+                                  0.0,
+                                  0);
             }
 
           if (opt_fastqout != nullptr)
@@ -537,7 +540,8 @@ auto filter(bool const fastq_only, char * filename) -> void
                                       -1,
                                       -1,
                                       nullptr,
-                                      0.0);
+                                      0.0,
+                                      0);
                 }
 
               if (opt_fastqout_rev != nullptr)

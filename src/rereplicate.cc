@@ -109,7 +109,8 @@ auto rereplicate(struct Parameters const & parameters) -> void
                               1,
                               static_cast<int>(n_reads),
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
 
       progress_update(fasta_get_position(input_handle));

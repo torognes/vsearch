@@ -452,7 +452,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                                   size,
                                   relabel_count,
                                   -1.0,
-                                  -1, -1, nullptr, 0.0);
+                                  -1, -1, nullptr, 0.0,
+                                  0);
               if (relabel_count == parameters.opt_topn)
                 {
                   break;

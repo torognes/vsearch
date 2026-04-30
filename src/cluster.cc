@@ -534,7 +534,8 @@ auto cluster_core_results_hit(struct hit * best,
                           qsize,
                           count_matched,
                           -1.0,
-                          -1, -1, nullptr, 0.0);
+                          -1, -1, nullptr, 0.0,
+                          0);
     }
 }
 
@@ -600,7 +601,8 @@ auto cluster_core_results_nohit(int clusterno,
                           qsize,
                           count_notmatched,
                           -1.0,
-                          -1, -1, nullptr, 0.0);
+                          -1, -1, nullptr, 0.0,
+                          0);
     }
 }
 
@@ -1472,7 +1474,8 @@ auto cluster(char * dbname,
                                   -1.0,
                                   -1,
                                   opt_clusterout_id ? clusterno : -1,
-                                  nullptr, 0.0);
+                                  nullptr, 0.0,
+                                  db_getabundance(seqno));
             }
 
           if (opt_uc != nullptr)

@@ -239,7 +239,7 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
                       db_getheader(target_seqno),
                       static_cast<int>(db_getheaderlen(target_seqno)),
                       db_getabundance(target_seqno),
-                      0, -1.0, -1, -1, nullptr, 0.0);
+                      0, -1.0, -1, -1, nullptr, 0.0, 0);
 }
 
 
@@ -498,7 +498,8 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
                       -1.0,
                       target_count,
                       opt_clusterout_id ? cluster : -1,
-                      nullptr, 0.0);
+                      nullptr, 0.0,
+                      0);
 }
 
 
@@ -523,7 +524,8 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                       -1.0,
                       target_count,
                       opt_clusterout_id ? cluster : -1,
-                      nullptr, 0.0);
+                      nullptr, 0.0,
+                      0);
 
   aln_v.pop_back(); // remove last element ('\0')
   auto counter = 0;

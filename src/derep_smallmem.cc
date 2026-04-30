@@ -615,7 +615,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                                   size,
                                   selected,
                                   -1.0,
-                                  -1, -1, nullptr, 0.0);
+                                  -1, -1, nullptr, 0.0,
+                                  0);
             }
           bp->size = -1;
         }

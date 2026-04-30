@@ -165,7 +165,8 @@ namespace {
                                 -1,
                                 -1,
                                 nullptr,
-                                0.0);
+                                0.0,
+                                0);
           }
 
         if ((rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
@@ -182,7 +183,8 @@ namespace {
                                 -1,
                                 -1,
                                 nullptr,
-                                0.0);
+                                0.0,
+                                0);
           }
 
         frag_start += frag_length;
@@ -210,7 +212,8 @@ namespace {
                             -1,
                             -1,
                             nullptr,
-                            0.0);
+                            0.0,
+                            0);
       }
 
     if ((local_matches > 0) and (rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
@@ -227,7 +230,8 @@ namespace {
                             -1,
                             -1,
                             nullptr,
-                            0.0);
+                            0.0,
+                            0);
       }
 
     if (local_matches == 0)
@@ -249,7 +253,8 @@ namespace {
                             -1,
                             -1,
                             nullptr,
-                            0.0);
+                            0.0,
+                            0);
       }
 
     if ((local_matches == 0) and (fastaout.discarded.reverse.name != nullptr))
@@ -266,7 +271,8 @@ namespace {
                             -1,
                             -1,
                             nullptr,
-                            0.0);
+                            0.0,
+                            0);
       }
 
     counters.matches += local_matches;

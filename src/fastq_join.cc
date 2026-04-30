@@ -306,6 +306,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               -1,
                               -1,
                               nullptr,
+                              0,
                               0);
         }
 

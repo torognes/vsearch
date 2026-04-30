@@ -490,7 +490,8 @@ auto keep(merge_data_t const & a_read_pair) -> void
                           -1,
                           -1,
                           nullptr,
-                          0.0);
+                          0.0,
+                          0);
     }
 
   if (opt_eetabbedout != nullptr)
@@ -612,7 +613,8 @@ auto discard(merge_data_t const & a_read_pair) -> void
                           notmerged,
                           -1.0,
                           -1, -1,
-                          nullptr, 0.0);
+                          nullptr, 0.0,
+                          0);
     }
 
   if (opt_fastaout_notmerged_rev != nullptr)
@@ -627,7 +629,8 @@ auto discard(merge_data_t const & a_read_pair) -> void
                           notmerged,
                           -1.0,
                           -1, -1,
-                          nullptr, 0.0);
+                          nullptr, 0.0,
+                          0);
     }
 }
 

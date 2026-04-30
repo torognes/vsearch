@@ -102,7 +102,8 @@ auto fasta_print_general(std::FILE * output_handle,
                          int clustersize,
                          int clusterid,
                          char const * score_name,
-                         double score) -> void;
+                         double score,
+                         int centroid_size) -> void;
 
 auto fasta_print_db(std::FILE * output_handle,
                     uint64_t seqno) -> void;

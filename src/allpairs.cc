@@ -278,7 +278,8 @@ auto allpairs_output_results(int hit_count,
                               0,
                               count_matched,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
     }
   else
@@ -295,7 +296,8 @@ auto allpairs_output_results(int hit_count,
                               0,
                               count_notmatched,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
     }
 }

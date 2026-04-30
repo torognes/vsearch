@@ -2173,7 +2173,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   opt_fasta_score ?
                                   ( (opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                  ci->best_h);
+                                  ci->best_h,
+                                  0);
 
             }
         }
@@ -2199,7 +2200,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   opt_fasta_score ?
                                   ( (opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                  ci->best_h);
+                                  ci->best_h,
+                                  0);
 
             }
         }
@@ -2249,7 +2251,8 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
                                   opt_fasta_score ?
                                   ( (opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                  ci->best_h);
+                                  ci->best_h,
+                                  0);
             }
         }
 

@@ -123,7 +123,8 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       -1,
                       -1,
                       nullptr,
-                      0.0);
+                      0.0,
+                      0);
 
   auto const trow = get_alignment_trow(Span<char>{db_getsequence(hits->target), db_getsequencelen(hits->target)},
                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
@@ -140,7 +141,8 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       -1,
                       -1,
                       nullptr,
-                      0.0);
+                      0.0,
+                      0);
 
   fprintf(output_handle, "\n");
 }
@@ -172,7 +174,8 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                       -1,
                       -1,
                       nullptr,
-                      0.0);
+                      0.0,
+                      0);
 }
 
 
@@ -197,7 +200,8 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                       -1,
                       -1,
                       nullptr,
-                      0.0);
+                      0.0,
+                      0);
 }
 
 

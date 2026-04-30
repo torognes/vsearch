@@ -348,7 +348,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               qsize,
                               count_matched,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
     }
   else
@@ -365,7 +366,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               qsize,
                               count_notmatched,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
     }
 
@@ -951,7 +953,8 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
                                       dbmatched[i],
                                       count_dbmatched,
                                       -1.0,
-                                      -1, -1, nullptr, 0.0);
+                                      -1, -1, nullptr, 0.0,
+                                      0);
                 }
             }
           else
@@ -968,7 +971,8 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
                                       0,
                                       count_dbnotmatched,
                                       -1.0,
-                                      -1, -1, nullptr, 0.0);
+                                      -1, -1, nullptr, 0.0,
+                                      0);
                 }
             }
         }

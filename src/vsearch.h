@@ -199,6 +199,7 @@
 /* options */
 
 extern bool opt_bzip2_decompress;
+extern bool opt_centroid_size_out;
 extern bool opt_clusterout_id;
 extern bool opt_clusterout_sort;
 extern bool opt_eeout;

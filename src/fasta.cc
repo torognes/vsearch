@@ -468,7 +468,8 @@ auto fasta_print_general(std::FILE * output_handle,
                          int const clustersize,
                          int const clusterid,
                          char const * score_name,
-                         double const score) -> void
+                         double const score,
+                         int const centroid_size) -> void
 {
   std::fprintf(output_handle, ">");
 
@@ -529,6 +530,11 @@ auto fasta_print_general(std::FILE * output_handle,
   if (opt_sizeout and (abundance > 0))
     {
       std::fprintf(output_handle, ";size=%u", abundance);
+    }
+
+  if (opt_centroid_size_out and (centroid_size > 0))
+    {
+      std::fprintf(output_handle, ";centroid_size=%u", centroid_size);
     }
 
   if ((opt_eeout or opt_fastq_eeout) and (expected_error >= 0.0))
@@ -595,7 +601,8 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
                       ordinal,
                       -1.0,
                       -1, -1,
-                      nullptr, 0.0);
+                      nullptr, 0.0,
+                      0);
 }
 
 
@@ -613,7 +620,8 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
                       static_cast<int>(ordinal),
                       -1.0,
                       -1, -1,
-                      nullptr, 0.0);
+                      nullptr, 0.0,
+                      0);
 }
 
 
@@ -629,5 +637,6 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t seqno) -> void
                       0,
                       -1.0,
                       -1, -1,
-                      nullptr, 0.0);
+                      nullptr, 0.0,
+                      0);
 }

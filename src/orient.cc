@@ -297,7 +297,8 @@ auto orient(struct Parameters const & parameters) -> void
                                   -1,
                                   -1,
                                   nullptr,
-                                  0.0);
+                                  0.0,
+                                  0);
             }
 
           if (opt_fastqout != nullptr)
@@ -354,7 +355,8 @@ auto orient(struct Parameters const & parameters) -> void
                                   -1,
                                   -1,
                                   nullptr,
-                                  0.0);
+                                  0.0,
+                                  0);
             }
 
           if (opt_fastqout != nullptr)
@@ -417,7 +419,8 @@ auto orient(struct Parameters const & parameters) -> void
                                       -1,
                                       -1,
                                       nullptr,
-                                      0.0);
+                                      0.0,
+                                      0);
                 }
             }
         }

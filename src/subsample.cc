@@ -313,7 +313,8 @@ auto writing_fasta_output(std::vector<int> const & deck,
                           new_abundance,
                           amplicons_printed,
                           -1.0,
-                          -1, -1, nullptr, 0.0);
+                          -1, -1, nullptr, 0.0,
+                          0);
       progress_update(counter);
       ++counter;
     }

@@ -178,7 +178,8 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
                               abundance,
                               count,
                               -1.0,
-                              -1, -1, nullptr, 0.0);
+                              -1, -1, nullptr, 0.0,
+                              0);
         }
 
       if (parameters.opt_fastqout != nullptr)
