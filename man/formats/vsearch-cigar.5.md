@@ -13,8 +13,13 @@ CIGAR (Compact Idiosyncratic Gapped Alignment Report) is a text-based
 format that encodes a pairwise alignment as a sequence of run-length
 encoded operations. Each operation describes a column of the
 alignment, or a run of identical consecutive columns, as seen from the
-query viewpoint. vsearch emits CIGAR strings in several search,
-clustering, and pairwise alignment outputs (see SEE ALSO).
+query viewpoint. Hence, a cigar string encodes query modifications
+needed to equal the target. However, beware that cigar strings in the
+SAM format adopt the target viewpoint: they encode target
+modifications needed to equal the query (see
+[`vsearch-sam(5)`](./vsearch-sam.5.md)). vsearch emits CIGAR strings
+in several search, clustering, and pairwise alignment outputs (see SEE
+ALSO).
 
 A CIGAR string is an ASCII string consisting of one or more
 *operations*. Each operation is written as an optional non-negative
