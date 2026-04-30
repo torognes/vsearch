@@ -108,9 +108,10 @@ example `12M1`), or that contains any character other than the digits
 The following alignment of an 8-nt query against a 9-nt target
 
 ```text
-query:   ACGT--TACG
-target:  AC-TGGTACG
-cigar:   2M1I1M2D4M
+query:     ACGT--TACG
+target:    AC-TGGTTCG
+alignment: MMIMDDMMMM
+cigar:     2M1I1M2D4M
 ```
 
 contains, from left to right:
@@ -119,12 +120,12 @@ contains, from left to right:
 - 1 insertion in the target (`G` present only in the query),
 - 1 column with matching residues (`T` / `T`),
 - 2 deletions from the query (`GG` present only in the target),
-- 4 columns with matching residues (`TACG` / `TACG`).
+- 4 columns with matching residues (`TACG` / `TTCG`).
 
-The same alignment written without run-length compression would be
-`MMIMDDMMMM`. Note that `M` does not distinguish matches from
-mismatches; a mismatching column is encoded with the same operation
-letter.
+Without run-length encoding, the alignment reads `MMIMDDMMMM`, after
+encoding it reads `2M1I1M2D4M`. Note that `M` does not distinguish
+matches from mismatches; a mismatching column is encoded with the same
+operation letter.
 
 
 # SEE ALSO
