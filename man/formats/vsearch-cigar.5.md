@@ -137,6 +137,7 @@ operation letter.
 [`vsearch-cluster_unoise(1)`](../commands/vsearch-cluster_unoise.1.md),
 [`vsearch-search_exact(1)`](../commands/vsearch-search_exact.1.md),
 [`vsearch-usearch_global(1)`](../commands/vsearch-usearch_global.1.md),
+[`vsearch-sam(5)`](./vsearch-sam.5.md),
 [`vsearch-pairwise_alignment_parameters(7)`](../misc/vsearch-pairwise_alignment_parameters.7.md),
 [`vsearch-userfields(7)`](../misc/vsearch-userfields.7.md)
 
