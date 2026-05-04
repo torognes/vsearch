@@ -116,7 +116,7 @@ constexpr auto max_line_length = std::size_t{80};
 /* options */
 
 bool opt_bzip2_decompress = false;
-bool opt_centroid_size_out = false;
+bool opt_centroid_sizeout = false;
 bool opt_clusterout_id = false;
 bool opt_clusterout_sort = false;
 bool opt_eeout;
@@ -811,7 +811,7 @@ auto vsearch_init_defaults() -> void
   opt_biomout = nullptr;
   opt_blast6out = nullptr;
   opt_borderline = nullptr;
-  opt_centroid_size_out = false;
+  opt_centroid_sizeout = false;
   opt_centroids = nullptr;
   opt_chimeras = nullptr;
   opt_chimeras_denovo = nullptr;
@@ -1134,7 +1134,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_blast6out,
       option_borderline,
       option_bzip2_decompress,
-      option_centroid_size_out,
+      option_centroid_sizeout,
       option_centroids,
       option_chimeras,
       option_chimeras_denovo,
@@ -1385,7 +1385,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"blast6out",             required_argument, nullptr, 0 },
       {"borderline",            required_argument, nullptr, 0 },
       {"bzip2_decompress",      no_argument,       nullptr, 0 },
-      {"centroid_size_out",     no_argument,       nullptr, 0 },
+      {"centroid_sizeout",      no_argument,       nullptr, 0 },
       {"centroids",             required_argument, nullptr, 0 },
       {"chimeras",              required_argument, nullptr, 0 },
       {"chimeras_denovo",       required_argument, nullptr, 0 },
@@ -2789,8 +2789,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           parameters.opt_fastq_truncee_rate = args_getdouble(optarg);
           break;
 
-        case option_centroid_size_out:
-          opt_centroid_size_out = true;
+        case option_centroid_sizeout:
+          opt_centroid_sizeout = true;
           break;
 
         default:
@@ -3009,7 +3009,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_biomout,
         option_blast6out,
         option_bzip2_decompress,
-        option_centroid_size_out,
+        option_centroid_sizeout,
         option_centroids,
         option_clusterout_id,
         option_clusterout_sort,
@@ -3108,7 +3108,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_biomout,
         option_blast6out,
         option_bzip2_decompress,
-        option_centroid_size_out,
+        option_centroid_sizeout,
         option_centroids,
         option_clusterout_id,
         option_clusterout_sort,
@@ -3207,7 +3207,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_biomout,
         option_blast6out,
         option_bzip2_decompress,
-        option_centroid_size_out,
+        option_centroid_sizeout,
         option_centroids,
         option_clusterout_id,
         option_clusterout_sort,
@@ -3307,7 +3307,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_biomout,
         option_blast6out,
         option_bzip2_decompress,
-        option_centroid_size_out,
+        option_centroid_sizeout,
         option_centroids,
         option_clusterout_id,
         option_clusterout_sort,
@@ -5364,7 +5364,7 @@ auto cmd_help(struct Parameters const & parameters) -> void {
           "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n"
           "  --sizeorder                 sort accepted centroids by abundance, AGC\n"
           "  --sizeout                   write cluster abundances to centroid file\n"
-          "  --centroid_size_out         write centroid abundances to centroid file\n"
+          "  --centroid_sizeout          write centroid abundances to centroid file\n"
           "  --uc FILENAME               specify filename for UCLUST-like output\n"
           "  --xsize                     strip abundance information in output\n"
           "\n"

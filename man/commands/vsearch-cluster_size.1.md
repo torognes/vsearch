@@ -64,7 +64,7 @@ description of the input format.
 
 ## core options
 
-#(./fragments/option_centroid_size_out.md)
+#(./fragments/option_centroid_sizeout.md)
 
 #(./fragments/option_centroids.md)
 

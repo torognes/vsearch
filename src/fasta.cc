@@ -532,7 +532,7 @@ auto fasta_print_general(std::FILE * output_handle,
       std::fprintf(output_handle, ";size=%u", abundance);
     }
 
-  if (opt_centroid_size_out and (centroid_size > 0))
+  if (opt_centroid_sizeout and (centroid_size > 0))
     {
       std::fprintf(output_handle, ";centroid_size=%u", centroid_size);
     }
