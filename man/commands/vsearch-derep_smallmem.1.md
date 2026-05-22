@@ -30,7 +30,7 @@ Key differences from `--derep_fulllength`:
 - Can read fastq files, but output is always fasta.
 - Dereplication uses a 128-bit hash function; grouped sequences are
   not explicitly verified to be identical. The false positive
-  probability is approximately 1e-21 for a dataset of one billion
+  probability is approximately 1.5e-21 for a dataset of one billion
   unique sequences.
 - Does not support `--topn` or `--uc`.
 
