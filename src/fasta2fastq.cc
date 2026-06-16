@@ -73,13 +73,12 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 {
   auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
 
-  assert(parameters.opt_fastqout != nullptr);  // check performed in <getopt.h>
-
   auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
   assert(fp_input != nullptr);  // check performed in fasta_open(fastx_open())
 
   auto const output_handle = open_output_file(parameters.opt_fastqout);
   check_mandatory_fastq_output_handle(parameters.opt_fastqout, (not output_handle));
+  assert(parameters.opt_fastqout != nullptr);  // check performed above
 
   static constexpr auto initial_length = 1024U;
   std::vector<char> quality(initial_length, max_ascii_value);
