@@ -82,7 +82,7 @@ inline auto fastq_get_qual(char const quality_symbol) -> int
               quality_score, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
-          std::fprintf(stderr,
+          std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   quality_score, opt_fastq_qmin);

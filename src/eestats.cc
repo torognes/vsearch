@@ -84,7 +84,7 @@ inline auto fastq_get_qual_eestats(char const q) -> int
               qual, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
-          fprintf(stderr,
+          fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   qual, opt_fastq_qmin);
