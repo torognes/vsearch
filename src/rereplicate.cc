@@ -130,7 +130,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
     {
       if (missing_abundance)
         {
-          std::fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
+          std::fprintf(fp_log, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
       std::fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
