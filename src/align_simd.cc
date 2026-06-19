@@ -83,6 +83,7 @@ constexpr auto matrix_size = 16;
 constexpr auto CHANNELS = 8;
 constexpr auto CDEPTH = 4;
 constexpr auto maxseqlenproduct = 25000000LL;
+constexpr auto maxseqlensum = 65535LL;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -105,10 +106,34 @@ namespace {
   200 MB per thread. It will align pairs of sequences less than 5000 nt long
   using the SIMD implementation, larger alignments will be performed with
   the linear memory aligner.
+
+  A second limit applies to the SUM of the two lengths. The per-alignment
+  statistics counters in backtrack16 (aligned/matches/mismatches/gaps) are
+  unsigned short, and the alignment path length is at most qlen + dlen, so a
+  sum above 65 535 would wrap those counters. Pairs exceeding the sum limit
+  are therefore also diverted to the linear memory aligner (whose statistics
+  are int64). Both limits are combined in search16_fits().
 */
 
 
 static std::array<std::array<int64_t, matrix_size>, matrix_size> scorematrix {{}};
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Whether the SIMD aligner can represent an alignment of a query of length
+     qlen against a target of length dlen, given the product limit (DP work /
+     direction buffer memory) and the sum limit (16-bit statistics counters).
+     The sum is tested first so the product multiplication cannot overflow for
+     an accepted pair. Pairs that do not fit are aligned by linmemalign. */
+  auto search16_fits(uint64_t const qlen, uint64_t const dlen) -> bool
+  {
+    return (static_cast<int64_t>(qlen + dlen) <= maxseqlensum)
+       and (static_cast<int64_t>(qlen) * static_cast<int64_t>(dlen) <= maxseqlenproduct);
+  }
+
+}  // end of anonymous namespace
 
 /*
   The macros below usually operate on 128-bit vectors of 8 signed
@@ -923,7 +948,7 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pgaps) -> void
 {
   unsigned short * dirbuffer = s->dir;
-  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * s->maxdlen * 4;
   uint64_t const qlen = s->qlen;
   char const * qseq = s->qseq;
 
@@ -941,7 +966,7 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                       (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskup)
             {
@@ -969,7 +994,7 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                       (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskextup)
             {
@@ -1012,11 +1037,11 @@ auto backtrack16(s16info_s * s,
       // d = *(block1)
       // block1 = dirbuffer + (block2 % dirbuffersize);
       // block2 = (offset + block3 + block4 + block5);
-      // block3 = 16 * s->qlen * (j / 4);
+      // block3 = 16 * qlen * (j / 4);
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
       uint64_t const d = *((uint64_t *) (dirbuffer +
-                                         ((offset + (matrix_size * s->qlen * (j / 4)) +
+                                         ((offset + (matrix_size * qlen * (j / 4)) +
                                            (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
 
       if ((s->op == 'I') and ((d & maskextleft) != 0U))
@@ -1235,8 +1260,8 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
     {
       xfree(s->hearray);
     }
-  s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
-  std::memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
+  s->hearray = (VECTOR_SHORT *) xmalloc(2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
+  std::memset(s->hearray, 0, 2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
 
   if (s->qtable != nullptr)
     {
@@ -1300,6 +1325,22 @@ auto search16(s16info_s * s,
           auto const seqno = seqnos[cand_id];
           int64_t const length = db_getsequencelen(seqno);
 
+          /* An empty query aligns to the target as one insertion of 'length'
+             residues, so aligned == gaps == length. When that exceeds the
+             16-bit statistics counters (search16_fits), divert to the linear
+             memory aligner via the SHRT_MAX sentinel, exactly as the
+             product/sum guard does for non-empty queries. */
+          if (not search16_fits(qlen, length))
+            {
+              pscores[cand_id] = std::numeric_limits<short>::max();
+              paligned[cand_id] = 0;
+              pmatches[cand_id] = 0;
+              pmismatches[cand_id] = 0;
+              pgaps[cand_id] = 0;
+              pcigar[cand_id] = xstrdup("");
+              continue;
+            }
+
           paligned[cand_id] = length;
           pmatches[cand_id] = 0;
           pmismatches[cand_id] = 0;
@@ -1342,15 +1383,15 @@ auto search16(s16info_s * s,
   for (int64_t i = 0; i < sequences; i++)
     {
       uint64_t const dlen = db_getsequencelen(seqnos[i]);
-      /* skip the very long sequences */
-      if ((int64_t) (s->qlen) * dlen <= maxseqlenproduct)
+      /* skip sequences the SIMD aligner cannot handle (product/sum limits) */
+      if (search16_fits(s->qlen, dlen))
         {
           maxdlen = std::max(dlen, maxdlen);
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = maxdlen;
-  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * s->maxdlen * 4;
 
   if (dirbuffersize > s->diralloc)
     {
@@ -1666,7 +1707,7 @@ auto search16(s16info_s * s,
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
-                      if ((length == 0) or (s->qlen * length > maxseqlenproduct))
+                      if ((length == 0) or (not search16_fits(s->qlen, length)))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
@@ -1848,7 +1889,7 @@ auto search16(s16info_s * s,
       F2 = v_sub(F1, R_query_left);
       F3 = v_sub(F2, R_query_left);
 
-      dir += 4 * 4 * s->qlen;
+      dir += 4 * 4 * qlen;
 
       if (dir >= dirbuffer + dirbuffersize)
         {
