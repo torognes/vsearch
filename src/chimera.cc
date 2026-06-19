@@ -140,7 +140,7 @@ struct chimera_info_s
   int query_no = 0;
   std::vector<char> query_head;
   int query_head_len = 0;
-  int query_size = 0;
+  int64_t query_size = 0;
   std::vector<char> query_seq;
   int query_len = 0;
 

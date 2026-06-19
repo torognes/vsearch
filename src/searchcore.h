@@ -131,7 +131,7 @@ struct searchinfo_s
 {
   int query_no = 0;                 /* query number, zero-based */
   int strand = 0;                   /* strand of query being analysed */
-  int qsize = 0;                    /* query abundance */
+  int64_t qsize = 0;                    /* query abundance */
   int query_head_len = 0;           /* query header length */
   int query_head_alloc = 0;         /* bytes allocated for the header */
   char * query_head = nullptr;            /* query header */
