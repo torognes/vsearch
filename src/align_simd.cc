@@ -948,7 +948,7 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pgaps) -> void
 {
   unsigned short * dirbuffer = s->dir;
-  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * s->maxdlen * 4;
   uint64_t const qlen = s->qlen;
   char const * qseq = s->qseq;
 
@@ -1391,7 +1391,7 @@ auto search16(s16info_s * s,
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = maxdlen;
-  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * s->maxdlen * 4;
 
   if (dirbuffersize > s->diralloc)
     {
