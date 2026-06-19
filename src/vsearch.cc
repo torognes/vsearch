@@ -5094,6 +5094,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --maxseqlength must be a positive integer");
     }
 
+  if (opt_maxseqlength > UINT32_MAX)
+    {
+      fatal("The argument to --maxseqlength cannot exceed 4294967295");
+    }
+
   if (parameters.opt_chimeras_denovo != nullptr)
     {
       if (not options_selected[option_alignwidth])
