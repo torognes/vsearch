@@ -465,7 +465,7 @@ auto fasta_print_general(std::FILE * output_handle,
                          uint64_t const abundance,
                          int64_t const ordinal,
                          double const expected_error,
-                         int const clustersize,
+                         int64_t const clustersize,
                          int const clusterid,
                          char const * score_name,
                          double const score,
@@ -519,7 +519,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (clustersize > 0)
     {
-      std::fprintf(output_handle, ";seqs=%d", clustersize);
+      std::fprintf(output_handle, ";seqs=%" PRId64, clustersize);
     }
 
   if (clusterid >= 0)
