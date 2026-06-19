@@ -490,7 +490,7 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
   fasta_print_general(fp_consout,
                       "centroid=",
                       cons_v.data(),
-                      static_cast<int>(cons_v.size()),
+                      static_cast<int>(cons_v.size() - 1),  // exclude the '\0' terminator slot
                       db_getheader(centroid_seqno),
                       static_cast<int>(db_getheaderlen(centroid_seqno)),
                       totalabundance,
