@@ -143,7 +143,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
                            const char * query_seq,
                            const char * query_head,
                            int query_len,
-                           int query_size,
+                           int64_t query_size,
                            struct chimera_result_s * result) -> int;
 
 /* Convenience: chimera_detect_thread_cleanup(ci) + chimera_session_cleanup().
@@ -165,6 +165,6 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
 auto chimera_detect_batch(const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,
-                          const int * query_sizes,
+                          const int64_t * query_sizes,
                           int query_count,
                           struct chimera_result_s * results) -> void;

@@ -376,7 +376,7 @@ auto cluster_core_results_hit(struct hit const * best,
                               int qseqlen,
                               char const * qsequence,
                               char const * qsequence_rc,
-                              int qsize) -> void
+                              int64_t qsize) -> void
 {
   ++count_matched;
 
@@ -479,7 +479,7 @@ auto cluster_core_results_nohit(int clusterno,
                                 int qseqlen,
                                 char const * qsequence,
                                 char const * qsequence_rc,
-                                int qsize) -> void
+                                int64_t qsize) -> void
 {
   ++count_notmatched;
 

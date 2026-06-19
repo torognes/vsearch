@@ -189,7 +189,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                  int qseqlen,
                                  char * qsequence,
                                  char * qsequence_rc,
-                                 int qsize) -> void
+                                 int64_t qsize) -> void
 {
   std::lock_guard<std::mutex> const lock(mutex_output);
 
@@ -433,7 +433,7 @@ auto search_exact_thread_run(uint64_t t) -> void
           char const * qseq = fastx_get_sequence(query_fastx_h);
           int const qseqlen = fastx_get_sequence_length(query_fastx_h);
           int const query_no = fastx_get_seqno(query_fastx_h);
-          int const qsize = fastx_get_abundance(query_fastx_h);
+          int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
           for (int s = 0; s < opt_strand; s++)
             {

@@ -484,7 +484,7 @@ auto sintax_thread_run(uint64_t const t) -> void
           auto const * qseq = fastx_get_sequence(query_fastx_h);
           int const qseqlen = fastx_get_sequence_length(query_fastx_h);
           int const query_no = fastx_get_seqno(query_fastx_h);
-          int const qsize = fastx_get_abundance(query_fastx_h);
+          int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
           for (auto s = 0; s < opt_strand; s++)
             {

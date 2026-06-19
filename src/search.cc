@@ -121,7 +121,7 @@ auto search_output_results(std::vector<struct hit> const & hits,
                            int qseqlen,
                            char const * qsequence,
                            char const * qsequence_rc,
-                           int qsize) -> void
+                           int64_t qsize) -> void
 {
   std::lock_guard<std::mutex> const lock(mutex_output);
 
@@ -368,7 +368,7 @@ static auto populate_si(struct searchinfo_s * si,
                         const char * seq,
                         int seq_len,
                         int query_no,
-                        int qsize,
+                        int64_t qsize,
                         int strand) -> void
 {
   si->query_head_len = head_len;
@@ -423,7 +423,7 @@ auto search_thread_run(uint64_t t) -> void
           char const * qseq = fastx_get_sequence(query_fastx_h);
           int const qseqlen = fastx_get_sequence_length(query_fastx_h);
           int const query_no = fastx_get_seqno(query_fastx_h);
-          int const qsize = fastx_get_abundance(query_fastx_h);
+          int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
           populate_si(si_plus + t,
                       qhead,
@@ -1044,7 +1044,7 @@ auto search_session_single(struct search_session_s * ss,
                            const char * query_seq,
                            const char * query_head,
                            int query_len,
-                           int query_size,
+                           int64_t query_size,
                            struct search_result_s * results,
                            int max_results,
                            int * result_count) -> void
@@ -1164,7 +1164,7 @@ struct search_batch_context_s {
   const char ** query_seqs;
   const char ** query_heads;
   const int * query_lens;
-  const int * query_sizes;
+  const int64_t * query_sizes;
   int query_count;
   struct search_result_s * results;
   int max_results_per_query;
@@ -1204,7 +1204,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
       char const * qseq = ctx.query_seqs[qi];
       char const * qhead = ctx.query_heads[qi];
       int const qlen = ctx.query_lens[qi];
-      int const qsize = ctx.query_sizes[qi];
+      int64_t const qsize = ctx.query_sizes[qi];
       int const head_len = std::strlen(qhead);
 
       populate_si(my_si_plus,
@@ -1299,7 +1299,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 auto search_batch(const char ** query_seqs,
                   const char ** query_heads,
                   const int * query_lens,
-                  const int * query_sizes,
+                  const int64_t * query_sizes,
                   int query_count,
                   struct search_result_s * results,
                   int max_results_per_query,
