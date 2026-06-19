@@ -91,6 +91,6 @@ auto fastq_print_general(std::FILE * output_handle,
                          char const * header,
                          int header_len,
                          char const * quality,
-                         int abundance,
-                         int ordinal,
+                         uint64_t abundance,
+                         int64_t ordinal,
                          double expected_error) -> void;

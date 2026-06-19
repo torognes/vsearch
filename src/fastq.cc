@@ -63,6 +63,7 @@
 #include "utils/fatal.hpp"
 #include <array>
 #include <cassert>  // assert
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
@@ -669,8 +670,8 @@ auto fastq_print_general(FILE * output_handle,
                          char const * header,
                          int const header_len,
                          char const * quality,
-                         int const abundance,
-                         int const ordinal,
+                         uint64_t const abundance,
+                         int64_t const ordinal,
                          double const expected_error) -> void
 {
   std::fprintf(output_handle, "@");
@@ -689,7 +690,7 @@ auto fastq_print_general(FILE * output_handle,
     }
   else if ((opt_relabel != nullptr) && (ordinal > 0))
     {
-      std::fprintf(output_handle, "%s%d", opt_relabel, ordinal);
+      std::fprintf(output_handle, "%s%" PRId64, opt_relabel, ordinal);
     }
   else
     {
@@ -716,7 +717,7 @@ auto fastq_print_general(FILE * output_handle,
 
   if (opt_sizeout && (abundance > 0))
     {
-      std::fprintf(output_handle, ";size=%d", abundance);
+      std::fprintf(output_handle, ";size=%" PRIu64, abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0))

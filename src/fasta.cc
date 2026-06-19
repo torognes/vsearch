@@ -462,8 +462,8 @@ auto fasta_print_general(std::FILE * output_handle,
                          int const len,
                          char const * header,
                          int const header_length,
-                         unsigned int const abundance,
-                         int const ordinal,
+                         uint64_t const abundance,
+                         int64_t const ordinal,
                          double const expected_error,
                          int const clustersize,
                          int const clusterid,
@@ -492,7 +492,7 @@ auto fasta_print_general(std::FILE * output_handle,
     }
   else if ((opt_relabel != nullptr) and (ordinal > 0))
     {
-      std::fprintf(output_handle, "%s%d", opt_relabel, ordinal);
+      std::fprintf(output_handle, "%s%" PRId64, opt_relabel, ordinal);
     }
   else
     {
@@ -529,7 +529,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (opt_sizeout and (abundance > 0))
     {
-      std::fprintf(output_handle, ";size=%u", abundance);
+      std::fprintf(output_handle, ";size=%" PRIu64, abundance);
     }
 
   if (opt_centroid_sizeout and (centroid_size > 0))
@@ -617,7 +617,7 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
                       db_getheader(seqno),
                       db_getheaderlen(seqno),
                       db_getabundance(seqno),
-                      static_cast<int>(ordinal),
+                      static_cast<int64_t>(ordinal),
                       -1.0,
                       -1, -1,
                       nullptr, 0.0,

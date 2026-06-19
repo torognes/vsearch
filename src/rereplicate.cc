@@ -107,7 +107,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
                               fasta_get_header(input_handle),
                               static_cast<int>(fasta_get_header_length(input_handle)),
                               1,
-                              static_cast<int>(n_reads),
+                              n_reads,
                               -1.0,
                               -1, -1, nullptr, 0.0,
                               0);
