@@ -306,7 +306,16 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
           auto const count = dbindex_getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
-              searchinfo->kmers[list[j]]++;
+              /* Saturate at INT16_MAX (32767) rather than letting the
+                 unsigned-short counter wrap at 65536. The SIMD bitmap path
+                 (increment_counters_from_bitmap*) increments these counters
+                 with signed saturation and so caps at 32767; matching that
+                 here keeps every counter in [0, 32767], where the two paths
+                 agree and neither can wrap a high-overlap target's count back
+                 to ~0 and silently drop it from the candidate set (the cap is
+                 far above any realistic minwordmatches). */
+              count_t & counter = searchinfo->kmers[list[j]];
+              if (counter < INT16_MAX) { ++counter; }
             }
         }
     }
