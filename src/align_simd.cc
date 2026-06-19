@@ -1041,7 +1041,7 @@ auto backtrack16(s16info_s * s,
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
       uint64_t const d = *((uint64_t *) (dirbuffer +
-                                         ((offset + (matrix_size * s->qlen * (j / 4)) +
+                                         ((offset + (matrix_size * qlen * (j / 4)) +
                                            (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
 
       if ((s->op == 'I') and ((d & maskextleft) != 0U))
@@ -1889,7 +1889,7 @@ auto search16(s16info_s * s,
       F2 = v_sub(F1, R_query_left);
       F3 = v_sub(F2, R_query_left);
 
-      dir += 4 * 4 * s->qlen;
+      dir += 4 * 4 * qlen;
 
       if (dir >= dirbuffer + dirbuffersize)
         {
