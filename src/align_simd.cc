@@ -83,6 +83,7 @@ constexpr auto matrix_size = 16;
 constexpr auto CHANNELS = 8;
 constexpr auto CDEPTH = 4;
 constexpr auto maxseqlenproduct = 25000000LL;
+constexpr auto maxseqlensum = 65535LL;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -105,10 +106,34 @@ namespace {
   200 MB per thread. It will align pairs of sequences less than 5000 nt long
   using the SIMD implementation, larger alignments will be performed with
   the linear memory aligner.
+
+  A second limit applies to the SUM of the two lengths. The per-alignment
+  statistics counters in backtrack16 (aligned/matches/mismatches/gaps) are
+  unsigned short, and the alignment path length is at most qlen + dlen, so a
+  sum above 65 535 would wrap those counters. Pairs exceeding the sum limit
+  are therefore also diverted to the linear memory aligner (whose statistics
+  are int64). Both limits are combined in search16_fits().
 */
 
 
 static std::array<std::array<int64_t, matrix_size>, matrix_size> scorematrix {{}};
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Whether the SIMD aligner can represent an alignment of a query of length
+     qlen against a target of length dlen, given the product limit (DP work /
+     direction buffer memory) and the sum limit (16-bit statistics counters).
+     The sum is tested first so the product multiplication cannot overflow for
+     an accepted pair. Pairs that do not fit are aligned by linmemalign. */
+  auto search16_fits(uint64_t const qlen, uint64_t const dlen) -> bool
+  {
+    return (static_cast<int64_t>(qlen + dlen) <= maxseqlensum)
+       and (static_cast<int64_t>(qlen) * static_cast<int64_t>(dlen) <= maxseqlenproduct);
+  }
+
+}  // end of anonymous namespace
 
 /*
   The macros below usually operate on 128-bit vectors of 8 signed
@@ -1300,6 +1325,22 @@ auto search16(s16info_s * s,
           auto const seqno = seqnos[cand_id];
           int64_t const length = db_getsequencelen(seqno);
 
+          /* An empty query aligns to the target as one insertion of 'length'
+             residues, so aligned == gaps == length. When that exceeds the
+             16-bit statistics counters (search16_fits), divert to the linear
+             memory aligner via the SHRT_MAX sentinel, exactly as the
+             product/sum guard does for non-empty queries. */
+          if (not search16_fits(qlen, length))
+            {
+              pscores[cand_id] = std::numeric_limits<short>::max();
+              paligned[cand_id] = 0;
+              pmatches[cand_id] = 0;
+              pmismatches[cand_id] = 0;
+              pgaps[cand_id] = 0;
+              pcigar[cand_id] = xstrdup("");
+              continue;
+            }
+
           paligned[cand_id] = length;
           pmatches[cand_id] = 0;
           pmismatches[cand_id] = 0;
@@ -1342,8 +1383,8 @@ auto search16(s16info_s * s,
   for (int64_t i = 0; i < sequences; i++)
     {
       uint64_t const dlen = db_getsequencelen(seqnos[i]);
-      /* skip the very long sequences */
-      if ((int64_t) (s->qlen) * dlen <= maxseqlenproduct)
+      /* skip sequences the SIMD aligner cannot handle (product/sum limits) */
+      if (search16_fits(s->qlen, dlen))
         {
           maxdlen = std::max(dlen, maxdlen);
         }
@@ -1666,7 +1707,7 @@ auto search16(s16info_s * s,
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
-                      if ((length == 0) or (s->qlen * length > maxseqlenproduct))
+                      if ((length == 0) or (not search16_fits(s->qlen, length)))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
