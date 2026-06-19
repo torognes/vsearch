@@ -966,7 +966,7 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                       (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskup)
             {
@@ -994,7 +994,7 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                       (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskextup)
             {
@@ -1037,7 +1037,7 @@ auto backtrack16(s16info_s * s,
       // d = *(block1)
       // block1 = dirbuffer + (block2 % dirbuffersize);
       // block2 = (offset + block3 + block4 + block5);
-      // block3 = 16 * s->qlen * (j / 4);
+      // block3 = 16 * qlen * (j / 4);
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
       uint64_t const d = *((uint64_t *) (dirbuffer +
@@ -1260,8 +1260,8 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
     {
       xfree(s->hearray);
     }
-  s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
-  std::memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
+  s->hearray = (VECTOR_SHORT *) xmalloc(2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
+  std::memset(s->hearray, 0, 2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
 
   if (s->qtable != nullptr)
     {
