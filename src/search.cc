@@ -848,12 +848,10 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
   query_fastx_h = fastx_open(parameters.opt_usearch_global);
 
   /* allocate memory for thread info */
-  si_plus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
-                                            sizeof(struct searchinfo_s)));
+  si_plus = new searchinfo_s[opt_threads]{};
   if (opt_strand > 1)
     {
-      si_minus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
-                                                 sizeof(struct searchinfo_s)));
+      si_minus = new searchinfo_s[opt_threads]{};
     }
   else
     {
@@ -874,10 +872,10 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
   xpthread_mutex_destroy(&mutex_input);
 
   xfree(pthread);
-  xfree(si_plus);
+  delete [] si_plus;
   if (si_minus != nullptr)
     {
-      xfree(si_minus);
+      delete [] si_minus;
     }
 
   fastx_close(query_fastx_h);
@@ -1365,12 +1363,10 @@ auto search_batch(const char ** query_seqs,
   ctx.result_counts = result_counts;
   ctx.next_query = 0;
 
-  ctx.batch_si_plus = static_cast<struct searchinfo_s *>(
-    xmalloc(nthreads * sizeof(struct searchinfo_s)));
+  ctx.batch_si_plus = new searchinfo_s[nthreads]{};
   if (opt_strand > 1)
     {
-      ctx.batch_si_minus = static_cast<struct searchinfo_s *>(
-        xmalloc(nthreads * sizeof(struct searchinfo_s)));
+      ctx.batch_si_minus = new searchinfo_s[nthreads]{};
     }
   else
     {
@@ -1388,11 +1384,9 @@ auto search_batch(const char ** query_seqs,
 
   for (int t = 0; t < nthreads; t++)
     {
-      std::memset(static_cast<void *>(ctx.batch_si_plus + t), 0, sizeof(struct searchinfo_s));
       search_thread_init(ctx.batch_si_plus + t);
       if (ctx.batch_si_minus != nullptr)
         {
-          std::memset(static_cast<void *>(ctx.batch_si_minus + t), 0, sizeof(struct searchinfo_s));
           search_thread_init(ctx.batch_si_minus + t);
         }
       args[t].ctx = &ctx;
@@ -1414,9 +1408,9 @@ auto search_batch(const char ** query_seqs,
 
   xpthread_attr_destroy(&batch_attr);
   xpthread_mutex_destroy(&ctx.mutex);
-  xfree(ctx.batch_si_plus);
+  delete [] ctx.batch_si_plus;
   if (ctx.batch_si_minus != nullptr)
     {
-      xfree(ctx.batch_si_minus);
+      delete [] ctx.batch_si_minus;
     }
 }
