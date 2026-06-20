@@ -2075,8 +2075,6 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
   scoring.gap_open_query_left = opt_gap_open_query_left;
   scoring.gap_open_target_left = opt_gap_open_target_left;
   scoring.gap_open_query_interior = opt_gap_open_query_interior;
