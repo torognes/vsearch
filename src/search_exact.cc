@@ -454,15 +454,15 @@ auto search_exact_thread_run(int64_t t) -> void
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
-                  si->query_head = (char *)
-                    xrealloc(si->query_head, (size_t) (si->query_head_alloc));
+                  si->query_head = static_cast<char *>(
+                    xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
-                  si->qsequence = (char *)
-                    xrealloc(si->qsequence, (size_t) (si->seq_alloc));
+                  si->qsequence = static_cast<char *>(
+                    xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
                 }
             }
 
@@ -545,7 +545,7 @@ auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 
 auto search_exact_thread_worker(void * vp) -> void *
 {
-  auto t = (int64_t) vp;
+  auto t = reinterpret_cast<int64_t>(vp);
   search_exact_thread_run(t);
   return nullptr;
 }
@@ -566,7 +566,7 @@ auto search_exact_thread_worker_run() -> void
           search_exact_thread_init(si_minus + t);
         }
       xpthread_create(pthread + t, &attr,
-                      search_exact_thread_worker, (void *) (int64_t) t);
+                      search_exact_thread_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
   /* finish and clean up worker threads */
@@ -745,7 +745,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader) -> void
   /* tophits = the maximum number of hits we need to store */
   tophits = seqcount;
 
-  dbmatched = (uint64_t *) xmalloc(seqcount * sizeof(uint64_t *));
+  dbmatched = static_cast<uint64_t *>(xmalloc(seqcount * sizeof(uint64_t *)));
   std::memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
 
   dbhash_open(seqcount);
