@@ -191,8 +191,8 @@ namespace {
 
 auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 {
-  auto * lhs = (struct bucket *) void_lhs;
-  auto * rhs = (struct bucket *) void_rhs;
+  auto const * lhs = static_cast<struct bucket const *>(void_lhs);
+  auto const * rhs = static_cast<struct bucket const *>(void_rhs);
 
   /* highest abundance first, then by label, otherwise keep order */
 

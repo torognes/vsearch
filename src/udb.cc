@@ -92,8 +92,8 @@ using wordfreq_t = struct wordfreq;
 
 auto wc_compare(const void * a, const void * b) -> int
 {
-  auto * lhs = (wordfreq_t *) a;
-  auto * rhs = (wordfreq_t *) b;
+  auto const * lhs = static_cast<wordfreq_t const *>(a);
+  auto const * rhs = static_cast<wordfreq_t const *>(b);
   if (lhs->count < rhs->count)
     {
       return -1;
@@ -916,11 +916,11 @@ auto udb_make(struct Parameters const & parameters) -> void
       header_characters += db_getheaderlen(i) + 1;
     }
 
-  uint64_t const kmerhashsize = 1U << (2 * static_cast<uint64_t>(opt_wordlength));
+  uint64_t const kmerhash_entries = 1U << (2 * static_cast<uint64_t>(opt_wordlength));
 
   /* count word matches */
   uint64_t wordmatches = 0;
-  for (auto i = 0U; i < kmerhashsize; i++)
+  for (auto i = 0U; i < kmerhash_entries; i++)
     {
       wordmatches += kmercount[i];
     }
@@ -928,7 +928,7 @@ auto udb_make(struct Parameters const & parameters) -> void
   uint64_t pos = 0;
   uint64_t const progress_all =
     (4 * 50) +
-    (4 * kmerhashsize) +
+    (4 * kmerhash_entries) +
     (4 * 1) +
     (4 * wordmatches) +
     (4 * 8) +
@@ -955,14 +955,14 @@ auto udb_make(struct Parameters const & parameters) -> void
   pos += largewrite(fd_output, buffer.data(), 50 * 4, 0, false);
 
   /* write 4^wordlength uint32_t's with word match counts */
-  pos += largewrite(fd_output, kmercount, 4 * kmerhashsize, pos, false);
+  pos += largewrite(fd_output, kmercount, 4 * kmerhash_entries, pos, false);
 
   /* 3BDU */
   buffer[0] = 0x55444233; /* 3BDU UDB3 */
   pos += largewrite(fd_output, buffer.data(), 1 * 4, pos, false);
 
   /* lists of sequence no's with matches for all words */
-  for (auto i = 0U; i < kmerhashsize; i++)
+  for (auto i = 0U; i < kmerhash_entries; i++)
     {
       if (kmerbitmap[i] != nullptr)
         {

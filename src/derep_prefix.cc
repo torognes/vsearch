@@ -112,8 +112,8 @@ auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
 
 auto derep_compare_prefix(const void * a, const void * b) -> int
 {
-  auto * lhs = (struct bucket *) a;
-  auto * rhs = (struct bucket *) b;
+  auto const * lhs = static_cast<struct bucket const *>(a);
+  auto const * rhs = static_cast<struct bucket const *>(b);
 
   /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
 

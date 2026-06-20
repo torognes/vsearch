@@ -110,8 +110,8 @@ auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
 
 auto minheap_compare(const void * lhs_a, const void * rhs_b) -> int
 {
-  auto * lhs = (elem_t *) lhs_a;
-  auto * rhs = (elem_t *) rhs_b;
+  auto const * lhs = static_cast<elem_t const *>(lhs_a);
+  auto const * rhs = static_cast<elem_t const *>(rhs_b);
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */

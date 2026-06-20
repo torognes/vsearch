@@ -1028,13 +1028,13 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       assert(ci->parents_found <= 20);  // 20 parents max ('A' to 'U')
       for (int f = 0; f < ci->parents_found; ++f)
         {
-          int const seqno = ci->cand_list[ci->best_parents[f]];
+          int const parent_seqno = ci->cand_list[ci->best_parents[f]];
           std::fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                        'A' + f,
-                       db_getsequencelen(seqno));
+                       db_getsequencelen(parent_seqno));
           header_fprint_strip(fp_uchimealns,
-                              db_getheader(seqno),
-                              db_getheaderlen(seqno),
+                              db_getheader(parent_seqno),
+                              db_getheaderlen(parent_seqno),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);

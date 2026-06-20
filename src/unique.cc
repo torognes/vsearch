@@ -151,8 +151,8 @@ auto unique_exit(struct uhandle_s * unique_handle) -> void
 
 auto unique_compare(const void * a, const void * b) -> int
 {
-  auto * lhs = (unsigned int *) a;
-  auto * rhs = (unsigned int *) b;
+  auto const * lhs = static_cast<unsigned int const *>(a);
+  auto const * rhs = static_cast<unsigned int const *>(b);
 
   if (lhs < rhs)
     {

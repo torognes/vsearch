@@ -101,7 +101,7 @@ static int count_matched = 0;
 static int count_notmatched = 0;
 
 
-inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> int
+inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const * rhs) -> int
 {
   // high id, then low id
   // early target, then late target
@@ -128,7 +128,7 @@ inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> in
 
 auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 {
-  return allpairs_hit_compare_typed((struct hit *) lhs, (struct hit *) rhs);
+  return allpairs_hit_compare_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 

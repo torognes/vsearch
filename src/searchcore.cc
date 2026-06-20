@@ -244,13 +244,13 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
 
 auto hit_compare_byid(const void * lhs, const void * rhs) -> int
 {
-  return hit_compare_byid_typed((struct hit *) lhs, (struct hit *) rhs);
+  return hit_compare_byid_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 
 auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 {
-  return hit_compare_bysize_typed((struct hit *) lhs, (struct hit *) rhs);
+  return hit_compare_bysize_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 

@@ -234,7 +234,7 @@ auto sintax_analyse(char const * query_head,
       if (opt_sintax_cutoff > 0.0)
         {
           std::fprintf(fp_tabbedout, "\t");
-          auto comma = false;
+          auto comma_cutoff = false;
           for (auto j = 0; j < tax_levels; j++)
             {
               auto const best = level_best[j];
@@ -243,11 +243,11 @@ auto sintax_analyse(char const * query_head,
                 {
                   std::fprintf(fp_tabbedout,
                           "%s%c:%.*s",
-                          (comma ? "," : ""),
+                          (comma_cutoff ? "," : ""),
                           taxonomic_fields[j],
                           cand_level_name_len[best][j],
                           cand_level_name_start[best][j]);
-                  comma = true;
+                  comma_cutoff = true;
                 }
             }
         }
@@ -320,7 +320,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
         }
     }
 
-  auto tophits = 0U;
+  auto tophit_count = 0U;
 
   elem_t best;
   best.count = 0;
@@ -338,14 +338,14 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
           best.count = count;
           best.seqno = seqno;
           best.length = length;
-          tophits = 1;
+          tophit_count = 1;
         }
       else if (count == best.count)
         {
           if (opt_sintax_random)
             {
-              tophits++;
-              if (random_int(tophits) == 0)
+              tophit_count++;
+              if (random_int(tophit_count) == 0)
                 {
                   best.seqno = seqno;
                   best.length = length;

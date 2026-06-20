@@ -144,8 +144,8 @@ static thread_info_t * ti;
 
 inline auto compare_byclusterno(const void * a, const void * b) -> int
 {
-  auto * lhs = (clusterinfo_t *) a;
-  auto * rhs = (clusterinfo_t *) b;
+  auto const * lhs = static_cast<clusterinfo_t const *>(a);
+  auto const * rhs = static_cast<clusterinfo_t const *>(b);
 
   if (lhs->clusterno < rhs->clusterno)
     {
@@ -170,8 +170,8 @@ inline auto compare_byclusterno(const void * a, const void * b) -> int
 
 inline auto compare_byclusterabundance(const void * a, const void * b) -> int
 {
-  auto * lhs = (clusterinfo_t *) a;
-  auto * rhs = (clusterinfo_t *) b;
+  auto const * lhs = static_cast<clusterinfo_t const *>(a);
+  auto const * rhs = static_cast<clusterinfo_t const *>(b);
 
   if (cluster_abundance[lhs->clusterno] > cluster_abundance[rhs->clusterno])
     {
@@ -609,8 +609,8 @@ auto cluster_core_results_nohit(int clusterno,
 
 auto compare_kmersample(const void * a, const void * b) -> int
 {
-  unsigned int const lhs = * (unsigned int *) a;
-  unsigned int const rhs = * (unsigned int *) b;
+  unsigned int const lhs = * static_cast<unsigned int const *>(a);
+  unsigned int const rhs = * static_cast<unsigned int const *>(b);
 
   if (lhs < rhs)
     {
@@ -1688,10 +1688,10 @@ auto cluster(char * dbname,
 
   /* free cigar strings for all aligned sequences */
 
-  for (auto & clusterinfo : clusterinfo_v) {
-    if (clusterinfo.cigar != nullptr)
+  for (auto const & cluster_entry : clusterinfo_v) {
+    if (cluster_entry.cigar != nullptr)
       {
-        xfree(clusterinfo.cigar);
+        xfree(cluster_entry.cigar);
       }
   }
 

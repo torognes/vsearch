@@ -301,7 +301,7 @@ namespace {
 
 auto _mm_print(VECTOR_SHORT const x) -> void
 {
-  auto * y = (unsigned short *) &x;
+  auto const * y = reinterpret_cast<unsigned short const *>(&x);
   for (int i = 0; i < 8; i++)
     {
       printf("%s%6d", (i > 0 ? " " : ""), y[7 - i]);
@@ -311,7 +311,7 @@ auto _mm_print(VECTOR_SHORT const x) -> void
 
 auto _mm_print2(VECTOR_SHORT const x) -> void
 {
-  auto * y = (signed short *) &x;
+  auto const * y = reinterpret_cast<signed short const *>(&x);
   for (int i = 0; i < 8; i++)
     {
       printf("%s%2d", (i > 0 ? " " : ""), y[7 - i]);

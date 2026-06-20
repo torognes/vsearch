@@ -139,7 +139,7 @@ auto db_getquality(uint64_t seqno) -> char *
 }
 
 
-auto db_add(bool const is_fastq,
+auto db_add(bool const is_fastq_record,
             char const * header,
             char const * sequence,
             char const * quality,
@@ -154,7 +154,7 @@ auto db_add(bool const is_fastq,
   size_t const dataalloc_old = dataalloc;
 
   size_t needed = datalen + headerlength + 1 + sequencelength + 1;
-  if (is_fastq)
+  if (is_fastq_record)
     {
       needed += sequencelength + 1;
     }
@@ -182,7 +182,7 @@ auto db_add(bool const is_fastq,
   datalen += sequencelength + 1;
 
   size_t const quality_p = datalen;
-  if (is_fastq)
+  if (is_fastq_record)
     {
       /* store quality */
       std::memcpy(datap + quality_p,
@@ -450,8 +450,8 @@ auto db_free() -> void
 
 auto compare_bylength(const void * a, const void * b) -> int
 {
-  auto * lhs = (seqinfo_t *) a;
-  auto * rhs = (seqinfo_t *) b;
+  auto const * lhs = static_cast<seqinfo_t const *>(a);
+  auto const * rhs = static_cast<seqinfo_t const *>(b);
 
   /* longest first, then by abundance, then by label, otherwise keep order */
 
@@ -493,8 +493,8 @@ auto compare_bylength(const void * a, const void * b) -> int
 
 auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 {
-  auto * lhs = (seqinfo_t *) a;
-  auto * rhs = (seqinfo_t *) b;
+  auto const * lhs = static_cast<seqinfo_t const *>(a);
+  auto const * rhs = static_cast<seqinfo_t const *>(b);
 
   /* shortest first, then by abundance, then by label, otherwise keep order */
 
@@ -536,8 +536,8 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 
 inline auto compare_byabundance(const void * a, const void * b) -> int
 {
-  auto * lhs = (seqinfo_t *) a;
-  auto * rhs = (seqinfo_t *) b;
+  auto const * lhs = static_cast<seqinfo_t const *>(a);
+  auto const * rhs = static_cast<seqinfo_t const *>(b);
 
   /* most abundant first, then by label, otherwise keep order */
 
