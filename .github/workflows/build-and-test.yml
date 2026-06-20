@@ -7,35 +7,145 @@ on:
     branches: [ "master", "dev" ]
 
 jobs:
-  build-and-test:
-
+  linux-x86_64:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y ghostscript groff libbz2-dev zlib1g-dev
 
-    - name: Configure
+    - name: Configure and build
       run: |
         ./autogen.sh
         ./configure CFLAGS="-O2" CXXFLAGS="-O2"
-
-    - name: Build
-      run: |
-        JOBS=$(nproc 2>/dev/null || echo 1)
-        make ARFLAGS="cr" -j$JOBS
-
-    - name: Install tests
-      run: |
-        git clone https://github.com/frederic-mahe/vsearch-tests
+        make clean
+        make ARFLAGS="cr" -j$(nproc)
+        bin/vsearch -v
 
     - name: Run tests
       run: |
         export PATH=$PWD/bin:$PATH
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
         cd vsearch-tests
         bash ./run_all_tests.sh
+
+
+  cross-build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: windows-x86_64, host: x86_64-w64-mingw32,    pkgs: "mingw-w64 libz-mingw-w64-dev" }
+          - { name: linux-aarch64,  host: aarch64-linux-gnu,      pkgs: "g++-aarch64-linux-gnu libsimde-dev" }
+          - { name: linux-mips64el, host: mips64el-linux-gnuabi64, pkgs: "g++-mips64el-linux-gnuabi64 libsimde-dev" }
+          - { name: linux-ppc64le,  host: powerpc64le-linux-gnu,  pkgs: "g++-powerpc64le-linux-gnu libsimde-dev" }
+          - { name: linux-riscv64,  host: riscv64-linux-gnu,      pkgs: "g++-riscv64-linux-gnu libsimde-dev" }
+
+    name: cross-build (${{ matrix.target.name }})
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ghostscript groff libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
+
+    - name: Build for ${{ matrix.target.name }}
+      run: |
+        ./autogen.sh
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2" --host=${{ matrix.target.host }}
+        make clean
+        make ARFLAGS="cr" -j$(nproc)
+
+
+  macos-arm64:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install autoconf automake ghostscript groff
+
+    - name: Configure and build
+      run: |
+        ./autogen.sh
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+        make clean
+        make ARFLAGS="cr" -j$(sysctl -n hw.ncpu)
+        bin/vsearch -v
+
+    - name: Run tests
+      run: |
+        export PATH=$PWD/bin:$PATH
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+        cd vsearch-tests
+        bash ./run_all_tests.sh
+
+
+  macos-x86_64:
+    runs-on: macos-15-intel
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install autoconf automake ghostscript groff
+
+    - name: Configure and build
+      run: |
+        ./autogen.sh
+        ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+        make clean
+        make ARFLAGS="cr" -j$(sysctl -n hw.ncpu)
+        bin/vsearch -v
+
+    - name: Run tests
+      run: |
+        export PATH=$PWD/bin:$PATH
+        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+        cd vsearch-tests
+        bash ./run_all_tests.sh
+
+
+  freebsd-x86_64:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Build and test on FreeBSD
+      uses: vmactions/freebsd-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkg update -f
+          pkg install -y autoconf automake gmake bash git ghostscript groff
+          pw useradd -n runner -m -s /usr/local/bin/bash
+        run: |
+          ./autogen.sh
+          ./configure CFLAGS="-O2" CXXFLAGS="-O2"
+          gmake clean
+          gmake ARFLAGS="cr" -j$(sysctl -n hw.ncpu)
+          bin/vsearch -v
+          git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+          chown -R runner vsearch-tests
+          # root bypasses POSIX permission checks, so the "file not
+          # readable/writable" tests need an unprivileged user
+          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh"
