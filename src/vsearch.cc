@@ -485,7 +485,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
   auto const commas = std::count(arg, arg + std::strlen(arg), ',');
 
   opt_ee_cutoffs_count = 0;
-  opt_ee_cutoffs_values = (double *) xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double));
+  opt_ee_cutoffs_values = static_cast<double *>(xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double)));
 
   char const * cursor = arg;
   while (true)
@@ -519,7 +519,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
 }
 
 
-auto args_get_length_cutoffs(char * arg) -> void
+auto args_get_length_cutoffs(char const * arg) -> void
 {
   /* get comma-separated list of 3 integers: */
   /* smallest, largest and increment. */
@@ -531,14 +531,14 @@ auto args_get_length_cutoffs(char * arg) -> void
   int skip = 0;  // receives the number of characters read so far ('%n')
   if (std::sscanf(arg, "%d,%d,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_longest, &opt_length_cutoffs_increment, & skip) == n_of_expected_assignments)
     {
-      if ((size_t) skip < std::strlen(arg))
+      if (static_cast<size_t>(skip) < std::strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
     }
   else if (std::sscanf(arg, "%d,*,%d%n", &opt_length_cutoffs_shortest, &opt_length_cutoffs_increment, &skip) == 2)
     {
-      if ((size_t) skip < std::strlen(arg))
+      if (static_cast<size_t>(skip) < std::strlen(arg))
         {
           fatal("Invalid arguments to length_cutoffs");
         }
@@ -746,13 +746,13 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
 }
 
 
-auto args_getlong(char * arg) -> int64_t
+auto args_getlong(char const * arg) -> int64_t
 {
   int len = 0;
   int64_t temp = 0;
   errno = 0;
   auto const ret = std::sscanf(arg, "%" SCNd64 "%n", &temp, &len);
-  if ((ret == 0) or (((unsigned int) len) < std::strlen(arg)) or (errno == ERANGE))
+  if ((ret == 0) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE))
     {
       fatal("Illegal option argument");
     }
@@ -760,14 +760,14 @@ auto args_getlong(char * arg) -> int64_t
 }
 
 
-auto args_getdouble(char * arg) -> double
+auto args_getdouble(char const * arg) -> double
 {
   int len = 0;
   double temp = 0;
   errno = 0;
   auto const ret = std::sscanf(arg, "%lf%n", &temp, &len);
 
-  if ((ret == 0) or (((unsigned int) len) < std::strlen(arg)) or (errno == ERANGE))
+  if ((ret == 0) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE))
     {
       fatal("Illegal option argument");
     }
@@ -836,7 +836,7 @@ auto vsearch_init_defaults() -> void
     {
       xfree(opt_ee_cutoffs_values);
     }
-  opt_ee_cutoffs_values = (double *) xmalloc(opt_ee_cutoffs_count * sizeof(double));
+  opt_ee_cutoffs_values = static_cast<double *>(xmalloc(opt_ee_cutoffs_count * sizeof(double)));
   opt_ee_cutoffs_values[0] = 0.5;
   opt_ee_cutoffs_values[1] = 1.0;
   opt_ee_cutoffs_values[2] = 2.0;
@@ -5207,11 +5207,11 @@ auto cmd_version(struct Parameters const & parameters) -> void
       printf(" and the library is loaded.\n");
 
       char * (*zlibVersion_p)();
-      zlibVersion_p = (char * (*)()) arch_dlsym(gz_lib, "zlibVersion");
+      zlibVersion_p = reinterpret_cast<char * (*)()>(arch_dlsym(gz_lib, "zlibVersion"));
       char const * gz_version = (*zlibVersion_p)();
 
       long unsigned int (*zlibCompileFlags_p)();
-      zlibCompileFlags_p = (long unsigned int (*)()) arch_dlsym(gz_lib, "zlibCompileFlags");
+      zlibCompileFlags_p = reinterpret_cast<long unsigned int (*)()>(arch_dlsym(gz_lib, "zlibCompileFlags"));
       long unsigned int const flags = (*zlibCompileFlags_p)();
 
       printf("zlib version %s, compile flags %lx", gz_version, flags);
@@ -6055,7 +6055,7 @@ auto getentirecommandline(int argc, char** argv) -> void
       len += std::strlen(argv[i]);
     }
 
-  cmdline = (char *) xmalloc(len + argc);
+  cmdline = static_cast<char *>(xmalloc(len + argc));
   cmdline[0] = 0;
 
   for (int i = 0; i < argc; i++)

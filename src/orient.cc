@@ -202,10 +202,6 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all();
         }
-    }
-
-  if (not is_udb)
-    {
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
     }
@@ -428,7 +424,7 @@ auto orient(struct Parameters const & parameters) -> void
       if (opt_tabbedout != nullptr)
         {
           fprintf(fp_tabbedout,
-                  "%s\t%c\t%d\t%d\n",
+                  "%s\t%c\t%u\t%u\n",
                   query_head,
                   strand == 0 ? '+' : (strand == 1 ? '-' : '?'),
                   count_fwd,

@@ -96,7 +96,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto read_labels_file(char * filename) -> void
+auto read_labels_file(char const * filename) -> void
 {
   auto labels_alloc = 0U;
   auto labels_count = 0U;
@@ -123,7 +123,7 @@ auto read_labels_file(char * filename) -> void
     {
       static constexpr auto buffer_size = 1024U;
       std::array<char, buffer_size> buffer {{}};
-      auto * return_value = std::fgets(buffer.data(), buffer_size, fp_labels.get());
+      auto const * return_value = std::fgets(buffer.data(), buffer_size, fp_labels.get());
       if (return_value == nullptr) { break; }
 
       auto length = std::strlen(buffer.data());
@@ -321,7 +321,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
 }
 
 
-auto getseq(struct Parameters const & parameters, char * filename) -> void
+auto getseq(struct Parameters const & parameters, char const * filename) -> void
 {
   if ((opt_fastqout == nullptr) and (opt_fastaout == nullptr) and
       (opt_notmatched == nullptr) and (opt_notmatchedfq == nullptr))

@@ -135,7 +135,7 @@ auto dbhash_search_first(char * seq,
 auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 {
   auto const hash = info->hash;
-  auto * seq = info->seq;
+  auto const * seq = info->seq;
   auto const seqlen = info->seqlen;
   auto index = (info->index + 1) & dbhash_mask;
   auto * bp = &dbhash_table[index];

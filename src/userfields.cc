@@ -127,7 +127,7 @@ auto parse_userfields_arg(char const * arg) -> int
 
   userfields_requested_count = std::count(ptr, end_of_string, separator) + 1;
 
-  userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * (uint64_t) userfields_requested_count));
+  userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * static_cast<uint64_t>(userfields_requested_count)));
 
   ptr = arg;  // reset to the start of the string
 
@@ -145,7 +145,7 @@ auto parse_userfields_arg(char const * arg) -> int
 
       auto const field_length = static_cast<uint64_t>(next_separator - ptr);
 
-      char ** valid_userfield = (char **) userfields_names;
+      char const ** valid_userfield = userfields_names;
 
       while (*valid_userfield != nullptr)
         {
@@ -161,7 +161,7 @@ auto parse_userfields_arg(char const * arg) -> int
           return 0; // bad argument
         }
 
-      auto const nth_valid_userfield = static_cast<int>((((const char **) valid_userfield) - userfields_names));
+      auto const nth_valid_userfield = static_cast<int>(valid_userfield - userfields_names);
       userfields_requested[nth_field] = nth_valid_userfield;
       ++nth_field;
 

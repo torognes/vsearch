@@ -403,7 +403,7 @@ auto merge_sym(char * sym,       char * qual,
     {
       /* agreement */
       * sym = fwd_sym;
-      * qual = merge_qual_same[(unsigned) fwd_qual][(unsigned) rev_qual];
+      * qual = merge_qual_same[static_cast<unsigned>(fwd_qual)][static_cast<unsigned>(rev_qual)];
     }
   else
     {
@@ -411,12 +411,12 @@ auto merge_sym(char * sym,       char * qual,
       if (fwd_qual > rev_qual)
         {
           * sym = fwd_sym;
-          * qual = merge_qual_diff[(unsigned) fwd_qual][(unsigned) rev_qual];
+          * qual = merge_qual_diff[static_cast<unsigned>(fwd_qual)][static_cast<unsigned>(rev_qual)];
         }
       else
         {
           * sym = rev_sym;
-          * qual = merge_qual_diff[(unsigned) rev_qual][(unsigned) fwd_qual];
+          * qual = merge_qual_diff[static_cast<unsigned>(rev_qual)][static_cast<unsigned>(fwd_qual)];
         }
     }
 }
@@ -651,10 +651,6 @@ auto merge(merge_data_t & a_read_pair) -> void
   a_read_pair.rev_errors = 0;
   auto sym = '\0';
   auto qual = '\0';
-  auto fwd_sym = '\0';
-  auto fwd_qual = '\0';
-  auto rev_sym = '\0';
-  auto rev_qual = '\0';
   int64_t fwd_pos = 0;
   int64_t rev_pos = 0;
   int64_t merged_pos = 0;
@@ -674,7 +670,7 @@ auto merge(merge_data_t & a_read_pair) -> void
       a_read_pair.merged_sequence[merged_pos] = sym;
       a_read_pair.merged_quality_v[merged_pos] = qual;
 
-      ee = q2p[(unsigned) qual];
+      ee = q2p[static_cast<unsigned>(qual)];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_fwd += ee;
 
@@ -691,10 +687,10 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   while ((fwd_pos < a_read_pair.fwd_trunc) and (rev_pos >= 0))
     {
-      fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
-      rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
-      fwd_qual = a_read_pair.fwd_quality[fwd_pos];
-      rev_qual = a_read_pair.rev_quality[rev_pos];
+      auto fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
+      auto rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
+      auto fwd_qual = a_read_pair.fwd_quality[fwd_pos];
+      auto rev_qual = a_read_pair.rev_quality[rev_pos];
 
       merge_sym(& sym,
                 & qual,
@@ -714,9 +710,9 @@ auto merge(merge_data_t & a_read_pair) -> void
 
       a_read_pair.merged_sequence[merged_pos] = sym;
       a_read_pair.merged_quality_v[merged_pos] = qual;
-      a_read_pair.ee_merged += q2p[(unsigned) qual];
-      a_read_pair.ee_fwd += q2p[(unsigned) fwd_qual];
-      a_read_pair.ee_rev += q2p[(unsigned) rev_qual];
+      a_read_pair.ee_merged += q2p[static_cast<unsigned>(qual)];
+      a_read_pair.ee_fwd += q2p[static_cast<unsigned>(fwd_qual)];
+      a_read_pair.ee_rev += q2p[static_cast<unsigned>(rev_qual)];
 
       ++fwd_pos;
       --rev_pos;
@@ -734,7 +730,7 @@ auto merge(merge_data_t & a_read_pair) -> void
       a_read_pair.merged_quality_v[merged_pos] = qual;
       ++merged_pos;
 
-      ee = q2p[(unsigned) qual];
+      ee = q2p[static_cast<unsigned>(qual)];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_rev += ee;
 
@@ -1228,7 +1224,7 @@ auto pair_worker(void * vp) -> void *
 {
   /* new */
 
-  auto t = (int64_t) vp;
+  auto t = reinterpret_cast<int64_t>(vp);
 
   struct kh_handle_s kmerhash;
 
@@ -1372,7 +1368,7 @@ auto pair_all() -> void
 
   for (auto t = 0; t < opt_threads; t++)
     {
-      xpthread_create(&pthread_v[t], &attr, pair_worker, (void *) (int64_t) t);
+      xpthread_create(&pthread_v[t], &attr, pair_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
   /* wait for threads to terminate */
@@ -1781,7 +1777,7 @@ auto mergepairs_single(const char * fwd_seq,
      failed merge leaves nullptr pointers for the caller. On success
      the buffers are xmalloc'd to the exact merged length; the caller
      owns them and must release via merge_result_free(). */
-  std::memset(result, 0, sizeof(*result));
+  *result = {};
   result->merged = md.merged;
 
   if (md.merged)

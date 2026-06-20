@@ -228,7 +228,7 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 
 auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix,
                                int const target_seqno,
-                               std::vector<char> & aln_v) -> void {
+                               std::vector<char> const & aln_v) -> void {
   // header_prefix == "*" or "", resulting in ">*header" or ">header"
   if (fp_msaout == nullptr) { return ; }
 
@@ -261,7 +261,7 @@ auto process_and_print_centroid(char *rc_buffer,
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   auto const & target = target_list_v.front();
   auto const target_seqno = target.seqno;
-  auto * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
+  auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
                                                                  db_getsequence(target_seqno));
   prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
   auto position_in_alignment = 0;
@@ -328,7 +328,7 @@ auto compute_and_print_msa(int const target_count,
     {
       auto const & target = target_list_v[i];
       auto const target_seqno = target.seqno;
-      auto * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
+      auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
                                                                      rc_buffer, db_getsequence(target_seqno));
       prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
       int position_in_alignment = 0;
@@ -412,7 +412,7 @@ auto compute_and_print_msa(int const target_count,
 auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &aln_v,
                                  std::vector<char> &cons_v,
-                                 std::vector<prof_type> &profile,
+                                 std::vector<prof_type> const &profile,
                                  std::FILE * fp_msaout) -> void {
   static constexpr std::array<char, 16> sym_nt_4bit = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
   static constexpr char index_of_N = 15;  // 15th char in sym_nt_4bit[] (=> 'N')
@@ -482,7 +482,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
 }
 
 
-auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
+auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & cons_v,
                               int64_t const totalabundance, int const target_count,
                               int const cluster,
                               int const centroid_seqno) -> void {
@@ -490,7 +490,7 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> & cons_v,
   fasta_print_general(fp_consout,
                       "centroid=",
                       cons_v.data(),
-                      static_cast<int>(cons_v.size()),
+                      static_cast<int>(cons_v.size() - 1),  // exclude the '\0' terminator slot
                       db_getheader(centroid_seqno),
                       static_cast<int>(db_getheaderlen(centroid_seqno)),
                       totalabundance,

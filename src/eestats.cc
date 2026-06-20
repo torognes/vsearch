@@ -223,7 +223,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
           ee += probability_of_error;
 
-          auto const e_int = std::min<int64_t>(resolution * (i + 1), (int) (resolution * ee));
+          auto const e_int = std::min<int64_t>(resolution * (i + 1), static_cast<int>(resolution * ee));
           ++ee_length_table[ee_start(i, resolution) + e_int];
 
           sum_ee_length_table[i] += ee;
@@ -450,7 +450,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
         {
           longest = len;
           // opt_length_cutoffs_longest is an int between 1 and INT_MAX
-          int const high = std::min(longest, (uint64_t) opt_length_cutoffs_longest);
+          int const high = std::min(longest, static_cast<uint64_t>(opt_length_cutoffs_longest));
           auto const new_len_steps = 1 + std::max(0, ((high - opt_length_cutoffs_shortest)
                                           / opt_length_cutoffs_increment));
 

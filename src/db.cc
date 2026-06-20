@@ -139,7 +139,7 @@ auto db_getquality(uint64_t seqno) -> char *
 }
 
 
-auto db_add(bool const is_fastq,
+auto db_add(bool const is_fastq_record,
             char const * header,
             char const * sequence,
             char const * quality,
@@ -154,7 +154,7 @@ auto db_add(bool const is_fastq,
   size_t const dataalloc_old = dataalloc;
 
   size_t needed = datalen + headerlength + 1 + sequencelength + 1;
-  if (is_fastq)
+  if (is_fastq_record)
     {
       needed += sequencelength + 1;
     }
@@ -164,7 +164,7 @@ auto db_add(bool const is_fastq,
     }
   if (dataalloc > dataalloc_old)
     {
-      datap = (char *) xrealloc(datap, dataalloc);
+      datap = static_cast<char *>(xrealloc(datap, dataalloc));
     }
 
   /* store the header */
@@ -182,7 +182,7 @@ auto db_add(bool const is_fastq,
   datalen += sequencelength + 1;
 
   size_t const quality_p = datalen;
-  if (is_fastq)
+  if (is_fastq_record)
     {
       /* store quality */
       std::memcpy(datap + quality_p,
@@ -199,7 +199,7 @@ auto db_add(bool const is_fastq,
     }
   if (seqindex_alloc > seqindex_alloc_old)
     {
-      seqindex = (seqinfo_t *) xrealloc(seqindex, seqindex_alloc);
+      seqindex = static_cast<seqinfo_t *>(xrealloc(seqindex, seqindex_alloc));
     }
 
   /* update index */
@@ -214,9 +214,9 @@ auto db_add(bool const is_fastq,
   /* update statistics */
   ++sequences;
   nucleotides += sequencelength;
-  longest = std::max((uint64_t)sequencelength, longest);
-  shortest = std::min((uint64_t)sequencelength, shortest);
-  longestheader = std::max((uint64_t)headerlength, longestheader);
+  longest = std::max(static_cast<uint64_t>(sequencelength), longest);
+  shortest = std::min(static_cast<uint64_t>(sequencelength), shortest);
+  longestheader = std::max(static_cast<uint64_t>(headerlength), longestheader);
 }
 
 
@@ -262,11 +262,11 @@ auto db_read(const char * filename, int upcase) -> void
       size_t const sequencelength = fastx_get_sequence_length(h);
       int64_t const abundance = fastx_get_abundance(h);
 
-      if (sequencelength < (size_t) opt_minseqlength)
+      if (sequencelength < static_cast<size_t>(opt_minseqlength))
         {
           ++discarded_short;
         }
-      else if (sequencelength > (size_t) opt_maxseqlength)
+      else if (sequencelength > static_cast<size_t>(opt_maxseqlength))
         {
           ++discarded_long;
         }
@@ -450,8 +450,8 @@ auto db_free() -> void
 
 auto compare_bylength(const void * a, const void * b) -> int
 {
-  auto * lhs = (seqinfo_t *) a;
-  auto * rhs = (seqinfo_t *) b;
+  auto const * lhs = static_cast<seqinfo_t const *>(a);
+  auto const * rhs = static_cast<seqinfo_t const *>(b);
 
   /* longest first, then by abundance, then by label, otherwise keep order */
 
@@ -493,8 +493,8 @@ auto compare_bylength(const void * a, const void * b) -> int
 
 auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 {
-  auto * lhs = (seqinfo_t *) a;
-  auto * rhs = (seqinfo_t *) b;
+  auto const * lhs = static_cast<seqinfo_t const *>(a);
+  auto const * rhs = static_cast<seqinfo_t const *>(b);
 
   /* shortest first, then by abundance, then by label, otherwise keep order */
 
@@ -536,8 +536,8 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
 
 inline auto compare_byabundance(const void * a, const void * b) -> int
 {
-  auto * lhs = (seqinfo_t *) a;
-  auto * rhs = (seqinfo_t *) b;
+  auto const * lhs = static_cast<seqinfo_t const *>(a);
+  auto const * rhs = static_cast<seqinfo_t const *>(b);
 
   /* most abundant first, then by label, otherwise keep order */
 
@@ -571,10 +571,13 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
 auto db_sortbylength() -> void
 {
   progress_init("Sorting by length", 100);
-  qsort(seqindex,
-        sequences,
-        sizeof(seqinfo_t),
-        compare_bylength);
+  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+    {
+      qsort(seqindex,
+            sequences,
+            sizeof(seqinfo_t),
+            compare_bylength);
+    }
   progress_done();
 }
 
@@ -582,10 +585,13 @@ auto db_sortbylength() -> void
 auto db_sortbylength_shortest_first() -> void
 {
   progress_init("Sorting by length", 100);
-  qsort(seqindex,
-        sequences,
-        sizeof(seqinfo_t),
-        compare_bylength_shortest_first);
+  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+    {
+      qsort(seqindex,
+            sequences,
+            sizeof(seqinfo_t),
+            compare_bylength_shortest_first);
+    }
   progress_done();
 }
 
@@ -593,9 +599,12 @@ auto db_sortbylength_shortest_first() -> void
 auto db_sortbyabundance() -> void
 {
   progress_init("Sorting by abundance", 100);
-  qsort(seqindex,
-        sequences,
-        sizeof(seqinfo_t),
-        compare_byabundance);
+  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+    {
+      qsort(seqindex,
+            sequences,
+            sizeof(seqinfo_t),
+            compare_byabundance);
+    }
   progress_done();
 }

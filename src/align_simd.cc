@@ -83,6 +83,7 @@ constexpr auto matrix_size = 16;
 constexpr auto CHANNELS = 8;
 constexpr auto CDEPTH = 4;
 constexpr auto maxseqlenproduct = 25000000LL;
+constexpr auto maxseqlensum = 65535LL;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -105,10 +106,34 @@ namespace {
   200 MB per thread. It will align pairs of sequences less than 5000 nt long
   using the SIMD implementation, larger alignments will be performed with
   the linear memory aligner.
+
+  A second limit applies to the SUM of the two lengths. The per-alignment
+  statistics counters in backtrack16 (aligned/matches/mismatches/gaps) are
+  unsigned short, and the alignment path length is at most qlen + dlen, so a
+  sum above 65 535 would wrap those counters. Pairs exceeding the sum limit
+  are therefore also diverted to the linear memory aligner (whose statistics
+  are int64). Both limits are combined in search16_fits().
 */
 
 
 static std::array<std::array<int64_t, matrix_size>, matrix_size> scorematrix {{}};
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Whether the SIMD aligner can represent an alignment of a query of length
+     qlen against a target of length dlen, given the product limit (DP work /
+     direction buffer memory) and the sum limit (16-bit statistics counters).
+     The sum is tested first so the product multiplication cannot overflow for
+     an accepted pair. Pairs that do not fit are aligned by linmemalign. */
+  auto search16_fits(uint64_t const qlen, uint64_t const dlen) -> bool
+  {
+    return (static_cast<int64_t>(qlen + dlen) <= maxseqlensum)
+       and (static_cast<int64_t>(qlen) * static_cast<int64_t>(dlen) <= maxseqlenproduct);
+  }
+
+}  // end of anonymous namespace
 
 /*
   The macros below usually operate on 128-bit vectors of 8 signed
@@ -143,7 +168,7 @@ constexpr __vector unsigned char perm_merge_long_high =
                                        (__vector unsigned short) (b)))
 #define v_max(a, b) vec_max((a), (b))
 #define v_min(a, b) vec_min((a), (b))
-#define v_dup(a) vec_splat((VECTOR_SHORT){(short)(a), 0, 0, 0, 0, 0, 0, 0}, 0);
+#define v_dup(a) vec_splat((VECTOR_SHORT){static_cast<short>(a), 0, 0, 0, 0, 0, 0, 0}, 0);
 #define v_zero vec_splat_s16(0)
 #define v_and(a, b) vec_and((a), (b))
 #define v_xor(a, b) vec_xor((a), (b))
@@ -183,8 +208,8 @@ constexpr uint16x8_t neon_mask =
 using VECTOR_SHORT = __m128i;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
-#define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
-#define v_store(a, b) _mm_store_si128((VECTOR_SHORT *)(a), (b))
+#define v_load(a) _mm_load_si128(reinterpret_cast<VECTOR_SHORT *>(a))
+#define v_store(a, b) _mm_store_si128(reinterpret_cast<VECTOR_SHORT *>(a), (b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
 #define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
@@ -242,9 +267,41 @@ struct s16info_s
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Read and write a single 16-bit channel (lane) of a SIMD vector.
+
+     The DP vectors hold CHANNELS independent alignments. Accessing a lane
+     through a reinterpreted (CELL *) pointer is a strict-aliasing violation:
+     the vector object has type VECTOR_SHORT, so reading or writing it through
+     an unrelated CELL lvalue is undefined behaviour. With GCC 9 or later at
+     -O3 on x86_64 this miscompiled the per-channel reset of the H and F
+     vectors, producing wrong alignments (see issue #589). std::memcpy accesses
+     the object representation as bytes, which is always well-defined, and the
+     compiler lowers it to a plain vector-lane move. */
+  auto get_channel(VECTOR_SHORT const & vector, int const channel) -> CELL
+  {
+    CELL value = 0;
+    std::memcpy(&value,
+                reinterpret_cast<char const *>(&vector) + (channel * sizeof(CELL)),
+                sizeof(CELL));
+    return value;
+  }
+
+  auto set_channel(VECTOR_SHORT & vector, int const channel, CELL const value) -> void
+  {
+    std::memcpy(reinterpret_cast<char *>(&vector) + (channel * sizeof(CELL)),
+                &value,
+                sizeof(CELL));
+  }
+
+}  // end of anonymous namespace
+
+
 auto _mm_print(VECTOR_SHORT const x) -> void
 {
-  auto * y = (unsigned short *) &x;
+  auto const * y = reinterpret_cast<unsigned short const *>(&x);
   for (int i = 0; i < 8; i++)
     {
       printf("%s%6d", (i > 0 ? " " : ""), y[7 - i]);
@@ -254,7 +311,7 @@ auto _mm_print(VECTOR_SHORT const x) -> void
 
 auto _mm_print2(VECTOR_SHORT const x) -> void
 {
-  auto * y = (signed short *) &x;
+  auto const * y = reinterpret_cast<signed short const *>(&x);
   for (int i = 0; i < 8; i++)
     {
       printf("%s%2d", (i > 0 ? " " : ""), y[7 - i]);
@@ -913,7 +970,7 @@ inline auto finishop(s16info_s * s) -> void
 
 
 auto backtrack16(s16info_s * s,
-                 char * dseq,
+                 char const * dseq,
                  uint64_t dlen,
                  uint64_t offset,
                  uint64_t channel,
@@ -923,7 +980,7 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pgaps) -> void
 {
   unsigned short * dirbuffer = s->dir;
-  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * s->maxdlen * 4;
   uint64_t const qlen = s->qlen;
   char const * qseq = s->qseq;
 
@@ -941,7 +998,7 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                       (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskup)
             {
@@ -969,7 +1026,7 @@ auto backtrack16(s16info_s * s,
       for (uint64_t j = 0; j < dlen; j++)
         {
           uint64_t d = *((uint64_t *) (dirbuffer +
-                                       (offset + matrix_size * s->qlen * (j / 4) +
+                                       (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskextup)
             {
@@ -1012,12 +1069,14 @@ auto backtrack16(s16info_s * s,
       // d = *(block1)
       // block1 = dirbuffer + (block2 % dirbuffersize);
       // block2 = (offset + block3 + block4 + block5);
-      // block3 = 16 * s->qlen * (j / 4);
+      // block3 = 16 * qlen * (j / 4);
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
-      uint64_t const d = *((uint64_t *) (dirbuffer +
-                                         ((offset + (matrix_size * s->qlen * (j / 4)) +
-                                           (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
+      unsigned short const * const dir_word = dirbuffer +
+        ((offset + (matrix_size * qlen * (j / 4)) +
+          (matrix_size * i) + (4 * (j & 3))) % dirbuffersize);
+      uint64_t d = 0;
+      std::memcpy(&d, dir_word, sizeof(d));
 
       if ((s->op == 'I') and ((d & maskextleft) != 0U))
         {
@@ -1125,10 +1184,10 @@ auto search16_init(CELL score_match,
   (void) score_mismatch;
 
   /* prepare alloc of qtable, dprofile, hearray, dir */
-  auto * s = (struct s16info_s *)
-    xmalloc(sizeof(struct s16info_s));
+  auto * s = static_cast<struct s16info_s *>(
+    xmalloc(sizeof(struct s16info_s)));
 
-  s->dprofile = (VECTOR_SHORT *) xmalloc(2 * 4 * 8 * 16);
+  s->dprofile = static_cast<VECTOR_SHORT *>(xmalloc(2 * 4 * 8 * 16));
   s->qlen = 0;
   s->qseq = nullptr;
   s->maxdlen = 0;
@@ -1161,7 +1220,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL *) (s->matrix.data()))[(matrix_size * i) + j] = value;
+          (reinterpret_cast<CELL *>(s->matrix.data()))[(matrix_size * i) + j] = value;
           scorematrix[i][j] = value;
         }
     }
@@ -1235,14 +1294,14 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
     {
       xfree(s->hearray);
     }
-  s->hearray = (VECTOR_SHORT *) xmalloc(2 * s->qlen * sizeof(VECTOR_SHORT));
-  std::memset(s->hearray, 0, 2 * s->qlen * sizeof(VECTOR_SHORT));
+  s->hearray = static_cast<VECTOR_SHORT *>(xmalloc(2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT)));
+  std::memset(s->hearray, 0, 2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
 
   if (s->qtable != nullptr)
     {
       xfree(s->qtable);
     }
-  s->qtable = (VECTOR_SHORT **) xmalloc(s->qlen * sizeof(VECTOR_SHORT*));
+  s->qtable = static_cast<VECTOR_SHORT **>(xmalloc(s->qlen * sizeof(VECTOR_SHORT*)));
 
   for (int i = 0; i < qlen; i++)
     {
@@ -1267,20 +1326,9 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
 }
 
 
-/*
-  Turn off tree-partial-pre optimizations for the rest of the file.
-  GNU C++ 9 or later generates incorrect code on x86_64 if turned on.
-*/
-
-#ifdef __GNUC__
-#ifndef __clang__
-#pragma GCC optimize ("-fno-tree-partial-pre")
-#endif
-#endif
-
 auto search16(s16info_s * s,
               unsigned int sequences,
-              unsigned int * seqnos,
+              unsigned int const * seqnos,
               CELL * pscores,
               unsigned short * paligned,
               unsigned short * pmatches,
@@ -1288,9 +1336,9 @@ auto search16(s16info_s * s,
               unsigned short * pgaps,
               char ** pcigar) -> void
 {
-  CELL ** q_start = (CELL **) s->qtable;
-  CELL * dprofile = (CELL *) s->dprofile;
-  CELL * hearray = (CELL *) s->hearray;
+  CELL ** q_start = reinterpret_cast<CELL **>(s->qtable);
+  CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile);
+  CELL * hearray = reinterpret_cast<CELL *>(s->hearray);
   uint64_t const qlen = s->qlen;
 
   if (qlen == 0)
@@ -1299,6 +1347,22 @@ auto search16(s16info_s * s,
         {
           auto const seqno = seqnos[cand_id];
           int64_t const length = db_getsequencelen(seqno);
+
+          /* An empty query aligns to the target as one insertion of 'length'
+             residues, so aligned == gaps == length. When that exceeds the
+             16-bit statistics counters (search16_fits), divert to the linear
+             memory aligner via the SHRT_MAX sentinel, exactly as the
+             product/sum guard does for non-empty queries. */
+          if (not search16_fits(qlen, length))
+            {
+              pscores[cand_id] = std::numeric_limits<short>::max();
+              paligned[cand_id] = 0;
+              pmatches[cand_id] = 0;
+              pmismatches[cand_id] = 0;
+              pgaps[cand_id] = 0;
+              pcigar[cand_id] = xstrdup("");
+              continue;
+            }
 
           paligned[cand_id] = length;
           pmatches[cand_id] = 0;
@@ -1329,7 +1393,7 @@ auto search16(s16info_s * s,
             }
           else
             {
-              cigar = (char *) xmalloc(1);
+              cigar = static_cast<char *>(xmalloc(1));
               cigar[0] = 0;
             }
           pcigar[cand_id] = cigar;
@@ -1342,15 +1406,15 @@ auto search16(s16info_s * s,
   for (int64_t i = 0; i < sequences; i++)
     {
       uint64_t const dlen = db_getsequencelen(seqnos[i]);
-      /* skip the very long sequences */
-      if ((int64_t) (s->qlen) * dlen <= maxseqlenproduct)
+      /* skip sequences the SIMD aligner cannot handle (product/sum limits) */
+      if (search16_fits(s->qlen, dlen))
         {
           maxdlen = std::max(dlen, maxdlen);
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = maxdlen;
-  uint64_t const dirbuffersize = s->qlen * s->maxdlen * 4;
+  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * s->maxdlen * 4;
 
   if (dirbuffersize > s->diralloc)
     {
@@ -1359,8 +1423,8 @@ auto search16(s16info_s * s,
         {
           xfree(s->dir);
         }
-      s->dir = (unsigned short*) xmalloc(dirbuffersize *
-                                         sizeof(unsigned short));
+      s->dir = static_cast<unsigned short*>(xmalloc(dirbuffersize *
+                                         sizeof(unsigned short)));
     }
 
   unsigned short * dirbuffer = s->dir;
@@ -1372,7 +1436,7 @@ auto search16(s16info_s * s,
         {
           xfree(s->cigar);
         }
-      s->cigar = (char *) xmalloc(s->cigaralloc);
+      s->cigar = static_cast<char *>(xmalloc(s->cigaralloc));
     }
 
   VECTOR_SHORT M;
@@ -1411,7 +1475,7 @@ auto search16(s16info_s * s,
   std::array<VECTOR_SHORT, CDEPTH> dseqalloc {{}};
   std::array<VECTOR_SHORT, 4> S {{}};
 
-  BYTE * dseq = (BYTE *) dseqalloc.data();
+  BYTE * dseq = reinterpret_cast<BYTE *>(dseqalloc.data());
   BYTE zero = 0;
 
   uint64_t next_id = 0;
@@ -1448,8 +1512,8 @@ auto search16(s16info_s * s,
   R_target_right  = v_dup(s->penalty_gap_extension_target_right);
 #pragma GCC diagnostic pop
 
-  hep = (VECTOR_SHORT *) hearray;
-  qp = (VECTOR_SHORT **) q_start;
+  hep = reinterpret_cast<VECTOR_SHORT *>(hearray);
+  qp = reinterpret_cast<VECTOR_SHORT **>(q_start);
 
   for (int c = 0; c < CHANNELS; c++)
     {
@@ -1510,7 +1574,7 @@ auto search16(s16info_s * s,
                 }
             }
 
-          dprofile_fill16(dprofile, (CELL*) s->matrix.data(), dseq);
+          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s->matrix.data()), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
@@ -1574,8 +1638,8 @@ auto search16(s16info_s * s,
             {
               if (not overflow[c])
                 {
-                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = get_channel(h_min_vector, c);
+                  signed short const h_max_c = get_channel(h_max_vector, c);
                   if ((h_min_c <= score_min) or
                       (h_max_c >= score_max))
                     {
@@ -1628,10 +1692,10 @@ auto search16(s16info_s * s,
                     {
                       /* save score */
 
-                      char * dbseq = (char *) d_address[c];
+                      char const * dbseq = reinterpret_cast<char const *>(d_address[c]);
                       int64_t const dbseqlen = d_length[c];
                       int64_t const z = (dbseqlen + 3) % 4;
-                      int64_t const score = ((CELL *) S.data())[(z * CHANNELS) + c];
+                      int64_t const score = get_channel(S[z], c);
 
                       if (overflow[c])
                         {
@@ -1651,7 +1715,7 @@ auto search16(s16info_s * s,
                                       pmismatches + cand_id,
                                       pgaps + cand_id);
                           pcigar[cand_id] =
-                            (char *) xmalloc(std::strlen(s->cigar)+1);
+                            static_cast<char *>(xmalloc(std::strlen(s->cigar)+1));
                           strcpy(pcigar[cand_id], s->cigar);
                         }
 
@@ -1666,7 +1730,7 @@ auto search16(s16info_s * s,
                     {
                       cand_id = next_id++;
                       length = db_getsequencelen(seqnos[cand_id]);
-                      if ((length == 0) or (s->qlen * length > maxseqlenproduct))
+                      if ((length == 0) or (not search16_fits(s->qlen, length)))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;
@@ -1683,29 +1747,29 @@ auto search16(s16info_s * s,
                     {
                       seq_id[c] = cand_id;
                       char * address = db_getsequence(seqnos[cand_id]);
-                      d_address[c] = (BYTE *) address;
+                      d_address[c] = reinterpret_cast<BYTE *>(address);
                       d_length[c] = length;
-                      d_begin[c] = (unsigned char *) address;
-                      d_end[c] = (unsigned char *) address + length;
+                      d_begin[c] = reinterpret_cast<unsigned char *>(address);
+                      d_end[c] = reinterpret_cast<unsigned char *>(address) + length;
                       d_offset[c] = dir - dirbuffer;
                       overflow[c] = false;
 
-                      ((CELL *) &H0)[c] = 0;
-                      ((CELL *) &H1)[c] = - s->penalty_gap_open_query_left
-                        - (1 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &H2)[c] = - s->penalty_gap_open_query_left
-                        - (2 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &H3)[c] = - s->penalty_gap_open_query_left
-                        - (3 * s->penalty_gap_extension_query_left);
+                      set_channel(H0, c, 0);
+                      set_channel(H1, c, - s->penalty_gap_open_query_left
+                        - (1 * s->penalty_gap_extension_query_left));
+                      set_channel(H2, c, - s->penalty_gap_open_query_left
+                        - (2 * s->penalty_gap_extension_query_left));
+                      set_channel(H3, c, - s->penalty_gap_open_query_left
+                        - (3 * s->penalty_gap_extension_query_left));
 
-                      ((CELL *) &F0)[c] = - s->penalty_gap_open_query_left
-                        - (1 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &F1)[c] = - s->penalty_gap_open_query_left
-                        - (2 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &F2)[c] = - s->penalty_gap_open_query_left
-                        - (3 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &F3)[c] = - s->penalty_gap_open_query_left
-                        - (4 * s->penalty_gap_extension_query_left);
+                      set_channel(F0, c, - s->penalty_gap_open_query_left
+                        - (1 * s->penalty_gap_extension_query_left));
+                      set_channel(F1, c, - s->penalty_gap_open_query_left
+                        - (2 * s->penalty_gap_extension_query_left));
+                      set_channel(F2, c, - s->penalty_gap_open_query_left
+                        - (3 * s->penalty_gap_extension_query_left));
+                      set_channel(F3, c, - s->penalty_gap_open_query_left
+                        - (4 * s->penalty_gap_extension_query_left));
 
                       /* fill channel */
 
@@ -1760,7 +1824,7 @@ auto search16(s16info_s * s,
           M_QR_query_interior = v_and(M, QR_query_interior);
           M_QR_query_right = v_and(M, QR_query_right);
 
-          dprofile_fill16(dprofile, (CELL *) s->matrix.data(), dseq);
+          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s->matrix.data()), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
@@ -1828,8 +1892,8 @@ auto search16(s16info_s * s,
             {
               if (not overflow[c])
                 {
-                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = get_channel(h_min_vector, c);
+                  signed short const h_max_c = get_channel(h_max_vector, c);
                   if ((h_min_c <= score_min) or (h_max_c >= score_max))
                     {
                       overflow[c] = true;
@@ -1848,7 +1912,7 @@ auto search16(s16info_s * s,
       F2 = v_sub(F1, R_query_left);
       F3 = v_sub(F2, R_query_left);
 
-      dir += 4 * 4 * s->qlen;
+      dir += 4 * 4 * qlen;
 
       if (dir >= dirbuffer + dirbuffersize)
         {

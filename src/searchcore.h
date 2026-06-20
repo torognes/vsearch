@@ -160,11 +160,11 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void;
 
 auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void;
 
-auto search_findbest2_byid(struct searchinfo_s * si_p,
-                           struct searchinfo_s * si_m) -> struct hit *;
+auto search_findbest2_byid(struct searchinfo_s const * si_p,
+                           struct searchinfo_s const * si_m) -> struct hit *;
 
-auto search_findbest2_bysize(struct searchinfo_s * si_p,
-                             struct searchinfo_s * si_m) -> struct hit *;
+auto search_findbest2_bysize(struct searchinfo_s const * si_p,
+                             struct searchinfo_s const * si_m) -> struct hit *;
 
 auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int target) -> bool;
@@ -174,8 +174,8 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
 
 auto align_trim(struct hit * hit) -> void;
 
-auto search_joinhits(struct searchinfo_s * si_p,
-                     struct searchinfo_s * si_m,
+auto search_joinhits(struct searchinfo_s const * si_p,
+                     struct searchinfo_s const * si_m,
                      std::vector<struct hit> & hits) -> void;
 
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,

@@ -79,7 +79,7 @@
   element and then the second best and so on.
 */
 
-auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
+auto elem_smaller(elem_t const * lhs, elem_t const * rhs) -> int
 {
   /* return 1 if lhs is smaller than rhs, 0 if equal or greater */
   if (lhs->count < rhs->count)
@@ -110,8 +110,8 @@ auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
 
 auto minheap_compare(const void * lhs_a, const void * rhs_b) -> int
 {
-  auto * lhs = (elem_t *) lhs_a;
-  auto * rhs = (elem_t *) rhs_b;
+  auto const * lhs = static_cast<elem_t const *>(lhs_a);
+  auto const * rhs = static_cast<elem_t const *>(rhs_b);
 
   /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
@@ -201,7 +201,7 @@ auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
 }
 
 
-auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void
+auto minheap_add(minheap_t * a_minheap, elem_t const * n) -> void
 {
   if (a_minheap->count < a_minheap->alloc)
     {

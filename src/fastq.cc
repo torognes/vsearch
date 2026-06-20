@@ -238,19 +238,19 @@ auto buffer_filter_extend(fastx_handle input_handle,
   for (auto i = 0ULL; i < len; i++)
     {
       auto const c = *p++;
-      char const m = char_action[(unsigned char) c];
+      char const m = char_action[static_cast<unsigned char>(c)];
 
       switch (m)
         {
         case 0:
           /* stripped */
           input_handle->stripped_all++;
-          input_handle->stripped[(unsigned char) c]++;
+          input_handle->stripped[static_cast<unsigned char>(c)]++;
           break;
 
         case 1:
           /* legal character */
-          *q++ = char_mapping[(unsigned char) c];
+          *q++ = char_mapping[static_cast<unsigned char>(c)];
           break;
 
         case 2:
@@ -349,9 +349,9 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
-                           rest);
+                           rest));
 
       /* copy to header buffer */
       auto len = rest;
@@ -388,8 +388,8 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           '\n', rest);
+      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+                           '\n', rest));
 
       /* copy to sequence buffer */
       auto len = rest;
@@ -423,7 +423,7 @@ auto fastq_next(fastx_handle input_handle,
               snprintf(message.data(),
                        max_message_length,
                        "Illegal sequence character (unprintable, no %d)",
-                       (unsigned char) illegal_char);
+                       static_cast<unsigned char>(illegal_char));
             }
           fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
         }
@@ -448,9 +448,9 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
                            '\n',
-                           rest);
+                           rest));
       /* copy to plusline buffer */
       auto len = rest;
       if (line_end != nullptr)
@@ -515,8 +515,8 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      line_end = (char *) std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           '\n', rest);
+      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
+                           '\n', rest));
 
       /* copy to quality buffer */
       auto len = rest;
@@ -556,7 +556,7 @@ auto fastq_next(fastx_handle input_handle,
               snprintf(message.data(),
                        max_message_length,
                        "Illegal quality character (unprintable, no %d)",
-                       (unsigned char) illegal_char);
+                       static_cast<unsigned char>(illegal_char));
             }
           fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
         }
@@ -588,25 +588,25 @@ auto fastq_get_quality_length(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastq_get_position(fastx_handle input_handle) -> uint64_t
+auto fastq_get_position(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->file_position;
 }
 
 
-auto fastq_get_size(fastx_handle input_handle) -> uint64_t
+auto fastq_get_size(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->file_size;
 }
 
 
-auto fastq_get_lineno(fastx_handle input_handle) -> uint64_t
+auto fastq_get_lineno(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->lineno_start;
 }
 
 
-auto fastq_get_seqno(fastx_handle input_handle) -> uint64_t
+auto fastq_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->seqno;
 }
@@ -636,7 +636,7 @@ auto fastq_get_sequence(fastx_handle input_handle) -> char const *
 }
 
 
-auto fastq_get_abundance(fastx_handle input_handle) -> int64_t
+auto fastq_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   // return 1 if not present
   auto const size = header_get_size(input_handle->header_buffer.data,
@@ -649,7 +649,7 @@ auto fastq_get_abundance(fastx_handle input_handle) -> int64_t
 }
 
 
-auto fastq_get_abundance_and_presence(fastx_handle input_handle) -> int64_t
+auto fastq_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t
 {
   // return 0 if not present
   return header_get_size(input_handle->header_buffer.data, input_handle->header_buffer.length);
@@ -716,7 +716,7 @@ auto fastq_print_general(FILE * output_handle,
 
   if (opt_sizeout && (abundance > 0))
     {
-      std::fprintf(output_handle, ";size=%u", abundance);
+      std::fprintf(output_handle, ";size=%d", abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0))

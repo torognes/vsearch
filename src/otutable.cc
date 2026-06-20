@@ -253,13 +253,12 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       /* read tax annotation in target */
 
 #ifdef HAVE_REGEX_H
-      char const * start_tax = target_header;
-
       std::array<regmatch_t, 4> pmatch_tax {{}};
       if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax.data(), 0) == 0)
         {
           /* match: use the matching tax name */
           int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
+          char const * start_tax = target_header;
           start_tax += pmatch_tax[2].rm_so;
 
           std::vector<char> tax_name(len_tax + 1);
@@ -479,7 +478,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
   auto first = true;
   fprintf(output_handle, "\t\"data\": [");
 
-  for (auto & it_map : otutable->otu_sample_count)
+  for (auto const & it_map : otutable->otu_sample_count)
     {
       if (not first)
         {

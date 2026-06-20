@@ -83,19 +83,24 @@ using Hash = decltype(&hash_cityhash64);
 static Hash hash_function = hash_cityhash64;
 
 
-struct bucket
-{
-  uint64_t hash = 0;
-  unsigned int seqno_first = 0;
-  unsigned int seqno_last = 0;
-  unsigned int size = 0;
-  unsigned int count = 0;
-  unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
-  bool deleted = false;
-  char * header = nullptr;
-  char * seq = nullptr;
-  char * qual = nullptr;
-};
+// anonymous namespace: 'bucket' is a file-local type; derep_prefix.cc
+// defines a different struct of the same name, so internal linkage
+// here avoids a one-definition-rule violation across translation units
+namespace {
+  struct bucket
+  {
+    uint64_t hash = 0;
+    unsigned int seqno_first = 0;
+    unsigned int seqno_last = 0;
+    unsigned int size = 0;
+    unsigned int count = 0;
+    unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
+    bool deleted = false;
+    char * header = nullptr;
+    char * seq = nullptr;
+    char * qual = nullptr;
+  };
+}
 
 
 static auto rehash(std::vector<struct bucket> & hashtable) -> void
@@ -191,8 +196,8 @@ namespace {
 
 auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 {
-  auto * lhs = (struct bucket *) void_lhs;
-  auto * rhs = (struct bucket *) void_rhs;
+  auto const * lhs = static_cast<struct bucket const *>(void_lhs);
+  auto const * rhs = static_cast<struct bucket const *>(void_rhs);
 
   /* highest abundance first, then by label, otherwise keep order */
 
@@ -880,10 +885,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           if (parameters.opt_relabel != nullptr) {
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header, parameters.opt_relabel, i + 1, i, (uint64_t) 0, cluster.count, cluster.header);
+                    cluster.header, parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
           } else {
             fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header, cluster.header, i, (uint64_t) 0, cluster.count, cluster.header);
+                    cluster.header, cluster.header, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
           }
 
           uint64_t j = 1;
@@ -937,7 +942,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   /* Free all seqs and headers */
 
-  for (auto & bucket : hashtable) {
+  for (auto const & bucket : hashtable) {
     if (bucket.size == 0U) { continue; }
     xfree(bucket.seq);
     xfree(bucket.header);

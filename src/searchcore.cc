@@ -244,13 +244,13 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
 
 auto hit_compare_byid(const void * lhs, const void * rhs) -> int
 {
-  return hit_compare_byid_typed((struct hit *) lhs, (struct hit *) rhs);
+  return hit_compare_byid_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 
 auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 {
-  return hit_compare_bysize_typed((struct hit *) lhs, (struct hit *) rhs);
+  return hit_compare_bysize_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 
@@ -302,11 +302,20 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
         }
       else
         {
-          auto * list = dbindex_getmatchlist(kmer);
+          auto const * list = dbindex_getmatchlist(kmer);
           auto const count = dbindex_getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
-              searchinfo->kmers[list[j]]++;
+              /* Saturate at INT16_MAX (32767) rather than letting the
+                 unsigned-short counter wrap at 65536. The SIMD bitmap path
+                 (increment_counters_from_bitmap*) increments these counters
+                 with signed saturation and so caps at 32767; matching that
+                 here keeps every counter in [0, 32767], where the two paths
+                 agree and neither can wrap a high-overlap target's count back
+                 to ~0 and silently drop it from the candidate set (the cap is
+                 far above any realistic minwordmatches). */
+              count_t & counter = searchinfo->kmers[list[j]];
+              if (counter < INT16_MAX) { ++counter; }
             }
         }
     }
@@ -741,8 +750,6 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
   scoring.gap_open_query_left = opt_gap_open_query_left;
   scoring.gap_open_target_left = opt_gap_open_target_left;
   scoring.gap_open_query_interior = opt_gap_open_query_interior;
@@ -820,8 +827,8 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 }
 
 
-auto search_findbest2_byid(struct searchinfo_s * si_p,
-                           struct searchinfo_s * si_m) -> struct hit *
+auto search_findbest2_byid(struct searchinfo_s const * si_p,
+                           struct searchinfo_s const * si_m) -> struct hit *
 {
   struct hit * best = nullptr;
 
@@ -853,8 +860,8 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 }
 
 
-auto search_findbest2_bysize(struct searchinfo_s * si_p,
-                             struct searchinfo_s * si_m) -> struct hit *
+auto search_findbest2_bysize(struct searchinfo_s const * si_p,
+                             struct searchinfo_s const * si_m) -> struct hit *
 {
   struct hit * best = nullptr;
 
@@ -886,8 +893,8 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 }
 
 
-auto search_joinhits(struct searchinfo_s * si_plus,
-                     struct searchinfo_s * si_minus,
+auto search_joinhits(struct searchinfo_s const * si_plus,
+                     struct searchinfo_s const * si_minus,
                      std::vector<struct hit> & hits) -> void
 {
   /* join and sort accepted and weak hits from both strands */
@@ -904,6 +911,10 @@ auto search_joinhits(struct searchinfo_s * si_plus,
   free_rejected_alignments(si_plus);
   free_rejected_alignments(si_minus);
 
-  /* last, sort the hits */
-  std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
+  /* last, sort the hits (skip when empty: qsort requires a non-null
+     pointer even for zero elements) */
+  if (counter > 0)
+    {
+      std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
+    }
 }

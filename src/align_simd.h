@@ -90,7 +90,7 @@ auto search16_qprep(s16info_s * searchinfo, char * qseq, int qlen) -> void;
 
 auto search16(s16info_s * searchinfo,
               unsigned int sequences,
-              unsigned int * seqnos,
+              unsigned int const * seqnos,
               CELL * pscores,
               unsigned short * paligned,
               unsigned short * pmatches,

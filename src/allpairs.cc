@@ -101,7 +101,7 @@ static int count_matched = 0;
 static int count_notmatched = 0;
 
 
-inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> int
+inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const * rhs) -> int
 {
   // high id, then low id
   // early target, then late target
@@ -128,16 +128,16 @@ inline auto allpairs_hit_compare_typed(struct hit * lhs, struct hit * rhs) -> in
 
 auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 {
-  return allpairs_hit_compare_typed((struct hit *) lhs, (struct hit *) rhs);
+  return allpairs_hit_compare_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 
 auto allpairs_output_results(int hit_count,
                              struct hit * hits,
-                             char * query_head,
+                             char const * query_head,
                              int qseqlen,
-                             char * qsequence,
-                             char * qsequence_rc) -> void
+                             char const * qsequence,
+                             char const * qsequence_rc) -> void
 {
   /* show results */
   auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
@@ -331,8 +331,6 @@ auto allpairs_thread_run(int64_t t) -> void
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
   scoring.gap_open_query_left = opt_gap_open_query_left;
   scoring.gap_open_target_left = opt_gap_open_target_left;
   scoring.gap_open_query_interior = opt_gap_open_query_interior;
@@ -497,9 +495,13 @@ auto allpairs_thread_run(int64_t t) -> void
                     }
                 }
 
-              /* sort hits */
-              qsort(finalhits.data(), searchinfo.accepts,
-                    sizeof(struct hit), allpairs_hit_compare);
+              /* sort hits (skip when empty: qsort requires a non-null
+                 pointer even for zero elements) */
+              if (searchinfo.accepts > 0)
+                {
+                  qsort(finalhits.data(), searchinfo.accepts,
+                        sizeof(struct hit), allpairs_hit_compare);
+                }
             }
 
           /* lock mutex for update of global data and output */
@@ -566,7 +568,7 @@ auto allpairs_thread_worker_run() -> void
   for (int t = 0; t < opt_threads; t++)
     {
       xpthread_create(pthread + t, &attr,
-                      allpairs_thread_worker, (void *) (int64_t) t);
+                      allpairs_thread_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
   /* finish and clean up worker threads */
@@ -579,7 +581,7 @@ auto allpairs_thread_worker_run() -> void
 }
 
 
-auto allpairs_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
+auto allpairs_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
   /* open output files */
 
@@ -705,7 +707,7 @@ auto allpairs_global(struct Parameters const & parameters, char * cmdline, char 
   xpthread_mutex_init(&mutex_output, nullptr);
 
   progress = 0;
-  progress_init("Aligning", std::max(int64_t{0}, ((int64_t) seqcount) * ((int64_t) seqcount - 1)) / 2);  // refactoring: issue with parenthesis?
+  progress_init("Aligning", std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2);  // refactoring: issue with parenthesis?
   allpairs_thread_worker_run();
   progress_done();
 

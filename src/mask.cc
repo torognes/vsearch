@@ -94,7 +94,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
   auto bestj = 0;
   std::array<int, word_count> counts {{}};
   std::array<int, dust_window> words {{}};
-  auto word = 0;
+  auto word = 0U;
 
   for (auto j = 0; j < len; j++)
     {
@@ -243,7 +243,7 @@ auto dust_all() -> void
 
   for (auto t = 0; t < opt_threads; t++)
     {
-      xpthread_create(&pthread_v[t], &attr, dust_all_worker, (void *) (int64_t) t);
+      xpthread_create(&pthread_v[t], &attr, dust_all_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
   for (auto t = 0; t < opt_threads; t++)
@@ -379,7 +379,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   for (auto i = 0; i < seqcount; i++)
     {
       auto unmasked = 0;
-      auto * seq = db_getsequence(i);
+      auto const * seq = db_getsequence(i);
       const int len = db_getsequencelen(i);
       if (parameters.opt_qmask == MASK_NONE)
         {

@@ -309,7 +309,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
-  auto & qseq = chimera_info->query_seq;
+  auto const & qseq = chimera_info->query_seq;
 
   for (auto i = 0; i < chimera_info->cand_count; ++i)
     {
@@ -363,8 +363,8 @@ struct parents_info_s
 
 auto compare_positions(const void * a, const void * b) -> int
 {
-  const int lhs = ((const parents_info_s *) a)->start;
-  const int rhs = ((const parents_info_s *) b)->start;
+  const int lhs = static_cast<parents_info_s const *>(a)->start;
+  const int rhs = static_cast<parents_info_s const *>(b)->start;
 
   if (lhs < rhs) {
     return -1;
@@ -467,13 +467,11 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
       for (int i = 0; i < ci->cand_count; ++i)
         {
-          int start = 0;
-          int len = 0;
           int j = 0;
           while (j < ci->query_len)
             {
-              start = j;
-              len = 0;
+              int start = j;
+              int len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[j]) &&
                      ((len == 0) or (ci->insert[(i * ci->query_len) + j] == 0)))
@@ -535,11 +533,15 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
       }
     }
 
-  /* sort parents by position */
-  std::qsort(best_parents.data(),
-             parents_found,
-             sizeof(struct parents_info_s),
-             compare_positions);
+  /* sort parents by position (skip when empty: qsort requires a
+     non-null pointer even for zero elements) */
+  if (parents_found > 0)
+    {
+      std::qsort(best_parents.data(),
+                 parents_found,
+                 sizeof(struct parents_info_s),
+                 compare_positions);
+    }
 
   ci->parents_found = parents_found;
 
@@ -980,19 +982,19 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                     ci->query_head_len, ci->query_head.data());
       std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                    (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                    static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
       std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                    (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                    static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
       /* closest parent = max of QA, QB */
       if (QA >= QB)
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                        "%.*s", static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
         }
       else
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                        "%.*s", static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
         }
       r->id_query_model = QM;
       r->id_query_a = QA;
@@ -1028,13 +1030,13 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       assert(ci->parents_found <= 20);  // 20 parents max ('A' to 'U')
       for (int f = 0; f < ci->parents_found; ++f)
         {
-          int const seqno = ci->cand_list[ci->best_parents[f]];
+          int const parent_seqno = ci->cand_list[ci->best_parents[f]];
           std::fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                        'A' + f,
-                       db_getsequencelen(seqno));
+                       db_getsequencelen(parent_seqno));
           header_fprint_strip(fp_uchimealns,
-                              db_getheader(seqno),
-                              db_getheaderlen(seqno),
+                              db_getheader(parent_seqno),
+                              db_getheaderlen(parent_seqno),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
@@ -1577,18 +1579,18 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                         ci->query_head_len, ci->query_head.data());
           std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                        (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                        static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
           std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                        (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                        static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
           if (QA >= QB)
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                            "%.*s", static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
             }
           else
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                            "%.*s", static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
             }
           r->id_query_model = QM;
           r->id_query_a = QA;
@@ -2073,8 +2075,6 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
   scoring.gap_open_query_left = opt_gap_open_query_left;
   scoring.gap_open_target_left = opt_gap_open_target_left;
   scoring.gap_open_query_interior = opt_gap_open_query_interior;
@@ -2298,7 +2298,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
 auto chimera_thread_worker(void * vp) -> void *
 {
-  return (void *) chimera_thread_core(cia + (int64_t) vp);
+  return reinterpret_cast<void *>(chimera_thread_core(cia + reinterpret_cast<int64_t>(vp)));
 }
 
 
@@ -2311,7 +2311,7 @@ auto chimera_threads_run() -> void
   for (int64_t t = 0; t < opt_threads; ++t)
     {
       xpthread_create(pthread + t, & attr,
-                      chimera_thread_worker, (void *) t);
+                      chimera_thread_worker, reinterpret_cast<void *>(t));
     }
 
   /* finish worker threads */
@@ -2522,7 +2522,7 @@ auto chimera(struct Parameters const & parameters) -> void
               fprintf(stderr,
                       "Found %d (%.1f%%) chimeras and "
                       "%d (%.1f%%) non-chimeras "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       100.0 * chimera_count / total_count,
                       nonchimera_count,
@@ -2535,7 +2535,7 @@ auto chimera(struct Parameters const & parameters) -> void
                       "Found %d (%.1f%%) chimeras, "
                       "%d (%.1f%%) non-chimeras,\n"
                       "and %d (%.1f%%) borderline sequences "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       100.0 * chimera_count / total_count,
                       nonchimera_count,
@@ -2552,7 +2552,7 @@ auto chimera(struct Parameters const & parameters) -> void
               fprintf(stderr,
                       "Found %d chimeras and "
                       "%d non-chimeras "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       nonchimera_count,
                       total_count);
@@ -2563,7 +2563,7 @@ auto chimera(struct Parameters const & parameters) -> void
                       "Found %d chimeras, "
                       "%d non-chimeras,\n"
                       "and %d borderline sequences "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       nonchimera_count,
                       borderline_count,
@@ -2819,7 +2819,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
 
   /* Clear result. Non-chimeric results will have only query_label and
      flag='N' populated; all other fields remain zero. */
-  std::memset(result, 0, sizeof(*result));
+  *result = {};
   ci->result_out = result;
 
   /* Use the SAME processing code as the CLI path */
@@ -2972,8 +2972,8 @@ auto chimera_detect_batch(const char ** query_seqs,
   ctx.results = results;
   ctx.next_query = 0;
 
-  ctx.ci_array = (struct chimera_info_s **)
-    xmalloc(nthreads * sizeof(struct chimera_info_s *));
+  ctx.ci_array = static_cast<struct chimera_info_s **>(
+    xmalloc(nthreads * sizeof(struct chimera_info_s *)));
 
   for (int t = 0; t < nthreads; t++)
     {

@@ -128,13 +128,13 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void
       buffer->alloc =
         ((buffer->length + size + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
         * fastx_buffer_alloc;
-      buffer->data = (char *) xrealloc(buffer->data, buffer->alloc);
+      buffer->data = static_cast<char *>(xrealloc(buffer->data, buffer->alloc));
     }
 }
 
 
 auto buffer_extend(struct fastx_buffer_s * dest_buffer,
-                   char * source_buf,
+                   char const * source_buf,
                    uint64_t len) -> void
 {
   buffer_makespace(dest_buffer, len + 1);
@@ -230,7 +230,7 @@ auto fopen_input(const char * filename) -> std::FILE *
 auto fastx_open(char const * filename) -> fastx_handle
 {
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
-  auto * input_handle = (fastx_handle) xmalloc(sizeof(struct fastx_s));
+  auto * input_handle = static_cast<fastx_handle>(xmalloc(sizeof(struct fastx_s)));
 
   input_handle->fp = nullptr;
 
@@ -394,7 +394,7 @@ auto fastx_open(char const * filename) -> fastx_handle
     {
       input_handle->is_empty = false;
 
-      auto * first = input_handle->file_buffer.data;
+      auto const * first = input_handle->file_buffer.data;
 
       if (*first == '>')
         {
@@ -471,19 +471,19 @@ auto fastx_open(char const * filename) -> fastx_handle
 }
 
 
-auto fastx_is_fastq(fastx_handle input_handle) -> bool
+auto fastx_is_fastq(struct fastx_s const * input_handle) -> bool
 {
   return input_handle->is_fastq or input_handle->is_empty;
 }
 
 
-auto fastx_is_empty(fastx_handle input_handle) -> bool
+auto fastx_is_empty(struct fastx_s const * input_handle) -> bool
 {
   return input_handle->is_empty;
 }
 
 
-auto fastx_is_pipe(fastx_handle input_handle) -> bool
+auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool
 {
   return input_handle->is_pipe;
 }
@@ -564,7 +564,6 @@ auto fastx_close(fastx_handle input_handle) -> void
   input_handle->seqno = -1;
 
   xfree(input_handle);
-  input_handle = nullptr;
 }
 
 
@@ -672,7 +671,7 @@ auto fastx_next(fastx_handle input_handle,
 }
 
 
-auto fastx_get_position(fastx_handle input_handle) -> uint64_t
+auto fastx_get_position(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
     {
@@ -682,7 +681,7 @@ auto fastx_get_position(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_get_size(fastx_handle input_handle) -> uint64_t
+auto fastx_get_size(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
     {
@@ -692,7 +691,7 @@ auto fastx_get_size(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_get_lineno(fastx_handle input_handle) -> uint64_t
+auto fastx_get_lineno(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
     {
@@ -702,7 +701,7 @@ auto fastx_get_lineno(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_get_seqno(fastx_handle input_handle) -> uint64_t
+auto fastx_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
     {
@@ -762,7 +761,7 @@ auto fastx_get_quality(fastx_handle input_handle) -> char const *
 }
 
 
-auto fastx_get_abundance(fastx_handle input_handle) -> int64_t
+auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   if (input_handle->is_fastq)
     {

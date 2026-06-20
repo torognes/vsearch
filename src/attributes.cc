@@ -77,8 +77,8 @@ namespace {
     int length = 0;  // length of the text field
     bool allow_decimal = false;  // integer or float
 
-    constexpr Attribute(char const * text, int length, bool allow_decimal)
-      : text(text), length(length), allow_decimal(allow_decimal) {}
+    constexpr Attribute(char const * new_text, int new_length, bool new_allow_decimal)
+      : text(new_text), length(new_length), allow_decimal(new_allow_decimal) {}
 
   };
 

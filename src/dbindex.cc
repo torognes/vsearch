@@ -179,7 +179,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
   kmerhashsize = 1U << (2 * opt_wordlength);
 
   /* allocate memory for kmer count array */
-  kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
+  kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
   std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
@@ -221,12 +221,12 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
     }
 
   /* allocate and zero bitmap pointers */
-  kmerbitmap = (struct bitmap_s **) xmalloc(kmerhashsize * sizeof(struct bitmap_s *));
+  kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(kmerhashsize * sizeof(struct bitmap_s *)));
   std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s *));
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
-  kmerhash = (uint64_t *) xmalloc((kmerhashsize + 1) * sizeof(uint64_t));
+  kmerhash = static_cast<uint64_t *>(xmalloc((kmerhashsize + 1) * sizeof(uint64_t)));
   uint64_t sum = 0;
   for (auto i = 0U; i < kmerhashsize; i++)
     {
@@ -253,10 +253,10 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
   std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* allocate space for actual data */
-  kmerindex = (unsigned int *) xmalloc(kmerindexsize * sizeof(unsigned int));
+  kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * sizeof(unsigned int)));
 
   /* allocate space for mapping from indexno to seqno */
-  dbindex_map = (unsigned int *) xmalloc(seqcount * sizeof(unsigned int));
+  dbindex_map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
 
   dbindex_count = 0;
 

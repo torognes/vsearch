@@ -707,7 +707,7 @@ auto results_show_alnout(std::FILE * output_handle,
       fprintf(output_handle,"\n");
 
 
-      auto * dseq = db_getsequence(hp->target);
+      auto const * dseq = db_getsequence(hp->target);
       int64_t const dseqlen = db_getsequencelen(hp->target);
 
       auto const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
@@ -846,8 +846,6 @@ auto build_sam_strings(char const * alignment,
   if (not flag)
     {
       md.add_d(matched);
-      matched = 0;
-      flag = true;
     }
 }
 
@@ -933,12 +931,12 @@ auto results_show_samout(std::FILE * output_handle,
               query_head,
               0x04,
               "*",
-              (uint64_t) 0,
+              static_cast<uint64_t>(0),
               255,
               "*",
               "*",
-              (uint64_t) 0,
-              (uint64_t) 0,
+              static_cast<uint64_t>(0),
+              static_cast<uint64_t>(0),
               qsequence,
               "*");
     }
@@ -976,12 +974,12 @@ auto results_show_samout(std::FILE * output_handle,
               query_head,
               (0x10 * hp->strand) | (t > 0 ? 0x100 : 0),
               db_getheader(hp->target),
-              (uint64_t) 1,
+              static_cast<uint64_t>(1),
               255,
               cigar.c_str(),
               "*",
-              (uint64_t) 0,
-              (uint64_t) 0,
+              static_cast<uint64_t>(0),
+              static_cast<uint64_t>(0),
               (hp->strand != 0) ? qsequence_rc : qsequence,
               "*",
               hp->id,

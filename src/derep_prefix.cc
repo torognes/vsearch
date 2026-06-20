@@ -73,18 +73,23 @@
 #include <vector>
 
 
-struct bucket
-{
-  uint64_t hash = 0;
-  unsigned int seqno_first = 0;
-  unsigned int seqno_last = 0;
-  unsigned int size = 0;
-  unsigned int count = 0;
-  bool deleted = false;
-  char * header = nullptr;
-  char * seq = nullptr;
-  char * qual = nullptr;
-};
+// anonymous namespace: 'bucket' is a file-local type; derep.cc defines
+// a different struct of the same name, so internal linkage here avoids
+// a one-definition-rule violation across translation units
+namespace {
+  struct bucket
+  {
+    uint64_t hash = 0;
+    unsigned int seqno_first = 0;
+    unsigned int seqno_last = 0;
+    unsigned int size = 0;
+    unsigned int count = 0;
+    bool deleted = false;
+    char * header = nullptr;
+    char * seq = nullptr;
+    char * qual = nullptr;
+  };
+}
 
 
 // refactoring: FNV-1A is the hashing function used in std::hash
@@ -112,8 +117,8 @@ auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
 
 auto derep_compare_prefix(const void * a, const void * b) -> int
 {
-  auto * lhs = (struct bucket *) a;
-  auto * rhs = (struct bucket *) b;
+  auto const * lhs = static_cast<struct bucket const *>(a);
+  auto const * rhs = static_cast<struct bucket const *>(b);
 
   /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
 
@@ -227,7 +232,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   for (int64_t i = 0; i < dbsequencecount; i++)
     {
       unsigned int const seqlen = db_getsequencelen(i);
-      auto * seq = db_getsequence(i);
+      auto const * seq = db_getsequence(i);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -474,7 +479,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       for (int64_t i = 0; i < clusters; i++)
         {
           auto const & bp = hashtable[i];
-          auto * h =  db_getheader(bp.seqno_first);
+          auto const * h =  db_getheader(bp.seqno_first);
           int64_t const len = db_getsequencelen(bp.seqno_first);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",

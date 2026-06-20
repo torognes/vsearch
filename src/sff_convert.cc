@@ -390,7 +390,7 @@ auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters co
 auto write_report(std::FILE * output_stream,
                   struct sff_header_s const & sff_header,
                   struct sff_read_stats const & sff_stats,
-                  char * index_kind) -> void {
+                  char const * index_kind) -> void {
   if (sff_header.index_length != 0) {
     std::fprintf(output_stream, "Index type:      %s\n", index_kind);
   }
@@ -400,7 +400,7 @@ auto write_report(std::FILE * output_stream,
   }
   auto const average_read_length = static_cast<double>(sff_stats.total_length) / sff_header.number_of_reads;
   std::fprintf(output_stream,
-               "Sequence length: minimum %d, average %.1f, maximum %d\n",
+               "Sequence length: minimum %u, average %.1f, maximum %u\n",
                sff_stats.minimum,
                average_read_length,
                sff_stats.maximum);
@@ -442,14 +442,14 @@ auto sff_convert(struct Parameters const & parameters) -> void
   // refactoring: see fastq_join.cc
   if (not parameters.opt_quiet)
     {
-      fprintf(stderr, "Number of reads: %d\n", sff_header.number_of_reads);
+      fprintf(stderr, "Number of reads: %u\n", sff_header.number_of_reads);
       fprintf(stderr, "Flows per read:  %d\n", sff_header.flows_per_read);
       fprintf(stderr, "Key sequence:    %s\n", key_sequence.data());
     }
 
   if (parameters.opt_log != nullptr)
     {
-      fprintf(parameters.fp_log, "Number of reads: %d\n", sff_header.number_of_reads);
+      fprintf(parameters.fp_log, "Number of reads: %u\n", sff_header.number_of_reads);
       fprintf(parameters.fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
       fprintf(parameters.fp_log, "Key sequence:    %s\n", key_sequence.data());
     }
