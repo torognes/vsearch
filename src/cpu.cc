@@ -76,8 +76,8 @@ void increment_counters_from_bitmap(count_t * counters,
     { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
       0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
 
-  unsigned short * p = (unsigned short *) (bitmap);
-  int16x8_t * q = (int16x8_t *) (counters);
+  unsigned short * p = reinterpret_cast<unsigned short *>(bitmap);
+  int16x8_t * q = reinterpret_cast<int16x8_t *>(counters);
   const auto r = (totalbits + 15) / 16;
 
   for (auto j = 0U; j < r; j++)
@@ -129,8 +129,8 @@ void increment_counters_from_bitmap(count_t * counters,
     { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-  unsigned short * p = (unsigned short *) (bitmap);
-  __vector signed short * q = (__vector signed short *) (counters);
+  unsigned short * p = reinterpret_cast<unsigned short *>(bitmap);
+  __vector signed short * q = reinterpret_cast<__vector signed short *>(counters);
   const auto r = (totalbits + 15) / 16;
 
   for (auto j = 0U; j < r; j++)
