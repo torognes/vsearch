@@ -129,7 +129,7 @@ auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset)
         }
 
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const bytesread = read(file_descriptor, ((char *) buf) + i, rem);
+      uint64_t const bytesread = read(file_descriptor, (static_cast<char *>(buf)) + i, rem);
       if (bytesread != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
@@ -159,7 +159,7 @@ auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset
       }
 
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const byteswritten = write(file_descriptor, ((char *) buf) + i, rem);
+      uint64_t const byteswritten = write(file_descriptor, (static_cast<char *>(buf)) + i, rem);
       if (byteswritten != rem)
         {
           fatal("Unable to write to UDB file");
@@ -353,9 +353,9 @@ auto udb_read(const char * filename,
   /* word match counts */
 
   kmerhashsize = 1U << (2 * udb_wordlength);
-  kmercount = (unsigned int *) xmalloc(kmerhashsize * sizeof(unsigned int));
-  kmerhash = (uint64_t *) xmalloc(kmerhashsize * sizeof(uint64_t));
-  kmerbitmap = (struct bitmap_s * *) xmalloc(kmerhashsize * sizeof(struct bitmap_s **));
+  kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
+  kmerhash = static_cast<uint64_t *>(xmalloc(kmerhashsize * sizeof(uint64_t)));
+  kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(kmerhashsize * sizeof(struct bitmap_s **)));
 
   std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
 
@@ -379,7 +379,7 @@ auto udb_read(const char * filename,
 
   /* sequence numbers for word matches */
 
-  kmerindex = (unsigned int *) xmalloc(kmerindexsize * 4);
+  kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * 4));
 
   pos += largeread(fd_udb, kmerindex, 4 * kmerindexsize, pos);
 
@@ -395,12 +395,12 @@ auto udb_read(const char * filename,
       fatal("Invalid UDB file");
     }
 
-  nucleotides = (((uint64_t) buffer[4]) << 32U) | buffer[3];
-  auto const udb_headerchars = (((uint64_t) buffer[6]) << 32U) | buffer[5];
+  nucleotides = ((static_cast<uint64_t>(buffer[4])) << 32U) | buffer[3];
+  auto const udb_headerchars = ((static_cast<uint64_t>(buffer[6])) << 32U) | buffer[5];
 
   /* header index */
 
-  seqindex = (seqinfo_t *) xmalloc(seqcount * sizeof(seqinfo_t));
+  seqindex = static_cast<seqinfo_t *>(xmalloc(seqcount * sizeof(seqinfo_t)));
 
   std::vector<int> header_index(seqcount + 1);
 
@@ -425,7 +425,7 @@ auto udb_read(const char * filename,
 
   /* headers */
 
-  datap = (char *) xmalloc(udb_headerchars + nucleotides + seqcount);
+  datap = static_cast<char *>(xmalloc(udb_headerchars + nucleotides + seqcount));
 
   pos += largeread(fd_udb, datap, udb_headerchars, pos);
 
@@ -559,7 +559,7 @@ auto udb_read(const char * filename,
 
   /* make mapping from indexno to seqno */
 
-  dbindex_map = (unsigned int *) xmalloc(seqcount * sizeof(unsigned int));
+  dbindex_map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
   dbindex_count = seqcount;
 
   for (auto i = 0U; i < seqcount; i++)
@@ -718,7 +718,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
                   freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
-                  "%.*s", std::max(12 - (int) opt_wordlength, 0), "            ");
+                  "%.*s", std::max(12 - static_cast<int>(opt_wordlength), 0), "            ");
 
           fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
 
@@ -997,11 +997,11 @@ auto udb_make(struct Parameters const & parameters) -> void
   /* number of sequences, uint32_t */
   buffer[2] = seqcount;
   /* total number of nucleotides, uint64_t */
-  buffer[3] = (unsigned int) (ntcount & 0xffffffff);
-  buffer[4] = (unsigned int) (ntcount >> 32U);
+  buffer[3] = static_cast<unsigned int>(ntcount & 0xffffffff);
+  buffer[4] = static_cast<unsigned int>(ntcount >> 32U);
   /* total number of header characters, incl zero-terminator, uint64_t */
-  buffer[5] = (unsigned int) (header_characters & 0xffffffff);
-  buffer[6] = (unsigned int) (header_characters >> 32U);
+  buffer[5] = static_cast<unsigned int>(header_characters & 0xffffffff);
+  buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
   /* 0x005e0db4 */
   buffer[7] = 0x005e0db4;
   pos += largewrite(fd_output, buffer.data(), 4 * 8, pos, false);
