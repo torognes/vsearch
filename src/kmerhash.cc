@@ -180,7 +180,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
+          unsigned int j = hash_function(reinterpret_cast<char const *>(&kmer), (k_offset + 3) / 4) & kmer_hash.hash_mask;
           while (kmer_hash.hash[j].pos != 0U)
             {
               if (kmer_hash.hash[j].kmer == kmer)
@@ -256,7 +256,7 @@ auto kh_find_diagonals(struct kh_handle_s & kmer_hash,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = hash_function((char *) &kmer, (k_offset + 3) / 4) & kmer_hash.hash_mask;
+          unsigned int j = hash_function(reinterpret_cast<char const *>(&kmer), (k_offset + 3) / 4) & kmer_hash.hash_mask;
           while (kmer_hash.hash[j].pos != 0U)
             {
               if (kmer_hash.hash[j].kmer == kmer)
