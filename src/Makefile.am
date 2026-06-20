@@ -25,16 +25,21 @@ if ENABLE_DEBUG
 # -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # -Wconversion
 # -Wold-style-cast
-# -Wshadow
 # -Wsign-conversion
-# -Wunused-macros
-# -Wuseless-cast
 # GCC 14: -Wnrvo (Named Return Value Optimization)
+# evaluated and left disabled:
+# -Wuseless-cast: only fires inside SIMD intrinsics where the cast is
+#   load-bearing in a shared macro (align_simd.cc) or documents intent
+#   in a symmetric constant block (cpu.cc)
+# -Wformat=2: its only delta over -Wformat=1 is -Wformat-nonliteral,
+#   which fires on the non-variadic printf wrappers fatal()/warn() and
+#   cannot be silenced by __attribute__((format)) on a non-variadic
+#   function
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
              -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-             -Woverloaded-virtual -Wuninitialized \
-             -Wunsafe-loop-optimizations -Wunused -Wvla \
+             -Woverloaded-virtual -Wshadow -Wuninitialized \
+             -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla \
              -Wno-ignored-attributes
              # -Wno-ignored-attributes: ignore warnings due to
              # std::array<__m128i> (__m128i is declared with
@@ -45,6 +50,13 @@ AM_CFLAGS += -DNDEBUG
 endif
 
 AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
+
+# -Wcast-qual is C++-only: the bundled third-party C sources (md5.c,
+# sha1.c) intentionally cast away const (sha1.c byte-swaps its input
+# block in place), so the flag is restricted to vsearch's own code.
+if ENABLE_DEBUG
+AM_CXXFLAGS += -Wcast-qual
+endif
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
 

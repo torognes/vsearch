@@ -255,7 +255,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
 
 auto filter(bool const fastq_only, char * filename) -> void
 {
-  static constexpr auto dbl_max = std::numeric_limits<double>::max();  // refactoring: redundant?
+  static constexpr auto dbl_max_local = std::numeric_limits<double>::max();  // refactoring: redundant?
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
   if ((opt_fastqout == nullptr) and (opt_fastaout == nullptr) and
@@ -276,11 +276,11 @@ auto filter(bool const fastq_only, char * filename) -> void
           fatal("FASTA input files not allowed with fastq_filter, consider using fastx_filter command instead");
       }
       else if (opt_eeout or (opt_fastq_ascii != 33) or opt_fastq_eeout or
-               (opt_fastq_maxee < dbl_max) or
-               (opt_fastq_maxee_rate < dbl_max) or (opt_fastqout != nullptr) or
+               (opt_fastq_maxee < dbl_max_local) or
+               (opt_fastq_maxee_rate < dbl_max_local) or (opt_fastqout != nullptr) or
                (opt_fastq_qmax < 41) or (opt_fastq_qmin > 0) or
-               (opt_fastq_truncee < dbl_max) or
-               (opt_fastq_truncee_rate < dbl_max) or
+               (opt_fastq_truncee < dbl_max_local) or
+               (opt_fastq_truncee_rate < dbl_max_local) or
                (opt_fastq_truncqual < long_min) or
                (opt_fastq_minqual > 0) or
                (opt_fastqout_discarded != nullptr) or
