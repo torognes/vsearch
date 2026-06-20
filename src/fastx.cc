@@ -230,7 +230,7 @@ auto fopen_input(const char * filename) -> std::FILE *
 auto fastx_open(char const * filename) -> fastx_handle
 {
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
-  auto * input_handle = static_cast<fastx_handle>(xmalloc(sizeof(struct fastx_s)));
+  auto * input_handle = new fastx_s;
 
   input_handle->fp = nullptr;
 
@@ -563,7 +563,7 @@ auto fastx_close(fastx_handle input_handle) -> void
   input_handle->lineno = 0;
   input_handle->seqno = -1;
 
-  xfree(input_handle);
+  delete input_handle;
 }
 
 
