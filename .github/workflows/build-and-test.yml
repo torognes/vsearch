@@ -136,7 +136,7 @@ jobs:
         usesh: true
         prepare: |
           pkg update -f
-          pkg install -y autoconf automake gmake bash git ghostscript groff
+          pkg install -y autoconf automake gmake bash git
           pw useradd -n runner -m -s /usr/local/bin/bash
         run: |
           ./autogen.sh
