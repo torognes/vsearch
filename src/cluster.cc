@@ -1871,7 +1871,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
      New centroids are automatically indexed for subsequent queries. */
 
-  std::memset(result, 0, sizeof(*result));
+  *result = {};
 
   cs->si->query_no = seqno;
   cs->si->strand = 0;
