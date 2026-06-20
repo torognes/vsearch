@@ -96,15 +96,11 @@ auto find_median() -> double
   uint64_t below = 0;   /* closest value below the candidate */
   uint64_t above = 0;   /* closest value above the candidate */
 
-  uint64_t cand_count = 0;  /* number of clusters with same size as cand */
-  uint64_t below_count = 0; /* number of clusters with smaller size than cand */
-  uint64_t above_count = 0; /* number of clusters with larger size than cand */
-
   while (true)
     {
-      cand_count = 0;
-      below_count = 0;
-      above_count = 0;
+      uint64_t cand_count = 0;  /* number of clusters with same size as cand */
+      uint64_t below_count = 0; /* number of clusters with smaller size than cand */
+      uint64_t above_count = 0; /* number of clusters with larger size than cand */
 
       for (uint64_t i = 0; i < hashtablesize; i++)
         {
