@@ -128,7 +128,7 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void
       buffer->alloc =
         ((buffer->length + size + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
         * fastx_buffer_alloc;
-      buffer->data = (char *) xrealloc(buffer->data, buffer->alloc);
+      buffer->data = static_cast<char *>(xrealloc(buffer->data, buffer->alloc));
     }
 }
 
@@ -230,7 +230,7 @@ auto fopen_input(const char * filename) -> std::FILE *
 auto fastx_open(char const * filename) -> fastx_handle
 {
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
-  auto * input_handle = (fastx_handle) xmalloc(sizeof(struct fastx_s));
+  auto * input_handle = static_cast<fastx_handle>(xmalloc(sizeof(struct fastx_s)));
 
   input_handle->fp = nullptr;
 
