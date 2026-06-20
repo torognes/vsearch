@@ -577,7 +577,7 @@ auto search_thread_worker_run() -> void
 }
 
 
-auto search_prep(char * cmdline, char * progheader) -> void
+auto search_prep(char const * cmdline, char const * progheader) -> void
 {
   /* open output files */
 
@@ -813,7 +813,7 @@ auto search_done() -> void
 }
 
 
-auto usearch_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
+auto usearch_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
   search_prep(cmdline, progheader);
 
@@ -958,11 +958,11 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
 
   otutable_done();
 
-  int count_dbmatched = 0;
-  int count_dbnotmatched = 0;
-
   if ((opt_dbmatched != nullptr) || (opt_dbnotmatched != nullptr))
     {
+      int count_dbmatched = 0;
+      int count_dbnotmatched = 0;
+
       for (int64_t i = 0; i < seqcount; i++)
         {
           if (dbmatched[i] != 0U)
