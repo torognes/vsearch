@@ -60,10 +60,10 @@
 
 #pragma once
 
-auto cluster_smallmem(char * cmdline, char * progheader) -> void;
-auto cluster_fast(char * cmdline, char * progheader) -> void;
-auto cluster_size(char * cmdline, char * progheader) -> void;
-auto cluster_unoise(char * cmdline, char * progheader) -> void;
+auto cluster_smallmem(char const * cmdline, char const * progheader) -> void;
+auto cluster_fast(char const * cmdline, char const * progheader) -> void;
+auto cluster_size(char const * cmdline, char const * progheader) -> void;
+auto cluster_unoise(char const * cmdline, char const * progheader) -> void;
 
 /* === Library API for embedding clustering === */
 

@@ -407,7 +407,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
 }
 
 
-auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
+auto relabel_otu(int clusterno, char const * sequence, int seqlen) -> char *
 {
   char * label = nullptr;
   if (opt_relabel != nullptr)
@@ -436,12 +436,12 @@ auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
 }
 
 
-auto cluster_core_results_hit(struct hit * best,
+auto cluster_core_results_hit(struct hit const * best,
                               int clusterno,
-                              char * query_head,
+                              char const * query_head,
                               int qseqlen,
-                              char * qsequence,
-                              char * qsequence_rc,
+                              char const * qsequence,
+                              char const * qsequence_rc,
                               int qsize) -> void
 {
   ++count_matched;
@@ -541,10 +541,10 @@ auto cluster_core_results_hit(struct hit * best,
 
 
 auto cluster_core_results_nohit(int clusterno,
-                                char * query_head,
+                                char const * query_head,
                                 int qseqlen,
-                                char * qsequence,
-                                char * qsequence_rc,
+                                char const * qsequence,
+                                char const * qsequence_rc,
                                 int qsize) -> void
 {
   ++count_notmatched;
@@ -1187,9 +1187,9 @@ auto cluster_core_serial() -> void
 }
 
 
-auto cluster(char * dbname,
-             char * cmdline,
-             char * progheader) -> void
+auto cluster(char const * dbname,
+             char const * cmdline,
+             char const * progheader) -> void
 {
   if (opt_centroids != nullptr)
     {
@@ -1769,25 +1769,25 @@ auto cluster(char * dbname,
 }
 
 
-auto cluster_fast(char * cmdline, char * progheader) -> void
+auto cluster_fast(char const * cmdline, char const * progheader) -> void
 {
   cluster(opt_cluster_fast, cmdline, progheader);
 }
 
 
-auto cluster_smallmem(char * cmdline, char * progheader) -> void
+auto cluster_smallmem(char const * cmdline, char const * progheader) -> void
 {
   cluster(opt_cluster_smallmem, cmdline, progheader);
 }
 
 
-auto cluster_size(char * cmdline, char * progheader) -> void
+auto cluster_size(char const * cmdline, char const * progheader) -> void
 {
   cluster(opt_cluster_size, cmdline, progheader);
 }
 
 
-auto cluster_unoise(char * cmdline, char * progheader) -> void
+auto cluster_unoise(char const * cmdline, char const * progheader) -> void
 {
   cluster(opt_cluster_unoise, cmdline, progheader);
 }
@@ -1884,7 +1884,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       cluster_query_core(cs->si_minus);
     }
 
-  struct hit * best = nullptr;
+  struct hit const * best = nullptr;
   if (opt_sizeorder)
     {
       best = search_findbest2_bysize(cs->si, cs->si_minus);
@@ -2050,7 +2050,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             }
 
           /* Find best hit across strands */
-          struct hit * best = nullptr;
+          struct hit const * best = nullptr;
           if (opt_sizeorder)
             {
               best = search_findbest2_bysize(si_p, si_m);
