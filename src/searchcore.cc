@@ -750,8 +750,6 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
   struct Scoring scoring;
   scoring.match = opt_match;
   scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
   scoring.gap_open_query_left = opt_gap_open_query_left;
   scoring.gap_open_target_left = opt_gap_open_target_left;
   scoring.gap_open_query_interior = opt_gap_open_query_interior;
