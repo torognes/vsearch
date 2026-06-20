@@ -895,12 +895,10 @@ auto cluster_core_parallel() -> void
 
   /* allocate memory for the search information for each query;
      and initialize it */
-  si_plus = static_cast<struct searchinfo_s *>(xmalloc(max_queries *
-                                            sizeof(struct searchinfo_s)));
+  si_plus = new searchinfo_s[max_queries]{};
   if (opt_strand > 1)
     {
-      si_minus = static_cast<struct searchinfo_s *>(xmalloc(max_queries *
-                                                 sizeof(struct searchinfo_s)));
+      si_minus = new searchinfo_s[max_queries]{};
     }
   for (int i = 0; i < max_queries; i++)
     {
@@ -1081,10 +1079,10 @@ auto cluster_core_parallel() -> void
 
   // extra_list no used after that point
 
-  xfree(si_plus);
+  delete [] si_plus;
   if (opt_strand > 1)
     {
-      xfree(si_minus);
+      delete [] si_minus;
     }
 
   /* terminate threads and clean up */
@@ -1955,12 +1953,10 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
   struct searchinfo_s * saved_si_minus = si_minus;
 
   /* Allocate per-thread search state for the batch */
-  si_plus = static_cast<struct searchinfo_s *>(
-    xmalloc(max_queries * sizeof(struct searchinfo_s)));
+  si_plus = new searchinfo_s[max_queries]{};
   if (opt_strand > 1)
     {
-      si_minus = static_cast<struct searchinfo_s *>(
-        xmalloc(max_queries * sizeof(struct searchinfo_s)));
+      si_minus = new searchinfo_s[max_queries]{};
     }
   else
     {
@@ -1969,12 +1965,10 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
   for (int i = 0; i < max_queries; i++)
     {
-      std::memset(static_cast<void *>(si_plus + i), 0, sizeof(struct searchinfo_s));
       cluster_query_init(si_plus + i);
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
-          std::memset(static_cast<void *>(si_minus + i), 0, sizeof(struct searchinfo_s));
           cluster_query_init(si_minus + i);
           si_minus[i].strand = 1;
         }
@@ -2123,10 +2117,10 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
           cluster_query_exit(si_minus + i);
         }
     }
-  xfree(si_plus);
+  delete [] si_plus;
   if (si_minus != nullptr)
     {
-      xfree(si_minus);
+      delete [] si_minus;
     }
 
   /* Restore file-statics */
