@@ -916,7 +916,7 @@ auto udb_make(struct Parameters const & parameters) -> void
       header_characters += db_getheaderlen(i) + 1;
     }
 
-  uint64_t const kmerhash_entries = 1U << (2 * static_cast<uint64_t>(opt_wordlength));
+  uint64_t const kmerhash_entries = uint64_t{1} << (2 * static_cast<uint64_t>(opt_wordlength));
 
   /* count word matches */
   uint64_t wordmatches = 0;
