@@ -1396,14 +1396,14 @@ auto cluster(char const * dbname,
 
   std::vector<int64_t> cluster_abundance_v(clusters);
   cluster_abundance = cluster_abundance_v.data();
-  std::vector<int> cluster_size(clusters);
+  std::vector<int> cluster_size_v(clusters);
 
   for (int i = 0; i < seqcount; i++)
     {
       int const seqno = clusterinfo_v[i].seqno;
       int const clusterno = clusterinfo_v[i].clusterno;
       cluster_abundance_v[clusterno] += opt_sizein ? db_getabundance(seqno) : 1;
-      ++cluster_size[clusterno];
+      ++cluster_size_v[clusterno];
     }
 
   // refactoring: isolate in a function (returns struct abundance_stats)
@@ -1413,9 +1413,9 @@ auto cluster(char const * dbname,
   auto const abundance_max = cluster_abundance_v.empty() ? 0 : *std::get<1>(minmax_elements);
   int const singletons = std::count(cluster_abundance_v.cbegin(),
                                     cluster_abundance_v.cend(), int64_t{1});
-  auto const max_element = std::max_element(cluster_size.cbegin(),
-                                            cluster_size.cend());
-  auto const size_max = cluster_size.empty() ? 0 : *max_element;
+  auto const max_element = std::max_element(cluster_size_v.cbegin(),
+                                            cluster_size_v.cend());
+  auto const size_max = cluster_size_v.empty() ? 0 : *max_element;
 
 
   /* Sort sequences in clusters by their abundance or ordinal number */
