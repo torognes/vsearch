@@ -379,7 +379,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   for (auto i = 0; i < seqcount; i++)
     {
       auto unmasked = 0;
-      auto * seq = db_getsequence(i);
+      auto const * seq = db_getsequence(i);
       const int len = db_getsequencelen(i);
       if (parameters.opt_qmask == MASK_NONE)
         {
