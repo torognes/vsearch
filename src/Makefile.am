@@ -24,7 +24,6 @@ if ENABLE_DEBUG
 # next warnings to activate:
 # -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # -Wconversion
-# -Wold-style-cast
 # -Wsign-conversion
 # GCC 14: -Wnrvo (Named Return Value Optimization)
 # evaluated and left disabled:
@@ -35,10 +34,14 @@ if ENABLE_DEBUG
 #   which fires on the non-variadic printf wrappers fatal()/warn() and
 #   cannot be silenced by __attribute__((format)) on a non-variadic
 #   function
+# -Wold-style-cast is verified clean on x86_64 and aarch64; on __PPC__
+#   a few AltiVec vector-value casts in align_simd.cc remain as C-style
+#   casts (no portable C++ named-cast equivalent for vector-to-vector
+#   value conversions)
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
              -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-             -Woverloaded-virtual -Wshadow -Wuninitialized \
+             -Wold-style-cast -Woverloaded-virtual -Wshadow -Wuninitialized \
              -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla \
              -Wno-ignored-attributes
              # -Wno-ignored-attributes: ignore warnings due to
