@@ -148,7 +148,9 @@
 #elif __FreeBSD__
 
 #define PROG_OS "freebsd"
-#include <sys/sysinfo.h>
+/* FreeBSD has no <sys/sysinfo.h>; total RAM is read via
+   sysctlbyname("hw.physmem") declared in <sys/sysctl.h> */
+#include <sys/sysctl.h>
 #include <sys/resource.h>
 
 #elif __NetBSD__

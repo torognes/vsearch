@@ -115,6 +115,17 @@ auto arch_get_memtotal() -> uint64_t
     fatal("Cannot determine amount of RAM");
   return ram;
 
+#elif defined(__FreeBSD__)
+
+  /* sysctlbyname("hw.physmem") writes a uint64_t directly, avoiding the
+     32-bit overflow of the older sysctl({CTL_HW, HW_PHYSMEM}) interface
+     on hosts with >= 4 GB */
+  uint64_t ram = 0;
+  std::size_t length = sizeof(ram);
+  if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
+    fatal("Cannot determine amount of RAM");
+  return ram;
+
 #elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
 
   int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
