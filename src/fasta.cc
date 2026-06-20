@@ -534,7 +534,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (opt_centroid_sizeout and (centroid_size > 0))
     {
-      std::fprintf(output_handle, ";centroid_size=%u", centroid_size);
+      std::fprintf(output_handle, ";centroid_size=%d", centroid_size);
     }
 
   if ((opt_eeout or opt_fastq_eeout) and (expected_error >= 0.0))
