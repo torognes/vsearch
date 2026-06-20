@@ -311,7 +311,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
         }
       else
         {
-          auto * list = dbindex_getmatchlist(kmer);
+          auto const * list = dbindex_getmatchlist(kmer);
           auto const count = dbindex_getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
