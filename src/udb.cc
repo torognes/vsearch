@@ -724,7 +724,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
           fprintf(fp_log,
                   "  %10u  %10u",
-                  0,
+                  0U,
                   freqtable[kmerhashsize - 1 - i].count);
 
           fprintf(fp_log, " ");
@@ -869,7 +869,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
       fprintf(fp_log, "\n\n");
 
       fprintf(fp_log, "%10" PRIu64 "  Upper\n", nt);
-      fprintf(fp_log, "%10u  Lower (%.1f%%)\n", 0, 0.0);
+      fprintf(fp_log, "%10u  Lower (%.1f%%)\n", 0U, 0.0);
       fprintf(fp_log, "%10" PRIu64 "  Total\n", nt);
       fprintf(fp_log, "%10" PRIu64 "  Indexed words\n", kmerindexsize);
     }
