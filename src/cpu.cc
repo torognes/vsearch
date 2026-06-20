@@ -205,13 +205,13 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
   const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto * p = (unsigned short *) bitmap;
-  auto * q = (__m128i *) counters;
+  auto * p = reinterpret_cast<unsigned short *>(bitmap);
+  auto * q = reinterpret_cast<__m128i *>(counters);
   const auto r = (totalbits + 15) / 16;
 
   for (auto j = 0U; j < r; j++)
     {
-      const auto xmm0 = _mm_loadu_si128((__m128i *) p++);
+      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i *>(p++));
 #if defined(SSSE3) || defined(SIMDE_VERSION)
       const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
 #else
