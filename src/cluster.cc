@@ -1423,15 +1423,18 @@ auto cluster(char const * dbname,
   /* The centroid sequence must be the first in each cluster. */
 
   progress_init("Sorting clusters", clusters);
-  if (opt_clusterout_sort)
+  if (seqcount > 0)  // qsort requires a non-null pointer even for zero elements
     {
-      qsort(clusterinfo_v.data(), seqcount, sizeof(clusterinfo_t),
-            compare_byclusterabundance);
-    }
-  else
-    {
-      qsort(clusterinfo_v.data(), seqcount, sizeof(clusterinfo_t),
-            compare_byclusterno);
+      if (opt_clusterout_sort)
+        {
+          qsort(clusterinfo_v.data(), seqcount, sizeof(clusterinfo_t),
+                compare_byclusterabundance);
+        }
+      else
+        {
+          qsort(clusterinfo_v.data(), seqcount, sizeof(clusterinfo_t),
+                compare_byclusterno);
+        }
     }
   progress_done();
 
