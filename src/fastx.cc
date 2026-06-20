@@ -564,7 +564,6 @@ auto fastx_close(fastx_handle input_handle) -> void
   input_handle->seqno = -1;
 
   xfree(input_handle);
-  input_handle = nullptr;
 }
 
 
