@@ -880,10 +880,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           if (parameters.opt_relabel != nullptr) {
             fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header, parameters.opt_relabel, i + 1, i, (uint64_t) 0, cluster.count, cluster.header);
+                    cluster.header, parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
           } else {
             fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header, cluster.header, i, (uint64_t) 0, cluster.count, cluster.header);
+                    cluster.header, cluster.header, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
           }
 
           uint64_t j = 1;
