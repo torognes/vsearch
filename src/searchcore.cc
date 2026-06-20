@@ -913,6 +913,10 @@ auto search_joinhits(struct searchinfo_s const * si_plus,
   free_rejected_alignments(si_plus);
   free_rejected_alignments(si_minus);
 
-  /* last, sort the hits */
-  std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
+  /* last, sort the hits (skip when empty: qsort requires a non-null
+     pointer even for zero elements) */
+  if (counter > 0)
+    {
+      std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
+    }
 }
