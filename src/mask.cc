@@ -94,7 +94,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
   auto bestj = 0;
   std::array<int, word_count> counts {{}};
   std::array<int, dust_window> words {{}};
-  auto word = 0;
+  auto word = 0U;
 
   for (auto j = 0; j < len; j++)
     {
