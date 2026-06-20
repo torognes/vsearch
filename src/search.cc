@@ -835,8 +835,8 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
         }
     }
 
-  dbmatched = static_cast<uint64_t *>(xmalloc(seqcount * sizeof(uint64_t *)));
-  std::memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
+  dbmatched = static_cast<uint64_t *>(xmalloc(seqcount * sizeof(uint64_t)));
+  std::memset(dbmatched, 0, seqcount * sizeof(uint64_t));
 
   otutable_init();
 
