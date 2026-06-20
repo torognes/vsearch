@@ -344,7 +344,7 @@ auto fasta_next(fastx_handle input_handle,
 }
 
 
-auto fasta_get_abundance(fastx_handle input_handle) -> int64_t
+auto fasta_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   // return 1 if not present
   auto const size = header_get_size(input_handle->header_buffer.data,
@@ -357,32 +357,32 @@ auto fasta_get_abundance(fastx_handle input_handle) -> int64_t
 }
 
 
-auto fasta_get_abundance_and_presence(fastx_handle input_handle) -> int64_t
+auto fasta_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t
 {
   // return 0 if not present
   return header_get_size(input_handle->header_buffer.data, input_handle->header_buffer.length);
 }
 
 
-auto fasta_get_position(fastx_handle input_handle) -> uint64_t
+auto fasta_get_position(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->file_position;
 }
 
 
-auto fasta_get_size(fastx_handle input_handle) -> uint64_t
+auto fasta_get_size(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->file_size;
 }
 
 
-auto fasta_get_lineno(fastx_handle input_handle) -> uint64_t
+auto fasta_get_lineno(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->lineno_start;
 }
 
 
-auto fasta_get_seqno(fastx_handle input_handle) -> uint64_t
+auto fasta_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->seqno;
 }

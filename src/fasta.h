@@ -72,16 +72,16 @@ auto fasta_close(fastx_handle input_handle) -> void;
 auto fasta_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;
-auto fasta_get_position(fastx_handle input_handle) -> uint64_t;
-auto fasta_get_size(fastx_handle input_handle) -> uint64_t;
-auto fasta_get_lineno(fastx_handle input_handle) -> uint64_t;
-auto fasta_get_seqno(fastx_handle input_handle) -> uint64_t;
+auto fasta_get_position(struct fastx_s const * input_handle) -> uint64_t;
+auto fasta_get_size(struct fastx_s const * input_handle) -> uint64_t;
+auto fasta_get_lineno(struct fastx_s const * input_handle) -> uint64_t;
+auto fasta_get_seqno(struct fastx_s const * input_handle) -> uint64_t;
 auto fasta_get_header(fastx_handle input_handle) -> char const *;
 auto fasta_get_sequence(fastx_handle input_handle) -> char const *;
 auto fasta_get_header_length(fastx_handle input_handle) -> uint64_t;
 auto fasta_get_sequence_length(fastx_handle input_handle) -> uint64_t;
-auto fasta_get_abundance(fastx_handle input_handle) -> int64_t;
-auto fasta_get_abundance_and_presence(fastx_handle input_handle) -> int64_t;
+auto fasta_get_abundance(struct fastx_s const * input_handle) -> int64_t;
+auto fasta_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t;
 
 /* fasta output */
 
