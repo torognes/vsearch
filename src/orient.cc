@@ -202,10 +202,6 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all();
         }
-    }
-
-  if (not is_udb)
-    {
       dbindex_prepare(1, opt_dbmask);
       dbindex_addallsequences(opt_dbmask);
     }
