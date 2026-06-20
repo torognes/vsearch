@@ -497,9 +497,13 @@ auto allpairs_thread_run(int64_t t) -> void
                     }
                 }
 
-              /* sort hits */
-              qsort(finalhits.data(), searchinfo.accepts,
-                    sizeof(struct hit), allpairs_hit_compare);
+              /* sort hits (skip when empty: qsort requires a non-null
+                 pointer even for zero elements) */
+              if (searchinfo.accepts > 0)
+                {
+                  qsort(finalhits.data(), searchinfo.accepts,
+                        sizeof(struct hit), allpairs_hit_compare);
+                }
             }
 
           /* lock mutex for update of global data and output */
