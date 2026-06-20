@@ -192,7 +192,7 @@ auto rehash_smallmem() -> void
   /* allocate new hash table, 50% larger */
   auto const new_hashtablesize = 3 * hashtablesize / 2;
   auto * new_hashtable =
-    (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * new_hashtablesize);
+    static_cast<struct sm_bucket *>(xmalloc(sizeof(struct sm_bucket) * new_hashtablesize));
 
   /* zero new hash table */
   for (uint64_t j = 0; j < new_hashtablesize; j++)
@@ -267,7 +267,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   /* allocate initial hashtable with 1024 buckets */
 
   hashtablesize = 1024;
-  hashtable = (struct sm_bucket *) xmalloc(sizeof(struct sm_bucket) * hashtablesize);
+  hashtable = static_cast<struct sm_bucket *>(xmalloc(sizeof(struct sm_bucket) * hashtablesize));
 
   /* zero hash table */
   for (uint64_t j = 0; j < hashtablesize; j++)
