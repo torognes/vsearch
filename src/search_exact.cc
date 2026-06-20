@@ -932,11 +932,11 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
 
   otutable_done();
 
-  int count_dbmatched = 0;
-  int count_dbnotmatched = 0;
-
   if ((opt_dbmatched != nullptr) || (opt_dbnotmatched != nullptr))
     {
+      int count_dbmatched = 0;
+      int count_dbnotmatched = 0;
+
       for (int64_t i = 0; i < seqcount; i++)
         {
           if (dbmatched[i] != 0U)
