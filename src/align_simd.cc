@@ -970,7 +970,7 @@ inline auto finishop(s16info_s * s) -> void
 
 
 auto backtrack16(s16info_s * s,
-                 char * dseq,
+                 char const * dseq,
                  uint64_t dlen,
                  uint64_t offset,
                  uint64_t channel,
@@ -1328,7 +1328,7 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
 
 auto search16(s16info_s * s,
               unsigned int sequences,
-              unsigned int * seqnos,
+              unsigned int const * seqnos,
               CELL * pscores,
               unsigned short * paligned,
               unsigned short * pmatches,
@@ -1692,7 +1692,7 @@ auto search16(s16info_s * s,
                     {
                       /* save score */
 
-                      char * dbseq = reinterpret_cast<char *>(d_address[c]);
+                      char const * dbseq = reinterpret_cast<char const *>(d_address[c]);
                       int64_t const dbseqlen = d_length[c];
                       int64_t const z = (dbseqlen + 3) % 4;
                       int64_t const score = get_channel(S[z], c);
