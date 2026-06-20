@@ -683,12 +683,10 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* allocate memory for thread info */
 
-  si_plus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
-                                            sizeof(struct searchinfo_s)));
+  si_plus = new searchinfo_s[opt_threads]{};
   if (opt_strand > 1)
     {
-      si_minus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
-                                                 sizeof(struct searchinfo_s)));
+      si_minus = new searchinfo_s[opt_threads]{};
     }
   else
     {
@@ -733,10 +731,10 @@ auto sintax(struct Parameters const & parameters) -> void
   xpthread_mutex_destroy(&mutex_input);
 
   xfree(pthread);
-  xfree(si_plus);
+  delete [] si_plus;
   if (si_minus != nullptr)
     {
-      xfree(si_minus);
+      delete [] si_minus;
     }
 
   fastx_close(query_fastx_h);
