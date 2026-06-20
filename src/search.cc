@@ -386,15 +386,15 @@ static auto populate_si(struct searchinfo_s * si,
   if (si->query_head_len + 1 > si->query_head_alloc)
     {
       si->query_head_alloc = si->query_head_len + 2001;
-      si->query_head = (char *)
-        xrealloc(si->query_head, (size_t) (si->query_head_alloc));
+      si->query_head = static_cast<char *>(
+        xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
     }
 
   if (si->qseqlen + 1 > si->seq_alloc)
     {
       si->seq_alloc = si->qseqlen + 2001;
-      si->qsequence = (char *)
-        xrealloc(si->qsequence, (size_t) (si->seq_alloc));
+      si->qsequence = static_cast<char *>(
+        xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
     }
 
   /* copy header */
@@ -489,10 +489,10 @@ auto search_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
-  si->kmers = (count_t *) xmalloc((seqcount * sizeof(count_t)) + 32);
+  si->kmers = static_cast<count_t *>(xmalloc((seqcount * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
-  si->hits = (struct hit *) xmalloc
-    (sizeof(struct hit) * tophits * opt_strand);
+  si->hits = static_cast<struct hit *>(xmalloc
+    (sizeof(struct hit) * tophits * opt_strand));
   si->qsize = 1;
   si->query_head_alloc = 0;
   si->query_head = nullptr;
@@ -537,7 +537,7 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
 
 auto search_thread_worker(void * vp) -> void *
 {
-  auto t = (int64_t) vp;
+  auto t = reinterpret_cast<int64_t>(vp);
   search_thread_run(t);
   return nullptr;
 }
@@ -559,7 +559,7 @@ auto search_thread_worker_run() -> void
           search_thread_init(si_minus + t);
         }
       xpthread_create(pthread + t, &attr,
-                      search_thread_worker, (void *) (int64_t) t);
+                      search_thread_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
   /* finish and clean up worker threads */
@@ -835,7 +835,7 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
         }
     }
 
-  dbmatched = (uint64_t *) xmalloc(seqcount * sizeof(uint64_t *));
+  dbmatched = static_cast<uint64_t *>(xmalloc(seqcount * sizeof(uint64_t *)));
   std::memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
 
   otutable_init();
@@ -848,19 +848,19 @@ auto usearch_global(struct Parameters const & parameters, char * cmdline, char *
   query_fastx_h = fastx_open(parameters.opt_usearch_global);
 
   /* allocate memory for thread info */
-  si_plus = (struct searchinfo_s *) xmalloc(opt_threads *
-                                            sizeof(struct searchinfo_s));
+  si_plus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
+                                            sizeof(struct searchinfo_s)));
   if (opt_strand > 1)
     {
-      si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
-                                                 sizeof(struct searchinfo_s));
+      si_minus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
+                                                 sizeof(struct searchinfo_s)));
     }
   else
     {
       si_minus = nullptr;
     }
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  pthread = static_cast<pthread_t *>(xmalloc(opt_threads * sizeof(pthread_t)));
 
   /* init mutexes for input and output */
   xpthread_mutex_init(&mutex_input, nullptr);
@@ -1142,7 +1142,7 @@ auto search_session_single(struct search_session_s * ss,
       r.gaps = h.nwgaps;
       r.alignment_length = h.nwalignmentlength;
       r.query_length = si->qseqlen;
-      r.target_length = (int) db_getsequencelen(h.target);
+      r.target_length = static_cast<int>(db_getsequencelen(h.target));
       r.accepted = h.accepted;
       r.strand = h.strand;
       ++count;
@@ -1306,7 +1306,7 @@ static auto search_batch_worker_fn(void * vp) -> void *
           r.gaps = h.nwgaps;
           r.alignment_length = h.nwalignmentlength;
           r.query_length = qlen;
-          r.target_length = (int) db_getsequencelen(h.target);
+          r.target_length = static_cast<int>(db_getsequencelen(h.target));
           r.accepted = h.accepted;
           r.strand = h.strand;
           ++count;
@@ -1365,12 +1365,12 @@ auto search_batch(const char ** query_seqs,
   ctx.result_counts = result_counts;
   ctx.next_query = 0;
 
-  ctx.batch_si_plus = (struct searchinfo_s *)
-    xmalloc(nthreads * sizeof(struct searchinfo_s));
+  ctx.batch_si_plus = static_cast<struct searchinfo_s *>(
+    xmalloc(nthreads * sizeof(struct searchinfo_s)));
   if (opt_strand > 1)
     {
-      ctx.batch_si_minus = (struct searchinfo_s *)
-        xmalloc(nthreads * sizeof(struct searchinfo_s));
+      ctx.batch_si_minus = static_cast<struct searchinfo_s *>(
+        xmalloc(nthreads * sizeof(struct searchinfo_s)));
     }
   else
     {
@@ -1388,11 +1388,11 @@ auto search_batch(const char ** query_seqs,
 
   for (int t = 0; t < nthreads; t++)
     {
-      std::memset((void*)(ctx.batch_si_plus + t), 0, sizeof(struct searchinfo_s));
+      std::memset(static_cast<void *>(ctx.batch_si_plus + t), 0, sizeof(struct searchinfo_s));
       search_thread_init(ctx.batch_si_plus + t);
       if (ctx.batch_si_minus != nullptr)
         {
-          std::memset((void*)(ctx.batch_si_minus + t), 0, sizeof(struct searchinfo_s));
+          std::memset(static_cast<void *>(ctx.batch_si_minus + t), 0, sizeof(struct searchinfo_s));
           search_thread_init(ctx.batch_si_minus + t);
         }
       args[t].ctx = &ctx;
