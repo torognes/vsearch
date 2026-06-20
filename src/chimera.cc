@@ -363,8 +363,8 @@ struct parents_info_s
 
 auto compare_positions(const void * a, const void * b) -> int
 {
-  const int lhs = ((const parents_info_s *) a)->start;
-  const int rhs = ((const parents_info_s *) b)->start;
+  const int lhs = static_cast<parents_info_s const *>(a)->start;
+  const int rhs = static_cast<parents_info_s const *>(b)->start;
 
   if (lhs < rhs) {
     return -1;
@@ -980,19 +980,19 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                     ci->query_head_len, ci->query_head.data());
       std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                    (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                    static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
       std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                    (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                    static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
       /* closest parent = max of QA, QB */
       if (QA >= QB)
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                        "%.*s", static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
         }
       else
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                        "%.*s", static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
         }
       r->id_query_model = QM;
       r->id_query_a = QA;
@@ -1577,18 +1577,18 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                         ci->query_head_len, ci->query_head.data());
           std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                        (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                        static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
           std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                        (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                        static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
           if (QA >= QB)
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", (int)db_getheaderlen(seqno_a), db_getheader(seqno_a));
+                            "%.*s", static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
             }
           else
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", (int)db_getheaderlen(seqno_b), db_getheader(seqno_b));
+                            "%.*s", static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
             }
           r->id_query_model = QM;
           r->id_query_a = QA;
@@ -2298,7 +2298,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
 auto chimera_thread_worker(void * vp) -> void *
 {
-  return (void *) chimera_thread_core(cia + (int64_t) vp);
+  return reinterpret_cast<void *>(chimera_thread_core(cia + reinterpret_cast<int64_t>(vp)));
 }
 
 
@@ -2311,7 +2311,7 @@ auto chimera_threads_run() -> void
   for (int64_t t = 0; t < opt_threads; ++t)
     {
       xpthread_create(pthread + t, & attr,
-                      chimera_thread_worker, (void *) t);
+                      chimera_thread_worker, reinterpret_cast<void *>(t));
     }
 
   /* finish worker threads */
@@ -2972,8 +2972,8 @@ auto chimera_detect_batch(const char ** query_seqs,
   ctx.results = results;
   ctx.next_query = 0;
 
-  ctx.ci_array = (struct chimera_info_s **)
-    xmalloc(nthreads * sizeof(struct chimera_info_s *));
+  ctx.ci_array = static_cast<struct chimera_info_s **>(
+    xmalloc(nthreads * sizeof(struct chimera_info_s *)));
 
   for (int t = 0; t < nthreads; t++)
     {
