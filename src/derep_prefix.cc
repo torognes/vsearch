@@ -227,7 +227,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   for (int64_t i = 0; i < dbsequencecount; i++)
     {
       unsigned int const seqlen = db_getsequencelen(i);
-      auto * seq = db_getsequence(i);
+      auto const * seq = db_getsequence(i);
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
@@ -474,7 +474,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       for (int64_t i = 0; i < clusters; i++)
         {
           auto const & bp = hashtable[i];
-          auto * h =  db_getheader(bp.seqno_first);
+          auto const * h =  db_getheader(bp.seqno_first);
           int64_t const len = db_getsequencelen(bp.seqno_first);
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
