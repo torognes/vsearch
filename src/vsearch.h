@@ -433,8 +433,8 @@ std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offs
 std::string const default_sequence_padding = "NNNNNNNN";
 
 struct Parameters {
-  std::string prog_header;
-  std::string command_line;
+  std::string prog_header {};
+  std::string command_line {};
   char * opt_allpairs_global = nullptr;
   char * opt_chimeras_denovo = nullptr;
   char * opt_cluster_fast = nullptr;
@@ -442,7 +442,7 @@ struct Parameters {
   char * opt_cluster_smallmem = nullptr;
   char * opt_cluster_unoise = nullptr;
   char * opt_cut = nullptr;
-  std::string opt_cut_pattern;
+  std::string opt_cut_pattern {};
   char * opt_db = nullptr;
   char * opt_dbmatched = nullptr;
   char * opt_dbnotmatched = nullptr;

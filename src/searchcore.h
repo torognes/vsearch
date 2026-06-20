@@ -137,13 +137,13 @@ struct searchinfo_s
   char * query_head = nullptr;            /* query header */
   int qseqlen = 0;                  /* query length */
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
-  std::vector<char> qsequence_v;  /* vector of query sequence chars */
+  std::vector<char> qsequence_v {};  /* vector of query sequence chars */
   char * qsequence = nullptr;             /* query sequence */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
   unsigned int const * kmersample = nullptr;    /* list of kmers sampled from query */
-  std::vector<count_t> kmers_v; /* vector of kmer counts */
+  std::vector<count_t> kmers_v {}; /* vector of kmer counts */
   count_t * kmers = nullptr;              /* list of kmer counts for each db seq */
-  std::vector<struct hit> hits_v; /* vector of hits */
+  std::vector<struct hit> hits_v {}; /* vector of hits */
   struct hit * hits = nullptr;            /* list of hits */
   int hit_count = 0;                /* number of hits in the above list */
   struct uhandle_s * uh = nullptr;        /* unique kmer finder instance */

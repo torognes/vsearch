@@ -90,7 +90,7 @@ auto xopen_write(const char * path) -> int;
 
 auto xstrcasestr(const char * haystack, const char * needle) -> const char *;
 
-typedef void (* void_func_ptr)();
+using void_func_ptr = void (*)();
 #ifdef _WIN32
 auto arch_dlsym(HMODULE handle, const char * symbol) -> void_func_ptr;
 #else

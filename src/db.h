@@ -66,12 +66,12 @@
 
 struct seqinfo_s
 {
-  std::size_t header_p;
-  std::size_t seq_p;
-  std::size_t qual_p;
-  unsigned int headerlen;
-  unsigned int seqlen;
-  unsigned int size;
+  std::size_t header_p {};
+  std::size_t seq_p {};
+  std::size_t qual_p {};
+  unsigned int headerlen {};
+  unsigned int seqlen {};
+  unsigned int size {};
 };
 
 using seqinfo_t = struct seqinfo_s;

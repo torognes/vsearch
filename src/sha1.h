@@ -3,8 +3,8 @@
 
 #pragma once
 
-#ifndef __SHA1_H
-#define __SHA1_H
+#ifndef SHA1_H
+#define SHA1_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,4 +26,4 @@ void SHA1_Final(SHA1_CTX* context, uint8_t digest[SHA1_DIGEST_SIZE]);
 }
 #endif
 
-#endif /* __SHA1_H */
+#endif /* SHA1_H */
