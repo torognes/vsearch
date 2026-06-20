@@ -40,8 +40,8 @@ if ENABLE_DEBUG
 #   value conversions)
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
-             -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-             -Wold-style-cast -Woverloaded-virtual -Wshadow -Wuninitialized \
+             -Wformat=1 -Wformat-overflow -Wlogical-op -Wnull-dereference \
+             -Wshadow -Wuninitialized \
              -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla \
              -Wno-ignored-attributes
              # -Wno-ignored-attributes: ignore warnings due to
@@ -54,11 +54,13 @@ endif
 
 AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 
-# -Wcast-qual is C++-only: the bundled third-party C sources (md5.c,
-# sha1.c) intentionally cast away const (sha1.c byte-swaps its input
-# block in place), so the flag is restricted to vsearch's own code.
+# C++-only debug warnings. Keeping these out of AM_CFLAGS avoids the
+# "valid for C++/ObjC++ but not for C" diagnostics that GCC emits for
+# the bundled C sources (md5.c, sha1.c).
+# -Wcast-qual is also restricted here because sha1.c intentionally
+# casts away const (it byte-swaps its input block in place).
 if ENABLE_DEBUG
-AM_CXXFLAGS += -Wcast-qual
+AM_CXXFLAGS += -Wcast-qual -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual
 endif
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
