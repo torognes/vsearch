@@ -1326,17 +1326,6 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
 }
 
 
-/*
-  Turn off tree-partial-pre optimizations for the rest of the file.
-  GNU C++ 9 or later generates incorrect code on x86_64 if turned on.
-*/
-
-#ifdef __GNUC__
-#ifndef __clang__
-#pragma GCC optimize ("-fno-tree-partial-pre")
-#endif
-#endif
-
 auto search16(s16info_s * s,
               unsigned int sequences,
               unsigned int * seqnos,
