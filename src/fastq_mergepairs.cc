@@ -651,10 +651,6 @@ auto merge(merge_data_t & a_read_pair) -> void
   a_read_pair.rev_errors = 0;
   auto sym = '\0';
   auto qual = '\0';
-  auto fwd_sym = '\0';
-  auto fwd_qual = '\0';
-  auto rev_sym = '\0';
-  auto rev_qual = '\0';
   int64_t fwd_pos = 0;
   int64_t rev_pos = 0;
   int64_t merged_pos = 0;
@@ -691,10 +687,10 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   while ((fwd_pos < a_read_pair.fwd_trunc) and (rev_pos >= 0))
     {
-      fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
-      rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
-      fwd_qual = a_read_pair.fwd_quality[fwd_pos];
-      rev_qual = a_read_pair.rev_quality[rev_pos];
+      auto fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
+      auto rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
+      auto fwd_qual = a_read_pair.fwd_quality[fwd_pos];
+      auto rev_qual = a_read_pair.rev_quality[rev_pos];
 
       merge_sym(& sym,
                 & qual,
