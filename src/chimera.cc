@@ -533,11 +533,15 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
       }
     }
 
-  /* sort parents by position */
-  std::qsort(best_parents.data(),
-             parents_found,
-             sizeof(struct parents_info_s),
-             compare_positions);
+  /* sort parents by position (skip when empty: qsort requires a
+     non-null pointer even for zero elements) */
+  if (parents_found > 0)
+    {
+      std::qsort(best_parents.data(),
+                 parents_found,
+                 sizeof(struct parents_info_s),
+                 compare_positions);
+    }
 
   ci->parents_found = parents_found;
 
