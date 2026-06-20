@@ -846,8 +846,6 @@ auto build_sam_strings(char const * alignment,
   if (not flag)
     {
       md.add_d(matched);
-      matched = 0;
-      flag = true;
     }
 }
 
