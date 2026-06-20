@@ -164,7 +164,7 @@ auto db_add(bool const is_fastq_record,
     }
   if (dataalloc > dataalloc_old)
     {
-      datap = (char *) xrealloc(datap, dataalloc);
+      datap = static_cast<char *>(xrealloc(datap, dataalloc));
     }
 
   /* store the header */
@@ -199,7 +199,7 @@ auto db_add(bool const is_fastq_record,
     }
   if (seqindex_alloc > seqindex_alloc_old)
     {
-      seqindex = (seqinfo_t *) xrealloc(seqindex, seqindex_alloc);
+      seqindex = static_cast<seqinfo_t *>(xrealloc(seqindex, seqindex_alloc));
     }
 
   /* update index */
@@ -214,9 +214,9 @@ auto db_add(bool const is_fastq_record,
   /* update statistics */
   ++sequences;
   nucleotides += sequencelength;
-  longest = std::max((uint64_t)sequencelength, longest);
-  shortest = std::min((uint64_t)sequencelength, shortest);
-  longestheader = std::max((uint64_t)headerlength, longestheader);
+  longest = std::max(static_cast<uint64_t>(sequencelength), longest);
+  shortest = std::min(static_cast<uint64_t>(sequencelength), shortest);
+  longestheader = std::max(static_cast<uint64_t>(headerlength), longestheader);
 }
 
 
@@ -262,11 +262,11 @@ auto db_read(const char * filename, int upcase) -> void
       size_t const sequencelength = fastx_get_sequence_length(h);
       int64_t const abundance = fastx_get_abundance(h);
 
-      if (sequencelength < (size_t) opt_minseqlength)
+      if (sequencelength < static_cast<size_t>(opt_minseqlength))
         {
           ++discarded_short;
         }
-      else if (sequencelength > (size_t) opt_maxseqlength)
+      else if (sequencelength > static_cast<size_t>(opt_maxseqlength))
         {
           ++discarded_long;
         }
