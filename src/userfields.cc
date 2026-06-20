@@ -127,7 +127,7 @@ auto parse_userfields_arg(char const * arg) -> int
 
   userfields_requested_count = std::count(ptr, end_of_string, separator) + 1;
 
-  userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * (uint64_t) userfields_requested_count));
+  userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * static_cast<uint64_t>(userfields_requested_count)));
 
   ptr = arg;  // reset to the start of the string
 
