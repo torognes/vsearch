@@ -134,10 +134,10 @@ auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 
 auto allpairs_output_results(int hit_count,
                              struct hit * hits,
-                             char * query_head,
+                             char const * query_head,
                              int qseqlen,
-                             char * qsequence,
-                             char * qsequence_rc) -> void
+                             char const * qsequence,
+                             char const * qsequence_rc) -> void
 {
   /* show results */
   auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
@@ -579,7 +579,7 @@ auto allpairs_thread_worker_run() -> void
 }
 
 
-auto allpairs_global(struct Parameters const & parameters, char * cmdline, char * progheader) -> void
+auto allpairs_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
   /* open output files */
 
