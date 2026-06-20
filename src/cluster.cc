@@ -243,7 +243,7 @@ inline auto cluster_worker(int64_t t) -> void
 
 auto threads_worker(void * vp) -> void *
 {
-  auto t = (int64_t) vp;
+  auto t = reinterpret_cast<int64_t>(vp);
   thread_info_s * tip = ti + t;
   xpthread_mutex_lock(&tip->mutex);
   /* loop until signalled to quit */
@@ -310,7 +310,7 @@ auto threads_init() -> void
   xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
   /* allocate memory for thread info */
-  ti = (thread_info_t *) xmalloc(opt_threads * sizeof(thread_info_t));
+  ti = static_cast<thread_info_t *>(xmalloc(opt_threads * sizeof(thread_info_t)));
 
   /* init and create worker threads */
   for (int t = 0; t < opt_threads; t++)
@@ -319,7 +319,7 @@ auto threads_init() -> void
       tip->work = 0;
       xpthread_mutex_init(&tip->mutex, nullptr);
       xpthread_cond_init(&tip->cond, nullptr);
-      xpthread_create(&tip->thread, &attr, threads_worker, (void *) (int64_t) t);
+      xpthread_create(&tip->thread, &attr, threads_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 }
 
@@ -360,10 +360,10 @@ auto cluster_query_init(struct searchinfo_s * si) -> void
   /* allocate memory for sequence */
 
   si->seq_alloc = db_getlongestsequence() + 1;
-  si->qsequence = (char *) xmalloc(si->seq_alloc);
+  si->qsequence = static_cast<char *>(xmalloc(si->seq_alloc));
 
-  si->kmers = (count_t *) xmalloc((seqcount * sizeof(count_t)) + 32);
-  si->hits = (struct hit *) xmalloc(sizeof(struct hit) * tophits);
+  si->kmers = static_cast<count_t *>(xmalloc((seqcount * sizeof(count_t)) + 32));
+  si->hits = static_cast<struct hit *>(xmalloc(sizeof(struct hit) * tophits));
 
   si->uh = unique_init();
   si->m = minheap_init(tophits);
@@ -413,23 +413,23 @@ auto relabel_otu(int clusterno, char * sequence, int seqlen) -> char *
   if (opt_relabel != nullptr)
     {
       int const size = std::strlen(opt_relabel) + 21;
-      label = (char *) xmalloc(size);
+      label = static_cast<char *>(xmalloc(size));
       snprintf(label, size, "%s%d", opt_relabel, clusterno + 1);
     }
   else if (opt_relabel_self)
     {
       int const size = seqlen + 1;
-      label = (char *) xmalloc(size);
+      label = static_cast<char *>(xmalloc(size));
       snprintf(label, size, "%.*s", seqlen, sequence);
     }
   else if (opt_relabel_sha1)
     {
-      label = (char *) xmalloc(len_hex_dig_sha1);
+      label = static_cast<char *>(xmalloc(len_hex_dig_sha1));
       get_hex_seq_digest_sha1(label, sequence, seqlen);
     }
   else if (opt_relabel_md5)
     {
-      label = (char *) xmalloc(len_hex_dig_md5);
+      label = static_cast<char *>(xmalloc(len_hex_dig_md5));
       get_hex_seq_digest_md5(label, sequence, seqlen);
     }
   return label;
@@ -895,12 +895,12 @@ auto cluster_core_parallel() -> void
 
   /* allocate memory for the search information for each query;
      and initialize it */
-  si_plus = (struct searchinfo_s *) xmalloc(max_queries *
-                                            sizeof(struct searchinfo_s));
+  si_plus = static_cast<struct searchinfo_s *>(xmalloc(max_queries *
+                                            sizeof(struct searchinfo_s)));
   if (opt_strand > 1)
     {
-      si_minus = (struct searchinfo_s *) xmalloc(max_queries *
-                                                 sizeof(struct searchinfo_s));
+      si_minus = static_cast<struct searchinfo_s *>(xmalloc(max_queries *
+                                                 sizeof(struct searchinfo_s)));
     }
   for (int i = 0; i < max_queries; i++)
     {
@@ -1903,7 +1903,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->identity = best->id;
       std::snprintf(result->centroid_label, sizeof(result->centroid_label),
                     "%.*s",
-                    (int) db_getheaderlen(best->target),
+                    static_cast<int>(db_getheaderlen(best->target)),
                     db_getheader(best->target));
       if (best->nwalignment != nullptr)
         {
@@ -1922,7 +1922,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->identity = 100.0;
       std::snprintf(result->centroid_label, sizeof(result->centroid_label),
                     "%.*s",
-                    (int) db_getheaderlen(seqno),
+                    static_cast<int>(db_getheaderlen(seqno)),
                     db_getheader(seqno));
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
@@ -1955,12 +1955,12 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
   struct searchinfo_s * saved_si_minus = si_minus;
 
   /* Allocate per-thread search state for the batch */
-  si_plus = (struct searchinfo_s *)
-    xmalloc(max_queries * sizeof(struct searchinfo_s));
+  si_plus = static_cast<struct searchinfo_s *>(
+    xmalloc(max_queries * sizeof(struct searchinfo_s)));
   if (opt_strand > 1)
     {
-      si_minus = (struct searchinfo_s *)
-        xmalloc(max_queries * sizeof(struct searchinfo_s));
+      si_minus = static_cast<struct searchinfo_s *>(
+        xmalloc(max_queries * sizeof(struct searchinfo_s)));
     }
   else
     {
@@ -1969,12 +1969,12 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
   for (int i = 0; i < max_queries; i++)
     {
-      std::memset((void*)(si_plus + i), 0, sizeof(struct searchinfo_s));
+      std::memset(static_cast<void *>(si_plus + i), 0, sizeof(struct searchinfo_s));
       cluster_query_init(si_plus + i);
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
-          std::memset((void*)(si_minus + i), 0, sizeof(struct searchinfo_s));
+          std::memset(static_cast<void *>(si_minus + i), 0, sizeof(struct searchinfo_s));
           cluster_query_init(si_minus + i);
           si_minus[i].strand = 1;
         }
@@ -2075,7 +2075,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               std::snprintf(results[ri].centroid_label,
                             sizeof(results[ri].centroid_label),
                             "%.*s",
-                            (int) db_getheaderlen(best->target),
+                            static_cast<int>(db_getheaderlen(best->target)),
                             db_getheader(best->target));
               if (best->nwalignment != nullptr)
                 {
@@ -2099,7 +2099,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               std::snprintf(results[ri].centroid_label,
                             sizeof(results[ri].centroid_label),
                             "%.*s",
-                            (int) db_getheaderlen(myseqno),
+                            static_cast<int>(db_getheaderlen(myseqno)),
                             db_getheader(myseqno));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
