@@ -158,9 +158,9 @@ constexpr __vector unsigned char perm_merge_long_high =
    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
 
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
-#define v_load(a) vec_ld(0, reinterpret_cast<VECTOR_SHORT *>(a))
+#define v_load(a) vec_ld(0, (VECTOR_SHORT *)(a))
 #define v_store(a, b) vec_st((__vector unsigned char)(b), 0,    \
-                             reinterpret_cast<__vector unsigned char *>(a))
+                             (__vector unsigned char *)(a))
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_sub_unsigned(a, b) ((VECTOR_SHORT)                            \
@@ -183,8 +183,8 @@ constexpr uint16x8_t neon_mask =
 
 // warning: ISO C++ forbids compound-literals [-Wpedantic] (line below) (clang specific?)
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
-#define v_load(a) vld1q_s16(reinterpret_cast<const int16_t *>(a))
-#define v_store(a, b) vst1q_s16(reinterpret_cast<int16_t *>(a), (b))
+#define v_load(a) vld1q_s16((const int16_t *)(a))
+#define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
 #define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
 #define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
 #define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))

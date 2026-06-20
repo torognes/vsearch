@@ -34,10 +34,13 @@ if ENABLE_DEBUG
 #   which fires on the non-variadic printf wrappers fatal()/warn() and
 #   cannot be silenced by __attribute__((format)) on a non-variadic
 #   function
-# -Wold-style-cast is verified clean on x86_64 and aarch64; on __PPC__
-#   a few AltiVec vector-value casts in align_simd.cc remain as C-style
-#   casts (no portable C++ named-cast equivalent for vector-to-vector
-#   value conversions)
+# -Wold-style-cast is a debug-build flag, and debug builds target
+#   x86_64, where it is verified clean. The __PPC__ and __aarch64__
+#   SIMD paths in align_simd.cc keep some C-style casts: the v_load /
+#   v_store macros must strip const while reinterpreting (the PPC
+#   ALIGNCORE loads from a const vector), and PPC AltiVec vector-value
+#   casts have no portable C++ named-cast equivalent. These paths are
+#   only compiled when cross-building for POWER/ARM.
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
              -Wformat=1 -Wformat-overflow -Wlogical-op -Wnull-dereference \
