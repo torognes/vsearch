@@ -519,7 +519,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
 }
 
 
-auto args_get_length_cutoffs(char * arg) -> void
+auto args_get_length_cutoffs(char const * arg) -> void
 {
   /* get comma-separated list of 3 integers: */
   /* smallest, largest and increment. */
@@ -746,7 +746,7 @@ auto args_get_gap_penalty_string(char * arg, bool const is_open) -> void
 }
 
 
-auto args_getlong(char * arg) -> int64_t
+auto args_getlong(char const * arg) -> int64_t
 {
   int len = 0;
   int64_t temp = 0;
@@ -760,7 +760,7 @@ auto args_getlong(char * arg) -> int64_t
 }
 
 
-auto args_getdouble(char * arg) -> double
+auto args_getdouble(char const * arg) -> double
 {
   int len = 0;
   double temp = 0;
