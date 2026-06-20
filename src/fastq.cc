@@ -716,7 +716,7 @@ auto fastq_print_general(FILE * output_handle,
 
   if (opt_sizeout && (abundance > 0))
     {
-      std::fprintf(output_handle, ";size=%u", abundance);
+      std::fprintf(output_handle, ";size=%d", abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0))
