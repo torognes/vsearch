@@ -937,7 +937,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   /* Free all seqs and headers */
 
-  for (auto & bucket : hashtable) {
+  for (auto const & bucket : hashtable) {
     if (bucket.size == 0U) { continue; }
     xfree(bucket.seq);
     xfree(bucket.header);
