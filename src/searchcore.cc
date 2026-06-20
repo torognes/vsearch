@@ -302,7 +302,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
         }
       else
         {
-          auto * list = dbindex_getmatchlist(kmer);
+          auto const * list = dbindex_getmatchlist(kmer);
           auto const count = dbindex_getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
@@ -829,8 +829,8 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 }
 
 
-auto search_findbest2_byid(struct searchinfo_s * si_p,
-                           struct searchinfo_s * si_m) -> struct hit *
+auto search_findbest2_byid(struct searchinfo_s const * si_p,
+                           struct searchinfo_s const * si_m) -> struct hit *
 {
   struct hit * best = nullptr;
 
@@ -862,8 +862,8 @@ auto search_findbest2_byid(struct searchinfo_s * si_p,
 }
 
 
-auto search_findbest2_bysize(struct searchinfo_s * si_p,
-                             struct searchinfo_s * si_m) -> struct hit *
+auto search_findbest2_bysize(struct searchinfo_s const * si_p,
+                             struct searchinfo_s const * si_m) -> struct hit *
 {
   struct hit * best = nullptr;
 
@@ -895,8 +895,8 @@ auto search_findbest2_bysize(struct searchinfo_s * si_p,
 }
 
 
-auto search_joinhits(struct searchinfo_s * si_plus,
-                     struct searchinfo_s * si_minus,
+auto search_joinhits(struct searchinfo_s const * si_plus,
+                     struct searchinfo_s const * si_minus,
                      std::vector<struct hit> & hits) -> void
 {
   /* join and sort accepted and weak hits from both strands */
