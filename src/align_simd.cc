@@ -267,6 +267,38 @@ struct s16info_s
 };
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Read and write a single 16-bit channel (lane) of a SIMD vector.
+
+     The DP vectors hold CHANNELS independent alignments. Accessing a lane
+     through a reinterpreted (CELL *) pointer is a strict-aliasing violation:
+     the vector object has type VECTOR_SHORT, so reading or writing it through
+     an unrelated CELL lvalue is undefined behaviour. With GCC 9 or later at
+     -O3 on x86_64 this miscompiled the per-channel reset of the H and F
+     vectors, producing wrong alignments (see issue #589). std::memcpy accesses
+     the object representation as bytes, which is always well-defined, and the
+     compiler lowers it to a plain vector-lane move. */
+  auto get_channel(VECTOR_SHORT const & vector, int const channel) -> CELL
+  {
+    CELL value = 0;
+    std::memcpy(&value,
+                reinterpret_cast<char const *>(&vector) + (channel * sizeof(CELL)),
+                sizeof(CELL));
+    return value;
+  }
+
+  auto set_channel(VECTOR_SHORT & vector, int const channel, CELL const value) -> void
+  {
+    std::memcpy(reinterpret_cast<char *>(&vector) + (channel * sizeof(CELL)),
+                &value,
+                sizeof(CELL));
+  }
+
+}  // end of anonymous namespace
+
+
 auto _mm_print(VECTOR_SHORT const x) -> void
 {
   auto * y = (unsigned short *) &x;
@@ -1040,9 +1072,11 @@ auto backtrack16(s16info_s * s,
       // block3 = 16 * qlen * (j / 4);
       // block4 = 16 * i;
       // block5 = 4 * (j & 3);
-      uint64_t const d = *((uint64_t *) (dirbuffer +
-                                         ((offset + (matrix_size * qlen * (j / 4)) +
-                                           (matrix_size * i) + (4 * (j & 3))) % dirbuffersize)));
+      unsigned short const * const dir_word = dirbuffer +
+        ((offset + (matrix_size * qlen * (j / 4)) +
+          (matrix_size * i) + (4 * (j & 3))) % dirbuffersize);
+      uint64_t d = 0;
+      std::memcpy(&d, dir_word, sizeof(d));
 
       if ((s->op == 'I') and ((d & maskextleft) != 0U))
         {
@@ -1615,8 +1649,8 @@ auto search16(s16info_s * s,
             {
               if (not overflow[c])
                 {
-                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = get_channel(h_min_vector, c);
+                  signed short const h_max_c = get_channel(h_max_vector, c);
                   if ((h_min_c <= score_min) or
                       (h_max_c >= score_max))
                     {
@@ -1672,7 +1706,7 @@ auto search16(s16info_s * s,
                       char * dbseq = (char *) d_address[c];
                       int64_t const dbseqlen = d_length[c];
                       int64_t const z = (dbseqlen + 3) % 4;
-                      int64_t const score = ((CELL *) S.data())[(z * CHANNELS) + c];
+                      int64_t const score = get_channel(S[z], c);
 
                       if (overflow[c])
                         {
@@ -1731,22 +1765,22 @@ auto search16(s16info_s * s,
                       d_offset[c] = dir - dirbuffer;
                       overflow[c] = false;
 
-                      ((CELL *) &H0)[c] = 0;
-                      ((CELL *) &H1)[c] = - s->penalty_gap_open_query_left
-                        - (1 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &H2)[c] = - s->penalty_gap_open_query_left
-                        - (2 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &H3)[c] = - s->penalty_gap_open_query_left
-                        - (3 * s->penalty_gap_extension_query_left);
+                      set_channel(H0, c, 0);
+                      set_channel(H1, c, - s->penalty_gap_open_query_left
+                        - (1 * s->penalty_gap_extension_query_left));
+                      set_channel(H2, c, - s->penalty_gap_open_query_left
+                        - (2 * s->penalty_gap_extension_query_left));
+                      set_channel(H3, c, - s->penalty_gap_open_query_left
+                        - (3 * s->penalty_gap_extension_query_left));
 
-                      ((CELL *) &F0)[c] = - s->penalty_gap_open_query_left
-                        - (1 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &F1)[c] = - s->penalty_gap_open_query_left
-                        - (2 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &F2)[c] = - s->penalty_gap_open_query_left
-                        - (3 * s->penalty_gap_extension_query_left);
-                      ((CELL *) &F3)[c] = - s->penalty_gap_open_query_left
-                        - (4 * s->penalty_gap_extension_query_left);
+                      set_channel(F0, c, - s->penalty_gap_open_query_left
+                        - (1 * s->penalty_gap_extension_query_left));
+                      set_channel(F1, c, - s->penalty_gap_open_query_left
+                        - (2 * s->penalty_gap_extension_query_left));
+                      set_channel(F2, c, - s->penalty_gap_open_query_left
+                        - (3 * s->penalty_gap_extension_query_left));
+                      set_channel(F3, c, - s->penalty_gap_open_query_left
+                        - (4 * s->penalty_gap_extension_query_left));
 
                       /* fill channel */
 
@@ -1869,8 +1903,8 @@ auto search16(s16info_s * s,
             {
               if (not overflow[c])
                 {
-                  signed short const h_min_c = ((signed short *) (& h_min_vector))[c];
-                  signed short const h_max_c = ((signed short *) (& h_max_vector))[c];
+                  signed short const h_min_c = get_channel(h_min_vector, c);
+                  signed short const h_max_c = get_channel(h_max_vector, c);
                   if ((h_min_c <= score_min) or (h_max_c >= score_max))
                     {
                       overflow[c] = true;
