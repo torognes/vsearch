@@ -158,9 +158,9 @@ constexpr __vector unsigned char perm_merge_long_high =
    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
 
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
-#define v_load(a) vec_ld(0, (VECTOR_SHORT *)(a))
+#define v_load(a) vec_ld(0, reinterpret_cast<VECTOR_SHORT *>(a))
 #define v_store(a, b) vec_st((__vector unsigned char)(b), 0,    \
-                             (__vector unsigned char *)(a))
+                             reinterpret_cast<__vector unsigned char *>(a))
 #define v_add(a, b) vec_adds((a), (b))
 #define v_sub(a, b) vec_subs((a), (b))
 #define v_sub_unsigned(a, b) ((VECTOR_SHORT)                            \
@@ -168,7 +168,7 @@ constexpr __vector unsigned char perm_merge_long_high =
                                        (__vector unsigned short) (b)))
 #define v_max(a, b) vec_max((a), (b))
 #define v_min(a, b) vec_min((a), (b))
-#define v_dup(a) vec_splat((VECTOR_SHORT){(short)(a), 0, 0, 0, 0, 0, 0, 0}, 0);
+#define v_dup(a) vec_splat((VECTOR_SHORT){static_cast<short>(a), 0, 0, 0, 0, 0, 0, 0}, 0);
 #define v_zero vec_splat_s16(0)
 #define v_and(a, b) vec_and((a), (b))
 #define v_xor(a, b) vec_xor((a), (b))
@@ -183,8 +183,8 @@ constexpr uint16x8_t neon_mask =
 
 // warning: ISO C++ forbids compound-literals [-Wpedantic] (line below) (clang specific?)
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
-#define v_load(a) vld1q_s16((const int16_t *)(a))
-#define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
+#define v_load(a) vld1q_s16(reinterpret_cast<const int16_t *>(a))
+#define v_store(a, b) vst1q_s16(reinterpret_cast<int16_t *>(a), (b))
 #define v_merge_lo_16(a, b) vzip1q_s16((a),(b))
 #define v_merge_hi_16(a, b) vzip2q_s16((a),(b))
 #define v_merge_lo_32(a, b) vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(b)))
@@ -208,8 +208,8 @@ constexpr uint16x8_t neon_mask =
 using VECTOR_SHORT = __m128i;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
-#define v_load(a) _mm_load_si128((VECTOR_SHORT *)(a))
-#define v_store(a, b) _mm_store_si128((VECTOR_SHORT *)(a), (b))
+#define v_load(a) _mm_load_si128(reinterpret_cast<VECTOR_SHORT *>(a))
+#define v_store(a, b) _mm_store_si128(reinterpret_cast<VECTOR_SHORT *>(a), (b))
 #define v_merge_lo_16(a, b) _mm_unpacklo_epi16((a),(b))
 #define v_merge_hi_16(a, b) _mm_unpackhi_epi16((a),(b))
 #define v_merge_lo_32(a, b) _mm_unpacklo_epi32((a),(b))
@@ -1184,10 +1184,10 @@ auto search16_init(CELL score_match,
   (void) score_mismatch;
 
   /* prepare alloc of qtable, dprofile, hearray, dir */
-  auto * s = (struct s16info_s *)
-    xmalloc(sizeof(struct s16info_s));
+  auto * s = static_cast<struct s16info_s *>(
+    xmalloc(sizeof(struct s16info_s)));
 
-  s->dprofile = (VECTOR_SHORT *) xmalloc(2 * 4 * 8 * 16);
+  s->dprofile = static_cast<VECTOR_SHORT *>(xmalloc(2 * 4 * 8 * 16));
   s->qlen = 0;
   s->qseq = nullptr;
   s->maxdlen = 0;
@@ -1220,7 +1220,7 @@ auto search16_init(CELL score_match,
             {
               value = opt_mismatch;
             }
-          ((CELL *) (s->matrix.data()))[(matrix_size * i) + j] = value;
+          (reinterpret_cast<CELL *>(s->matrix.data()))[(matrix_size * i) + j] = value;
           scorematrix[i][j] = value;
         }
     }
@@ -1294,14 +1294,14 @@ auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
     {
       xfree(s->hearray);
     }
-  s->hearray = (VECTOR_SHORT *) xmalloc(2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
+  s->hearray = static_cast<VECTOR_SHORT *>(xmalloc(2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT)));
   std::memset(s->hearray, 0, 2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
 
   if (s->qtable != nullptr)
     {
       xfree(s->qtable);
     }
-  s->qtable = (VECTOR_SHORT **) xmalloc(s->qlen * sizeof(VECTOR_SHORT*));
+  s->qtable = static_cast<VECTOR_SHORT **>(xmalloc(s->qlen * sizeof(VECTOR_SHORT*)));
 
   for (int i = 0; i < qlen; i++)
     {
@@ -1336,9 +1336,9 @@ auto search16(s16info_s * s,
               unsigned short * pgaps,
               char ** pcigar) -> void
 {
-  CELL ** q_start = (CELL **) s->qtable;
-  CELL * dprofile = (CELL *) s->dprofile;
-  CELL * hearray = (CELL *) s->hearray;
+  CELL ** q_start = reinterpret_cast<CELL **>(s->qtable);
+  CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile);
+  CELL * hearray = reinterpret_cast<CELL *>(s->hearray);
   uint64_t const qlen = s->qlen;
 
   if (qlen == 0)
@@ -1393,7 +1393,7 @@ auto search16(s16info_s * s,
             }
           else
             {
-              cigar = (char *) xmalloc(1);
+              cigar = static_cast<char *>(xmalloc(1));
               cigar[0] = 0;
             }
           pcigar[cand_id] = cigar;
@@ -1423,8 +1423,8 @@ auto search16(s16info_s * s,
         {
           xfree(s->dir);
         }
-      s->dir = (unsigned short*) xmalloc(dirbuffersize *
-                                         sizeof(unsigned short));
+      s->dir = static_cast<unsigned short*>(xmalloc(dirbuffersize *
+                                         sizeof(unsigned short)));
     }
 
   unsigned short * dirbuffer = s->dir;
@@ -1436,7 +1436,7 @@ auto search16(s16info_s * s,
         {
           xfree(s->cigar);
         }
-      s->cigar = (char *) xmalloc(s->cigaralloc);
+      s->cigar = static_cast<char *>(xmalloc(s->cigaralloc));
     }
 
   VECTOR_SHORT M;
@@ -1475,7 +1475,7 @@ auto search16(s16info_s * s,
   std::array<VECTOR_SHORT, CDEPTH> dseqalloc {{}};
   std::array<VECTOR_SHORT, 4> S {{}};
 
-  BYTE * dseq = (BYTE *) dseqalloc.data();
+  BYTE * dseq = reinterpret_cast<BYTE *>(dseqalloc.data());
   BYTE zero = 0;
 
   uint64_t next_id = 0;
@@ -1512,8 +1512,8 @@ auto search16(s16info_s * s,
   R_target_right  = v_dup(s->penalty_gap_extension_target_right);
 #pragma GCC diagnostic pop
 
-  hep = (VECTOR_SHORT *) hearray;
-  qp = (VECTOR_SHORT **) q_start;
+  hep = reinterpret_cast<VECTOR_SHORT *>(hearray);
+  qp = reinterpret_cast<VECTOR_SHORT **>(q_start);
 
   for (int c = 0; c < CHANNELS; c++)
     {
@@ -1574,7 +1574,7 @@ auto search16(s16info_s * s,
                 }
             }
 
-          dprofile_fill16(dprofile, (CELL*) s->matrix.data(), dseq);
+          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s->matrix.data()), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
@@ -1692,7 +1692,7 @@ auto search16(s16info_s * s,
                     {
                       /* save score */
 
-                      char * dbseq = (char *) d_address[c];
+                      char * dbseq = reinterpret_cast<char *>(d_address[c]);
                       int64_t const dbseqlen = d_length[c];
                       int64_t const z = (dbseqlen + 3) % 4;
                       int64_t const score = get_channel(S[z], c);
@@ -1715,7 +1715,7 @@ auto search16(s16info_s * s,
                                       pmismatches + cand_id,
                                       pgaps + cand_id);
                           pcigar[cand_id] =
-                            (char *) xmalloc(std::strlen(s->cigar)+1);
+                            static_cast<char *>(xmalloc(std::strlen(s->cigar)+1));
                           strcpy(pcigar[cand_id], s->cigar);
                         }
 
@@ -1747,10 +1747,10 @@ auto search16(s16info_s * s,
                     {
                       seq_id[c] = cand_id;
                       char * address = db_getsequence(seqnos[cand_id]);
-                      d_address[c] = (BYTE *) address;
+                      d_address[c] = reinterpret_cast<BYTE *>(address);
                       d_length[c] = length;
-                      d_begin[c] = (unsigned char *) address;
-                      d_end[c] = (unsigned char *) address + length;
+                      d_begin[c] = reinterpret_cast<unsigned char *>(address);
+                      d_end[c] = reinterpret_cast<unsigned char *>(address) + length;
                       d_offset[c] = dir - dirbuffer;
                       overflow[c] = false;
 
@@ -1824,7 +1824,7 @@ auto search16(s16info_s * s,
           M_QR_query_interior = v_and(M, QR_query_interior);
           M_QR_query_right = v_and(M, QR_query_right);
 
-          dprofile_fill16(dprofile, (CELL *) s->matrix.data(), dseq);
+          dprofile_fill16(dprofile, reinterpret_cast<CELL *>(s->matrix.data()), dseq);
 
           /* create vectors of gap penalties for target depending on whether
              any of the database sequences ended in these four columns */
