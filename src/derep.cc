@@ -83,19 +83,24 @@ using Hash = decltype(&hash_cityhash64);
 static Hash hash_function = hash_cityhash64;
 
 
-struct bucket
-{
-  uint64_t hash = 0;
-  unsigned int seqno_first = 0;
-  unsigned int seqno_last = 0;
-  unsigned int size = 0;
-  unsigned int count = 0;
-  unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
-  bool deleted = false;
-  char * header = nullptr;
-  char * seq = nullptr;
-  char * qual = nullptr;
-};
+// anonymous namespace: 'bucket' is a file-local type; derep_prefix.cc
+// defines a different struct of the same name, so internal linkage
+// here avoids a one-definition-rule violation across translation units
+namespace {
+  struct bucket
+  {
+    uint64_t hash = 0;
+    unsigned int seqno_first = 0;
+    unsigned int seqno_last = 0;
+    unsigned int size = 0;
+    unsigned int count = 0;
+    unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
+    bool deleted = false;
+    char * header = nullptr;
+    char * seq = nullptr;
+    char * qual = nullptr;
+  };
+}
 
 
 static auto rehash(std::vector<struct bucket> & hashtable) -> void

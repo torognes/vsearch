@@ -73,18 +73,23 @@
 #include <vector>
 
 
-struct bucket
-{
-  uint64_t hash = 0;
-  unsigned int seqno_first = 0;
-  unsigned int seqno_last = 0;
-  unsigned int size = 0;
-  unsigned int count = 0;
-  bool deleted = false;
-  char * header = nullptr;
-  char * seq = nullptr;
-  char * qual = nullptr;
-};
+// anonymous namespace: 'bucket' is a file-local type; derep.cc defines
+// a different struct of the same name, so internal linkage here avoids
+// a one-definition-rule violation across translation units
+namespace {
+  struct bucket
+  {
+    uint64_t hash = 0;
+    unsigned int seqno_first = 0;
+    unsigned int seqno_last = 0;
+    unsigned int size = 0;
+    unsigned int count = 0;
+    bool deleted = false;
+    char * header = nullptr;
+    char * seq = nullptr;
+    char * qual = nullptr;
+  };
+}
 
 
 // refactoring: FNV-1A is the hashing function used in std::hash
