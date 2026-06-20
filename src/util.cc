@@ -344,7 +344,7 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> 
 
   std::vector<unsigned char> digest(sha1_digest_length);
 
-  SHA1((const unsigned char *) normalized.data(),
+  SHA1(reinterpret_cast<unsigned char const *>(normalized.data()),
        static_cast<std::size_t>(seqlen),
        digest.data());
 
