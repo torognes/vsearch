@@ -504,15 +504,15 @@ auto sintax_thread_run(int64_t const t) -> void
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
                   si->query_head_alloc = si->query_head_len + 2001;
-                  si->query_head = (char *)
-                    xrealloc(si->query_head, (size_t)(si->query_head_alloc));
+                  si->query_head = static_cast<char *>(
+                    xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
                   si->seq_alloc = si->qseqlen + 2001;
-                  si->qsequence = (char *)
-                    xrealloc(si->qsequence, (size_t)(si->seq_alloc));
+                  si->qsequence = static_cast<char *>(
+                    xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
                 }
             }
 
@@ -558,7 +558,7 @@ auto sintax_thread_init(struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
-  si->kmers = (count_t *) xmalloc((seqcount * sizeof(count_t)) + 32);
+  si->kmers = static_cast<count_t *>(xmalloc((seqcount * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
   si->hits = nullptr;
   si->qsize = 1;
@@ -590,7 +590,7 @@ auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 
 auto sintax_thread_worker(void * void_ptr) -> void *
 {
-  auto t = (int64_t) void_ptr;
+  auto t = reinterpret_cast<int64_t>(void_ptr);
   sintax_thread_run(t);
   return nullptr;
 }
@@ -612,7 +612,7 @@ auto sintax_thread_worker_run() -> void
           sintax_thread_init(si_minus + t);
         }
       xpthread_create(pthread + t, &attr,
-                      sintax_thread_worker, (void *) (int64_t)t);
+                      sintax_thread_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
   /* finish and clean up worker threads */
@@ -683,19 +683,19 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* allocate memory for thread info */
 
-  si_plus = (struct searchinfo_s *) xmalloc(opt_threads *
-                                            sizeof(struct searchinfo_s));
+  si_plus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
+                                            sizeof(struct searchinfo_s)));
   if (opt_strand > 1)
     {
-      si_minus = (struct searchinfo_s *) xmalloc(opt_threads *
-                                                 sizeof(struct searchinfo_s));
+      si_minus = static_cast<struct searchinfo_s *>(xmalloc(opt_threads *
+                                                 sizeof(struct searchinfo_s)));
     }
   else
     {
       si_minus = nullptr;
     }
 
-  pthread = (pthread_t *) xmalloc(opt_threads * sizeof(pthread_t));
+  pthread = static_cast<pthread_t *>(xmalloc(opt_threads * sizeof(pthread_t)));
 
   /* init mutexes for input and output */
   xpthread_mutex_init(&mutex_input, nullptr);
