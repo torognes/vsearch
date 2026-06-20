@@ -390,7 +390,7 @@ auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters co
 auto write_report(std::FILE * output_stream,
                   struct sff_header_s const & sff_header,
                   struct sff_read_stats const & sff_stats,
-                  char * index_kind) -> void {
+                  char const * index_kind) -> void {
   if (sff_header.index_length != 0) {
     std::fprintf(output_stream, "Index type:      %s\n", index_kind);
   }
