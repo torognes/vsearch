@@ -745,8 +745,8 @@ auto search_exact_prep(char const * cmdline, char const * progheader) -> void
   /* tophits = the maximum number of hits we need to store */
   tophits = seqcount;
 
-  dbmatched = static_cast<uint64_t *>(xmalloc(seqcount * sizeof(uint64_t *)));
-  std::memset(dbmatched, 0, seqcount * sizeof(uint64_t *));
+  dbmatched = static_cast<uint64_t *>(xmalloc(seqcount * sizeof(uint64_t)));
+  std::memset(dbmatched, 0, seqcount * sizeof(uint64_t));
 
   dbhash_open(seqcount);
   dbhash_add_all();
