@@ -707,7 +707,7 @@ auto results_show_alnout(std::FILE * output_handle,
       fprintf(output_handle,"\n");
 
 
-      auto * dseq = db_getsequence(hp->target);
+      auto const * dseq = db_getsequence(hp->target);
       int64_t const dseqlen = db_getsequencelen(hp->target);
 
       auto const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
