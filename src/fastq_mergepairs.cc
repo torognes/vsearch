@@ -1777,7 +1777,7 @@ auto mergepairs_single(const char * fwd_seq,
      failed merge leaves nullptr pointers for the caller. On success
      the buffers are xmalloc'd to the exact merged length; the caller
      owns them and must release via merge_result_free(). */
-  std::memset(result, 0, sizeof(*result));
+  *result = {};
   result->merged = md.merged;
 
   if (md.merged)
