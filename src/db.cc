@@ -571,10 +571,13 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
 auto db_sortbylength() -> void
 {
   progress_init("Sorting by length", 100);
-  qsort(seqindex,
-        sequences,
-        sizeof(seqinfo_t),
-        compare_bylength);
+  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+    {
+      qsort(seqindex,
+            sequences,
+            sizeof(seqinfo_t),
+            compare_bylength);
+    }
   progress_done();
 }
 
@@ -582,10 +585,13 @@ auto db_sortbylength() -> void
 auto db_sortbylength_shortest_first() -> void
 {
   progress_init("Sorting by length", 100);
-  qsort(seqindex,
-        sequences,
-        sizeof(seqinfo_t),
-        compare_bylength_shortest_first);
+  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+    {
+      qsort(seqindex,
+            sequences,
+            sizeof(seqinfo_t),
+            compare_bylength_shortest_first);
+    }
   progress_done();
 }
 
@@ -593,9 +599,12 @@ auto db_sortbylength_shortest_first() -> void
 auto db_sortbyabundance() -> void
 {
   progress_init("Sorting by abundance", 100);
-  qsort(seqindex,
-        sequences,
-        sizeof(seqinfo_t),
-        compare_byabundance);
+  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+    {
+      qsort(seqindex,
+            sequences,
+            sizeof(seqinfo_t),
+            compare_byabundance);
+    }
   progress_done();
 }
