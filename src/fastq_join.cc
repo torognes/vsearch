@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include "fastq.h"  // fastq_open, fastq_get_sequence, fastq_get_quality
+#include "fastx.h"  // fastx_handle
+#include "util.h"  // progress_done
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::transform
