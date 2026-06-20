@@ -309,7 +309,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
 
-  auto & qseq = chimera_info->query_seq;
+  auto const & qseq = chimera_info->query_seq;
 
   for (auto i = 0; i < chimera_info->cand_count; ++i)
     {
@@ -467,13 +467,11 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
       for (int i = 0; i < ci->cand_count; ++i)
         {
-          int start = 0;
-          int len = 0;
           int j = 0;
           while (j < ci->query_len)
             {
-              start = j;
-              len = 0;
+              int start = j;
+              int len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[j]) &&
                      ((len == 0) or (ci->insert[(i * ci->query_len) + j] == 0)))
