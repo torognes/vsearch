@@ -2520,7 +2520,7 @@ auto chimera(struct Parameters const & parameters) -> void
               fprintf(stderr,
                       "Found %d (%.1f%%) chimeras and "
                       "%d (%.1f%%) non-chimeras "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       100.0 * chimera_count / total_count,
                       nonchimera_count,
@@ -2533,7 +2533,7 @@ auto chimera(struct Parameters const & parameters) -> void
                       "Found %d (%.1f%%) chimeras, "
                       "%d (%.1f%%) non-chimeras,\n"
                       "and %d (%.1f%%) borderline sequences "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       100.0 * chimera_count / total_count,
                       nonchimera_count,
@@ -2550,7 +2550,7 @@ auto chimera(struct Parameters const & parameters) -> void
               fprintf(stderr,
                       "Found %d chimeras and "
                       "%d non-chimeras "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       nonchimera_count,
                       total_count);
@@ -2561,7 +2561,7 @@ auto chimera(struct Parameters const & parameters) -> void
                       "Found %d chimeras, "
                       "%d non-chimeras,\n"
                       "and %d borderline sequences "
-                      "in %u unique sequences.\n",
+                      "in %d unique sequences.\n",
                       chimera_count,
                       nonchimera_count,
                       borderline_count,
@@ -2817,7 +2817,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
 
   /* Clear result. Non-chimeric results will have only query_label and
      flag='N' populated; all other fields remain zero. */
-  std::memset(result, 0, sizeof(*result));
+  *result = {};
   ci->result_out = result;
 
   /* Use the SAME processing code as the CLI path */
