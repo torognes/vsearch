@@ -92,5 +92,5 @@ auto minheap_poplast(minheap_t * a_minheap) -> elem_t;
 auto minheap_sort(minheap_t * a_minheap) -> void;
 auto minheap_init(int size) -> minheap_t *;
 auto minheap_exit(minheap_t * a_minheap) -> void;
-auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void;
+auto minheap_add(minheap_t * a_minheap, elem_t const * n) -> void;
 auto minheap_pop(minheap_t * a_minheap) -> elem_t;

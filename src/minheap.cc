@@ -79,7 +79,7 @@
   element and then the second best and so on.
 */
 
-auto elem_smaller(elem_t * lhs, elem_t * rhs) -> int
+auto elem_smaller(elem_t const * lhs, elem_t const * rhs) -> int
 {
   /* return 1 if lhs is smaller than rhs, 0 if equal or greater */
   if (lhs->count < rhs->count)
@@ -201,7 +201,7 @@ auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
 }
 
 
-auto minheap_add(minheap_t * a_minheap, elem_t * n) -> void
+auto minheap_add(minheap_t * a_minheap, elem_t const * n) -> void
 {
   if (a_minheap->count < a_minheap->alloc)
     {
