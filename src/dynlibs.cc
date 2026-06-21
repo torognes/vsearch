@@ -72,6 +72,8 @@ HMODULE gz_lib;
 # else
 #  ifdef __APPLE__
 const std::string gz_libname = "libz.dylib";
+#  elif defined(__FreeBSD__)
+const std::string gz_libname = "libz.so.6";
 #  else
 const std::string gz_libname = "libz.so.1";
 #  endif
@@ -91,6 +93,8 @@ HMODULE bz2_lib;
 # else
 #  ifdef __APPLE__
 const std::string bz2_libname = "libbz2.dylib";
+#  elif defined(__FreeBSD__)
+const std::string bz2_libname = "libbz2.so.4";
 #  else
 const std::string bz2_libname = "libbz2.so.1";
 #  endif
