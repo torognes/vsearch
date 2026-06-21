@@ -88,31 +88,29 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/taxonomic_fields.h"
-#include "utils/xpthread.hpp"
+#include "utils/threads.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::memset, std::strncmp, std::strcpy
-#include <pthread.h>
+#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 
 
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
-static pthread_t * pthread;
 
 /* global constants/data, no need for synchronization */
 static int tophits; /* the maximum number of hits to keep */
 static int seqcount; /* number of database sequences */
-static pthread_attr_t attr;
 static fastx_handle query_fastx_h;
 
 constexpr auto subset_size = 32;
 constexpr auto bootstrap_count = 100;
 
 /* global data protected by mutex */
-static pthread_mutex_t mutex_input;
-static pthread_mutex_t mutex_output;
+static std::mutex mutex_input;
+static std::mutex mutex_output;
 static std::FILE * fp_tabbedout;
 static int queries = 0;
 static int classified = 0;
@@ -203,7 +201,7 @@ auto sintax_analyse(char const * query_head,
     }
 
   /* write to tabbedout file */
-  xpthread_mutex_lock(&mutex_output);
+  std::lock_guard<std::mutex> const output_lock(mutex_output);
   std::fprintf(fp_tabbedout, "%s\t", query_head);
 
   queries++;
@@ -265,7 +263,6 @@ auto sintax_analyse(char const * query_head,
     }
 
   std::fprintf(fp_tabbedout, "\n");
-  xpthread_mutex_unlock(&mutex_output);
 }
 
 
@@ -373,7 +370,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto sintax_query(int64_t const t) -> void
+auto sintax_query(uint64_t const t) -> void
 {
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
   std::array<int, 2> boot_count = {0, 0};
@@ -472,11 +469,11 @@ auto sintax_query(int64_t const t) -> void
 }
 
 
-auto sintax_thread_run(int64_t const t) -> void
+auto sintax_thread_run(uint64_t const t) -> void
 {
   while (true)
     {
-      xpthread_mutex_lock(&mutex_input);
+      std::unique_lock<std::mutex> input_lock(mutex_input);
 
       if (fastx_next(query_fastx_h,
                      opt_notrunclabels == 0,
@@ -524,7 +521,7 @@ auto sintax_thread_run(int64_t const t) -> void
           auto const progress = fastx_get_position(query_fastx_h);
 
           /* let other threads read input */
-          xpthread_mutex_unlock(&mutex_input);
+          input_lock.unlock();
 
           /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
@@ -538,16 +535,14 @@ auto sintax_thread_run(int64_t const t) -> void
           sintax_query(t);
 
           /* lock mutex for update of global data and output */
-          xpthread_mutex_lock(&mutex_output);
+          std::lock_guard<std::mutex> const output_lock(mutex_output);
 
           /* show progress */
           progress_update(progress);
-
-          xpthread_mutex_unlock(&mutex_output);
         }
       else
         {
-          xpthread_mutex_unlock(&mutex_input);
+          /* input_lock released by RAII when leaving the loop body */
           break;
         }
     }
@@ -588,22 +583,9 @@ auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto sintax_thread_worker(void * void_ptr) -> void *
-{
-  auto t = reinterpret_cast<int64_t>(void_ptr);
-  sintax_thread_run(t);
-  return nullptr;
-}
-
-
 auto sintax_thread_worker_run() -> void
 {
-  /* initialize threads, start them, join them and return */
-
-  xpthread_attr_init(&attr);
-  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* init and create worker threads, put them into stand-by mode */
+  /* init per-thread search state before the workers start */
   for (auto t = 0; t < opt_threads; t++)
     {
       sintax_thread_init(si_plus + t);
@@ -611,22 +593,24 @@ auto sintax_thread_worker_run() -> void
         {
           sintax_thread_init(si_minus + t);
         }
-      xpthread_create(pthread + t, &attr,
-                      sintax_thread_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
     }
 
-  /* finish and clean up worker threads */
+  /* run the worker pool over the input file */
+  {
+    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+                              sintax_thread_run);
+    threadrunner.run();
+  }
+
+  /* clean up per-thread search state */
   for (auto t = 0; t < opt_threads; t++)
     {
-      xpthread_join(pthread[t], nullptr);
       sintax_thread_exit(si_plus + t);
       if (si_minus != nullptr)
         {
           sintax_thread_exit(si_minus + t);
         }
     }
-
-  xpthread_attr_destroy(&attr);
 }
 
 
@@ -693,12 +677,6 @@ auto sintax(struct Parameters const & parameters) -> void
       si_minus = nullptr;
     }
 
-  pthread = static_cast<pthread_t *>(xmalloc(opt_threads * sizeof(pthread_t)));
-
-  /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, nullptr);
-  xpthread_mutex_init(&mutex_output, nullptr);
-
   /* run */
 
   progress_init("Classifying sequences", fastx_get_size(query_fastx_h));
@@ -727,10 +705,6 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  xpthread_mutex_destroy(&mutex_output);
-  xpthread_mutex_destroy(&mutex_input);
-
-  xfree(pthread);
   delete [] si_plus;
   if (si_minus != nullptr)
     {
