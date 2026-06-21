@@ -70,12 +70,14 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/threads.hpp"
 #include "utils/xpthread.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::strlen, std::memset, std::strcpy
+#include <mutex>  // std::mutex, std::lock_guard
 #include <pthread.h>
 #include <vector>
 
@@ -1202,43 +1204,36 @@ struct search_batch_context_s {
   struct searchinfo_s * batch_si_minus;  /* nullptr when opt_strand == 1 */
 
   /* work-stealing counter */
-  pthread_mutex_t mutex;
+  std::mutex mutex;
   int next_query;
 };
 
 
-struct search_batch_worker_arg_s {
-  struct search_batch_context_s * ctx;
-  int thread_id;
-};
-
-
-static auto search_batch_worker_fn(void * vp) -> void *
+static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
+                                   uint64_t tid) -> void
 {
-  auto * arg = static_cast<struct search_batch_worker_arg_s *>(vp);
-  auto * ctx = arg->ctx;
-  int const tid = arg->thread_id;
-
-  struct searchinfo_s * my_si_plus = ctx->batch_si_plus + tid;
+  struct searchinfo_s * my_si_plus = ctx.batch_si_plus + tid;
   struct searchinfo_s * my_si_minus =
-    (ctx->batch_si_minus != nullptr) ? ctx->batch_si_minus + tid : nullptr;
+    (ctx.batch_si_minus != nullptr) ? ctx.batch_si_minus + tid : nullptr;
 
   while (true)
     {
       /* grab next query */
-      xpthread_mutex_lock(&ctx->mutex);
-      int const qi = ctx->next_query++;
-      xpthread_mutex_unlock(&ctx->mutex);
+      int qi {0};
+      {
+        std::lock_guard<std::mutex> const lock(ctx.mutex);
+        qi = ctx.next_query++;
+      }
 
-      if (qi >= ctx->query_count)
+      if (qi >= ctx.query_count)
         {
           break;
         }
 
-      char const * qseq = ctx->query_seqs[qi];
-      char const * qhead = ctx->query_heads[qi];
-      int const qlen = ctx->query_lens[qi];
-      int const qsize = ctx->query_sizes[qi];
+      char const * qseq = ctx.query_seqs[qi];
+      char const * qhead = ctx.query_heads[qi];
+      int const qlen = ctx.query_lens[qi];
+      int const qsize = ctx.query_sizes[qi];
       int const head_len = std::strlen(qhead);
 
       populate_si(my_si_plus,
@@ -1288,11 +1283,11 @@ static auto search_batch_worker_fn(void * vp) -> void *
 
       /* Populate results for this query */
       struct search_result_s * qresults =
-        ctx->results + qi * ctx->max_results_per_query;
+        ctx.results + qi * ctx.max_results_per_query;
       int count = 0;
       for (auto const & h : hits)
         {
-          if (count >= ctx->max_results_per_query)
+          if (count >= ctx.max_results_per_query)
             {
               break;
             }
@@ -1309,7 +1304,7 @@ static auto search_batch_worker_fn(void * vp) -> void *
           r.strand = h.strand;
           ++count;
         }
-      ctx->result_counts[qi] = count;
+      ctx.result_counts[qi] = count;
 
       /* Free alignment strings from si->hits directly */
       for (int s = 0; s < opt_strand; s++)
@@ -1327,8 +1322,6 @@ static auto search_batch_worker_fn(void * vp) -> void *
             }
         }
     }
-
-  return nullptr;
 }
 
 
@@ -1373,15 +1366,7 @@ auto search_batch(const char ** query_seqs,
       ctx.batch_si_minus = nullptr;
     }
 
-  xpthread_mutex_init(&ctx.mutex, nullptr);
-
-  /* Init per-thread state and launch threads */
-  std::vector<pthread_t> threads(nthreads);
-  std::vector<struct search_batch_worker_arg_s> args(nthreads);
-  pthread_attr_t batch_attr;
-  xpthread_attr_init(&batch_attr);
-  xpthread_attr_setdetachstate(&batch_attr, PTHREAD_CREATE_JOINABLE);
-
+  /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
       search_thread_init(ctx.batch_si_plus + t);
@@ -1389,16 +1374,20 @@ auto search_batch(const char ** query_seqs,
         {
           search_thread_init(ctx.batch_si_minus + t);
         }
-      args[t].ctx = &ctx;
-      args[t].thread_id = t;
-      xpthread_create(&threads[t], &batch_attr,
-                      search_batch_worker_fn, &args[t]);
     }
 
-  /* Join and cleanup */
+  /* run all queries through the worker pool (work-stealing on next_query) */
+  {
+    ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
+                              [&ctx](uint64_t tid) {
+                                search_batch_worker_fn(ctx, tid);
+                              });
+    threadrunner.run();
+  }
+
+  /* clean up per-thread search state */
   for (int t = 0; t < nthreads; t++)
     {
-      xpthread_join(threads[t], nullptr);
       search_thread_exit(ctx.batch_si_plus + t);
       if (ctx.batch_si_minus != nullptr)
         {
@@ -1406,8 +1395,6 @@ auto search_batch(const char ** query_seqs,
         }
     }
 
-  xpthread_attr_destroy(&batch_attr);
-  xpthread_mutex_destroy(&ctx.mutex);
   delete [] ctx.batch_si_plus;
   if (ctx.batch_si_minus != nullptr)
     {
