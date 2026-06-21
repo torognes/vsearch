@@ -63,26 +63,23 @@
 #include "linmemalign.h"
 #include "mask.h"
 #include "utils/fatal.hpp"
-#include "utils/xpthread.hpp"
+#include "utils/threads.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen
 #include <limits>
-#include <pthread.h>
+#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>
 
 
-static pthread_t * pthread;
-
 /* global constants/data, no need for synchronization */
 static int seqcount; /* number of database sequences */
-static pthread_attr_t attr;
 
 /* global data protected by mutex */
-static pthread_mutex_t mutex_input;
-static pthread_mutex_t mutex_output;
+static std::mutex mutex_input;
+static std::mutex mutex_output;
 static int qmatches;
 static int queries;
 static int64_t progress = 0;
@@ -303,7 +300,7 @@ auto allpairs_output_results(int hit_count,
 }
 
 
-auto allpairs_thread_run(int64_t t) -> void
+auto allpairs_thread_run(uint64_t t) -> void
 {
   (void) t;
 
@@ -363,7 +360,7 @@ auto allpairs_thread_run(int64_t t) -> void
 
   while (cont)
     {
-      xpthread_mutex_lock(&mutex_input);
+      std::unique_lock<std::mutex> input_lock(mutex_input);
 
       int const query_no = queries;
 
@@ -372,7 +369,7 @@ auto allpairs_thread_run(int64_t t) -> void
           ++queries;
 
           /* let other threads read input */
-          xpthread_mutex_unlock(&mutex_input);
+          input_lock.unlock();
 
           /* init search info */
           searchinfo.query_no = query_no;
@@ -505,7 +502,7 @@ auto allpairs_thread_run(int64_t t) -> void
             }
 
           /* lock mutex for update of global data and output */
-          xpthread_mutex_lock(&mutex_output);
+          std::unique_lock<std::mutex> output_lock(mutex_output);
 
           /* output results */
           allpairs_output_results(searchinfo.accepts,
@@ -525,7 +522,7 @@ auto allpairs_thread_run(int64_t t) -> void
           progress += seqcount - query_no - 1;
           progress_update(progress);
 
-          xpthread_mutex_unlock(&mutex_output);
+          output_lock.unlock();
 
           /* free memory for alignment strings */
           for (int i = 0; i < searchinfo.hit_count; i++)
@@ -539,7 +536,7 @@ auto allpairs_thread_run(int64_t t) -> void
       else
         {
           /* let other threads read input */
-          xpthread_mutex_unlock(&mutex_input);
+          input_lock.unlock();
 
           cont = false;
         }
@@ -549,35 +546,13 @@ auto allpairs_thread_run(int64_t t) -> void
 }
 
 
-auto allpairs_thread_worker(void * void_ptr) -> void *
-{
-  auto const nth_thread = reinterpret_cast<int64_t>(void_ptr);
-  allpairs_thread_run(nth_thread);
-  return nullptr;
-}
-
-
 auto allpairs_thread_worker_run() -> void
 {
-  /* initialize threads, start them, join them and return */
-
-  xpthread_attr_init(&attr);
-  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* init and create worker threads, put them into stand-by mode */
-  for (int t = 0; t < opt_threads; t++)
-    {
-      xpthread_create(pthread + t, &attr,
-                      allpairs_thread_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
-    }
-
-  /* finish and clean up worker threads */
-  for (int t = 0; t < opt_threads; t++)
-    {
-      xpthread_join(pthread[t], nullptr);
-    }
-
-  xpthread_attr_destroy(&attr);
+  /* run the worker pool; each worker keeps its own search state and
+     processes queries until the shared counter is exhausted */
+  ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+                            allpairs_thread_run);
+  threadrunner.run();
 }
 
 
@@ -699,13 +674,6 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   qmatches = 0;
   queries = 0;
 
-  std::vector<pthread_t> pthread_v(parameters.opt_threads);
-  pthread = pthread_v.data();
-
-  /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, nullptr);
-  xpthread_mutex_init(&mutex_output, nullptr);
-
   progress = 0;
   progress_init("Aligning", std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2);  // refactoring: issue with parenthesis?
   allpairs_thread_worker_run();
@@ -732,11 +700,6 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
         }
       fprintf(fp_log, "\n\n");
     }
-
-  xpthread_mutex_destroy(&mutex_output);
-  xpthread_mutex_destroy(&mutex_input);
-
-  // pthread_v not used after this point
 
   /* clean up, global */
   db_free();
