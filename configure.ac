@@ -17,13 +17,19 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 
+# Threading support for C++11 std::thread. The -pthread flag is applied
+# at both compile and link time (CXXFLAGS is used for linking too): it
+# defines _REENTRANT and pulls in the correct platform threading library
+# (-lpthread on glibc, -lthr on FreeBSD, winpthreads on MinGW, the
+# native library on macOS), which a bare -lpthread does not do portably.
+CXXFLAGS="$CXXFLAGS -pthread"
+
 # Checks for libraries.
-AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([psapi], [GetProcessMemoryInfo])
 
 # Checks for header files.
-AC_CHECK_HEADERS([getopt.h fcntl.h regex.h string.h sys/time.h dlfcn.h pthread.h])
+AC_CHECK_HEADERS([getopt.h fcntl.h regex.h string.h sys/time.h dlfcn.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
