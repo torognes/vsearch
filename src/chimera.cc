@@ -72,7 +72,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
-#include "utils/xpthread.hpp"
+#include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>
@@ -85,8 +85,8 @@
 #include <iterator>  // std::next
 #include <limits>
 #include <memory>
+#include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <numeric>  // std::accumulate
-#include <pthread.h>
 #include <vector>
 
 
@@ -107,14 +107,12 @@ constexpr auto few = 4;
 constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
-static int tophits;  // all these static variables are on both sides of a pthread wall
-static pthread_attr_t attr;
-static pthread_t * pthread;
+static int tophits;
 static fastx_handle query_fasta_h;
 
 /* mutexes and global data protected by mutex */
-static pthread_mutex_t mutex_input;
-static pthread_mutex_t mutex_output;
+static std::mutex mutex_input;
+static std::mutex mutex_output;
 static unsigned int seqno = 0;
 static uint64_t progress = 0;
 static int chimera_count = 0;
@@ -1011,7 +1009,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       r->flag = 'Y';  /* eval_parents_long is always chimeric */
     }
 
-  xpthread_mutex_lock(&mutex_output);
+  std::lock_guard<std::mutex> const output_lock(mutex_output);
 
   if ((opt_alnout != nullptr) and (status == Status::chimeric))
     {
@@ -1157,8 +1155,6 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
               0.00,
               status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
     }
-
-  xpthread_mutex_unlock(&mutex_output);
 
   return status;
 }
@@ -1610,7 +1606,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       /* print alignment */
 
-      xpthread_mutex_lock(&mutex_output);
+      std::unique_lock<std::mutex> output_lock(mutex_output);
 
       if ((opt_uchimealns != nullptr) and (status == Status::chimeric))
         {
@@ -1787,7 +1783,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                   divdiff,
                   status == Status::chimeric ? 'Y' : (status == Status::low_score ? 'N' : '?'));
         }
-      xpthread_mutex_unlock(&mutex_output);
+      output_lock.unlock();
     }
 
   return status;
@@ -2094,7 +2090,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
     {
       /* get next sequence */
 
-      xpthread_mutex_lock(&mutex_input);
+      std::unique_lock<std::mutex> input_lock(mutex_input);
 
       if (opt_uchime_ref != nullptr)
         {
@@ -2115,8 +2111,7 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
           else
             {
-              xpthread_mutex_unlock(&mutex_input);
-              break; /* end while loop */
+              break; /* end while loop; input_lock released by RAII */
             }
         }
       else
@@ -2136,18 +2131,17 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
             }
           else
             {
-              xpthread_mutex_unlock(&mutex_input);
-              break; /* end while loop */
+              break; /* end while loop; input_lock released by RAII */
             }
         }
 
-      xpthread_mutex_unlock(&mutex_input);
+      input_lock.unlock();
 
       auto const status = chimera_process_query(ci, allhits_list, lma);
 
       /* output results */
 
-      xpthread_mutex_lock(&mutex_output);
+      std::lock_guard<std::mutex> const output_lock(mutex_output);
 
       ++total_count;
       total_abundance += ci->query_size;
@@ -2285,8 +2279,6 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
       progress_update(progress);
 
       ++seqno;
-
-      xpthread_mutex_unlock(&mutex_output);
     }
 
   chimera_thread_exit(ci);
@@ -2296,31 +2288,16 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 }
 
 
-auto chimera_thread_worker(void * vp) -> void *
-{
-  return reinterpret_cast<void *>(chimera_thread_core(cia + reinterpret_cast<int64_t>(vp)));
-}
-
-
 auto chimera_threads_run() -> void
 {
-  xpthread_attr_init(&attr);
-  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* create worker threads */
-  for (int64_t t = 0; t < opt_threads; ++t)
-    {
-      xpthread_create(pthread + t, & attr,
-                      chimera_thread_worker, reinterpret_cast<void *>(t));
-    }
-
-  /* finish worker threads */
-  for (int64_t t = 0; t < opt_threads; ++t)
-    {
-      xpthread_join(pthread[t], nullptr);
-    }
-
-  xpthread_attr_destroy(&attr);
+  /* run the worker pool; each worker processes queries until the input
+     is exhausted. chimera_thread_core returns a value that the previous
+     pthread_join already discarded, so it is ignored here too. */
+  ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+                            [](uint64_t nth_thread) {
+                              chimera_thread_core(cia + nth_thread);
+                            });
+  threadrunner.run();
 }
 
 
@@ -2394,15 +2371,9 @@ auto chimera(struct Parameters const & parameters) -> void
   progress = 0;
   seqno = 0;
 
-  /* prepare threads */
-  std::vector<pthread_t> pthread_v(opt_threads);
-  pthread = pthread_v.data();
+  /* prepare per-thread chimera detection state */
   std::vector<struct chimera_info_s> cia_v(opt_threads);
   cia = cia_v.data();
-
-  /* init mutexes for input and output */
-  xpthread_mutex_init(&mutex_input, nullptr);
-  xpthread_mutex_init(&mutex_output, nullptr);
 
   char const * denovo_dbname = nullptr;
 
@@ -2671,9 +2642,6 @@ auto chimera(struct Parameters const & parameters) -> void
   dbindex_free();
   db_free();
 
-  xpthread_mutex_destroy(&mutex_output);
-  xpthread_mutex_destroy(&mutex_input);
-
   close_chimera_file(fp_borderline);
   close_chimera_file(fp_uchimeout);
   close_chimera_file(fp_uchimealns);
@@ -2738,19 +2706,16 @@ auto chimera_session_init() -> void
       opt_maxsizeratio = 1.0 / opt_abskew;
     }
 
-  /* Initialize mutexes for the API path. The CLI path initializes these
-     in chimera(), but the API bypasses chimera(). eval_parents and
-     eval_parents_long acquire mutex_output for file output (which the API
-     doesn't use, but the lock is still taken). */
-  xpthread_mutex_init(&mutex_input, nullptr);
-  xpthread_mutex_init(&mutex_output, nullptr);
+  /* eval_parents and eval_parents_long acquire mutex_output for file
+     output. The API path does not write files, but the lock is still
+     taken; mutex_output is a std::mutex and needs no initialization. */
 }
 
 
 auto chimera_session_cleanup() -> void
 {
-  xpthread_mutex_destroy(&mutex_input);
-  xpthread_mutex_destroy(&mutex_output);
+  /* nothing to release: mutex_input/mutex_output are std::mutex objects
+     with automatic lifetime. Kept as a stable API symbol. */
 }
 
 
@@ -2896,43 +2861,36 @@ struct chimera_batch_context_s {
   struct chimera_info_s ** ci_array;
 
   /* work-stealing counter */
-  pthread_mutex_t mutex;
+  std::mutex mutex;
   int next_query;
 };
 
 
-struct chimera_batch_worker_arg_s {
-  struct chimera_batch_context_s * ctx;
-  int thread_id;
-};
-
-
-static auto chimera_batch_worker_fn(void * vp) -> void *
+static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
+                                    uint64_t tid) -> void
 {
-  auto * arg = static_cast<struct chimera_batch_worker_arg_s *>(vp);
-  auto * ctx = arg->ctx;
-  struct chimera_info_s * ci = ctx->ci_array[arg->thread_id];
+  struct chimera_info_s * ci = ctx.ci_array[tid];
 
   while (true)
     {
-      xpthread_mutex_lock(&ctx->mutex);
-      int const qi = ctx->next_query++;
-      xpthread_mutex_unlock(&ctx->mutex);
+      int qi {0};
+      {
+        std::lock_guard<std::mutex> const lock(ctx.mutex);
+        qi = ctx.next_query++;
+      }
 
-      if (qi >= ctx->query_count)
+      if (qi >= ctx.query_count)
         {
           break;
         }
 
       chimera_detect_single(ci,
-                            ctx->query_seqs[qi],
-                            ctx->query_heads[qi],
-                            ctx->query_lens[qi],
-                            ctx->query_sizes[qi],
-                            &ctx->results[qi]);
+                            ctx.query_seqs[qi],
+                            ctx.query_heads[qi],
+                            ctx.query_lens[qi],
+                            ctx.query_sizes[qi],
+                            &ctx.results[qi]);
     }
-
-  return nullptr;
 }
 
 
@@ -2959,7 +2917,7 @@ auto chimera_detect_batch(const char ** query_seqs,
   bool const saved_selfid = opt_selfid;
   double const saved_maxsizeratio = opt_maxsizeratio;
 
-  /* Session-level init (sets search-shaping globals, init mutexes) */
+  /* Session-level init (sets search-shaping globals) */
   chimera_session_init();
 
   /* Allocate per-thread chimera state */
@@ -2981,31 +2939,14 @@ auto chimera_detect_batch(const char ** query_seqs,
       chimera_detect_thread_init(ctx.ci_array[t]);
     }
 
-  xpthread_mutex_init(&ctx.mutex, nullptr);
-
-  /* Launch worker threads */
-  std::vector<pthread_t> threads(nthreads);
-  std::vector<struct chimera_batch_worker_arg_s> args(nthreads);
-  pthread_attr_t batch_attr;
-  xpthread_attr_init(&batch_attr);
-  xpthread_attr_setdetachstate(&batch_attr, PTHREAD_CREATE_JOINABLE);
-
-  for (int t = 0; t < nthreads; t++)
-    {
-      args[t].ctx = &ctx;
-      args[t].thread_id = t;
-      xpthread_create(&threads[t], &batch_attr,
-                      chimera_batch_worker_fn, &args[t]);
-    }
-
-  /* Join threads */
-  for (int t = 0; t < nthreads; t++)
-    {
-      xpthread_join(threads[t], nullptr);
-    }
-
-  xpthread_attr_destroy(&batch_attr);
-  xpthread_mutex_destroy(&ctx.mutex);
+  /* run all queries through the worker pool (work-stealing on next_query) */
+  {
+    ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
+                              [&ctx](uint64_t tid) {
+                                chimera_batch_worker_fn(ctx, tid);
+                              });
+    threadrunner.run();
+  }
 
   /* Cleanup per-thread state */
   for (int t = 0; t < nthreads; t++)
