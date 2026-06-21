@@ -169,10 +169,10 @@ constexpr __vector unsigned char perm_merge_long_high =
 #define v_max(a, b) vec_max((a), (b))
 #define v_min(a, b) vec_min((a), (b))
 #define v_dup(a) vec_splat((VECTOR_SHORT){static_cast<short>(a), 0, 0, 0, 0, 0, 0, 0}, 0);
-#define v_zero vec_splat_s16(0)
+#define v_zero() vec_splat_s16(0)
 #define v_and(a, b) vec_and((a), (b))
 #define v_xor(a, b) vec_xor((a), (b))
-#define v_shift_left(a) vec_sld((a), v_zero, 2)
+#define v_shift_left(a) vec_sld((a), v_zero(), 2)
 
 #elif defined __aarch64__
 
@@ -197,10 +197,10 @@ constexpr uint16x8_t neon_mask =
 #define v_max(a, b) vmaxq_s16((a), (b))
 #define v_min(a, b) vminq_s16((a), (b))
 #define v_dup(a) vdupq_n_s16(a)
-#define v_zero v_dup(0)
+#define v_zero() v_dup(0)
 #define v_and(a, b) vandq_s16((a), (b))
 #define v_xor(a, b) veorq_s16((a), (b))
-#define v_shift_left(a) vextq_s16((v_zero), (a), 7)
+#define v_shift_left(a) vextq_s16((v_zero()), (a), 7)
 #define v_mask_gt(a, b) vaddvq_u16(vandq_u16((vcgtq_s16((a), (b))), neon_mask))
 
 #elif defined(__x86_64__) || defined(SIMDE_VERSION)
@@ -222,7 +222,7 @@ using VECTOR_SHORT = __m128i;
 #define v_max(a, b) _mm_max_epi16((a), (b))
 #define v_min(a, b) _mm_min_epi16((a), (b))
 #define v_dup(a) _mm_set1_epi16(a)
-#define v_zero v_dup(0)
+#define v_zero() v_dup(0)
 #define v_and(a, b) _mm_and_si128((a), (b))
 #define v_xor(a, b) _mm_xor_si128((a), (b))
 #define v_shift_left(a) _mm_slli_si128((a), 2)
@@ -668,8 +668,8 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT HF;
   VECTOR_SHORT const * vp = nullptr;
 
-  VECTOR_SHORT h_min = v_zero;
-  VECTOR_SHORT h_max = v_zero;
+  VECTOR_SHORT h_min = v_zero();
+  VECTOR_SHORT h_max = v_zero();
 
 #ifdef __PPC__
   __vector unsigned long long RES1;
@@ -830,8 +830,8 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT HF;
   VECTOR_SHORT const * vp = nullptr;
 
-  VECTOR_SHORT h_min = v_zero;
-  VECTOR_SHORT h_max = v_zero;
+  VECTOR_SHORT h_min = v_zero();
+  VECTOR_SHORT h_max = v_zero();
 
 #ifdef __PPC__
   __vector unsigned long long RES1;
@@ -1531,19 +1531,19 @@ auto search16(s16info_s * s,
 
   for (int i = 0; i < 4; i++)
     {
-      S[i] = v_zero;
-      dseqalloc[i] = v_zero;
+      S[i] = v_zero();
+      dseqalloc[i] = v_zero();
     }
 
-  VECTOR_SHORT H0 = v_zero;
-  VECTOR_SHORT H1 = v_zero;
-  VECTOR_SHORT H2 = v_zero;
-  VECTOR_SHORT H3 = v_zero;
+  VECTOR_SHORT H0 = v_zero();
+  VECTOR_SHORT H1 = v_zero();
+  VECTOR_SHORT H2 = v_zero();
+  VECTOR_SHORT H3 = v_zero();
 
-  VECTOR_SHORT F0 = v_zero;
-  VECTOR_SHORT F1 = v_zero;
-  VECTOR_SHORT F2 = v_zero;
-  VECTOR_SHORT F3 = v_zero;
+  VECTOR_SHORT F0 = v_zero();
+  VECTOR_SHORT F1 = v_zero();
+  VECTOR_SHORT F2 = v_zero();
+  VECTOR_SHORT F3 = v_zero();
 
   bool easy = false;
 
@@ -1597,7 +1597,7 @@ auto search16(s16info_s * s,
                                            R_target_interior);
               for (unsigned int j = 0; j < CDEPTH; j++)
                 {
-                  VECTOR_SHORT MM = v_zero;
+                  VECTOR_SHORT MM = v_zero();
                   VECTOR_SHORT TT = T0;
                   for (int c = 0; c < CHANNELS; c++)
                     {
@@ -1655,7 +1655,7 @@ auto search16(s16info_s * s,
 
           easy = true;
 
-          M = v_zero;
+          M = v_zero();
 
           VECTOR_SHORT T = T0;
           for (int c = 0; c < CHANNELS; c++)
@@ -1847,7 +1847,7 @@ auto search16(s16info_s * s,
                                            R_target_interior);
               for (unsigned int j = 0; j < CDEPTH; j++)
                 {
-                  VECTOR_SHORT MM = v_zero;
+                  VECTOR_SHORT MM = v_zero();
                   VECTOR_SHORT TT = T0;
                   for (int c = 0; c < CHANNELS; c++)
                     {
