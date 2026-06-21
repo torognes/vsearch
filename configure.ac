@@ -96,7 +96,7 @@ have_man_html=no
 case $target in
      aarch64*) target_aarch64="yes" ;;
      powerpc64*) target_ppc="yes" ;;
-     x86_64*) target_x86_64="yes" ;;
+     x86_64* | amd64*) target_x86_64="yes" ;;
 esac
 
 case $target in
