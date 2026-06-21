@@ -136,7 +136,7 @@ namespace {
 }  // end of anonymous namespace
 
 /*
-  The macros below usually operate on 128-bit vectors of 8 signed
+  The operations below usually operate on 128-bit vectors of 8 signed
   short 16-bit integers. Additions and subtractions should be
   saturated.  The shift operation should shift left by 2 bytes (one
   short int) and shift in zeros. The v_mask_gt operation should
