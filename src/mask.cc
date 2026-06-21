@@ -64,13 +64,13 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
-#include "utils/xpthread.hpp"
+#include "utils/threads.hpp"
 #include <array>
 #include <cctype>  // std::toupper, std::isupper
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
 #include <cstring>  // std::strcpy
-#include <pthread.h>
+#include <mutex>  // std::mutex, std::unique_lock
 // #include <string>
 #include <vector>
 
@@ -196,34 +196,31 @@ auto dust(char * seq, int len) -> void
 }
 
 
-static pthread_t * pthread;
-static pthread_attr_t attr;
-static pthread_mutex_t mutex;
+static std::mutex mutex;
 static auto nextseq = 0;
 static auto seqcount = 0;
 
 
-auto dust_all_worker(void * vp) -> void *
+auto dust_all_worker(uint64_t nth_thread) -> void
 {
-  (void) vp; // not used, but required for thread creation
+  (void) nth_thread; // not used, but required by the ThreadRunner signature
   while (true)
     {
-      xpthread_mutex_lock(&mutex);
+      std::unique_lock<std::mutex> lock(mutex);
       const auto seqno = nextseq;
       if (seqno < seqcount)
         {
           ++nextseq;
           progress_update(seqno);
-          xpthread_mutex_unlock(&mutex);
+          lock.unlock();
           dust(db_getsequence(seqno), db_getsequencelen(seqno));
         }
       else
         {
-          xpthread_mutex_unlock(&mutex);
+          /* lock released by RAII when leaving the loop body */
           break;
         }
     }
-  return nullptr;
 }
 
 
@@ -233,28 +230,11 @@ auto dust_all() -> void
   seqcount = db_getsequencecount();
   progress_init("Masking", seqcount);
 
-  xpthread_mutex_init(&mutex, nullptr);
-
-  xpthread_attr_init(&attr);
-  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  std::vector<pthread_t> pthread_v(opt_threads);
-  pthread = pthread_v.data();
-
-  for (auto t = 0; t < opt_threads; t++)
-    {
-      xpthread_create(&pthread_v[t], &attr, dust_all_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
-    }
-
-  for (auto t = 0; t < opt_threads; t++)
-    {
-      xpthread_join(pthread_v[t], nullptr);
-    }
-
-
-  xpthread_attr_destroy(&attr);
-
-  xpthread_mutex_destroy(&mutex);
+  {
+    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+                              dust_all_worker);
+    threadrunner.run();
+  }
 
   progress_done();
 }
