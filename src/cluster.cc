@@ -71,7 +71,7 @@
 #include "otutable.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
-#include "utils/xpthread.hpp"
+#include "utils/threads.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -81,7 +81,7 @@
 #include <cstring>  // std::strcpy, std::strlen
 #include <limits>
 #include <map>
-#include <pthread.h>
+#include <memory>  // std::unique_ptr
 #include <utility>  // std::get
 #include <vector>
 
@@ -122,24 +122,19 @@ static std::FILE * fp_biomout = nullptr;
 static std::FILE * fp_qsegout = nullptr;
 static std::FILE * fp_tsegout = nullptr;
 
-static pthread_attr_t attr;
-
 static struct searchinfo_s * si_plus;
 static struct searchinfo_s * si_minus;
 
-struct thread_info_s
+/* per-thread slice of queries assigned for the current round; the
+   threading primitives themselves live inside the ThreadRunner */
+struct thread_work_s
 {
-  pthread_t thread;
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
-  int work;
   int query_first;
   int query_count;
 };
 
-using thread_info_t = struct thread_info_s;
-
-static thread_info_t * ti;
+static std::vector<struct thread_work_s> thread_work;
+static std::unique_ptr<ThreadRunner> cluster_threadrunner;
 
 
 inline auto compare_byclusterno(const void * a, const void * b) -> int
@@ -227,42 +222,17 @@ inline auto cluster_query_core(struct searchinfo_s * si) -> void
 }
 
 
-inline auto cluster_worker(int64_t t) -> void
+inline auto cluster_worker(uint64_t t) -> void
 {
   /* wrapper for the main threaded core function for clustering */
-  for (int q = 0; q < ti[t].query_count; q++)
+  for (int q = 0; q < thread_work[t].query_count; q++)
     {
-      cluster_query_core(si_plus + ti[t].query_first + q);
+      cluster_query_core(si_plus + thread_work[t].query_first + q);
       if (opt_strand > 1)
         {
-          cluster_query_core(si_minus + ti[t].query_first + q);
+          cluster_query_core(si_minus + thread_work[t].query_first + q);
         }
     }
-}
-
-
-auto threads_worker(void * vp) -> void *
-{
-  auto t = reinterpret_cast<int64_t>(vp);
-  thread_info_s * tip = ti + t;
-  xpthread_mutex_lock(&tip->mutex);
-  /* loop until signalled to quit */
-  while (tip->work >= 0)
-    {
-      /* wait for work available */
-      if (tip->work == 0)
-        {
-          xpthread_cond_wait(&tip->cond, &tip->mutex);
-        }
-      if (tip->work > 0)
-        {
-          cluster_worker(t);
-          tip->work = 0;
-          xpthread_cond_signal(&tip->cond);
-        }
-    }
-  xpthread_mutex_unlock(&tip->mutex);
-  return nullptr;
 }
 
 
@@ -273,78 +243,42 @@ auto threads_wakeup(int queries) -> void
   int threads_rest = threads;
   int query_next = 0;
 
-  /* tell the threads that there is work to do */
-  for (int t = 0; t < threads; t++)
+  /* assign a slice of the queries to each thread; threads beyond the
+     number of queries get an empty slice and do nothing this round */
+  for (int t = 0; t < opt_threads; t++)
     {
-      thread_info_t * tip = ti + t;
-
-      tip->query_first = query_next;
-      tip->query_count = (queries_rest + threads_rest - 1) / threads_rest;
-      queries_rest -= tip->query_count;
-      query_next += tip->query_count;
-      --threads_rest;
-
-      xpthread_mutex_lock(&tip->mutex);
-      tip->work = 1;
-      xpthread_cond_signal(&tip->cond);
-      xpthread_mutex_unlock(&tip->mutex);
-    }
-
-  /* wait for theads to finish their work */
-  for (int t = 0; t < threads; t++)
-    {
-      thread_info_t * tip = ti + t;
-      xpthread_mutex_lock(&tip->mutex);
-      while (tip->work > 0)
+      if (t < threads)
         {
-          xpthread_cond_wait(&tip->cond, &tip->mutex);
+          thread_work[t].query_first = query_next;
+          thread_work[t].query_count = (queries_rest + threads_rest - 1) / threads_rest;
+          queries_rest -= thread_work[t].query_count;
+          query_next += thread_work[t].query_count;
+          --threads_rest;
         }
-      xpthread_mutex_unlock(&tip->mutex);
+      else
+        {
+          thread_work[t].query_first = query_next;
+          thread_work[t].query_count = 0;
+        }
     }
+
+  cluster_threadrunner->run();
 }
 
 
 auto threads_init() -> void
 {
-  xpthread_attr_init(&attr);
-  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-  /* allocate memory for thread info */
-  ti = static_cast<thread_info_t *>(xmalloc(opt_threads * sizeof(thread_info_t)));
-
-  /* init and create worker threads */
-  for (int t = 0; t < opt_threads; t++)
-    {
-      thread_info_t * tip = ti + t;
-      tip->work = 0;
-      xpthread_mutex_init(&tip->mutex, nullptr);
-      xpthread_cond_init(&tip->cond, nullptr);
-      xpthread_create(&tip->thread, &attr, threads_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
-    }
+  thread_work.resize(static_cast<std::size_t>(opt_threads));
+  cluster_threadrunner.reset(new ThreadRunner(static_cast<std::size_t>(opt_threads),
+                                              cluster_worker));
 }
 
 
 auto threads_exit() -> void
 {
-  /* finish and clean up worker threads */
-  for (int t = 0; t < opt_threads; t++)
-    {
-      struct thread_info_s * tip = ti + t;
-
-      /* tell worker to quit */
-      xpthread_mutex_lock(&tip->mutex);
-      tip->work = -1;
-      xpthread_cond_signal(&tip->cond);
-      xpthread_mutex_unlock(&tip->mutex);
-
-      /* wait for worker to quit */
-      xpthread_join(tip->thread, nullptr);
-
-      xpthread_cond_destroy(&tip->cond);
-      xpthread_mutex_destroy(&tip->mutex);
-    }
-  xfree(ti);
-  xpthread_attr_destroy(&attr);
+  /* joins and destroys the worker threads */
+  cluster_threadrunner.reset();
+  thread_work.clear();
 }
 
 
