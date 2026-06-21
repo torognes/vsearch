@@ -65,17 +65,18 @@
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
-#include "utils/xpthread.hpp"
+#include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
 #include <array>
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
+#include <condition_variable>  // std::condition_variable
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
-#include <pthread.h>
+#include <mutex>  // std::mutex, std::unique_lock
 #include <vector>
 
 
@@ -112,9 +113,6 @@ static int64_t total = 0;
 static double sum_read_length = 0.0;
 static double sum_squared_fragment_length = 0.0;
 static double sum_fragment_length = 0.0;
-
-static pthread_t * pthread;
-static pthread_attr_t attr;
 
 constexpr auto n_quality_symbols = 128U;
 std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
@@ -243,8 +241,15 @@ static bool finished_all = false;
 static int pairs_read = 0;
 static int pairs_written = 0;
 
-static pthread_mutex_t mutex_chunks;
-static pthread_cond_t cond_chunks;
+/* mutex_chunks and cond_chunks are not file-scope objects: a worker may
+   call fatal() (hence std::exit()) while sibling workers are still
+   blocked in cond_chunks.wait(). Destroying a condition_variable at exit
+   while threads wait on it is undefined behaviour. By owning them as
+   locals in pair_all() and passing them by reference, std::exit() (which
+   does not unwind the stack) never destroys them with waiters present,
+   and the normal path destroys them only after ThreadRunner has joined
+   every worker. The previous pthread_cond_t/pthread_mutex_t globals had
+   no destructors, so they did not have this problem. */
 
 
 // refactoring: replace with check_optional_output_handle()
@@ -1145,11 +1150,12 @@ auto keep_or_discard(merge_data_t const & a_read_pair) -> void
 }
 
 
-inline auto chunk_perform_read() -> void
+inline auto chunk_perform_read(std::unique_lock<std::mutex> & lock,
+                               std::condition_variable & cond_chunks) -> void
 {
   while ((not finished_reading) and (chunks[chunk_read_next].state == State::empty))
     {
-      xpthread_mutex_unlock(&mutex_chunks);
+      lock.unlock();
       progress_update(fastq_get_position(fastq_fwd));
       auto r = 0;
       while ((r < chunk_size) and
@@ -1158,7 +1164,7 @@ inline auto chunk_perform_read() -> void
           ++r;
         }
       chunks[chunk_read_next].size = r;
-      xpthread_mutex_lock(&mutex_chunks);
+      lock.lock();
       pairs_read += r;
       if (r > 0)
         {
@@ -1173,21 +1179,22 @@ inline auto chunk_perform_read() -> void
               finished_all = true;
             }
         }
-      xpthread_cond_broadcast(&cond_chunks);
+      cond_chunks.notify_all();
     }
 }
 
 
-inline auto chunk_perform_write() -> void
+inline auto chunk_perform_write(std::unique_lock<std::mutex> & lock,
+                                std::condition_variable & cond_chunks) -> void
 {
   while (chunks[chunk_write_next].state == State::processed)
     {
-      xpthread_mutex_unlock(&mutex_chunks);
+      lock.unlock();
       for (auto i = 0; i < chunks[chunk_write_next].size; i++)
         {
           keep_or_discard(chunks[chunk_write_next].merge_data[i]);
         }
-      xpthread_mutex_lock(&mutex_chunks);
+      lock.lock();
       pairs_written += chunks[chunk_write_next].size;
       chunks[chunk_write_next].state = State::empty;
       if (finished_reading and (pairs_written >= pairs_read))
@@ -1195,49 +1202,51 @@ inline auto chunk_perform_write() -> void
           finished_all = true;
         }
       chunk_write_next = (chunk_write_next + 1) % chunk_count;
-      xpthread_cond_broadcast(&cond_chunks);
+      cond_chunks.notify_all();
     }
 }
 
 
-inline auto chunk_perform_process(struct kh_handle_s & kmerhash) -> void
+inline auto chunk_perform_process(struct kh_handle_s & kmerhash,
+                                  std::unique_lock<std::mutex> & lock,
+                                  std::condition_variable & cond_chunks) -> void
 {
   auto const chunk_current = chunk_process_next;
   if (chunks[chunk_current].state == State::filled)
     {
       chunks[chunk_current].state = State::inprogress;
       chunk_process_next = (chunk_current + 1) % chunk_count;
-      xpthread_cond_broadcast(&cond_chunks);
-      xpthread_mutex_unlock(&mutex_chunks);
+      cond_chunks.notify_all();
+      lock.unlock();
       for (auto i = 0; i < chunks[chunk_current].size; i++)
         {
           process(chunks[chunk_current].merge_data[i], kmerhash);
         }
-      xpthread_mutex_lock(&mutex_chunks);
+      lock.lock();
       chunks[chunk_current].state = State::processed;
-      xpthread_cond_broadcast(&cond_chunks);
+      cond_chunks.notify_all();
     }
 }
 
 
-auto pair_worker(void * vp) -> void *
+auto pair_worker(uint64_t t,
+                 std::mutex & mutex_chunks,
+                 std::condition_variable & cond_chunks) -> void
 {
   /* new */
 
-  auto t = reinterpret_cast<int64_t>(vp);
-
   struct kh_handle_s kmerhash;
 
-  xpthread_mutex_lock(&mutex_chunks);
+  std::unique_lock<std::mutex> lock(mutex_chunks);
 
   while (not finished_all)
     {
       if (opt_threads == 1)
         {
           /* One thread does it all */
-          chunk_perform_read();
-          chunk_perform_process(kmerhash);
-          chunk_perform_write();
+          chunk_perform_read(lock, cond_chunks);
+          chunk_perform_process(kmerhash, lock, cond_chunks);
+          chunk_perform_write(lock, cond_chunks);
         }
       else if (opt_threads == 2)
         {
@@ -1253,11 +1262,11 @@ auto pair_worker(void * vp) -> void *
                       ((not finished_reading) and
                        chunks[chunk_read_next].state == State::empty)))
                 {
-                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                  cond_chunks.wait(lock);
                 }
 
-              chunk_perform_read();
-              chunk_perform_process(kmerhash);
+              chunk_perform_read(lock, cond_chunks);
+              chunk_perform_process(kmerhash, lock, cond_chunks);
             }
           else /* t == 1 */
             {
@@ -1272,11 +1281,11 @@ auto pair_worker(void * vp) -> void *
                       )
                      )
                 {
-                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                  cond_chunks.wait(lock);
                 }
 
-              chunk_perform_write();
-              chunk_perform_process(kmerhash);
+              chunk_perform_write(lock, cond_chunks);
+              chunk_perform_process(kmerhash, lock, cond_chunks);
             }
         }
       else
@@ -1295,13 +1304,13 @@ auto pair_worker(void * vp) -> void *
                       )
                      )
                 {
-                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                  cond_chunks.wait(lock);
                 }
 
-              chunk_perform_read();
-              chunk_perform_process(kmerhash);
+              chunk_perform_read(lock, cond_chunks);
+              chunk_perform_process(kmerhash, lock, cond_chunks);
             }
-          else if (t == opt_threads - 1)
+          else if (t == static_cast<uint64_t>(opt_threads) - 1)
             {
               /* last thread writes and processes */
               while (not
@@ -1314,11 +1323,11 @@ auto pair_worker(void * vp) -> void *
                       )
                      )
                 {
-                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                  cond_chunks.wait(lock);
                 }
 
-              chunk_perform_write();
-              chunk_perform_process(kmerhash);
+              chunk_perform_write(lock, cond_chunks);
+              chunk_perform_process(kmerhash, lock, cond_chunks);
             }
           else
             {
@@ -1331,17 +1340,15 @@ auto pair_worker(void * vp) -> void *
                       )
                      )
                 {
-                  xpthread_cond_wait(&cond_chunks, &mutex_chunks);
+                  cond_chunks.wait(lock);
                 }
 
-              chunk_perform_process(kmerhash);
+              chunk_perform_process(kmerhash, lock, cond_chunks);
             }
         }
     }
 
-  xpthread_mutex_unlock(&mutex_chunks);
-
-  return nullptr;
+  /* mutex_chunks released by RAII on return */
 }
 
 
@@ -1356,36 +1363,21 @@ auto pair_all() -> void
 
   chunks.resize(chunk_count);
 
-  xpthread_mutex_init(&mutex_chunks, nullptr);
-  xpthread_cond_init(&cond_chunks, nullptr);
+  /* The chunk mutex and condition variable are owned here (not at file
+     scope) so that std::exit() from a worker's fatal() never destroys
+     them while other workers are blocked in cond_chunks.wait(). */
+  std::mutex mutex_chunks;
+  std::condition_variable cond_chunks;
 
-  /* prepare threads */
-
-  xpthread_attr_init(&attr);
-  xpthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-  std::vector<pthread_t> pthread_v(opt_threads);
-  pthread = pthread_v.data();
-
-  for (auto t = 0; t < opt_threads; t++)
-    {
-      xpthread_create(&pthread_v[t], &attr, pair_worker, reinterpret_cast<void *>(static_cast<int64_t>(t)));
-    }
-
-  /* wait for threads to terminate */
-
-  for (auto t = 0; t < opt_threads; t++)
-    {
-      xpthread_join(pthread_v[t], nullptr);
-    }
-
-  /* free threads */
-
-  xpthread_attr_destroy(&attr);
-
-  /* free chunks */
-
-  xpthread_cond_destroy(&cond_chunks);
-  xpthread_mutex_destroy(&mutex_chunks);
+  /* run the worker pool; the workers coordinate through mutex_chunks and
+     cond_chunks until all chunks have been read, processed and written */
+  {
+    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+                              [&mutex_chunks, &cond_chunks](uint64_t nth_thread) {
+                                pair_worker(nth_thread, mutex_chunks, cond_chunks);
+                              });
+    threadrunner.run();
+  }
 }
 
 
