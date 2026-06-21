@@ -90,7 +90,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>  // refactoring: redundant with <ctime>?
-#include <pthread.h>
 #include <getopt.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -399,7 +398,7 @@ extern int64_t opt_rowlen;
 extern int64_t opt_sample_size;
 extern int64_t opt_self;
 extern int64_t opt_selfid;
-extern int64_t opt_strand;  // used in pthread functions
+extern int64_t opt_strand;  // used in worker threads
 extern int64_t opt_subseq_start;
 extern int64_t opt_subseq_end;
 extern int64_t opt_threads;

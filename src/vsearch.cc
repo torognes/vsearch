@@ -92,7 +92,6 @@
 #include "userfields.h"
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
-#include "utils/xpthread.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cerrno>  // errno, ERANGE
@@ -106,6 +105,7 @@
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
+#include <mutex>  // std::mutex
 #include <string>
 #include <vector>
 
@@ -786,7 +786,7 @@ auto args_getdouble(char const * arg) -> double
    for freeing it (or calling vsearch_init_defaults again, which leaks the
    old allocation — acceptable for single-init library use). */
 
-static pthread_mutex_t session_mutex = PTHREAD_MUTEX_INITIALIZER;
+static std::mutex session_mutex;
 
 auto vsearch_api_version() -> int
 {
@@ -800,7 +800,7 @@ auto vsearch_api_version_string() -> const char *
 
 auto vsearch_init_defaults() -> void
 {
-  xpthread_mutex_lock(&session_mutex);
+  session_mutex.lock();
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
@@ -1020,7 +1020,7 @@ auto vsearch_init_defaults() -> void
 
 auto vsearch_session_end() -> void
 {
-  xpthread_mutex_unlock(&session_mutex);
+  session_mutex.unlock();
 }
 
 

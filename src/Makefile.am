@@ -138,7 +138,6 @@ utils/seqcmp.hpp \
 utils/span.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
-utils/xpthread.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -251,7 +250,6 @@ utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
 utils/os_byteswap.cpp \
-utils/xpthread.cpp \
 utils/seqcmp.cpp \
 vsearch.cc
 
