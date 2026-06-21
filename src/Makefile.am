@@ -137,6 +137,7 @@ utils/progress.hpp \
 utils/seqcmp.hpp \
 utils/span.hpp \
 utils/taxonomic_fields.h \
+utils/threads.hpp \
 utils/xpthread.hpp \
 vsearch.h \
 vsearch_api.h \
