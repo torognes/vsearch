@@ -110,8 +110,9 @@ constexpr auto chimera_id = 0.55;
 static int tophits;
 static fastx_handle query_fasta_h;
 
-/* mutexes and global data protected by mutex */
-static std::mutex mutex_input;
+/* global data protected by mutex_output (file output and the global
+   stats counters). mutex_input is not here: it only serializes input
+   reading on the CLI path and is owned as a local by chimera_threads_run. */
 static std::mutex mutex_output;
 static unsigned int seqno = 0;
 static uint64_t progress = 0;
@@ -2062,7 +2063,8 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 }
 
 
-auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
+auto chimera_thread_core(struct chimera_info_s * ci,
+                         std::mutex & mutex_input) -> uint64_t
 {
   chimera_thread_init(ci);
 
@@ -2290,12 +2292,16 @@ auto chimera_thread_core(struct chimera_info_s * ci) -> uint64_t
 
 auto chimera_threads_run() -> void
 {
+  /* mutex_input serializes input reading among the CLI workers; it is
+     owned here rather than at file scope (the API path does not use it). */
+  std::mutex mutex_input;
+
   /* run the worker pool; each worker processes queries until the input
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                            [](uint64_t nth_thread) {
-                              chimera_thread_core(cia + nth_thread);
+                            [&mutex_input](uint64_t nth_thread) {
+                              chimera_thread_core(cia + nth_thread, mutex_input);
                             });
   threadrunner.run();
 }
@@ -2714,8 +2720,8 @@ auto chimera_session_init() -> void
 
 auto chimera_session_cleanup() -> void
 {
-  /* nothing to release: mutex_input/mutex_output are std::mutex objects
-     with automatic lifetime. Kept as a stable API symbol. */
+  /* nothing to release: mutex_output is a std::mutex with automatic
+     lifetime. Kept as a stable API symbol. */
 }
 
 
