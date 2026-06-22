@@ -136,7 +136,7 @@ jobs:
         usesh: true
         prepare: |
           pkg update -f
-          pkg install -y autoconf automake gmake bash git
+          pkg install -y autoconf automake gmake bash git bzip2 ghostscript10-agpl-base groff
           pw useradd -n runner -m -s /usr/local/bin/bash
         run: |
           ./autogen.sh
