@@ -257,7 +257,14 @@ auto fastx_open(char const * filename) -> fastx_handle
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  input_handle->is_pipe = S_ISFIFO(fs.st_mode);
+  /* Treat anything that is not a regular file as a non-rewindable stream:
+     named pipes, sockets, and character devices (such as FreeBSD's
+     /dev/stdin and the /dev/fd/N entries used by shell process
+     substitution) cannot be seeked, sized, or reopened from the start.
+     The compression autodetection below consumes bytes and then closes
+     and reopens the file to rewind, which silently corrupts such streams,
+     so it must be skipped for them. */
+  input_handle->is_pipe = not S_ISREG(fs.st_mode);
 
   if (input_handle->is_pipe)
     {
@@ -289,11 +296,12 @@ auto fastx_open(char const * filename) -> fastx_handle
     }
   else if (input_handle->is_pipe)
     {
-      /* non-stdin pipe (e.g. bash process substitution, named FIFO):
-         the decompress flags were meant for stdin, not for arbitrary
-         pipes wired in by the shell. Assume plain; compressed inputs
-         should be passed as a regular file or pre-decompressed
-         upstream of the pipe. */
+      /* non-stdin, non-rewindable stream (e.g. bash process
+         substitution, a named FIFO, or a character device such as
+         /dev/stdin on FreeBSD): the decompress flags were meant for
+         stdin, not for arbitrary streams wired in by the shell. Assume
+         plain; compressed inputs should be passed as a regular file or
+         pre-decompressed upstream of the pipe. */
       input_handle->format = Format::plain;
     }
   else

@@ -182,24 +182,33 @@ auto udb_detect_isudb(const char * filename) -> bool
   constexpr static uint32_t udb_file_signature {0x55444246}; // 'FBDU UDBF'
   constexpr static uint64_t expected_n_bytes {sizeof(uint32_t)};
 
-  xstat_t fs;
-
-  if (xstat(filename, & fs) != 0)
+  int const file_descriptor = xopen_read(filename);
+  if (file_descriptor < 0)
     {
+      fatal("Unable to open input file for reading (%s)", filename);
+    }
+
+  /* Only a regular file can be probed here and then reopened from the
+     start by the actual reader. A non-rewindable stream (a named pipe,
+     or a character device such as FreeBSD's /dev/stdin and the /dev/fd/N
+     entries created by shell process substitution) cannot be a UDB file,
+     and reading its magic number would consume bytes the subsequent
+     reader could not recover. Stat the open descriptor rather than the
+     path: on FreeBSD /dev/stdin is a character device that stat() of the
+     path does not report as a pipe. For such streams, bail out without
+     consuming any input. */
+
+  xstat_t fs;
+  if (xfstat(file_descriptor, & fs) != 0)
+    {
+      close(file_descriptor);
       fatal("Unable to get status for input file (%s)", filename);
     }
 
-  auto const is_pipe = S_ISFIFO(fs.st_mode);
-  if (is_pipe)
+  if (not S_ISREG(fs.st_mode))
     {
+      close(file_descriptor);
       return false;
-    }
-
-  int file_descriptor = 0;
-  file_descriptor = xopen_read(filename);
-  if (file_descriptor == 0)
-    {
-      fatal("Unable to open input file for reading (%s)", filename);
     }
 
   unsigned int magic = 0;
