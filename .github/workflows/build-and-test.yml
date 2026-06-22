@@ -146,6 +146,17 @@ jobs:
           bin/vsearch -v
           git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
           chown -R runner vsearch-tests
-          # root bypasses POSIX permission checks, so the "file not
-          # readable/writable" tests need an unprivileged user
-          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh"
+          # The suite runs ~7,700 tests, each printing a result line.
+          # Streaming that volume over the vmactions SSH channel wedges
+          # the FreeBSD guest after a few minutes (it stops responding at
+          # a random point). Run the suite into a log file inside the VM
+          # instead, then surface a bounded summary so CI still reports
+          # failures. root bypasses POSIX permission checks, so the "file
+          # not readable/writable" tests need an unprivileged user.
+          status=0
+          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh > test.log 2>&1" || status=$?
+          echo "===== FAIL lines ====="
+          grep -E 'FAIL' vsearch-tests/test.log || echo "(none)"
+          echo "===== last 50 lines of test.log ====="
+          tail -n 50 vsearch-tests/test.log
+          exit $status
