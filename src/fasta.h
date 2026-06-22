@@ -96,14 +96,14 @@ auto fasta_print_general(std::FILE * output_handle,
                          int len,
                          char const * header,
                          int header_length,
-                         unsigned int abundance,
-                         int ordinal,
+                         uint64_t abundance,
+                         int64_t ordinal,
                          double expected_error,
-                         int clustersize,
+                         int64_t clustersize,
                          int clusterid,
                          char const * score_name,
                          double score,
-                         int centroid_size) -> void;
+                         uint64_t centroid_size) -> void;
 
 auto fasta_print_db(std::FILE * output_handle,
                     uint64_t seqno) -> void;

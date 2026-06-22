@@ -71,7 +71,8 @@ struct seqinfo_s
   std::size_t qual_p {};
   unsigned int headerlen {};
   unsigned int seqlen {};
-  unsigned int size {};
+  uint64_t size {};  // abundance; 64-bit so a per-sequence ;size= above UINT_MAX
+                     // does not wrap (fits the existing struct tail padding)
 };
 
 using seqinfo_t = struct seqinfo_s;

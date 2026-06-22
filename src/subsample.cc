@@ -190,9 +190,9 @@ auto check_output_files(struct file_types const & ouput_files) -> void {
 namespace {
   // anonymous namespace to avoid linker error (multiple definitions
   // of function with identical names and parameters)
-  auto create_deck(bool const sizein_requested) -> std::vector<int> {
+  auto create_deck(bool const sizein_requested) -> std::vector<uint64_t> {
     auto const dbsequencecount = db_getsequencecount();
-    std::vector<int> deck(dbsequencecount, 1);
+    std::vector<uint64_t> deck(dbsequencecount, 1);
     if (sizein_requested) {
       auto counter = std::size_t{0};
       for (auto & abundance : deck) {
@@ -205,7 +205,7 @@ namespace {
 }
 
 
-auto write_original_stats(std::vector<int> const & deck,
+auto write_original_stats(std::vector<uint64_t> const & deck,
                           uint64_t const mass_total,
                           struct Parameters const & parameters) -> void {
   if (not parameters.opt_quiet) {
@@ -229,11 +229,11 @@ auto number_of_reads_to_sample(struct Parameters const & parameters,
 }
 
 
-auto write_subsampling_stats(std::vector<int> const &deck,
+auto write_subsampling_stats(std::vector<uint64_t> const &deck,
                              uint64_t const n_reads,
                              struct Parameters const & parameters) -> void {
   int const samples = std::count_if(deck.begin(),
-                                    deck.end(), [](int abundance) -> bool { return abundance != 0; });
+                                    deck.end(), [](uint64_t abundance) -> bool { return abundance != 0; });
   if (not parameters.opt_quiet) {
     std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
   }
@@ -243,7 +243,7 @@ auto write_subsampling_stats(std::vector<int> const &deck,
 }
 
 
-auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
+auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
                         uint64_t const n_reads, bool const sizein_requested) -> void {
   auto n_reads_left = n_reads;
   auto amplicon_number = 0;
@@ -279,17 +279,17 @@ auto random_subsampling(std::vector<int> & deck, uint64_t const mass_total,
 }
 
 
-auto substract_two_decks(std::vector<int> const & original_deck,
-                         std::vector<int> const & subsampled_deck) -> std::vector<int> {
-  std::vector<int> difference_deck(original_deck.size());
+auto substract_two_decks(std::vector<uint64_t> const & original_deck,
+                         std::vector<uint64_t> const & subsampled_deck) -> std::vector<uint64_t> {
+  std::vector<uint64_t> difference_deck(original_deck.size());
   std::transform(original_deck.cbegin(), original_deck.cend(),
                  subsampled_deck.cbegin(), difference_deck.begin(),
-                 std::minus<int>());
+                 std::minus<uint64_t>());
   return difference_deck;
 }
 
 
-auto writing_fasta_output(std::vector<int> const & deck,
+auto writing_fasta_output(std::vector<uint64_t> const & deck,
                           struct a_file const & fasta_file) -> void {
   if (fasta_file.name == nullptr) {
     return;
@@ -322,7 +322,7 @@ auto writing_fasta_output(std::vector<int> const & deck,
 }
 
 
-auto writing_fastq_output(std::vector<int> const & deck,
+auto writing_fastq_output(std::vector<uint64_t> const & deck,
                           struct a_file const & fastq_file) -> void {
   if (fastq_file.name == nullptr) {
     return;
@@ -343,7 +343,7 @@ auto writing_fastq_output(std::vector<int> const & deck,
                           db_getheader(counter),
                           static_cast<int>(db_getheaderlen(counter)),
                           db_getquality(counter),
-                          static_cast<int>(new_abundance),
+                          new_abundance,
                           amplicons_printed,
                           -1.0);
       progress_update(counter);

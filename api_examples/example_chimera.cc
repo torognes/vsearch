@@ -176,7 +176,7 @@ static int run_batch_tests()
   std::vector<const char *> q_seqs(nq);
   std::vector<const char *> q_heads(nq);
   std::vector<int> q_lens(nq);
-  std::vector<int> q_sizes(nq);
+  std::vector<int64_t> q_sizes(nq);
   for (int i = 0; i < nq; i++)
     {
       q_seqs[i] = query_seqs[i].c_str();

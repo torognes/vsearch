@@ -140,7 +140,7 @@ struct chimera_info_s
   int query_no = 0;
   std::vector<char> query_head;
   int query_head_len = 0;
-  int query_size = 0;
+  int64_t query_size = 0;
   std::vector<char> query_seq;
   int query_len = 0;
 
@@ -2773,7 +2773,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
                            const char * query_seq,
                            const char * query_head,
                            int query_len,
-                           int query_size,
+                           int64_t query_size,
                            struct chimera_result_s * result) -> int
 {
   /* Populate query in the chimera_info_s.
@@ -2859,7 +2859,7 @@ struct chimera_batch_context_s {
   const char ** query_seqs;
   const char ** query_heads;
   const int * query_lens;
-  const int * query_sizes;
+  const int64_t * query_sizes;
   int query_count;
   struct chimera_result_s * results;
 
@@ -2903,7 +2903,7 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 auto chimera_detect_batch(const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,
-                          const int * query_sizes,
+                          const int64_t * query_sizes,
                           int query_count,
                           struct chimera_result_s * results) -> void
 {

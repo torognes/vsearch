@@ -383,7 +383,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             }
         }
 
-      int const abundance = fastx_get_abundance(h);
+      int64_t const abundance = fastx_get_abundance(h);
       int64_t const ab = parameters.opt_sizein ? abundance : 1;
       sumsize += ab;
 

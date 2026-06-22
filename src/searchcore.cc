@@ -467,6 +467,80 @@ auto align_trim(struct hit * hit) -> void
 }
 
 
+namespace {
+  // 128-bit unsigned helper type; __extension__ silences -Wpedantic in C++11.
+  __extension__ typedef unsigned __int128 uint128_t;
+
+  /* Compare an abundance against `ratio * reference` without the precision
+     loss that converting 64-bit abundances to double incurs above 2^53.
+     `ratio` is a non-negative size-ratio threshold (e.g. 1/abskew, or a user
+     --minsizeratio / --maxsizeratio); `value` and `reference` are non-negative
+     abundances.  Returns the sign of (value - ratio*reference): negative if
+     value < ratio*reference, zero if equal, positive if value > ratio*reference.
+     The double `ratio` is used at its exact stored (dyadic) value, so results
+     match the old double comparison wherever that was exact and stay exact for
+     abundances beyond 2^53. */
+  auto abundance_ratio_cmp(int64_t const value,
+                           double const ratio,
+                           int64_t const reference) -> int
+  {
+    if ((reference <= 0) or (ratio <= 0.0))
+      {
+        return (value > 0) ? 1 : 0;   // ratio * reference == 0
+      }
+    if (not std::isfinite(ratio))
+      {
+        return -1;                    // ratio * reference == +inf > value
+      }
+
+    /* Below 2^53 both abundances convert to double exactly, so the historical
+       double comparison is itself exact; keep it on that path so long-standing
+       boundary behaviour for non-dyadic ratios (e.g. 1/abskew when abskew is
+       9) is preserved.  Only switch to exact 128-bit arithmetic when an
+       abundance exceeds 2^53, where double would silently drop integer bits. */
+    constexpr int64_t exact_double_limit = (int64_t{1} << 53);
+    if ((value < exact_double_limit) and (reference < exact_double_limit))
+      {
+        double const product = ratio * static_cast<double>(reference);
+        double const value_d = static_cast<double>(value);
+        if (value_d < product) { return -1; }
+        if (value_d > product) { return 1; }
+        return 0;
+      }
+
+    /* Exact decomposition of the stored double: ratio = mantissa * 2^exponent,
+       with mantissa an integer in [2^52, 2^53). */
+    int exponent = 0;
+    auto const mantissa =
+      static_cast<int64_t>(std::ldexp(std::frexp(ratio, &exponent), 53));
+    exponent -= 53;                   // ratio = mantissa * 2^exponent
+
+    /* Compare value against mantissa * 2^exponent * reference in 128 bits,
+       applying the power-of-two shift one bit at a time with an overflow guard
+       so neither side can leave the 128-bit range (the guard also terminates
+       early for extreme ratios such as the dbl_max default). */
+    auto lhs = static_cast<uint128_t>(static_cast<uint64_t>(value));
+    auto rhs = static_cast<uint128_t>(static_cast<uint64_t>(mantissa))
+             * static_cast<uint128_t>(static_cast<uint64_t>(reference));
+
+    for (int shift = exponent; shift > 0; --shift)
+      {
+        if ((rhs >> 126) != 0) { return -1; }  // ratio*reference >> value
+        rhs <<= 1;
+      }
+    for (int shift = exponent; shift < 0; ++shift)
+      {
+        if ((lhs >> 126) != 0) { return 1; }   // value >> ratio*reference
+        lhs <<= 1;
+      }
+
+    if (lhs < rhs) { return -1; }
+    if (lhs > rhs) { return 1; }
+    return 0;
+  }
+}  // anonymous namespace
+
+
 auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int const target) -> bool
 {
@@ -489,10 +563,10 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           (tsize >= opt_mintsize)
           and
           /* minsizeratio */
-          (searchinfo.qsize >= opt_minsizeratio * tsize)
+          (abundance_ratio_cmp(searchinfo.qsize, opt_minsizeratio, tsize) >= 0)
           and
           /* maxsizeratio */
-          (searchinfo.qsize <= opt_maxsizeratio * tsize)
+          (abundance_ratio_cmp(searchinfo.qsize, opt_maxsizeratio, tsize) <= 0)
           and
           /* minqt */
           (searchinfo.qseqlen >= opt_minqt * dseqlen)
