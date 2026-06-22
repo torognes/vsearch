@@ -926,7 +926,7 @@ auto vsearch_init_defaults() -> void
   opt_maxgaps = int_max;
   opt_maxhits = 0;
   opt_maxid = 1.0;
-  opt_maxqsize = int_max;
+  opt_maxqsize = int64_max;
   opt_maxqt = dbl_max;
   opt_maxrejects = -1;
   opt_maxseqlength = default_maxseqlength;
