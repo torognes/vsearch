@@ -104,20 +104,38 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 # next warnings to activate:
 # -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # -Wconversion
-# -Wold-style-cast
-# -Wshadow
 # -Wsign-conversion
-# -Wunused-macros
-# -Wuseless-cast
 # GCC 14: -Wnrvo (Named Return Value Optimization)
+# evaluated and left disabled:
+# -Wuseless-cast: only fires inside SIMD intrinsics where the cast is
+#   load-bearing in a shared macro (align_simd.cc) or documents intent
+#   in a symmetric constant block (cpu.cc)
+# -Wformat=2: its only delta over -Wformat=1 is -Wformat-nonliteral,
+#   which fires on the non-variadic printf wrappers fatal()/warn() and
+#   cannot be silenced by __attribute__((format)) on a non-variadic
+#   function
+# -Wold-style-cast is a debug-build flag, and debug builds target
+#   x86_64, where it is verified clean. The __PPC__ and __aarch64__
+#   SIMD paths in align_simd.cc keep some C-style casts: the v_load /
+#   v_store macros must strip const while reinterpreting (the PPC
+#   ALIGNCORE loads from a const vector), and PPC AltiVec vector-value
+#   casts have no portable C++ named-cast equivalent. These paths are
+#   only compiled when cross-building for POWER/ARM.
 @ENABLE_DEBUG_TRUE@am__append_5 = -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
 @ENABLE_DEBUG_TRUE@             -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
-@ENABLE_DEBUG_TRUE@             -Wformat=1 -Wformat-overflow -Wlogical-op -Wnon-virtual-dtor -Wnull-dereference \
-@ENABLE_DEBUG_TRUE@             -Woverloaded-virtual -Wuninitialized \
-@ENABLE_DEBUG_TRUE@             -Wunsafe-loop-optimizations -Wunused -Wvla \
+@ENABLE_DEBUG_TRUE@             -Wformat=1 -Wformat-overflow -Wlogical-op -Wnull-dereference \
+@ENABLE_DEBUG_TRUE@             -Wshadow -Wuninitialized \
+@ENABLE_DEBUG_TRUE@             -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla \
 @ENABLE_DEBUG_TRUE@             -Wno-ignored-attributes
 
 @ENABLE_DEBUG_FALSE@am__append_6 = -DNDEBUG
+
+# C++-only debug warnings. Keeping these out of AM_CFLAGS avoids the
+# "valid for C++/ObjC++ but not for C" diagnostics that GCC emits for
+# the bundled C sources (md5.c, sha1.c).
+# -Wcast-qual is also restricted here because sha1.c intentionally
+# casts away const (it byte-swaps its input block in place).
+@ENABLE_DEBUG_TRUE@am__append_7 = -Wcast-qual -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -165,7 +183,7 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/compare_strings_nocase.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
+	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	vsearch.h vsearch_api.h xstring.h
 am__objects_1 =
 @TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
@@ -189,7 +207,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/compare_strings_nocase.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
+	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
 @TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
@@ -213,7 +231,7 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/compare_strings_nocase.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
+	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
@@ -237,7 +255,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/compare_strings_nocase.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
+	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
@@ -261,7 +279,7 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/compare_strings_nocase.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
+	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
@@ -285,7 +303,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/compare_strings_nocase.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/xpthread.hpp \
+	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
@@ -354,7 +372,6 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-compare_strings_nocase.$(OBJEXT) \
 	utils/libvsearch_core_a-open_file.$(OBJEXT) \
 	utils/libvsearch_core_a-os_byteswap.$(OBJEXT) \
-	utils/libvsearch_core_a-xpthread.$(OBJEXT) \
 	utils/libvsearch_core_a-seqcmp.$(OBJEXT) \
 	libvsearch_core_a-vsearch.$(OBJEXT)
 am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2)
@@ -381,8 +398,7 @@ am__objects_3 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) arch.$(OBJEXT) \
 	utils/check_output_filehandle.$(OBJEXT) utils/cigar.$(OBJEXT) \
 	utils/compare_strings_nocase.$(OBJEXT) \
 	utils/open_file.$(OBJEXT) utils/os_byteswap.$(OBJEXT) \
-	utils/xpthread.$(OBJEXT) utils/seqcmp.$(OBJEXT) \
-	vsearch.$(OBJEXT)
+	utils/seqcmp.$(OBJEXT) vsearch.$(OBJEXT)
 am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
 	$(am__objects_3)
 __top_builddir__bin_vsearch_OBJECTS =  \
@@ -511,10 +527,8 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-open_file.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po \
-	utils/$(DEPDIR)/libvsearch_core_a-xpthread.Po \
 	utils/$(DEPDIR)/maps.Po utils/$(DEPDIR)/open_file.Po \
-	utils/$(DEPDIR)/os_byteswap.Po utils/$(DEPDIR)/seqcmp.Po \
-	utils/$(DEPDIR)/xpthread.Po
+	utils/$(DEPDIR)/os_byteswap.Po utils/$(DEPDIR)/seqcmp.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -695,7 +709,7 @@ top_srcdir = @top_srcdir@
 AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes \
 	$(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6)
-AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
+AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions $(am__append_7)
 VSEARCHHEADERS = \
 align_simd.h \
 allpairs.h \
@@ -765,7 +779,7 @@ utils/progress.hpp \
 utils/seqcmp.hpp \
 utils/span.hpp \
 utils/taxonomic_fields.h \
-utils/xpthread.hpp \
+utils/threads.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -862,7 +876,6 @@ utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
 utils/os_byteswap.cpp \
-utils/xpthread.cpp \
 utils/seqcmp.cpp \
 vsearch.cc
 
@@ -1017,8 +1030,6 @@ utils/libvsearch_core_a-open_file.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-os_byteswap.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
-utils/libvsearch_core_a-xpthread.$(OBJEXT): utils/$(am__dirstamp) \
-	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-seqcmp.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 
@@ -1039,8 +1050,6 @@ utils/compare_strings_nocase.$(OBJEXT): utils/$(am__dirstamp) \
 utils/open_file.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/os_byteswap.$(OBJEXT): utils/$(am__dirstamp) \
-	utils/$(DEPDIR)/$(am__dirstamp)
-utils/xpthread.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/seqcmp.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
@@ -1187,12 +1196,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-xpthread.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/maps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/os_byteswap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/seqcmp.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/xpthread.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -2170,20 +2177,6 @@ utils/libvsearch_core_a-os_byteswap.obj: utils/os_byteswap.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-os_byteswap.obj `if test -f 'utils/os_byteswap.cpp'; then $(CYGPATH_W) 'utils/os_byteswap.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/os_byteswap.cpp'; fi`
 
-utils/libvsearch_core_a-xpthread.o: utils/xpthread.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-xpthread.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-xpthread.Tpo -c -o utils/libvsearch_core_a-xpthread.o `test -f 'utils/xpthread.cpp' || echo '$(srcdir)/'`utils/xpthread.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-xpthread.Tpo utils/$(DEPDIR)/libvsearch_core_a-xpthread.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/xpthread.cpp' object='utils/libvsearch_core_a-xpthread.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-xpthread.o `test -f 'utils/xpthread.cpp' || echo '$(srcdir)/'`utils/xpthread.cpp
-
-utils/libvsearch_core_a-xpthread.obj: utils/xpthread.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-xpthread.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-xpthread.Tpo -c -o utils/libvsearch_core_a-xpthread.obj `if test -f 'utils/xpthread.cpp'; then $(CYGPATH_W) 'utils/xpthread.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/xpthread.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-xpthread.Tpo utils/$(DEPDIR)/libvsearch_core_a-xpthread.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/xpthread.cpp' object='utils/libvsearch_core_a-xpthread.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-xpthread.obj `if test -f 'utils/xpthread.cpp'; then $(CYGPATH_W) 'utils/xpthread.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/xpthread.cpp'; fi`
-
 utils/libvsearch_core_a-seqcmp.o: utils/seqcmp.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-seqcmp.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Tpo -c -o utils/libvsearch_core_a-seqcmp.o `test -f 'utils/seqcmp.cpp' || echo '$(srcdir)/'`utils/seqcmp.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Tpo utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
@@ -2486,12 +2479,10 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
-	-rm -f utils/$(DEPDIR)/libvsearch_core_a-xpthread.Po
 	-rm -f utils/$(DEPDIR)/maps.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
-	-rm -f utils/$(DEPDIR)/xpthread.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -2665,12 +2656,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
-	-rm -f utils/$(DEPDIR)/libvsearch_core_a-xpthread.Po
 	-rm -f utils/$(DEPDIR)/maps.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
-	-rm -f utils/$(DEPDIR)/xpthread.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

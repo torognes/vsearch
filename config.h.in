@@ -24,9 +24,6 @@
 /* Define to 1 if you have the 'psapi' library (-lpsapi). */
 #undef HAVE_LIBPSAPI
 
-/* Define to 1 if you have the 'pthread' library (-lpthread). */
-#undef HAVE_LIBPTHREAD
-
 /* Define to 1 if you have the 'localtime' function. */
 #undef HAVE_LOCALTIME
 
@@ -47,9 +44,6 @@
 
 /* Define to 1 if you have the 'pow' function. */
 #undef HAVE_POW
-
-/* Define to 1 if you have the <pthread.h> header file. */
-#undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the 'regcomp' function. */
 #undef HAVE_REGCOMP

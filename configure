@@ -4817,51 +4817,14 @@ fi
 
 
 
+# Threading support for C++11 std::thread. The -pthread flag is applied
+# at both compile and link time (CXXFLAGS is used for linking too): it
+# defines _REENTRANT and pulls in the correct platform threading library
+# (-lpthread on glibc, -lthr on FreeBSD, winpthreads on MinGW, the
+# native library on macOS), which a bare -lpthread does not do portably.
+CXXFLAGS="$CXXFLAGS -pthread"
+
 # Checks for libraries.
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lpthread" >&5
-printf %s "checking for pthread_create in -lpthread... " >&6; }
-if test ${ac_cv_lib_pthread_pthread_create+y}
-then :
-  printf %s "(cached) " >&6
-else case e in #(
-  e) ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthread  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-namespace conftest {
-  extern "C" int pthread_create ();
-}
-int
-main (void)
-{
-return conftest::pthread_create ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"
-then :
-  ac_cv_lib_pthread_pthread_create=yes
-else case e in #(
-  e) ac_cv_lib_pthread_pthread_create=no ;;
-esac
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS ;;
-esac
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_create" >&5
-printf "%s\n" "$ac_cv_lib_pthread_pthread_create" >&6; }
-if test "x$ac_cv_lib_pthread_pthread_create" = xyes
-then :
-  printf "%s\n" "#define HAVE_LIBPTHREAD 1" >>confdefs.h
-
-  LIBS="-lpthread $LIBS"
-
-fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
 printf %s "checking for dlopen in -ldl... " >&6; }
@@ -5016,12 +4979,6 @@ ac_fn_cxx_check_header_compile "$LINENO" "dlfcn.h" "ac_cv_header_dlfcn_h" "$ac_i
 if test "x$ac_cv_header_dlfcn_h" = xyes
 then :
   printf "%s\n" "#define HAVE_DLFCN_H 1" >>confdefs.h
-
-fi
-ac_fn_cxx_check_header_compile "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
-if test "x$ac_cv_header_pthread_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_PTHREAD_H 1" >>confdefs.h
 
 fi
 
@@ -5374,7 +5331,7 @@ have_man_html=no
 case $target in
      aarch64*) target_aarch64="yes" ;;
      powerpc64*) target_ppc="yes" ;;
-     x86_64*) target_x86_64="yes" ;;
+     x86_64* | amd64*) target_x86_64="yes" ;;
 esac
 
 case $target in
