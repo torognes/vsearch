@@ -68,6 +68,7 @@
 #include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
 #include <array>
+#include <atomic>  // std::atomic
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
@@ -241,15 +242,26 @@ static bool finished_all = false;
 static int pairs_read = 0;
 static int pairs_written = 0;
 
-/* mutex_chunks and cond_chunks are not file-scope objects: a worker may
-   call fatal() (hence std::exit()) while sibling workers are still
-   blocked in cond_chunks.wait(). Destroying a condition_variable at exit
-   while threads wait on it is undefined behaviour. By owning them as
-   locals in pair_all() and passing them by reference, std::exit() (which
-   does not unwind the stack) never destroys them with waiters present,
-   and the normal path destroys them only after ThreadRunner has joined
-   every worker. The previous pthread_cond_t/pthread_mutex_t globals had
-   no destructors, so they did not have this problem. */
+/* A worker must never call std::exit() (e.g. via fatal()) while sibling
+   workers are still running: std::exit() flushes and closes the shared
+   output streams and runs static destructors concurrently with threads
+   that are still writing to those streams, which is a data race that
+   intermittently corrupts libc state and crashes (observed as SIGILL on
+   FreeBSD). Instead, an out-of-range FASTQ quality value records the
+   error here and requests a cooperative abort; every worker then unwinds
+   its loop and pair_all() reports the error and exits from the main
+   thread, after all workers have joined. The error details are written
+   once (first worker to claim wins) and read by pair_all() after the
+   join, which establishes the needed happens-before. */
+
+enum class MergeAbortReason { quality_below_qmin, quality_above_qmax, more_fwd_than_rev };
+static std::atomic<bool> merge_abort {false};
+static std::atomic<bool> merge_error_claimed {false};
+static MergeAbortReason merge_error_reason = MergeAbortReason::quality_below_qmin;
+static int merge_error_value = 0;
+
+/* mutex_chunks and cond_chunks are owned as locals in pair_all(), not at
+   file scope; see the comment there. */
 
 
 // refactoring: replace with check_optional_output_handle()
@@ -265,6 +277,71 @@ auto fileopenw(char const * filename) -> std::FILE *
 }
 
 
+/* Request a cooperative abort from a worker thread. Records the first
+   error seen and signals every worker to stop; the actual message and
+   std::exit() happen in pair_all() on the main thread after all workers
+   have joined (see merge_abort above). */
+inline auto request_merge_abort(MergeAbortReason const reason, int const value) -> void
+{
+  if (not merge_error_claimed.exchange(true))
+    {
+      merge_error_reason = reason;
+      merge_error_value = value;
+    }
+  merge_abort.store(true, std::memory_order_release);
+}
+
+
+/* Report the recorded worker error and terminate. Must be called from the
+   main thread only, after all workers have joined. */
+auto report_merge_abort() -> void
+{
+  switch (merge_error_reason)
+    {
+    case MergeAbortReason::quality_below_qmin:
+      fprintf(stderr,
+              "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
+              PRId64 ")\n",
+              merge_error_value, opt_fastq_qmin);
+      if (fp_log != nullptr)
+        {
+          fprintf(fp_log,
+                  "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
+                  PRId64 ")\n",
+                  merge_error_value, opt_fastq_qmin);
+        }
+      break;
+
+    case MergeAbortReason::quality_above_qmax:
+      fprintf(stderr,
+              "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
+              PRId64 ")\n",
+              merge_error_value, opt_fastq_qmax);
+      fprintf(stderr,
+              "By default, quality values range from 0 to 41.\n"
+              "To allow higher quality values, "
+              "please use the option --fastq_qmax %d\n", merge_error_value);
+      if (fp_log != nullptr)
+        {
+          fprintf(fp_log,
+                  "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
+                  PRId64 ")\n",
+                  merge_error_value, opt_fastq_qmax);
+          fprintf(fp_log,
+                  "By default, quality values range from 0 to 41.\n"
+                  "To allow higher quality values, "
+                  "please use the option --fastq_qmax %d\n", merge_error_value);
+        }
+      break;
+
+    case MergeAbortReason::more_fwd_than_rev:
+      fatal("More forward reads than reverse reads");
+      break;
+    }
+  exit(EXIT_FAILURE);
+}
+
+
 inline auto get_qual(char const quality_symbol) -> int
 {
   assert(quality_symbol >= 33);
@@ -274,41 +351,11 @@ inline auto get_qual(char const quality_symbol) -> int
 
   if (quality_value < opt_fastq_qmin)
     {
-      fprintf(stderr,
-              "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
-              PRId64 ")\n",
-              quality_value, opt_fastq_qmin);
-      if (fp_log != nullptr)
-        {
-          fprintf(fp_log,
-                  "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
-                  PRId64 ")\n",
-                  quality_value, opt_fastq_qmin);
-        }
-      exit(EXIT_FAILURE);
+      request_merge_abort(MergeAbortReason::quality_below_qmin, quality_value);
     }
   else if (quality_value > opt_fastq_qmax)
     {
-      fprintf(stderr,
-              "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
-              PRId64 ")\n",
-              quality_value, opt_fastq_qmax);
-      fprintf(stderr,
-              "By default, quality values range from 0 to 41.\n"
-              "To allow higher quality values, "
-              "please use the option --fastq_qmax %d\n", quality_value);
-      if (fp_log != nullptr)
-        {
-          fprintf(fp_log,
-                  "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
-                  PRId64 ")\n",
-                  quality_value, opt_fastq_qmax);
-          fprintf(fp_log,
-                  "By default, quality values range from 0 to 41.\n"
-                  "To allow higher quality values, "
-                  "please use the option --fastq_qmax %d\n", quality_value);
-        }
-      exit(EXIT_FAILURE);
+      request_merge_abort(MergeAbortReason::quality_above_qmax, quality_value);
     }
   return quality_value;
 }
@@ -924,6 +971,13 @@ auto process(merge_data_t & a_read_pair,
 {
   a_read_pair.merged = false;
 
+  /* another worker may have hit an out-of-range quality value and
+     requested a cooperative abort; stop doing work in that case */
+  if (merge_abort.load(std::memory_order_acquire))
+    {
+      return;
+    }
+
   auto skip = false;
 
   /* check length */
@@ -950,7 +1004,12 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
         {
-          if (get_qual(a_read_pair.fwd_quality[i]) <= opt_fastq_truncqual)
+          auto const quality_value = get_qual(a_read_pair.fwd_quality[i]);
+          if (merge_abort.load(std::memory_order_relaxed))
+            {
+              return;
+            }
+          if (quality_value <= opt_fastq_truncqual)
             {
               fwd_trunc = i;
               break;
@@ -971,7 +1030,12 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.rev_length; i++)
         {
-          if (get_qual(a_read_pair.rev_quality[i]) <= opt_fastq_truncqual)
+          auto const quality_value = get_qual(a_read_pair.rev_quality[i]);
+          if (merge_abort.load(std::memory_order_relaxed))
+            {
+              return;
+            }
+          if (quality_value <= opt_fastq_truncqual)
             {
               rev_trunc = i;
               break;
@@ -1048,7 +1112,11 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
     {
       if (not fastq_next(fastq_rev, false, chrmap_upcase_vector.data()))
         {
-          fatal("More forward reads than reverse reads");
+          /* runs in a worker thread with the chunk lock released; request
+             a cooperative abort instead of exiting here, and stop reading
+             (pair_all() reports it from the main thread after join) */
+          request_merge_abort(MergeAbortReason::more_fwd_than_rev, 0);
+          return false;
         }
 
       /* allocate more memory if necessary */
@@ -1220,6 +1288,10 @@ inline auto chunk_perform_process(struct kh_handle_s & kmerhash,
       lock.unlock();
       for (auto i = 0; i < chunks[chunk_current].size; i++)
         {
+          if (merge_abort.load(std::memory_order_relaxed))
+            {
+              break;
+            }
           process(chunks[chunk_current].merge_data[i], kmerhash);
         }
       lock.lock();
@@ -1241,6 +1313,17 @@ auto pair_worker(uint64_t t,
 
   while (not finished_all)
     {
+      /* a worker hit an out-of-range quality value: stop the whole pool.
+         finished_all is set under the lock so the wait predicates below
+         (which test it) release, and notify_all wakes any sleepers. The
+         error is reported from the main thread in pair_all() after join. */
+      if (merge_abort.load(std::memory_order_relaxed))
+        {
+          finished_all = true;
+          cond_chunks.notify_all();
+          break;
+        }
+
       if (opt_threads == 1)
         {
           /* One thread does it all */
@@ -1361,11 +1444,19 @@ auto pair_all() -> void
   chunk_process_next = 0;
   chunk_write_next = 0;
 
+  /* reset the cooperative-abort state (file statics persist across
+     library-API sessions) */
+  merge_abort.store(false);
+  merge_error_claimed.store(false);
+
   chunks.resize(chunk_count);
 
-  /* The chunk mutex and condition variable are owned here (not at file
-     scope) so that std::exit() from a worker's fatal() never destroys
-     them while other workers are blocked in cond_chunks.wait(). */
+  /* The chunk mutex and condition variable are locals (not file scope) so
+     their lifetime is scoped to the worker pool. Combined with the
+     cooperative abort (see merge_abort), no worker ever calls std::exit():
+     the only exit happens in report_merge_abort() on the main thread after
+     ThreadRunner has joined every worker, so the condition variable is
+     never destroyed (or left) with waiters present. */
   std::mutex mutex_chunks;
   std::condition_variable cond_chunks;
 
@@ -1378,6 +1469,15 @@ auto pair_all() -> void
                               });
     threadrunner.run();
   }
+
+  /* all workers have joined; if one hit an out-of-range quality value,
+     report it and exit now, single-threaded, so the message reliably
+     reaches stderr and the --log file and no stdio teardown races a live
+     worker thread */
+  if (merge_abort.load())
+    {
+      report_merge_abort();
+    }
 }
 
 
