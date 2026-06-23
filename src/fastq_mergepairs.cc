@@ -260,8 +260,8 @@ static std::atomic<bool> merge_error_claimed {false};
 static MergeAbortReason merge_error_reason = MergeAbortReason::quality_below_qmin;
 static int merge_error_value = 0;
 
-/* mutex_chunks and cond_chunks are not file-scope objects: see the
-   comment in pair_all(). */
+/* mutex_chunks and cond_chunks are owned as locals in pair_all(), not at
+   file scope; see the comment there. */
 
 
 // refactoring: replace with check_optional_output_handle()
@@ -1451,9 +1451,12 @@ auto pair_all() -> void
 
   chunks.resize(chunk_count);
 
-  /* The chunk mutex and condition variable are owned here (not at file
-     scope) so that std::exit() from a worker's fatal() never destroys
-     them while other workers are blocked in cond_chunks.wait(). */
+  /* The chunk mutex and condition variable are locals (not file scope) so
+     their lifetime is scoped to the worker pool. Combined with the
+     cooperative abort (see merge_abort), no worker ever calls std::exit():
+     the only exit happens in report_merge_abort() on the main thread after
+     ThreadRunner has joined every worker, so the condition variable is
+     never destroyed (or left) with waiters present. */
   std::mutex mutex_chunks;
   std::condition_variable cond_chunks;
 
