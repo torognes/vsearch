@@ -542,7 +542,11 @@ auto sintax_thread_run(uint64_t const t) -> void
         }
       else
         {
-          /* input_lock released by RAII when leaving the loop body */
+          /* End of input, or a deferred parse error was recorded (CC3):
+             fastx_next() returns false in both cases, so the worker stops
+             here cooperatively. The error, if any, is reported by sintax()
+             from the main thread after the pool joins.
+             input_lock released by RAII when leaving the loop body. */
           break;
         }
     }
@@ -665,6 +669,14 @@ auto sintax(struct Parameters const & parameters) -> void
 
   query_fastx_h = fastx_open(parameters.opt_sintax);
 
+  /* The query file is parsed inside the worker threads (see
+     sintax_thread_run). Enable deferred error reporting so a malformed
+     query records the error and stops the pool cooperatively, rather than
+     calling fatal()/std::exit() from a worker thread while siblings are
+     still writing output (CC3). The error is reported below, from the
+     main thread, after the pool has joined. */
+  query_fastx_h->defer_errors = true;
+
   /* allocate memory for thread info */
 
   si_plus = new searchinfo_s[opt_threads]{};
@@ -682,6 +694,14 @@ auto sintax(struct Parameters const & parameters) -> void
   progress_init("Classifying sequences", fastx_get_size(query_fastx_h));
   sintax_thread_worker_run();
   progress_done();
+
+  /* All workers have joined. If one hit a malformed query, report it now
+     from the main thread (single-threaded) so the message is emitted and
+     the process exits without racing any worker (CC3). */
+  if (fastx_get_error(query_fastx_h))
+    {
+      fatal("%s", fastx_get_errmsg(query_fastx_h));
+    }
 
   if (! opt_quiet)
     {

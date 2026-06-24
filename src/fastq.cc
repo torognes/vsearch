@@ -194,7 +194,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto fastq_fatal(uint64_t const lineno, const char * msg) -> void
+auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * msg) -> void
 {
   char * string = nullptr;
   if (xsprintf(&string,
@@ -202,16 +202,36 @@ auto fastq_fatal(uint64_t const lineno, const char * msg) -> void
                lineno,
                msg) == -1)
     {
+      if (input_handle->defer_errors)
+        {
+          fastx_set_deferred_error(input_handle, "Out of memory");
+          return;
+        }
       fatal("Out of memory");
     }
 
   if (string != nullptr)
     {
+      /* deferred-error mode (see fastx.h): record the message and return
+         so the worker can stop cooperatively instead of std::exit()-ing
+         from a worker thread. The caller (fastq_next) returns false right
+         after this call. */
+      if (input_handle->defer_errors)
+        {
+          fastx_set_deferred_error(input_handle, string);
+          xfree(string);
+          return;
+        }
       fatal(string);
       xfree(string);
     }
   else
     {
+      if (input_handle->defer_errors)
+        {
+          fastx_set_deferred_error(input_handle, "Out of memory");
+          return;
+        }
       fatal("Out of memory");
     }
 }
@@ -334,7 +354,8 @@ auto fastq_next(fastx_handle input_handle,
 
   if (input_handle->file_buffer.data[input_handle->file_buffer.position] != '@')
     {
-      fastq_fatal(input_handle->lineno, "Header line must start with '@' character");
+      fastq_fatal(input_handle, input_handle->lineno, "Header line must start with '@' character");
+      return false;
     }
   input_handle->file_buffer.position++;
   --rest;
@@ -346,7 +367,8 @@ auto fastq_next(fastx_handle input_handle,
       rest = fastx_file_fill_buffer(input_handle);
       if (rest == 0)
         {
-          fastq_fatal(input_handle->lineno, "Unexpected end of file");
+          fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
+          return false;
         }
 
       /* find LF */
@@ -379,7 +401,8 @@ auto fastq_next(fastx_handle input_handle,
       /* cannot end here */
       if (rest == 0)
         {
-          fastq_fatal(input_handle->lineno, "Unexpected end of file");
+          fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
+          return false;
         }
 
       /* end when new line starting with + is seen */
@@ -426,7 +449,8 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal sequence character (unprintable, no %d)",
                        static_cast<unsigned char>(illegal_char));
             }
-          fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
+          fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
+          return false;
         }
     }
 
@@ -445,7 +469,8 @@ auto fastq_next(fastx_handle input_handle,
       /* cannot end here */
       if (rest == 0)
         {
-          fastq_fatal(input_handle->lineno, "Unexpected end of file");
+          fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
+          return false;
         }
 
       /* find LF */
@@ -489,8 +514,9 @@ auto fastq_next(fastx_handle input_handle,
     }
   if (plusline_invalid)
     {
-      fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
+      fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
                   "'+' line must be empty or identical to header");
+      return false;
     }
 
   /* read quality line(s) */
@@ -559,14 +585,16 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal quality character (unprintable, no %d)",
                        static_cast<unsigned char>(illegal_char));
             }
-          fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
+          fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
+          return false;
         }
     }
 
   if (input_handle->sequence_buffer.length != input_handle->quality_buffer.length)
     {
-      fastq_fatal(input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
+      fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
                   "Sequence and quality lines must be equally long");
+      return false;
     }
 
   fastx_filter_header(input_handle, truncateatspace);
