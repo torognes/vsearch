@@ -2411,6 +2411,13 @@ auto chimera(struct Parameters const & parameters) -> void
 
       query_fasta_h = fasta_open(parameters.opt_uchime_ref);
       progress_total = fasta_get_size(query_fasta_h);
+
+      /* The query file is parsed inside the worker threads
+         (chimera_thread_core). Defer parse errors so a malformed query
+         stops the pool cooperatively instead of calling fatal()/std::exit()
+         from a worker while siblings are writing output (CC3); reported
+         after the pool joins, below, from the main thread. */
+      query_fasta_h->defer_errors = true;
     }
   else
     {
@@ -2489,6 +2496,13 @@ auto chimera(struct Parameters const & parameters) -> void
   chimera_threads_run();
 
   progress_done();
+
+  /* all workers joined; report a deferred query parse error (CC3, uchime_ref
+     only) from the main thread so it does not race a worker's output */
+  if ((parameters.opt_uchime_ref != nullptr) and fastx_get_error(query_fasta_h))
+    {
+      fatal("%s", fastx_get_errmsg(query_fasta_h));
+    }
 
   if (not parameters.opt_quiet)
     {

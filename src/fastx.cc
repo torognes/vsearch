@@ -195,6 +195,18 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     auto const is_illegal = ((symbol == 127) or
                              ((symbol > '\0') and (symbol < ' ') and not (symbol == '\t')));
     if (is_illegal) {
+      if (input_handle->defer_errors) {
+        /* Record the error and stop scanning instead of exiting here:
+           this may run on a worker thread (see the deferred-error note in
+           fastx.h). The caller reports it from the main thread. */
+        std::array<char, 256> message {{}};
+        std::snprintf(message.data(), message.size(),
+                      "Illegal character encountered in FASTA/FASTQ header.\n"
+                      "Unprintable ASCII character no %d on line %" PRIu64 ".",
+                      symbol, input_handle->lineno_start);
+        fastx_set_deferred_error(input_handle, message.data());
+        return;
+      }
       fatal("Illegal character encountered in FASTA/FASTQ header.\n"
             "Unprintable ASCII character no %d on line %" PRIu64 ".",
             symbol, input_handle->lineno_start);
@@ -671,11 +683,47 @@ auto fastx_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool
 {
-  if (input_handle->is_fastq)
+  /* deferred-error mode (see fastx.h): if a previous call already
+     recorded a parse error, report no further records so every worker
+     stops; and if the current record triggered a deferred error, treat
+     it as unusable (return false) rather than handing back a bogus record */
+  if (input_handle->error)
     {
-      return fastq_next(input_handle, truncateatspace, char_mapping);
+      return false;
     }
-  return fasta_next(input_handle, truncateatspace, char_mapping);
+  bool const got_record = input_handle->is_fastq
+    ? fastq_next(input_handle, truncateatspace, char_mapping)
+    : fasta_next(input_handle, truncateatspace, char_mapping);
+  if (input_handle->error)
+    {
+      return false;
+    }
+  return got_record;
+}
+
+
+auto fastx_get_error(struct fastx_s const * input_handle) -> bool
+{
+  return input_handle->error;
+}
+
+
+auto fastx_get_errmsg(struct fastx_s const * input_handle) -> char const *
+{
+  return input_handle->errmsg.data();
+}
+
+
+auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -> void
+{
+  /* record the first deferred parse error and flag the handle (see the
+     deferred-error note in fastx.h). First error wins; later ones are
+     ignored so the message reflects the earliest failure. */
+  if (not input_handle->error)
+    {
+      std::snprintf(input_handle->errmsg.data(), input_handle->errmsg.size(), "%s", message);
+      input_handle->error = true;
+    }
 }
 
 

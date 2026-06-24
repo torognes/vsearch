@@ -811,6 +811,13 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
   queries_abundance = 0;
   query_fastx_h = fastx_open(parameters.opt_search_exact);
 
+  /* The query file is parsed inside the worker threads
+     (search_exact_thread_run). Defer parse errors so a malformed query
+     stops the pool cooperatively instead of calling fatal()/std::exit()
+     from a worker while siblings are writing output (CC3); reported below
+     from the main thread after join. */
+  query_fastx_h->defer_errors = true;
+
   /* allocate memory for thread info */
   std::vector<struct searchinfo_s> si_plus_v(parameters.opt_threads);
   si_plus = si_plus_v.data();
@@ -824,6 +831,13 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
   progress_init("Searching", fastx_get_size(query_fastx_h));
   search_exact_thread_worker_run();
   progress_done();
+
+  /* all workers joined; report a deferred query parse error (CC3) from the
+     main thread so it does not race a worker's output */
+  if (fastx_get_error(query_fastx_h))
+    {
+      fatal("%s", fastx_get_errmsg(query_fastx_h));
+    }
 
   // si_plus not used below that point
   // si_minus not used below that point

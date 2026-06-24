@@ -135,28 +135,36 @@ namespace {
   }
 
 
-  // __attribute__((noreturn))
-  auto report_illegal_symbol_and_exit(unsigned char symbol, uint64_t line_number) -> void {
+  auto report_illegal_symbol_and_exit(fastx_handle input_handle, unsigned char symbol, uint64_t line_number) -> void {
     static constexpr std::size_t max_buffer_size = 200;
-    static std::array<char, max_buffer_size> msg {{}};
+    std::array<char, max_buffer_size> msg {{}};
     static_cast<void>(std::snprintf(
         msg.data(), max_buffer_size,
         "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
         symbol,
         line_number));
+    /* deferred-error mode (see fastx.h): record and return instead of
+       exiting, so a worker thread does not std::exit() with siblings live */
+    if (input_handle->defer_errors) {
+      fastx_set_deferred_error(input_handle, msg.data());
+      return;
+    }
     fatal(msg.data());
   }
 
 
-  // __attribute__((noreturn))
-  auto report_unprintable_symbol_and_exit(unsigned char symbol, uint64_t line_number) -> void {
+  auto report_unprintable_symbol_and_exit(fastx_handle input_handle, unsigned char symbol, uint64_t line_number) -> void {
     static constexpr std::size_t max_buffer_size = 200;
-    static std::array<char, max_buffer_size> msg {{}};
+    std::array<char, max_buffer_size> msg {{}};
     static_cast<void>(std::snprintf(
         msg.data(), max_buffer_size,
         "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
         symbol,
         line_number));
+    if (input_handle->defer_errors) {
+      fastx_set_deferred_error(input_handle, msg.data());
+      return;
+    }
     fatal(msg.data());
   }
 
@@ -212,12 +220,14 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
         case Action::reject:
           /* fatal character */
-          report_illegal_symbol_and_exit(current_char, input_handle->lineno);
+          report_illegal_symbol_and_exit(input_handle, current_char, input_handle->lineno);
+          if (input_handle->error) { return; }
           break;
 
         case Action::show:
           /* fatal unprintable character */
-          report_unprintable_symbol_and_exit(current_char, input_handle->lineno);
+          report_unprintable_symbol_and_exit(input_handle, current_char, input_handle->lineno);
+          if (input_handle->error) { return; }
           break;
 
         case Action::skip:
@@ -262,6 +272,11 @@ auto fasta_next(fastx_handle input_handle,
 
   if (input_handle->file_buffer.data[input_handle->file_buffer.position] != '>')
     {
+      if (input_handle->defer_errors)
+        {
+          fastx_set_deferred_error(input_handle, "Invalid FASTA - header must start with > character");
+          return false;
+        }
       fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data[input_handle->file_buffer.position]));
       fatal("Invalid FASTA - header must start with > character");
     }
@@ -275,6 +290,11 @@ auto fasta_next(fastx_handle input_handle,
       rest = fastx_file_fill_buffer(input_handle);
       if (rest == 0)
         {
+          if (input_handle->defer_errors)
+            {
+              fastx_set_deferred_error(input_handle, "Invalid FASTA - header must be terminated with newline");
+              return false;
+            }
           fatal("Invalid FASTA - header must be terminated with newline");
         }
 

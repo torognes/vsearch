@@ -118,6 +118,18 @@ struct fastx_s
   std::array<uint64_t, byte_range> stripped {{}};
 
   Format format = Format::undefined;
+
+  /* Deferred error reporting (prototype for CC3). When defer_errors is
+     set, a parse error records its message here and makes fastx_next()
+     return false, instead of calling fatal() (std::exit()) on the spot.
+     A command that reads this handle from worker threads enables this so
+     the worker can stop cooperatively; the error is then reported from
+     the main thread after the worker pool has joined, avoiding a
+     std::exit() that races sibling threads. Default false → behavior is
+     unchanged (immediate fatal) for every other caller. */
+  bool defer_errors = false;
+  bool error = false;
+  std::array<char, 512> errmsg {{}};
 };
 
 using fastx_handle = struct fastx_s *;
@@ -129,6 +141,9 @@ auto fastx_is_fastq(struct fastx_s const * input_handle) -> bool;
 auto fastx_is_empty(struct fastx_s const * input_handle) -> bool;
 auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool;
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void;
+auto fastx_get_error(struct fastx_s const * input_handle) -> bool;
+auto fastx_get_errmsg(struct fastx_s const * input_handle) -> char const *;
+auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -> void;
 auto fastx_open(const char * filename) -> fastx_handle;
 auto fastx_close(fastx_handle input_handle) -> void;
 auto fastx_next(fastx_handle input_handle,
