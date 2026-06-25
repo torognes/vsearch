@@ -62,10 +62,9 @@
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
-#include <algorithm>  // std::min, std::shuffle
 #include <cstdio>  // std::FILE, std::size_t
 #include <numeric>  // std::iota
-#include <random>
+#include <random>  // std::mt19937_64
 #include <vector>
 
 
@@ -80,21 +79,14 @@ namespace {
   }
 
 
-  auto generate_seed(long int const user_seed) -> unsigned int {
-    if (user_seed != 0) {
-      return static_cast<unsigned int>(user_seed);
-    }
-    std::random_device number_generator;
-    return number_generator();
-  }
-
-
-  auto shuffle_deck(std::vector<int> & deck, long int const user_seed) -> void {
+  auto shuffle_deck(std::vector<int> & deck) -> void {
     static constexpr auto one_hundred_percent = 100ULL;
     progress_init("Shuffling", one_hundred_percent);
-    auto const seed = generate_seed(user_seed);
-    std::mt19937_64 uniform_generator(seed);
-    std::shuffle(deck.begin(), deck.end(), uniform_generator);
+    /* random_base_seed() carries the full 64-bit --randseed (or an OS value
+       when 0); random_shuffle() is a portable Fisher-Yates so the order is
+       identical across platforms for a given seed (see util.h) */
+    std::mt19937_64 uniform_generator(random_base_seed());
+    random_shuffle(deck.data(), deck.size(), uniform_generator);
     progress_done();
   }
 
@@ -132,7 +124,7 @@ auto shuffle(struct Parameters const & parameters) -> void {
   show_rusage();
 
   auto deck = create_deck();
-  shuffle_deck(deck, parameters.opt_randseed);
+  shuffle_deck(deck);
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
