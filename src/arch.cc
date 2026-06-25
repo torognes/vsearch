@@ -199,7 +199,7 @@ auto arch_srandom() -> void
         {
           fatal("Unable to open /dev/urandom");
         }
-      if (read(fd, & seed, sizeof(seed)) < 0)
+      if (read(fd, & seed, sizeof(seed)) != static_cast<ssize_t>(sizeof(seed)))
         {
           fatal("Unable to read from /dev/urandom");
         }
@@ -224,6 +224,17 @@ auto arch_random() -> uint64_t
   return rand();
 #else
   return random();
+#endif
+}
+
+
+auto arch_random_max() -> uint64_t
+{
+  /* largest value arch_random() can return, for the active generator */
+#ifdef _WIN32
+  return RAND_MAX;        /* rand() returns values in [0, RAND_MAX] */
+#else
+  return 2147483647;      /* random() returns values in [0, 2^31-1] */
 #endif
 }
 
