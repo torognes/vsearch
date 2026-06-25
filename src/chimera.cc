@@ -2094,6 +2094,12 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       std::unique_lock<std::mutex> input_lock(mutex_input);
 
+      /* Query-file progress position. Read here, under input_lock, into a
+         worker-local: fasta_get_position() reads the shared query handle,
+         which another worker advances in fasta_next() under the same lock.
+         Reading it later under mutex_output (as before) raced that writer. */
+      uint64_t query_position = 0;
+
       if (opt_uchime_ref != nullptr)
         {
           if (fasta_next(query_fasta_h, (opt_notrunclabels == 0),
@@ -2110,6 +2116,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
               /* copy the data locally (query seq, head) */
               std::strcpy(ci->query_head.data(), fasta_get_header(query_fasta_h));
               std::strcpy(ci->query_seq.data(), fasta_get_sequence(query_fasta_h));
+              query_position = fasta_get_position(query_fasta_h);
             }
           else
             {
@@ -2271,7 +2278,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       if (opt_uchime_ref != nullptr)
         {
-          progress = fasta_get_position(query_fasta_h);
+          progress = query_position;
         }
       else
         {

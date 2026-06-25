@@ -116,9 +116,6 @@ namespace {
 */
 
 
-static std::array<std::array<int64_t, matrix_size>, matrix_size> scorematrix {{}};
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
@@ -1354,7 +1351,6 @@ auto search16_init(CELL score_match,
               value = opt_mismatch;
             }
           (reinterpret_cast<CELL *>(s->matrix.data()))[(matrix_size * i) + j] = value;
-          scorematrix[i][j] = value;
         }
     }
 
