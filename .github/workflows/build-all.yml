@@ -3,6 +3,10 @@ name: Build release binaries for all platforms
 on:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
@@ -38,7 +42,7 @@ jobs:
         mv bin/${{ matrix.target.bin }} bin/${{ matrix.target.out }}
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.target.out }}
         path: bin/${{ matrix.target.out }}
@@ -61,6 +65,18 @@ jobs:
 
     - name: Install dependencies
       run: |
+        # aws/tap and azure/bicep are pre-tapped on the GitHub macOS runner
+        # images and trigger Homebrew tap-trust warnings; we use nothing from
+        # them, so remove them before updating/installing. azure/bicep ships an
+        # installed formula (bicep): uninstall it first so the tap untaps
+        # cleanly without --force (which would itself print a warning). Each
+        # step is guarded so it stays quiet and non-fatal on a future image
+        # that no longer has these taps/formulae. We do NOT silence stderr of
+        # the actual operations: hiding it is what masked the earlier failure.
+        brew list bicep >/dev/null 2>&1 && brew uninstall bicep
+        for tap in aws/tap azure/bicep; do
+          brew tap | grep -qx "$tap" && brew untap "$tap"
+        done
         brew update
         brew install autoconf automake ghostscript groff
 
@@ -74,7 +90,7 @@ jobs:
         bin/${{ matrix.target.out }} -v
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.target.out }}
         path: bin/${{ matrix.target.out }}

@@ -6,9 +6,14 @@ on:
   pull_request:
     branches: [ "master", "dev" ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linux-x86_64:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - name: Checkout
@@ -37,6 +42,7 @@ jobs:
 
   cross-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
@@ -69,6 +75,7 @@ jobs:
 
   macos-arm64:
     runs-on: macos-latest
+    timeout-minutes: 20
 
     steps:
     - name: Checkout
@@ -76,6 +83,18 @@ jobs:
 
     - name: Install dependencies
       run: |
+        # aws/tap and azure/bicep are pre-tapped on the GitHub macOS runner
+        # images and trigger Homebrew tap-trust warnings; we use nothing from
+        # them, so remove them before updating/installing. azure/bicep ships an
+        # installed formula (bicep): uninstall it first so the tap untaps
+        # cleanly without --force (which would itself print a warning). Each
+        # step is guarded so it stays quiet and non-fatal on a future image
+        # that no longer has these taps/formulae. We do NOT silence stderr of
+        # the actual operations: hiding it is what masked the earlier failure.
+        brew list bicep >/dev/null 2>&1 && brew uninstall bicep
+        for tap in aws/tap azure/bicep; do
+          brew tap | grep -qx "$tap" && brew untap "$tap"
+        done
         brew update
         brew install autoconf automake ghostscript groff
 
@@ -97,6 +116,7 @@ jobs:
 
   macos-x86_64:
     runs-on: macos-15-intel
+    timeout-minutes: 20
 
     steps:
     - name: Checkout
@@ -104,6 +124,18 @@ jobs:
 
     - name: Install dependencies
       run: |
+        # aws/tap and azure/bicep are pre-tapped on the GitHub macOS runner
+        # images and trigger Homebrew tap-trust warnings; we use nothing from
+        # them, so remove them before updating/installing. azure/bicep ships an
+        # installed formula (bicep): uninstall it first so the tap untaps
+        # cleanly without --force (which would itself print a warning). Each
+        # step is guarded so it stays quiet and non-fatal on a future image
+        # that no longer has these taps/formulae. We do NOT silence stderr of
+        # the actual operations: hiding it is what masked the earlier failure.
+        brew list bicep >/dev/null 2>&1 && brew uninstall bicep
+        for tap in aws/tap azure/bicep; do
+          brew tap | grep -qx "$tap" && brew untap "$tap"
+        done
         brew update
         brew install autoconf automake ghostscript groff
 
@@ -125,6 +157,7 @@ jobs:
 
   freebsd-x86_64:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - name: Checkout
