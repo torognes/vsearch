@@ -45,9 +45,10 @@ written out with `--fastaout_orphans` and `--fastqout_orphans`
 (forward orphans, in forward-file order) and `--fastaout_orphans_rev`
 and `--fastqout_orphans_rev` (reverse orphans, in reverse-file order).
 
-Read labels are expected to be unique within each file. A label
-appearing twice in the same file stops `--fastx_syncpairs` with an
-error message.
+Read labels are expected to be unique within each file. A duplicated
+label is reported as an error when it makes the pairing ambiguous:
+always for the reverse file, and for the forward file when two reads
+claim the same reverse mate.
 
 Note that reads are only reordered: they are not joined, merged, or
 modified. To join non-overlapping paired-end reads, see

@@ -350,6 +350,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
     }
     else {
       auto const position = match->second;
+      // a reverse read already claimed by an earlier forward read means
+      // two forward reads share the same matching key: the pairing is
+      // ambiguous. Forward orphans that share a key are harmless and are
+      // not detected here (they are simply written out twice).
       if (reverse_used[position]) {
         fatal("Duplicate read label in forward file");
       }
