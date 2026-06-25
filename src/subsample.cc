@@ -68,6 +68,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <functional>  // std::minus
 #include <numeric>  // std::fill
+#include <random>  // std::mt19937_64
 #include <vector>
 
 
@@ -251,11 +252,14 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
   uint64_t accumulated_mass = 0;
   auto amplicon_mass = sizein_requested ? db_getabundance(0) : 1;
 
+  /* reproducible across platforms and seeds (see util.h) */
+  std::mt19937_64 generator(random_base_seed());
+
   // refactoring C++17: std::sample()
   progress_init("Subsampling", mass_total);
   while (n_reads_left > 0)
     {
-      auto const random = random_ulong(mass_total - n_read_being_checked);
+      auto const random = random_bounded(generator, mass_total - n_read_being_checked);
 
       if (random < n_reads_left)
         {
