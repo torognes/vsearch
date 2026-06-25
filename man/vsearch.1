@@ -3571,9 +3571,9 @@ by adding a ";length=\fIinteger\fR" attribute in the header.
 .TP
 .BI \-\-randseed\~ "positive integer"
 When subsampling, use \fIinteger\fR as a seed for the pseudo-random
-generator. A given seed always produces the same output, which is
-useful for replicability. Set to 0 to use a pseudo-random seed
-(default behaviour).
+generator. A given seed always produces the same output, reproducibly
+across platforms, which is useful for replicability. Set to 0 to use a
+pseudo-random seed (default behaviour).
 .TAG relabel
 .TP
 .BI \-\-relabel \0string
