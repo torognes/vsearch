@@ -117,12 +117,6 @@ At least one output file must also be specified.
 
 #(./fragments/option_fasta_width.md)
 
-#(./fragments/option_fastq_ascii.md)
-
-#(./fragments/option_fastq_qmax.md)
-
-#(./fragments/option_fastq_qmin.md)
-
 #(./fragments/option_gzip_decompress.md)
 
 #(./fragments/option_log.md)
@@ -133,6 +127,17 @@ At least one output file must also be specified.
 
 
 ## ignored options
+
+Reads are reordered without inspecting their quality scores, so the
+following quality-related options are accepted (for instance in a
+pipeline) but have no effect.
+
+`--fastq_ascii` 33|64
+: Option is ignored and has no effect.
+
+#(./fragments/option_fastq_qmax_ignored.md)
+
+#(./fragments/option_fastq_qmin_ignored.md)
 
 #(./fragments/option_threads_not_multithreaded.md)
 
