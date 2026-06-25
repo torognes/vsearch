@@ -29,7 +29,8 @@ TTTT                    CCCC
 
 The number of entries written to *filename* can be limited with the
 option `--topn`. For reproducibility, the seed for the pseudo-random
-generator can be set with the option `--randseed`.
+generator can be set with the option `--randseed`; a given seed yields
+the same order on any platform.
 
 
 # OPTIONS

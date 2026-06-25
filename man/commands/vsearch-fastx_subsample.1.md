@@ -42,7 +42,8 @@ sampling pool. The selected sequences are written to `--fastaout`
 and/or `--fastqout`. Sequences not selected can be written to
 `--fastaout_discarded` and/or `--fastqout_discarded`.
 
-Use `--randseed` to set a fixed seed for reproducible results.
+Use `--randseed` to set a fixed seed for reproducible results (identical
+on any platform).
 
 See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for more

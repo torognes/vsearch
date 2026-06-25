@@ -63,16 +63,15 @@
 #include "md5.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdarg>  // va_list
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::vsnprintf, std::fopen
-#include <cstdlib>  // std::exit, EXIT_FAILURE, RAND_MAX
+#include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
-#include <limits>
+#include <random>  // std::random_device
 #include <vector>
 
 
@@ -237,54 +236,47 @@ auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> v
 }
 
 
+static uint64_t base_seed = 0;
+
+
+auto SplitMix64::operator()() -> uint64_t
+{
+  uint64_t z = (state_ += 0x9E3779B97F4A7C15ULL);
+  z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
+  z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
+  return z ^ (z >> 31U);
+}
+
+
+auto random_base_seed() -> uint64_t
+{
+  return base_seed;
+}
+
+
+auto random_substream_seed(uint64_t const base, uint64_t const index) -> uint64_t
+{
+  /* one SplitMix64 hashing step so adjacent indices give well-separated
+     streams (SplitMix64 is the recommended mixer for seeding generators) */
+  SplitMix64 mixer(base ^ (index * 0x9E3779B97F4A7C15ULL));
+  return mixer();
+}
+
+
 auto random_init() -> void
 {
-  arch_srandom();
-}
-
-
-auto random_int(int64_t const upper_limit) -> int64_t
-{
-  /*
-    Generate a random integer in the range 0 to n-1, inclusive.
-    n must be > 0
-    The random() function returns a random number in the range
-    0 to 2147483647 (=2^31-1=RAND_MAX), inclusive.
-    We should avoid some of the upper generated numbers to
-    avoid modulo bias.
-  */
-  assert(upper_limit != 0);
-  int64_t const random_max = RAND_MAX;
-  int64_t const limit = random_max - ((random_max + 1) % upper_limit);
-  auto random_value = static_cast<int64_t>(arch_random());
-  while (random_value > limit)
+  /* 64-bit base seed for the reproducible RNG (SplitMix64/mt19937_64).
+     opt_randseed is used in full when non-zero (no 32-bit truncation);
+     otherwise a non-deterministic value is taken from the OS. */
+  if (opt_randseed != 0)
     {
-      random_value = static_cast<int64_t>(arch_random());
+      base_seed = static_cast<uint64_t>(opt_randseed);
     }
-  return random_value % upper_limit;
-}
-
-
-auto random_ulong(uint64_t const upper_limit) -> uint64_t
-{
-  /*
-    Generate a random integer in the range 0 to n-1, inclusive,
-    n must be > 0
-  */
-  assert(upper_limit != 0U);
-  static constexpr auto shift_16_bits = 16U;
-  static constexpr auto shift_32_bits = 32U;
-  static constexpr auto shift_48_bits = 48U;
-  auto const random_max = std::numeric_limits<uint64_t>::max();
-  auto const limit = random_max - ((random_max - upper_limit + 1) % upper_limit);
-  auto random_value = ((arch_random() << shift_48_bits) ^ (arch_random() << shift_32_bits) ^
-                       (arch_random() << shift_16_bits) ^ (arch_random()));
-  while (random_value > limit)
+  else
     {
-      random_value = ((arch_random() << shift_48_bits) ^ (arch_random() << shift_32_bits) ^
-                      (arch_random() << shift_16_bits) ^ (arch_random()));
+      std::random_device device;
+      base_seed = (static_cast<uint64_t>(device()) << 32U) ^ device();
     }
-  return random_value % upper_limit;
 }
 
 
