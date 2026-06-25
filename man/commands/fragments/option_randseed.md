@@ -1,6 +1,7 @@
 `--randseed` *integer*
 : Set the seed for the pseudo-random generator. A given seed always
-produces the same results, which is useful for replicability. By
-default, vsearch uses a pseudo-random seed if `--randseed` is not set,
-or set to the special value zero (0).
+produces the same results --- reproducibly across platforms and
+independently of the number of threads --- which is useful for
+replicability. By default, vsearch uses a pseudo-random seed if
+`--randseed` is not set, or set to the special value zero (0).
 

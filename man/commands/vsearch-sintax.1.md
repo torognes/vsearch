@@ -46,10 +46,11 @@ the shortest (and then earliest) sequence is chosen by default. The option
 `--sintax_random` is strongly recommended instead, as it breaks ties by a
 random draw and avoids a bias towards shorter reference sequences.
 
-For reproducible results with a fixed random seed, use `--randseed` together
-with `--threads 1`. With multiple threads, sequences may be processed in
-varying order across runs, making results non-reproducible even with a fixed
-seed.
+For reproducible results, set a fixed seed with `--randseed`. The
+classification is then identical regardless of the number of threads and
+reproducible across platforms. (Output lines are written in processing
+order, which can vary with `--threads`; sort the output if a fixed line
+order is also required.)
 
 Both strands can be searched with `--strand both`. Databases in UDB format are
 supported (see [`vsearch-udb(5)`](../formats/vsearch-udb.5.md)). This command
@@ -139,7 +140,7 @@ vsearch \
     --tabbedout classification.tsv
 ```
 
-Produce reproducible results using a fixed random seed and a single thread:
+Produce reproducible results using a fixed random seed:
 
 ```sh
 vsearch \
@@ -148,7 +149,6 @@ vsearch \
     --sintax_cutoff 0.8 \
     --sintax_random \
     --randseed 42 \
-    --threads 1 \
     --tabbedout classification.tsv
 ```
 
