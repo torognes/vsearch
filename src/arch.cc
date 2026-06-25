@@ -185,60 +185,6 @@ auto arch_get_user_system_time(double * user_time, double * system_time) -> void
 }
 
 
-auto arch_srandom() -> void
-{
-  /* initialize pseudo-random number generator */
-  unsigned int seed = opt_randseed;
-  if (seed == 0)
-    {
-#ifdef _WIN32
-      srand(GetTickCount());
-#else
-      auto const fd = open("/dev/urandom", O_RDONLY);
-      if (fd < 0)
-        {
-          fatal("Unable to open /dev/urandom");
-        }
-      if (read(fd, & seed, sizeof(seed)) != static_cast<ssize_t>(sizeof(seed)))
-        {
-          fatal("Unable to read from /dev/urandom");
-        }
-      close(fd);
-      srandom(seed);
-#endif
-    }
-  else
-    {
-#ifdef _WIN32
-      srand(seed);
-#else
-      srandom(seed);
-#endif
-    }
-}
-
-
-auto arch_random() -> uint64_t
-{
-#ifdef _WIN32
-  return rand();
-#else
-  return random();
-#endif
-}
-
-
-auto arch_random_max() -> uint64_t
-{
-  /* largest value arch_random() can return, for the active generator */
-#ifdef _WIN32
-  return RAND_MAX;        /* rand() returns values in [0, RAND_MAX] */
-#else
-  return 2147483647;      /* random() returns values in [0, 2^31-1] */
-#endif
-}
-
-
 auto xmalloc(std::size_t size) -> void *
 {
   static constexpr auto minimal_allocation = std::size_t{1};

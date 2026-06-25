@@ -71,7 +71,6 @@
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
-#include <limits>
 #include <random>  // std::random_device
 #include <vector>
 
@@ -266,9 +265,6 @@ auto random_substream_seed(uint64_t const base, uint64_t const index) -> uint64_
 
 auto random_init() -> void
 {
-  /* legacy global generator, still used by random_int()/random_ulong() */
-  arch_srandom();
-
   /* 64-bit base seed for the reproducible RNG (SplitMix64/mt19937_64).
      opt_randseed is used in full when non-zero (no 32-bit truncation);
      otherwise a non-deterministic value is taken from the OS. */
@@ -281,57 +277,6 @@ auto random_init() -> void
       std::random_device device;
       base_seed = (static_cast<uint64_t>(device()) << 32U) ^ device();
     }
-}
-
-
-auto random_int(int64_t const upper_limit) -> int64_t
-{
-  /*
-    Generate a random integer in the range 0 to n-1, inclusive.
-    n must be > 0
-    The arch_random() function returns a random number in the range
-    0 to arch_random_max(), inclusive.
-    We should avoid some of the upper generated numbers to
-    avoid modulo bias.
-  */
-  if (upper_limit == 0)
-    {
-      fatal("Internal error: random_int() called with upper_limit 0");
-    }
-  int64_t const random_max = arch_random_max();
-  int64_t const limit = random_max - ((random_max + 1) % upper_limit);
-  auto random_value = static_cast<int64_t>(arch_random());
-  while (random_value > limit)
-    {
-      random_value = static_cast<int64_t>(arch_random());
-    }
-  return random_value % upper_limit;
-}
-
-
-auto random_ulong(uint64_t const upper_limit) -> uint64_t
-{
-  /*
-    Generate a random integer in the range 0 to n-1, inclusive,
-    n must be > 0
-  */
-  if (upper_limit == 0U)
-    {
-      fatal("Internal error: random_ulong() called with upper_limit 0");
-    }
-  static constexpr auto shift_16_bits = 16U;
-  static constexpr auto shift_32_bits = 32U;
-  static constexpr auto shift_48_bits = 48U;
-  auto const random_max = std::numeric_limits<uint64_t>::max();
-  auto const limit = random_max - ((random_max - upper_limit + 1) % upper_limit);
-  auto random_value = ((arch_random() << shift_48_bits) ^ (arch_random() << shift_32_bits) ^
-                       (arch_random() << shift_16_bits) ^ (arch_random()));
-  while (random_value > limit)
-    {
-      random_value = ((arch_random() << shift_48_bits) ^ (arch_random() << shift_32_bits) ^
-                      (arch_random() << shift_16_bits) ^ (arch_random()));
-    }
-  return random_value % upper_limit;
 }
 
 
