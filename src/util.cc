@@ -72,6 +72,7 @@
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
 #include <limits>
+#include <random>  // std::random_device
 #include <vector>
 
 
@@ -236,9 +237,50 @@ auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> v
 }
 
 
+static uint64_t base_seed = 0;
+
+
+auto SplitMix64::operator()() -> uint64_t
+{
+  uint64_t z = (state_ += 0x9E3779B97F4A7C15ULL);
+  z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
+  z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
+  return z ^ (z >> 31U);
+}
+
+
+auto random_base_seed() -> uint64_t
+{
+  return base_seed;
+}
+
+
+auto random_substream_seed(uint64_t const base, uint64_t const index) -> uint64_t
+{
+  /* one SplitMix64 hashing step so adjacent indices give well-separated
+     streams (SplitMix64 is the recommended mixer for seeding generators) */
+  SplitMix64 mixer(base ^ (index * 0x9E3779B97F4A7C15ULL));
+  return mixer();
+}
+
+
 auto random_init() -> void
 {
+  /* legacy global generator, still used by random_int()/random_ulong() */
   arch_srandom();
+
+  /* 64-bit base seed for the reproducible RNG (SplitMix64/mt19937_64).
+     opt_randseed is used in full when non-zero (no 32-bit truncation);
+     otherwise a non-deterministic value is taken from the OS. */
+  if (opt_randseed != 0)
+    {
+      base_seed = static_cast<uint64_t>(opt_randseed);
+    }
+  else
+    {
+      std::random_device device;
+      base_seed = (static_cast<uint64_t>(device()) << 32U) ^ device();
+    }
 }
 
 
