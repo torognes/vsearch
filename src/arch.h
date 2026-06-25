@@ -76,6 +76,7 @@ auto arch_get_cores() -> long;
 auto arch_get_user_system_time(double * user_time, double * system_time) -> void;
 auto arch_srandom() -> void;
 auto arch_random() -> uint64_t;
+auto arch_random_max() -> uint64_t;
 auto xmalloc(std::size_t size) -> void *;
 auto xrealloc(void * ptr, std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;

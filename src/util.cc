@@ -63,12 +63,11 @@
 #include "md5.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdarg>  // va_list
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::vsnprintf, std::fopen
-#include <cstdlib>  // std::exit, EXIT_FAILURE, RAND_MAX
+#include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
@@ -248,13 +247,16 @@ auto random_int(int64_t const upper_limit) -> int64_t
   /*
     Generate a random integer in the range 0 to n-1, inclusive.
     n must be > 0
-    The random() function returns a random number in the range
-    0 to 2147483647 (=2^31-1=RAND_MAX), inclusive.
+    The arch_random() function returns a random number in the range
+    0 to arch_random_max(), inclusive.
     We should avoid some of the upper generated numbers to
     avoid modulo bias.
   */
-  assert(upper_limit != 0);
-  int64_t const random_max = RAND_MAX;
+  if (upper_limit == 0)
+    {
+      fatal("Internal error: random_int() called with upper_limit 0");
+    }
+  int64_t const random_max = arch_random_max();
   int64_t const limit = random_max - ((random_max + 1) % upper_limit);
   auto random_value = static_cast<int64_t>(arch_random());
   while (random_value > limit)
@@ -271,7 +273,10 @@ auto random_ulong(uint64_t const upper_limit) -> uint64_t
     Generate a random integer in the range 0 to n-1, inclusive,
     n must be > 0
   */
-  assert(upper_limit != 0U);
+  if (upper_limit == 0U)
+    {
+      fatal("Internal error: random_ulong() called with upper_limit 0");
+    }
   static constexpr auto shift_16_bits = 16U;
   static constexpr auto shift_32_bits = 32U;
   static constexpr auto shift_48_bits = 48U;
