@@ -3662,11 +3662,9 @@ specified with the \-\-tabbedout option. The \-\-sintax_cutoff option
 may be used to set a minimum level of bootstrap support for the
 taxonomic ranks to be reported. The \-\-randseed option may be
 included to specify a seed for initialisation of the random number
-generator used by the algorithm. Please note that when using multiple
-threads, the \-\-randseed option may not work as intended, because
-sequences may be processed in a random order by different threads. To
-ensure the same results each time, use a single thread \-\-threads 1)
-in combination with a fixed random seed specified with \-\-randseed.
+generator used by the algorithm. A given seed produces the same
+classifications regardless of the number of threads used, and the
+results are reproducible across platforms.
 .PP
 Multithreading is supported. Databases in UDB files are supported.
 The strand option may be specified.
@@ -3705,10 +3703,10 @@ UDB format. These sequences need to be annotated with taxonomy.
 .TP
 .BI \-\-randseed\~ "positive integer"
 Use \fIinteger\fR as seed for the random number generator used in the
-Sintax algorithm. A given seed always produces the same output order
-(useful for replicability). Set to 0 to use a pseudo-random seed
-(default behaviour). Does not work correctly with multiple threads;
-please use \-\-threads 1 to ensure correct behaviour.
+Sintax algorithm. A given seed always produces the same classifications
+(useful for replicability), regardless of the number of threads used and
+reproducibly across platforms. Set to 0 to use a pseudo-random seed
+(default behaviour).
 .TAG sintax
 .TP
 .BI \-\-sintax \0filename
