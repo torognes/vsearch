@@ -62,6 +62,11 @@
 
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::size_t
+#include <cstddef> // std::size_t
+#include <limits>  // std::numeric_limits
+#include <random>  // std::mt19937_64
+#include <utility> // std::swap
+#include "utils/fatal.hpp" // fatal() (used by the templates below)
 
 
 constexpr auto md5_digest_length = 16;
@@ -82,6 +87,86 @@ auto progress_done() -> void;
 auto random_init() -> void;
 auto random_int(int64_t upper_limit) -> int64_t;
 auto random_ulong(uint64_t upper_limit) -> uint64_t;
+
+/* ---- Cross-platform reproducible RNG ------------------------------------
+
+   All of the pieces below produce bit-identical results on every platform
+   for a given seed: SplitMix64 is fixed integer arithmetic, std::mt19937_64
+   has a standard-specified sequence and seeding, and random_bounded() /
+   random_shuffle() are implemented here rather than via
+   std::uniform_int_distribution / std::shuffle (both implementation-defined,
+   so not portable). This is what makes --randseed reproducible across builds
+   and operating systems. */
+
+/* SplitMix64: tiny 64-bit PRNG, one word of state. Models a
+   UniformRandomBitGenerator so it works with the helpers below exactly like
+   std::mt19937_64. It is cheap to (re)seed, which is why sintax uses one per
+   query (seeded from the base seed and the query number) to make --randseed
+   reproducible independently of the number of threads. */
+class SplitMix64 {
+public:
+  using result_type = uint64_t;
+  explicit SplitMix64(uint64_t seed_value) : state_(seed_value) {}
+  auto seed(uint64_t seed_value) -> void { state_ = seed_value; }
+  auto operator()() -> uint64_t;
+  static constexpr auto min() -> uint64_t { return 0; }
+  static constexpr auto max() -> uint64_t { return std::numeric_limits<uint64_t>::max(); }
+private:
+  uint64_t state_;
+};
+
+/* The process-wide 64-bit base seed, established once by random_init():
+   opt_randseed if non-zero (full 64 bits, no truncation), otherwise a value
+   from the operating system. */
+auto random_base_seed() -> uint64_t;
+
+/* Derive a well-separated sub-stream seed from a base seed and an index
+   (e.g. base = random_base_seed(), index = query number). */
+auto random_substream_seed(uint64_t base, uint64_t index) -> uint64_t;
+
+/* Unbiased integer in [0, range), range > 0 (fatal otherwise). Lemire's
+   multiply-shift method with rejection; falls back to rejection on the
+   remainder where a 128-bit product is unavailable. Templated on any
+   UniformRandomBitGenerator (SplitMix64 or std::mt19937_64) whose output
+   spans the full 64 bits. */
+template <typename URBG>
+auto random_bounded(URBG & generator, uint64_t range) -> uint64_t
+{
+  if (range == 0) { fatal("Internal error: random_bounded() called with range 0"); }
+#ifdef __SIZEOF_INT128__
+  __uint128_t product = static_cast<__uint128_t>(generator()) * range;
+  auto low = static_cast<uint64_t>(product);
+  if (low < range)
+    {
+      uint64_t const threshold = (-range) % range;  /* == 2^64 mod range */
+      while (low < threshold)
+        {
+          product = static_cast<__uint128_t>(generator()) * range;
+          low = static_cast<uint64_t>(product);
+        }
+    }
+  return static_cast<uint64_t>(product >> 64U);
+#else
+  /* portable fallback: rejection sampling to avoid modulo bias */
+  uint64_t const limit = std::numeric_limits<uint64_t>::max()
+                       - (std::numeric_limits<uint64_t>::max() % range);
+  uint64_t value = generator();
+  while (value >= limit) { value = generator(); }
+  return value % range;
+#endif
+}
+
+/* Portable in-place Fisher-Yates shuffle over data[0 .. count), replacing
+   std::shuffle (which is implementation-defined). */
+template <typename T, typename URBG>
+auto random_shuffle(T * data, std::size_t count, URBG & generator) -> void
+{
+  for (std::size_t i = count; i > 1; --i)
+    {
+      auto const j = static_cast<std::size_t>(random_bounded(generator, i));  /* [0, i) */
+      std::swap(data[i - 1], data[j]);
+    }
+}
 
 auto string_normalize(char * normalized, char const * raw_seq, unsigned int len) -> void;
 

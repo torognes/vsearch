@@ -266,7 +266,8 @@ auto sintax_analyse(char const * query_head,
 }
 
 
-auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
+auto sintax_search_topscores(struct searchinfo_s * searchinfo,
+                             SplitMix64 & rng) -> void
 {
   /*
     Count the number of kmer hits in each database sequence and select
@@ -342,7 +343,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo) -> void
           if (opt_sintax_random)
             {
               tophit_count++;
-              if (random_int(tophit_count) == 0)
+              if (random_bounded(rng, tophit_count) == 0)
                 {
                   best.seqno = seqno;
                   best.length = length;
@@ -378,6 +379,12 @@ auto sintax_query(uint64_t const t) -> void
   int const qseqlen = si_plus[t].qseqlen;
   char const * query_head = si_plus[t].query_head;
 
+  /* Per-query RNG: seed from the global base seed and this query's input
+     number, so the random subsampling and tie-breaking are reproducible
+     regardless of how many threads process the queries or in what order. */
+  SplitMix64 rng(random_substream_seed(random_base_seed(),
+                                       static_cast<uint64_t>(si_plus[t].query_no)));
+
   auto * b = bitmap_init(qseqlen);
 
   for (auto s = 0; s < opt_strand; s++)
@@ -406,7 +413,7 @@ auto sintax_query(uint64_t const t) -> void
               bitmap_reset_all(b);
               for (auto j = 0; j < subset_size ; j++)
                 {
-                  int64_t const x = random_int(kmersamplecount);
+                  int64_t const x = static_cast<int64_t>(random_bounded(rng, kmersamplecount));
                   if (bitmap_get(b, x) == 0U)
                     {
                       kmersample_subset[subsamples++] = kmersample[x];
@@ -417,7 +424,7 @@ auto sintax_query(uint64_t const t) -> void
               si->kmersamplecount = subsamples;
               si->kmersample = kmersample_subset.data();
 
-              sintax_search_topscores(si);
+              sintax_search_topscores(si, rng);
 
               if (! minheap_isempty(si->m))
                 {
