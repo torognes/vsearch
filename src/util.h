@@ -85,8 +85,6 @@ auto progress_update(uint64_t progress) -> void;
 auto progress_done() -> void;
 
 auto random_init() -> void;
-auto random_int(int64_t upper_limit) -> int64_t;
-auto random_ulong(uint64_t upper_limit) -> uint64_t;
 
 /* ---- Cross-platform reproducible RNG ------------------------------------
 
