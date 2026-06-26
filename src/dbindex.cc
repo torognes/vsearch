@@ -103,7 +103,7 @@ auto dbindex_getmatchcount(unsigned int const kmer) -> unsigned int
 
 auto dbindex_getmatchlist(unsigned int const kmer) -> unsigned int *
 {
-  return std::next(kmerindex, *std::next(kmerhash, kmer));
+  return std::next(kmerindex, static_cast<std::iterator_traits<unsigned int *>::difference_type>(*std::next(kmerhash, kmer)));
 }
 
 
@@ -136,8 +136,8 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 
   unsigned int uniquecount = 0;
   unsigned int const * uniquelist = nullptr;
-  unique_count(dbindex_uh, opt_wordlength,
-               db_getsequencelen(seqno), db_getsequence(seqno),
+  unique_count(dbindex_uh, static_cast<int>(opt_wordlength),
+               static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
                &uniquecount, &uniquelist, seqmask);
   dbindex_map[dbindex_count] = seqno;
   for (auto i = 0U; i < uniquecount; i++)
@@ -160,7 +160,7 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 
 auto dbindex_addallsequences(int seqmask) -> void
 {
-  unsigned int const seqcount = db_getsequencecount();
+  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   progress_init("Creating k-mer index", seqcount);
   for (auto seqno = 0U; seqno < seqcount ; seqno++)
     {
@@ -175,7 +175,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 {
   dbindex_uh = unique_init();
 
-  unsigned int const seqcount = db_getsequencecount();
+  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   kmerhashsize = 1U << (2 * opt_wordlength);
 
   /* allocate memory for kmer count array */
@@ -188,8 +188,8 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
     {
       unsigned int uniquecount = 0;
       unsigned int const * uniquelist = nullptr;
-      unique_count(dbindex_uh, opt_wordlength,
-                   db_getsequencelen(seqno), db_getsequence(seqno),
+      unique_count(dbindex_uh, static_cast<int>(opt_wordlength),
+                   static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
                    &uniquecount, &uniquelist, seqmask);
       for (auto i = 0U; i < uniquecount; i++)
         {

@@ -143,17 +143,19 @@ namespace {
     // refactoring C++11: use const& std::vector.size()
     auto const midarray = std::ldiv(static_cast<long>(deck.size()), 2L);
 
+    auto const mid = static_cast<std::size_t>(midarray.quot);
+
     // odd number of valid amplicons
     if (deck.size() % 2 != 0)  {
-      return deck[midarray.quot].size * 1.0;  // a round value
+      return deck[mid].size * 1.0;  // a round value
     }
 
     // even number of valid amplicons
     // (average of two ints is either round or has a remainder of .5)
     // avoid risk of silent overflow for large abundance values:
     // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return deck[midarray.quot].size +
-      ((deck[midarray.quot - 1].size - deck[midarray.quot].size) * half);
+    return deck[mid].size +
+      ((deck[mid - 1].size - deck[mid].size) * half);
   }
 
 
@@ -191,7 +193,7 @@ namespace {
   auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
                      long int const n_first_sequences) -> void {
     if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
-      deck.resize(n_first_sequences);
+      deck.resize(static_cast<std::size_t>(n_first_sequences));
     }
   }
 

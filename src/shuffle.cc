@@ -97,7 +97,7 @@ namespace {
     // auto const new_size = std::min(deck.size(), n_first_sequences)
     // deck.resize(new_size);
     if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
-      deck.resize(n_first_sequences);
+      deck.resize(static_cast<unsigned long>(n_first_sequences));
     }
   }
 
@@ -107,7 +107,7 @@ namespace {
     progress_init("Writing output", deck.size());
     auto counter = std::size_t{0};
     for (auto const sequence_id: deck) {
-      fasta_print_db_relabel(output_file, sequence_id, counter + 1);
+      fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1);
       progress_update(counter);
       ++counter;
     }

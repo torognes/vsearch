@@ -150,7 +150,7 @@ auto minheap_init(int size) -> minheap_t *
 {
   auto * a_minheap = static_cast<minheap_t *>(xmalloc(sizeof(minheap_t)));
   a_minheap->alloc = size;
-  a_minheap->array = static_cast<elem_t *>(xmalloc(size * sizeof(elem_t)));
+  a_minheap->array = static_cast<elem_t *>(xmalloc(static_cast<size_t>(size) * sizeof(elem_t)));
   a_minheap->count = 0;
   return a_minheap;
 }
@@ -249,7 +249,7 @@ auto minheap_pop(minheap_t * a_minheap) -> elem_t
 
 auto minheap_sort(minheap_t * a_minheap) -> void
 {
-  std::qsort(a_minheap->array, a_minheap->count, sizeof(elem_t), minheap_compare);
+  std::qsort(a_minheap->array, static_cast<size_t>(a_minheap->count), sizeof(elem_t), minheap_compare);
 }
 
 
