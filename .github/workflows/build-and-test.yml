@@ -35,7 +35,7 @@ jobs:
     - name: Run tests
       run: |
         export PATH=$PWD/bin:$PATH
-        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+        git clone --depth 1 --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
         cd vsearch-tests
         bash ./run_all_tests.sh
 
@@ -109,7 +109,7 @@ jobs:
     - name: Run tests
       run: |
         export PATH=$PWD/bin:$PATH
-        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+        git clone --depth 1 --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
         cd vsearch-tests
         bash ./run_all_tests.sh
 
@@ -150,7 +150,7 @@ jobs:
     - name: Run tests
       run: |
         export PATH=$PWD/bin:$PATH
-        git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+        git clone --depth 1 --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
         cd vsearch-tests
         bash ./run_all_tests.sh
 
