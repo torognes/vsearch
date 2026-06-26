@@ -456,6 +456,8 @@ struct Parameters {
   char * opt_fastaout_rev = nullptr;
   char * opt_fastaout_discarded = nullptr;
   char * opt_fastaout_discarded_rev = nullptr;
+  char * opt_fastaout_orphans = nullptr;
+  char * opt_fastaout_orphans_rev = nullptr;
   char * opt_fastq_chars = nullptr;
   char * opt_fastq_convert = nullptr;
   char * opt_fastq_eestats2 = nullptr;
@@ -468,6 +470,8 @@ struct Parameters {
   char * opt_fastqout_rev = nullptr;
   char * opt_fastqout_discarded = nullptr;
   char * opt_fastqout_discarded_rev = nullptr;
+  char * opt_fastqout_orphans = nullptr;
+  char * opt_fastqout_orphans_rev = nullptr;
   char * opt_fastx_filter = nullptr;
   char * opt_fastx_getseq = nullptr;
   char * opt_fastx_getseqs = nullptr;
@@ -475,6 +479,7 @@ struct Parameters {
   char * opt_fastx_mask = nullptr;
   char * opt_fastx_revcomp = nullptr;
   char * opt_fastx_subsample = nullptr;
+  char * opt_fastx_syncpairs = nullptr;
   char * opt_fastx_uniques = nullptr;
   std::string opt_join_padgap = default_sequence_padding;
   std::string opt_join_padgapq = default_quality_padding;
@@ -485,6 +490,7 @@ struct Parameters {
   char * opt_orient = nullptr;
   char * opt_output = nullptr;
   char * opt_relabel = nullptr;
+  char * opt_read_separators = nullptr;
   char * opt_rereplicate = nullptr;
   char * opt_reverse = nullptr;
   char * opt_sample = nullptr;

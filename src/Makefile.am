@@ -96,6 +96,7 @@ fastq_mergepairs.h \
 fastq_stats.h \
 fastqops.h \
 fastx.h \
+fastx_syncpairs.h \
 filter.h \
 getseq.h \
 kmerhash.h \
@@ -215,6 +216,7 @@ fastq_mergepairs.cc \
 fastq_stats.cc \
 fastqops.cc \
 fastx.cc \
+fastx_syncpairs.cc \
 filter.cc \
 getseq.cc \
 kmerhash.cc \

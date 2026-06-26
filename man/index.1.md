@@ -147,6 +147,9 @@ as used by vsearch.
 **[`vsearch-fastx_revcomp(1)`](./commands/vsearch-fastx_revcomp.1.md)**
 : Reverse-complement fasta or fastq sequences.
 
+**[`vsearch-fastx_syncpairs(1)`](./commands/vsearch-fastx_syncpairs.1.md)**
+: Reorder paired reads so mates match across both files.
+
 **[`vsearch-sff_convert(1)`](./commands/vsearch-sff_convert.1.md)**
 : Convert an SFF file to fastq.
 

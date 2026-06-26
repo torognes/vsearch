@@ -75,6 +75,7 @@
 #include "fastq_mergepairs.h"
 #include "fastq_stats.h"
 #include "fastqops.h"
+#include "fastx_syncpairs.h"
 #include "filter.h"
 #include "getseq.h"
 #include "mask.h"
@@ -1109,8 +1110,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 {
   vsearch_init_defaults();
 
-  static constexpr auto number_of_commands = std::size_t{50};
-  static constexpr auto number_of_options = std::size_t{248};
+  static constexpr auto number_of_commands = std::size_t{51};
+  static constexpr auto number_of_options = std::size_t{254};
   static constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   parameters.progname = argv[0];
@@ -1175,6 +1176,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_fastaout_discarded_rev,
       option_fastaout_notmerged_fwd,
       option_fastaout_notmerged_rev,
+      option_fastaout_orphans,
+      option_fastaout_orphans_rev,
       option_fastaout_rev,
       option_fastapairs,
       option_fastq_allowmergestagger,
@@ -1219,6 +1222,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_fastqout_discarded_rev,
       option_fastqout_notmerged_fwd,
       option_fastqout_notmerged_rev,
+      option_fastqout_orphans,
+      option_fastqout_orphans_rev,
       option_fastqout_rev,
       option_fastx_filter,
       option_fastx_getseq,
@@ -1227,6 +1232,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_fastx_mask,
       option_fastx_revcomp,
       option_fastx_subsample,
+      option_fastx_syncpairs,
       option_fastx_uniques,
       option_fulldp,
       option_gapext,
@@ -1309,6 +1315,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_query_cov,
       option_quiet,
       option_randseed,
+      option_read_separators,
       option_relabel,
       option_relabel_keep,
       option_relabel_md5,
@@ -1426,6 +1433,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"fastaout_discarded_rev",required_argument, nullptr, 0 },
       {"fastaout_notmerged_fwd",required_argument, nullptr, 0 },
       {"fastaout_notmerged_rev",required_argument, nullptr, 0 },
+      {"fastaout_orphans",      required_argument, nullptr, 0 },
+      {"fastaout_orphans_rev",  required_argument, nullptr, 0 },
       {"fastaout_rev",          required_argument, nullptr, 0 },
       {"fastapairs",            required_argument, nullptr, 0 },
       {"fastq_allowmergestagger", no_argument,     nullptr, 0 },
@@ -1470,6 +1479,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"fastqout_discarded_rev",required_argument, nullptr, 0 },
       {"fastqout_notmerged_fwd",required_argument, nullptr, 0 },
       {"fastqout_notmerged_rev",required_argument, nullptr, 0 },
+      {"fastqout_orphans",      required_argument, nullptr, 0 },
+      {"fastqout_orphans_rev",  required_argument, nullptr, 0 },
       {"fastqout_rev",          required_argument, nullptr, 0 },
       {"fastx_filter",          required_argument, nullptr, 0 },
       {"fastx_getseq",          required_argument, nullptr, 0 },
@@ -1478,6 +1489,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"fastx_mask",            required_argument, nullptr, 0 },
       {"fastx_revcomp",         required_argument, nullptr, 0 },
       {"fastx_subsample",       required_argument, nullptr, 0 },
+      {"fastx_syncpairs",       required_argument, nullptr, 0 },
       {"fastx_uniques",         required_argument, nullptr, 0 },
       {"fulldp",                no_argument,       nullptr, 0 },
       {"gapext",                required_argument, nullptr, 0 },
@@ -1560,6 +1572,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       {"query_cov",             required_argument, nullptr, 0 },
       {"quiet",                 no_argument,       nullptr, 0 },
       {"randseed",              required_argument, nullptr, 0 },
+      {"read_separators",       required_argument, nullptr, 0 },
       {"relabel",               required_argument, nullptr, 0 },
       {"relabel_keep",          no_argument,       nullptr, 0 },
       {"relabel_md5",           no_argument,       nullptr, 0 },
@@ -2248,6 +2261,30 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           parameters.opt_fastqout_discarded = optarg;
           break;
 
+        case option_fastx_syncpairs:
+          parameters.opt_fastx_syncpairs = optarg;
+          break;
+
+        case option_fastaout_orphans:
+          parameters.opt_fastaout_orphans = optarg;
+          break;
+
+        case option_fastaout_orphans_rev:
+          parameters.opt_fastaout_orphans_rev = optarg;
+          break;
+
+        case option_fastqout_orphans:
+          parameters.opt_fastqout_orphans = optarg;
+          break;
+
+        case option_fastqout_orphans_rev:
+          parameters.opt_fastqout_orphans_rev = optarg;
+          break;
+
+        case option_read_separators:
+          parameters.opt_read_separators = optarg;
+          break;
+
         case option_fastq_truncqual:
           opt_fastq_truncqual = args_getlong(optarg);
           break;
@@ -2843,6 +2880,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       option_fastx_mask,
       option_fastx_revcomp,
       option_fastx_subsample,
+      option_fastx_syncpairs,
       option_fastx_uniques,
       option_h,
       option_help,
@@ -4048,6 +4086,29 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_xee,
         option_xlength,
         option_xsize,
+        -1 },
+
+      { option_fastx_syncpairs,
+        option_bzip2_decompress,
+        option_fasta_width,
+        option_fastaout,
+        option_fastaout_orphans,
+        option_fastaout_orphans_rev,
+        option_fastaout_rev,
+        option_fastq_ascii,
+        option_fastq_qmax,
+        option_fastq_qmin,
+        option_fastqout,
+        option_fastqout_orphans,
+        option_fastqout_orphans_rev,
+        option_fastqout_rev,
+        option_gzip_decompress,
+        option_log,
+        option_no_progress,
+        option_quiet,
+        option_read_separators,
+        option_reverse,
+        option_threads,
         -1 },
 
       { option_fastx_uniques,
@@ -5501,6 +5562,22 @@ auto cmd_help(struct Parameters const & parameters) -> void {
           "  --fastaout FILENAME         FASTA output filename for joined sequences\n"
           "  --fastqout FILENAME         FASTQ output filename for joined sequences\n"
           "\n"
+          "Paired-end reads synchronizing\n"
+          "  --fastx_syncpairs FILENAME  reorder paired reads to match across both files\n"
+          " Data\n"
+          "  --reverse FILENAME          specify FASTA/FASTQ file with reverse reads\n"
+          " Parameters\n"
+          "  --read_separators STRING    characters preceding the mate number 1 or 2 (/)\n"
+          " Output\n"
+          "  --fastaout FILENAME         FASTA filename for synced forward reads\n"
+          "  --fastaout_rev FILENAME     FASTA filename for synced reverse reads\n"
+          "  --fastaout_orphans FN       FASTA filename for unpaired forward reads\n"
+          "  --fastaout_orphans_rev FN   FASTA filename for unpaired reverse reads\n"
+          "  --fastqout FILENAME         FASTQ filename for synced forward reads\n"
+          "  --fastqout_rev FILENAME     FASTQ filename for synced reverse reads\n"
+          "  --fastqout_orphans FN       FASTQ filename for unpaired forward reads\n"
+          "  --fastqout_orphans_rev FN   FASTQ filename for unpaired reverse reads\n"
+          "\n"
           "Paired-end reads merging\n"
           "  --fastq_mergepairs FILENAME merge paired-end reads into one sequence\n"
           " Data\n"
@@ -5871,8 +5948,9 @@ auto cmd_none(struct Parameters const & parameters) -> void {
           "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
           "                derep_id, derep_fulllength, derep_prefix, derep_smallmem,\n"
           "                fasta2fastq, fastq_filter, fastq_join, fastx_getseqs,\n"
-          "                fastx_getsubseq, maskfasta, orient, rereplicate, uchime2_denovo,\n"
-          "                uchime3_denovo, udb2fasta, udbinfo, udbstats, version\n"
+          "                fastx_getsubseq, fastx_syncpairs, maskfasta, orient, rereplicate,\n"
+          "                uchime2_denovo, uchime3_denovo, udb2fasta, udbinfo, udbstats,\n"
+          "                version\n"
           "\n",
           parameters.progname);
 }
@@ -6226,6 +6304,10 @@ auto main(int argc, char** argv) -> int
   else if (parameters.opt_fastx_filter != nullptr)
     {
       fastx_filter(parameters);
+    }
+  else if (parameters.opt_fastx_syncpairs != nullptr)
+    {
+      fastx_syncpairs(parameters);
     }
   else if (parameters.opt_fastx_revcomp != nullptr)
     {
