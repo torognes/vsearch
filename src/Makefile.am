@@ -168,16 +168,20 @@ libcityhash_pic_a_SOURCES = city.cc city.h
 
 if TARGET_WIN
 
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -D_MSC_VER
-libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -D_MSC_VER -fPIC
+# -Wno-conversion -Wno-sign-conversion: city.cc is vendored upstream
+# (Google CityHash) and is kept verbatim for easy resynchronisation;
+# its many implicit integer conversions are not ours to fix.
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC
 __top_builddir__bin_vsearch_LDFLAGS = -static
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 
 else
 
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare
-libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -fPIC
+# -Wno-conversion -Wno-sign-conversion: see note in the TARGET_WIN branch above.
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC
 
 if TARGET_X86_64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
