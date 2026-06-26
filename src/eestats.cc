@@ -124,7 +124,7 @@ auto q2p(int const quality_value) -> double
   return std::pow(base, -quality_value / base);
 }
 
-auto ee_start(int const pos, int const resolution) -> int64_t
+auto ee_start(int64_t const pos, int const resolution) -> int64_t
 {
   return pos * ((resolution * (pos + 1)) + 2) / 2;
 }
