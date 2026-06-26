@@ -181,14 +181,27 @@ jobs:
           pkg install -y autoconf automake gmake bash git bzip2 ghostscript10 groff
           pw useradd -n runner -m -s /usr/local/bin/bash
         run: |
+          echo "========== Building vsearch =========="
           ./autogen.sh
           ./configure CFLAGS="-O2" CXXFLAGS="-O2"
           gmake clean
           gmake ARFLAGS="cr" -j$(sysctl -n hw.ncpu)
           bin/vsearch -v
-          # vsearch-tests was cloned on the host (previous step) and synced
-          # into the VM, so no in-VM git clone is needed here.
+          echo "========== Build complete =========="
+
+          # vsearch-tests was cloned on the host (previous step); vmactions
+          # syncs the workspace into the VM, so it should be present here.
+          # Fail fast with a clear message (not a hang) if the sync did not
+          # bring it in.
+          echo "========== Checking for the test suite in the VM =========="
+          if [ ! -d vsearch-tests/scripts ]; then
+            echo "ERROR: vsearch-tests was not synced into the VM. Workspace contents:"
+            ls -la
+            exit 1
+          fi
+          echo "Found vsearch-tests ($(ls vsearch-tests/scripts | wc -l) test scripts)."
           chown -R runner vsearch-tests
+
           # The suite runs ~7,700 tests, each printing a result line.
           # Streaming that volume over the vmactions SSH channel wedges
           # the FreeBSD guest after a few minutes (it stops responding at
@@ -196,8 +209,10 @@ jobs:
           # instead, then surface a bounded summary so CI still reports
           # failures. root bypasses POSIX permission checks, so the "file
           # not readable/writable" tests need an unprivileged user.
+          echo "========== Running tests... =========="
           status=0
           su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh > test.log 2>&1" || status=$?
+          echo "========== Tests finished (exit status $status) =========="
           echo "===== FAIL lines ====="
           grep -E 'FAIL' vsearch-tests/test.log || echo "(none)"
           echo "===== last 50 lines of test.log ====="
