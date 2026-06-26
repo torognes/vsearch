@@ -168,13 +168,13 @@ auto xsprintf(char * * ret, char const * format, ...) -> int
     {
       fatal("Error with vsnprintf in xsprintf");
     }
-  auto * buffer = static_cast<char *>(xmalloc(len + 1));
+  auto * buffer = static_cast<char *>(xmalloc(static_cast<size_t>(len) + 1));
   if (buffer == nullptr)
     {
       fatal("Out of memory");
     }
   va_start(args, format);
-  len = std::vsnprintf(buffer, len + 1, format, args);
+  len = std::vsnprintf(buffer, static_cast<size_t>(len) + 1, format, args);
   va_end(args);
   *ret = buffer;
   return len;
@@ -331,8 +331,8 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> 
      The string array digest must be large enough (len_hex_dig_sha1).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  std::vector<char> normalized(seqlen + 1);
-  string_normalize(normalized.data(), seq, seqlen);
+  std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
+  string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
 
   std::vector<unsigned char> digest(sha1_digest_length);
 
@@ -356,8 +356,8 @@ auto get_hex_seq_digest_md5(char * hex, char const * seq, int const seqlen) -> v
      The string array digest must be large enough (len_hex_dig_md5).
      First normalize string by uppercasing it and replacing U's with T's. */
 
-  std::vector<char> normalized(seqlen + 1);
-  string_normalize(normalized.data(), seq, seqlen);
+  std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
+  string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
 
   std::vector<unsigned char> digest(md5_digest_length);
 
