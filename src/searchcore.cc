@@ -210,8 +210,8 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
       return 0;
     }
 
-  auto const lhs_abundance = db_getabundance(lhs->target);
-  auto const rhs_abundance = db_getabundance(rhs->target);
+  auto const lhs_abundance = db_getabundance(static_cast<uint64_t>(lhs->target));
+  auto const rhs_abundance = db_getabundance(static_cast<uint64_t>(rhs->target));
   if (lhs_abundance > rhs_abundance)
     {
       return -1;
@@ -271,7 +271,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   */
 
   /* count kmer hits in the database sequences */
-  const int indexed_count = dbindex_getcount();
+  unsigned int const indexed_count = dbindex_getcount();
 
   /* zero counts */
   std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
@@ -322,13 +322,13 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 
   auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), searchinfo->kmersamplecount);
 
-  for (auto i = 0; i < indexed_count; i++)
+  for (auto i = 0U; i < indexed_count; i++)
     {
       auto const count = searchinfo->kmers[i];
       if (count >= minmatches)
         {
           auto const seqno = dbindex_getmapping(i);
-          unsigned int const length = db_getsequencelen(seqno);
+          unsigned int const length = static_cast<unsigned int>(db_getsequencelen(seqno));
 
           elem_t novel;
           novel.count = count;
@@ -373,11 +373,11 @@ auto align_trim(struct hit * hit) -> void
           hit->trim_aln_left = 1 + scanlength;
           if (op == 'D')
             {
-              hit->trim_q_left = run;
+              hit->trim_q_left = static_cast<int>(run);
             }
           else
             {
-              hit->trim_t_left = run;
+              hit->trim_t_left = static_cast<int>(run);
             }
         }
     }
@@ -397,14 +397,14 @@ auto align_trim(struct hit * hit) -> void
             }
           run = 1;
           sscanf(p, "%" PRId64, &run);
-          hit->trim_aln_right = e - p;
+          hit->trim_aln_right = static_cast<int>(e - p);
           if (op == 'D')
             {
-              hit->trim_q_right = run;
+              hit->trim_q_right = static_cast<int>(run);
             }
           else
             {
-              hit->trim_t_right = run;
+              hit->trim_t_right = static_cast<int>(run);
             }
         }
     }
@@ -549,11 +549,12 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   // true: needs further consideration
   // false: reject
 
+  auto const target_seqno = static_cast<uint64_t>(target);
   auto const * qseq = searchinfo.qsequence;
-  auto const * dlabel = db_getheader(target);
-  auto const * dseq = db_getsequence(target);
-  int64_t const dseqlen = db_getsequencelen(target);
-  int64_t const tsize = db_getabundance(target);
+  auto const * dlabel = db_getheader(target_seqno);
+  auto const * dseq = db_getsequence(target_seqno);
+  int64_t const dseqlen = static_cast<int64_t>(db_getsequencelen(target_seqno));
+  int64_t const tsize = static_cast<int64_t>(db_getabundance(target_seqno));
 
   return (
           /* maxqsize */
@@ -569,20 +570,20 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           (abundance_ratio_cmp(searchinfo.qsize, opt_maxsizeratio, tsize) <= 0)
           and
           /* minqt */
-          (searchinfo.qseqlen >= opt_minqt * dseqlen)
+          (searchinfo.qseqlen >= opt_minqt * static_cast<double>(dseqlen))
           and
           /* maxqt */
-          (searchinfo.qseqlen <= opt_maxqt * dseqlen)
+          (searchinfo.qseqlen <= opt_maxqt * static_cast<double>(dseqlen))
           and
           /* minsl */
           (searchinfo.qseqlen < dseqlen ?
-           searchinfo.qseqlen >= opt_minsl * dseqlen :
-           dseqlen >= opt_minsl * searchinfo.qseqlen)
+           searchinfo.qseqlen >= opt_minsl * static_cast<double>(dseqlen) :
+           static_cast<double>(dseqlen) >= opt_minsl * searchinfo.qseqlen)
           and
           /* maxsl */
           (searchinfo.qseqlen < dseqlen ?
-           searchinfo.qseqlen <= opt_maxsl * dseqlen :
-           dseqlen <= opt_maxsl * searchinfo.qseqlen)
+           searchinfo.qseqlen <= opt_maxsl * static_cast<double>(dseqlen) :
+           static_cast<double>(dseqlen) <= opt_maxsl * searchinfo.qseqlen)
           and
           /* idprefix */
           ((searchinfo.qseqlen >= opt_idprefix) and
@@ -628,7 +629,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       (hit->matches + hit->mismatches >= opt_query_cov * searchinfo.qseqlen) and
       /* target_cov */
       (hit->matches + hit->mismatches >=
-       opt_target_cov * db_getsequencelen(hit->target)) and
+       opt_target_cov * static_cast<double>(db_getsequencelen(static_cast<uint64_t>(hit->target)))) and
       /* maxid */
       (hit->id <= 100.0 * opt_maxid) and
       /* mid */
@@ -639,7 +640,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       if (opt_cluster_unoise != nullptr)
         {
           const auto mismatches = hit->mismatches;
-          auto const skew = 1.0 * searchinfo.qsize / db_getabundance(hit->target);
+          auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(db_getabundance(static_cast<uint64_t>(hit->target)));
           auto const beta = 1.0 / std::pow(2, (1.0 * opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
@@ -687,14 +688,14 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
   std::array<unsigned short, MAXDELAYED> nwgaps_list {{}};
   std::array<char *, MAXDELAYED> nwcigar_list {{}};
 
-  int target_count = 0;
+  unsigned int target_count = 0;
 
   for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
     {
       struct hit const * hit = searchinfo->hits + x;
       if (not hit->rejected)
         {
-          target_list[target_count++] = hit->target;
+          target_list[target_count++] = static_cast<unsigned int>(hit->target);
         }
     }
 
@@ -711,7 +712,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                nwcigar_list.data());
     }
 
-  int i = 0;
+  unsigned int i = 0;
 
   for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
     {
@@ -735,7 +736,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               int64_t nwmismatches = 0;
               int64_t nwgaps = 0;
 
-              int64_t const dseqlen = db_getsequencelen(target);
+              int64_t const dseqlen = static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target)));
 
               if (nwscore == std::numeric_limits<short>::max())
                 {
@@ -743,7 +744,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                      perform a new alignment with the
                      linear memory aligner */
 
-                  char * dseq = db_getsequence(target);
+                  char * dseq = db_getsequence(static_cast<uint64_t>(target));
 
                   if (nwcigar_list[i] != nullptr)
                     {
@@ -777,14 +778,14 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               hit->shortest = std::min(searchinfo->qseqlen, static_cast<int>(dseqlen));
               hit->longest = std::max(searchinfo->qseqlen, static_cast<int>(dseqlen));
               hit->nwalignment = nwcigar;
-              hit->nwscore = nwscore;
-              hit->nwdiff = nwalignmentlength - nwmatches;
-              hit->nwgaps = nwgaps;
-              hit->nwindels = nwalignmentlength - nwmatches - nwmismatches;
-              hit->nwalignmentlength = nwalignmentlength;
-              hit->nwid = 100.0 * (nwalignmentlength - hit->nwdiff) /
-                nwalignmentlength;
-              hit->matches = nwalignmentlength - hit->nwdiff;
+              hit->nwscore = static_cast<int>(nwscore);
+              hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
+              hit->nwgaps = static_cast<int>(nwgaps);
+              hit->nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
+              hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
+              hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
+                static_cast<double>(nwalignmentlength);
+              hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
               hit->mismatches = hit->nwdiff - hit->nwindels;
 
               /* trim alignment and compute numbers excluding terminal gaps */
@@ -842,7 +843,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
 
   /* extract unique kmer samples from query*/
-  unique_count(searchinfo->uh, opt_wordlength,
+  unique_count(searchinfo->uh, static_cast<int>(opt_wordlength),
                searchinfo->qseqlen, searchinfo->qsequence,
                &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 
@@ -865,7 +866,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
       struct hit * hit = searchinfo->hits + searchinfo->hit_count;
 
-      hit->target = e.seqno;
+      hit->target = static_cast<int>(e.seqno);
       hit->count = e.count;
       hit->strand = searchinfo->strand;
       hit->rejected = false;
@@ -875,7 +876,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
       hit->nwalignment = nullptr;
 
       /* Test some accept/reject criteria before alignment */
-      if (search_acceptable_unaligned(*searchinfo, e.seqno))
+      if (search_acceptable_unaligned(*searchinfo, static_cast<int>(e.seqno)))
         {
           ++delayed;
         }

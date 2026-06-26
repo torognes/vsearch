@@ -143,7 +143,7 @@ auto allpairs_output_results(int hit_count,
     {
       results_show_alnout(fp_alnout,
                           hits,
-                          toreport,
+                          static_cast<int>(toreport),
                           query_head,
                           qsequence,
                           qseqlen);
@@ -153,7 +153,7 @@ auto allpairs_output_results(int hit_count,
     {
       results_show_samout(fp_samout,
                           hits,
-                          toreport,
+                          static_cast<int>(toreport),
                           query_head,
                           qsequence,
                           qsequence_rc);
@@ -271,7 +271,7 @@ auto allpairs_output_results(int hit_count,
                               qsequence,
                               qseqlen,
                               query_head,
-                              std::strlen(query_head),
+                              static_cast<int>(std::strlen(query_head)),
                               0,
                               count_matched,
                               -1.0,
@@ -289,7 +289,7 @@ auto allpairs_output_results(int hit_count,
                               qsequence,
                               qseqlen,
                               query_head,
-                              std::strlen(query_head),
+                              static_cast<int>(std::strlen(query_head)),
                               0,
                               count_notmatched,
                               -1.0,
@@ -306,23 +306,23 @@ auto allpairs_thread_run(uint64_t t) -> void
 
   struct searchinfo_s searchinfo;
 
-  searchinfo.hits_v.resize(seqcount);
+  searchinfo.hits_v.resize(static_cast<std::size_t>(seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
 
-  searchinfo.s = search16_init(opt_match,
-                        opt_mismatch,
-                        opt_gap_open_query_left,
-                        opt_gap_open_target_left,
-                        opt_gap_open_query_interior,
-                        opt_gap_open_target_interior,
-                        opt_gap_open_query_right,
-                        opt_gap_open_target_right,
-                        opt_gap_extension_query_left,
-                        opt_gap_extension_target_left,
-                        opt_gap_extension_query_interior,
-                        opt_gap_extension_target_interior,
-                        opt_gap_extension_query_right,
-                        opt_gap_extension_target_right);
+  searchinfo.s = search16_init(static_cast<CELL>(opt_match),
+                        static_cast<CELL>(opt_mismatch),
+                        static_cast<CELL>(opt_gap_open_query_left),
+                        static_cast<CELL>(opt_gap_open_target_left),
+                        static_cast<CELL>(opt_gap_open_query_interior),
+                        static_cast<CELL>(opt_gap_open_target_interior),
+                        static_cast<CELL>(opt_gap_open_query_right),
+                        static_cast<CELL>(opt_gap_open_target_right),
+                        static_cast<CELL>(opt_gap_extension_query_left),
+                        static_cast<CELL>(opt_gap_extension_target_left),
+                        static_cast<CELL>(opt_gap_extension_query_interior),
+                        static_cast<CELL>(opt_gap_extension_target_interior),
+                        static_cast<CELL>(opt_gap_extension_query_right),
+                        static_cast<CELL>(opt_gap_extension_target_right));
 
 
   struct Scoring scoring;
@@ -372,12 +372,13 @@ auto allpairs_thread_run(uint64_t t) -> void
           input_lock.unlock();
 
           /* init search info */
+          auto const query_no_u = static_cast<uint64_t>(query_no);
           searchinfo.query_no = query_no;
-          searchinfo.qsize = db_getabundance(query_no);
-          searchinfo.query_head_len = db_getheaderlen(query_no);
-          searchinfo.query_head = db_getheader(query_no);
-          searchinfo.qseqlen = db_getsequencelen(query_no);
-          searchinfo.qsequence = db_getsequence(query_no);
+          searchinfo.qsize = static_cast<int64_t>(db_getabundance(query_no_u));
+          searchinfo.query_head_len = static_cast<int>(db_getheaderlen(query_no_u));
+          searchinfo.query_head = db_getheader(query_no_u);
+          searchinfo.qseqlen = static_cast<int>(db_getsequencelen(query_no_u));
+          searchinfo.qsequence = db_getsequence(query_no_u);
           searchinfo.rejects = 0;
           searchinfo.accepts = 0;
           searchinfo.hit_count = 0;
@@ -386,7 +387,7 @@ auto allpairs_thread_run(uint64_t t) -> void
             {
               if ((opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
                 {
-                  pseqnos[searchinfo.hit_count] = target;
+                  pseqnos[static_cast<std::size_t>(searchinfo.hit_count)] = static_cast<unsigned int>(target);
                   ++searchinfo.hit_count;
                 }
             }
@@ -398,7 +399,7 @@ auto allpairs_thread_run(uint64_t t) -> void
               search16_qprep(searchinfo.s, searchinfo.qsequence, searchinfo.qseqlen);
 
               search16(searchinfo.s,
-                       searchinfo.hit_count,
+                       static_cast<unsigned int>(searchinfo.hit_count),
                        pseqnos.data(),
                        pscores.data(),
                        paligned.data(),
@@ -408,7 +409,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                        pcigar.data());
 
               /* convert to hit structure */
-              for (int h = 0; h < searchinfo.hit_count; h++)
+              for (std::size_t h = 0; h < static_cast<std::size_t>(searchinfo.hit_count); h++)
                 {
                   struct hit * hit = &searchinfo.hits_v[h];
 
@@ -428,7 +429,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                          linear memory aligner */
 
                       char * tseq = db_getsequence(target);
-                      int64_t const tseqlen = db_getsequencelen(target);
+                      int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(target));
 
                       if (pcigar[h] != nullptr)
                         {
@@ -457,7 +458,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                       nwgaps = pgaps[h];
                     }
 
-                  hit->target = target;
+                  hit->target = static_cast<int>(target);
                   hit->strand = 0;
                   hit->count = 0;
 
@@ -466,15 +467,15 @@ auto allpairs_thread_run(uint64_t t) -> void
                   hit->aligned = true;
                   hit->weak = false;
 
-                  hit->nwscore = nwscore;
-                  hit->nwdiff = nwalignmentlength - nwmatches;
-                  hit->nwgaps = nwgaps;
-                  hit->nwindels = nwalignmentlength - nwmatches - nwmismatches;
-                  hit->nwalignmentlength = nwalignmentlength;
-                  hit->nwid = 100.0 * (nwalignmentlength - hit->nwdiff) /
-                    nwalignmentlength;
+                  hit->nwscore = static_cast<int>(nwscore);
+                  hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
+                  hit->nwgaps = static_cast<int>(nwgaps);
+                  hit->nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
+                  hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
+                  hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
+                    static_cast<double>(nwalignmentlength);
                   hit->nwalignment = nwcigar;
-                  hit->matches = nwalignmentlength - hit->nwdiff;
+                  hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
                   hit->mismatches = hit->nwdiff - hit->nwindels;
 
                   auto const dseqlen = static_cast<int>(db_getsequencelen(target));
@@ -487,7 +488,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                   /* test accept/reject criteria after alignment */
                   if ((opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
                     {
-                      finalhits[searchinfo.accepts] = *hit;
+                      finalhits[static_cast<std::size_t>(searchinfo.accepts)] = *hit;
                       ++searchinfo.accepts;
                     }
                 }
@@ -496,7 +497,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                  pointer even for zero elements) */
               if (searchinfo.accepts > 0)
                 {
-                  qsort(finalhits.data(), searchinfo.accepts,
+                  qsort(finalhits.data(), static_cast<std::size_t>(searchinfo.accepts),
                         sizeof(struct hit), allpairs_hit_compare);
                 }
             }
@@ -520,12 +521,12 @@ auto allpairs_thread_run(uint64_t t) -> void
 
           /* show progress */
           progress += seqcount - query_no - 1;
-          progress_update(progress);
+          progress_update(static_cast<uint64_t>(progress));
 
           output_lock.unlock();
 
           /* free memory for alignment strings */
-          for (int i = 0; i < searchinfo.hit_count; i++)
+          for (std::size_t i = 0; i < static_cast<std::size_t>(searchinfo.hit_count); i++)
             {
               if (searchinfo.hits_v[i].aligned)
                 {
@@ -668,14 +669,14 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   show_rusage();
 
-  seqcount = db_getsequencecount();
+  seqcount = static_cast<int>(db_getsequencecount());
 
   /* prepare reading of queries */
   qmatches = 0;
   queries = 0;
 
   progress = 0;
-  progress_init("Aligning", std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2);  // refactoring: issue with parenthesis?
+  progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));  // refactoring: issue with parenthesis?
   allpairs_thread_worker_run();
   progress_done();
 

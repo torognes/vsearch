@@ -97,7 +97,7 @@ auto update_profile(char const nucleotide,
   static constexpr auto U_counter = 3;  // note: T converted to U?
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  auto const offset = profsize * position_in_alignment;
+  auto const offset = static_cast<std::vector<prof_type>::size_type>(profsize * position_in_alignment);
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
   switch (std::toupper(nucleotide))
@@ -139,7 +139,7 @@ auto update_profile(char const nucleotide,
 
 auto update_msa(char const nucleotide, int &position_in_alignment,
                 std::vector<char>& alignment) -> void {
-  alignment[position_in_alignment] = nucleotide;
+  alignment[static_cast<std::vector<char>::size_type>(position_in_alignment)] = nucleotide;
   ++position_in_alignment;
 }
 
@@ -153,7 +153,7 @@ namespace {
 auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
-  std::vector<int> max_insertions(centroid_len + 1);
+  std::vector<int> max_insertions(static_cast<std::vector<int>::size_type>(centroid_len + 1));
 
   // refactoring: with template Span<T>
   // auto target_list_view = Span<struct msa_target_s const>{target_list_v.data(), target_list_v.size()};
@@ -162,7 +162,7 @@ auto find_max_insertions_per_position(int const target_count,
 
   for (auto i = 1; i < target_count; ++i) {
     auto position = 0LL;
-    auto * cigar_start = target_list_v[i].cigar;
+    auto * cigar_start = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)].cigar;
     auto const cigar_length = std::strlen(cigar_start);
     auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
 
@@ -177,7 +177,7 @@ auto find_max_insertions_per_position(int const target_count,
 
       case Operation::deletion:
         assert(runlength <= std::numeric_limits<int>::max());
-        max_insertions[position] = std::max(static_cast<int>(runlength), max_insertions[position]);
+        max_insertions[static_cast<std::vector<int>::size_type>(position)] = std::max(static_cast<int>(runlength), max_insertions[static_cast<std::vector<int>::size_type>(position)]);
         break;
       }
     }
@@ -197,9 +197,9 @@ auto find_longest_target_on_reverse_strand(int const target_count,
   int64_t longest_reversed = 0;
   for (auto i = 0; i < target_count; ++i)
     {
-      auto const & target = target_list_v[i];
+      auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       if (target.strand == 0) { continue; }
-      auto const len = static_cast<int64_t>(db_getsequencelen(target.seqno));
+      auto const len = static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target.seqno)));
       longest_reversed = std::max(len, longest_reversed);
     }
   return longest_reversed;
@@ -213,7 +213,7 @@ auto allocate_buffer_for_reverse_strand_target(int const target_count,
   auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
   if (longest_reversed > 0)
     {
-      rc_buffer_v.resize(longest_reversed + 1);
+      rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed + 1));
       return rc_buffer_v.data();
     }
   return nullptr;
@@ -236,9 +236,9 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
                       header_prefix,
                       aln_v.data(),
                       static_cast<int>(aln_v.size() - 1),
-                      db_getheader(target_seqno),
-                      static_cast<int>(db_getheaderlen(target_seqno)),
-                      db_getabundance(target_seqno),
+                      db_getheader(static_cast<uint64_t>(target_seqno)),
+                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(target_seqno))),
+                      db_getabundance(static_cast<uint64_t>(target_seqno)),
                       0, -1.0, -1, -1, nullptr, 0.0, 0);
 }
 
@@ -247,7 +247,7 @@ auto reverse_complement_target_if_need_be(int const strand, int const target_seq
                                           char * rc_buffer, char * target_seq) -> char * {
   if (strand == 0) { return target_seq; }
   reverse_complement(rc_buffer, target_seq,
-                     static_cast<int64_t>(db_getsequencelen(target_seqno)));
+                     static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target_seqno))));
   return rc_buffer;
 }
 
@@ -262,13 +262,13 @@ auto process_and_print_centroid(char *rc_buffer,
   auto const & target = target_list_v.front();
   auto const target_seqno = target.seqno;
   auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
-                                                                 db_getsequence(target_seqno));
-  prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+                                                                 db_getsequence(static_cast<uint64_t>(target_seqno)));
+  prof_type const target_abundance = opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
   auto position_in_alignment = 0;
 
   for (auto i = 0; i < centroid_len; ++i)
     {
-      for (auto j = 0; j < max_insertions[i]; ++j)
+      for (auto j = 0; j < max_insertions[static_cast<std::vector<int>::size_type>(i)]; ++j)
         {
           update_profile('-', position_in_alignment, target_abundance, profile);
           update_msa('-', position_in_alignment, aln_v);
@@ -278,14 +278,14 @@ auto process_and_print_centroid(char *rc_buffer,
     }
 
   // insert
-  for (auto j = 0; j < max_insertions[centroid_len]; ++j)
+  for (auto j = 0; j < max_insertions[static_cast<std::vector<int>::size_type>(centroid_len)]; ++j)
     {
       update_profile('-', position_in_alignment, target_abundance, profile);
       update_msa('-', position_in_alignment, aln_v);
     }
 
   /* end of sequence string */
-  aln_v[position_in_alignment] = '\0';
+  aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
 
   /* print header & sequence */
   print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v);
@@ -326,11 +326,11 @@ auto compute_and_print_msa(int const target_count,
   // --------------------------------- deal with other sequences in the cluster
   for (auto i = 1; i < target_count; ++i)
     {
-      auto const & target = target_list_v[i];
+      auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       auto const target_seqno = target.seqno;
       auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
-                                                                     rc_buffer, db_getsequence(target_seqno));
-      prof_type const target_abundance = opt_sizein ? db_getabundance(target_seqno) : 1;
+                                                                     rc_buffer, db_getsequence(static_cast<uint64_t>(target_seqno)));
+      prof_type const target_abundance = opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
       int position_in_alignment = 0;
 
       auto is_inserted = false;
@@ -359,7 +359,7 @@ auto compute_and_print_msa(int const target_count,
                 update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
                 ++tpos;
               }
-            for (auto j = runlength; j < max_insertions[qpos]; ++j)
+            for (auto j = runlength; j < max_insertions[static_cast<std::vector<int>::size_type>(qpos)]; ++j)
               {
                 update_profile('-', position_in_alignment, target_abundance, profile);
                 update_msa('-', position_in_alignment, aln_v);
@@ -369,7 +369,7 @@ auto compute_and_print_msa(int const target_count,
           case 'M':
             for (auto j = 0; j < runlength; ++j)
               {
-                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
+                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
                                                      position_in_alignment, target_abundance,
                                                      profile, aln_v);
                 update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
@@ -382,7 +382,7 @@ auto compute_and_print_msa(int const target_count,
           case 'I':
             for (auto j = 0; j < runlength; ++j)
               {
-                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
+                insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
                                                      position_in_alignment, target_abundance,
                                                      profile, aln_v);
                 update_profile('-', position_in_alignment, target_abundance, profile);
@@ -396,12 +396,12 @@ auto compute_and_print_msa(int const target_count,
           }
         }
 
-      insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[qpos],
+      insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
                                            position_in_alignment, target_abundance,
                                            profile, aln_v);
 
       /* end of sequence string */
-      aln_v[position_in_alignment] = '\0';
+      aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
 
       /* print header & sequence */
       print_header_and_sequence(fp_msaout, "", target_seqno, aln_v);
@@ -425,11 +425,11 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   auto const right_censored = max_insertions.back();
   for (auto i = 0; i < left_censored; ++i)
     {
-      aln_v[i] = '+';
+      aln_v[static_cast<std::vector<char>::size_type>(i)] = '+';
     }
   for (auto i = alignment_length - right_censored; i < alignment_length; ++i)
     {
-      aln_v[i] = '+';
+      aln_v[static_cast<std::vector<char>::size_type>(i)] = '+';
     }
 
   for (auto i = left_censored; i < alignment_length - right_censored; ++i)
@@ -439,7 +439,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
       prof_type best_count = 0;
       for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          auto const count = profile[(profsize * i) + nucleotide];
+          auto const count = profile[static_cast<std::vector<prof_type>::size_type>(profsize * i) + nucleotide];
           if (count > best_count)
             {
               best_count = count;
@@ -448,7 +448,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* if no A, C, G, or T, check if there are any N's */
-      auto const N_count = profile[(profsize * i) + 4];
+      auto const N_count = profile[static_cast<std::vector<prof_type>::size_type>((profsize * i) + 4)];
       if ((best_count == 0) and (N_count > 0))
         {
           best_count = N_count;
@@ -456,28 +456,28 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* compare to the number of gap symbols */
-      auto const gap_count = profile[(profsize * i) + 5];
+      auto const gap_count = profile[static_cast<std::vector<prof_type>::size_type>((profsize * i) + 5)];
       if (best_count >= gap_count)
         {
           auto const index = static_cast<unsigned char>(best_sym);
           auto const sym = sym_nt_4bit[index];  // A, C, G, T, or N
-          aln_v[i] = sym;
-          cons_v[conslen] = sym;
+          aln_v[static_cast<std::vector<char>::size_type>(i)] = sym;
+          cons_v[static_cast<std::vector<char>::size_type>(conslen)] = sym;
           ++conslen;
         }
       else
         {
-          aln_v[i] = '-';
+          aln_v[static_cast<std::vector<char>::size_type>(i)] = '-';
         }
     }
 
   aln_v.back() = '\0';
-  cons_v[conslen] = '\0';
-  cons_v.resize(conslen + 1);
+  cons_v[static_cast<std::vector<char>::size_type>(conslen)] = '\0';
+  cons_v.resize(static_cast<std::vector<char>::size_type>(conslen + 1));
 
   if (fp_msaout != nullptr)
     {
-      fasta_print(fp_msaout, "consensus", aln_v.data(), alignment_length);
+      fasta_print(fp_msaout, "consensus", aln_v.data(), static_cast<uint64_t>(alignment_length));
     }
 }
 
@@ -491,9 +491,9 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
                       "centroid=",
                       cons_v.data(),
                       static_cast<int>(cons_v.size() - 1),  // exclude the '\0' terminator slot
-                      db_getheader(centroid_seqno),
-                      static_cast<int>(db_getheaderlen(centroid_seqno)),
-                      totalabundance,
+                      db_getheader(static_cast<uint64_t>(centroid_seqno)),
+                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(centroid_seqno))),
+                      static_cast<uint64_t>(totalabundance),
                       cluster + 1,
                       -1.0,
                       target_count,
@@ -517,9 +517,9 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                       "centroid=",
                       nullptr,
                       0,
-                      db_getheader(centroid_seqno),
-                      static_cast<int>(db_getheaderlen(centroid_seqno)),
-                      totalabundance,
+                      db_getheader(static_cast<uint64_t>(centroid_seqno)),
+                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(centroid_seqno))),
+                      static_cast<uint64_t>(totalabundance),
                       cluster + 1,
                       -1.0,
                       target_count,
@@ -533,7 +533,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(profsize * counter) + symbol_index]));
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[static_cast<std::vector<prof_type>::size_type>((profsize * counter) + symbol_index)]));
       }
       static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;
@@ -548,16 +548,16 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int64_t totalabundance) -> void
 {
   int const centroid_seqno = target_list_v[0].seqno;
-  auto const centroid_length = static_cast<int>(db_getsequencelen(centroid_seqno));
+  auto const centroid_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(centroid_seqno)));
 
   /* find max insertions in front of each position in the centroid sequence */
   auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v, centroid_length);
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
-  std::vector<prof_type> profile(static_cast<unsigned long>(profsize) * alignment_length);  // C++20 refactoring: std::vector<std::array<prof_type, profsize>>(alnlen);
-  std::vector<char> aln_v(alignment_length + 1);
-  std::vector<char> cons_v(alignment_length + 1);
+  std::vector<prof_type> profile(static_cast<unsigned long>(profsize) * static_cast<unsigned long>(alignment_length));  // C++20 refactoring: std::vector<std::array<prof_type, profsize>>(alnlen);
+  std::vector<char> aln_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
+  std::vector<char> cons_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
 
   /* msaout: multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list_v, max_insertions,

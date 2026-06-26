@@ -113,10 +113,10 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      &qrow[hits->trim_q_left + hits->trim_t_left],
+                      &qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
                       hits->internal_alignmentlength,
                       query_head,
-                      strlen(query_head),
+                      static_cast<int>(strlen(query_head)),
                       0,
                       0,
                       -1.0,
@@ -126,15 +126,16 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       0.0,
                       0);
 
-  auto const trow = get_alignment_trow(Span<char>{db_getsequence(hits->target), db_getsequencelen(hits->target)},
+  auto const target = static_cast<uint64_t>(hits->target);
+  auto const trow = get_alignment_trow(Span<char>{db_getsequence(target), static_cast<std::size_t>(db_getsequencelen(target))},
                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      &trow[hits->trim_q_left + hits->trim_t_left],
+                      &trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
                       hits->internal_alignmentlength,
-                      db_getheader(hits->target),
-                      db_getheaderlen(hits->target),
+                      db_getheader(target),
+                      static_cast<int>(db_getheaderlen(target)),
                       0,
                       0,
                       -1.0,
@@ -160,14 +161,14 @@ auto results_show_qsegout_one(std::FILE * output_handle,
   }
 
   char const * qseg = ((hits->strand != 0) ? qsequence_rc : qsequence) + hits->trim_q_left;
-  int const qseglen = qseqlen - hits->trim_q_left - hits->trim_q_right;
+  int const qseglen = static_cast<int>(qseqlen - hits->trim_q_left - hits->trim_q_right);
 
   fasta_print_general(output_handle,
                       nullptr,
                       qseg,
                       qseglen,
                       query_head,
-                      strlen(query_head),
+                      static_cast<int>(strlen(query_head)),
                       0,
                       0,
                       -1.0,
@@ -185,15 +186,16 @@ auto results_show_tsegout_one(std::FILE * output_handle,
   if (hits == nullptr) {
     return;
   }
-  auto const * tseg = db_getsequence(hits->target) + hits->trim_t_left;
-  int const tseglen = db_getsequencelen(hits->target) - hits->trim_t_left - hits->trim_t_right;
+  auto const target = static_cast<uint64_t>(hits->target);
+  auto const * tseg = db_getsequence(target) + hits->trim_t_left;
+  int const tseglen = static_cast<int>(db_getsequencelen(target)) - hits->trim_t_left - hits->trim_t_right;
 
   fasta_print_general(output_handle,
                       nullptr,
                       tseg,
                       tseglen,
-                      db_getheader(hits->target),
-                      db_getheaderlen(hits->target),
+                      db_getheader(target),
+                      static_cast<int>(db_getheaderlen(target)),
                       0,
                       0,
                       -1.0,
@@ -236,13 +238,14 @@ auto results_show_blast6out_one(std::FILE * output_handle,
     return;
   }
   // if 'hp->strand' then 'minus strand' else 'plus strand'
-  int const qstart = (hits->strand != 0) ? qseqlen : 1;
-  int const qend = (hits->strand != 0) ? 1 : qseqlen;
+  auto const target = static_cast<uint64_t>(hits->target);
+  int const qstart = (hits->strand != 0) ? static_cast<int>(qseqlen) : 1;
+  int const qend = (hits->strand != 0) ? 1 : static_cast<int>(qseqlen);
 
   fprintf(output_handle,
           "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
           query_head,
-          db_getheader(hits->target),
+          db_getheader(target),
           hits->id,
           hits->internal_alignmentlength,
           hits->mismatches,
@@ -250,7 +253,7 @@ auto results_show_blast6out_one(std::FILE * output_handle,
           qstart,
           qend,
           1,
-          db_getsequencelen(hits->target),
+          db_getsequencelen(target),
           -1,
           0);
 }
@@ -292,16 +295,17 @@ auto results_show_uc_one(std::FILE * output_handle,
           hits->id,
           (hits->strand != 0) ? '-' : '+',
           is_perfect_match ? "=" : hits->nwalignment);
+  auto const target = static_cast<uint64_t>(hits->target);
   header_fprint_strip(output_handle,
                       query_head,
-                      strlen(query_head),
+                      static_cast<int>(strlen(query_head)),
                       opt_xsize,
                       opt_xee,
                       opt_xlength);
   fprintf(output_handle, "\t");
   header_fprint_strip(output_handle,
-                      db_getheader(hits->target),
-                      db_getheaderlen(hits->target),
+                      db_getheader(target),
+                      static_cast<int>(db_getheaderlen(target)),
                       opt_xsize,
                       opt_xee,
                       opt_xlength);
@@ -335,9 +339,10 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 
       if (hits != nullptr)
         {
-          tsequence = db_getsequence(hits->target);
-          tseqlen = db_getsequencelen(hits->target);
-          t_head = db_getheader(hits->target);
+          auto const target = static_cast<uint64_t>(hits->target);
+          tsequence = db_getsequence(target);
+          tseqlen = static_cast<int64_t>(db_getsequencelen(target));
+          t_head = db_getheader(target);
         }
 
 
@@ -442,7 +447,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
                                              hits->nwalignmentlength);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
-                      &qrow[hits->trim_q_left + hits->trim_t_left]);
+                      &qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)]);
             }
           break;
         case 27: /* trow */
@@ -453,7 +458,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
                                              hits->nwalignmentlength);
               fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
-                      &trow[hits->trim_q_left + hits->trim_t_left]);
+                      &trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)]);
             }
           break;
         case 28: /* qframe */
@@ -470,11 +475,11 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           break;
         case 32: /* qcov */
           fprintf(output_handle, "%.1f",
-                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / qseqlen : 0.0);
+                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(qseqlen) : 0.0);
           break;
         case 33: /* tcov */
           fprintf(output_handle, "%.1f",
-                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / tseqlen : 0.0);
+                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(tseqlen) : 0.0);
           break;
         case 34: /* id0 */
           fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id0 : 0.0);
@@ -530,6 +535,7 @@ auto results_show_lcaout(std::FILE * output_handle,
     return;
   }
 
+  constexpr auto levels = static_cast<std::size_t>(tax_levels);
   std::array<int, tax_levels> votes {{}};
   std::array<int, tax_levels> cand;
   cand.fill(-1);
@@ -556,13 +562,13 @@ auto results_show_lcaout(std::FILE * output_handle,
       std::array<int, tax_levels> new_level_len {{}};
       tax_split(seqno, new_level_start.data(), new_level_len.data());
 
-      for (auto k = 0; k < tax_levels; ++k)
+      for (std::size_t k = 0; k < levels; ++k)
         {
           if (votes[k] == 0)
             {
               cand[k] = seqno;
               votes[k] = 1;
-              for (auto j = 0; j < tax_levels; ++j)
+              for (std::size_t j = 0; j < levels; ++j)
                 {
                   cand_level_start[k][j] = new_level_start[j];
                   cand_level_len[k][j] = new_level_len[j];
@@ -571,12 +577,12 @@ auto results_show_lcaout(std::FILE * output_handle,
           else
             {
               auto match = true;
-              for (auto j = 0; j <= k; ++j)
+              for (std::size_t j = 0; j <= k; ++j)
                 {
                   if ((new_level_len[j] != cand_level_len[k][j]) or
-                      (std::strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
-                               db_getheader(seqno) + new_level_start[j],
-                               new_level_len[j]) != 0))
+                      (std::strncmp(db_getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j],
+                               db_getheader(static_cast<uint64_t>(seqno)) + new_level_start[j],
+                               static_cast<std::size_t>(new_level_len[j])) != 0))
                     {
                       match = false;
                       break;
@@ -603,15 +609,15 @@ auto results_show_lcaout(std::FILE * output_handle,
       std::array<int, tax_levels> new_level_len {{}};
       tax_split(seqno, new_level_start.data(), new_level_len.data());
 
-      for (auto k = 0; k < tax_levels; ++k)
+      for (std::size_t k = 0; k < levels; ++k)
         {
           auto match = true;
-          for (auto j = 0; j <= k; ++j)
+          for (std::size_t j = 0; j <= k; ++j)
             {
               if ((new_level_len[j] != cand_level_len[k][j]) or
-                  (std::strncmp(db_getheader(cand[k]) + cand_level_start[k][j],
-                           db_getheader(seqno) + new_level_start[j],
-                           new_level_len[j]) != 0))
+                  (std::strncmp(db_getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j],
+                           db_getheader(static_cast<uint64_t>(seqno)) + new_level_start[j],
+                           static_cast<std::size_t>(new_level_len[j])) != 0))
                 {
                   match = false;
                   break;
@@ -631,7 +637,7 @@ auto results_show_lcaout(std::FILE * output_handle,
     return;
   }
   auto comma = false;
-  for (auto j = 0; j < tax_levels; ++j)
+  for (std::size_t j = 0; j < levels; ++j)
     {
       if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
         {
@@ -645,7 +651,7 @@ auto results_show_lcaout(std::FILE * output_handle,
                   (comma ? "," : ""),
                   taxonomic_fields[j],
                   cand_level_len[j][j],
-                  db_getheader(cand[j]) + cand_level_start[j][j]);
+                  db_getheader(static_cast<uint64_t>(cand[j])) + cand_level_start[j][j]);
           comma = true;
         }
     }
@@ -689,10 +695,11 @@ auto results_show_alnout(std::FILE * output_handle,
           break;
         }
 
+      auto const target = static_cast<uint64_t>(hp->target);
       fprintf(output_handle,"%3.0f%% %6" PRIu64 "  %s\n",
               hp->id,
-              db_getsequencelen(hp->target),
-              db_getheader(hp->target));
+              db_getsequencelen(target),
+              db_getheader(target));
     }
 
   for (auto t = 0; t < hitcount; ++t)
@@ -707,8 +714,9 @@ auto results_show_alnout(std::FILE * output_handle,
       fprintf(output_handle,"\n");
 
 
-      auto const * dseq = db_getsequence(hp->target);
-      int64_t const dseqlen = db_getsequencelen(hp->target);
+      auto const target = static_cast<uint64_t>(hp->target);
+      auto const * dseq = db_getsequence(target);
+      int64_t const dseqlen = static_cast<int64_t>(db_getsequencelen(target));
 
       auto const qlenlen = snprintf(nullptr, 0, "%" PRId64, qseqlen);
       auto const tlenlen = snprintf(nullptr, 0, "%" PRId64, dseqlen);
@@ -717,9 +725,9 @@ auto results_show_alnout(std::FILE * output_handle,
       fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
               qseqlen, query_head);
       fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
-              dseqlen, db_getheader(hp->target));
+              dseqlen, db_getheader(target));
 
-      int const rowlen = (opt_rowlen == 0) ? qseqlen + dseqlen : opt_rowlen;
+      int const rowlen = (opt_rowlen == 0) ? static_cast<int>(qseqlen + dseqlen) : static_cast<int>(opt_rowlen);
 
       align_show(output_handle,
                  qsequence,
@@ -731,8 +739,8 @@ auto results_show_alnout(std::FILE * output_handle,
                  hp->trim_t_left,
                  "Tgt",
                  hp->nwalignment + hp->trim_aln_left,
-                 strlen(hp->nwalignment)
-                 - hp->trim_aln_left - hp->trim_aln_right,
+                 static_cast<int64_t>(strlen(hp->nwalignment)
+                 - static_cast<std::size_t>(hp->trim_aln_left) - static_cast<std::size_t>(hp->trim_aln_right)),
                  numwidth,
                  3,
                  rowlen,
@@ -862,7 +870,7 @@ auto results_show_samheader(std::FILE * output_handle,
         {
           get_hex_seq_digest_md5(md5hex.data(),
                                  db_getsequence(i),
-                                 db_getsequencelen(i));
+                                 static_cast<int>(db_getsequencelen(i)));
           fprintf(output_handle,
                   "@SQ\tSN:%s\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
                   db_getheader(i),
@@ -958,9 +966,10 @@ auto results_show_samout(std::FILE * output_handle,
       xstring cigar;
       xstring md;
 
+      auto const target = static_cast<uint64_t>(hp->target);
       build_sam_strings(hp->nwalignment,
                         (hp->strand != 0) ? qsequence_rc : qsequence,
-                        db_getsequence(hp->target),
+                        db_getsequence(target),
                         cigar,
                         md);
 
@@ -973,7 +982,7 @@ auto results_show_samout(std::FILE * output_handle,
               "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
               query_head,
               (0x10 * hp->strand) | (t > 0 ? 0x100 : 0),
-              db_getheader(hp->target),
+              db_getheader(target),
               static_cast<uint64_t>(1),
               255,
               cigar.c_str(),
