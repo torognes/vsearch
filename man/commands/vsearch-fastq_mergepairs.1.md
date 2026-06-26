@@ -60,6 +60,37 @@ Overlap:            TTTTTTTGGG  (6 bases; scores combined)
 Merged:       AAAAAAAAATTTTTTTGGGCCCCCCCCCC
 ```
 
+At the end of the run, vsearch prints a report — to standard error,
+or to the log file when `--log` is used — giving the number of merged
+pairs and, for the pairs that could not be merged, a breakdown by
+reason. Most reasons correspond directly to a user-adjustable
+threshold: `reads too short (after truncation)` (`--fastq_minlen`),
+`reads too long (after truncation)` (`--fastq_maxlen`), `too many
+N's` (`--fastq_maxns`), `too many differences` (`--fastq_maxdiffs`),
+`too high percentage of differences` (`--fastq_maxdiffpct`), `overlap
+too short` (`--fastq_minovlen`), `expected error too high`
+(`--fastq_maxee`), `merged fragment too short` (`--fastq_minmergelen`),
+`merged fragment too long` (`--fastq_maxmergelen`), and `staggered
+read pairs` (allowed with `--fastq_allowmergestagger`). The remaining
+reasons reflect the alignment heuristics and are not directly
+controllable:
+
+`too few kmers found on same diagonal`
+: Too few k-mers shared by the two reads fall on a common alignment
+  diagonal, so no candidate overlap could be located and no alignment
+  was attempted.
+
+`multiple potential alignments`
+: More than one overlap of comparable quality was found — for instance
+  when the overlap region contains a tandem repeat — so the correct
+  alignment is ambiguous and the pair is left unmerged.
+
+`alignment score too low, or score drop too high`
+: An overlap was found and aligned, but its score remained below the
+  internal threshold, or the score dropped too sharply within the
+  overlap. This usually points to clustered mismatches or an indel in
+  the overlap region.
+
 
 # OPTIONS
 
