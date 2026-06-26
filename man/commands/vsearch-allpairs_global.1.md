@@ -281,6 +281,7 @@ vsearch \
 [`vsearch-usearch_global(1)`](./vsearch-usearch_global.1.md),
 [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md),
 [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
+[`vsearch-pairwise_alignment_parameters(7)`](../misc/vsearch-pairwise_alignment_parameters.7.md),
 [`vsearch-userfields(7)`](../misc/vsearch-userfields.7.md)
 
 
