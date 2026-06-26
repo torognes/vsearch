@@ -163,6 +163,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v6
 
+    # Clone the test suite on the Ubuntu host, where the network is reliable,
+    # rather than inside the FreeBSD VM. An in-VM `git clone` intermittently
+    # stalls on the guest's network and, with no git timeout, hangs until the
+    # 20-minute job limit. vmactions syncs the workspace into the VM, so the
+    # cloned directory is available there.
+    - name: Clone the test suite (on the host, not the FreeBSD VM)
+      run: |
+        git clone --depth 1 --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+
     - name: Build and test on FreeBSD
       uses: vmactions/freebsd-vm@v1
       with:
@@ -177,7 +186,8 @@ jobs:
           gmake clean
           gmake ARFLAGS="cr" -j$(sysctl -n hw.ncpu)
           bin/vsearch -v
-          git clone --branch ${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }} https://github.com/frederic-mahe/vsearch-tests
+          # vsearch-tests was cloned on the host (previous step) and synced
+          # into the VM, so no in-VM git clone is needed here.
           chown -R runner vsearch-tests
           # The suite runs ~7,700 tests, each printing a result line.
           # Streaming that volume over the vmactions SSH channel wedges
