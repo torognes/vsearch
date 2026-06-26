@@ -245,7 +245,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   const int maxhlen = std::max(chimera_info->query_head_len, 1);
   if (maxhlen > chimera_info->head_alloc)
     {
-      chimera_info->query_head.resize(maxhlen + 1);
+      chimera_info->query_head.resize(static_cast<size_t>(maxhlen) + 1);
     }
   chimera_info->head_alloc = std::max(chimera_info->head_alloc, maxhlen);
 
@@ -258,27 +258,27 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
     {
       chimera_info->query_alloc = maxqlen;
 
-      chimera_info->query_seq.resize(maxqlen + 1);
+      chimera_info->query_seq.resize(static_cast<size_t>(maxqlen) + 1);
 
-      chimera_info->maxi.resize(maxqlen + 1);
-      chimera_info->maxsmooth.resize(maxqlen);
+      chimera_info->maxi.resize(static_cast<size_t>(maxqlen) + 1);
+      chimera_info->maxsmooth.resize(static_cast<size_t>(maxqlen));
       chimera_info->match.resize(max_2x2_size);
       chimera_info->insert.resize(max_2x2_size);
       chimera_info->smooth.resize(max_2x2_size);
 
-      chimera_info->scan_p.resize(maxqlen + 1);
-      chimera_info->scan_q.resize(maxqlen + 1);
+      chimera_info->scan_p.resize(static_cast<size_t>(maxqlen) + 1);
+      chimera_info->scan_q.resize(static_cast<size_t>(maxqlen) + 1);
 
-      const int maxalnlen = maxqlen + (2 * db_getlongestsequence());
+      const int maxalnlen = maxqlen + (2 * static_cast<int>(db_getlongestsequence()));
       chimera_info->paln.resize(maxparents);
       for (auto & a_parent_alignment : chimera_info->paln) {
-        a_parent_alignment.resize(maxalnlen + 1);
+        a_parent_alignment.resize(static_cast<size_t>(maxalnlen) + 1);
       }
-      chimera_info->qaln.resize(maxalnlen + 1);
-      chimera_info->diffs.resize(maxalnlen + 1);
-      chimera_info->votes.resize(maxalnlen + 1);
-      chimera_info->model.resize(maxalnlen + 1);
-      chimera_info->ignore.resize(maxalnlen + 1);
+      chimera_info->qaln.resize(static_cast<size_t>(maxalnlen) + 1);
+      chimera_info->diffs.resize(static_cast<size_t>(maxalnlen) + 1);
+      chimera_info->votes.resize(static_cast<size_t>(maxalnlen) + 1);
+      chimera_info->model.resize(static_cast<size_t>(maxalnlen) + 1);
+      chimera_info->ignore.resize(static_cast<size_t>(maxalnlen) + 1);
     }
 
   // resize query parts if longer than earlier, minimum 100
@@ -288,7 +288,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
     {
       for (auto & query_info: chimera_info->si)
         {
-          query_info.qsequence_v.resize(maxpartlen + 1);
+          query_info.qsequence_v.resize(static_cast<size_t>(maxpartlen) + 1);
           query_info.qsequence = query_info.qsequence_v.data();
         }
       chimera_info->part_alloc = maxpartlen;
@@ -312,12 +312,12 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
   for (auto i = 0; i < chimera_info->cand_count; ++i)
     {
-      auto const * tseq = db_getsequence(chimera_info->cand_list[i]);
+      auto const * tseq = db_getsequence(chimera_info->cand_list[static_cast<size_t>(i)]);
 
       auto qpos = 0;
       auto tpos = 0;
 
-      auto * cigar_start = chimera_info->nwcigar[i];
+      auto * cigar_start = chimera_info->nwcigar[static_cast<size_t>(i)];
       auto const cigar_length = std::strlen(cigar_start);
       auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
 
@@ -328,10 +328,10 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
         case Operation::match:
           for (auto j = 0; j < runlength; ++j)
             {
-              if ((map_4bit(qseq[qpos]) &
+              if ((map_4bit(qseq[static_cast<size_t>(qpos)]) &
                    map_4bit(tseq[tpos])) != 0U)
                 {
-                  chimera_info->match[(i * chimera_info->query_len) + qpos] = 1;
+                  chimera_info->match[static_cast<size_t>((i * chimera_info->query_len) + qpos)] = 1;
                 }
               ++qpos;
               ++tpos;
@@ -339,12 +339,12 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
           break;
 
         case Operation::insertion:
-          chimera_info->insert[(i * chimera_info->query_len) + qpos] = runlength;
-          tpos += runlength;
+          chimera_info->insert[static_cast<size_t>((i * chimera_info->query_len) + qpos)] = static_cast<int>(runlength);
+          tpos += static_cast<int>(runlength);
           break;
 
         case Operation::deletion:
-          qpos += runlength;
+          qpos += static_cast<int>(runlength);
           break;
         }
       }
@@ -398,12 +398,12 @@ auto scan_matches(struct chimera_info_s * ci,
 
   p[0] = 0.0;
   for (auto i = 0; i < len; ++i) {
-    p[i + 1] = p[i] + ((matches[i] != 0) ? score_match : score_mismatch);
+    p[static_cast<size_t>(i) + 1] = p[static_cast<size_t>(i)] + ((matches[i] != 0) ? score_match : score_mismatch);
   }
 
-  q[len] = p[len];
+  q[static_cast<size_t>(len)] = p[static_cast<size_t>(len)];
   for (auto i = len - 1; i >= 0; --i) {
-    q[i] = std::max(q[i + 1], p[i]);
+    q[static_cast<size_t>(i)] = std::max(q[static_cast<size_t>(i) + 1], p[static_cast<size_t>(i)]);
   }
 
   auto best_i = 0;
@@ -413,7 +413,7 @@ auto scan_matches(struct chimera_info_s * ci,
   auto j = 1;
   while (j <= len)
     {
-      auto const c = q[j] - p[i - 1];
+      auto const c = q[static_cast<size_t>(j)] - p[static_cast<size_t>(i - 1)];
       if (c >= 0.0)
         {
           auto const d = j - i + 1;
@@ -451,7 +451,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
   find_matches(ci);
 
   std::vector<struct parents_info_s> best_parents(maxparents);
-  std::vector<bool> position_used(ci->query_len, false);
+  std::vector<bool> position_used(static_cast<size_t>(ci->query_len), false);
 
   int pos_remaining = ci->query_len;
   int parents_found = 0;
@@ -472,8 +472,8 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
               int start = j;
               int len = 0;
               while ((j < ci->query_len) &&
-                     (not position_used[j]) &&
-                     ((len == 0) or (ci->insert[(i * ci->query_len) + j] == 0)))
+                     (not position_used[static_cast<size_t>(j)]) &&
+                     ((len == 0) or (ci->insert[static_cast<size_t>((i * ci->query_len) + j)] == 0)))
                 {
                   ++len;
                   ++j;
@@ -483,7 +483,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                   int scan_best_start = 0;
                   int scan_best_len = 0;
                   if (scan_matches(ci,
-                                   &ci->match[(i * ci->query_len) + start],
+                                   &ci->match[static_cast<size_t>((i * ci->query_len) + start)],
                                    len,
                                    opt_chimeras_diff_pct,
                                    & scan_best_start,
@@ -503,9 +503,9 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
       if (best_len >= opt_chimeras_length_min)
         {
-          best_parents[f].cand = best_cand;
-          best_parents[f].start = best_start;
-          best_parents[f].len = best_len;
+          best_parents[static_cast<size_t>(f)].cand = best_cand;
+          best_parents[static_cast<size_t>(f)].start = best_start;
+          best_parents[static_cast<size_t>(f)].len = best_len;
           ++parents_found;
 
 #if 0
@@ -523,7 +523,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
           /* mark positions used */
           for (int j = best_start; j < best_start + best_len; ++j)
             {
-              position_used[j] = true;
+              position_used[static_cast<size_t>(j)] = true;
             }
           pos_remaining -= best_len;
         }
@@ -537,7 +537,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
   if (parents_found > 0)
     {
       std::qsort(best_parents.data(),
-                 parents_found,
+                 static_cast<size_t>(parents_found),
                  sizeof(struct parents_info_s),
                  compare_positions);
     }
@@ -546,9 +546,9 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
   for (int f = 0; f < parents_found; ++f)
     {
-      ci->best_parents[f] = best_parents[f].cand;
-      ci->best_start[f] = best_parents[f].start;
-      ci->best_len[f] = best_parents[f].len;
+      ci->best_parents[static_cast<size_t>(f)] = best_parents[static_cast<size_t>(f)].cand;
+      ci->best_start[static_cast<size_t>(f)] = best_parents[static_cast<size_t>(f)].start;
+      ci->best_len[static_cast<size_t>(f)] = best_parents[static_cast<size_t>(f)].len;
     }
 
 #if 0
@@ -571,11 +571,11 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
   for (int f = 0; f < 2; ++f)
     {
-      best_parent_cand[f] = -1;
-      ci->best_parents[f] = -1;
+      best_parent_cand[static_cast<size_t>(f)] = -1;
+      ci->best_parents[static_cast<size_t>(f)] = -1;
     }
 
-  std::vector<bool> cand_selected(ci->cand_count, false);
+  std::vector<bool> cand_selected(static_cast<size_t>(ci->cand_count), false);
 
   for (int f = 0; f < 2; ++f)
     {
@@ -588,14 +588,14 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
           for (int qpos = window - 1; qpos < ci->query_len; ++qpos)
             {
-              int const z = (best_parent_cand[f - 1] * ci->query_len) + qpos;
-              if (ci->smooth[z] == ci->maxsmooth[qpos])
+              int const z = (best_parent_cand[static_cast<size_t>(f - 1)] * ci->query_len) + qpos;
+              if (ci->smooth[static_cast<size_t>(z)] == ci->maxsmooth[static_cast<size_t>(qpos)])
                 {
                   for (int i = qpos + 1 - window; i <= qpos; ++i)
                     {
                       for (int j = 0; j < ci->cand_count; ++j)
                         {
-                          ci->match[(j * ci->query_len) + i] = 0;
+                          ci->match[static_cast<size_t>((j * ci->query_len) + i)] = 0;
                         }
                     }
                 }
@@ -611,21 +611,21 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
       for (int i = 0; i < ci->cand_count; ++i)
         {
-          if (not cand_selected[i])
+          if (not cand_selected[static_cast<size_t>(i)])
             {
               int sum = 0;
               for (int qpos = 0; qpos < ci->query_len; ++qpos)
                 {
                   int const z = (i * ci->query_len) + qpos;
-                  sum += ci->match[z];
+                  sum += ci->match[static_cast<size_t>(z)];
                   if (qpos >= window)
                     {
-                      sum -= ci->match[z - window];
+                      sum -= ci->match[static_cast<size_t>(z - window)];
                     }
                   if (qpos >= window - 1)
                     {
-                      ci->smooth[z] = sum;
-                      ci->maxsmooth[qpos] = std::max(ci->smooth[z], ci->maxsmooth[qpos]);
+                      ci->smooth[static_cast<size_t>(z)] = sum;
+                      ci->maxsmooth[static_cast<size_t>(qpos)] = std::max(ci->smooth[static_cast<size_t>(z)], ci->maxsmooth[static_cast<size_t>(qpos)]);
                     }
                 }
             }
@@ -634,20 +634,20 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
 
       /* find parent with the most wins */
 
-      std::vector<int> wins(ci->cand_count, 0);
+      std::vector<int> wins(static_cast<size_t>(ci->cand_count), 0);
 
       for (int qpos = window - 1; qpos < ci->query_len; ++qpos)
         {
-          if (ci->maxsmooth[qpos] != 0)
+          if (ci->maxsmooth[static_cast<size_t>(qpos)] != 0)
             {
               for (int i = 0; i < ci->cand_count; ++i)
                 {
-                  if (not cand_selected[i])
+                  if (not cand_selected[static_cast<size_t>(i)])
                     {
                       int const z = (i * ci->query_len) + qpos;
-                      if (ci->smooth[z] == ci->maxsmooth[qpos])
+                      if (ci->smooth[static_cast<size_t>(z)] == ci->maxsmooth[static_cast<size_t>(qpos)])
                         {
-                          ++wins[i];
+                          ++wins[static_cast<size_t>(i)];
                         }
                     }
                 }
@@ -659,17 +659,17 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       int maxwins = 0;
       for (int i = 0; i < ci->cand_count; ++i)
         {
-          int const w = wins[i];
+          int const w = wins[static_cast<size_t>(i)];
           if (w > maxwins)
             {
               maxwins = w;
-              best_parent_cand[f] = i;
+              best_parent_cand[static_cast<size_t>(f)] = i;
             }
         }
 
       /* terminate loop if no parent found */
 
-      if (best_parent_cand[f] < 0) {
+      if (best_parent_cand[static_cast<size_t>(f)] < 0) {
         break;
       }
 
@@ -678,8 +678,8 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
              ci->query_no, f, best_parent_cand[f], maxwins);
 #endif
 
-      ci->best_parents[f] = best_parent_cand[f];
-      cand_selected[best_parent_cand[f]] = true;
+      ci->best_parents[static_cast<size_t>(f)] = best_parent_cand[static_cast<size_t>(f)];
+      cand_selected[static_cast<size_t>(best_parent_cand[static_cast<size_t>(f)])] = true;
     }
 
   /* Check if at least 2 candidates selected */
@@ -707,7 +707,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
   auto const best_parents_view = Span<int>{chimera_info->best_parents.data(), count};
   for (auto const best_parent : best_parents_view) {
     auto pos = 0LL;
-    auto * cigar_start = chimera_info->nwcigar[best_parent];
+    auto * cigar_start = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
     auto const cigar_length = std::strlen(cigar_start);
     auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
 
@@ -722,7 +722,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
       case Operation::insertion:
         assert(runlength <= std::numeric_limits<int>::max());
-        chimera_info->maxi[pos] = std::max(static_cast<int>(runlength), chimera_info->maxi[pos]);
+        chimera_info->maxi[static_cast<size_t>(pos)] = std::max(static_cast<int>(runlength), chimera_info->maxi[static_cast<size_t>(pos)]);
         break;
       }
     }
@@ -736,17 +736,17 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
   for (int i = 0; i < ci->parents_found; ++i)
     {
-      auto & alignment = ci->paln[i];
-      int const cand = ci->best_parents[i];
-      int const target_seqno = ci->cand_list[cand];
-      char const * target_seq = db_getsequence(target_seqno);
+      auto & alignment = ci->paln[static_cast<size_t>(i)];
+      int const cand = ci->best_parents[static_cast<size_t>(i)];
+      int const target_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(cand)]);
+      char const * target_seq = db_getsequence(static_cast<uint64_t>(target_seqno));
 
       auto is_inserted = false;
       int qpos = 0;
       int tpos = 0;
       int alnpos = 0;
 
-      auto * cigar_start = ci->nwcigar[cand];
+      auto * cigar_start = ci->nwcigar[static_cast<size_t>(cand)];
       auto const cigar_length = std::strlen(cigar_start);
       auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
       for (auto const & a_pair: cigar_pairs) {
@@ -754,17 +754,17 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
         auto const runlength = a_pair.second;
         switch (operation) {
         case Operation::insertion:
-          for (int j = 0; j < ci->maxi[qpos]; ++j)
+          for (int j = 0; j < ci->maxi[static_cast<size_t>(qpos)]; ++j)
             {
               if (j < runlength)
                 {
-                  alignment[alnpos] = map_uppercase(target_seq[tpos]);
+                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[tpos]);
                   ++tpos;
                   ++alnpos;
                 }
               else
                 {
-                  alignment[alnpos] = '-';
+                  alignment[static_cast<size_t>(alnpos)] = '-';
                   ++alnpos;
                 }
             }
@@ -777,19 +777,19 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
             {
               if (not is_inserted)
                 {
-                  std::fill_n(&alignment[alnpos], ci->maxi[qpos], '-');
-                  alnpos += ci->maxi[qpos];
+                  std::fill_n(&alignment[static_cast<size_t>(alnpos)], ci->maxi[static_cast<size_t>(qpos)], '-');
+                  alnpos += ci->maxi[static_cast<size_t>(qpos)];
                 }
 
               if (operation == Operation::match)
                 {
-                  alignment[alnpos] = map_uppercase(target_seq[tpos]);
+                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[tpos]);
                   ++tpos;
                   ++alnpos;
                 }
               else
                 {
-                  alignment[alnpos] = '-';
+                  alignment[static_cast<size_t>(alnpos)] = '-';
                   ++alnpos;
                 }
 
@@ -803,12 +803,12 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
 
       if (not is_inserted)
         {
-          std::fill_n(&alignment[alnpos], ci->maxi[qpos], '-');
-          alnpos += ci->maxi[qpos];
+          std::fill_n(&alignment[static_cast<size_t>(alnpos)], ci->maxi[static_cast<size_t>(qpos)], '-');
+          alnpos += ci->maxi[static_cast<size_t>(qpos)];
         }
 
       /* end of sequence string */
-      alignment[alnpos] = '\0';
+      alignment[static_cast<size_t>(alnpos)] = '\0';
     }
 }
 
@@ -818,20 +818,20 @@ auto fill_in_alignment_string_for_query(struct chimera_info_s * chimera_info) ->
   auto qpos = 0;
   for (auto const nucleotide: chimera_info->query_seq) {
     // add insertion (if any):
-    auto const insert_length = chimera_info->maxi[qpos];
-    std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
+    auto const insert_length = chimera_info->maxi[static_cast<size_t>(qpos)];
+    std::fill_n(&chimera_info->qaln[static_cast<size_t>(alnpos)], insert_length, '-');
     alnpos += insert_length;
 
     // add (mis-)matching position:
-    chimera_info->qaln[alnpos] = map_uppercase(nucleotide);
+    chimera_info->qaln[static_cast<size_t>(alnpos)] = map_uppercase(nucleotide);
     ++alnpos;
     ++qpos;
   }
   // add terminal gap (if any):
-  auto const insert_length = chimera_info->maxi[chimera_info->query_len];
-  std::fill_n(&chimera_info->qaln[alnpos], insert_length, '-');
+  auto const insert_length = chimera_info->maxi[static_cast<size_t>(chimera_info->query_len)];
+  std::fill_n(&chimera_info->qaln[static_cast<size_t>(alnpos)], insert_length, '-');
   alnpos += insert_length;
-  chimera_info->qaln[alnpos] = '\0';
+  chimera_info->qaln[static_cast<size_t>(alnpos)] = '\0';
 }
 
 
@@ -840,23 +840,23 @@ auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> voi
   auto alnpos = 0;
   for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
     {
-      if (qpos >= (chimera_info->best_start[nth_parent] + chimera_info->best_len[nth_parent])) {
+      if (qpos >= (chimera_info->best_start[static_cast<size_t>(nth_parent)] + chimera_info->best_len[static_cast<size_t>(nth_parent)])) {
         ++nth_parent;
       }
       // add insertion (if any):
-      auto const insert_length = chimera_info->maxi[qpos];
-      std::fill_n(&chimera_info->model[alnpos], insert_length, 'A' + nth_parent);
+      auto const insert_length = chimera_info->maxi[static_cast<size_t>(qpos)];
+      std::fill_n(&chimera_info->model[static_cast<size_t>(alnpos)], insert_length, static_cast<char>('A' + nth_parent));
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      chimera_info->model[alnpos] = 'A' + nth_parent;
+      chimera_info->model[static_cast<size_t>(alnpos)] = static_cast<char>('A' + nth_parent);
       ++alnpos;
     }
   // add terminal gap (if any):
-  auto const insert_length = chimera_info->maxi[chimera_info->query_len];
-  std::fill_n(&chimera_info->model[alnpos], insert_length, 'A' + nth_parent);
+  auto const insert_length = chimera_info->maxi[static_cast<size_t>(chimera_info->query_len)];
+  std::fill_n(&chimera_info->model[static_cast<size_t>(alnpos)], insert_length, static_cast<char>('A' + nth_parent));
   alnpos += insert_length;
-  chimera_info->model[alnpos] = '\0';
+  chimera_info->model[static_cast<size_t>(alnpos)] = '\0';
 }
 
 
@@ -866,13 +866,13 @@ auto count_matches_with_parents(struct chimera_info_s const * chimera_info,
 
   for (auto i = 0; i < alignment_length; ++i)
     {
-      auto const qsym = map_4bit(chimera_info->qaln[i]);
+      auto const qsym = map_4bit(chimera_info->qaln[static_cast<size_t>(i)]);
 
       for (auto f = 0; f < chimera_info->parents_found; ++f)
         {
-          auto const psym = map_4bit(chimera_info->paln[f][i]);
+          auto const psym = map_4bit(chimera_info->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]);
           if (qsym == psym) {
-            ++matches[f];
+            ++matches[static_cast<size_t>(f)];
           }
         }
     }
@@ -907,8 +907,8 @@ auto compute_diffs(struct chimera_info_s const * ci,
 
   auto z = 0;
   for (auto f = 0; f < ci->parents_found; ++f) {
-    if (psym[f] == qsym) {
-      diff = 'A' + f;
+    if (psym[static_cast<size_t>(f)] == qsym) {
+      diff = static_cast<char>('A' + f);
       ++z;
     }
   }
@@ -937,32 +937,32 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 
   for (int i = 0; i < alnlen; ++i)
     {
-      auto const qsym = map_4bit(ci->qaln[i]);
+      auto const qsym = map_4bit(ci->qaln[static_cast<size_t>(i)]);
       for (int f = 0; f < ci->parents_found; ++f) {
-        psym.emplace_back(map_4bit(ci->paln[f][i]));
+        psym.emplace_back(map_4bit(ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]));
       }
 
       /* lower case parent symbols that differ from query */
 
       for (int f = 0; f < ci->parents_found; ++f) {
-        if ((psym[f] != 0U) and (psym[f] != qsym)) {
-          ci->paln[f][i] = std::tolower(ci->paln[f][i]);
+        if ((psym[static_cast<size_t>(f)] != 0U) and (psym[static_cast<size_t>(f)] != qsym)) {
+          ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]));
         }
       }
 
       /* compute diffs */
-      ci->diffs[i] = compute_diffs(ci, psym, qsym);
+      ci->diffs[static_cast<size_t>(i)] = compute_diffs(ci, psym, qsym);
       psym.clear();
     }
 
-  ci->diffs[alnlen] = '\0';
+  ci->diffs[static_cast<size_t>(alnlen)] = '\0';
 
 
   auto const match_QP = count_matches_with_parents(ci, alnlen);
 
-  int const seqno_a = ci->cand_list[ci->best_parents[0]];
-  int const seqno_b = ci->cand_list[ci->best_parents[1]];
-  int const seqno_c = ci->parents_found > 2 ? ci->cand_list[ci->best_parents[2]] : -1;
+  int const seqno_a = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[0])]);
+  int const seqno_b = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[1])]);
+  int const seqno_c = ci->parents_found > 2 ? static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[2])]) : -1;
 
   auto const QP = compute_global_similarities_with_parents(match_QP, alnlen);
   auto const QT = *std::max_element(QP.begin(), QP.end());
@@ -981,19 +981,19 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                     ci->query_head_len, ci->query_head.data());
       std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                    static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
+                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
       std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                    static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
+                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
       /* closest parent = max of QA, QB */
       if (QA >= QB)
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
+                        "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
         }
       else
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
+                        "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
         }
       r->id_query_model = QM;
       r->id_query_a = QA;
@@ -1029,13 +1029,13 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       assert(ci->parents_found <= 20);  // 20 parents max ('A' to 'U')
       for (int f = 0; f < ci->parents_found; ++f)
         {
-          int const parent_seqno = ci->cand_list[ci->best_parents[f]];
+          int const parent_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[static_cast<size_t>(f)])]);
           std::fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                        'A' + f,
-                       db_getsequencelen(parent_seqno));
+                       db_getsequencelen(static_cast<uint64_t>(parent_seqno)));
           header_fprint_strip(fp_uchimealns,
-                              db_getheader(parent_seqno),
-                              db_getheaderlen(parent_seqno),
+                              db_getheader(static_cast<uint64_t>(parent_seqno)),
+                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(parent_seqno))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
@@ -1060,37 +1060,37 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 
           for (int j = 0; j < w; ++j)
             {
-              if (ci->qaln[i + j] != '-')
+              if (ci->qaln[static_cast<size_t>(i + j)] != '-')
                 {
                   ++qnt;
                 }
 
               for (int f = 0; f < ci->parents_found; ++f) {
-                if (ci->paln[f][i + j] != '-')
+                if (ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i + j)] != '-')
                   {
-                    ++pnt[f];
+                    ++pnt[static_cast<size_t>(f)];
                   }
               }
             }
 
           fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                  qpos + 1, w, &ci->qaln[i], qpos + qnt);
+                  qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
 
           for (int f = 0; f < ci->parents_found; ++f)
             {
               fprintf(fp_uchimealns, "%c %5d %.*s %d\n",
                       'A' + f,
-                      ppos[f] + 1, w, &ci->paln[f][i], ppos[f] + pnt[f]);
+                      ppos[static_cast<size_t>(f)] + 1, w, &ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
             }
 
-          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[i]);
-          fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
+          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
+          fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
           fprintf(fp_uchimealns, "\n");
 
           rest -= width;
           qpos += qnt;
           for (int f = 0; f < ci->parents_found; ++f) {
-            ppos[f] += pnt[f];
+            ppos[static_cast<size_t>(f)] += pnt[static_cast<size_t>(f)];
           }
         }
 
@@ -1111,15 +1111,15 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
                           opt_xlength);
       fprintf(fp_uchimeout, "\t");
       header_fprint_strip(fp_uchimeout,
-                          db_getheader(seqno_a),
-                          db_getheaderlen(seqno_a),
+                          db_getheader(static_cast<uint64_t>(seqno_a)),
+                          static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
       fprintf(fp_uchimeout, "\t");
       header_fprint_strip(fp_uchimeout,
-                          db_getheader(seqno_b),
-                          db_getheaderlen(seqno_b),
+                          db_getheader(static_cast<uint64_t>(seqno_b)),
+                          static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
@@ -1127,8 +1127,8 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       if (seqno_c >= 0)
         {
           header_fprint_strip(fp_uchimeout,
-                              db_getheader(seqno_c),
-                              db_getheaderlen(seqno_c),
+                              db_getheader(static_cast<uint64_t>(seqno_c)),
+                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_c))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
@@ -1177,16 +1177,16 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
   int qpos = 0;
   for (int i = 0; i < ci->query_len; ++i)
     {
-      for (int j = 0; j < ci->maxi[i]; ++j)
+      for (int j = 0; j < ci->maxi[static_cast<size_t>(i)]; ++j)
         {
           *q = '-';
           ++q;
         }
-      *q = map_uppercase(ci->query_seq[qpos]);
+      *q = map_uppercase(ci->query_seq[static_cast<size_t>(qpos)]);
       ++qpos;
       ++q;
     }
-  for (int j = 0; j < ci->maxi[ci->query_len]; ++j)
+  for (int j = 0; j < ci->maxi[static_cast<size_t>(ci->query_len)]; ++j)
     {
       *q = '-';
       ++q;
@@ -1198,21 +1198,21 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
   for (int i = 0; i < alnlen; ++i)
     {
-      auto const qsym  = map_4bit(ci->qaln[i]);
-      auto const p1sym = map_4bit(ci->paln[0][i]);
-      auto const p2sym = map_4bit(ci->paln[1][i]);
+      auto const qsym  = map_4bit(ci->qaln[static_cast<size_t>(i)]);
+      auto const p1sym = map_4bit(ci->paln[0][static_cast<size_t>(i)]);
+      auto const p2sym = map_4bit(ci->paln[1][static_cast<size_t>(i)]);
 
       /* ignore gap positions and those next to the gap */
       if ((qsym == 0U) or (p1sym == 0U) or (p2sym == 0U))
         {
-          ci->ignore[i] = true;
+          ci->ignore[static_cast<size_t>(i)] = true;
           if (i > 0)
             {
-              ci->ignore[i - 1] = true;
+              ci->ignore[static_cast<size_t>(i - 1)] = true;
             }
           if (i < alnlen - 1)
             {
-              ci->ignore[i + 1] = true;
+              ci->ignore[static_cast<size_t>(i + 1)] = true;
             }
         }
 
@@ -1221,19 +1221,19 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           is_ambiguous_4bit(p1sym) or
           is_ambiguous_4bit(p2sym))
         {
-          ci->ignore[i] = true;
+          ci->ignore[static_cast<size_t>(i)] = true;
         }
 
       /* lower case parent symbols that differ from query */
 
       if ((p1sym != 0U) and (p1sym != qsym))
         {
-          ci->paln[0][i] = std::tolower(ci->paln[0][i]);
+          ci->paln[0][static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->paln[0][static_cast<size_t>(i)]));
         }
 
       if ((p2sym != 0U) and (p2sym != qsym))
         {
-          ci->paln[1][i] = std::tolower(ci->paln[1][i]);
+          ci->paln[1][static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->paln[1][static_cast<size_t>(i)]));
         }
 
       /* compute diffs */
@@ -1274,10 +1274,10 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           diff = ' ';
         }
 
-      ci->diffs[i] = diff;
+      ci->diffs[static_cast<size_t>(i)] = diff;
     }
 
-  ci->diffs[alnlen] = '\0';
+  ci->diffs[static_cast<size_t>(alnlen)] = '\0';
 
   /* compute score */
 
@@ -1306,8 +1306,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
   for (auto i = 0; i < alnlen; ++i)
     {
-      if (ci->ignore[i]) { continue; }
-      auto const diff = ci->diffs[i];
+      if (ci->ignore[static_cast<size_t>(i)]) { continue; }
+      auto const diff = ci->diffs[static_cast<size_t>(i)];
 
       if (diff == 'A')
         {
@@ -1343,9 +1343,9 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
   for (int i = 0; i < alnlen; ++i)
     {
-      if (not ci->ignore[i])
+      if (not ci->ignore[static_cast<size_t>(i)])
         {
-          char const diff = ci->diffs[i];
+          char const diff = ci->diffs[static_cast<size_t>(i)];
           if (diff != ' ')
             {
               if (diff == 'A')
@@ -1424,14 +1424,14 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
         {
           for (int i = 0; i < alnlen; ++i)
             {
-              char const diff = ci->diffs[i];
+              char const diff = ci->diffs[static_cast<size_t>(i)];
               if (diff == 'A')
                 {
-                  ci->diffs[i] = 'B';
+                  ci->diffs[static_cast<size_t>(i)] = 'B';
                 }
               else if (diff == 'B')
                 {
-                  ci->diffs[i] = 'A';
+                  ci->diffs[static_cast<size_t>(i)] = 'A';
                 }
             }
         }
@@ -1441,12 +1441,12 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
       for (int i = 0; i < alnlen; ++i)
         {
           char const m = i <= best_i ? 'A' : 'B';
-          ci->model[i] = m;
+          ci->model[static_cast<size_t>(i)] = m;
 
           char v = ' ';
-          if (not ci->ignore[i])
+          if (not ci->ignore[static_cast<size_t>(i)])
             {
-              char const d = ci->diffs[i];
+              char const d = ci->diffs[static_cast<size_t>(i)];
 
               if ((d == 'A') or (d == 'B'))
                 {
@@ -1464,12 +1464,12 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                   v = '0';
                 }
             }
-          ci->votes[i] = v;
+          ci->votes[static_cast<size_t>(i)] = v;
 
           /* lower case diffs for no votes */
           if (v == '!')
             {
-              ci->diffs[i] = std::tolower(ci->diffs[i]);
+              ci->diffs[static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->diffs[static_cast<size_t>(i)]));
             }
         }
 
@@ -1477,9 +1477,9 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       for (int i = best_i + 1; i < alnlen; ++i)
         {
-          if ((ci->diffs[i] == ' ') or (ci->diffs[i] == 'A'))
+          if ((ci->diffs[static_cast<size_t>(i)] == ' ') or (ci->diffs[static_cast<size_t>(i)] == 'A'))
             {
-              ci->model[i] = 'x';
+              ci->model[static_cast<size_t>(i)] = 'x';
             }
           else
             {
@@ -1487,8 +1487,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
             }
         }
 
-      ci->votes[alnlen] = 0;
-      ci->model[alnlen] = 0;
+      ci->votes[static_cast<size_t>(alnlen)] = 0;
+      ci->model[static_cast<size_t>(alnlen)] = 0;
 
       /* count matches */
 
@@ -1503,13 +1503,13 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       for (auto i = 0; i < alnlen; i++)
         {
-          if (not ci->ignore[i])
+          if (not ci->ignore[static_cast<size_t>(i)])
             {
               ++cols;
 
-              auto const qsym = map_4bit(ci->qaln[i]);
-              auto const asym = map_4bit(ci->paln[index_a][i]);
-              auto const bsym = map_4bit(ci->paln[index_b][i]);
+              auto const qsym = map_4bit(ci->qaln[static_cast<size_t>(i)]);
+              auto const asym = map_4bit(ci->paln[index_a][static_cast<size_t>(i)]);
+              auto const bsym = map_4bit(ci->paln[index_b][static_cast<size_t>(i)]);
               auto const msym = (i <= best_i) ? asym : bsym;
 
               if (qsym == asym)
@@ -1534,8 +1534,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
             }
         }
 
-      int const seqno_a = ci->cand_list[ci->best_parents[index_a]];
-      int const seqno_b = ci->cand_list[ci->best_parents[index_b]];
+      int const seqno_a = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[index_a])]);
+      int const seqno_b = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[index_b])]);
 
       double const QA = 100.0 * match_QA / cols;
       double const QB = 100.0 * match_QB / cols;
@@ -1576,18 +1576,18 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
           std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                         ci->query_head_len, ci->query_head.data());
           std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                        static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
+                        static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
           std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                        static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
+                        static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
           if (QA >= QB)
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", static_cast<int>(db_getheaderlen(seqno_a)), db_getheader(seqno_a));
+                            "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
             }
           else
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", static_cast<int>(db_getheaderlen(seqno_b)), db_getheader(seqno_b));
+                            "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
             }
           r->id_query_model = QM;
           r->id_query_a = QA;
@@ -1625,19 +1625,19 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                               opt_xlength);
 
           fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
-                  db_getsequencelen(seqno_a));
+                  db_getsequencelen(static_cast<uint64_t>(seqno_a)));
           header_fprint_strip(fp_uchimealns,
-                              db_getheader(seqno_a),
-                              db_getheaderlen(seqno_a),
+                              db_getheader(static_cast<uint64_t>(seqno_a)),
+                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
 
           fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
-                  db_getsequencelen(seqno_b));
+                  db_getsequencelen(static_cast<uint64_t>(seqno_b)));
           header_fprint_strip(fp_uchimealns,
-                              db_getheader(seqno_b),
-                              db_getheaderlen(seqno_b),
+                              db_getheader(static_cast<uint64_t>(seqno_b)),
+                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
@@ -1661,15 +1661,15 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
               for (auto j = 0; j < w; ++j)
                 {
-                  if (ci->qaln[i + j] != '-')
+                  if (ci->qaln[static_cast<size_t>(i + j)] != '-')
                     {
                       ++qnt;
                     }
-                  if (ci->paln[0][i + j] != '-')
+                  if (ci->paln[0][static_cast<size_t>(i + j)] != '-')
                     {
                       ++p1nt;
                     }
-                  if (ci->paln[1][i + j] != '-')
+                  if (ci->paln[1][static_cast<size_t>(i + j)] != '-')
                     {
                       ++p2nt;
                     }
@@ -1678,25 +1678,25 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               if (not best_is_reverse)
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
-                          p1pos + 1, w, &ci->paln[0][i], p1pos + p1nt);
+                          p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos + 1, w, &ci->qaln[i], qpos + qnt);
+                          qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
-                          p2pos + 1, w, &ci->paln[1][i], p2pos + p2nt);
+                          p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
                 }
               else
                 {
                   fprintf(fp_uchimealns, "A %5d %.*s %d\n",
-                          p2pos + 1, w, &ci->paln[1][i], p2pos + p2nt);
+                          p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
                   fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos + 1, w, &ci->qaln[i], qpos + qnt);
+                          qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
                   fprintf(fp_uchimealns, "B %5d %.*s %d\n",
-                          p1pos + 1, w, &ci->paln[0][i], p1pos + p1nt);
+                          p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
                 }
 
-              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[i]);
-              fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[i]);
-              fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[i]);
+              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
+              fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[static_cast<size_t>(i)]);
+              fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
               fprintf(fp_uchimealns, "\n");
 
               qpos += qnt;
@@ -1730,15 +1730,15 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                               opt_xlength);
           fprintf(fp_uchimeout, "\t");
           header_fprint_strip(fp_uchimeout,
-                              db_getheader(seqno_a),
-                              db_getheaderlen(seqno_a),
+                              db_getheader(static_cast<uint64_t>(seqno_a)),
+                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
           fprintf(fp_uchimeout, "\t");
           header_fprint_strip(fp_uchimeout,
-                              db_getheader(seqno_b),
-                              db_getheaderlen(seqno_b),
+                              db_getheader(static_cast<uint64_t>(seqno_b)),
+                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
@@ -1749,8 +1749,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               if (QA >= QB)
                 {
                   header_fprint_strip(fp_uchimeout,
-                                      db_getheader(seqno_a),
-                                      db_getheaderlen(seqno_a),
+                                      db_getheader(static_cast<uint64_t>(seqno_a)),
+                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                                       opt_xsize,
                                       opt_xee,
                                       opt_xlength);
@@ -1758,8 +1758,8 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               else
                 {
                   header_fprint_strip(fp_uchimeout,
-                                      db_getheader(seqno_b),
-                                      db_getheaderlen(seqno_b),
+                                      db_getheader(static_cast<uint64_t>(seqno_b)),
+                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                                       opt_xsize,
                                       opt_xee,
                                       opt_xlength);
@@ -1794,27 +1794,27 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 auto query_init(struct searchinfo_s * search_info) -> void
 {
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
-  search_info->hits_v.resize(tophits);
+  search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
   search_info->kmers_v.resize(db_getsequencecount());
   search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
   search_info->uh = unique_init();
-  search_info->s = search16_init(opt_match,
-                                 opt_mismatch,
-                                 opt_gap_open_query_left,
-                                 opt_gap_open_target_left,
-                                 opt_gap_open_query_interior,
-                                 opt_gap_open_target_interior,
-                                 opt_gap_open_query_right,
-                                 opt_gap_open_target_right,
-                                 opt_gap_extension_query_left,
-                                 opt_gap_extension_target_left,
-                                 opt_gap_extension_query_interior,
-                                 opt_gap_extension_target_interior,
-                                 opt_gap_extension_query_right,
-                                 opt_gap_extension_target_right);
+  search_info->s = search16_init(static_cast<CELL>(opt_match),
+                                 static_cast<CELL>(opt_mismatch),
+                                 static_cast<CELL>(opt_gap_open_query_left),
+                                 static_cast<CELL>(opt_gap_open_target_left),
+                                 static_cast<CELL>(opt_gap_open_query_interior),
+                                 static_cast<CELL>(opt_gap_open_target_interior),
+                                 static_cast<CELL>(opt_gap_open_query_right),
+                                 static_cast<CELL>(opt_gap_open_target_right),
+                                 static_cast<CELL>(opt_gap_extension_query_left),
+                                 static_cast<CELL>(opt_gap_extension_target_left),
+                                 static_cast<CELL>(opt_gap_extension_query_interior),
+                                 static_cast<CELL>(opt_gap_extension_target_interior),
+                                 static_cast<CELL>(opt_gap_extension_query_right),
+                                 static_cast<CELL>(opt_gap_extension_target_right));
   search_info->m = minheap_init(tophits);
 }
 
@@ -1840,7 +1840,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       auto const length =
         (rest + (chimera_info->parts - i - 1)) / (chimera_info->parts - i);
 
-      auto & search_info = chimera_info->si[i];
+      auto & search_info = chimera_info->si[static_cast<size_t>(i)];
 
       search_info.query_no = chimera_info->query_no;
       search_info.strand = 0;
@@ -1850,7 +1850,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.qseqlen = length;
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
-      search_info.qsequence_v[length] = '\0';
+      search_info.qsequence_v[static_cast<size_t>(length)] = '\0';
 
       rest -= length;
       cursor = std::next(cursor, length);
@@ -1863,23 +1863,23 @@ auto chimera_thread_init(struct chimera_info_s * ci) -> void
 
   for (int i = 0; i < maxparts; ++i)
     {
-      query_init(&ci->si[i]);
+      query_init(&ci->si[static_cast<size_t>(i)]);
     }
 
-  ci->s = search16_init(opt_match,
-                        opt_mismatch,
-                        opt_gap_open_query_left,
-                        opt_gap_open_target_left,
-                        opt_gap_open_query_interior,
-                        opt_gap_open_target_interior,
-                        opt_gap_open_query_right,
-                        opt_gap_open_target_right,
-                        opt_gap_extension_query_left,
-                        opt_gap_extension_target_left,
-                        opt_gap_extension_query_interior,
-                        opt_gap_extension_target_interior,
-                        opt_gap_extension_query_right,
-                        opt_gap_extension_target_right);
+  ci->s = search16_init(static_cast<CELL>(opt_match),
+                        static_cast<CELL>(opt_mismatch),
+                        static_cast<CELL>(opt_gap_open_query_left),
+                        static_cast<CELL>(opt_gap_open_target_left),
+                        static_cast<CELL>(opt_gap_open_query_interior),
+                        static_cast<CELL>(opt_gap_open_target_interior),
+                        static_cast<CELL>(opt_gap_open_query_right),
+                        static_cast<CELL>(opt_gap_open_target_right),
+                        static_cast<CELL>(opt_gap_extension_query_left),
+                        static_cast<CELL>(opt_gap_extension_target_left),
+                        static_cast<CELL>(opt_gap_extension_query_interior),
+                        static_cast<CELL>(opt_gap_extension_target_interior),
+                        static_cast<CELL>(opt_gap_extension_query_right),
+                        static_cast<CELL>(opt_gap_extension_target_right));
 }
 
 
@@ -1915,12 +1915,12 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       std::vector<struct hit> hits;
       for (auto i = 0; i < ci->parts; ++i)
         {
-          search_onequery(&ci->si[i], opt_qmask);
-          search_joinhits(&ci->si[i], nullptr, hits);
+          search_onequery(&ci->si[static_cast<size_t>(i)], static_cast<int>(opt_qmask));
+          search_joinhits(&ci->si[static_cast<size_t>(i)], nullptr, hits);
           for (auto & hit : hits) {
             if (hit.accepted and allhits_count < maxcandidates)
               {
-                allhits_list[allhits_count] = hit;
+                allhits_list[static_cast<size_t>(allhits_count)] = hit;
                 ++allhits_count;
               }
             else
@@ -1939,13 +1939,13 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   for (auto i = 0; i < allhits_count; ++i)
     {
-      unsigned int const target = allhits_list[i].target;
+      unsigned int const target = static_cast<unsigned int>(allhits_list[static_cast<size_t>(i)].target);
 
       /* skip duplicates */
       auto k = 0;
       for (k = 0; k < ci->cand_count; ++k)
         {
-          if (ci->cand_list[k] == target)
+          if (ci->cand_list[static_cast<size_t>(k)] == target)
             {
               break;
             }
@@ -1953,15 +1953,15 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
       if (k == ci->cand_count)
         {
-          ci->cand_list[ci->cand_count] = target;
+          ci->cand_list[static_cast<size_t>(ci->cand_count)] = target;
           ++ci->cand_count;
         }
 
       /* deallocate cigar */
-      if (allhits_list[i].nwalignment != nullptr)
+      if (allhits_list[static_cast<size_t>(i)].nwalignment != nullptr)
         {
-          xfree(allhits_list[i].nwalignment);
-          allhits_list[i].nwalignment = nullptr;
+          xfree(allhits_list[static_cast<size_t>(i)].nwalignment);
+          allhits_list[static_cast<size_t>(i)].nwalignment = nullptr;
         }
     }
 
@@ -1971,7 +1971,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
   search16_qprep(ci->s, ci->query_seq.data(), ci->query_len);
 
   search16(ci->s,
-           ci->cand_count,
+           static_cast<unsigned int>(ci->cand_count),
            ci->cand_list.data(),
            ci->snwscore.data(),
            ci->snwalignmentlength.data(),
@@ -1982,8 +1982,8 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   for (auto i = 0; i < ci->cand_count; ++i)
     {
-      int64_t const target = ci->cand_list[i];
-      int64_t nwscore = ci->snwscore[i];
+      int64_t const target = ci->cand_list[static_cast<size_t>(i)];
+      int64_t nwscore = ci->snwscore[static_cast<size_t>(i)];
       char * nwcigar = nullptr;
       int64_t nwalignmentlength = 0;
       int64_t nwmatches = 0;
@@ -1996,12 +1996,12 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              perform a new alignment with the
              linear memory aligner */
 
-          auto * tseq = db_getsequence(target);
-          int64_t const tseqlen = db_getsequencelen(target);
+          auto * tseq = db_getsequence(static_cast<uint64_t>(target));
+          int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target)));
 
-          if (ci->nwcigar[i] != nullptr)
+          if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
             {
-              xfree(ci->nwcigar[i]);
+              xfree(ci->nwcigar[static_cast<size_t>(i)]);
             }
 
           nwcigar = xstrdup(lma.align(ci->query_seq.data(),
@@ -2017,20 +2017,20 @@ static auto chimera_process_query(struct chimera_info_s * ci,
                          & nwmismatches,
                          & nwgaps);
 
-          ci->nwcigar[i] = nwcigar;
-          ci->nwscore[i] = nwscore;
-          ci->nwalignmentlength[i] = nwalignmentlength;
-          ci->nwmatches[i] = nwmatches;
-          ci->nwmismatches[i] = nwmismatches;
-          ci->nwgaps[i] = nwgaps;
+          ci->nwcigar[static_cast<size_t>(i)] = nwcigar;
+          ci->nwscore[static_cast<size_t>(i)] = nwscore;
+          ci->nwalignmentlength[static_cast<size_t>(i)] = nwalignmentlength;
+          ci->nwmatches[static_cast<size_t>(i)] = nwmatches;
+          ci->nwmismatches[static_cast<size_t>(i)] = nwmismatches;
+          ci->nwgaps[static_cast<size_t>(i)] = nwgaps;
         }
       else
         {
-          ci->nwscore[i] = ci->snwscore[i];
-          ci->nwalignmentlength[i] = ci->snwalignmentlength[i];
-          ci->nwmatches[i] = ci->snwmatches[i];
-          ci->nwmismatches[i] = ci->snwmismatches[i];
-          ci->nwgaps[i] = ci->snwgaps[i];
+          ci->nwscore[static_cast<size_t>(i)] = ci->snwscore[static_cast<size_t>(i)];
+          ci->nwalignmentlength[static_cast<size_t>(i)] = ci->snwalignmentlength[static_cast<size_t>(i)];
+          ci->nwmatches[static_cast<size_t>(i)] = ci->snwmatches[static_cast<size_t>(i)];
+          ci->nwmismatches[static_cast<size_t>(i)] = ci->snwmismatches[static_cast<size_t>(i)];
+          ci->nwgaps[static_cast<size_t>(i)] = ci->snwgaps[static_cast<size_t>(i)];
         }
     }
 
@@ -2105,9 +2105,9 @@ auto chimera_thread_core(struct chimera_info_s * ci,
           if (fasta_next(query_fasta_h, (opt_notrunclabels == 0),
                          chrmap_no_change_vector.data()))
             {
-              ci->query_head_len = fasta_get_header_length(query_fasta_h);
-              ci->query_len = fasta_get_sequence_length(query_fasta_h);
-              ci->query_no = fasta_get_seqno(query_fasta_h);
+              ci->query_head_len = static_cast<int>(fasta_get_header_length(query_fasta_h));
+              ci->query_len = static_cast<int>(fasta_get_sequence_length(query_fasta_h));
+              ci->query_no = static_cast<int>(fasta_get_seqno(query_fasta_h));
               ci->query_size = fasta_get_abundance(query_fasta_h);
 
               /* if necessary expand memory for arrays based on query length */
@@ -2127,10 +2127,10 @@ auto chimera_thread_core(struct chimera_info_s * ci,
         {
           if (seqno < db_getsequencecount())
             {
-              ci->query_no = seqno;
-              ci->query_head_len = db_getheaderlen(seqno);
-              ci->query_len = db_getsequencelen(seqno);
-              ci->query_size = db_getabundance(seqno);
+              ci->query_no = static_cast<int>(seqno);
+              ci->query_head_len = static_cast<int>(db_getheaderlen(seqno));
+              ci->query_len = static_cast<int>(db_getsequencelen(seqno));
+              ci->query_size = static_cast<int64_t>(db_getabundance(seqno));
 
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
@@ -2168,7 +2168,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
-                                  ci->query_size,
+                                  static_cast<uint64_t>(ci->query_size),
                                   chimera_count,
                                   -1.0,
                                   -1,
@@ -2195,7 +2195,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
-                                  ci->query_size,
+                                  static_cast<uint64_t>(ci->query_size),
                                   borderline_count,
                                   -1.0,
                                   -1,
@@ -2246,7 +2246,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
-                                  ci->query_size,
+                                  static_cast<uint64_t>(ci->query_size),
                                   nonchimera_count,
                                   -1.0,
                                   -1,
@@ -2264,15 +2264,15 @@ auto chimera_thread_core(struct chimera_info_s * ci,
           /* uchime_denovo: add non-chimeras to db */
           if ((opt_uchime_denovo != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
             {
-              dbindex_addsequence(seqno, opt_qmask);
+              dbindex_addsequence(seqno, static_cast<int>(opt_qmask));
             }
         }
 
       for (auto i = 0; i < ci->cand_count; ++i)
         {
-          if (ci->nwcigar[i] != nullptr)
+          if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
             {
-              xfree(ci->nwcigar[i]);
+              xfree(ci->nwcigar[static_cast<size_t>(i)]);
             }
         }
 
@@ -2376,7 +2376,7 @@ auto chimera(struct Parameters const & parameters) -> void
       opt_maxsizeratio = 1.0 / opt_abskew;
     }
 
-  tophits = opt_maxaccepts + opt_maxrejects;
+  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
 
   uint64_t progress_total = 0;
   chimera_count = 0;
@@ -2385,7 +2385,7 @@ auto chimera(struct Parameters const & parameters) -> void
   seqno = 0;
 
   /* prepare per-thread chimera detection state */
-  std::vector<struct chimera_info_s> cia_v(opt_threads);
+  std::vector<struct chimera_info_s> cia_v(static_cast<size_t>(opt_threads));
   cia = cia_v.data();
 
   char const * denovo_dbname = nullptr;
@@ -2412,8 +2412,8 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               hardmask_all();
             }
-          dbindex_prepare(1, opt_dbmask);
-          dbindex_addallsequences(opt_dbmask);
+          dbindex_prepare(1, static_cast<int>(opt_dbmask));
+          dbindex_addallsequences(static_cast<int>(opt_dbmask));
         }
 
       query_fasta_h = fasta_open(parameters.opt_uchime_ref);
@@ -2461,7 +2461,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       db_sortbyabundance();
-      dbindex_prepare(1, parameters.opt_qmask);
+      dbindex_prepare(1, static_cast<int>(parameters.opt_qmask));
       progress_total = db_getnucleotidecount();
     }
 
@@ -2580,9 +2580,9 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%" PRId64 " (%.1f%%) non-chimeras "
                       "in %" PRId64 " total sequences.\n",
                       chimera_abundance,
-                      100.0 * chimera_abundance / total_abundance,
+                      100.0 * static_cast<double>(chimera_abundance) / static_cast<double>(total_abundance),
                       nonchimera_abundance,
-                      100.0 * nonchimera_abundance / total_abundance,
+                      100.0 * static_cast<double>(nonchimera_abundance) / static_cast<double>(total_abundance),
                       total_abundance);
             }
           else
@@ -2595,11 +2595,11 @@ auto chimera(struct Parameters const & parameters) -> void
                       "and %" PRId64 " (%.1f%%) borderline sequences "
                       "in %" PRId64 " total sequences.\n",
                       chimera_abundance,
-                      100.0 * chimera_abundance / total_abundance,
+                      100.0 * static_cast<double>(chimera_abundance) / static_cast<double>(total_abundance),
                       nonchimera_abundance,
-                      100.0 * nonchimera_abundance / total_abundance,
+                      100.0 * static_cast<double>(nonchimera_abundance) / static_cast<double>(total_abundance),
                       borderline_abundance,
-                      100.0 * borderline_abundance / total_abundance,
+                      100.0 * static_cast<double>(borderline_abundance) / static_cast<double>(total_abundance),
                       total_abundance);
             }
         }
@@ -2721,7 +2721,7 @@ auto chimera_session_init() -> void
     {
       opt_weak_id = opt_id;
     }
-  tophits = opt_maxaccepts + opt_maxrejects;
+  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
 
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
      themselves as candidate parents, and set opt_maxsizeratio for
@@ -2800,7 +2800,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   /* Populate query in the chimera_info_s.
      ci is per-thread state — must NOT be shared across threads. */
   ci->query_no = 0;
-  ci->query_head_len = std::strlen(query_head);
+  ci->query_head_len = static_cast<int>(std::strlen(query_head));
   ci->query_len = query_len;
   ci->query_size = query_size;
 
@@ -2829,10 +2829,10 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   /* Free CIGAR strings from this detection */
   for (auto i = 0; i < ci->cand_count; ++i)
     {
-      if (ci->nwcigar[i] != nullptr)
+      if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
         {
-          xfree(ci->nwcigar[i]);
-          ci->nwcigar[i] = nullptr;
+          xfree(ci->nwcigar[static_cast<size_t>(i)]);
+          ci->nwcigar[static_cast<size_t>(i)] = nullptr;
         }
     }
 
@@ -2958,7 +2958,7 @@ auto chimera_detect_batch(const char ** query_seqs,
   ctx.next_query = 0;
 
   ctx.ci_array = static_cast<struct chimera_info_s **>(
-    xmalloc(nthreads * sizeof(struct chimera_info_s *)));
+    xmalloc(static_cast<size_t>(nthreads) * sizeof(struct chimera_info_s *)));
 
   for (int t = 0; t < nthreads; t++)
     {
