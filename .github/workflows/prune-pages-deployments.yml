@@ -1,0 +1,70 @@
+# Prunes old GitHub Pages deployment records.
+#
+# Every push to dev triggers jekyll-gh-pages.yml, which creates a new
+# deployment in the "github-pages" environment. GitHub Pages only ever
+# serves the most recent one, but the older records are kept forever and
+# accumulate under the repository's Deployments page. There is no built-in
+# auto-prune, so this workflow keeps only the most recent few and removes
+# the rest.
+name: Prune GitHub Pages deployments
+
+on:
+  # Run once a week (Mondays at 03:17 UTC)
+  schedule:
+    - cron: "17 3 * * 1"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: "Number of most recent deployments to keep"
+        required: false
+        default: "5"
+
+# Only the permission needed to delete deployment records
+permissions:
+  deployments: write
+
+# Never run two prunes at once
+concurrency:
+  group: "prune-pages-deployments"
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      ENVIRONMENT: github-pages
+      KEEP: ${{ github.event.inputs.keep || '5' }}
+    steps:
+      - name: Delete all but the most recent deployments
+        run: |
+          set -euo pipefail
+
+          # Collect every deployment id for the environment, newest first.
+          # Deployment ids increase monotonically, so a numeric reverse sort
+          # gives a reliable most-recent-first ordering across pages.
+          mapfile -t ids < <(
+            gh api --paginate \
+              "repos/${REPO}/deployments?environment=${ENVIRONMENT}&per_page=100" \
+              --jq '.[].id' | sort -rn
+          )
+
+          echo "Found ${#ids[@]} deployment(s); keeping the ${KEEP} most recent."
+
+          if [ "${#ids[@]}" -le "${KEEP}" ]; then
+            echo "Nothing to prune."
+            exit 0
+          fi
+
+          # Everything past the first ${KEEP} ids is eligible for deletion.
+          for id in "${ids[@]:${KEEP}}"; do
+            # A deployment must be marked inactive before it can be deleted
+            # (the API rejects deletion of an active deployment with 422).
+            gh api -X POST "repos/${REPO}/deployments/${id}/statuses" \
+              -f state=inactive >/dev/null
+            gh api -X DELETE "repos/${REPO}/deployments/${id}"
+            echo "deleted deployment ${id}"
+          done
