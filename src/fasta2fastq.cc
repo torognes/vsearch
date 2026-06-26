@@ -111,7 +111,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           fasta_get_header(fp_input),
                           static_cast<int>(fasta_get_header_length(fp_input)),
                           quality.data(),
-                          static_cast<int>(fastq_get_abundance(fp_input)),
+                          static_cast<uint64_t>(static_cast<int>(fastq_get_abundance(fp_input))),
                           counter,
                           -1.0);
 

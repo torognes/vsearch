@@ -246,15 +246,16 @@ namespace {
 
     for (char i = stats.qmin; i <= stats.qmax; ++i)
       {
-        if (stats.quality_chars[i] == 0) {
+        auto const quality_index = static_cast<unsigned char>(i);
+        if (stats.quality_chars[quality_index] == 0) {
           continue;
         }
         std::fprintf(output_stream,
                      " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
                      i,
                      i,
-                     static_cast<double>(stats.quality_chars[i]) * percentage_factor,
-                     stats.tail_chars[i]);
+                     static_cast<double>(stats.quality_chars[quality_index]) * percentage_factor,
+                     stats.tail_chars[quality_index]);
       }
   }
 
@@ -323,7 +324,8 @@ auto fastq_chars(struct Parameters const & parameters) -> void
           if (seq_symbol == run_char)
             {
               ++run;
-              stats.maxrun[run_char] = std::max(run, stats.maxrun[run_char]);
+              auto const run_index = static_cast<unsigned char>(run_char);
+              stats.maxrun[run_index] = std::max(run, stats.maxrun[run_index]);
             }
           else
             {
@@ -337,7 +339,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
         search_trailing_homopolymers(Span<char>{fastq_get_quality(fastq_handle), seq_length},
                                      parameters.opt_fastq_tail);
       if (tail_char != '\0') {
-        ++stats.tail_chars[tail_char];
+        ++stats.tail_chars[static_cast<unsigned char>(tail_char)];
       }
 
       progress_update(fastq_get_position(fastq_handle));

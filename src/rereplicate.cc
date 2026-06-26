@@ -81,7 +81,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
   auto * input_handle = fasta_open(parameters.opt_rereplicate);
   auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
-  progress_init("Rereplicating", filesize);
+  progress_init("Rereplicating", static_cast<uint64_t>(filesize));
 
   int64_t n_amplicons = 0;
   auto missing_abundance = false;

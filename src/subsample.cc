@@ -233,8 +233,8 @@ auto number_of_reads_to_sample(struct Parameters const & parameters,
 auto write_subsampling_stats(std::vector<uint64_t> const &deck,
                              uint64_t const n_reads,
                              struct Parameters const & parameters) -> void {
-  int const samples = std::count_if(deck.begin(),
-                                    deck.end(), [](uint64_t abundance) -> bool { return abundance != 0; });
+  int const samples = static_cast<int>(std::count_if(deck.begin(),
+                                    deck.end(), [](uint64_t abundance) -> bool { return abundance != 0; }));
   if (not parameters.opt_quiet) {
     std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
   }
@@ -247,7 +247,7 @@ auto write_subsampling_stats(std::vector<uint64_t> const &deck,
 auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
                         uint64_t const n_reads, bool const sizein_requested) -> void {
   auto n_reads_left = n_reads;
-  auto amplicon_number = 0;
+  uint64_t amplicon_number = 0;
   uint64_t n_read_being_checked = 0;
   uint64_t accumulated_mass = 0;
   auto amplicon_mass = sizein_requested ? db_getabundance(0) : 1;
@@ -302,7 +302,7 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
   progress_init("Writing fasta output", deck.size());
   auto counter = 0U;
   for (auto const abundance_value : deck) {
-    int64_t const new_abundance = abundance_value;
+    uint64_t const new_abundance = abundance_value;
       if (new_abundance == 0) {
         ++counter;
         continue;
@@ -335,7 +335,7 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
   progress_init("Writing fastq output", deck.size());
   auto counter = 0U;
   for (auto const abundance_value : deck) {
-    int64_t const new_abundance = abundance_value;
+    uint64_t const new_abundance = abundance_value;
       if (new_abundance == 0) {
         ++counter;
         continue;

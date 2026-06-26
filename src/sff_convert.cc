@@ -132,7 +132,7 @@ auto round_up_to_8(uint16_t n_bytes) -> uint16_t {
   // add stub to guarantee overflow into the next bucket, then zero
   // out the remainder bits
   static constexpr uint16_t stub = 8 - 1;     // ... 00000111
-  static constexpr uint16_t bitmask = ~stub;  // ... 11111000
+  static constexpr uint16_t bitmask = static_cast<uint16_t>(~stub);  // ... 11111000
   assert(n_bytes <= std::numeric_limits<uint16_t>::max() - stub);
   return (n_bytes + stub) & bitmask;
 }
@@ -256,7 +256,7 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   // + number_of_flows_per_read + key_length" rounded up to the next
   // value divisible by 8
   assert(sff_header.flows_per_read <= std::numeric_limits<uint16_t>::max() - (n_bytes_in_header + sff_header.key_length));
-  auto const expected_header_length = round_up_to_8(n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length);
+  auto const expected_header_length = round_up_to_8(static_cast<uint16_t>(n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length));
   if (sff_header.header_length != expected_header_length)
     {
       fatal("Invalid SFF file. Incorrect header length.");
@@ -433,7 +433,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto const key_sequence = read_a_string(fp_sff.get(), sff_header.key_length, "key sequence");
   filepos += sff_header.key_length;
 
-  uint32_t const padding_length = sff_header.header_length - n_bytes_in_header - sff_header.flows_per_read - sff_header.key_length;
+  uint32_t const padding_length = static_cast<uint32_t>(sff_header.header_length - n_bytes_in_header - sff_header.flows_per_read - sff_header.key_length);
   skip_sff_section(fp_sff.get(), padding_length, "read padding");
   filepos += padding_length;
 
@@ -503,7 +503,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       auto read_name = read_a_string(fp_sff.get(), read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
       filepos += read_header.name_length;
 
-      uint32_t const read_header_padding_length = read_header.read_header_length - read_header.name_length - n_bytes_in_read_header;
+      uint32_t const read_header_padding_length = static_cast<uint32_t>(read_header.read_header_length - read_header.name_length - n_bytes_in_read_header);
       skip_sff_section(fp_sff.get(), read_header_padding_length, "read header padding");
       filepos += read_header_padding_length;
 
@@ -547,11 +547,11 @@ auto sff_convert(struct Parameters const & parameters) -> void
         {
           if ((i < clip_start) or (i >= clip_end))
             {
-              bases[i] = std::tolower(bases[i]);
+              bases[i] = static_cast<char>(std::tolower(bases[i]));
             }
           else
             {
-              bases[i] = std::toupper(bases[i]);
+              bases[i] = static_cast<char>(std::toupper(bases[i]));
             }
         }
 
@@ -570,9 +570,9 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
       fastq_print_general(fp_fastqout,
                           bases.data() + clip_start,
-                          length,
+                          static_cast<int>(length),
                           read_name.data(),
-                          read_name.size() - 1,
+                          static_cast<int>(read_name.size() - 1),
                           quality_scores.data() + clip_start,
                           1, read_no + 1, -1.0);
 

@@ -290,7 +290,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
                               final_quality.c_str(),
-                              static_cast<int>(fastq_get_abundance(infiles.forward.handle)),
+                              static_cast<uint64_t>(static_cast<int>(fastq_get_abundance(infiles.forward.handle))),
                               static_cast<int>(total + 1),
                               -1.0);
         }
@@ -303,7 +303,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               static_cast<int>(needed),
                               fastq_get_header(infiles.forward.handle),
                               static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
-                              static_cast<int>(fasta_get_abundance(infiles.forward.handle)),
+                              static_cast<uint64_t>(static_cast<int>(fasta_get_abundance(infiles.forward.handle))),
                               static_cast<int>(total + 1),
                               -1.0,
                               -1,

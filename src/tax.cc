@@ -97,7 +97,7 @@ auto tax_parse(char const * header,
           break;
         }
 
-      offset = std::distance(header, first_occurence);
+      offset = static_cast<int>(std::distance(header, first_occurence));
 
       /* check for ';' in front */
       if ((offset > 0) and (header[offset - 1] != ';'))
@@ -116,7 +116,7 @@ auto tax_parse(char const * header,
         }
       else
         {
-          *tax_end = std::distance(header, terminus);
+          *tax_end = static_cast<int>(std::distance(header, terminus));
         }
 
       return true;
@@ -141,8 +141,8 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   static constexpr auto length_of_attribute_name = 4;  // "tax=" -> 4 letters
   auto tax_start = 0;
   auto tax_end = 0;
-  auto const * const header = db_getheader(seqno);
-  auto const header_length = static_cast<int>(db_getheaderlen(seqno));
+  auto const * const header = db_getheader(static_cast<uint64_t>(seqno));
+  auto const header_length = static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno)));
   auto const attribute_is_present = tax_parse(header, header_length, & tax_start, & tax_end);
   if (not attribute_is_present) { return; }
   auto offset = tax_start + length_of_attribute_name;
@@ -153,7 +153,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), std::tolower(header[offset]));
       if (next_level != taxonomic_fields.end())
         {
-          int const level = std::distance(taxonomic_fields.data(), next_level);
+          int const level = static_cast<int>(std::distance(taxonomic_fields.data(), next_level));
 
           /* Is there a colon after it? */
           if (header[offset + 1] == ':')
@@ -163,7 +163,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
               auto const * next_comma = std::strchr(header + offset + 2, ',');
               if (next_comma != nullptr)
                 {
-                  level_len[level] = std::distance(header, next_comma) - offset - 2;
+                  level_len[level] = static_cast<int>(std::distance(header, next_comma)) - offset - 2;
                 }
               else
                 {
@@ -176,7 +176,7 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
       auto const * next_comma_bis = std::strchr(header + offset, ',');
       if (next_comma_bis != nullptr)
         {
-          offset = std::distance(header, next_comma_bis) + 1;
+          offset = static_cast<int>(std::distance(header, next_comma_bis)) + 1;
         }
       else
         {

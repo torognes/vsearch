@@ -93,9 +93,9 @@ namespace {
     Progress progress("Getting lengths", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto & sequence: deck) {
-      sequence.seqno = counter;
-      sequence.length = db_getsequencelen(counter);
-      sequence.size = db_getabundance(counter);
+      sequence.seqno = static_cast<unsigned int>(counter);
+      sequence.length = static_cast<unsigned int>(db_getsequencelen(counter));
+      sequence.size = static_cast<unsigned int>(db_getabundance(counter));
       progress.update(counter);
       ++counter;
     }
@@ -147,15 +147,15 @@ namespace {
 
     // odd number of valid amplicons
     if (deck.size() % 2 != 0)  {
-      return deck[midarray.quot].length * 1.0;  // a round value
+      return deck[static_cast<std::size_t>(midarray.quot)].length * 1.0;  // a round value
     }
 
     // even number of valid amplicons
     // (average of two ints is either round or has a remainder of .5)
     // avoid risk of silent overflow for large abundance values:
     // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return deck[midarray.quot].length +
-      ((deck[midarray.quot - 1].length - deck[midarray.quot].length) * half);
+    return deck[static_cast<std::size_t>(midarray.quot)].length +
+      ((deck[static_cast<std::size_t>(midarray.quot - 1)].length - deck[static_cast<std::size_t>(midarray.quot)].length) * half);
   }
 
 
@@ -178,7 +178,7 @@ namespace {
   auto truncate_deck(std::vector<struct sortinfo_length_s> & deck,
                      long int const n_first_sequences) -> void {
     if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
-      deck.resize(n_first_sequences);
+      deck.resize(static_cast<std::size_t>(n_first_sequences));
     }
   }
 
