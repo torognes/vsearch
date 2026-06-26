@@ -23,8 +23,6 @@ endif
 if ENABLE_DEBUG
 # next warnings to activate:
 # -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
-# -Wconversion
-# -Wsign-conversion
 # GCC 14: -Wnrvo (Named Return Value Optimization)
 # evaluated and left disabled:
 # -Wuseless-cast: only fires inside SIMD intrinsics where the cast is
@@ -62,8 +60,12 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 # the bundled C sources (md5.c, sha1.c).
 # -Wcast-qual is also restricted here because sha1.c intentionally
 # casts away const (it byte-swaps its input block in place).
+# -Wconversion and -Wsign-conversion are likewise restricted to C++:
+# the bundled C sources md5.c and sha1.c rely on many implicit integer
+# conversions that are intrinsic to the upstream hashing code.
 if ENABLE_DEBUG
-AM_CXXFLAGS += -Wcast-qual -Wnon-virtual-dtor -Wold-style-cast -Woverloaded-virtual
+AM_CXXFLAGS += -Wcast-qual -Wconversion -Wnon-virtual-dtor -Wold-style-cast \
+               -Woverloaded-virtual -Wsign-conversion
 endif
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
