@@ -704,6 +704,11 @@ auto fastq_print_general(FILE * output_handle,
 {
   std::fprintf(output_handle, "@");
 
+  // track whether the text printed so far ends with the annotation
+  // separator ';', so that appended annotations are merged with a single
+  // separator instead of producing ";;" (see issue #271)
+  auto trailing_separator = false;
+
   if (opt_relabel_self)
     {
       fprint_seq_label(output_handle, seq, len);
@@ -725,57 +730,62 @@ auto fastq_print_general(FILE * output_handle,
       auto const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
       auto const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0));
       auto const xlength = opt_xlength || opt_lengthout;
-      header_fprint_strip(output_handle,
-                          header,
-                          header_len,
-                          xsize,
-                          xee,
-                          xlength);
+      trailing_separator = header_fprint_strip(output_handle,
+                                               header,
+                                               header_len,
+                                               xsize,
+                                               xee,
+                                               xlength);
     }
 
   if (opt_label_suffix != nullptr)
     {
       std::fprintf(output_handle, "%s", opt_label_suffix);
+      if (*opt_label_suffix != '\0')
+        {
+          trailing_separator = (opt_label_suffix[std::strlen(opt_label_suffix) - 1] == ';');
+        }
     }
 
   if (opt_sample != nullptr)
     {
-      std::fprintf(output_handle, ";sample=%s", opt_sample);
+      std::fprintf(output_handle, "%ssample=%s", annotation_separator(trailing_separator), opt_sample);
     }
 
   if (opt_sizeout && (abundance > 0))
     {
-      std::fprintf(output_handle, ";size=%" PRIu64, abundance);
+      std::fprintf(output_handle, "%ssize=%" PRIu64, annotation_separator(trailing_separator), abundance);
     }
 
   if ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0))
     {
+      auto const * separator = annotation_separator(trailing_separator);
       if (expected_error < 0.000000001) {
-        std::fprintf(output_handle, ";ee=%.13lf", expected_error);
+        std::fprintf(output_handle, "%see=%.13lf", separator, expected_error);
       } else if (expected_error < 0.00000001) {
-        std::fprintf(output_handle, ";ee=%.12lf", expected_error);
+        std::fprintf(output_handle, "%see=%.12lf", separator, expected_error);
       } else if (expected_error < 0.0000001) {
-        std::fprintf(output_handle, ";ee=%.11lf", expected_error);
+        std::fprintf(output_handle, "%see=%.11lf", separator, expected_error);
       } else if (expected_error < 0.000001) {
-        std::fprintf(output_handle, ";ee=%.10lf", expected_error);
+        std::fprintf(output_handle, "%see=%.10lf", separator, expected_error);
       } else if (expected_error < 0.00001) {
-        std::fprintf(output_handle, ";ee=%.9lf", expected_error);
+        std::fprintf(output_handle, "%see=%.9lf", separator, expected_error);
       } else if (expected_error < 0.0001) {
-        std::fprintf(output_handle, ";ee=%.8lf", expected_error);
+        std::fprintf(output_handle, "%see=%.8lf", separator, expected_error);
       } else if (expected_error < 0.001) {
-        std::fprintf(output_handle, ";ee=%.7lf", expected_error);
+        std::fprintf(output_handle, "%see=%.7lf", separator, expected_error);
       } else if (expected_error < 0.01) {
-        std::fprintf(output_handle, ";ee=%.6lf", expected_error);
+        std::fprintf(output_handle, "%see=%.6lf", separator, expected_error);
       } else if (expected_error < 0.1) {
-        std::fprintf(output_handle, ";ee=%.5lf", expected_error);
+        std::fprintf(output_handle, "%see=%.5lf", separator, expected_error);
       } else {
-        std::fprintf(output_handle, ";ee=%.4lf", expected_error);
+        std::fprintf(output_handle, "%see=%.4lf", separator, expected_error);
       }
     }
 
   if (opt_lengthout)
     {
-      std::fprintf(output_handle, ";length=%d", len);
+      std::fprintf(output_handle, "%slength=%d", annotation_separator(trailing_separator), len);
     }
 
   if (opt_relabel_keep &&

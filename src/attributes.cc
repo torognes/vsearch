@@ -215,12 +215,27 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
 }
 
 
+auto annotation_separator(bool & trailing_separator) -> char const * {
+  /*
+    Return the separator to prepend to the next annotation. When the text
+    printed so far already ends with the separator ';' (e.g. a header or a
+    label suffix ending with ';'), reuse it rather than emit a second one,
+    so that annotations are merged with a single ';' (see issue #271).
+  */
+  if (trailing_separator) {
+    trailing_separator = false;
+    return "";
+  }
+  return ";";
+}
+
+
 auto header_fprint_strip(std::FILE * output_handle,
                          char const * header,
                          int const header_length,
                          bool const strip_size,
                          bool const strip_ee,
-                         bool const strip_length) -> void
+                         bool const strip_length) -> bool
 {
   auto nth_attribute = 0;
   std::array<int, n_expected_attributes> attribute_start {{}};
@@ -270,9 +285,12 @@ auto header_fprint_strip(std::FILE * output_handle,
 
   /* print */
 
+  auto last_index = -1;  // index in 'header' of the last emitted character
+
   if (nth_attribute == 0)
     {
       std::fprintf(output_handle, "%.*s", header_length, header);
+      if (header_length > 0) { last_index = header_length - 1; }
     }
   else
     {
@@ -285,6 +303,7 @@ auto header_fprint_strip(std::FILE * output_handle,
               std::fprintf(output_handle, "%.*s",
                       attribute_start[i] - prev_end - 1,
                       header + prev_end);
+              last_index = attribute_start[i] - 2;
             }
           prev_end = attribute_end[i];
         }
@@ -295,6 +314,10 @@ auto header_fprint_strip(std::FILE * output_handle,
           std::fprintf(output_handle, "%.*s",
                   header_length - prev_end,
                   header + prev_end);
+          last_index = header_length - 1;
         }
     }
+
+  /* report whether the last emitted character is the annotation separator */
+  return (last_index >= 0) and (header[last_index] == ';');
 }

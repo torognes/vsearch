@@ -66,9 +66,11 @@
 
 auto header_get_size(char const * header, int header_length) -> int64_t;
 
+auto annotation_separator(bool & trailing_separator) -> char const *;
+
 auto header_fprint_strip(std::FILE * output_handle,
                          char const * header,
                          int header_length,
                          bool strip_size,
                          bool strip_ee,
-                         bool strip_length) -> void;
+                         bool strip_length) -> bool;
