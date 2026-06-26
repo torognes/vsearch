@@ -388,14 +388,14 @@ auto precompute_qual() -> void
   auto const qmaxout = static_cast<double>(opt_fastq_qmaxout);
   auto const qminout = static_cast<double>(opt_fastq_qminout);
 
-  for (auto x = 33; x <= 126; x++)
+  for (auto x = 33U; x <= 126U; x++)
     {
-      auto const px = q_to_p(x);
+      auto const px = q_to_p(static_cast<int>(x));
       q2p[x] = px;
 
-      for (auto y = 33; y <= 126; y++)
+      for (auto y = 33U; y <= 126U; y++)
         {
-          auto const py = q_to_p(y);
+          auto const py = q_to_p(static_cast<int>(y));
 
           auto p = 0.0;
           auto q = 0.0;
@@ -407,14 +407,14 @@ auto precompute_qual() -> void
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          merge_qual_same[x][y] = opt_fastq_ascii + q;
+          merge_qual_same[x][y] = static_cast<char>(static_cast<double>(opt_fastq_ascii) + q);
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - (py / 3.0)) / (px + py - (4.0 * px * py / 3.0));
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          merge_qual_diff[x][y] = opt_fastq_ascii + q;
+          merge_qual_diff[x][y] = static_cast<char>(static_cast<double>(opt_fastq_ascii) + q);
 
           /*
             observed match,
@@ -455,7 +455,7 @@ auto merge_sym(char * sym,       char * qual,
     {
       /* agreement */
       * sym = fwd_sym;
-      * qual = merge_qual_same[static_cast<unsigned>(fwd_qual)][static_cast<unsigned>(rev_qual)];
+      * qual = merge_qual_same[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
     }
   else
     {
@@ -463,12 +463,12 @@ auto merge_sym(char * sym,       char * qual,
       if (fwd_qual > rev_qual)
         {
           * sym = fwd_sym;
-          * qual = merge_qual_diff[static_cast<unsigned>(fwd_qual)][static_cast<unsigned>(rev_qual)];
+          * qual = merge_qual_diff[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
         }
       else
         {
           * sym = rev_sym;
-          * qual = merge_qual_diff[static_cast<unsigned>(rev_qual)][static_cast<unsigned>(fwd_qual)];
+          * qual = merge_qual_diff[static_cast<std::size_t>(rev_qual)][static_cast<std::size_t>(fwd_qual)];
         }
     }
 }
@@ -506,24 +506,24 @@ auto keep(merge_data_t const & a_read_pair) -> void
 {
   ++merged;
 
-  sum_fragment_length += a_read_pair.merged_length;
-  sum_squared_fragment_length += a_read_pair.merged_length * a_read_pair.merged_length;
+  sum_fragment_length += static_cast<double>(a_read_pair.merged_length);
+  sum_squared_fragment_length += static_cast<double>(a_read_pair.merged_length * a_read_pair.merged_length);
 
   sum_ee_merged += a_read_pair.ee_merged;
   sum_ee_fwd += a_read_pair.ee_fwd;
   sum_ee_rev += a_read_pair.ee_rev;
-  sum_errors_fwd += a_read_pair.fwd_errors;
-  sum_errors_rev += a_read_pair.rev_errors;
+  sum_errors_fwd += static_cast<uint64_t>(a_read_pair.fwd_errors);
+  sum_errors_rev += static_cast<uint64_t>(a_read_pair.rev_errors);
 
   if (opt_fastqout != nullptr)
     {
       fastq_print_general(fp_fastqout,
                           a_read_pair.merged_sequence.data(),
-                          a_read_pair.merged_length,
+                          static_cast<int>(a_read_pair.merged_length),
                           a_read_pair.fwd_header.data(),
-                          std::strlen(a_read_pair.fwd_header.data()),
+                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
                           a_read_pair.merged_quality_v.data(),
-                          static_cast<int>(a_read_pair.fwd_abundance),
+                          static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
                           merged,
                           a_read_pair.ee_merged);
     }
@@ -533,10 +533,10 @@ auto keep(merge_data_t const & a_read_pair) -> void
       fasta_print_general(fp_fastaout,
                           nullptr,
                           a_read_pair.merged_sequence.data(),
-                          a_read_pair.merged_length,
+                          static_cast<int>(a_read_pair.merged_length),
                           a_read_pair.fwd_header.data(),
-                          std::strlen(a_read_pair.fwd_header.data()),
-                          static_cast<int>(a_read_pair.fwd_abundance),
+                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
+                          static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
                           merged,
                           a_read_pair.ee_merged,
                           -1,
@@ -631,11 +631,11 @@ auto discard(merge_data_t const & a_read_pair) -> void
     {
       fastq_print_general(fp_fastqout_notmerged_fwd,
                           a_read_pair.fwd_sequence.data(),
-                          a_read_pair.fwd_length,
+                          static_cast<int>(a_read_pair.fwd_length),
                           a_read_pair.fwd_header.data(),
-                          std::strlen(a_read_pair.fwd_header.data()),
+                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
                           a_read_pair.fwd_quality.data(),
-                          static_cast<int>(a_read_pair.fwd_abundance),
+                          static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
                           notmerged,
                           -1.0);
     }
@@ -644,11 +644,11 @@ auto discard(merge_data_t const & a_read_pair) -> void
     {
       fastq_print_general(fp_fastqout_notmerged_rev,
                           a_read_pair.rev_sequence.data(),
-                          a_read_pair.rev_length,
+                          static_cast<int>(a_read_pair.rev_length),
                           a_read_pair.rev_header.data(),
-                          std::strlen(a_read_pair.rev_header.data()),
+                          static_cast<int>(std::strlen(a_read_pair.rev_header.data())),
                           a_read_pair.rev_quality.data(),
-                          static_cast<int>(a_read_pair.rev_abundance),
+                          static_cast<uint64_t>(static_cast<int>(a_read_pair.rev_abundance)),
                           notmerged,
                           -1.0);
     }
@@ -658,10 +658,10 @@ auto discard(merge_data_t const & a_read_pair) -> void
       fasta_print_general(fp_fastaout_notmerged_fwd,
                           nullptr,
                           a_read_pair.fwd_sequence.data(),
-                          a_read_pair.fwd_length,
+                          static_cast<int>(a_read_pair.fwd_length),
                           a_read_pair.fwd_header.data(),
-                          std::strlen(a_read_pair.fwd_header.data()),
-                          static_cast<int>(a_read_pair.fwd_abundance),
+                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
+                          static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
                           notmerged,
                           -1.0,
                           -1, -1,
@@ -674,10 +674,10 @@ auto discard(merge_data_t const & a_read_pair) -> void
       fasta_print_general(fp_fastaout_notmerged_rev,
                           nullptr,
                           a_read_pair.rev_sequence.data(),
-                          a_read_pair.rev_length,
+                          static_cast<int>(a_read_pair.rev_length),
                           a_read_pair.rev_header.data(),
-                          std::strlen(a_read_pair.rev_header.data()),
-                          static_cast<int>(a_read_pair.rev_abundance),
+                          static_cast<int>(std::strlen(a_read_pair.rev_header.data())),
+                          static_cast<uint64_t>(static_cast<int>(a_read_pair.rev_abundance)),
                           notmerged,
                           -1.0,
                           -1, -1,
@@ -716,13 +716,13 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   while (fwd_pos < fwd_5prime_overhang)
     {
-      sym = a_read_pair.fwd_sequence[fwd_pos];
-      qual = a_read_pair.fwd_quality[fwd_pos];
+      sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
+      qual = a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)];
 
-      a_read_pair.merged_sequence[merged_pos] = sym;
-      a_read_pair.merged_quality_v[merged_pos] = qual;
+      a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
+      a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
 
-      ee = q2p[static_cast<unsigned>(qual)];
+      ee = q2p[static_cast<std::size_t>(qual)];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_fwd += ee;
 
@@ -739,10 +739,10 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   while ((fwd_pos < a_read_pair.fwd_trunc) and (rev_pos >= 0))
     {
-      auto fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
-      auto rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
-      auto fwd_qual = a_read_pair.fwd_quality[fwd_pos];
-      auto rev_qual = a_read_pair.rev_quality[rev_pos];
+      auto fwd_sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
+      auto rev_sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
+      auto fwd_qual = a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)];
+      auto rev_qual = a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)];
 
       merge_sym(& sym,
                 & qual,
@@ -760,11 +760,11 @@ auto merge(merge_data_t & a_read_pair) -> void
           ++a_read_pair.rev_errors;
         }
 
-      a_read_pair.merged_sequence[merged_pos] = sym;
-      a_read_pair.merged_quality_v[merged_pos] = qual;
-      a_read_pair.ee_merged += q2p[static_cast<unsigned>(qual)];
-      a_read_pair.ee_fwd += q2p[static_cast<unsigned>(fwd_qual)];
-      a_read_pair.ee_rev += q2p[static_cast<unsigned>(rev_qual)];
+      a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
+      a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
+      a_read_pair.ee_merged += q2p[static_cast<std::size_t>(qual)];
+      a_read_pair.ee_fwd += q2p[static_cast<std::size_t>(fwd_qual)];
+      a_read_pair.ee_rev += q2p[static_cast<std::size_t>(rev_qual)];
 
       ++fwd_pos;
       --rev_pos;
@@ -775,14 +775,14 @@ auto merge(merge_data_t & a_read_pair) -> void
 
   while (rev_pos >= 0)
     {
-      sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
-      qual = a_read_pair.rev_quality[rev_pos];
+      sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
+      qual = a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)];
 
-      a_read_pair.merged_sequence[merged_pos] = sym;
-      a_read_pair.merged_quality_v[merged_pos] = qual;
+      a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
+      a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
       ++merged_pos;
 
-      ee = q2p[static_cast<unsigned>(qual)];
+      ee = q2p[static_cast<std::size_t>(qual)];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_rev += ee;
 
@@ -792,8 +792,8 @@ auto merge(merge_data_t & a_read_pair) -> void
   auto const mergelen = merged_pos;
   a_read_pair.merged_length = mergelen;
 
-  a_read_pair.merged_sequence[mergelen] = 0;
-  a_read_pair.merged_quality_v[mergelen] = 0;
+  a_read_pair.merged_sequence[static_cast<std::size_t>(mergelen)] = 0;
+  a_read_pair.merged_quality_v[static_cast<std::size_t>(mergelen)] = 0;
 
   if (a_read_pair.ee_merged <= opt_fastq_maxee)
     {
@@ -823,15 +823,15 @@ auto optimize(merge_data_t & a_read_pair,
 
   auto kmers = 0;
 
-  std::vector<int> diags(a_read_pair.fwd_trunc + a_read_pair.rev_trunc, 0);
+  std::vector<int> diags(static_cast<std::size_t>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc), 0);
 
-  kh_insert_kmers(kmerhash, k, a_read_pair.fwd_sequence.data(), a_read_pair.fwd_trunc);
-  kh_find_diagonals(kmerhash, k, a_read_pair.rev_sequence.data(), a_read_pair.rev_trunc, diags);
+  kh_insert_kmers(kmerhash, k, a_read_pair.fwd_sequence.data(), static_cast<int>(a_read_pair.fwd_trunc));
+  kh_find_diagonals(kmerhash, k, a_read_pair.rev_sequence.data(), static_cast<int>(a_read_pair.rev_trunc), diags);
 
   for (int64_t i = i1; i <= i2; i++)
     {
-      int const diag = a_read_pair.rev_trunc + a_read_pair.fwd_trunc - i;
-      auto const diagcount = diags[diag];
+      int const diag = static_cast<int>(a_read_pair.rev_trunc + a_read_pair.fwd_trunc - i);
+      auto const diagcount = diags[static_cast<std::size_t>(diag)];
 
       if (diagcount >= merge_mindiagcount)
         {
@@ -862,11 +862,11 @@ auto optimize(merge_data_t & a_read_pair,
             {
               /* for each pair of bases in the overlap */
 
-              auto const fwd_sym = a_read_pair.fwd_sequence[fwd_pos];
-              auto const rev_sym = map_complement(a_read_pair.rev_sequence[rev_pos]);
+              auto const fwd_sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
+              auto const rev_sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
 
-              unsigned int const fwd_qual = a_read_pair.fwd_quality[fwd_pos];
-              unsigned int const rev_qual = a_read_pair.rev_quality[rev_pos];
+              unsigned int const fwd_qual = static_cast<unsigned int>(a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)]);
+              unsigned int const rev_qual = static_cast<unsigned int>(a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)]);
 
               --fwd_pos;
               ++rev_pos;
@@ -924,7 +924,7 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((100.0 * best_diffs / best_i) > opt_fastq_maxdiffpct)
+  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_i)) > opt_fastq_maxdiffpct)
     {
       a_read_pair.reason = Reason::maxdiffpct;
       return 0;
@@ -948,7 +948,7 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  int const mergelen = a_read_pair.fwd_trunc + a_read_pair.rev_trunc - best_i;
+  int const mergelen = static_cast<int>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc - best_i);
 
   if (mergelen < opt_fastq_minmergelen)
     {
@@ -1004,7 +1004,7 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
         {
-          auto const quality_value = get_qual(a_read_pair.fwd_quality[i]);
+          auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)]);
           if (merge_abort.load(std::memory_order_relaxed))
             {
               return;
@@ -1030,7 +1030,7 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.rev_length; i++)
         {
-          auto const quality_value = get_qual(a_read_pair.rev_quality[i]);
+          auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)]);
           if (merge_abort.load(std::memory_order_relaxed))
             {
               return;
@@ -1059,9 +1059,9 @@ auto process(merge_data_t & a_read_pair,
       int64_t fwd_ncount = 0;
       for (int64_t i = 0; i < fwd_trunc; i++)
         {
-          if (a_read_pair.fwd_sequence[i] == 'N')
+          if (a_read_pair.fwd_sequence[static_cast<std::size_t>(i)] == 'N')
             {
-              a_read_pair.fwd_quality[i] = opt_fastq_ascii;
+              a_read_pair.fwd_quality[static_cast<std::size_t>(i)] = static_cast<char>(opt_fastq_ascii);
               ++fwd_ncount;
             }
         }
@@ -1077,9 +1077,9 @@ auto process(merge_data_t & a_read_pair,
       int64_t rev_ncount = 0;
       for (int64_t i = 0; i < rev_trunc; i++)
         {
-          if (a_read_pair.rev_sequence[i] == 'N')
+          if (a_read_pair.rev_sequence[static_cast<std::size_t>(i)] == 'N')
             {
-              a_read_pair.rev_quality[i] = opt_fastq_ascii;
+              a_read_pair.rev_quality[static_cast<std::size_t>(i)] = static_cast<char>(opt_fastq_ascii);
               ++rev_ncount;
             }
         }
@@ -1121,30 +1121,30 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
 
       /* allocate more memory if necessary */
 
-      int64_t const fwd_header_len = fastq_get_header_length(fastq_fwd);
-      int64_t const rev_header_len = fastq_get_header_length(fastq_rev);
+      int64_t const fwd_header_len = static_cast<int64_t>(fastq_get_header_length(fastq_fwd));
+      int64_t const rev_header_len = static_cast<int64_t>(fastq_get_header_length(fastq_rev));
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > a_read_pair.header_alloc)
         {
           a_read_pair.header_alloc = header_needed;
-          a_read_pair.fwd_header.resize(header_needed);
-          a_read_pair.rev_header.resize(header_needed);
+          a_read_pair.fwd_header.resize(static_cast<std::size_t>(header_needed));
+          a_read_pair.rev_header.resize(static_cast<std::size_t>(header_needed));
         }
 
-      a_read_pair.fwd_length = fastq_get_sequence_length(fastq_fwd);
-      a_read_pair.rev_length = fastq_get_sequence_length(fastq_rev);
+      a_read_pair.fwd_length = static_cast<int64_t>(fastq_get_sequence_length(fastq_fwd));
+      a_read_pair.rev_length = static_cast<int64_t>(fastq_get_sequence_length(fastq_rev));
       int64_t const seq_needed = std::max(a_read_pair.fwd_length, a_read_pair.rev_length) + 1;
 
-      sum_read_length += a_read_pair.fwd_length + a_read_pair.rev_length;
+      sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
 
       if (seq_needed > a_read_pair.seq_alloc)
         {
           a_read_pair.seq_alloc = seq_needed;
-          a_read_pair.fwd_sequence.resize(seq_needed);
-          a_read_pair.rev_sequence.resize(seq_needed);
-          a_read_pair.fwd_quality.resize(seq_needed);
-          a_read_pair.rev_quality.resize(seq_needed);
+          a_read_pair.fwd_sequence.resize(static_cast<std::size_t>(seq_needed));
+          a_read_pair.rev_sequence.resize(static_cast<std::size_t>(seq_needed));
+          a_read_pair.fwd_quality.resize(static_cast<std::size_t>(seq_needed));
+          a_read_pair.rev_quality.resize(static_cast<std::size_t>(seq_needed));
         }
 
 
@@ -1153,8 +1153,8 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
       if (merged_seq_needed > a_read_pair.merged_seq_alloc)
         {
           a_read_pair.merged_seq_alloc = merged_seq_needed;
-          a_read_pair.merged_sequence.resize(merged_seq_needed);
-          a_read_pair.merged_quality_v.resize(merged_seq_needed);
+          a_read_pair.merged_sequence.resize(static_cast<std::size_t>(merged_seq_needed));
+          a_read_pair.merged_quality_v.resize(static_cast<std::size_t>(merged_seq_needed));
         }
 
       /* make local copies of the seq, header and qual */
@@ -1221,22 +1221,22 @@ auto keep_or_discard(merge_data_t const & a_read_pair) -> void
 inline auto chunk_perform_read(std::unique_lock<std::mutex> & lock,
                                std::condition_variable & cond_chunks) -> void
 {
-  while ((not finished_reading) and (chunks[chunk_read_next].state == State::empty))
+  while ((not finished_reading) and (chunks[static_cast<std::size_t>(chunk_read_next)].state == State::empty))
     {
       lock.unlock();
       progress_update(fastq_get_position(fastq_fwd));
       auto r = 0;
       while ((r < chunk_size) and
-             read_pair(chunks[chunk_read_next].merge_data[r]))
+             read_pair(chunks[static_cast<std::size_t>(chunk_read_next)].merge_data[static_cast<std::size_t>(r)]))
         {
           ++r;
         }
-      chunks[chunk_read_next].size = r;
+      chunks[static_cast<std::size_t>(chunk_read_next)].size = r;
       lock.lock();
       pairs_read += r;
       if (r > 0)
         {
-          chunks[chunk_read_next].state = State::filled;
+          chunks[static_cast<std::size_t>(chunk_read_next)].state = State::filled;
           chunk_read_next = (chunk_read_next + 1) % chunk_count;
         }
       if (r < chunk_size)
@@ -1255,16 +1255,16 @@ inline auto chunk_perform_read(std::unique_lock<std::mutex> & lock,
 inline auto chunk_perform_write(std::unique_lock<std::mutex> & lock,
                                 std::condition_variable & cond_chunks) -> void
 {
-  while (chunks[chunk_write_next].state == State::processed)
+  while (chunks[static_cast<std::size_t>(chunk_write_next)].state == State::processed)
     {
       lock.unlock();
-      for (auto i = 0; i < chunks[chunk_write_next].size; i++)
+      for (auto i = 0; i < chunks[static_cast<std::size_t>(chunk_write_next)].size; i++)
         {
-          keep_or_discard(chunks[chunk_write_next].merge_data[i]);
+          keep_or_discard(chunks[static_cast<std::size_t>(chunk_write_next)].merge_data[static_cast<std::size_t>(i)]);
         }
       lock.lock();
-      pairs_written += chunks[chunk_write_next].size;
-      chunks[chunk_write_next].state = State::empty;
+      pairs_written += chunks[static_cast<std::size_t>(chunk_write_next)].size;
+      chunks[static_cast<std::size_t>(chunk_write_next)].state = State::empty;
       if (finished_reading and (pairs_written >= pairs_read))
         {
           finished_all = true;
@@ -1280,22 +1280,22 @@ inline auto chunk_perform_process(struct kh_handle_s & kmerhash,
                                   std::condition_variable & cond_chunks) -> void
 {
   auto const chunk_current = chunk_process_next;
-  if (chunks[chunk_current].state == State::filled)
+  if (chunks[static_cast<std::size_t>(chunk_current)].state == State::filled)
     {
-      chunks[chunk_current].state = State::inprogress;
+      chunks[static_cast<std::size_t>(chunk_current)].state = State::inprogress;
       chunk_process_next = (chunk_current + 1) % chunk_count;
       cond_chunks.notify_all();
       lock.unlock();
-      for (auto i = 0; i < chunks[chunk_current].size; i++)
+      for (auto i = 0; i < chunks[static_cast<std::size_t>(chunk_current)].size; i++)
         {
           if (merge_abort.load(std::memory_order_relaxed))
             {
               break;
             }
-          process(chunks[chunk_current].merge_data[i], kmerhash);
+          process(chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash);
         }
       lock.lock();
-      chunks[chunk_current].state = State::processed;
+      chunks[static_cast<std::size_t>(chunk_current)].state = State::processed;
       cond_chunks.notify_all();
     }
 }
@@ -1340,10 +1340,10 @@ auto pair_worker(uint64_t t,
                      (
                       finished_all
                       or
-                      (chunks[chunk_process_next].state == State::filled)
+                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
                       or
                       ((not finished_reading) and
-                       chunks[chunk_read_next].state == State::empty)))
+                       chunks[static_cast<std::size_t>(chunk_read_next)].state == State::empty)))
                 {
                   cond_chunks.wait(lock);
                 }
@@ -1358,9 +1358,9 @@ auto pair_worker(uint64_t t,
                      (
                       finished_all
                       or
-                      (chunks[chunk_process_next].state == State::filled)
+                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
                       or
-                      (chunks[chunk_write_next].state == State::processed)
+                      (chunks[static_cast<std::size_t>(chunk_write_next)].state == State::processed)
                       )
                      )
                 {
@@ -1381,9 +1381,9 @@ auto pair_worker(uint64_t t,
                       finished_all
                       or
                       ((not finished_reading) and
-                       (chunks[chunk_read_next].state == State::empty))
+                       (chunks[static_cast<std::size_t>(chunk_read_next)].state == State::empty))
                       or
-                      (chunks[chunk_process_next].state == State::filled)
+                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
                       )
                      )
                 {
@@ -1400,9 +1400,9 @@ auto pair_worker(uint64_t t,
                      (
                       finished_all
                       or
-                      (chunks[chunk_write_next].state == State::processed)
+                      (chunks[static_cast<std::size_t>(chunk_write_next)].state == State::processed)
                       or
-                      (chunks[chunk_process_next].state == State::filled)
+                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
                       )
                      )
                 {
@@ -1419,7 +1419,7 @@ auto pair_worker(uint64_t t,
                      (
                       finished_all
                       or
-                      (chunks[chunk_process_next].state == State::filled)
+                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
                       )
                      )
                 {
@@ -1439,7 +1439,7 @@ auto pair_all() -> void
 {
   /* prepare chunks */
 
-  chunk_count = chunk_factor * opt_threads;
+  chunk_count = static_cast<int>(chunk_factor * opt_threads);
   chunk_read_next = 0;
   chunk_process_next = 0;
   chunk_write_next = 0;
@@ -1449,7 +1449,7 @@ auto pair_all() -> void
   merge_abort.store(false);
   merge_error_claimed.store(false);
 
-  chunks.resize(chunk_count);
+  chunks.resize(static_cast<std::size_t>(chunk_count));
 
   /* The chunk mutex and condition variable are locals (not file scope) so
      their lifetime is scoped to the worker pool. Combined with the
@@ -1494,7 +1494,7 @@ auto print_stats(std::FILE * output_handle) -> void
     {
       fprintf(output_handle,
               " (%.1lf%%)",
-              100.0 * merged / total);
+              100.0 * static_cast<double>(merged) / static_cast<double>(total));
     }
   fprintf(output_handle, "\n");
 
@@ -1505,7 +1505,7 @@ auto print_stats(std::FILE * output_handle) -> void
     {
       fprintf(output_handle,
               " (%.1lf%%)",
-              100.0 * notmerged / total);
+              100.0 * static_cast<double>(notmerged) / static_cast<double>(total));
     }
   fprintf(output_handle, "\n");
 
@@ -1638,7 +1638,7 @@ auto print_stats(std::FILE * output_handle) -> void
 
       fprintf(output_handle, "Statistics of merged reads:\n");
 
-      auto const mean = sum_fragment_length / merged;
+      auto const mean = sum_fragment_length / static_cast<double>(merged);
 
       fprintf(output_handle,
               "%10.2f  Mean fragment length\n",
@@ -1646,8 +1646,8 @@ auto print_stats(std::FILE * output_handle) -> void
 
       auto const stdev = sqrt((sum_squared_fragment_length
                                - (2.0 * mean * sum_fragment_length)
-                               + (mean * mean * merged))
-                              / (merged + 0.0));
+                               + (mean * mean * static_cast<double>(merged)))
+                              / (static_cast<double>(merged) + 0.0));
 
       fprintf(output_handle,
               "%10.2f  Standard deviation of fragment length\n",
@@ -1655,27 +1655,27 @@ auto print_stats(std::FILE * output_handle) -> void
 
       fprintf(output_handle,
               "%10.2f  Mean expected error in forward sequences\n",
-              sum_ee_fwd / merged);
+              sum_ee_fwd / static_cast<double>(merged));
 
       fprintf(output_handle,
               "%10.2f  Mean expected error in reverse sequences\n",
-              sum_ee_rev / merged);
+              sum_ee_rev / static_cast<double>(merged));
 
       fprintf(output_handle,
               "%10.2f  Mean expected error in merged sequences\n",
-              sum_ee_merged / merged);
+              sum_ee_merged / static_cast<double>(merged));
 
       fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of forward sequences\n",
-              1.0 * sum_errors_fwd / merged);
+              1.0 * static_cast<double>(sum_errors_fwd) / static_cast<double>(merged));
 
       fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of reverse sequences\n",
-              1.0 * sum_errors_rev / merged);
+              1.0 * static_cast<double>(sum_errors_rev) / static_cast<double>(merged));
 
       fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region\n",
-              1.0 * (sum_errors_fwd + sum_errors_rev) / merged);
+              1.0 * static_cast<double>(sum_errors_fwd + sum_errors_rev) / static_cast<double>(merged));
     }
 }
 
@@ -1693,8 +1693,8 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   if (opt_fastq_minovlen < 9)
     {
-      merge_mindiagcount = opt_fastq_minovlen - 4;
-      merge_minscore = 1.6 * opt_fastq_minovlen;
+      merge_mindiagcount = static_cast<int>(opt_fastq_minovlen - 4);
+      merge_minscore = 1.6 * static_cast<double>(opt_fastq_minovlen);
     }
 
   /* open input files */
@@ -1813,8 +1813,8 @@ auto mergepairs_init() -> void
     }
   if (opt_fastq_minovlen < 9)
     {
-      merge_mindiagcount = opt_fastq_minovlen - 4;
-      merge_minscore = 1.6 * opt_fastq_minovlen;
+      merge_mindiagcount = static_cast<int>(opt_fastq_minovlen - 4);
+      merge_minscore = 1.6 * static_cast<double>(opt_fastq_minovlen);
     }
 
   precompute_qual();
@@ -1843,23 +1843,23 @@ auto mergepairs_single(const char * fwd_seq,
   int64_t max_len = std::max(md.fwd_length, md.rev_length);
   md.fwd_header.resize(std::strlen(fwd_header) + 1);
   md.rev_header.resize(std::strlen(rev_header) + 1);
-  md.fwd_sequence.resize(max_len + 1);
-  md.rev_sequence.resize(max_len + 1);
-  md.fwd_quality.resize(max_len + 1);
-  md.rev_quality.resize(max_len + 1);
-  md.merged_sequence.resize(fwd_len + rev_len + 1);
-  md.merged_quality_v.resize(fwd_len + rev_len + 1);
+  md.fwd_sequence.resize(static_cast<std::size_t>(max_len + 1));
+  md.rev_sequence.resize(static_cast<std::size_t>(max_len + 1));
+  md.fwd_quality.resize(static_cast<std::size_t>(max_len + 1));
+  md.rev_quality.resize(static_cast<std::size_t>(max_len + 1));
+  md.merged_sequence.resize(static_cast<std::size_t>(fwd_len + rev_len + 1));
+  md.merged_quality_v.resize(static_cast<std::size_t>(fwd_len + rev_len + 1));
 
   std::strcpy(md.fwd_header.data(), fwd_header);
   std::strcpy(md.rev_header.data(), rev_header);
-  std::memcpy(md.fwd_sequence.data(), fwd_seq, fwd_len);
-  md.fwd_sequence[fwd_len] = '\0';
-  std::memcpy(md.rev_sequence.data(), rev_seq, rev_len);
-  md.rev_sequence[rev_len] = '\0';
-  std::memcpy(md.fwd_quality.data(), fwd_qual, fwd_len);
-  md.fwd_quality[fwd_len] = '\0';
-  std::memcpy(md.rev_quality.data(), rev_qual, rev_len);
-  md.rev_quality[rev_len] = '\0';
+  std::memcpy(md.fwd_sequence.data(), fwd_seq, static_cast<std::size_t>(fwd_len));
+  md.fwd_sequence[static_cast<std::size_t>(fwd_len)] = '\0';
+  std::memcpy(md.rev_sequence.data(), rev_seq, static_cast<std::size_t>(rev_len));
+  md.rev_sequence[static_cast<std::size_t>(rev_len)] = '\0';
+  std::memcpy(md.fwd_quality.data(), fwd_qual, static_cast<std::size_t>(fwd_len));
+  md.fwd_quality[static_cast<std::size_t>(fwd_len)] = '\0';
+  std::memcpy(md.rev_quality.data(), rev_qual, static_cast<std::size_t>(rev_len));
+  md.rev_quality[static_cast<std::size_t>(rev_len)] = '\0';
 
   /* Run the merge pipeline */
   struct kh_handle_s kmerhash;
@@ -1876,11 +1876,11 @@ auto mergepairs_single(const char * fwd_seq,
     {
       int const len = static_cast<int>(md.merged_length);
       result->merged_length = len;
-      result->merged_sequence = static_cast<char *>(xmalloc(len + 1));
-      result->merged_quality = static_cast<char *>(xmalloc(len + 1));
-      std::memcpy(result->merged_sequence, md.merged_sequence.data(), len);
+      result->merged_sequence = static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1));
+      result->merged_quality = static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1));
+      std::memcpy(result->merged_sequence, md.merged_sequence.data(), static_cast<std::size_t>(len));
       result->merged_sequence[len] = '\0';
-      std::memcpy(result->merged_quality, md.merged_quality_v.data(), len);
+      std::memcpy(result->merged_quality, md.merged_quality_v.data(), static_cast<std::size_t>(len));
       result->merged_quality[len] = '\0';
       result->ee_merged = md.ee_merged;
       result->ee_fwd = md.ee_fwd;
