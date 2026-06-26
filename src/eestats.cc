@@ -124,7 +124,7 @@ auto q2p(int const quality_value) -> double
   return std::pow(base, -quality_value / base);
 }
 
-auto ee_start(int const pos, int const resolution) -> int64_t
+auto ee_start(int64_t const pos, int const resolution) -> int64_t
 {
   return pos * ((resolution * (pos + 1)) + 2) / 2;
 }
@@ -158,7 +158,10 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   int64_t len_alloc = 10;
 
   const int resolution = 1000;
-  int const max_quality = opt_fastq_qmax - opt_fastq_qmin + 1;
+  /* rows of qual_length_table are indexed by the raw quality value (0..qmax),
+     so size them by qmax rather than (qmax - qmin): subtracting qmin here
+     while indexing by the unshifted value overflowed the row for qmin >= 2 */
+  int const max_quality = opt_fastq_qmax + 1;
 
   int64_t ee_size = ee_start(len_alloc, resolution);
 

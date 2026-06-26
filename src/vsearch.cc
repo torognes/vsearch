@@ -106,7 +106,9 @@
                      // option (no_argument, required_argument)
 #include <limits>
 #include <mutex>  // std::mutex
+#include <new>  // std::set_new_handler
 #include <string>
+#include <unistd.h>  // write, _exit, STDERR_FILENO
 #include <vector>
 
 
@@ -6087,8 +6089,26 @@ auto show_header(struct Parameters const & parameters) -> void {
    All global variable definitions and helper functions above remain
    available — only the CLI entry point is excluded. */
 #ifndef VSEARCH_NO_MAIN
+/* Installed via std::set_new_handler so that a failed C++ allocation
+   (std::vector, std::string, ...) reports the same friendly message as the
+   xmalloc path instead of throwing std::bad_alloc, which under -fno-exceptions
+   would call std::terminate()/abort(). The handler runs while memory is
+   exhausted, so it must not allocate: it writes a fixed string with write(2)
+   and leaves via _exit() without flushing stdio. This catches a refused
+   allocation (operator new gets nullptr); it cannot catch a kernel OOM kill
+   of an overcommitted allocation. */
+static auto vsearch_new_handler() -> void
+{
+  static char const message[] = "\n\nFatal error: Unable to allocate enough memory.\n";
+  ssize_t const written = write(STDERR_FILENO, message, sizeof(message) - 1);
+  (void) written;
+  _exit(EXIT_FAILURE);
+}
+
 auto main(int argc, char** argv) -> int
 {
+  std::set_new_handler(vsearch_new_handler);
+
   struct Parameters parameters;
 
   fill_prog_header();
