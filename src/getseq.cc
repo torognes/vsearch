@@ -114,7 +114,7 @@ auto read_labels_file(char const * filename) -> void
     }
 
   auto const is_pipe = S_ISFIFO(file_status.st_mode);  // linuxism
-  uint64_t const file_size = is_pipe ? 0: file_status.st_size;
+  uint64_t const file_size = is_pipe ? 0: static_cast<uint64_t>(file_status.st_size);
 
   progress_init("Reading labels", file_size);
 
@@ -146,7 +146,7 @@ auto read_labels_file(char const * filename) -> void
           labels_data.resize(labels_alloc);
         }
       labels_data[labels_count].resize(length);
-      std::copy(buffer.begin(), std::next(buffer.begin(), length),
+      std::copy(buffer.begin(), std::next(buffer.begin(), static_cast<std::ptrdiff_t>(length)),
                 labels_data[labels_count].begin());
       ++labels_count;
     }
@@ -183,18 +183,18 @@ auto test_label_match(fastx_handle input_handle) -> bool
   int field_len = 0;
   if (opt_label_field != nullptr)
     {
-      field_len = std::strlen(opt_label_field);
+      field_len = static_cast<int>(std::strlen(opt_label_field));
       int field_buffer_size = field_len + 2;
       if (opt_label_word != nullptr)
         {
-          field_buffer_size += std::strlen(opt_label_word);
+          field_buffer_size += static_cast<int>(std::strlen(opt_label_word));
         }
       else
         {
           field_buffer_size += static_cast<int>(longest_label);
         }
-      field_buffer.resize(field_buffer_size);
-      snprintf(field_buffer.data(), field_buffer_size, "%s=", opt_label_field);
+      field_buffer.resize(static_cast<std::size_t>(field_buffer_size));
+      snprintf(field_buffer.data(), static_cast<std::size_t>(field_buffer_size), "%s=", opt_label_field);
     }
 
   if (opt_label != nullptr)
@@ -231,10 +231,10 @@ auto test_label_match(fastx_handle input_handle) -> bool
       char const * needle = opt_label_word;
       if (opt_label_field != nullptr)
         {
-          std::strcpy(&field_buffer[field_len + 1], needle);
+          std::strcpy(&field_buffer[static_cast<std::size_t>(field_len + 1)], needle);
           needle = field_buffer.data();
         }
-      int const wlen = std::strlen(needle);
+      int const wlen = static_cast<int>(std::strlen(needle));
       char const * hit = header_view.data();
       while (true)
         {
@@ -279,7 +279,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
         int wlen = static_cast<int>(label.size());
         if (opt_label_field != nullptr)
           {
-            std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
+            std::copy(label.begin(), label.end(), &field_buffer[static_cast<std::size_t>(field_len + 1)]);
             needle = field_buffer.data();
             wlen = field_len + 1 + static_cast<int>(label.size());
           }
@@ -457,7 +457,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
           ++kept;
 
           int64_t start = 1;
-          int64_t end = fastx_get_sequence_length(h1);
+          int64_t end = static_cast<int64_t>(fastx_get_sequence_length(h1));
           if (parameters.opt_fastx_getsubseq != nullptr)
             {
               start = std::max(opt_subseq_start, start);
@@ -470,10 +470,10 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
               fasta_print_general(fp_fastaout,
                                   nullptr,
                                   fastx_get_sequence(h1) + start - 1,
-                                  length,
+                                  static_cast<int>(length),
                                   fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
-                                  fastx_get_abundance(h1),
+                                  static_cast<int>(fastx_get_header_length(h1)),
+                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   kept,
                                   -1.0,
                                   -1,
@@ -487,11 +487,11 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             {
               fastq_print_general(fp_fastqout,
                                   fastx_get_sequence(h1) + start - 1,
-                                  length,
+                                  static_cast<int>(length),
                                   fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
+                                  static_cast<int>(fastx_get_header_length(h1)),
                                   fastx_get_quality(h1) + start - 1,
-                                  fastx_get_abundance(h1),
+                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   kept,
                                   -1.0);
             }
@@ -504,17 +504,17 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
           ++discarded;
 
-          int64_t const length = fastx_get_sequence_length(h1);
+          int64_t const length = static_cast<int64_t>(fastx_get_sequence_length(h1));
 
           if (opt_notmatched != nullptr)
             {
               fasta_print_general(fp_notmatched,
                                   nullptr,
                                   fastx_get_sequence(h1),
-                                  length,
+                                  static_cast<int>(length),
                                   fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
-                                  fastx_get_abundance(h1),
+                                  static_cast<int>(fastx_get_header_length(h1)),
+                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   discarded,
                                   -1.0,
                                   -1,
@@ -528,11 +528,11 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             {
               fastq_print_general(fp_notmatchedfq,
                                   fastx_get_sequence(h1),
-                                  length,
+                                  static_cast<int>(length),
                                   fastx_get_header(h1),
-                                  fastx_get_header_length(h1),
+                                  static_cast<int>(fastx_get_header_length(h1)),
                                   fastx_get_quality(h1),
-                                  fastx_get_abundance(h1),
+                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   discarded,
                                   -1.0);
             }
@@ -553,7 +553,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
         {
           fprintf(stderr,
                   " (%.1lf%%)",
-                  100.0 * kept / (kept + discarded));
+                  100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
       fprintf(stderr, "\n");
     }
@@ -568,7 +568,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
         {
           fprintf(fp_log,
                   " (%.1lf%%)",
-                  100.0 * kept / (kept + discarded));
+                  100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
       fprintf(fp_log, "\n");
     }

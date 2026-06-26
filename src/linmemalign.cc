@@ -205,7 +205,7 @@ auto LinearMemoryAligner::cigar_reset() -> void
   if (cigar_alloc < 1)
     {
       cigar_alloc = minimal_length;
-      cigar_string.resize(cigar_alloc);
+      cigar_string.resize(static_cast<std::size_t>(cigar_alloc));
     }
   cigar_string[0] = '\0';
   cigar_length = 0;
@@ -225,14 +225,14 @@ auto LinearMemoryAligner::cigar_flush() -> void
       auto n = 0;
       if (op_run > 1)
         {
-          n = std::snprintf(&cigar_string[cigar_length],
-                       rest,
+          n = std::snprintf(&cigar_string[static_cast<std::size_t>(cigar_length)],
+                       static_cast<std::size_t>(rest),
                        "%" PRId64 "%c", op_run, op);
         }
       else
         {
-          n = std::snprintf(&cigar_string[cigar_length],
-                       rest,
+          n = std::snprintf(&cigar_string[static_cast<std::size_t>(cigar_length)],
+                       static_cast<std::size_t>(rest),
                        "%c", op);
         }
       if (n < 0)
@@ -242,7 +242,7 @@ auto LinearMemoryAligner::cigar_flush() -> void
       else if (n >= rest)
         {
           cigar_alloc += std::max(n - rest + 1, minimal_length);
-          cigar_string.resize(cigar_alloc);
+          cigar_string.resize(static_cast<std::size_t>(cigar_alloc));
         }
       else
         {
@@ -447,8 +447,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 1; i <= b_len; i++)
         {
-          HH[i] = - (a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i));
-          EE[i] = int64_min;
+          HH[static_cast<std::size_t>(i)] = - (a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i));
+          EE[static_cast<std::size_t>(i)] = int64_min;
         }
 
       /* compute matrix */
@@ -466,22 +466,23 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
           for (int64_t j = 1; j <= b_len; j++)
             {
+              auto const jdx = static_cast<std::size_t>(j);
               f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_right and (j == b_len))
                 {
-                  EE[j] = std::max(EE[j], HH[j] - go_t_r) - ge_t_r;
+                  EE[jdx] = std::max(EE[jdx], HH[jdx] - go_t_r) - ge_t_r;
                 }
               else
                 {
-                  EE[j] = std::max(EE[j], HH[j] - go_t_i) - ge_t_i;
+                  EE[jdx] = std::max(EE[jdx], HH[jdx] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_seq[a_start + i - 1], b_seq[b_start + j - 1]);
 
               h = std::max(f, h);
-              h = std::max(EE[j], h);
-              p = HH[j];
-              HH[j] = h;
+              h = std::max(EE[jdx], h);
+              p = HH[jdx];
+              HH[jdx] = h;
             }
         }
 
@@ -497,8 +498,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 1; i <= b_len; i++)
         {
-          XX[i] = - (a_right ? go_q_r + (i * ge_q_r) : go_q_i + (i * ge_q_i));
-          YY[i] = int64_min;
+          XX[static_cast<std::size_t>(i)] = - (a_right ? go_q_r + (i * ge_q_r) : go_q_i + (i * ge_q_i));
+          YY[static_cast<std::size_t>(i)] = int64_min;
         }
 
       /* compute matrix */
@@ -515,22 +516,23 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
           for (int64_t j = 1; j <= b_len; j++)
             {
+              auto const jdx = static_cast<std::size_t>(j);
               f = std::max(f, h - go_q_i) - ge_q_i;
               if (b_left and (j == b_len))
                 {
-                  YY[j] = std::max(YY[j], XX[j] - go_t_l) - ge_t_l;
+                  YY[jdx] = std::max(YY[jdx], XX[jdx] - go_t_l) - ge_t_l;
                 }
               else
                 {
-                  YY[j] = std::max(YY[j], XX[j] - go_t_i) - ge_t_i;
+                  YY[jdx] = std::max(YY[jdx], XX[jdx] - go_t_i) - ge_t_i;
                 }
 
               h = p + subst_score(a_seq[a_start + a_len - i], b_seq[b_start + b_len - j]);
 
               h = std::max(f, h);
-              h = std::max(YY[j], h);
-              p = XX[j];
-              XX[j] = h;
+              h = std::max(YY[jdx], h);
+              p = XX[jdx];
+              XX[jdx] = h;
             }
         }
 
@@ -546,7 +548,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
       for (int64_t i = 0; i <= b_len; i++)
         {
-          auto const Score = HH[i] + XX[b_len - i];
+          auto const Score = HH[static_cast<std::size_t>(i)] + XX[static_cast<std::size_t>(b_len - i)];
 
           if (Score > MaxScore0)
             {
@@ -576,7 +578,7 @@ auto LinearMemoryAligner::diff(int64_t a_start,
               g = go_t_i;
             }
 
-          auto const Score = EE[i] + YY[b_len - i] + g;
+          auto const Score = EE[static_cast<std::size_t>(i)] + YY[static_cast<std::size_t>(b_len - i)] + g;
 
           if (Score > MaxScore1)
             {
@@ -661,7 +663,7 @@ auto LinearMemoryAligner::align(char * _a_seq,
   cigar_reset();
 
   /* allocate enough memory for vectors */
-  alloc_vectors(b_len + 1);
+  alloc_vectors(static_cast<std::size_t>(b_len + 1));
 
   /* perform alignment */
   diff(0, 0, a_len, b_len, false, false, true, true, true, true);

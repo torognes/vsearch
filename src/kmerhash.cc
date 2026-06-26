@@ -88,7 +88,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
                            unsigned int const pos) -> void
 {
   /* find free bucket in hash */
-  auto bucket = hash_function(reinterpret_cast<char const *>(&kmer), (k_offset + 3) / 4) & kmer_hash.hash_mask;
+  auto bucket = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask;
   while (kmer_hash.hash[bucket].pos != 0U)
     {
       bucket = (bucket + 1) & kmer_hash.hash_mask;
@@ -101,8 +101,8 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
 
 auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> void
 {
-  int const kmers = 1U << (2U * k_offset);
-  unsigned int const kmer_mask = kmers - 1;
+  int const kmers = 1U << (2U * static_cast<unsigned int>(k_offset));
+  unsigned int const kmer_mask = static_cast<unsigned int>(kmers - 1);
 
   reset_buckets(kmer_hash.hash);
 
@@ -114,7 +114,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
         {
           kmer_hash.alloc *= 2;
         }
-      kmer_hash.hash.resize(kmer_hash.alloc);
+      kmer_hash.hash.resize(static_cast<std::size_t>(kmer_hash.alloc));
     }
 
   kmer_hash.size = 1;
@@ -122,7 +122,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
     {
       kmer_hash.size *= 2;
     }
-  kmer_hash.hash_mask = kmer_hash.size - 1;
+  kmer_hash.hash_mask = static_cast<unsigned int>(kmer_hash.size - 1);
 
   kmer_hash.maxpos = len;
 
@@ -133,7 +133,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const c = *s;
+      char const c = *s;
       ++s;
 
       bad <<= 2ULL;
@@ -147,7 +147,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
       if (bad == 0U)
         {
           /* 1-based pos of start of kmer */
-          kh_insert_kmer(kmer_hash, k_offset, kmer, pos - k_offset + 1 + 1);
+          kh_insert_kmer(kmer_hash, k_offset, kmer, static_cast<unsigned int>(pos - k_offset + 1 + 1));
         }
     }
 }
@@ -155,10 +155,10 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
 
 auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> int
 {
-  std::vector<int> diag_counts(kmer_hash.maxpos, 0);
+  std::vector<int> diag_counts(static_cast<std::size_t>(kmer_hash.maxpos), 0);
 
-  int const kmers = 1U << (2U * k_offset);
-  unsigned int const kmer_mask = kmers - 1;
+  int const kmers = 1U << (2U * static_cast<unsigned int>(k_offset));
+  unsigned int const kmer_mask = static_cast<unsigned int>(kmers - 1);
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -166,7 +166,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const nucleotide = *seq_cursor;
+      char const nucleotide = *seq_cursor;
       --seq_cursor;
 
       bad <<= 2ULL;
@@ -180,16 +180,16 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = hash_function(reinterpret_cast<char const *>(&kmer), (k_offset + 3) / 4) & kmer_hash.hash_mask;
+          unsigned int j = static_cast<unsigned int>(hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask);
           while (kmer_hash.hash[j].pos != 0U)
             {
               if (kmer_hash.hash[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash.hash[j].pos - 1;
+                  int const fpos = static_cast<int>(kmer_hash.hash[j].pos) - 1;
                   int const diag = fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
-                      ++diag_counts[diag];
+                      ++diag_counts[static_cast<std::size_t>(diag)];
                     }
                 }
               j = (j + 1) & kmer_hash.hash_mask;
@@ -205,7 +205,7 @@ auto kh_find_best_diagonal(struct kh_handle_s & kmer_hash, int const k_offset, c
     {
       int const diag_len = kmer_hash.maxpos - d;
       int const minmatch = std::max(1, diag_len - k_offset + 1 - (k_offset * std::max(diag_len / 20, 0)));
-      int const c = diag_counts[d];
+      int const c = diag_counts[static_cast<std::size_t>(d)];
 
       if (c >= minmatch)
         {
@@ -234,8 +234,8 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
                        std::vector<int> & diags) -> void
 {
 
-  int const kmers = 1U << (2U * k_offset);
-  unsigned int const kmer_mask = kmers - 1;
+  int const kmers = 1U << (2U * static_cast<unsigned int>(k_offset));
+  unsigned int const kmer_mask = static_cast<unsigned int>(kmers - 1);
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -243,7 +243,7 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
 
   for (int pos = 0; pos < len; pos++)
     {
-      int const nucleotide = *seq_cursor--;
+      char const nucleotide = *seq_cursor--;
 
       bad <<= 2ULL;
       bad |= map_mask_ambig(nucleotide);
@@ -256,16 +256,16 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = hash_function(reinterpret_cast<char const *>(&kmer), (k_offset + 3) / 4) & kmer_hash.hash_mask;
+          unsigned int j = static_cast<unsigned int>(hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask);
           while (kmer_hash.hash[j].pos != 0U)
             {
               if (kmer_hash.hash[j].kmer == kmer)
                 {
-                  int const fpos = kmer_hash.hash[j].pos - 1;
+                  int const fpos = static_cast<int>(kmer_hash.hash[j].pos) - 1;
                   int const diag = len + fpos - (pos - k_offset + 1);
                   if (diag >= 0)
                     {
-                      ++diags[diag];
+                      ++diags[static_cast<std::size_t>(diag)];
                     }
                 }
               j = (j + 1) & kmer_hash.hash_mask;

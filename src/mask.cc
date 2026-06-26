@@ -100,7 +100,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
     {
       word <<= 2U;
       word |= map_2bit(s[j]);
-      words[j] = word & bitmask;
+      words[static_cast<std::size_t>(j)] = static_cast<int>(word & bitmask);
     }
 
   for (auto i = 0; i < l1; i++)
@@ -111,7 +111,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
 
       for (auto j = dust_word - 1; j < len - i; j++)
         {
-          word = words[i + j];
+          word = static_cast<unsigned int>(words[static_cast<std::size_t>(i + j)]);
           const auto c = counts[word];
           if (c != 0)
             {
@@ -146,7 +146,7 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
   auto b = 0;
 
   /* make a local copy of the original sequence */
-  std::vector<char> local_seq(len + 1);
+  std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
   strcpy(local_seq.data(), seq);
 
   if (!use_hardmask)
@@ -154,7 +154,7 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
       /* convert sequence to upper case unless hardmask in effect */
       for (auto i = 0; i < len; i++)
         {
-          seq[i] = toupper(seq[i]);
+          seq[i] = static_cast<char>(toupper(seq[i]));
         }
       seq[len] = 0;
     }
@@ -162,7 +162,7 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
   for (auto i = 0; i < len; i += half_dust_window)
     {
       const auto l = (len > i + dust_window) ? dust_window : len - i;
-      const auto v = wo(l, &local_seq[i], &a, &b);
+      const auto v = wo(l, &local_seq[static_cast<std::size_t>(i)], &a, &b);
 
       if (v > dust_level)
         {
@@ -177,7 +177,7 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
             {
               for (auto j = a + i; j <= b + i; j++)
                 {
-                  seq[j] = local_seq[j] | 32U;  // check_5th_bit (0x20)
+                  seq[j] = local_seq[static_cast<std::size_t>(j)] | 32U;  // check_5th_bit (0x20)
                 }
             }
 
@@ -197,8 +197,8 @@ auto dust(char * seq, int len) -> void
 
 
 static std::mutex mutex;
-static auto nextseq = 0;
-static auto seqcount = 0;
+static uint64_t nextseq = 0;
+static uint64_t seqcount = 0;
 
 
 auto dust_all_worker(uint64_t nth_thread) -> void
@@ -213,7 +213,8 @@ auto dust_all_worker(uint64_t nth_thread) -> void
           ++nextseq;
           progress_update(seqno);
           lock.unlock();
-          dust(db_getsequence(seqno), db_getsequencelen(seqno));
+          dust(db_getsequence(seqno),
+               static_cast<int>(db_getsequencelen(seqno)));
         }
       else
         {
@@ -249,7 +250,7 @@ auto hardmask(char * seq, int len) -> void
   static constexpr auto hardmask_char = 'N';
   for (auto i = 0; i < len; i++)
     {
-      if ((seq[i] & check_5th_bit) != 0U)
+      if ((static_cast<unsigned int>(static_cast<unsigned char>(seq[i])) & check_5th_bit) != 0U)
         {
           seq[i] = hardmask_char;
         }
@@ -261,7 +262,7 @@ auto hardmask_all() -> void
 {
   for (uint64_t i = 0; i < db_getsequencecount(); i++)
     {
-      hardmask(db_getsequence(i), db_getsequencelen(i));
+      hardmask(db_getsequence(i), static_cast<int>(db_getsequencelen(i)));
     }
 }
 
@@ -293,7 +294,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   show_rusage();
 
   progress_init("Writing output", seqcount);
-  for (auto i = 0; i < seqcount; i++)
+  for (uint64_t i = 0; i < seqcount; i++)
     {
       fasta_print_db_relabel(output_handle.get(), i, i + 1);
       progress_update(i);
@@ -356,11 +357,11 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   auto discarded_less = 0;
   auto discarded_more = 0;
   progress_init("Writing output", seqcount);
-  for (auto i = 0; i < seqcount; i++)
+  for (uint64_t i = 0; i < seqcount; i++)
     {
       auto unmasked = 0;
       auto const * seq = db_getsequence(i);
-      const int len = db_getsequencelen(i);
+      const int len = static_cast<int>(db_getsequencelen(i));
       if (parameters.opt_qmask == MASK_NONE)
         {
           unmasked = len;
@@ -406,7 +407,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                                   seq,
                                   len,
                                   db_getheader(i),
-                                  db_getheaderlen(i),
+                                  static_cast<int>(db_getheaderlen(i)),
                                   db_getabundance(i),
                                   kept,
                                   -1.0,
@@ -420,7 +421,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                                   seq,
                                   len,
                                   db_getheader(i),
-                                  db_getheaderlen(i),
+                                  static_cast<int>(db_getheaderlen(i)),
                                   db_getquality(i),
                                   db_getabundance(i),
                                   kept,

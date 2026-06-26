@@ -147,7 +147,7 @@ auto find_median() -> double
                 // which simplifies into:
                 // above_count == below_count + cand_count
                 {
-                  return (cand + above) / 2.0;
+                  return static_cast<double>(cand + above) / 2.0;
                 }
               if (above_count + cand_count == below_count)
                 // mid == below_count
@@ -156,9 +156,9 @@ auto find_median() -> double
                 // which simplifies into:
                 // above_count + cand_count == below_count
                 {
-                  return (below + cand) / 2.0;  // cannot reach?
+                  return static_cast<double>(below + cand) / 2.0;  // cannot reach?
                 }
-              return cand;
+              return static_cast<double>(cand);
             }
           cand = above;
         }
@@ -275,8 +275,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  std::vector<char> seq_up(alloc_seqlen + 1);
-  std::vector<char> rc_seq_up(alloc_seqlen + 1);
+  std::vector<char> seq_up(static_cast<size_t>(alloc_seqlen) + 1);
+  std::vector<char> rc_seq_up(static_cast<size_t>(alloc_seqlen) + 1);
 
   std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
@@ -296,7 +296,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
     {
-      int64_t const seqlen = fastx_get_sequence_length(h);
+      int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h));
 
       if (seqlen < parameters.opt_minseqlength)
         {
@@ -310,7 +310,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           continue;
         }
 
-      nucleotidecount += seqlen;
+      nucleotidecount += static_cast<uint64_t>(seqlen);
       longest = std::max(seqlen, longest);
       shortest = std::min(seqlen, shortest);
 
@@ -319,8 +319,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (seqlen > alloc_seqlen)
         {
           alloc_seqlen = seqlen;
-          seq_up.resize(alloc_seqlen + 1);
-          rc_seq_up.resize(alloc_seqlen + 1);
+          seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
+          rc_seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
 
           show_rusage();
         }
@@ -335,7 +335,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       auto const * seq = fastx_get_sequence(h);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up.data(), seq, seqlen);
+      string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
 
       /* reverse complement if necessary */
       if (parameters.opt_strand)
@@ -351,7 +351,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         collision when the number of sequences is about 5e9.
       */
 
-      auto const hash = hash_function(seq_up.data(), seqlen);
+      auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
       auto j =  hash2bucket(hash, hashtablesize);
       auto * bp = hashtable + j;
 
@@ -366,7 +366,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          auto const rc_hash = hash_function(rc_seq_up.data(), seqlen);
+          auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
           auto k =  hash2bucket(rc_hash, hashtablesize);
           auto * rc_bp = hashtable + k;
 
@@ -390,12 +390,12 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (bp->size != 0U)
         {
           /* at least one identical sequence already */
-          bp->size += ab;
+          bp->size += static_cast<uint64_t>(ab);
         }
       else
         {
           /* no identical sequences yet */
-          bp->size = ab;
+          bp->size = static_cast<uint64_t>(ab);
           bp->hash = hash;
           ++clusters;
         }
@@ -421,7 +421,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   sequencecount,
                   shortest,
                   longest,
-                  nucleotidecount * 1.0 / sequencecount);
+                  static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
         }
       else
         {
@@ -443,7 +443,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   sequencecount,
                   shortest,
                   longest,
-                  nucleotidecount * 1.0 / sequencecount);
+                  static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
         }
       else
         {
@@ -508,7 +508,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
   else
     {
-      auto const average = 1.0 * sumsize / clusters;
+      auto const average = static_cast<double>(sumsize) / static_cast<double>(clusters);
       const auto median = find_median();
       if (not parameters.opt_quiet)
         {
@@ -540,7 +540,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
     {
-      int64_t const seqlen = fastx_get_sequence_length(h2);
+      int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h2));
 
       if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
         {
@@ -550,7 +550,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       auto const * seq = fastx_get_sequence(h2);
 
       /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up.data(), seq, seqlen);
+      string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
 
       /* reverse complement if necessary */
       if (parameters.opt_strand)
@@ -558,7 +558,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
         }
 
-      auto const hash = hash_function(seq_up.data(), seqlen);
+      auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
       auto j =  hash2bucket(hash, hashtablesize);
       auto * bp = hashtable + j;
 
@@ -573,7 +573,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           /* no match on plus strand */
           /* check minus strand as well */
 
-          auto const rc_hash = hash_function(rc_seq_up.data(), seqlen);
+          auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
           auto k =  hash2bucket(rc_hash, hashtablesize);
           auto * rc_bp = hashtable + k;
 
@@ -590,14 +590,14 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             }
         }
 
-      int64_t const size = bp->size;
+      int64_t const size = static_cast<int64_t>(bp->size);
 
       if (size > 0)
         {
           /* print sequence */
 
           auto const * header = fastx_get_header(h2);
-          int const headerlen = fastx_get_header_length(h2);
+          int const headerlen = static_cast<int>(fastx_get_header_length(h2));
 
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -605,16 +605,16 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
               fasta_print_general(fp_fastaout,
                                   nullptr,
                                   seq,
-                                  seqlen,
+                                  static_cast<int>(seqlen),
                                   header,
                                   headerlen,
-                                  size,
-                                  selected,
+                                  static_cast<uint64_t>(size),
+                                  static_cast<int64_t>(selected),
                                   -1.0,
                                   -1, -1, nullptr, 0.0,
                                   0);
             }
-          bp->size = -1;
+          bp->size = static_cast<uint64_t>(-1);
         }
 
       progress_update(fastx_get_position(h2));
@@ -633,7 +633,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   "%" PRId64 " uniques written, %"
                   PRId64 " clusters discarded (%.1f%%)\n",
                   selected, clusters - selected,
-                  100.0 * (clusters - selected) / clusters);
+                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }
 
       if (parameters.opt_log != nullptr)
@@ -642,7 +642,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   "%" PRId64 " uniques written, %"
                   PRId64 " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,
-                  100.0 * (clusters - selected) / clusters);
+                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }
     }
 

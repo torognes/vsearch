@@ -72,7 +72,7 @@
 
 inline auto fastq_get_qual(char const quality_symbol) -> int
 {
-  int const quality_score = quality_symbol - opt_fastq_ascii;
+  int const quality_score = quality_symbol - static_cast<int>(opt_fastq_ascii);
 
   if (quality_score < opt_fastq_qmin)
     {
@@ -137,8 +137,8 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
   /* strip left (5') end */
   if (opt_fastq_stripleft < res.length)
     {
-      res.start += opt_fastq_stripleft;
-      res.length -= opt_fastq_stripleft;
+      res.start += static_cast<int>(opt_fastq_stripleft);
+      res.length -= static_cast<int>(opt_fastq_stripleft);
     }
   else
     {
@@ -149,7 +149,7 @@ auto analyse(fastx_handle input_handle) -> struct analysis_res
   /* strip right (3') end */
   if (opt_fastq_stripright < res.length)
     {
-      res.length -= opt_fastq_stripright;
+      res.length -= static_cast<int>(opt_fastq_stripright);
     }
   else
     {
@@ -424,8 +424,8 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                   fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
                                   fastx_get_header(forward_handle),
-                                  fastx_get_header_length(forward_handle),
-                                  fastx_get_abundance(forward_handle),
+                                  static_cast<int>(fastx_get_header_length(forward_handle)),
+                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
                                   discarded,
                                   res1.ee,
                                   -1,
@@ -441,9 +441,9 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                   fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
                                   fastx_get_header(forward_handle),
-                                  fastx_get_header_length(forward_handle),
+                                  static_cast<int>(fastx_get_header_length(forward_handle)),
                                   fastx_get_quality(forward_handle) + res1.start,
-                                  fastx_get_abundance(forward_handle),
+                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
                                   discarded,
                                   res1.ee);
             }
@@ -457,8 +457,8 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                       fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
                                       fastx_get_header(reverse_handle),
-                                      fastx_get_header_length(reverse_handle),
-                                      fastx_get_abundance(reverse_handle),
+                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
+                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
                                       discarded,
                                       res2.ee,
                                       -1,
@@ -474,9 +474,9 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                       fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
                                       fastx_get_header(reverse_handle),
-                                      fastx_get_header_length(reverse_handle),
+                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
                                       fastx_get_quality(reverse_handle) + res2.start,
-                                      fastx_get_abundance(reverse_handle),
+                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
                                       discarded,
                                       res2.ee);
                 }
@@ -500,8 +500,8 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                   fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
                                   fastx_get_header(forward_handle),
-                                  fastx_get_header_length(forward_handle),
-                                  fastx_get_abundance(forward_handle),
+                                  static_cast<int>(fastx_get_header_length(forward_handle)),
+                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
                                   kept,
                                   res1.ee,
                                   -1,
@@ -517,9 +517,9 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                   fastx_get_sequence(forward_handle) + res1.start,
                                   res1.length,
                                   fastx_get_header(forward_handle),
-                                  fastx_get_header_length(forward_handle),
+                                  static_cast<int>(fastx_get_header_length(forward_handle)),
                                   fastx_get_quality(forward_handle) + res1.start,
-                                  fastx_get_abundance(forward_handle),
+                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
                                   kept,
                                   res1.ee);
             }
@@ -533,8 +533,8 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                       fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
                                       fastx_get_header(reverse_handle),
-                                      fastx_get_header_length(reverse_handle),
-                                      fastx_get_abundance(reverse_handle),
+                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
+                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
                                       kept,
                                       res2.ee,
                                       -1,
@@ -550,9 +550,9 @@ auto filter(bool const fastq_only, char const * filename) -> void
                                       fastx_get_sequence(reverse_handle) + res2.start,
                                       res2.length,
                                       fastx_get_header(reverse_handle),
-                                      fastx_get_header_length(reverse_handle),
+                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
                                       fastx_get_quality(reverse_handle) + res2.start,
-                                      fastx_get_abundance(reverse_handle),
+                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
                                       kept,
                                       res2.ee);
                 }

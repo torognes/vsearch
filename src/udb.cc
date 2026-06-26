@@ -129,7 +129,7 @@ auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset)
         }
 
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const bytesread = read(file_descriptor, (static_cast<char *>(buf)) + i, rem);
+      uint64_t const bytesread = static_cast<uint64_t>(read(file_descriptor, (static_cast<char *>(buf)) + i, rem));
       if (bytesread != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
@@ -159,7 +159,7 @@ auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset
       }
 
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const byteswritten = write(file_descriptor, (static_cast<char *>(buf)) + i, rem);
+      uint64_t const byteswritten = static_cast<uint64_t>(write(file_descriptor, (static_cast<char *>(buf)) + i, rem));
       if (byteswritten != rem)
         {
           fatal("Unable to write to UDB file");
@@ -212,7 +212,7 @@ auto udb_detect_isudb(const char * filename) -> bool
     }
 
   unsigned int magic = 0;
-  uint64_t const bytesread = read(file_descriptor, & magic, expected_n_bytes);
+  uint64_t const bytesread = static_cast<uint64_t>(read(file_descriptor, & magic, expected_n_bytes));
   close(file_descriptor);
 
   if ((bytesread == expected_n_bytes) and (magic == udb_file_signature))
@@ -238,7 +238,7 @@ auto udb_info(struct Parameters const & parameters) -> void
       fatal("Unable to open UDB file for reading");
     }
 
-  uint64_t const bytesread = read(fd_udbinfo, buffer.data(), 4 * 50);
+  uint64_t const bytesread = static_cast<uint64_t>(read(fd_udbinfo, buffer.data(), 4 * 50));
   if (bytesread != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");
@@ -311,7 +311,7 @@ auto udb_read(const char * filename,
 
   /* get file size */
 
-  uint64_t const filesize = fs.st_size;
+  uint64_t const filesize = static_cast<uint64_t>(fs.st_size);
 
   /* open UDB file */
 
@@ -411,11 +411,11 @@ auto udb_read(const char * filename,
 
   seqindex = static_cast<seqinfo_t *>(xmalloc(seqcount * sizeof(seqinfo_t)));
 
-  std::vector<int> header_index(seqcount + 1);
+  std::vector<unsigned int> header_index(seqcount + 1);
 
   pos += largeread(fd_udb, header_index.data(), 4 * seqcount, pos);
 
-  header_index[seqcount] = udb_headerchars;
+  header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
 
   auto last = 0U;
   for (auto i = 0U; i < seqcount; i++)
@@ -446,7 +446,7 @@ auto udb_read(const char * filename,
 
   /* sequence lengths */
 
-  std::vector<int> sequence_lengths(seqcount);
+  std::vector<unsigned int> sequence_lengths(seqcount);
 
   pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos);
 
@@ -541,10 +541,10 @@ auto udb_read(const char * filename,
       for (auto i = 0U; i < seqcount; i++)
         {
           auto const size = header_get_size(datap + seqindex[i].header_p,
-                                         seqindex[i].headerlen);
+                                         static_cast<int>(seqindex[i].headerlen));
           if (size > 0)
             {
-              seqindex[i].size = size;
+              seqindex[i].size = static_cast<uint64_t>(size);
             }
           else
             {
@@ -590,7 +590,7 @@ auto udb_read(const char * filename,
                   db_getsequencecount(),
                   db_getshortestsequence(),
                   db_getlongestsequence(),
-                  db_getnucleotidecount() * 1.0 / db_getsequencecount());
+                  static_cast<double>(db_getnucleotidecount()) * 1.0 / static_cast<double>(db_getsequencecount()));
         }
       else
         {
@@ -611,7 +611,7 @@ auto udb_read(const char * filename,
                   db_getsequencecount(),
                   db_getshortestsequence(),
                   db_getlongestsequence(),
-                  db_getnucleotidecount() * 1.0 / db_getsequencecount());
+                  static_cast<double>(db_getnucleotidecount()) * 1.0 / static_cast<double>(db_getsequencecount()));
         }
       else
         {
@@ -683,7 +683,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
   auto const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
                             freqtable[kmerhashsize / 2].count ) / 2;
 
-  unsigned int const seqcount = db_getsequencecount();
+  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   auto const nt = db_getnucleotidecount();
 
   /* show stats */
@@ -707,12 +707,12 @@ auto udb_stats(struct Parameters const & parameters) -> void
       fprintf(fp_log,
               "%10" PRIu64 "  DB size (%.1fk)\n",
               nt,
-              1.0 * nt / 1000.0);
+              1.0 * static_cast<double>(nt) / 1000.0);
       fprintf(fp_log, "%10" PRIu64 "  Words\n", kmerindexsize);
       fprintf(fp_log, "%10u  Median size\n", wcmedian);
       fprintf(fp_log,
               "%10.1f  Mean size\n",
-              1.0 * kmerindexsize / kmerhashsize);
+              1.0 * static_cast<double>(kmerindexsize) / kmerhashsize);
       fprintf(fp_log, "\n");
 
       fprintf(fp_log,
@@ -729,7 +729,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
           fprintf(fp_log,
                   "%.*s", std::max(12 - static_cast<int>(opt_wordlength), 0), "            ");
 
-          fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
+          fprint_kmer(fp_log, static_cast<unsigned int>(opt_wordlength), freqtable[kmerhashsize - 1 - i].kmer);
 
           fprintf(fp_log,
                   "  %10u  %10u",
@@ -769,7 +769,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
       fprintf(fp_log, "Slots       %u\n", kmerhashsize);
       fprintf(fp_log, "Words       %" PRIu64 "\n", kmerindexsize);
       fprintf(fp_log, "Max size    %u (", wcmax);
-      fprint_kmer(fp_log, opt_wordlength, freqtable[kmerhashsize - 1].kmer);
+      fprint_kmer(fp_log, static_cast<unsigned int>(opt_wordlength), freqtable[kmerhashsize - 1].kmer);
       fprintf(fp_log, ")\n\n");
 
       fprintf(fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
@@ -785,7 +785,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
         {
 
           auto count = 0;
-          auto size = 0;
+          auto size = 0U;
           while ((x < kmerhashsize) and (freqtable[x].count <= size_hi))
             {
               count++;
@@ -859,11 +859,11 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
       if (kmerindexsize >= 10000)
         {
-          fprintf(fp_log, "  %9.1fk", kmerindexsize * 0.001);
+          fprintf(fp_log, "  %9.1fk", static_cast<double>(kmerindexsize) * 0.001);
         }
       else
         {
-          fprintf(fp_log, "  %10.1f", kmerindexsize * 1.0);
+          fprintf(fp_log, "  %10.1f", static_cast<double>(kmerindexsize) * 1.0);
         }
 
       if (kmerhashsize >= 10000)
@@ -913,10 +913,10 @@ auto udb_make(struct Parameters const & parameters) -> void
       hardmask_all();
     }
 
-  dbindex_prepare(1, opt_dbmask);
-  dbindex_addallsequences(opt_dbmask);
+  dbindex_prepare(1, static_cast<int>(opt_dbmask));
+  dbindex_addallsequences(static_cast<int>(opt_dbmask));
 
-  unsigned int const seqcount = db_getsequencecount();
+  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   auto const ntcount = db_getnucleotidecount();
 
   uint64_t header_characters = 0;
@@ -954,7 +954,7 @@ auto udb_make(struct Parameters const & parameters) -> void
   /* Header */
   buffer[0]  = 0x55444246; /* FBDU UDBF */
   buffer[2]  = 32; /* bits */
-  buffer[4]  = opt_wordlength; /* default 8 */
+  buffer[4]  = static_cast<unsigned int>(opt_wordlength); /* default 8 */
   buffer[5]  = 1; /* dbstep */
   buffer[6]  = 100; /* dbaccelpct % */
   buffer[11] = 0; /* slots */
@@ -1020,28 +1020,28 @@ auto udb_make(struct Parameters const & parameters) -> void
   for (auto i = 0U; i < seqcount; i++)
     {
       buffer[i] = sum;
-      sum += db_getheaderlen(i) + 1;
+      sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
     }
   pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false);
 
   /* headers (ascii, zero terminated, not padded) */
   for (auto i = 0U; i < seqcount; i++)
     {
-      unsigned int const len = db_getheaderlen(i);
+      unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
       pos += largewrite(fd_output, db_getheader(i), len + 1, pos, false);
     }
 
   /* sequence lengths (uint32_t) */
   for (auto i = 0U; i < seqcount; i++)
     {
-      buffer[i] = db_getsequencelen(i);
+      buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
     }
   pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false);
 
   /* sequences (ascii, no term, no pad) */
   for (auto i = 0U; i < seqcount; i++)
     {
-      unsigned int const len = db_getsequencelen(i);
+      unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
       pos += largewrite(fd_output, db_getsequence(i), len, pos, false);
     }
 

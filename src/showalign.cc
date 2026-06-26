@@ -149,7 +149,7 @@ namespace {
   auto get_alignment_row(Span<char> const seq_view, Span<char> const cigar_view,
                          int const alignlen,
                          Operation const insertion_equivalent) -> std::vector<char> {
-    std::vector<char> row(alignlen + 1);
+    std::vector<char> row(static_cast<size_t>(alignlen) + 1);
     auto cursor_src = size_t{0};
     auto cursor_dest = size_t{0};
 
@@ -159,14 +159,14 @@ namespace {
       assert(static_cast<size_t>(runlength) < row.size() - cursor_dest);
       if ((operation == Operation::match) or
           (operation == insertion_equivalent)) {
-        auto const subsequence = seq_view.subspan(cursor_src, runlength);
+        auto const subsequence = seq_view.subspan(cursor_src, static_cast<size_t>(runlength));
         std::copy(subsequence.cbegin(), subsequence.cend(), &row[cursor_dest]);
-        cursor_src += runlength;
+        cursor_src += static_cast<size_t>(runlength);
       } else {
         // viewpoint_deletion = fill-in with gap symbols
         std::fill_n(&row[cursor_dest], runlength, '-');
       }
-      cursor_dest += runlength;
+      cursor_dest += static_cast<size_t>(runlength);
     }
 
     assert(row[cursor_dest] == '\0');
@@ -239,38 +239,41 @@ namespace {
       auto const query_nuc = get_query_nucleotide(alignment, position);
       auto const target_nuc = get_target_nucleotide(alignment, position);
 
+      auto const line_index = static_cast<size_t>(position.line);
+
       switch (operation) {
       case Operation::match:
         position.query += delta;
         position.target += 1;
-        q_line[position.line] = query_nuc;
-        a_line[position.line] = get_aligment_symbol(query_nuc, target_nuc);
-        d_line[position.line] = target_nuc;
+        q_line[line_index] = query_nuc;
+        a_line[line_index] = get_aligment_symbol(query_nuc, target_nuc);
+        d_line[line_index] = target_nuc;
         ++position.line;
         break;
 
       case Operation::deletion:  // gap in target (insertion in query)
         position.query += delta;
-        q_line[position.line] = query_nuc;
-        a_line[position.line] = ' ';
-        d_line[position.line] = '-';
+        q_line[line_index] = query_nuc;
+        a_line[line_index] = ' ';
+        d_line[line_index] = '-';
         ++position.line;
         break;
 
       case Operation::insertion:  // insertion in target (gap in query)
         position.target += 1;
-        q_line[position.line] = '-';
-        a_line[position.line] = ' ';
-        d_line[position.line] = target_nuc;
+        q_line[line_index] = '-';
+        a_line[line_index] = ' ';
+        d_line[line_index] = target_nuc;
         ++position.line;
         break;
       }
 
       if (position.line == alignment.width) {
         // maximal alignment width is reached, print alignment block
-        q_line[position.line] = '\0';
-        a_line[position.line] = '\0';
-        d_line[position.line] = '\0';
+        auto const terminator_index = static_cast<size_t>(position.line);
+        q_line[terminator_index] = '\0';
+        a_line[terminator_index] = '\0';
+        d_line[terminator_index] = '\0';
         print_alignment_block(alignment, position);
         position.line = 0;  // needed to avoid out-of-bounds
       }
@@ -280,9 +283,10 @@ namespace {
 
   auto putop_final(Alignment const & alignment, Position const & position) -> void {
     if (position.line == 0) { return; }  // final block already printed
-    q_line[position.line] = '\0';
-    a_line[position.line] = '\0';
-    d_line[position.line] = '\0';
+    auto const terminator_index = static_cast<size_t>(position.line);
+    q_line[terminator_index] = '\0';
+    a_line[terminator_index] = '\0';
+    d_line[terminator_index] = '\0';
     print_alignment_block(alignment, position);
   }
 
@@ -339,9 +343,9 @@ auto align_show(std::FILE * output_handle,
   position.query_start = position.query;
   position.target_start = position.target;
 
-  q_line.resize(alignment.width + 1);
-  a_line.resize(alignment.width + 1);
-  d_line.resize(alignment.width + 1);
+  q_line.resize(static_cast<size_t>(alignment.width) + 1);
+  a_line.resize(static_cast<size_t>(alignment.width) + 1);
+  d_line.resize(static_cast<size_t>(alignment.width) + 1);
 
   // cigar string can be trimmed (left and right): cigarlen maybe != std::strlen(cigar)
   auto const cigar_pairs = parse_cigar_string(Span<char>{cigar, static_cast<size_t>(cigarlen)});

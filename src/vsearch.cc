@@ -488,7 +488,7 @@ auto args_get_ee_cutoffs(char * arg) -> void
   auto const commas = std::count(arg, arg + std::strlen(arg), ',');
 
   opt_ee_cutoffs_count = 0;
-  opt_ee_cutoffs_values = static_cast<double *>(xrealloc(opt_ee_cutoffs_values, (commas + 1) * sizeof(double)));
+  opt_ee_cutoffs_values = static_cast<double *>(xrealloc(opt_ee_cutoffs_values, (static_cast<size_t>(commas) + 1) * sizeof(double)));
 
   char const * cursor = arg;
   while (true)
@@ -839,7 +839,7 @@ auto vsearch_init_defaults() -> void
     {
       xfree(opt_ee_cutoffs_values);
     }
-  opt_ee_cutoffs_values = static_cast<double *>(xmalloc(opt_ee_cutoffs_count * sizeof(double)));
+  opt_ee_cutoffs_values = static_cast<double *>(xmalloc(static_cast<size_t>(opt_ee_cutoffs_count) * sizeof(double)));
   opt_ee_cutoffs_values[0] = 0.5;
   opt_ee_cutoffs_values[1] = 1.0;
   opt_ee_cutoffs_values[2] = 2.0;
@@ -1047,7 +1047,7 @@ auto vsearch_apply_defaults_fixups() -> void
       if (opt_wordlength >= 0 and
           opt_wordlength < static_cast<int64_t>(minwordmatches_defaults.size()))
         {
-          opt_minwordmatches = minwordmatches_defaults[opt_wordlength];
+          opt_minwordmatches = minwordmatches_defaults[static_cast<size_t>(opt_wordlength)];
         }
       else
         {
@@ -1652,7 +1652,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (options_index < options_count)
         {
-          options_selected[options_index] = true;
+          options_selected[static_cast<size_t>(options_index)] = true;
         }
 
       switch (options_index)
@@ -2088,7 +2088,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_slots:
           fprintf(stderr, "WARNING: Option --slots is ignored\n");
-          opt_slots = args_getlong(optarg);
+          opt_slots = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_pattern:
@@ -2114,7 +2114,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_mindiffs:
-          opt_mindiffs = args_getlong(optarg);
+          opt_mindiffs = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_mindiv:
@@ -2152,7 +2152,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_alignwidth:
-          opt_alignwidth = args_getlong(optarg);
+          opt_alignwidth = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_allpairs_global:
@@ -2794,15 +2794,15 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_chimeras_length_min:
-          opt_chimeras_length_min = args_getlong(optarg);
+          opt_chimeras_length_min = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_chimeras_parts:
-          opt_chimeras_parts = args_getlong(optarg);
+          opt_chimeras_parts = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_chimeras_parents_max:
-          opt_chimeras_parents_max = args_getlong(optarg);
+          opt_chimeras_parents_max = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_chimeras_diff_pct:
@@ -4807,7 +4807,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   int k = -1;
   for (int i = 0; i < commands_count; i++)
     {
-      if (options_selected[command_options[i]])
+      if (options_selected[static_cast<size_t>(command_options[static_cast<size_t>(i)])])
         {
           ++commands;
           k = i;
@@ -4841,13 +4841,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       for (int i = 0; i < options_count; i++)
         {
-          if (options_selected[i])
+          if (options_selected[static_cast<size_t>(i)])
             {
               int j = 0;
               bool option_is_valid = false;
-              while (valid_options[k][j] >= 0)
+              while (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0)
                 {
-                  if (valid_options[k][j] == i)
+                  if (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] == i)
                     {
                       option_is_valid = true;
                       break;
@@ -4862,12 +4862,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
                     {
                       fprintf(stderr,
                               "Fatal error: Invalid options to command %s\n",
-                              long_options[command_options[k]].name);
+                              long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
                       fprintf(stderr,
                               "Invalid option(s):");
                     }
                   fprintf(stderr, " --%s",
-                          long_options[i].name);
+                          long_options[static_cast<size_t>(i)].name);
                 }
             }
         }
@@ -4875,11 +4875,11 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       if (invalid_options > 0)
         {
           fprintf(stderr, "\nThe valid options for the %s command are:",
-                  long_options[command_options[k]].name);
+                  long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
           int count = 0;
-          for (int j = 1; valid_options[k][j] >= 0; j++)
+          for (int j = 1; valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0; j++)
             {
-              fprintf(stderr, " --%s", long_options[valid_options[k][j]].name);
+              fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
               ++count;
             }
           if (count == 0)
@@ -4913,7 +4913,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (parameters.opt_threads > 1)
         {
-          fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[command_options[k]].name);
+          fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
         }
       opt_threads = 1;
       parameters.opt_threads = 1;
@@ -6134,13 +6134,13 @@ auto fill_prog_header() -> void
 
 auto getentirecommandline(int argc, char** argv) -> void
 {
-  int len = 0;
+  size_t len = 0;
   for (int i = 0; i < argc; i++)
     {
       len += std::strlen(argv[i]);
     }
 
-  cmdline = static_cast<char *>(xmalloc(len + argc));
+  cmdline = static_cast<char *>(xmalloc(len + static_cast<size_t>(argc)));
   cmdline[0] = 0;
 
   for (int i = 0; i < argc; i++)
@@ -6423,7 +6423,7 @@ auto main(int argc, char** argv) -> int
       fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
               floor(time_diff / 60.0),
               floor(time_diff - (60.0 * floor(time_diff / 60.0))));
-      double const maxmem = arch_get_memused() / 1048576.0;
+      double const maxmem = static_cast<double>(arch_get_memused()) / 1048576.0;
       if (maxmem < 1024.0)
         {
           fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);

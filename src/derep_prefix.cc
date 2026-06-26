@@ -196,7 +196,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   show_rusage();
 
-  int64_t const dbsequencecount = db_getsequencecount();
+  int64_t const dbsequencecount = static_cast<int64_t>(db_getsequencecount());
 
   /* adjust size of hash table for 2/3 fill rate */
 
@@ -205,9 +205,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       hashtablesize <<= 1U;
     }
-  int const hash_mask = hashtablesize - 1;
+  uint64_t const hash_mask = static_cast<uint64_t>(hashtablesize - 1);
 
-  std::vector<struct bucket> hashtable(hashtablesize);
+  std::vector<struct bucket> hashtable(static_cast<std::vector<struct bucket>::size_type>(hashtablesize));
 
   int64_t clusters = 0;
   int64_t sumsize = 0;
@@ -218,27 +218,27 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   /* alloc and init table of links to other sequences in cluster */
 
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
-  std::vector<unsigned int> nextseqtab(dbsequencecount, terminal);
+  std::vector<unsigned int> nextseqtab(static_cast<std::vector<unsigned int>::size_type>(dbsequencecount), terminal);
 
   std::vector<char> seq_up(db_getlongestsequence() + 1);
 
   /* make table of hash values of prefixes */
 
-  unsigned int const len_longest = db_getlongestsequence();
-  unsigned int const len_shortest = db_getshortestsequence();
+  unsigned int const len_longest = static_cast<unsigned int>(db_getlongestsequence());
+  unsigned int const len_shortest = static_cast<unsigned int>(db_getshortestsequence());
   std::vector<uint64_t> prefix_hashes(len_longest + 1);
 
-  progress_init("Dereplicating", dbsequencecount);
+  progress_init("Dereplicating", static_cast<uint64_t>(dbsequencecount));
   for (int64_t i = 0; i < dbsequencecount; i++)
     {
-      unsigned int const seqlen = db_getsequencelen(i);
-      auto const * seq = db_getsequence(i);
+      unsigned int const seqlen = static_cast<unsigned int>(db_getsequencelen(static_cast<uint64_t>(i)));
+      auto const * seq = db_getsequence(static_cast<uint64_t>(i));
 
       /* normalize sequence: uppercase and replace U by T  */
       string_normalize(seq_up.data(), seq, seqlen);
 
-      auto const abundance = parameters.opt_sizein ? db_getabundance(i) : 1;
-      sumsize += abundance;
+      auto const abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
+      sumsize += static_cast<int64_t>(abundance);
 
       /*
         Look for matching identical or prefix sequences.
@@ -291,10 +291,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       if (bp->size != 0U)
         {
           /* exact match */
-          bp->size += abundance;
+          bp->size += static_cast<unsigned int>(abundance);
           auto const last = bp->seqno_last;
-          nextseqtab[last] = i;
-          bp->seqno_last = i;
+          nextseqtab[last] = static_cast<unsigned int>(i);
+          bp->seqno_last = static_cast<unsigned int>(i);
 
           maxsize = std::max<uint64_t>(bp->size, maxsize);
         }
@@ -336,10 +336,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
               /* create new hash entry */
               bp = orig_bp;
-              bp->size = size + abundance;
+              bp->size = static_cast<unsigned int>(size + abundance);
               bp->hash = orig_hash;
-              bp->seqno_first = i;
-              nextseqtab[i] = first;
+              bp->seqno_first = static_cast<unsigned int>(i);
+              nextseqtab[static_cast<std::vector<unsigned int>::size_type>(i)] = first;
               bp->seqno_last = last;
 
               maxsize = std::max<uint64_t>(bp->size, maxsize);
@@ -347,40 +347,40 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           else
             {
               /* no match */
-              orig_bp->size = abundance;
+              orig_bp->size = static_cast<unsigned int>(abundance);
               orig_bp->hash = orig_hash;
-              orig_bp->seqno_first = i;
-              orig_bp->seqno_last = i;
+              orig_bp->seqno_first = static_cast<unsigned int>(i);
+              orig_bp->seqno_last = static_cast<unsigned int>(i);
 
               maxsize = std::max(abundance, maxsize);
               ++clusters;
             }
         }
 
-      progress_update(i);
+      progress_update(static_cast<uint64_t>(i));
     }
   progress_done();
 
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_prefix);
+  qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
   progress_done();
 
   if (clusters > 0)
     {
       if ((clusters % 2) != 0)
         {
-          median = hashtable[(clusters - 1) / 2].size;
+          median = hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters - 1) / 2)].size;
         }
       else
         {
-          median = (hashtable[(clusters / 2) - 1].size +
-                    hashtable[clusters / 2].size) / 2.0;
+          median = (hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters / 2) - 1)].size +
+                    hashtable[static_cast<std::vector<struct bucket>::size_type>(clusters / 2)].size) / 2.0;
         }
     }
 
-  average = 1.0 * sumsize / clusters;
+  average = 1.0 * static_cast<double>(sumsize) / static_cast<double>(clusters);
 
   if (clusters < 1)
     {
@@ -422,7 +422,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   int64_t selected = 0;
   for (int64_t i = 0; i < clusters; i++)
     {
-      int64_t const size = hashtable[i].size;
+      int64_t const size = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)].size;
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
           ++selected;
@@ -438,12 +438,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (parameters.opt_output != nullptr)
     {
-      progress_init("Writing output file", clusters);
+      progress_init("Writing output file", static_cast<uint64_t>(clusters));
 
       int64_t relabel_count = 0;
       for (int64_t i = 0; i < clusters; i++)
         {
-          auto const & bp = hashtable[i];
+          auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
           int64_t const size = bp.size;
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
@@ -451,10 +451,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               fasta_print_general(fp_output,
                                   nullptr,
                                   db_getsequence(bp.seqno_first),
-                                  db_getsequencelen(bp.seqno_first),
+                                  static_cast<int>(db_getsequencelen(bp.seqno_first)),
                                   db_getheader(bp.seqno_first),
-                                  db_getheaderlen(bp.seqno_first),
-                                  size,
+                                  static_cast<int>(db_getheaderlen(bp.seqno_first)),
+                                  static_cast<uint64_t>(size),
                                   relabel_count,
                                   -1.0,
                                   -1, -1, nullptr, 0.0,
@@ -464,7 +464,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   break;
                 }
             }
-          progress_update(i);
+          progress_update(static_cast<uint64_t>(i));
         }
 
       progress_done();
@@ -475,12 +475,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (parameters.opt_uc != nullptr)
     {
-      progress_init("Writing uc file, first part", clusters);
+      progress_init("Writing uc file, first part", static_cast<uint64_t>(clusters));
       for (int64_t i = 0; i < clusters; i++)
         {
-          auto const & bp = hashtable[i];
+          auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
           auto const * h =  db_getheader(bp.seqno_first);
-          int64_t const len = db_getsequencelen(bp.seqno_first);
+          int64_t const len = static_cast<int64_t>(db_getsequencelen(bp.seqno_first));
 
           fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
@@ -494,18 +494,18 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                       i, db_getsequencelen(next), 100.0, db_getheader(next), h);
             }
 
-          progress_update(i);
+          progress_update(static_cast<uint64_t>(i));
         }
       progress_done();
       show_rusage();
 
-      progress_init("Writing uc file, second part", clusters);
+      progress_init("Writing uc file, second part", static_cast<uint64_t>(clusters));
       for (int64_t i = 0; i < clusters; i++)
         {
-          auto const & bp = hashtable[i];
+          auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
           fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp.size, db_getheader(bp.seqno_first));
-          progress_update(i);
+          progress_update(static_cast<uint64_t>(i));
         }
       fclose(fp_uc);
       progress_done();
@@ -520,7 +520,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   "%" PRId64 " uniques written, %" PRId64
                   " clusters discarded (%.1f%%)\n",
                   selected, clusters - selected,
-                  100.0 * (clusters - selected) / clusters);
+                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }
 
       if (parameters.opt_log != nullptr)
@@ -529,7 +529,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   "%" PRId64 " uniques written, %" PRId64
                   " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,
-                  100.0 * (clusters - selected) / clusters);
+                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }
     }
 
