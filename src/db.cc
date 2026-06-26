@@ -204,12 +204,12 @@ auto db_add(bool const is_fastq_record,
 
   /* update index */
   seqinfo_t * seqindex_p = seqindex + sequences;
-  seqindex_p->headerlen = headerlength;
-  seqindex_p->seqlen = sequencelength;
+  seqindex_p->headerlen = static_cast<unsigned int>(headerlength);
+  seqindex_p->seqlen = static_cast<unsigned int>(sequencelength);
   seqindex_p->header_p = header_p;
   seqindex_p->seq_p = sequence_p;
   seqindex_p->qual_p = quality_p;
-  seqindex_p->size = abundance;
+  seqindex_p->size = static_cast<uint64_t>(abundance);
 
   /* update statistics */
   ++sequences;
@@ -226,7 +226,7 @@ auto db_read(const char * filename, int upcase) -> void
 
   is_fastq = fastx_is_fastq(h);
 
-  int64_t const filesize = fastx_get_size(h);
+  int64_t const filesize = static_cast<int64_t>(fastx_get_size(h));
 
   char * prompt = nullptr;
   if (xsprintf(&prompt, "Reading file %s", filename) == -1)
@@ -234,7 +234,7 @@ auto db_read(const char * filename, int upcase) -> void
       fatal("Out of memory");
     }
 
-  progress_init(prompt, filesize);
+  progress_init(prompt, static_cast<uint64_t>(filesize));
 
   longest = 0;
   shortest = std::numeric_limits<uint64_t>::max();  // refactoring: direct initialization
@@ -302,7 +302,7 @@ auto db_read(const char * filename, int upcase) -> void
                   db_getsequencecount(),
                   db_getshortestsequence(),
                   db_getlongestsequence(),
-                  db_getnucleotidecount() * 1.0 / db_getsequencecount());
+                  static_cast<double>(db_getnucleotidecount()) / static_cast<double>(db_getsequencecount()));
         }
       else
         {
@@ -324,7 +324,7 @@ auto db_read(const char * filename, int upcase) -> void
                   db_getsequencecount(),
                   db_getshortestsequence(),
                   db_getlongestsequence(),
-                  db_getnucleotidecount() * 1.0 / db_getsequencecount());
+                  static_cast<double>(db_getnucleotidecount()) / static_cast<double>(db_getsequencecount()));
         }
       else
         {

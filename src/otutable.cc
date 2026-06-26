@@ -203,16 +203,16 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       else
         {
           /* no match: use first name in header with A-Za-z0-9_ */
-          len_sample = std::strspn(query_header,
+          len_sample = static_cast<int>(std::strspn(query_header,
                               "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                               "abcdefghijklmnopqrstuvwxyz"
                               "_"
-                              "0123456789");
+                              "0123456789"));
         }
 
-      sample_name.resize(len_sample + 1);
+      sample_name.resize(static_cast<std::size_t>(len_sample) + 1);
       std::copy(start_sample, std::next(start_sample, len_sample), sample_name.begin());
-      sample_name[len_sample] = '\0';
+      sample_name[static_cast<std::size_t>(len_sample)] = '\0';
     }
 
 
@@ -243,12 +243,12 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       else
         {
           /* no match: use first name in header up to ; */
-          len_otu = std::strcspn(target_header, ";");
+          len_otu = static_cast<int>(std::strcspn(target_header, ";"));
         }
 
-      otu_name.resize(len_otu + 1);
+      otu_name.resize(static_cast<std::size_t>(len_otu) + 1);
       std::copy(start_otu, std::next(start_otu, len_otu), otu_name.begin());
-      otu_name[len_otu] = '\0';
+      otu_name[static_cast<std::size_t>(len_otu)] = '\0';
 
       /* read tax annotation in target */
 
@@ -261,9 +261,9 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
           char const * start_tax = target_header;
           start_tax += pmatch_tax[2].rm_so;
 
-          std::vector<char> tax_name(len_tax + 1);
+          std::vector<char> tax_name(static_cast<std::size_t>(len_tax) + 1);
           std::copy(start_tax, std::next(start_tax, len_tax), tax_name.begin());
-          tax_name[len_tax] = '\0';
+          tax_name[static_cast<std::size_t>(len_tax)] = '\0';
           otutable->otu_tax_map[otu_name.data()] = tax_name.data();
         }
 #else
@@ -287,8 +287,8 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
 
   if ((not sample_name.empty()) and (not otu_name.empty()) and (abundance != 0))
     {
-      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name.data())] += abundance;
-      otutable->otu_sample_count[string_pair_t(otu_name.data(), sample_name.data())] += abundance;
+      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name.data())] += static_cast<uint64_t>(abundance);
+      otutable->otu_sample_count[string_pair_t(otu_name.data(), sample_name.data())] += static_cast<uint64_t>(abundance);
     }
 
 }
@@ -342,7 +342,7 @@ auto otutable_print_otutabout(std::FILE * output_handle) -> void
             }
         }
       fprintf(output_handle, "\n");
-      progress_update(++progress);
+      progress_update(static_cast<uint64_t>(++progress));
     }
   progress_done();
 }
@@ -387,7 +387,7 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
         }
 
       fprintf(output_handle, "\n");
-      progress_update(++progress);
+      progress_update(static_cast<uint64_t>(++progress));
     }
   progress_done();
 }
@@ -398,8 +398,8 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
   int64_t progress = 0;
   progress_init("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size());
 
-  int64_t const rows = otutable->otu_set.size();
-  int64_t const columns = otutable->sample_set.size();
+  int64_t const rows = static_cast<int64_t>(otutable->otu_set.size());
+  int64_t const columns = static_cast<int64_t>(otutable->sample_set.size());
 
   static const time_t time_now = time(nullptr);
   struct tm const * tm_now = localtime(& time_now);
@@ -491,7 +491,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
       fprintf(output_handle, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
       first = false;
       ++progress;
-      progress_update(progress);
+      progress_update(static_cast<uint64_t>(progress));
     }
   fprintf(output_handle, "\n\t]\n");
 

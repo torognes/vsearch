@@ -89,7 +89,7 @@ auto dbhash_open(uint64_t const maxelements) -> void
 
   dbhash_table.resize(dbhash_size);
 
-  dbhash_bitmap = bitmap_init(dbhash_size);
+  dbhash_bitmap = bitmap_init(static_cast<unsigned int>(dbhash_size));
   bitmap_reset_all(dbhash_bitmap);
 }
 
@@ -112,7 +112,7 @@ auto dbhash_search_first(char * seq,
   auto index = hash & dbhash_mask;
   auto * bp = &dbhash_table[index];
 
-  while ((bitmap_get(dbhash_bitmap, index) != 0U)
+  while ((bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
           (seqlen != db_getsequencelen(bp->seqno)) or
@@ -124,9 +124,9 @@ auto dbhash_search_first(char * seq,
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, index) != 0U)
+  if (bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
     {
-      return bp->seqno;
+      return static_cast<int64_t>(bp->seqno);
     }
   return -1;
 }
@@ -140,7 +140,7 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
   auto index = (info->index + 1) & dbhash_mask;
   auto * bp = &dbhash_table[index];
 
-  while ((bitmap_get(dbhash_bitmap, index) != 0U)
+  while ((bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
           (seqlen != db_getsequencelen(bp->seqno)) or
@@ -152,9 +152,9 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, index) != 0U)
+  if (bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
     {
-      return bp->seqno;
+      return static_cast<int64_t>(bp->seqno);
     }
   return -1;
 }
@@ -170,7 +170,7 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
       ret = dbhash_search_next(&info);
     }
 
-  bitmap_set(dbhash_bitmap, info.index);
+  bitmap_set(dbhash_bitmap, static_cast<unsigned int>(info.index));
   auto & bucket = dbhash_table[info.index];
   bucket.hash = info.hash;
   bucket.seqno = seqno;
@@ -185,7 +185,7 @@ auto dbhash_add_all() -> void
     {
       auto const * seq = db_getsequence(seqno);
       auto const seqlen = db_getsequencelen(seqno);
-      string_normalize(normalized.data(), seq, seqlen);
+      string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
       dbhash_add(normalized.data(), seqlen, seqno);
       progress_update(seqno + 1);
     }

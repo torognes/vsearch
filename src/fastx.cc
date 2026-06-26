@@ -153,7 +153,7 @@ auto find_header_end_first_blank(Span<char> raw_header) -> std::size_t {
   if (result != raw_header.end()) {
     *result = '\0';
   }
-  return std::distance(raw_header.begin(), result);
+  return static_cast<std::size_t>(std::distance(raw_header.begin(), result));
 }
 
 
@@ -164,7 +164,7 @@ auto find_header_end(Span<char> raw_header) -> std::size_t {
   if (result != raw_header.end()) {
     *result = '\0';
   }
-  return std::distance(raw_header.begin(), result);
+  return static_cast<std::size_t>(std::distance(raw_header.begin(), result));
 }
 
 
@@ -284,7 +284,7 @@ auto fastx_open(char const * filename) -> fastx_handle
     }
   else
     {
-      input_handle->file_size = fs.st_size;
+      input_handle->file_size = static_cast<uint64_t>(fs.st_size);
     }
 
   bool const is_stdin = (std::strcmp(filename, "-") == 0);
@@ -518,9 +518,9 @@ auto fastx_close(fastx_handle input_handle) -> void
       fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
       for (int i = 0; i < 256; i++)
         {
-          if (input_handle->stripped[i] != 0U)
+          if (input_handle->stripped[static_cast<std::size_t>(i)] != 0U)
             {
-              fprintf(stderr, " %c(%" PRIu64 ")", i, input_handle->stripped[i]);
+              fprintf(stderr, " %c(%" PRIu64 ")", i, input_handle->stripped[static_cast<std::size_t>(i)]);
             }
         }
       fprintf(stderr, "\n");
@@ -531,9 +531,9 @@ auto fastx_close(fastx_handle input_handle) -> void
           fprintf(fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
           for (int i = 0; i < 256; i++)
             {
-              if (input_handle->stripped[i] != 0U)
+              if (input_handle->stripped[static_cast<std::size_t>(i)] != 0U)
                 {
-                  fprintf(fp_log, " %c(%" PRIu64 ")", i, input_handle->stripped[i]);
+                  fprintf(fp_log, " %c(%" PRIu64 ")", i, input_handle->stripped[static_cast<std::size_t>(i)]);
                 }
             }
           fprintf(fp_log, "\n");
@@ -616,11 +616,11 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
   switch (input_handle->format)
     {
     case Format::plain:
-      bytes_read = fread(input_handle->file_buffer.data
+      bytes_read = static_cast<int>(fread(input_handle->file_buffer.data
                          + input_handle->file_buffer.position,
                          1,
                          space,
-                         input_handle->fp);
+                         input_handle->fp));
       break;
 
     case Format::gzip:
@@ -628,7 +628,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       bytes_read = (*gzread_p)(input_handle->fp_gz,
                                input_handle->file_buffer.data
                                + input_handle->file_buffer.position,
-                               space);
+                               static_cast<unsigned int>(space));
       if (bytes_read < 0)
         {
           fatal("Unable to read gzip compressed file");
@@ -642,7 +642,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
                                    input_handle->fp_bz,
                                    input_handle->file_buffer.data
                                    + input_handle->file_buffer.position,
-                                   space);
+                                   static_cast<int>(space));
       if ((bytes_read < 0) or
           not ((bzError == BZ_OK) or
              (bzError == BZ_STREAM_END) or
@@ -674,8 +674,8 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
         }
     }
 
-  input_handle->file_buffer.length += bytes_read;
-  return bytes_read;
+  input_handle->file_buffer.length += static_cast<uint64_t>(bytes_read);
+  return static_cast<uint64_t>(bytes_read);
 }
 
 

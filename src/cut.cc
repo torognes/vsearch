@@ -124,7 +124,7 @@ namespace {
 
     /* get reverse complement */
     rc_buffer.clear();
-    rc_buffer.resize(seq_length + 1);
+    rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
     reverse_complement(rc_buffer.data(), seq, seq_length);
 
     int64_t local_matches = 0;
@@ -159,7 +159,7 @@ namespace {
                                 frag_length,
                                 fasta_get_header(input_handle),
                                 static_cast<int>(fasta_get_header_length(input_handle)),
-                                fasta_get_abundance(input_handle),
+                                static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                                 ++counters.fragment_no,
                                 -1.0,
                                 -1,
@@ -173,11 +173,11 @@ namespace {
           {
             fasta_print_general(fastaout.cut.reverse.handle,
                                 nullptr,
-                                &rc_buffer[rc_start],
+                                &rc_buffer[static_cast<std::size_t>(rc_start)],
                                 rc_length,
                                 fasta_get_header(input_handle),
                                 static_cast<int>(fasta_get_header_length(input_handle)),
-                                fasta_get_abundance(input_handle),
+                                static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                                 ++counters.fragment_rev_no,
                                 -1.0,
                                 -1,
@@ -206,7 +206,7 @@ namespace {
                             frag_length,
                             fasta_get_header(input_handle),
                             static_cast<int>(fasta_get_header_length(input_handle)),
-                            fasta_get_abundance(input_handle),
+                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                             ++counters.fragment_no,
                             -1.0,
                             -1,
@@ -220,11 +220,11 @@ namespace {
       {
         fasta_print_general(fastaout.cut.reverse.handle,
                             nullptr,
-                            &rc_buffer[rc_start],
+                            &rc_buffer[static_cast<std::size_t>(rc_start)],
                             rc_length,
                             fasta_get_header(input_handle),
                             static_cast<int>(fasta_get_header_length(input_handle)),
-                            fasta_get_abundance(input_handle),
+                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                             ++counters.fragment_rev_no,
                             -1.0,
                             -1,
@@ -247,7 +247,7 @@ namespace {
                             seq_length,
                             fasta_get_header(input_handle),
                             static_cast<int>(fasta_get_header_length(input_handle)),
-                            fasta_get_abundance(input_handle),
+                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                             ++counters.fragment_discarded_no,
                             -1.0,
                             -1,
@@ -265,7 +265,7 @@ namespace {
                             seq_length,
                             fasta_get_header(input_handle),
                             static_cast<int>(fasta_get_header_length(input_handle)),
-                            fasta_get_abundance(input_handle),
+                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                             ++counters.fragment_discarded_rev_no,
                             -1.0,
                             -1,
@@ -382,7 +382,7 @@ namespace {
   auto reencode_restriction_pattern(std::string raw_pattern) -> std::string {
     auto pattern = remove_restriction_sites(std::move(raw_pattern));
     auto encode_characters = [](char const & character) -> char {
-      return map_4bit(character);
+      return static_cast<char>(map_4bit(character));
     };
     std::transform(pattern.cbegin(), pattern.cend(),
                    pattern.begin(), encode_characters);

@@ -259,7 +259,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
   for (auto i = 0ULL; i < len; i++)
     {
       auto const c = *p++;
-      char const m = char_action[static_cast<unsigned char>(c)];
+      char const m = static_cast<char>(char_action[static_cast<unsigned char>(c)]);
 
       switch (m)
         {
@@ -271,7 +271,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
 
         case 1:
           /* legal character */
-          *q++ = char_mapping[static_cast<unsigned char>(c)];
+          *q++ = static_cast<char>(char_mapping[static_cast<unsigned char>(c)]);
           break;
 
         case 2:
@@ -295,7 +295,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
 
   /* add zero after sequence */
   *q = 0;
-  dest_buffer->length += q - d;
+  dest_buffer->length += static_cast<uint64_t>(q - d);
 }
 
 
@@ -381,7 +381,7 @@ auto fastq_next(fastx_handle input_handle,
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           input_handle->lineno++;
         }
       buffer_extend(&input_handle->header_buffer,
@@ -420,7 +420,7 @@ auto fastq_next(fastx_handle input_handle,
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           input_handle->lineno++;
         }
 
@@ -482,7 +482,7 @@ auto fastq_next(fastx_handle input_handle,
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           input_handle->lineno++;
         }
       buffer_extend(&input_handle->plusline_buffer,
@@ -550,7 +550,7 @@ auto fastq_next(fastx_handle input_handle,
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           input_handle->lineno++;
         }
 
@@ -637,7 +637,7 @@ auto fastq_get_lineno(struct fastx_s const * input_handle) -> uint64_t
 
 auto fastq_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 {
-  return input_handle->seqno;
+  return static_cast<uint64_t>(input_handle->seqno);
 }
 
 
@@ -669,7 +669,7 @@ auto fastq_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   // return 1 if not present
   auto const size = header_get_size(input_handle->header_buffer.data,
-                                 input_handle->header_buffer.length);
+                                 static_cast<int>(input_handle->header_buffer.length));
   if (size > 0)
     {
       return size;
@@ -681,7 +681,7 @@ auto fastq_get_abundance(struct fastx_s const * input_handle) -> int64_t
 auto fastq_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t
 {
   // return 0 if not present
-  return header_get_size(input_handle->header_buffer.data, input_handle->header_buffer.length);
+  return header_get_size(input_handle->header_buffer.data, static_cast<int>(input_handle->header_buffer.length));
 }
 
 

@@ -244,7 +244,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
   /* add nullchar after sequence */
   *dest = '\0';
-  input_handle->sequence_buffer.length = dest - input_handle->sequence_buffer.data;
+  input_handle->sequence_buffer.length = static_cast<uint64_t>(dest - input_handle->sequence_buffer.data);
 }
 
 
@@ -309,7 +309,7 @@ auto fasta_next(fastx_handle input_handle,
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1;
+          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           ++input_handle->lineno;
         }
       buffer_extend(& input_handle->header_buffer,
@@ -339,14 +339,14 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* find LF */
-      auto * const current_position = std::next(input_handle->file_buffer.data, input_handle->file_buffer.position);
+      auto * const current_position = std::next(input_handle->file_buffer.data, static_cast<std::ptrdiff_t>(input_handle->file_buffer.position));
       line_end = static_cast<char *>(std::memchr(current_position, '\n', rest));
 
       uint64_t len = rest;
       if (line_end != nullptr)
         {
           /* LF found, copy up to and including LF */
-          len = line_end - current_position + 1;
+          len = static_cast<uint64_t>(line_end - current_position + 1);
         }
       buffer_extend(& input_handle->sequence_buffer,
                     current_position,
@@ -368,7 +368,7 @@ auto fasta_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   // return 1 if not present
   auto const size = header_get_size(input_handle->header_buffer.data,
-                                 input_handle->header_buffer.length);
+                                 static_cast<int>(input_handle->header_buffer.length));
   if (size > 0)
     {
       return size;
@@ -380,7 +380,7 @@ auto fasta_get_abundance(struct fastx_s const * input_handle) -> int64_t
 auto fasta_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t
 {
   // return 0 if not present
-  return header_get_size(input_handle->header_buffer.data, input_handle->header_buffer.length);
+  return header_get_size(input_handle->header_buffer.data, static_cast<int>(input_handle->header_buffer.length));
 }
 
 
@@ -404,7 +404,7 @@ auto fasta_get_lineno(struct fastx_s const * input_handle) -> uint64_t
 
 auto fasta_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 {
-  return input_handle->seqno;
+  return static_cast<uint64_t>(input_handle->seqno);
 }
 
 
@@ -465,7 +465,7 @@ auto fasta_print(std::FILE * output_handle, char const * header,
                  char const * seq, uint64_t const len) -> void
 {
   std::fprintf(output_handle, ">%s\n", header);
-  fasta_print_sequence(output_handle, seq, len, opt_fasta_width);
+  fasta_print_sequence(output_handle, seq, len, static_cast<int>(opt_fasta_width));
 }
 
 
@@ -612,7 +612,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (seq != nullptr)
     {
-      fasta_print_sequence(output_handle, seq, len, opt_fasta_width);
+      fasta_print_sequence(output_handle, seq, static_cast<uint64_t>(len), static_cast<int>(opt_fasta_width));
     }
 }
 
@@ -624,9 +624,9 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
   fasta_print_general(output_handle,
                       nullptr,
                       db_getsequence(seqno),
-                      db_getsequencelen(seqno),
+                      static_cast<int>(db_getsequencelen(seqno)),
                       db_getheader(seqno),
-                      db_getheaderlen(seqno),
+                      static_cast<int>(db_getheaderlen(seqno)),
                       db_getabundance(seqno),
                       ordinal,
                       -1.0,
@@ -643,9 +643,9 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
   fasta_print_general(output_handle,
                       nullptr,
                       db_getsequence(seqno),
-                      db_getsequencelen(seqno),
+                      static_cast<int>(db_getsequencelen(seqno)),
                       db_getheader(seqno),
-                      db_getheaderlen(seqno),
+                      static_cast<int>(db_getheaderlen(seqno)),
                       db_getabundance(seqno),
                       static_cast<int64_t>(ordinal),
                       -1.0,
@@ -660,9 +660,9 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t seqno) -> void
   fasta_print_general(output_handle,
                       nullptr,
                       db_getsequence(seqno),
-                      db_getsequencelen(seqno),
+                      static_cast<int>(db_getsequencelen(seqno)),
                       db_getheader(seqno),
-                      db_getheaderlen(seqno),
+                      static_cast<int>(db_getheaderlen(seqno)),
                       db_getabundance(seqno),
                       0,
                       -1.0,

@@ -142,10 +142,10 @@ namespace {
     if (qualities.empty()) { return; }
     auto const minmax_scores =
       std::minmax_element(qualities.begin(), qualities.end());
-    auto const qmin = symbol_to_score[*std::get<0>(minmax_scores)];
-    auto const qmax = symbol_to_score[*std::get<1>(minmax_scores)];
-    check_quality_score(parameters, qmin);
-    check_quality_score(parameters, qmax);
+    auto const qmin = symbol_to_score[static_cast<unsigned char>(*std::get<0>(minmax_scores))];
+    auto const qmax = symbol_to_score[static_cast<unsigned char>(*std::get<1>(minmax_scores))];
+    check_quality_score(parameters, static_cast<unsigned int>(qmin));
+    check_quality_score(parameters, static_cast<unsigned int>(qmax));
   }
 
 
@@ -377,16 +377,17 @@ namespace {
     uint64_t qual_accum = 0;
     for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
       {
-        if (stats.quality_dist[quality_symbol] == 0) { continue; }
+        auto const symbol_index = static_cast<std::size_t>(quality_symbol);
+        if (stats.quality_dist[symbol_index] == 0) { continue; }
 
-        qual_accum += stats.quality_dist[quality_symbol];
+        qual_accum += stats.quality_dist[symbol_index];
         std::fprintf(log_handle,
                      "    %c  %3" PRIu64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
                      quality_symbol,
-                     symbol_to_score[quality_symbol],
-                     symbol_to_probability[quality_symbol],
-                     stats.quality_dist[quality_symbol],
-                     100.0 * static_cast<double>(stats.quality_dist[quality_symbol]) / stats.n_symbols,
+                     symbol_to_score[symbol_index],
+                     symbol_to_probability[symbol_index],
+                     stats.quality_dist[symbol_index],
+                     100.0 * static_cast<double>(stats.quality_dist[symbol_index]) / stats.n_symbols,
                      100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
       }
   }
@@ -607,7 +608,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0})),
     compute_cumulative_sum(read_length_table),
     compute_distribution_of_quality_symbols(qual_length_table),
-    compute_distributions(find_largest(read_length_table), qual_length_table, sumee_length_table, parameters)
+    compute_distributions(static_cast<unsigned int>(find_largest(read_length_table)), qual_length_table, sumee_length_table, parameters)
   };
 
 

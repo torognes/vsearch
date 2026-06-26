@@ -127,7 +127,7 @@ namespace {
             break;
           }
 
-        offset = first_occurence - header;
+        offset = static_cast<int>(first_occurence - header);
 
         /* check for ';' in front */
         if ((offset > 0) and (header[offset - 1] != ';'))
@@ -176,8 +176,8 @@ namespace {
                                                             & start,
                                                             & end);
     if (not attribute_is_present) { return; }
-    attribute_start[nth_attribute] = start;
-    attribute_end[nth_attribute] = end;
+    attribute_start[static_cast<std::size_t>(nth_attribute)] = start;
+    attribute_end[static_cast<std::size_t>(nth_attribute)] = end;
     ++nth_attribute;
   }
 
@@ -273,10 +273,10 @@ auto header_fprint_strip(std::FILE * output_handle,
     {
       for (auto i = 0; i < limit; ++i)
         {
-          if (attribute_start[i] > attribute_start[i + 1])
+          if (attribute_start[static_cast<std::size_t>(i)] > attribute_start[static_cast<std::size_t>(i + 1)])
             {
-              std::swap(attribute_start[i], attribute_start[i + 1]);
-              std::swap(attribute_end[i], attribute_end[i + 1]);
+              std::swap(attribute_start[static_cast<std::size_t>(i)], attribute_start[static_cast<std::size_t>(i + 1)]);
+              std::swap(attribute_end[static_cast<std::size_t>(i)], attribute_end[static_cast<std::size_t>(i + 1)]);
               last_swap = i;
             }
         }
@@ -298,14 +298,14 @@ auto header_fprint_strip(std::FILE * output_handle,
       for (auto i = 0; i < nth_attribute; ++i)
         {
           /* print part of header in front of this attribute */
-          if (attribute_start[i] > prev_end + 1)
+          if (attribute_start[static_cast<std::size_t>(i)] > prev_end + 1)
             {
               std::fprintf(output_handle, "%.*s",
-                      attribute_start[i] - prev_end - 1,
+                      attribute_start[static_cast<std::size_t>(i)] - prev_end - 1,
                       header + prev_end);
-              last_index = attribute_start[i] - 2;
+              last_index = attribute_start[static_cast<std::size_t>(i)] - 2;
             }
-          prev_end = attribute_end[i];
+          prev_end = attribute_end[static_cast<std::size_t>(i)];
         }
 
       /* print the rest, if any */
