@@ -342,7 +342,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               qsequence,
                               qseqlen,
                               query_head,
-                              static_cast<int>(strlen(query_head)),
+                              static_cast<int>(std::strlen(query_head)),
                               static_cast<uint64_t>(qsize),
                               count_matched,
                               -1.0,
@@ -360,7 +360,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               qsequence,
                               qseqlen,
                               query_head,
-                              static_cast<int>(strlen(query_head)),
+                              static_cast<int>(std::strlen(query_head)),
                               static_cast<uint64_t>(qsize),
                               count_notmatched,
                               -1.0,
@@ -463,8 +463,8 @@ auto search_exact_thread_run(uint64_t t) -> void
             }
 
           /* plus strand: copy header and sequence */
-          strcpy(si_plus[t].query_head, qhead);
-          strcpy(si_plus[t].qsequence, qseq);
+          std::strcpy(si_plus[t].query_head, qhead);
+          std::strcpy(si_plus[t].qsequence, qseq);
 
           /* get progress as amount of input file read */
           uint64_t const progress = fastx_get_position(query_fastx_h);
@@ -475,7 +475,7 @@ auto search_exact_thread_run(uint64_t t) -> void
           /* minus strand: copy header and reverse complementary sequence */
           if (opt_strand > 1)
             {
-              strcpy(si_minus[t].query_head, si_plus[t].query_head);
+              std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
               reverse_complement(si_minus[t].qsequence,
                                  si_plus[t].qsequence,
                                  si_plus[t].qseqlen);
@@ -579,8 +579,8 @@ auto search_exact_prep(char const * cmdline, char const * progheader) -> void
           fatal("Unable to open alignment output file for writing");
         }
 
-      fprintf(fp_alnout, "%s\n", cmdline);
-      fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(fp_alnout, "%s\n", cmdline);
+      std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
   if (opt_samout != nullptr)
@@ -746,52 +746,52 @@ auto search_exact_done() -> void
 
   if (opt_dbmatched != nullptr)
     {
-      fclose(fp_dbmatched);
+      std::fclose(fp_dbmatched);
     }
   if (opt_dbnotmatched != nullptr)
     {
-      fclose(fp_dbnotmatched);
+      std::fclose(fp_dbnotmatched);
     }
   if (opt_matched != nullptr)
     {
-      fclose(fp_matched);
+      std::fclose(fp_matched);
     }
   if (opt_notmatched != nullptr)
     {
-      fclose(fp_notmatched);
+      std::fclose(fp_notmatched);
     }
   if (opt_fastapairs != nullptr)
     {
-      fclose(fp_fastapairs);
+      std::fclose(fp_fastapairs);
     }
   if (opt_qsegout != nullptr)
     {
-      fclose(fp_qsegout);
+      std::fclose(fp_qsegout);
     }
   if (opt_tsegout != nullptr)
     {
-      fclose(fp_tsegout);
+      std::fclose(fp_tsegout);
     }
   if (fp_uc != nullptr)
     {
-      fclose(fp_uc);
+      std::fclose(fp_uc);
     }
   if (fp_blast6out != nullptr)
     {
-      fclose(fp_blast6out);
+      std::fclose(fp_blast6out);
     }
   if (fp_userout != nullptr)
     {
-      fclose(fp_userout);
+      std::fclose(fp_userout);
       clean_up(); // free userfields allocation
     }
   if (fp_alnout != nullptr)
     {
-      fclose(fp_alnout);
+      std::fclose(fp_alnout);
     }
   if (fp_samout != nullptr)
     {
-      fclose(fp_samout);
+      std::fclose(fp_samout);
     }
 
   show_rusage();
@@ -847,47 +847,47 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
 
   if (! parameters.opt_quiet)
     {
-      fprintf(stderr, "Matching unique query sequences: %d of %d",
+      std::fprintf(stderr, "Matching unique query sequences: %d of %d",
               qmatches, queries);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      fprintf(stderr, "\n");
+      std::fprintf(stderr, "\n");
       if (parameters.opt_sizein)
         {
-          fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
+          std::fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
                   PRIu64,
                   qmatches_abundance, queries_abundance);
           if (queries_abundance > 0)
             {
-              fprintf(stderr, " (%.2f%%)",
+              std::fprintf(stderr, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          fprintf(stderr, "\n");
+          std::fprintf(stderr, "\n");
         }
     }
 
   if (parameters.opt_log != nullptr)
     {
-      fprintf(fp_log, "Matching unique query sequences: %d of %d",
+      std::fprintf(fp_log, "Matching unique query sequences: %d of %d",
               qmatches, queries);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n");
       if (parameters.opt_sizein)
         {
-          fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
+          std::fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
                   PRIu64,
                   qmatches_abundance, queries_abundance);
           if (queries_abundance > 0)
             {
-              fprintf(fp_log, " (%.2f%%)",
+              std::fprintf(fp_log, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          fprintf(fp_log, "\n");
+          std::fprintf(fp_log, "\n");
         }
     }
 
@@ -903,19 +903,19 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
   if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout);
-      fclose(fp_biomout);
+      std::fclose(fp_biomout);
     }
 
   if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout);
-      fclose(fp_otutabout);
+      std::fclose(fp_otutabout);
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
-      fclose(fp_mothur_shared_out);
+      std::fclose(fp_mothur_shared_out);
     }
 
   otutable_done();
