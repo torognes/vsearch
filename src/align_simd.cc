@@ -476,7 +476,7 @@ auto _mm_print(VECTOR_SHORT const x) -> void
   auto const * y = reinterpret_cast<unsigned short const *>(&x);
   for (int i = 0; i < 8; i++)
     {
-      printf("%s%6d", (i > 0 ? " " : ""), y[7 - i]);
+      std::printf("%s%6d", (i > 0 ? " " : ""), y[7 - i]);
     }
 }
 
@@ -486,27 +486,27 @@ auto _mm_print2(VECTOR_SHORT const x) -> void
   auto const * y = reinterpret_cast<signed short const *>(&x);
   for (int i = 0; i < 8; i++)
     {
-      printf("%s%2d", (i > 0 ? " " : ""), y[7 - i]);
+      std::printf("%s%2d", (i > 0 ? " " : ""), y[7 - i]);
     }
 }
 
 
 auto dprofile_dump16(CELL const * dprofile) -> void
 {
-  printf("\ndprofile:\n");
+  std::printf("\ndprofile:\n");
   for (int i = 0; i < matrix_size; i++)
     {
-      printf("%c: ", sym_nt_4bit[static_cast<size_t>(i)]);
+      std::printf("%c: ", sym_nt_4bit[static_cast<size_t>(i)]);
       for (int k = 0; k < CDEPTH; k++)
         {
-          printf("[");
+          std::printf("[");
           for (int j = 0; j < CHANNELS; j++)
             {
-              printf(" %3d", dprofile[(CHANNELS * CDEPTH * i) + (CHANNELS * k) + j]);
+              std::printf(" %3d", dprofile[(CHANNELS * CDEPTH * i) + (CHANNELS * k) + j]);
             }
-          printf("]");
+          std::printf("]");
         }
-      printf("\n");
+      std::printf("\n");
     }
 }
 
@@ -1067,7 +1067,7 @@ auto backtrack16(s16info_s * s,
 
 #if 0
 
-  printf("Dumping backtracking array\n");
+  std::printf("Dumping backtracking array\n");
 
   for (uint64_t i = 0; i < qlen; i++)
     {
@@ -1079,23 +1079,23 @@ auto backtrack16(s16info_s * s,
           if (d & maskup)
             {
               if (d & maskleft)
-                printf("+");
+                std::printf("+");
               else
-                printf("^");
+                std::printf("^");
             }
           else if (d & maskleft)
             {
-              printf("<");
+              std::printf("<");
             }
           else
             {
-              printf("\\");
+              std::printf("\\");
             }
         }
-      printf("\n");
+      std::printf("\n");
     }
 
-  printf("Dumping gap extension array\n");
+  std::printf("Dumping gap extension array\n");
 
   for (uint64_t i = 0; i < qlen; i++)
     {
@@ -1107,20 +1107,20 @@ auto backtrack16(s16info_s * s,
           if (d & maskextup)
             {
               if (d & maskextleft)
-                printf("+");
+                std::printf("+");
               else
-                printf("^");
+                std::printf("^");
             }
           else if (d & maskextleft)
             {
-              printf("<");
+              std::printf("<");
             }
           else
             {
-              printf("\\");
+              std::printf("\\");
             }
         }
-      printf("\n");
+      std::printf("\n");
     }
 
 #endif
@@ -1792,7 +1792,7 @@ auto search16(s16info_s * s,
                                       pgaps + cand_id);
                           pcigar[cand_id] =
                             static_cast<char *>(xmalloc(std::strlen(s->cigar)+1));
-                          strcpy(pcigar[cand_id], s->cigar);
+                          std::strcpy(pcigar[cand_id], s->cigar);
                         }
 
                       done++;
