@@ -193,11 +193,11 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   */
 
   // 0xffffffff -> 1111'1111'1111'1111'1111'1111'1111'1111 (32 bits)
-  static constexpr auto all_ones = static_cast<int32_t>(0xffffffff);
+  static constexpr auto all_ones = static_cast<int32_t>(0xffffffffU);
   // 0x7fbfdfef -> 0111'1111'1011'1111'1101'1111'1110'1111 (32 bits)
-  static constexpr auto mask1 = static_cast<int32_t>(0x7fbfdfef);
+  static constexpr auto mask1 = static_cast<int32_t>(0x7fbfdfefU);
   // 0xf7fbfdfe -> 1111'0111'1111'1011'1111'1101'1111'1110 (32 bits)
-  static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfe);
+  static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfeU);
 
 #if defined(SSSE3) || defined(SIMDE_VERSION)
   const auto c1 = _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);

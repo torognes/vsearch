@@ -25,20 +25,17 @@ if ENABLE_DEBUG
 # -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # GCC 14: -Wnrvo (Named Return Value Optimization)
 # evaluated and left disabled:
-# -Wuseless-cast: only fires inside SIMD intrinsics where the cast is
-#   load-bearing in a shared macro (align_simd.cc) or documents intent
-#   in a symmetric constant block (cpu.cc)
 # -Wformat=2: its only delta over -Wformat=1 is -Wformat-nonliteral,
 #   which fires on the non-variadic printf wrappers fatal()/warn() and
 #   cannot be silenced by __attribute__((format)) on a non-variadic
 #   function
 # -Wold-style-cast is a debug-build flag, and debug builds target
 #   x86_64, where it is verified clean. The __PPC__ and __aarch64__
-#   SIMD paths in align_simd.cc keep some C-style casts: the v_load /
-#   v_store macros must strip const while reinterpreting (the PPC
-#   ALIGNCORE loads from a const vector), and PPC AltiVec vector-value
-#   casts have no portable C++ named-cast equivalent. These paths are
-#   only compiled when cross-building for POWER/ARM.
+#   SIMD paths in align_simd.cc keep some C-style casts: PPC AltiVec
+#   vector-value reinterpretations (in v_mask_gt, v_store and the
+#   dprofile merge pipeline) have no portable C++ named-cast
+#   equivalent. These paths are only compiled when cross-building for
+#   POWER/ARM.
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
              -Wformat=1 -Wformat-overflow -Wlogical-op -Wnull-dereference \
@@ -63,9 +60,14 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 # -Wconversion and -Wsign-conversion are likewise restricted to C++:
 # the bundled C sources md5.c and sha1.c rely on many implicit integer
 # conversions that are intrinsic to the upstream hashing code.
+# -Wuseless-cast: align_simd.cc, the historical blocker (the casts were
+# load-bearing in the v_load/v_store/ALIGNCORE macros), is clean now
+# that those are functions. results.cc keeps one flagged cast on
+# purpose: uint64_t -> size_t is a no-op on the 64-bit targets but is
+# retained as an explicit, portable narrowing.
 if ENABLE_DEBUG
 AM_CXXFLAGS += -Wcast-qual -Wconversion -Wnon-virtual-dtor -Wold-style-cast \
-               -Woverloaded-virtual -Wsign-conversion
+               -Woverloaded-virtual -Wsign-conversion -Wuseless-cast
 endif
 
 export MACOSX_DEPLOYMENT_TARGET=10.9
