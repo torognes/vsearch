@@ -679,19 +679,14 @@ auto dprofile_fill16(CELL * dprofile_word,
 */
 
 /*
-  On PPC the fifth parameter is a vector for the result in the lower 64 bits.
-  On x86_64 the fifth parameter is the address to write the result to.
+  onestep() advances one block of DP cells. Its fifth parameter is a pointer
+  into the direction buffer where the four 16-bit direction masks for this
+  block are written, one per v_mask_gt comparison. On PPC v_mask_gt folds in
+  the byte-permute that x86_64/aarch64 obtain directly from movemask, so a
+  single onestep() serves every architecture.
 */
 
 #ifdef __PPC__
-
-/* Handle differences between GNU and IBM compilers */
-
-#ifdef __IBMCPP__
-#define VECTORBYTEPERMUTE vec_bperm
-#else
-#define VECTORBYTEPERMUTE vec_vbpermq
-#endif
 
 /* The VSX vec_bperm instruction puts the 16 selected bits of the first
    source into bits 48-63 of the destination. */
@@ -699,60 +694,53 @@ auto dprofile_fill16(CELL * dprofile_word,
 constexpr __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
   56,  48,  40,  32,  24,  16,   8,   0 };
 
-#define ALIGNCORE(H, N, F, V, RES, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX)  \
-  {                                                                     \
-    __vector unsigned short W, X, Y, Z;                                 \
-    __vector unsigned int WX, YZ;                                       \
-    __vector short VV;                                                  \
-    VV = v_load(&V);                                                    \
-    H = v_add(H, VV);                                                   \
-    W = (__vector unsigned short) VECTORBYTEPERMUTE                     \
-      ((__vector unsigned char) vec_cmpgt(F, H), perm);                 \
-    H = v_max(H, F);                                                    \
-    X = (__vector unsigned short) VECTORBYTEPERMUTE                     \
-      ((__vector unsigned char) vec_cmpgt(E, H), perm);                 \
-    H = v_max(H, E);                                                    \
-    H_MIN = v_min(H_MIN, H);                                            \
-    H_MAX = v_max(H_MAX, H);                                            \
-    N = H;                                                              \
-    HF = v_sub(H, QR_t);                                                \
-    F = v_sub(F, R_t);                                                  \
-    Y = (__vector unsigned short) VECTORBYTEPERMUTE                     \
-      ((__vector unsigned char) vec_cmpgt(F, HF), perm);                \
-    F = v_max(F, HF);                                                   \
-    HE = v_sub(H, QR_q);                                                \
-    E = v_sub(E, R_q);                                                  \
-    Z = (__vector unsigned short) VECTORBYTEPERMUTE                     \
-      ((__vector unsigned char) vec_cmpgt(E, HE), perm);                \
-    E = v_max(E, HE);                                                   \
-    WX = (__vector unsigned int) vec_mergel(W, X);                      \
-    YZ = (__vector unsigned int) vec_mergel(Y, Z);                      \
-    RES = (__vector unsigned long long) vec_mergeh(WX, YZ);             \
-  }
-
+inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> unsigned short {
+  /* Build the same per-element greater-than bitmask that x86_64 and aarch64
+     obtain from movemask: compare, then gather one bit per byte with the
+     byte-permute. vec_bperm leaves the 16 gathered bits in lane 4. */
+  static constexpr unsigned int result_lane = 4U;
+  auto const comparison = (__vector unsigned char) vec_cmpgt(lhs, rhs);
+  /* Handle differences between GNU and IBM compilers */
+#ifdef __IBMCPP__
+  auto const bits = (__vector unsigned short) vec_bperm(comparison, perm);
 #else
-
-/* x86_64 & aarch64 */
-
-#define ALIGNCORE(H, N, F, V, PATH, QR_q, R_q, QR_t, R_t, H_MIN, H_MAX) \
-  H = v_add(H, V);                                                      \
-  *((PATH)+0) = v_mask_gt(F, H);                                        \
-  (H) = v_max(H, F);                                                    \
-  *((PATH)+1) = v_mask_gt(E, H);                                        \
-  (H) = v_max(H, E);                                                    \
-  (H_MIN) = v_min(H_MIN, H);                                            \
-  (H_MAX) = v_max(H_MAX, H);                                            \
-  (N) = H;                                                              \
-  HF = v_sub(H, QR_t);                                                  \
-  (F) = v_sub(F, R_t);                                                  \
-  *((PATH)+2) = v_mask_gt(F, HF);                                       \
-  (F) = v_max(F, HF);                                                   \
-  HE = v_sub(H, QR_q);                                                  \
-  E = v_sub(E, R_q);                                                    \
-  *((PATH)+3) = v_mask_gt(E, HE);                                       \
-  E = v_max(E, HE);
+  auto const bits = (__vector unsigned short) vec_vbpermq(comparison, perm);
+#endif
+  return bits[result_lane];
+}
 
 #endif
+
+inline auto onestep(VECTOR_SHORT & H,
+                    VECTOR_SHORT & N,
+                    VECTOR_SHORT & F,
+                    VECTOR_SHORT V,
+                    unsigned short * path,
+                    VECTOR_SHORT & E,
+                    VECTOR_SHORT QR_q,
+                    VECTOR_SHORT R_q,
+                    VECTOR_SHORT QR_t,
+                    VECTOR_SHORT R_t,
+                    VECTOR_SHORT & H_min,
+                    VECTOR_SHORT & H_max) -> void
+{
+  H = v_add(H, V);
+  path[0] = v_mask_gt(F, H);
+  H = v_max(H, F);
+  path[1] = v_mask_gt(E, H);
+  H = v_max(H, E);
+  H_min = v_min(H_min, H);
+  H_max = v_max(H_max, H);
+  N = H;
+  VECTOR_SHORT const HF = v_sub(H, QR_t);
+  F = v_sub(F, R_t);
+  path[2] = v_mask_gt(F, HF);
+  F = v_max(F, HF);
+  VECTOR_SHORT const HE = v_sub(H, QR_q);
+  E = v_sub(E, R_q);
+  path[3] = v_mask_gt(E, HE);
+  E = v_max(E, HE);
+}
 
 auto aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT * hep,
@@ -794,18 +782,10 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   VECTOR_SHORT h7;
   VECTOR_SHORT h8;
   VECTOR_SHORT E;
-  VECTOR_SHORT HE;
-  VECTOR_SHORT HF;
   VECTOR_SHORT const * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero();
   VECTOR_SHORT h_max = v_zero();
-
-#ifdef __PPC__
-  __vector unsigned long long RES1;
-  __vector unsigned long long RES2;
-  __vector unsigned long long RES;
-#endif
 
   int64_t i = 0;
 
@@ -840,29 +820,14 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 
       M_QR_t_left = v_add(M_QR_t_left, M_R_t_left);
 
-#ifdef __PPC__
-      ALIGNCORE(h0, h5, f0, vp[0], RES1,
-                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], RES2,
-                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      v_store((dir + (16 * i) + 0), RES);
-      ALIGNCORE(h2, h7, f2, vp[2], RES1,
-                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], RES2,
-                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
-      RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      v_store((dir + (16 * i) + 8), RES);
-#else
-      ALIGNCORE(h0, h5, f0, vp[0], dir + (16 * i) + 0,
-                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], dir + (16 * i) + 4,
-                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      ALIGNCORE(h2, h7, f2, vp[2], dir + (16 * i) + 8,
-                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], dir + (16 * i) + 12,
-                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
-#endif
+      onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
+              QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
+      onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
+              QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
+      onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
+              QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
+      onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
+              QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 
       hep[(2 * i) + 0] = h8;
       hep[(2 * i) + 1] = E;
@@ -884,29 +849,14 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
   E  = v_sub(E, M_QR_q_right);
 
 
-#ifdef __PPC__
-  ALIGNCORE(h0, h5, f0, vp[0], RES1,
-            QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  ALIGNCORE(h1, h6, f1, vp[1], RES2,
-            QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  v_store((dir + (16 * i) + 0), RES);
-  ALIGNCORE(h2, h7, f2, vp[2], RES1,
-            QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  ALIGNCORE(h3, h8, f3, vp[3], RES2,
-            QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
-  RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  v_store((dir + (16 * i) + 8), RES);
-#else
-  ALIGNCORE(h0, h5, f0, vp[0], dir + (16 * i) + 0,
-            QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  ALIGNCORE(h1, h6, f1, vp[1], dir + (16 * i) + 4,
-            QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  ALIGNCORE(h2, h7, f2, vp[2], dir + (16 * i) + 8,
-            QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  ALIGNCORE(h3, h8, f3, vp[3], dir + (16 * i) + 12,
-            QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
-#endif
+  onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
+          QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
+  onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
+          QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
+  onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
+          QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
+  onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
+          QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
 
 
   hep[(2 * i) + 0] = h8;
@@ -956,18 +906,10 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
   VECTOR_SHORT h7;
   VECTOR_SHORT h8;
   VECTOR_SHORT E;
-  VECTOR_SHORT HE;
-  VECTOR_SHORT HF;
   VECTOR_SHORT const * vp = nullptr;
 
   VECTOR_SHORT h_min = v_zero();
   VECTOR_SHORT h_max = v_zero();
-
-#ifdef __PPC__
-  __vector unsigned long long RES1;
-  __vector unsigned long long RES2;
-  __vector unsigned long long RES;
-#endif
 
   int64_t i = 0;
 
@@ -984,29 +926,14 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
 
       E  = hep[(2 * i) + 1];
 
-#ifdef __PPC__
-      ALIGNCORE(h0, h5, f0, vp[0], RES1,
-                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], RES2,
-                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      v_store((dir + (16 * i) + 0), RES);
-      ALIGNCORE(h2, h7, f2, vp[2], RES1,
-                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], RES2,
-                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
-      RES = vec_perm(RES1, RES2, perm_merge_long_low);
-      v_store((dir + (16 * i) + 8), RES);
-#else
-      ALIGNCORE(h0, h5, f0, vp[0], dir + (16 * i) + 0,
-                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      ALIGNCORE(h1, h6, f1, vp[1], dir + (16 * i) + 4,
-                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      ALIGNCORE(h2, h7, f2, vp[2], dir + (16 * i) + 8,
-                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      ALIGNCORE(h3, h8, f3, vp[3], dir + (16 * i) + 12,
-                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
-#endif
+      onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
+              QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
+      onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
+              QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
+      onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
+              QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
+      onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
+              QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
 
       hep[(2 * i) + 0] = h8;
       hep[(2 * i) + 1] = E;
@@ -1023,29 +950,14 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
 
   E  = hep[(2 * i) + 1];
 
-#ifdef __PPC__
-  ALIGNCORE(h0, h5, f0, vp[0], RES1,
-            QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  ALIGNCORE(h1, h6, f1, vp[1], RES2,
-            QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  v_store((dir + (16 * i) + 0), RES);
-  ALIGNCORE(h2, h7, f2, vp[2], RES1,
-            QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  ALIGNCORE(h3, h8, f3, vp[3], RES2,
-            QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
-  RES = vec_perm(RES1, RES2, perm_merge_long_low);
-  v_store((dir + (16 * i) + 8), RES);
-#else
-  ALIGNCORE(h0, h5, f0, vp[0], dir + (16 * i) + 0,
-            QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  ALIGNCORE(h1, h6, f1, vp[1], dir + (16 * i) + 4,
-            QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  ALIGNCORE(h2, h7, f2, vp[2], dir + (16 * i) + 8,
-            QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  ALIGNCORE(h3, h8, f3, vp[3], dir + (16 * i) + 12,
-            QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
-#endif
+  onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
+          QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
+  onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
+          QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
+  onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
+          QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
+  onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
+          QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
 
   hep[(2 * i) + 0] = h8;
   hep[(2 * i) + 1] = E;
