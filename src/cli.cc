@@ -61,21 +61,23 @@
 #include "cli.h"
 #include "vsearch.h"
 #include "vsearch_api.h"
-#include "userfields.h"
-#include "utils/compare_strings_nocase.hpp"
-#include "utils/fatal.hpp"
+#include "arch.h"  // arch_get_cores
+#include "chimera.h"  // maxparents
+#include "mask.h"  // MASK_NONE, MASK_DUST, MASK_SOFT, MASK_ERROR
+#include "userfields.h"  // parse_userfields_arg
+#include "utils/compare_strings_nocase.hpp"  // are_same_string
+#include "utils/fatal.hpp"  // fatal
 #include <algorithm>  // std::count
 #include <array>
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macros PRIu64 and PRId64, SCNd64
+#include <cinttypes>  // macro SCNd64
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::sscanf, std::fprintf, fprintf, stderr, stdout
-#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>  // std::numeric_limits
-#include <string>
 #include <unistd.h>  // isatty, fileno
 
 
