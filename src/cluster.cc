@@ -350,13 +350,13 @@ auto relabel_otu(int clusterno, char const * sequence, int seqlen) -> char *
     {
       int const size = static_cast<int>(std::strlen(opt_relabel)) + 21;
       label = static_cast<char *>(xmalloc(static_cast<std::size_t>(size)));
-      snprintf(label, static_cast<std::size_t>(size), "%s%d", opt_relabel, clusterno + 1);
+      std::snprintf(label, static_cast<std::size_t>(size), "%s%d", opt_relabel, clusterno + 1);
     }
   else if (opt_relabel_self)
     {
       int const size = seqlen + 1;
       label = static_cast<char *>(xmalloc(static_cast<std::size_t>(size)));
-      snprintf(label, static_cast<std::size_t>(size), "%.*s", seqlen, sequence);
+      std::snprintf(label, static_cast<std::size_t>(size), "%.*s", seqlen, sequence);
     }
   else if (opt_relabel_sha1)
     {
@@ -501,14 +501,14 @@ auto cluster_core_results_nohit(int clusterno,
 
   if (opt_uc != nullptr)
     {
-      fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
+      std::fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
       header_fprint_strip(fp_uc,
                           query_head,
                           static_cast<int>(std::strlen(query_head)),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      fprintf(fp_uc, "\t*\n");
+      std::fprintf(fp_uc, "\t*\n");
     }
 
   if (opt_output_no_hits != 0)
@@ -1149,8 +1149,8 @@ auto cluster(char const * dbname,
           fatal("Unable to open alignment output file for writing");
         }
 
-      fprintf(fp_alnout, "%s\n", cmdline);
-      fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(fp_alnout, "%s\n", cmdline);
+      std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
   if (opt_samout != nullptr)
@@ -1303,17 +1303,17 @@ auto cluster(char const * dbname,
   if (opt_log != nullptr)
     {
       uint64_t const slots = 1ULL << (static_cast<uint64_t>(opt_wordlength) << 1ULL);
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "      Alphabet  nt\n");
-      fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
-      fprintf(fp_log, "     Word ones  %" PRId64 "\n", opt_wordlength);
-      fprintf(fp_log, "        Spaced  No\n");
-      fprintf(fp_log, "        Hashed  No\n");
-      fprintf(fp_log, "         Coded  No\n");
-      fprintf(fp_log, "       Stepped  No\n");
-      fprintf(fp_log, "         Slots  %" PRIu64 " (%.1fk)\n", slots, static_cast<double>(slots)/1000.0);
-      fprintf(fp_log, "       DBAccel  100%%\n");
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "      Alphabet  nt\n");
+      std::fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "     Word ones  %" PRId64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "        Spaced  No\n");
+      std::fprintf(fp_log, "        Hashed  No\n");
+      std::fprintf(fp_log, "         Coded  No\n");
+      std::fprintf(fp_log, "       Stepped  No\n");
+      std::fprintf(fp_log, "         Slots  %" PRIu64 " (%.1fk)\n", slots, static_cast<double>(slots)/1000.0);
+      std::fprintf(fp_log, "       DBAccel  100%%\n");
+      std::fprintf(fp_log, "\n");
     }
 
   if (opt_threads == 1)
@@ -1362,12 +1362,12 @@ auto cluster(char const * dbname,
     {
       if (opt_clusterout_sort)
         {
-          qsort(clusterinfo_v.data(), static_cast<std::size_t>(seqcount), sizeof(clusterinfo_t),
+          std::qsort(clusterinfo_v.data(), static_cast<std::size_t>(seqcount), sizeof(clusterinfo_t),
                 compare_byclusterabundance);
         }
       else
         {
-          qsort(clusterinfo_v.data(), static_cast<std::size_t>(seqcount), sizeof(clusterinfo_t),
+          std::qsort(clusterinfo_v.data(), static_cast<std::size_t>(seqcount), sizeof(clusterinfo_t),
                 compare_byclusterno);
         }
     }
@@ -1416,7 +1416,7 @@ auto cluster(char const * dbname,
 
           if (opt_uc != nullptr)
             {
-              fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
+              std::fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
                       cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
               header_fprint_strip(fp_uc,
@@ -1425,7 +1425,7 @@ auto cluster(char const * dbname,
                                   opt_xsize,
                                   opt_xee,
                                   opt_xlength);
-              fprintf(fp_uc, "\t*\n");
+              std::fprintf(fp_uc, "\t*\n");
             }
 
           if (opt_clusters != nullptr)
@@ -1433,11 +1433,11 @@ auto cluster(char const * dbname,
               /* close previous (except for first time) and open new file */
               if (lastcluster != -1)
                 {
-                  fclose(fp_clusters);
+                  std::fclose(fp_clusters);
                 }
 
               ordinal = 0;
-              snprintf(fn_clusters.data(),
+              std::snprintf(fn_clusters.data(),
                        fn_clusters.capacity(),
                        "%s%d",
                        opt_clusters,
@@ -1468,7 +1468,7 @@ auto cluster(char const * dbname,
       /* performed with the last sequence */
       if (opt_clusters != nullptr)
         {
-          fclose(fp_clusters);
+          std::fclose(fp_clusters);
         }
     }
 
@@ -1478,26 +1478,26 @@ auto cluster(char const * dbname,
     {
       if (not opt_quiet)
         {
-          fprintf(stderr, "Clusters: 0\n");
-          fprintf(stderr, "Singletons: 0\n");
+          std::fprintf(stderr, "Clusters: 0\n");
+          std::fprintf(stderr, "Singletons: 0\n");
         }
       if (opt_log != nullptr)
         {
-          fprintf(fp_log, "Clusters: 0\n");
-          fprintf(fp_log, "Singletons: 0\n");
+          std::fprintf(fp_log, "Clusters: 0\n");
+          std::fprintf(fp_log, "Singletons: 0\n");
         }
     }
   else
     {
       if (not opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
                   clusters,
                   abundance_min,
                   abundance_max,
                   1.0 * seqcount / clusters);
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
                   singletons,
                   100.0 * singletons / seqcount,
@@ -1506,18 +1506,18 @@ auto cluster(char const * dbname,
 
       if (opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
                   clusters,
                   abundance_min,
                   abundance_max,
                   1.0 * seqcount / clusters);
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
                   singletons,
                   100.0 * singletons / seqcount,
                   100.0 * singletons / clusters);
-          fprintf(fp_log, "\n");
+          std::fprintf(fp_log, "\n");
         }
     }
 
@@ -1605,17 +1605,17 @@ auto cluster(char const * dbname,
 
       if (fp_profile != nullptr)
         {
-          fclose(fp_profile);
+          std::fclose(fp_profile);
         }
 
       if (fp_msaout != nullptr)
         {
-          fclose(fp_msaout);
+          std::fclose(fp_msaout);
         }
 
       if (fp_consout != nullptr)
         {
-          fclose(fp_consout);
+          std::fclose(fp_consout);
         }
     }
 
@@ -1636,67 +1636,67 @@ auto cluster(char const * dbname,
   if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout);
-      fclose(fp_biomout);
+      std::fclose(fp_biomout);
     }
 
   if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout);
-      fclose(fp_otutabout);
+      std::fclose(fp_otutabout);
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
-      fclose(fp_mothur_shared_out);
+      std::fclose(fp_mothur_shared_out);
     }
 
   otutable_done();
 
   if (opt_matched != nullptr)
     {
-      fclose(fp_matched);
+      std::fclose(fp_matched);
     }
   if (opt_notmatched != nullptr)
     {
-      fclose(fp_notmatched);
+      std::fclose(fp_notmatched);
     }
   if (opt_fastapairs != nullptr)
     {
-      fclose(fp_fastapairs);
+      std::fclose(fp_fastapairs);
     }
   if (opt_qsegout != nullptr)
     {
-      fclose(fp_qsegout);
+      std::fclose(fp_qsegout);
     }
   if (opt_tsegout != nullptr)
     {
-      fclose(fp_tsegout);
+      std::fclose(fp_tsegout);
     }
   if (fp_blast6out != nullptr)
     {
-      fclose(fp_blast6out);
+      std::fclose(fp_blast6out);
     }
   if (fp_userout != nullptr)
     {
-      fclose(fp_userout);
+      std::fclose(fp_userout);
       clean_up(); // free userfields allocation
     }
   if (fp_alnout != nullptr)
     {
-      fclose(fp_alnout);
+      std::fclose(fp_alnout);
     }
   if (fp_samout != nullptr)
     {
-      fclose(fp_samout);
+      std::fclose(fp_samout);
     }
   if (fp_uc != nullptr)
     {
-      fclose(fp_uc);
+      std::fclose(fp_uc);
     }
   if (fp_centroids != nullptr)
     {
-      fclose(fp_centroids);
+      std::fclose(fp_centroids);
     }
 
   dbindex_free();
