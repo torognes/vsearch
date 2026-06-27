@@ -367,7 +367,7 @@ auto align_trim(struct hit * hit) -> void
     {
       run = 1;
       auto scanlength = 0;
-      sscanf(p, "%" PRId64 "%n", &run, &scanlength);
+      std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
       op = *(p + scanlength);
       if (op != 'M')
         {
@@ -385,7 +385,7 @@ auto align_trim(struct hit * hit) -> void
 
   /* right trim alignment */
 
-  auto * e = hit->nwalignment + strlen(hit->nwalignment);
+  auto * e = hit->nwalignment + std::strlen(hit->nwalignment);
   if (e > hit->nwalignment)
     {
       p = e - 1;
@@ -397,7 +397,7 @@ auto align_trim(struct hit * hit) -> void
               --p;
             }
           run = 1;
-          sscanf(p, "%" PRId64, &run);
+          std::sscanf(p, "%" PRId64, &run);
           hit->trim_aln_right = static_cast<int>(e - p);
           if (op == 'D')
             {
