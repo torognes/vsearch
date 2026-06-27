@@ -1384,7 +1384,7 @@ auto cluster(char const * dbname,
   }
 
   int lastcluster = -1;
-  int ordinal = 0;
+  uint64_t ordinal = 0;
 
   for (int i = 0; i < seqcount; i++)
     {
