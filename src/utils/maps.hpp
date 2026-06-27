@@ -58,8 +58,7 @@
 
 */
 
-#ifndef MAPS_HPP
-#define MAPS_HPP
+#pragma once
 
 #include <vector>
 
@@ -89,5 +88,3 @@ auto is_equivalent_4bit_rhs(char lhs, char rhs) -> bool;
 auto is_ambiguous_4bit(unsigned char nucleotide) -> bool;
 
 auto is_same_4bit(char lhs, char rhs) -> bool;
-
-#endif // MAPS_HPP

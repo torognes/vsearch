@@ -61,8 +61,7 @@
 // Operating System specific commands to swap bytes
 // C++23 refactoring: replace with std::byteswap()
 
-#ifndef OS_BYTESWAP_HPP
-#define OS_BYTESWAP_HPP
+#pragma once
 
 
 #if defined(_MSC_VER) || defined(_WIN32)
@@ -94,6 +93,3 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t;
 #include <byteswap.h>
 
 #endif
-
-
-#endif // OS_BYTESWAP_HPP

@@ -60,9 +60,6 @@
 
 #pragma once
 
-#ifndef BITMAP_H
-#define BITMAP_H
-
 struct bitmap_s
 {
   unsigned char * bitmap; /* the actual bitmap */
@@ -79,5 +76,3 @@ auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void;
 auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int seed_value) -> void;
 
 auto bitmap_free(struct bitmap_s * a_bitmap) -> void;
-
-#endif // BITMAP_H

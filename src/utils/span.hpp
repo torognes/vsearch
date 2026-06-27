@@ -58,8 +58,7 @@
 
 */
 
-#ifndef SPAN_HPP
-#define SPAN_HPP
+#pragma once
 
 
 #include <algorithm>  // std::equal, std::lexicographical_compare, std::min
@@ -238,5 +237,3 @@ private:
 //   std::for_each(s7.crbegin(), s7.crend(), report);
 //   printf("\n");
 // }
-
-#endif // SPAN_HPP

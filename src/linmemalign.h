@@ -60,9 +60,6 @@
 
 #pragma once
 
-#ifndef LINMEMALIGN_HPP
-#define LINMEMALIGN_HPP
-
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
 #include <vector>
@@ -173,5 +170,3 @@ public:
                   int64_t * nwmismatches,
                   int64_t * nwgaps) -> void;
 };
-
-#endif // LINMEMALIGN_HPP

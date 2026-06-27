@@ -58,8 +58,7 @@
 
 */
 
-#ifndef THREADS_HPP
-#define THREADS_HPP
+#pragma once
 
 #include <condition_variable>
 #include <cstddef>
@@ -183,5 +182,3 @@ public:
     }
   }
 };
-
-#endif
