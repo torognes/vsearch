@@ -213,7 +213,7 @@ auto xrealloc(void * ptr, std::size_t size) -> void *
 #ifdef _WIN32
   void * new_ptr = _aligned_realloc(ptr, size, vsearch_memalignment);
 #else
-  void * new_ptr = realloc(ptr, size);
+  void * new_ptr = std::realloc(ptr, size);
 #endif
   if (new_ptr == nullptr)
     {
@@ -230,7 +230,7 @@ auto xfree(void * ptr) -> void
 #ifdef _WIN32
       _aligned_free(ptr);
 #else
-      free(ptr);
+      std::free(ptr);
 #endif
     }
   else
