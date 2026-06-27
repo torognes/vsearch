@@ -201,12 +201,12 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
 
   if (parameters.opt_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   fastx_close(input_handle);
@@ -263,7 +263,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
           int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
           if (q < parameters.opt_fastq_qmin)
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "\nFASTQ quality score (%d) below minimum (%" PRId64
                       ") in entry no %" PRIu64
                       " starting on line %" PRIu64 "\n",
@@ -275,7 +275,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
             }
           if (q > parameters.opt_fastq_qmax)
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "\nFASTQ quality score (%d) above maximum (%" PRId64
                       ") in entry no %" PRIu64
                       " starting on line %" PRIu64 "\n",
@@ -311,6 +311,6 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  fclose(fp_fastqout);
+  std::fclose(fp_fastqout);
   fastq_close(input_handle);
 }
