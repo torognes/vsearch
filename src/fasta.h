@@ -110,8 +110,4 @@ auto fasta_print_db(std::FILE * output_handle,
 
 auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
-                            int ordinal) -> void;
-
-auto fasta_print_db_relabel(std::FILE * output_handle,
-                            uint64_t seqno,
-                            std::size_t ordinal) -> void;
+                            uint64_t ordinal) -> void;

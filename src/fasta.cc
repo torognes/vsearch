@@ -617,28 +617,14 @@ auto fasta_print_general(std::FILE * output_handle,
 }
 
 
+// A single uint64_t ordinal parameter: it is the widest unsigned type, so
+// every caller (passing int, size_t or uint64_t, all non-negative 1-based
+// counters) converts without narrowing or sign-change. Two overloads taking
+// int and size_t were ambiguous for a uint64_t argument on platforms where
+// uint64_t, size_t and int are all distinct types (e.g. macOS).
 auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
-                            int ordinal) -> void
-{
-  fasta_print_general(output_handle,
-                      nullptr,
-                      db_getsequence(seqno),
-                      static_cast<int>(db_getsequencelen(seqno)),
-                      db_getheader(seqno),
-                      static_cast<int>(db_getheaderlen(seqno)),
-                      db_getabundance(seqno),
-                      ordinal,
-                      -1.0,
-                      -1, -1,
-                      nullptr, 0.0,
-                      0);
-}
-
-
-auto fasta_print_db_relabel(std::FILE * output_handle,
-                            uint64_t seqno,
-                            std::size_t ordinal) -> void
+                            uint64_t ordinal) -> void
 {
   fasta_print_general(output_handle,
                       nullptr,
