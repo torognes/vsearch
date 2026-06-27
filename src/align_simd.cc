@@ -155,7 +155,12 @@ constexpr __vector unsigned char perm_merge_long_high =
   {0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
 
-#define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
+inline auto v_init(std::array<short, CHANNELS> const & values) -> VECTOR_SHORT {
+  VECTOR_SHORT const result = {values[0], values[1], values[2], values[3],
+                               values[4], values[5], values[6], values[7]};
+  return result;
+}
+
 inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
   return vec_ld(0, ptr);
 }
@@ -211,8 +216,12 @@ using VECTOR_SHORT = int16x8_t;
 constexpr uint16x8_t neon_mask =
   {0x0003, 0x000c, 0x0030, 0x00c0, 0x0300, 0x0c00, 0x3000, 0xc000};
 
-// warning: ISO C++ forbids compound-literals [-Wpedantic] (line below) (clang specific?)
-#define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
+inline auto v_init(std::array<short, CHANNELS> const & values) -> VECTOR_SHORT {
+  VECTOR_SHORT const result = {values[0], values[1], values[2], values[3],
+                               values[4], values[5], values[6], values[7]};
+  return result;
+}
+
 inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
   return vld1q_s16(reinterpret_cast<int16_t const *>(ptr));
 }
@@ -297,7 +306,10 @@ inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> uint16_t {
 
 using VECTOR_SHORT = __m128i;
 
-#define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
+inline auto v_init(std::array<short, CHANNELS> const & values) -> VECTOR_SHORT {
+  return _mm_set_epi16(values[7], values[6], values[5], values[4],
+                       values[3], values[2], values[1], values[0]);
+}
 inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
   return _mm_load_si128(ptr);
 }
@@ -1554,7 +1566,7 @@ auto search16(s16info_s * s,
 #elif defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-  T0 = v_init(-1, 0, 0, 0, 0, 0, 0, 0);
+  T0 = v_init({{-1, 0, 0, 0, 0, 0, 0, 0}});
 
   R_query_left = v_dup(s->penalty_gap_extension_query_left);
 
