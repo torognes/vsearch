@@ -510,8 +510,8 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
 #if 0
           if (f == 0)
-            printf("\n");
-          printf("Best parents long: %d %d %d %d %s %s\n",
+            std::printf("\n");
+          std::printf("Best parents long: %d %d %d %d %s %s\n",
                  f,
                  best_cand,
                  best_start,
@@ -553,9 +553,9 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 
 #if 0
   if (pos_remaining == 0)
-    printf("Fully covered!\n");
+    std::printf("Fully covered!\n");
   else
-    printf("Not covered completely (%d).\n", pos_remaining);
+    std::printf("Not covered completely (%d).\n", pos_remaining);
 #endif
 
   return static_cast<int>((parents_found > 1) and (pos_remaining == 0));
@@ -674,7 +674,7 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       }
 
 #if 0
-      printf("Query %d: Best parent (%d) candidate: %d. Wins: %d\n",
+      std::printf("Query %d: Best parent (%d) candidate: %d. Wins: %d\n",
              ci->query_no, f, best_parent_cand[f], maxwins);
 #endif
 
@@ -1073,19 +1073,19 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
               }
             }
 
-          fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+          std::fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
                   qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
 
           for (int f = 0; f < ci->parents_found; ++f)
             {
-              fprintf(fp_uchimealns, "%c %5d %.*s %d\n",
+              std::fprintf(fp_uchimealns, "%c %5d %.*s %d\n",
                       'A' + f,
                       ppos[static_cast<size_t>(f)] + 1, w, &ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
             }
 
-          fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
-          fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
-          fprintf(fp_uchimealns, "\n");
+          std::fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
+          std::fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
+          std::fprintf(fp_uchimealns, "\n");
 
           rest -= width;
           qpos += qnt;
@@ -1094,14 +1094,14 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
           }
         }
 
-      fprintf(fp_uchimealns, "Ids.  QA %.2f%%, QB %.2f%%, QC %.2f%%, "
+      std::fprintf(fp_uchimealns, "Ids.  QA %.2f%%, QB %.2f%%, QC %.2f%%, "
               "QT %.2f%%, QModel %.2f%%, Div. %+.2f%%\n",
               QA, QB, QC, QT, QM, divfrac);
     }
 
   if (opt_tabbedout != nullptr)
     {
-      fprintf(fp_uchimeout, "%.4f\t", 99.9999);
+      std::fprintf(fp_uchimeout, "%.4f\t", 99.9999);
 
       header_fprint_strip(fp_uchimeout,
                           ci->query_head.data(),
@@ -1109,21 +1109,21 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      fprintf(fp_uchimeout, "\t");
+      std::fprintf(fp_uchimeout, "\t");
       header_fprint_strip(fp_uchimeout,
                           db_getheader(static_cast<uint64_t>(seqno_a)),
                           static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      fprintf(fp_uchimeout, "\t");
+      std::fprintf(fp_uchimeout, "\t");
       header_fprint_strip(fp_uchimeout,
                           db_getheader(static_cast<uint64_t>(seqno_b)),
                           static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      fprintf(fp_uchimeout, "\t");
+      std::fprintf(fp_uchimeout, "\t");
       if (seqno_c >= 0)
         {
           header_fprint_strip(fp_uchimeout,
@@ -1135,11 +1135,11 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
         }
       else
         {
-          fprintf(fp_uchimeout, "*");
+          std::fprintf(fp_uchimeout, "*");
         }
-      fprintf(fp_uchimeout, "\t");
+      std::fprintf(fp_uchimeout, "\t");
 
-      fprintf(fp_uchimeout,
+      std::fprintf(fp_uchimeout,
               "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
               "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
               QM,
@@ -1611,10 +1611,10 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       if ((opt_uchimealns != nullptr) and (status == Status::chimeric))
         {
-          fprintf(fp_uchimealns, "\n");
-          fprintf(fp_uchimealns, "----------------------------------------"
+          std::fprintf(fp_uchimealns, "\n");
+          std::fprintf(fp_uchimealns, "----------------------------------------"
                   "--------------------------------\n");
-          fprintf(fp_uchimealns, "Query   (%5d nt) ",
+          std::fprintf(fp_uchimealns, "Query   (%5d nt) ",
                   ci->query_len);
 
           header_fprint_strip(fp_uchimealns,
@@ -1624,7 +1624,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                               opt_xee,
                               opt_xlength);
 
-          fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
+          std::fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
                   db_getsequencelen(static_cast<uint64_t>(seqno_a)));
           header_fprint_strip(fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(seqno_a)),
@@ -1633,7 +1633,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                               opt_xee,
                               opt_xlength);
 
-          fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
+          std::fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
                   db_getsequencelen(static_cast<uint64_t>(seqno_b)));
           header_fprint_strip(fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(seqno_b)),
@@ -1641,7 +1641,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          fprintf(fp_uchimealns, "\n\n");
+          std::fprintf(fp_uchimealns, "\n\n");
 
           auto const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
           qpos = 0;
@@ -1677,27 +1677,27 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
               if (not best_is_reverse)
                 {
-                  fprintf(fp_uchimealns, "A %5d %.*s %d\n",
+                  std::fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
-                  fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                  std::fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
                           qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
-                  fprintf(fp_uchimealns, "B %5d %.*s %d\n",
+                  std::fprintf(fp_uchimealns, "B %5d %.*s %d\n",
                           p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
                 }
               else
                 {
-                  fprintf(fp_uchimealns, "A %5d %.*s %d\n",
+                  std::fprintf(fp_uchimealns, "A %5d %.*s %d\n",
                           p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
-                  fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                  std::fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
                           qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
-                  fprintf(fp_uchimealns, "B %5d %.*s %d\n",
+                  std::fprintf(fp_uchimealns, "B %5d %.*s %d\n",
                           p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
                 }
 
-              fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
-              fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[static_cast<size_t>(i)]);
-              fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
-              fprintf(fp_uchimealns, "\n");
+              std::fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
+              std::fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[static_cast<size_t>(i)]);
+              std::fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
+              std::fprintf(fp_uchimealns, "\n");
 
               qpos += qnt;
               p1pos += p1nt;
@@ -1705,11 +1705,11 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               rest -= width;
             }
 
-          fprintf(fp_uchimealns, "Ids.  QA %.1f%%, QB %.1f%%, AB %.1f%%, "
+          std::fprintf(fp_uchimealns, "Ids.  QA %.1f%%, QB %.1f%%, AB %.1f%%, "
                   "QModel %.1f%%, Div. %+.1f%%\n",
                   QA, QB, AB, QM, divfrac);
 
-          fprintf(fp_uchimealns, "Diffs Left %d: N %d, A %d, Y %d (%.1f%%); "
+          std::fprintf(fp_uchimealns, "Diffs Left %d: N %d, A %d, Y %d (%.1f%%); "
                   "Right %d: N %d, A %d, Y %d (%.1f%%), Score %.4f\n",
                   sumL, best_left_n, best_left_a, best_left_y,
                   100.0 * best_left_y / sumL,
@@ -1720,7 +1720,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       if (opt_uchimeout != nullptr)
         {
-          fprintf(fp_uchimeout, "%.4f\t", best_h);
+          std::fprintf(fp_uchimeout, "%.4f\t", best_h);
 
           header_fprint_strip(fp_uchimeout,
                               ci->query_head.data(),
@@ -1728,21 +1728,21 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          fprintf(fp_uchimeout, "\t");
+          std::fprintf(fp_uchimeout, "\t");
           header_fprint_strip(fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_a)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          fprintf(fp_uchimeout, "\t");
+          std::fprintf(fp_uchimeout, "\t");
           header_fprint_strip(fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_b)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          fprintf(fp_uchimeout, "\t");
+          std::fprintf(fp_uchimeout, "\t");
 
           if (opt_uchimeout5 == 0)
             {
@@ -1764,10 +1764,10 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                                       opt_xee,
                                       opt_xlength);
                 }
-              fprintf(fp_uchimeout, "\t");
+              std::fprintf(fp_uchimeout, "\t");
             }
 
-          fprintf(fp_uchimeout,
+          std::fprintf(fp_uchimeout,
                   "%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
                   "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
                   QM,
@@ -2217,7 +2217,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
           /* output no parents, no chimeras */
           if ((status < Status::low_score) and (opt_uchimeout != nullptr))
             {
-              fprintf(fp_uchimeout, "%.4f\t", ci->best_h);
+              std::fprintf(fp_uchimeout, "%.4f\t", ci->best_h);
 
               header_fprint_strip(fp_uchimeout,
                                   ci->query_head.data(),
@@ -2228,12 +2228,12 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
               if (opt_uchimeout5 != 0)
                 {
-                  fprintf(fp_uchimeout,
+                  std::fprintf(fp_uchimeout,
                           "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
                 }
               else
                 {
-                  fprintf(fp_uchimeout,
+                  std::fprintf(fp_uchimeout,
                           "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
                 }
             }
@@ -2469,7 +2469,7 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
-          fprintf(fp_log, "%8.2f  minh\n", opt_minh);
+          std::fprintf(fp_log, "%8.2f  minh\n", opt_minh);
         }
       auto const is_a_uchime_command = (parameters.opt_uchime_ref != nullptr) or
         (parameters.opt_uchime_denovo != nullptr) or
@@ -2477,24 +2477,24 @@ auto chimera(struct Parameters const & parameters) -> void
         (parameters.opt_uchime3_denovo != nullptr);
       if (is_a_uchime_command)
         {
-          fprintf(fp_log, "%8.2f  xn\n", opt_xn);
-          fprintf(fp_log, "%8.2f  dn\n", opt_dn);
-          fprintf(fp_log, "%8.2f  xa\n", 1.0);
+          std::fprintf(fp_log, "%8.2f  xn\n", opt_xn);
+          std::fprintf(fp_log, "%8.2f  dn\n", opt_dn);
+          std::fprintf(fp_log, "%8.2f  xa\n", 1.0);
         }
 
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
-          fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
+          std::fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
         }
 
-      fprintf(fp_log, "%8.2f  id\n", opt_id);
+      std::fprintf(fp_log, "%8.2f  id\n", opt_id);
 
       if (is_a_uchime_command)
         {
-          fprintf(fp_log, "%8d  maxp\n", 2);
+          std::fprintf(fp_log, "%8d  maxp\n", 2);
         }
 
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n");
     }
 
 
@@ -2517,7 +2517,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           if (parameters.opt_chimeras_denovo != nullptr)
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Found %d (%.1f%%) chimeras and "
                       "%d (%.1f%%) non-chimeras "
                       "in %d unique sequences.\n",
@@ -2529,7 +2529,7 @@ auto chimera(struct Parameters const & parameters) -> void
             }
           else
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Found %d (%.1f%%) chimeras, "
                       "%d (%.1f%%) non-chimeras,\n"
                       "and %d (%.1f%%) borderline sequences "
@@ -2547,7 +2547,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           if (parameters.opt_chimeras_denovo != nullptr)
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Found %d chimeras and "
                       "%d non-chimeras "
                       "in %d unique sequences.\n",
@@ -2557,7 +2557,7 @@ auto chimera(struct Parameters const & parameters) -> void
             }
           else
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Found %d chimeras, "
                       "%d non-chimeras,\n"
                       "and %d borderline sequences "
@@ -2573,7 +2573,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           if (parameters.opt_chimeras_denovo != nullptr)
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Taking abundance information into account, "
                       "this corresponds to\n"
                       "%" PRId64 " (%.1f%%) chimeras and "
@@ -2587,7 +2587,7 @@ auto chimera(struct Parameters const & parameters) -> void
             }
           else
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Taking abundance information into account, "
                       "this corresponds to\n"
                       "%" PRId64 " (%.1f%%) chimeras, "
@@ -2607,7 +2607,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           if (parameters.opt_chimeras_denovo != nullptr)
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Taking abundance information into account, "
                       "this corresponds to\n"
                       "%" PRId64 " chimeras, "
@@ -2619,7 +2619,7 @@ auto chimera(struct Parameters const & parameters) -> void
             }
           else
             {
-              fprintf(stderr,
+              std::fprintf(stderr,
                       "Taking abundance information into account, "
                       "this corresponds to\n"
                       "%" PRId64 " chimeras, "
@@ -2638,23 +2638,23 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_uchime_ref != nullptr)
         {
-          fprintf(fp_log, "%s", parameters.opt_uchime_ref);
+          std::fprintf(fp_log, "%s", parameters.opt_uchime_ref);
         }
       else
         {
-          fprintf(fp_log, "%s", denovo_dbname);
+          std::fprintf(fp_log, "%s", denovo_dbname);
         }
 
       if (seqno > 0)
         {
-          fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
+          std::fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
                   chimera_count,
                   seqno,
                   100.0 * chimera_count / seqno);
         }
       else
         {
-          fprintf(fp_log, ": %d/%u chimeras\n",
+          std::fprintf(fp_log, ": %d/%u chimeras\n",
                   chimera_count,
                   seqno);
         }
