@@ -384,10 +384,22 @@ namespace {
     unsigned int edx {0};
   };
 
-  auto get_cpuid(unsigned int const leaf, unsigned int const subleaf) -> cpuid_registers {
+  auto get_cpuid(unsigned int const leaf, unsigned int const subleaf) noexcept -> cpuid_registers {
     cpuid_registers registers {};
     __cpuid_count(leaf, subleaf, registers.eax, registers.ebx, registers.ecx, registers.edx);
     return registers;
+  }
+
+  // Read the low 32 bits of XCR0 via XGETBV. Must only be called when CPUID
+  // reports OSXSAVE, otherwise XGETBV raises #UD (illegal instruction).
+  // vsearch.cc is compiled with the baseline target, so the _xgetbv
+  // intrinsic is unavailable; use the equivalent one-instruction asm.
+  auto read_xcr0() noexcept -> unsigned int {
+    unsigned int xcr0_lo {0};
+    unsigned int xcr0_hi {0};
+    __asm__ __volatile__("xgetbv" : "=a"(xcr0_lo), "=d"(xcr0_hi) : "c"(0U));
+    static_cast<void>(xcr0_hi);
+    return xcr0_lo;
   }
 }  // anonymous namespace
 #endif
@@ -419,12 +431,24 @@ auto cpu_features_detect() -> void
       sse41_present  = (leaf1.ecx >> 19U) & 1U;
       sse42_present  = (leaf1.ecx >> 20U) & 1U;
       popcnt_present = (leaf1.ecx >> 23U) & 1U;
-      avx_present    = (leaf1.ecx >> 28U) & 1U;
+
+      // AVX/AVX2 are only usable if the OS has enabled saving of the YMM
+      // register state: CPUID must report OSXSAVE (leaf-1 ECX bit 27) and
+      // XCR0 (read via XGETBV) must have both the SSE (bit 1) and AVX
+      // (bit 2) state-enable bits set. Without this check an AVX-capable
+      // CPU running on an old OS would be over-reported.
+      static constexpr unsigned int xcr0_avx_state = 0x6U;  // XMM | YMM
+      bool const osxsave_present = ((leaf1.ecx >> 27U) & 1U) != 0U;
+      bool const avx_os_enabled =
+        osxsave_present and ((read_xcr0() & xcr0_avx_state) == xcr0_avx_state);
+      bool const avx_supported = ((leaf1.ecx >> 28U) & 1U) != 0U;
+      avx_present = (avx_supported and avx_os_enabled) ? 1 : 0;
 
       if (maxlevel >= 7)
         {
           cpuid_registers const leaf7 = get_cpuid(7, 0);
-          avx2_present = (leaf7.ebx >>  5U) & 1U;
+          bool const avx2_supported = ((leaf7.ebx >> 5U) & 1U) != 0U;
+          avx2_present = (avx2_supported and avx_os_enabled) ? 1 : 0;
         }
     }
 #else
