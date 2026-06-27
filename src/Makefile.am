@@ -80,6 +80,7 @@ attributes.h \
 bitmap.h \
 chimera.h \
 city.h \
+cli.h \
 cluster.h \
 cpu.h \
 cut.h \
@@ -206,6 +207,7 @@ arch.cc \
 attributes.cc \
 bitmap.cc \
 chimera.cc \
+cli.cc \
 cluster.cc \
 cut.cc \
 db.cc \
