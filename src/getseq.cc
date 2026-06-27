@@ -161,12 +161,12 @@ auto read_labels_file(char const * filename) -> void
     {
       if (not opt_quiet)
         {
-          fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
+          std::fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
 
       if (opt_log != nullptr)
         {
-          fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
+          std::fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
     }
 }
@@ -194,7 +194,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
           field_buffer_size += static_cast<int>(longest_label);
         }
       field_buffer.resize(static_cast<std::size_t>(field_buffer_size));
-      snprintf(field_buffer.data(), static_cast<std::size_t>(field_buffer_size), "%s=", opt_label_field);
+      std::snprintf(field_buffer.data(), static_cast<std::size_t>(field_buffer_size), "%s=", opt_label_field);
     }
 
   if (opt_label != nullptr)
@@ -257,9 +257,9 @@ auto test_label_match(fastx_handle input_handle) -> bool
             {
               /* check of full word */
               if (((hit == header) or
-                   (isalnum(*(hit - 1)) == 0)) and
+                   (std::isalnum(*(hit - 1)) == 0)) and
                   ((hit + wlen == header + hlen) or
-                   (isalnum(*(hit + wlen)) == 0)))
+                   (std::isalnum(*(hit + wlen)) == 0)))
                 {
                   return true;
                 }
@@ -306,9 +306,9 @@ auto test_label_match(fastx_handle input_handle) -> bool
               {
                 /* check of full word */
                 if (((hit == header) or
-                     (isalnum(*(hit - 1)) == 0)) and
+                     (std::isalnum(*(hit - 1)) == 0)) and
                     ((hit + wlen == header + hlen) or
-                     (isalnum(*(hit + wlen)) == 0)))
+                     (std::isalnum(*(hit + wlen)) == 0)))
                   {
                     return true;
                   }
@@ -545,52 +545,52 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   if (not opt_quiet)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "%" PRId64 " of %" PRId64 " sequences extracted",
               kept,
               kept + discarded);
       if (kept + discarded > 0)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      fprintf(stderr, "\n");
+      std::fprintf(stderr, "\n");
     }
 
   if (opt_log != nullptr)
     {
-      fprintf(fp_log,
+      std::fprintf(fp_log,
               "%" PRId64 " of %" PRId64 " sequences extracted",
               kept,
               kept + discarded);
       if (kept + discarded > 0)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n");
     }
 
   if (opt_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
 
   if (opt_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   if (opt_notmatched != nullptr)
     {
-      fclose(fp_notmatched);
+      std::fclose(fp_notmatched);
     }
 
   if (opt_notmatchedfq != nullptr)
     {
-      fclose(fp_notmatchedfq);
+      std::fclose(fp_notmatchedfq);
     }
 
   fastx_close(h1);
