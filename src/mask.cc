@@ -147,14 +147,14 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
 
   /* make a local copy of the original sequence */
   std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
-  strcpy(local_seq.data(), seq);
+  std::strcpy(local_seq.data(), seq);
 
   if (!use_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
       for (auto i = 0; i < len; i++)
         {
-          seq[i] = static_cast<char>(toupper(seq[i]));
+          seq[i] = static_cast<char>(std::toupper(seq[i]));
         }
       seq[len] = 0;
     }
@@ -380,7 +380,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
         {
           for (auto j = 0; j < len; j++)
             {
-              if (isupper(seq[j]) != 0)
+              if (std::isupper(seq[j]) != 0)
                 {
                   ++unmasked;
                 }
@@ -437,26 +437,26 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
+          std::fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
       if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          fprintf(stderr, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
+          std::fprintf(stderr, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
         }
-      fprintf(stderr, "%d sequences kept\n", kept);
+      std::fprintf(stderr, "%d sequences kept\n", kept);
     }
 
   if (parameters.opt_log != nullptr)
     {
       if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
+          std::fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
       if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
+          std::fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
         }
-      fprintf(fp_log, "%d sequences kept\n", kept);
+      std::fprintf(fp_log, "%d sequences kept\n", kept);
     }
 
   show_rusage();
@@ -464,10 +464,10 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   if (fp_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
   if (fp_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 }
