@@ -638,7 +638,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (sequencecount > 0)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
                   ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
@@ -649,7 +649,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
       else
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
@@ -660,7 +660,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (sequencecount > 0)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
                   ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
@@ -671,7 +671,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
       else
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
@@ -680,7 +680,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   if (discarded_short != 0U)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
               parameters.opt_minseqlength,
               discarded_short,
@@ -688,7 +688,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   parameters.opt_minseqlength,
                   discarded_short,
@@ -698,7 +698,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   if (discarded_long != 0U)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
               parameters.opt_maxseqlength,
               discarded_long,
@@ -706,7 +706,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   parameters.opt_maxseqlength,
                   discarded_long,
@@ -717,7 +717,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
+  std::qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
   progress_done();
 
   show_rusage();
@@ -730,12 +730,12 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "0 unique sequences\n");
         }
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "0 unique sequences\n\n");
         }
     }
@@ -743,7 +743,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n",
@@ -751,7 +751,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n\n",
@@ -799,7 +799,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
 
       progress_done();
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
 
   if (parameters.opt_fastqout != nullptr)
@@ -832,7 +832,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
 
       progress_done();
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   show_rusage();
@@ -845,14 +845,14 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           auto const & cluster = hashtable[i];
           int64_t const len = static_cast<int64_t>(std::strlen(cluster.seq));
 
-          fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+          std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, cluster.header);
 
           for (auto next = nextseqtab[cluster.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
-              fprintf(fp_uc,
+              std::fprintf(fp_uc,
                       "H\t%" PRId64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                       i, len, 100.0,
                       ((match_strand[next] != 0) ? "-" : "+"),
@@ -867,11 +867,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & cluster = hashtable[i];
-          fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+          std::fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, cluster.size, cluster.header);
           progress_update(i);
         }
-      fclose(fp_uc);
+      std::fclose(fp_uc);
       progress_done();
     }
 
@@ -883,11 +883,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           auto const & cluster = hashtable[i];
 
           if (parameters.opt_relabel != nullptr) {
-            fprintf(fp_tabbedout,
+            std::fprintf(fp_tabbedout,
                     "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                     cluster.header, parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
           } else {
-            fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+            std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                     cluster.header, cluster.header, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
           }
 
@@ -897,11 +897,11 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                next = nextseqtab[next])
             {
               if (parameters.opt_relabel != nullptr) {
-                fprintf(fp_tabbedout,
+                std::fprintf(fp_tabbedout,
                         "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                         headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header);
               } else {
-                fprintf(fp_tabbedout,
+                std::fprintf(fp_tabbedout,
                         "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
                         headertab[next].c_str(), cluster.header, i, j, cluster.count, cluster.header);
               }
@@ -910,7 +910,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
           progress_update(i);
         }
-      fclose(fp_tabbedout);
+      std::fclose(fp_tabbedout);
       progress_done();
     }
 
@@ -921,7 +921,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRId64 " uniques written, %"
                   PRId64 " clusters discarded (%.1f%%)\n",
                   selected, clusters - selected,
@@ -930,7 +930,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
                   PRId64 " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,
