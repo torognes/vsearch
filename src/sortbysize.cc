@@ -164,10 +164,10 @@ namespace {
     // Banker's rounding (round half to even)
     auto const median = find_median_abundance(deck);
     if (not parameters.opt_quiet) {
-      static_cast<void>(fprintf(stderr, "Median abundance: %.0f\n", median));
+      static_cast<void>(std::fprintf(stderr, "Median abundance: %.0f\n", median));
     }
     if (parameters.opt_log != nullptr) {
-      static_cast<void>(fprintf(fp_log, "Median abundance: %.0f\n", median));
+      static_cast<void>(std::fprintf(fp_log, "Median abundance: %.0f\n", median));
     }
   }
 
