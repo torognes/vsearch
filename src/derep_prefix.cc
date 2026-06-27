@@ -364,7 +364,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   show_rusage();
 
   progress_init("Sorting", 1);
-  qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
+  std::qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
   progress_done();
 
   if (clusters > 0)
@@ -386,12 +386,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "0 unique sequences\n");
         }
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "0 unique sequences\n\n");
         }
     }
@@ -399,7 +399,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n",
@@ -407,7 +407,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n\n",
@@ -468,7 +468,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
 
       progress_done();
-      fclose(fp_output);
+      std::fclose(fp_output);
     }
 
   show_rusage();
@@ -482,14 +482,14 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           auto const * h =  db_getheader(bp.seqno_first);
           int64_t const len = static_cast<int64_t>(db_getsequencelen(bp.seqno_first));
 
-          fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+          std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, h);
 
           for (auto next = nextseqtab[bp.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
-              fprintf(fp_uc,
+              std::fprintf(fp_uc,
                       "H\t%" PRId64 "\t%" PRIu64 "\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
                       i, db_getsequencelen(next), 100.0, db_getheader(next), h);
             }
@@ -503,11 +503,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       for (int64_t i = 0; i < clusters; i++)
         {
           auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-          fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+          std::fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, bp.size, db_getheader(bp.seqno_first));
           progress_update(static_cast<uint64_t>(i));
         }
-      fclose(fp_uc);
+      std::fclose(fp_uc);
       progress_done();
       show_rusage();
     }
@@ -516,7 +516,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRId64 " uniques written, %" PRId64
                   " clusters discarded (%.1f%%)\n",
                   selected, clusters - selected,
@@ -525,7 +525,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRId64 " uniques written, %" PRId64
                   " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,
