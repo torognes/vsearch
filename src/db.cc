@@ -295,7 +295,7 @@ auto db_read(const char * filename, int upcase) -> void
     {
       if (sequences > 0)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, "
                   "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
                   db_getnucleotidecount(),
@@ -306,7 +306,7 @@ auto db_read(const char * filename, int upcase) -> void
         }
       else
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
@@ -317,7 +317,7 @@ auto db_read(const char * filename, int upcase) -> void
     {
       if (sequences > 0)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, "
                   "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
                   db_getnucleotidecount(),
@@ -328,7 +328,7 @@ auto db_read(const char * filename, int upcase) -> void
         }
       else
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
@@ -339,7 +339,7 @@ auto db_read(const char * filename, int upcase) -> void
 
   if (discarded_short != 0)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
               opt_minseqlength,
               discarded_short,
@@ -347,7 +347,7 @@ auto db_read(const char * filename, int upcase) -> void
 
       if (opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   opt_minseqlength,
                   discarded_short,
@@ -357,7 +357,7 @@ auto db_read(const char * filename, int upcase) -> void
 
   if (discarded_long != 0)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
               opt_maxseqlength,
               discarded_long,
@@ -365,7 +365,7 @@ auto db_read(const char * filename, int upcase) -> void
 
       if (opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   opt_maxseqlength,
                   discarded_long,
@@ -375,7 +375,7 @@ auto db_read(const char * filename, int upcase) -> void
 
     if (discarded_unoise != 0)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
               opt_minsize,
               discarded_unoise,
@@ -383,7 +383,7 @@ auto db_read(const char * filename, int upcase) -> void
 
       if (opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
                   opt_minsize,
                   discarded_unoise,
@@ -573,7 +573,7 @@ auto db_sortbylength() -> void
   progress_init("Sorting by length", 100);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
-      qsort(seqindex,
+      std::qsort(seqindex,
             sequences,
             sizeof(seqinfo_t),
             compare_bylength);
@@ -587,7 +587,7 @@ auto db_sortbylength_shortest_first() -> void
   progress_init("Sorting by length", 100);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
-      qsort(seqindex,
+      std::qsort(seqindex,
             sequences,
             sizeof(seqinfo_t),
             compare_bylength_shortest_first);
@@ -601,7 +601,7 @@ auto db_sortbyabundance() -> void
   progress_init("Sorting by abundance", 100);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
-      qsort(seqindex,
+      std::qsort(seqindex,
             sequences,
             sizeof(seqinfo_t),
             compare_byabundance);
