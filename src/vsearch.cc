@@ -688,7 +688,7 @@ auto vsearch_apply_defaults_fixups() -> void
 
 auto show_publication() -> void
 {
-  fprintf(stdout,
+  std::fprintf(stdout,
           "Rognes T, Flouri T, Nichols B, Quince C, Mahe F (2016)\n"
           "VSEARCH: a versatile open source tool for metagenomics\n"
           "PeerJ 4:e2584 doi: 10.7717/peerj.2584 https://doi.org/10.7717/peerj.2584\n"
@@ -703,10 +703,10 @@ auto cmd_version(struct Parameters const & parameters) -> void
   show_publication();
 
 #ifdef HAVE_ZLIB_H
-  printf("Compiled with support for gzip-compressed files,");
+  std::printf("Compiled with support for gzip-compressed files,");
   if (gz_lib != nullptr)
     {
-      printf(" and the library is loaded.\n");
+      std::printf(" and the library is loaded.\n");
 
       char * (*zlibVersion_p)();
       zlibVersion_p = reinterpret_cast<char * (*)()>(arch_dlsym(gz_lib, "zlibVersion"));
@@ -716,34 +716,34 @@ auto cmd_version(struct Parameters const & parameters) -> void
       zlibCompileFlags_p = reinterpret_cast<long unsigned int (*)()>(arch_dlsym(gz_lib, "zlibCompileFlags"));
       long unsigned int const flags = (*zlibCompileFlags_p)();
 
-      printf("zlib version %s, compile flags %lx", gz_version, flags);
+      std::printf("zlib version %s, compile flags %lx", gz_version, flags);
       static constexpr auto check_10th_bit = 1024U; // 0x0400
       if ((flags & check_10th_bit) != 0U)
         {
-          printf(" (ZLIB_WINAPI)");
+          std::printf(" (ZLIB_WINAPI)");
         }
-      printf("\n");
+      std::printf("\n");
     }
   else
     {
-      printf(" but the library was not found.\n");
+      std::printf(" but the library was not found.\n");
     }
 #else
-  printf("Compiled without support for gzip-compressed files.\n");
+  std::printf("Compiled without support for gzip-compressed files.\n");
 #endif
 
 #ifdef HAVE_BZLIB_H
-  printf("Compiled with support for bzip2-compressed files,");
+  std::printf("Compiled with support for bzip2-compressed files,");
   if (bz2_lib != nullptr)
     {
-      printf(" and the library is loaded.\n");
+      std::printf(" and the library is loaded.\n");
     }
   else
     {
-      printf(" but the library was not found.\n");
+      std::printf(" but the library was not found.\n");
     }
 #else
-  printf("Compiled without support for bzip2-compressed files.\n");
+  std::printf("Compiled without support for bzip2-compressed files.\n");
 #endif
 }
 
@@ -755,10 +755,10 @@ auto cmd_help(struct Parameters const & parameters) -> void {
 
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
-  fprintf(stdout,
+  std::fprintf(stdout,
           "Usage: %s [OPTIONS]\n", parameters.progname);
 
-  fprintf(stdout,
+  std::fprintf(stdout,
           "\n"
           "For further details, please consult the manual by entering: man vsearch\n"
           "\n"
@@ -1347,7 +1347,7 @@ auto cmd_subsample(struct Parameters const & parameters) -> void
 
 auto cmd_none(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
-  fprintf(stderr,
+  std::fprintf(stderr,
           "For more help, please enter: %s --help\n"
           "For further details, please consult the manual by entering: man vsearch\n"
           "\n"
@@ -1559,7 +1559,7 @@ auto fill_prog_header() -> void
 {
   static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
   auto const * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
-  static_cast<void>(snprintf(
+  static_cast<void>(std::snprintf(
       prog_header.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
       PROG_ARCH, static_cast<double>(arch_get_memtotal()) / one_gigabyte,
       arch_get_cores()));
@@ -1590,9 +1590,9 @@ auto getentirecommandline(int argc, char** argv) -> void
 
 auto show_header(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
-  fprintf(stderr, "%s\n", prog_header.data());
-  fprintf(stderr, "https://github.com/torognes/vsearch\n");
-  fprintf(stderr, "\n");
+  std::fprintf(stderr, "%s\n", prog_header.data());
+  std::fprintf(stderr, "https://github.com/torognes/vsearch\n");
+  std::fprintf(stderr, "\n");
 }
 
 
@@ -1640,14 +1640,14 @@ auto main(int argc, char** argv) -> int
         {
           fatal("Unable to open log file for writing");
         }
-      fprintf(fp_log, "%s\n", prog_header.data());
-      fprintf(fp_log, "%s\n", cmdline);
+      std::fprintf(fp_log, "%s\n", prog_header.data());
+      std::fprintf(fp_log, "%s\n", cmdline);
 
       std::array<char, 26> time_string {{}};
-      time_start = time(nullptr);
+      time_start = std::time(nullptr);
       struct tm const * tm_start = localtime(& time_start);
-      strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
-      fprintf(fp_log, "Started  %s\n", time_string.data());
+      std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
+      std::fprintf(fp_log, "Started  %s\n", time_string.data());
     }
 
   random_init();
@@ -1845,28 +1845,28 @@ auto main(int argc, char** argv) -> int
 
   if (parameters.opt_log != nullptr)
     {
-      time_finish = time(nullptr);
+      time_finish = std::time(nullptr);
       struct tm const * tm_finish = localtime(& time_finish);
       std::array<char, 26> time_string {{}};
-      strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Finished %s", time_string.data());
+      std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Finished %s", time_string.data());
 
-      double const time_diff = difftime(time_finish, time_start);
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
-              floor(time_diff / 60.0),
-              floor(time_diff - (60.0 * floor(time_diff / 60.0))));
+      double const time_diff = std::difftime(time_finish, time_start);
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
+              std::floor(time_diff / 60.0),
+              std::floor(time_diff - (60.0 * std::floor(time_diff / 60.0))));
       double const maxmem = static_cast<double>(arch_get_memused()) / 1048576.0;
       if (maxmem < 1024.0)
         {
-          fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
+          std::fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
         }
       else
         {
-          fprintf(fp_log, "Max memory %.1lfGB\n", maxmem / 1024.0);
+          std::fprintf(fp_log, "Max memory %.1lfGB\n", maxmem / 1024.0);
         }
-      fclose(fp_log);
+      std::fclose(fp_log);
     }
 
   if (opt_ee_cutoffs_values != nullptr)
