@@ -174,54 +174,54 @@ auto cpu_features_detect() -> void
 
 auto cpu_features_show() -> void
 {
-  fprintf(stderr, "CPU features:");
+  std::fprintf(stderr, "CPU features:");
   if (neon_present != 0)
     {
-      fprintf(stderr, " neon");
+      std::fprintf(stderr, " neon");
     }
   if (altivec_present != 0)
     {
-      fprintf(stderr, " altivec");
+      std::fprintf(stderr, " altivec");
     }
   if (mmx_present != 0)
     {
-      fprintf(stderr, " mmx");
+      std::fprintf(stderr, " mmx");
     }
   if (sse_present != 0)
     {
-      fprintf(stderr, " sse");
+      std::fprintf(stderr, " sse");
     }
   if (sse2_present != 0)
     {
-      fprintf(stderr, " sse2");
+      std::fprintf(stderr, " sse2");
     }
   if (sse3_present != 0)
     {
-      fprintf(stderr, " sse3");
+      std::fprintf(stderr, " sse3");
     }
   if (ssse3_present != 0)
     {
-      fprintf(stderr, " ssse3");
+      std::fprintf(stderr, " ssse3");
     }
   if (sse41_present != 0)
     {
-      fprintf(stderr, " sse4.1");
+      std::fprintf(stderr, " sse4.1");
     }
   if (sse42_present != 0)
     {
-      fprintf(stderr, " sse4.2");
+      std::fprintf(stderr, " sse4.2");
     }
   if (popcnt_present != 0)
     {
-      fprintf(stderr, " popcnt");
+      std::fprintf(stderr, " popcnt");
     }
   if (avx_present != 0)
     {
-      fprintf(stderr, " avx");
+      std::fprintf(stderr, " avx");
     }
   if (avx2_present != 0)
     {
-      fprintf(stderr, " avx2");
+      std::fprintf(stderr, " avx2");
     }
-  fprintf(stderr, "\n");
+  std::fprintf(stderr, "\n");
 }
