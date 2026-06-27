@@ -111,6 +111,9 @@
 #include <string>
 #include <unistd.h>  // write, _exit, STDERR_FILENO
 #include <vector>
+#ifdef __x86_64__
+#include <cpuid.h>  // __cpuid_count
+#endif
 
 
 constexpr int64_t n_threads_max = 1024;
@@ -373,10 +376,20 @@ namespace {
 
 
 #ifdef __x86_64__
-#define cpuid(f1, f2, a, b, c, d)                                       \
-  __asm__ __volatile__ ("cpuid"                                         \
-                        : "=a" (a), "=b" (b), "=c" (c), "=d" (d)        \
-                        : "a" (f1), "c" (f2));
+namespace {
+  struct cpuid_registers {
+    unsigned int eax {0};
+    unsigned int ebx {0};
+    unsigned int ecx {0};
+    unsigned int edx {0};
+  };
+
+  auto get_cpuid(unsigned int const leaf, unsigned int const subleaf) -> cpuid_registers {
+    cpuid_registers registers {};
+    __cpuid_count(leaf, subleaf, registers.eax, registers.ebx, registers.ecx, registers.edx);
+    return registers;
+  }
+}  // anonymous namespace
 #endif
 
 
@@ -392,31 +405,26 @@ auto cpu_features_detect() -> void
 #elif __PPC__
   altivec_present = 1;
 #elif __x86_64__
-  unsigned int a = 0;
-  unsigned int b = 0;
-  unsigned int c = 0;
-  unsigned int d = 0;
-
-  cpuid(0, 0, a, b, c, d);
-  unsigned int const maxlevel = a & 0xff;
+  cpuid_registers const leaf0 = get_cpuid(0, 0);
+  unsigned int const maxlevel = leaf0.eax & 0xff;
 
   if (maxlevel >= 1)
     {
-      cpuid(1, 0, a, b, c, d);
-      mmx_present    = (d >> 23U) & 1U;
-      sse_present    = (d >> 25U) & 1U;
-      sse2_present   = (d >> 26U) & 1U;
-      sse3_present   = (c >>  0U) & 1U;
-      ssse3_present  = (c >>  9U) & 1U;
-      sse41_present  = (c >> 19U) & 1U;
-      sse42_present  = (c >> 20U) & 1U;
-      popcnt_present = (c >> 23U) & 1U;
-      avx_present    = (c >> 28U) & 1U;
+      cpuid_registers const leaf1 = get_cpuid(1, 0);
+      mmx_present    = (leaf1.edx >> 23U) & 1U;
+      sse_present    = (leaf1.edx >> 25U) & 1U;
+      sse2_present   = (leaf1.edx >> 26U) & 1U;
+      sse3_present   = (leaf1.ecx >>  0U) & 1U;
+      ssse3_present  = (leaf1.ecx >>  9U) & 1U;
+      sse41_present  = (leaf1.ecx >> 19U) & 1U;
+      sse42_present  = (leaf1.ecx >> 20U) & 1U;
+      popcnt_present = (leaf1.ecx >> 23U) & 1U;
+      avx_present    = (leaf1.ecx >> 28U) & 1U;
 
       if (maxlevel >= 7)
         {
-          cpuid(7, 0, a, b, c, d);
-          avx2_present = (b >>  5U) & 1U;
+          cpuid_registers const leaf7 = get_cpuid(7, 0);
+          avx2_present = (leaf7.ebx >>  5U) & 1U;
         }
     }
 #else
