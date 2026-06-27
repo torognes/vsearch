@@ -67,6 +67,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
+#include <iterator>  // std::next
 #include <limits>
 
 
@@ -155,9 +156,13 @@ constexpr __vector unsigned char perm_merge_long_high =
    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
 
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
-#define v_load(a) vec_ld(0, (VECTOR_SHORT *)(a))
-#define v_store(a, b) vec_st((__vector unsigned char)(b), 0,    \
-                             (__vector unsigned char *)(a))
+inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
+  return vec_ld(0, ptr);
+}
+
+inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT vector) -> void {
+  vec_st((__vector unsigned char) vector, 0, (__vector unsigned char *) ptr);
+}
 inline auto v_add(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
   return vec_adds(lhs, rhs);
 }
@@ -208,8 +213,13 @@ constexpr uint16x8_t neon_mask =
 
 // warning: ISO C++ forbids compound-literals [-Wpedantic] (line below) (clang specific?)
 #define v_init(a,b,c,d,e,f,g,h) (const VECTOR_SHORT){a,b,c,d,e,f,g,h}
-#define v_load(a) vld1q_s16((const int16_t *)(a))
-#define v_store(a, b) vst1q_s16((int16_t *)(a), (b))
+inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
+  return vld1q_s16(reinterpret_cast<int16_t const *>(ptr));
+}
+
+inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT vector) -> void {
+  vst1q_s16(reinterpret_cast<int16_t *>(ptr), vector);
+}
 inline auto v_merge_lo_16(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
   return vzip1q_s16(lhs, rhs);
 }
@@ -288,8 +298,13 @@ inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> uint16_t {
 using VECTOR_SHORT = __m128i;
 
 #define v_init(a,b,c,d,e,f,g,h) _mm_set_epi16(h,g,f,e,d,c,b,a)
-#define v_load(a) _mm_load_si128(reinterpret_cast<VECTOR_SHORT *>(a))
-#define v_store(a, b) _mm_store_si128(reinterpret_cast<VECTOR_SHORT *>(a), (b))
+inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
+  return _mm_load_si128(ptr);
+}
+
+inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT vector) -> void {
+  _mm_store_si128(ptr, vector);
+}
 inline auto v_merge_lo_16(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
   return _mm_unpacklo_epi16(lhs, rhs);
 }
@@ -363,6 +378,17 @@ inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> unsigned short {
 #error Unknown Architecture
 
 #endif
+
+/* The score matrix and direction profile are stored as CELL (16-bit) arrays
+   but loaded and stored a whole vector at a time; cast_vector16 holds the
+   single reinterpret needed to view an aligned CELL address as a vector. */
+inline auto cast_vector16(CELL * ptr) -> VECTOR_SHORT * {
+  return reinterpret_cast<VECTOR_SHORT *>(ptr);
+}
+
+inline auto cast_vector16(CELL const * ptr) -> VECTOR_SHORT const * {
+  return reinterpret_cast<VECTOR_SHORT const *>(ptr);
+}
 
 struct s16info_s
 {
@@ -580,14 +606,14 @@ auto dprofile_fill16(CELL * dprofile_word,
           VECTOR_SHORT reg31;
 #endif
 
-          reg0 = v_load(score_matrix_word + d[0] + i);
-          reg1 = v_load(score_matrix_word + d[1] + i);
-          reg2 = v_load(score_matrix_word + d[2] + i);
-          reg3 = v_load(score_matrix_word + d[3] + i);
-          reg4 = v_load(score_matrix_word + d[4] + i);
-          reg5 = v_load(score_matrix_word + d[5] + i);
-          reg6 = v_load(score_matrix_word + d[6] + i);
-          reg7 = v_load(score_matrix_word + d[7] + i);
+          reg0 = v_load(cast_vector16(std::next(score_matrix_word, d[0] + i)));
+          reg1 = v_load(cast_vector16(std::next(score_matrix_word, d[1] + i)));
+          reg2 = v_load(cast_vector16(std::next(score_matrix_word, d[2] + i)));
+          reg3 = v_load(cast_vector16(std::next(score_matrix_word, d[3] + i)));
+          reg4 = v_load(cast_vector16(std::next(score_matrix_word, d[4] + i)));
+          reg5 = v_load(cast_vector16(std::next(score_matrix_word, d[5] + i)));
+          reg6 = v_load(cast_vector16(std::next(score_matrix_word, d[6] + i)));
+          reg7 = v_load(cast_vector16(std::next(score_matrix_word, d[7] + i)));
 
 #ifdef __PPC__
           reg8  = (__vector signed int) vec_mergeh(reg0, reg1);
@@ -653,14 +679,14 @@ auto dprofile_fill16(CELL * dprofile_word,
           reg31 = v_merge_hi_64(reg21, reg23);
 #endif
 
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 0)) + (CHANNELS * j), reg24);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 1)) + (CHANNELS * j), reg25);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 2)) + (CHANNELS * j), reg26);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 3)) + (CHANNELS * j), reg27);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 4)) + (CHANNELS * j), reg28);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 5)) + (CHANNELS * j), reg29);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 6)) + (CHANNELS * j), reg30);
-          v_store(dprofile_word + (CDEPTH * CHANNELS * (i + 7)) + (CHANNELS * j), reg31);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 0)) + (CHANNELS * j))), reg24);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 1)) + (CHANNELS * j))), reg25);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 2)) + (CHANNELS * j))), reg26);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 3)) + (CHANNELS * j))), reg27);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 4)) + (CHANNELS * j))), reg28);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 5)) + (CHANNELS * j))), reg29);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 6)) + (CHANNELS * j))), reg30);
+          v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 7)) + (CHANNELS * j))), reg31);
         }
     }
 #if 0
