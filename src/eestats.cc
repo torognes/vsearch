@@ -78,41 +78,41 @@ inline auto fastq_get_qual_eestats(char const q) -> int
 
   if (qual < opt_fastq_qmin)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               qual, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   qual, opt_fastq_qmin);
         }
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
     }
   else if (qual > opt_fastq_qmax)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
               PRId64 ")\n",
               qual, opt_fastq_qmax);
-      fprintf(stderr,
+      std::fprintf(stderr,
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", qual);
       if (fp_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
                   qual, opt_fastq_qmax);
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
                   "please use the option --fastq_qmax %d\n", qual);
         }
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
     }
   return qual;
 }
@@ -235,7 +235,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
     }
   progress_done();
 
-  fprintf(fp_output,
+  std::fprintf(fp_output,
           "Pos\tRecs\tPctRecs\t"
           "Min_Q\tLow_Q\tMed_Q\tMean_Q\tHi_Q\tMax_Q\t"
           "Min_Pe\tLow_Pe\tMed_Pe\tMean_Pe\tHi_Pe\tMax_Pe\t"
@@ -392,7 +392,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       hi_ee   = (hi_ee   + 0.5) / resolution;
       max_ee  = (max_ee  + 0.5) / resolution;
 
-      fprintf(fp_output,
+      std::fprintf(fp_output,
               "%" PRId64 "\t%" PRId64 "\t%.1lf"
               "\t%.1lf\t%.1lf\t%.1lf\t%.1lf\t%.1lf\t%.1lf"
               "\t%.2lg\t%.2lg\t%.2lg\t%.2lg\t%.2lg\t%.2lg"
@@ -403,7 +403,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
     }
 
-  fclose(fp_output);
+  std::fclose(fp_output);
 
   fastq_close(h);
 }
@@ -500,30 +500,30 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
     }
   progress_done();
 
-  fprintf(fp_output,
+  std::fprintf(fp_output,
           "%" PRIu64 " reads",
           seq_count);
 
   if (seq_count > 0)
     {
-      fprintf(fp_output,
+      std::fprintf(fp_output,
               ", max len %" PRIu64 ", avg %.1f",
               longest, 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
     }
-  fprintf(fp_output, "\n\n");
+  std::fprintf(fp_output, "\n\n");
 
-  fprintf(fp_output, "Length");
+  std::fprintf(fp_output, "Length");
   for (int y = 0; y < opt_ee_cutoffs_count; y++)
     {
-      fprintf(fp_output, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
+      std::fprintf(fp_output, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
     }
-  fprintf(fp_output, "\n");
-  fprintf(fp_output, "------");
+  std::fprintf(fp_output, "\n");
+  std::fprintf(fp_output, "------");
   for (int y = 0; y < opt_ee_cutoffs_count; y++)
     {
-      fprintf(fp_output, "   ----------------");
+      std::fprintf(fp_output, "   ----------------");
     }
-  fprintf(fp_output, "\n");
+  std::fprintf(fp_output, "\n");
 
   for (int x = 0; x < len_steps; x++)
     {
@@ -534,36 +534,36 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
           break;
         }
 
-      fprintf(fp_output, "%6d", len_cutoff);
+      std::fprintf(fp_output, "%6d", len_cutoff);
 
       for (int y = 0; y < opt_ee_cutoffs_count; y++)
         {
-          fprintf(fp_output,
+          std::fprintf(fp_output,
                   "   %8" PRIu64 "(%5.1f%%)",
                   count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)],
                   100.0 * static_cast<double>(count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)]) / static_cast<double>(seq_count));
         }
-      fprintf(fp_output, "\n");
+      std::fprintf(fp_output, "\n");
     }
 
   if (fp_log != nullptr)
     {
-      fprintf(fp_log,
+      std::fprintf(fp_log,
               "%" PRIu64 " reads, max len %" PRIu64 ", avg %.1f\n\n",
               seq_count, longest, 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
 
-      fprintf(fp_log, "Length");
+      std::fprintf(fp_log, "Length");
       for (int y = 0; y < opt_ee_cutoffs_count; y++)
         {
-          fprintf(fp_log, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
+          std::fprintf(fp_log, "         MaxEE %.2f", opt_ee_cutoffs_values[y]);
         }
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "------");
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "------");
       for (int y = 0; y < opt_ee_cutoffs_count; y++)
         {
-          fprintf(fp_log, "   ----------------");
+          std::fprintf(fp_log, "   ----------------");
         }
-      fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "\n");
 
       for (int x = 0; x < len_steps; x++)
         {
@@ -574,20 +574,20 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
               break;
             }
 
-          fprintf(fp_log, "%6d", len_cutoff);
+          std::fprintf(fp_log, "%6d", len_cutoff);
 
           for (int y = 0; y < opt_ee_cutoffs_count; y++)
             {
-              fprintf(fp_log,
+              std::fprintf(fp_log,
                       "   %8" PRIu64 "(%5.1f%%)",
                       count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)],
                       100.0 * static_cast<double>(count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)]) / static_cast<double>(seq_count));
             }
-          fprintf(fp_log, "\n");
+          std::fprintf(fp_log, "\n");
         }
     }
 
-  fclose(fp_output);
+  std::fclose(fp_output);
 
   fastq_close(h);
 }
