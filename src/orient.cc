@@ -423,7 +423,7 @@ auto orient(struct Parameters const & parameters) -> void
 
       if (opt_tabbedout != nullptr)
         {
-          fprintf(fp_tabbedout,
+          std::fprintf(fp_tabbedout,
                   "%s\t%c\t%u\t%u\n",
                   query_head,
                   strand == 0 ? '+' : (strand == 1 ? '-' : '?'),
@@ -447,78 +447,78 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (opt_tabbedout != nullptr)
     {
-      fclose(fp_tabbedout);
+      std::fclose(fp_tabbedout);
     }
   if (opt_notmatched != nullptr)
     {
-      fclose(fp_notmatched);
+      std::fclose(fp_notmatched);
     }
   if (opt_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
   if (opt_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
 
   fasta_close(query_h);
 
   if (not opt_quiet)
     {
-      fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
+      std::fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * matches_fwd / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * matches_fwd / queries);
         }
-      fprintf(stderr, "\n");
-      fprintf(stderr, "Reverse oriented sequences: %d", matches_rev);
+      std::fprintf(stderr, "\n");
+      std::fprintf(stderr, "Reverse oriented sequences: %d", matches_rev);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * matches_rev / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * matches_rev / queries);
         }
-      fprintf(stderr, "\n");
-      fprintf(stderr, "All oriented sequences:     %d", qmatches);
+      std::fprintf(stderr, "\n");
+      std::fprintf(stderr, "All oriented sequences:     %d", qmatches);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      fprintf(stderr, "\n");
-      fprintf(stderr, "Not oriented sequences:     %d", notmatched);
+      std::fprintf(stderr, "\n");
+      std::fprintf(stderr, "Not oriented sequences:     %d", notmatched);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * notmatched / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * notmatched / queries);
         }
-      fprintf(stderr, "\n");
-      fprintf(stderr, "Total number of sequences:  %d\n", queries);
+      std::fprintf(stderr, "\n");
+      std::fprintf(stderr, "Total number of sequences:  %d\n", queries);
     }
 
   if (opt_log != nullptr)
     {
-      fprintf(fp_log, "Forward oriented sequences: %d", matches_fwd);
+      std::fprintf(fp_log, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * matches_fwd / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * matches_fwd / queries);
         }
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Reverse oriented sequences: %d", matches_rev);
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Reverse oriented sequences: %d", matches_rev);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * matches_rev / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * matches_rev / queries);
         }
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "All oriented sequences:     %d", qmatches);
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "All oriented sequences:     %d", qmatches);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Not oriented sequences:     %d", notmatched);
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Not oriented sequences:     %d", notmatched);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * notmatched / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * notmatched / queries);
         }
-      fprintf(fp_log, "\n");
-      fprintf(fp_log, "Total number of sequences:  %d\n", queries);
+      std::fprintf(fp_log, "\n");
+      std::fprintf(fp_log, "Total number of sequences:  %d\n", queries);
     }
 }
