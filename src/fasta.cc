@@ -277,7 +277,7 @@ auto fasta_next(fastx_handle input_handle,
           fastx_set_deferred_error(input_handle, "Invalid FASTA - header must start with > character");
           return false;
         }
-      fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data[input_handle->file_buffer.position]));
+      std::fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data[input_handle->file_buffer.position]));
       fatal("Invalid FASTA - header must start with > character");
     }
   ++input_handle->file_buffer.position;
