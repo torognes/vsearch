@@ -299,13 +299,13 @@ auto report_merge_abort() -> void
   switch (merge_error_reason)
     {
     case MergeAbortReason::quality_below_qmin:
-      fprintf(stderr,
+      std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               merge_error_value, opt_fastq_qmin);
       if (fp_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   merge_error_value, opt_fastq_qmin);
@@ -313,21 +313,21 @@ auto report_merge_abort() -> void
       break;
 
     case MergeAbortReason::quality_above_qmax:
-      fprintf(stderr,
+      std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
               PRId64 ")\n",
               merge_error_value, opt_fastq_qmax);
-      fprintf(stderr,
+      std::fprintf(stderr,
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", merge_error_value);
       if (fp_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
                   merge_error_value, opt_fastq_qmax);
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
                   "please use the option --fastq_qmax %d\n", merge_error_value);
@@ -338,7 +338,7 @@ auto report_merge_abort() -> void
       fatal("More forward reads than reverse reads");
       break;
     }
-  exit(EXIT_FAILURE);
+  std::exit(EXIT_FAILURE);
 }
 
 
@@ -1483,197 +1483,197 @@ auto pair_all() -> void
 
 auto print_stats(std::FILE * output_handle) -> void
 {
-  fprintf(output_handle,
+  std::fprintf(output_handle,
           "%10" PRIu64 "  Pairs\n",
           total);
 
-  fprintf(output_handle,
+  std::fprintf(output_handle,
           "%10" PRIu64 "  Merged",
           merged);
   if (total > 0)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               " (%.1lf%%)",
               100.0 * static_cast<double>(merged) / static_cast<double>(total));
     }
-  fprintf(output_handle, "\n");
+  std::fprintf(output_handle, "\n");
 
-  fprintf(output_handle,
+  std::fprintf(output_handle,
           "%10" PRIu64 "  Not merged",
           notmerged);
   if (total > 0)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               " (%.1lf%%)",
               100.0 * static_cast<double>(notmerged) / static_cast<double>(total));
     }
-  fprintf(output_handle, "\n");
+  std::fprintf(output_handle, "\n");
 
   if (notmerged > 0)
     {
-      fprintf(output_handle, "\nPairs that failed merging due to various reasons:\n");
+      std::fprintf(output_handle, "\nPairs that failed merging due to various reasons:\n");
     }
 
   if (failed_undefined != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  undefined reason\n",
               failed_undefined);
     }
 
   if (failed_minlen != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  reads too short (after truncation)\n",
               failed_minlen);
     }
 
   if (failed_maxlen != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  reads too long (after truncation)\n",
               failed_maxlen);
     }
 
   if (failed_maxns != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  too many N's\n",
               failed_maxns);
     }
 
   if (failed_nokmers != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  too few kmers found on same diagonal\n",
               failed_nokmers);
     }
 
   if (failed_repeat != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  multiple potential alignments\n",
               failed_repeat);
     }
 
   if (failed_maxdiffs != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  too many differences\n",
               failed_maxdiffs);
     }
 
   if (failed_maxdiffpct != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  too high percentage of differences\n",
               failed_maxdiffpct);
     }
 
   if (failed_minscore != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  alignment score too low, or score drop too high\n",
               failed_minscore);
     }
 
   if (failed_minovlen != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  overlap too short\n",
               failed_minovlen);
     }
 
   if (failed_maxee != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  expected error too high\n",
               failed_maxee);
     }
 
   if (failed_minmergelen != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  merged fragment too short\n",
               failed_minmergelen);
     }
 
   if (failed_maxmergelen != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  merged fragment too long\n",
               failed_maxmergelen);
     }
 
   if (failed_staggered != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  staggered read pairs\n",
               failed_staggered);
     }
 
   if (failed_indel != 0U)
     {
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10" PRIu64 "  indel errors\n",
               failed_indel);
     }
 
-  fprintf(output_handle, "\n");
+  std::fprintf(output_handle, "\n");
 
   if (total > 0)
     {
-      fprintf(output_handle, "Statistics of all reads:\n");
+      std::fprintf(output_handle, "Statistics of all reads:\n");
 
       auto const mean_read_length = sum_read_length / (2.0 * pairs_read);
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean read length\n",
               mean_read_length);
     }
 
   if (merged > 0)
     {
-      fprintf(output_handle, "\n");
+      std::fprintf(output_handle, "\n");
 
-      fprintf(output_handle, "Statistics of merged reads:\n");
+      std::fprintf(output_handle, "Statistics of merged reads:\n");
 
       auto const mean = sum_fragment_length / static_cast<double>(merged);
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean fragment length\n",
               mean);
 
-      auto const stdev = sqrt((sum_squared_fragment_length
+      auto const stdev = std::sqrt((sum_squared_fragment_length
                                - (2.0 * mean * sum_fragment_length)
                                + (mean * mean * static_cast<double>(merged)))
                               / (static_cast<double>(merged) + 0.0));
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Standard deviation of fragment length\n",
               stdev);
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean expected error in forward sequences\n",
               sum_ee_fwd / static_cast<double>(merged));
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean expected error in reverse sequences\n",
               sum_ee_rev / static_cast<double>(merged));
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean expected error in merged sequences\n",
               sum_ee_merged / static_cast<double>(merged));
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of forward sequences\n",
               1.0 * static_cast<double>(sum_errors_fwd) / static_cast<double>(merged));
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of reverse sequences\n",
               1.0 * static_cast<double>(sum_errors_rev) / static_cast<double>(merged));
 
-      fprintf(output_handle,
+      std::fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region\n",
               1.0 * static_cast<double>(sum_errors_fwd + sum_errors_rev) / static_cast<double>(merged));
     }
@@ -1765,31 +1765,31 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   if (opt_eetabbedout != nullptr)
     {
-      fclose(fp_eetabbedout);
+      std::fclose(fp_eetabbedout);
     }
   if (opt_fastaout_notmerged_rev != nullptr)
     {
-      fclose(fp_fastaout_notmerged_rev);
+      std::fclose(fp_fastaout_notmerged_rev);
     }
   if (opt_fastaout_notmerged_fwd != nullptr)
     {
-      fclose(fp_fastaout_notmerged_fwd);
+      std::fclose(fp_fastaout_notmerged_fwd);
     }
   if (opt_fastqout_notmerged_rev != nullptr)
     {
-      fclose(fp_fastqout_notmerged_rev);
+      std::fclose(fp_fastqout_notmerged_rev);
     }
   if (opt_fastqout_notmerged_fwd != nullptr)
     {
-      fclose(fp_fastqout_notmerged_fwd);
+      std::fclose(fp_fastqout_notmerged_fwd);
     }
   if (opt_fastaout != nullptr)
     {
-      fclose(fp_fastaout);
+      std::fclose(fp_fastaout);
     }
   if (opt_fastqout != nullptr)
     {
-      fclose(fp_fastqout);
+      std::fclose(fp_fastqout);
     }
 
   fastq_close(fastq_rev);
