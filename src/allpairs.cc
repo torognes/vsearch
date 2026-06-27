@@ -497,7 +497,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                  pointer even for zero elements) */
               if (searchinfo.accepts > 0)
                 {
-                  qsort(finalhits.data(), static_cast<std::size_t>(searchinfo.accepts),
+                  std::qsort(finalhits.data(), static_cast<std::size_t>(searchinfo.accepts),
                         sizeof(struct hit), allpairs_hit_compare);
                 }
             }
@@ -569,8 +569,8 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
           fatal("Unable to open alignment output file for writing");
         }
 
-      fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
-      fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
+      std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
   if (opt_samout != nullptr)
@@ -682,67 +682,67 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   if (not parameters.opt_quiet)
     {
-      fprintf(stderr, "Matching query sequences: %d of %d",
+      std::fprintf(stderr, "Matching query sequences: %d of %d",
               qmatches, queries);
       if (queries > 0)
         {
-          fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      fprintf(stderr, "\n");
+      std::fprintf(stderr, "\n");
     }
 
   if (parameters.opt_log != nullptr)
     {
-      fprintf(fp_log, "Matching query sequences: %d of %d",
+      std::fprintf(fp_log, "Matching query sequences: %d of %d",
               qmatches, queries);
       if (queries > 0)
         {
-          fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      fprintf(fp_log, "\n\n");
+      std::fprintf(fp_log, "\n\n");
     }
 
   /* clean up, global */
   db_free();
   if (opt_matched != nullptr)
     {
-      fclose(fp_matched);
+      std::fclose(fp_matched);
     }
   if (opt_notmatched != nullptr)
     {
-      fclose(fp_notmatched);
+      std::fclose(fp_notmatched);
     }
   if (opt_fastapairs != nullptr)
     {
-      fclose(fp_fastapairs);
+      std::fclose(fp_fastapairs);
     }
   if (opt_qsegout != nullptr)
     {
-      fclose(fp_qsegout);
+      std::fclose(fp_qsegout);
     }
   if (opt_tsegout != nullptr)
     {
-      fclose(fp_tsegout);
+      std::fclose(fp_tsegout);
     }
   if (fp_uc != nullptr)
     {
-      fclose(fp_uc);
+      std::fclose(fp_uc);
     }
   if (fp_blast6out != nullptr)
     {
-      fclose(fp_blast6out);
+      std::fclose(fp_blast6out);
     }
   if (fp_userout != nullptr)
     {
-      fclose(fp_userout);
+      std::fclose(fp_userout);
     }
   if (fp_alnout != nullptr)
     {
-      fclose(fp_alnout);
+      std::fclose(fp_alnout);
     }
   if (fp_samout != nullptr)
     {
-      fclose(fp_samout);
+      std::fclose(fp_samout);
     }
   show_rusage();
 
