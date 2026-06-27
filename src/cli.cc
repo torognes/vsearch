@@ -992,7 +992,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_fulldp:
           opt_fulldp = 1;
-          fprintf(stderr, "WARNING: Option --fulldp is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --fulldp is ignored\n");
           break;
 
         case option_strand:
@@ -1347,7 +1347,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_cons_truncate:
-          fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
           opt_cons_truncate = 1;
           break;
 
@@ -1368,12 +1368,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_slots:
-          fprintf(stderr, "WARNING: Option --slots is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --slots is ignored\n");
           opt_slots = static_cast<int>(args_getlong(optarg));
           break;
 
         case option_pattern:
-          fprintf(stderr, "WARNING: Option --pattern is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --pattern is ignored\n");
           opt_pattern = optarg;
           break;
 
@@ -1773,22 +1773,22 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
         case option_xdrop_nw:
           /* xdrop_nw ignored */
-          fprintf(stderr, "WARNING: Option --xdrop_nw is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --xdrop_nw is ignored\n");
           break;
 
         case option_minhsp:
           /* minhsp ignored */
-          fprintf(stderr, "WARNING: Option --minhsp is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --minhsp is ignored\n");
           break;
 
         case option_band:
           /* band ignored */
-          fprintf(stderr, "WARNING: Option --band is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --band is ignored\n");
           break;
 
         case option_hspw:
           /* hspw ignored */
-          fprintf(stderr, "WARNING: Option --hspw is ignored\n");
+          std::fprintf(stderr, "WARNING: Option --hspw is ignored\n");
           break;
 
         case option_gzip_decompress:
@@ -2121,7 +2121,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* Terminate if ambiguous or illegal options have been detected */
   if (val != -1)
     {
-      exit(EXIT_FAILURE);
+      std::exit(EXIT_FAILURE);
     }
 
   /* Terminate after reporting any extra non-option arguments */
@@ -4115,7 +4115,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         }
       if (any_options)
         {
-          fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
+          std::fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
         }
     }
   else
@@ -4141,13 +4141,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
                   if (invalid_options == 1)
                     {
-                      fprintf(stderr,
+                      std::fprintf(stderr,
                               "Fatal error: Invalid options to command %s\n",
                               long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
-                      fprintf(stderr,
+                      std::fprintf(stderr,
                               "Invalid option(s):");
                     }
-                  fprintf(stderr, " --%s",
+                  std::fprintf(stderr, " --%s",
                           long_options[static_cast<size_t>(i)].name);
                 }
             }
@@ -4155,20 +4155,20 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
       if (invalid_options > 0)
         {
-          fprintf(stderr, "\nThe valid options for the %s command are:",
+          std::fprintf(stderr, "\nThe valid options for the %s command are:",
                   long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
           int count = 0;
           for (int j = 1; valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0; j++)
             {
-              fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
+              std::fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
               ++count;
             }
           if (count == 0)
             {
-              fprintf(stderr, " (none)");
+              std::fprintf(stderr, " (none)");
             }
-          fprintf(stderr, "\n");
-          exit(EXIT_FAILURE);
+          std::fprintf(stderr, "\n");
+          std::exit(EXIT_FAILURE);
         }
     }
 
@@ -4194,14 +4194,14 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (parameters.opt_threads > 1)
         {
-          fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
+          std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
         }
       opt_threads = 1;
       parameters.opt_threads = 1;
     }
   if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
     {
-      fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
+      std::fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
     }
 
   if (parameters.opt_cluster_unoise != nullptr)
@@ -4411,7 +4411,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   if ((opt_chimeras_parents_max < 2) or (opt_chimeras_parents_max > maxparents))
     {
       std::array<char, 25> maxparents_string {{}};
-      snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
+      std::snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
       fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string.data());
     }
 
