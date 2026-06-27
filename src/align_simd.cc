@@ -165,7 +165,11 @@ inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
   return vec_ld(0, ptr);
 }
 
-inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT vector) -> void {
+/* The dprofile merge pipeline yields wider-element vector types, so accept
+   any 128-bit vector and reinterpret it as bytes for the store, exactly as
+   the former v_store macro did. */
+template <typename VectorType>
+inline auto v_store(VECTOR_SHORT * ptr, VectorType vector) -> void {
   vec_st((__vector unsigned char) vector, 0, (__vector unsigned char *) ptr);
 }
 inline auto v_add(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
