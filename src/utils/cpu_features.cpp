@@ -99,7 +99,7 @@ namespace {
 
   // Read the low 32 bits of XCR0 via XGETBV. Must only be called when CPUID
   // reports OSXSAVE, otherwise XGETBV raises #UD (illegal instruction).
-  // vsearch.cc is compiled with the baseline target, so the _xgetbv
+  // cpu_features.cpp is compiled with the baseline target, so the _xgetbv
   // intrinsic is unavailable; use the equivalent one-instruction asm.
   auto read_xcr0() noexcept -> unsigned int {
     unsigned int xcr0_lo {0};
