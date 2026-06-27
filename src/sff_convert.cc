@@ -442,16 +442,16 @@ auto sff_convert(struct Parameters const & parameters) -> void
   // refactoring: see fastq_join.cc
   if (not parameters.opt_quiet)
     {
-      fprintf(stderr, "Number of reads: %u\n", sff_header.number_of_reads);
-      fprintf(stderr, "Flows per read:  %d\n", sff_header.flows_per_read);
-      fprintf(stderr, "Key sequence:    %s\n", key_sequence.data());
+      std::fprintf(stderr, "Number of reads: %u\n", sff_header.number_of_reads);
+      std::fprintf(stderr, "Flows per read:  %d\n", sff_header.flows_per_read);
+      std::fprintf(stderr, "Key sequence:    %s\n", key_sequence.data());
     }
 
   if (parameters.opt_log != nullptr)
     {
-      fprintf(parameters.fp_log, "Number of reads: %u\n", sff_header.number_of_reads);
-      fprintf(parameters.fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
-      fprintf(parameters.fp_log, "Key sequence:    %s\n", key_sequence.data());
+      std::fprintf(parameters.fp_log, "Number of reads: %u\n", sff_header.number_of_reads);
+      std::fprintf(parameters.fp_log, "Flows per read:  %d\n", sff_header.flows_per_read);
+      std::fprintf(parameters.fp_log, "Key sequence:    %s\n", key_sequence.data());
     }
 
 
@@ -614,7 +614,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
               uint64_t const got = fskip(fp_sff.get(), index_padding);
               if ((got < index_padding) and (got != 0))
                 {
-                  fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
+                  std::fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
                 }
             }
         }
