@@ -65,6 +65,7 @@
 #include "minheap.h"
 #include "otutable.h"
 #include "unique.h"
+#include "utils/cpu_features.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::count_if, std::min, std::max

@@ -133,6 +133,7 @@ utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
+utils/cpu_features.hpp \
 utils/fatal.hpp \
 utils/kmer_hash_struct.hpp \
 utils/maps.hpp \
@@ -258,6 +259,7 @@ utils/maps.cpp \
 utils/check_output_filehandle.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
+utils/cpu_features.cpp \
 utils/open_file.cpp \
 utils/os_byteswap.cpp \
 utils/seqcmp.cpp \
