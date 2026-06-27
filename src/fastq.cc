@@ -437,14 +437,14 @@ auto fastq_next(fastx_handle input_handle,
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
-              snprintf(message.data(),
+              std::snprintf(message.data(),
                        max_message_length,
                        "Illegal sequence character '%c'",
                        illegal_char);
             }
           else
             {
-              snprintf(message.data(),
+              std::snprintf(message.data(),
                        max_message_length,
                        "Illegal sequence character (unprintable, no %d)",
                        static_cast<unsigned char>(illegal_char));
@@ -497,7 +497,7 @@ auto fastq_next(fastx_handle input_handle,
   auto plusline_invalid = false;
   if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
     {
-      if ((memcmp(input_handle->header_buffer.data,
+      if ((std::memcmp(input_handle->header_buffer.data,
                  input_handle->plusline_buffer.data,
                   input_handle->header_buffer.length) != 0))
         {
@@ -573,14 +573,14 @@ auto fastq_next(fastx_handle input_handle,
         {
           if ((illegal_char >= 32) && (illegal_char < 127))
             {
-              snprintf(message.data(),
+              std::snprintf(message.data(),
                        max_message_length,
                        "Illegal quality character '%c'",
                        illegal_char);
             }
           else
             {
-              snprintf(message.data(),
+              std::snprintf(message.data(),
                        max_message_length,
                        "Illegal quality character (unprintable, no %d)",
                        static_cast<unsigned char>(illegal_char));
