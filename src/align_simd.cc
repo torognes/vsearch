@@ -650,22 +650,14 @@ auto dprofile_fill16(CELL * dprofile_word,
           reg22 = (__vector signed long long) vec_mergeh(reg13, reg15);
           reg23 = (__vector signed long long) vec_mergel(reg13, reg15);
 
-          reg24 = (__vector signed long long) vec_perm
-            (reg16, reg18, perm_merge_long_low);
-          reg25 = (__vector signed long long) vec_perm
-            (reg16, reg18, perm_merge_long_high);
-          reg26 = (__vector signed long long) vec_perm
-            (reg17, reg19, perm_merge_long_low);
-          reg27 = (__vector signed long long) vec_perm
-            (reg17, reg19, perm_merge_long_high);
-          reg28 = (__vector signed long long) vec_perm
-            (reg20, reg22, perm_merge_long_low);
-          reg29 = (__vector signed long long) vec_perm
-            (reg20, reg22, perm_merge_long_high);
-          reg30 = (__vector signed long long) vec_perm
-            (reg21, reg23, perm_merge_long_low);
-          reg31 = (__vector signed long long) vec_perm
-            (reg21, reg23, perm_merge_long_high);
+          reg24 = vec_perm(reg16, reg18, perm_merge_long_low);
+          reg25 = vec_perm(reg16, reg18, perm_merge_long_high);
+          reg26 = vec_perm(reg17, reg19, perm_merge_long_low);
+          reg27 = vec_perm(reg17, reg19, perm_merge_long_high);
+          reg28 = vec_perm(reg20, reg22, perm_merge_long_low);
+          reg29 = vec_perm(reg20, reg22, perm_merge_long_high);
+          reg30 = vec_perm(reg21, reg23, perm_merge_long_low);
+          reg31 = vec_perm(reg21, reg23, perm_merge_long_high);
 #else
           reg8  = v_merge_lo_16(reg0,  reg1);
           reg9  = v_merge_hi_16(reg0,  reg1);
