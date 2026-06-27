@@ -414,7 +414,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (sequencecount > 0)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
                   ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
@@ -425,7 +425,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
       else
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
@@ -436,7 +436,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (sequencecount > 0)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
                   ", max %" PRIu64 ", avg %.0f\n",
                   nucleotidecount,
@@ -447,7 +447,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
       else
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
@@ -456,7 +456,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   if (discarded_short != 0U)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
               parameters.opt_minseqlength,
               discarded_short,
@@ -464,7 +464,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   parameters.opt_minseqlength,
                   discarded_short,
@@ -474,7 +474,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   if (discarded_long != 0U)
     {
-      fprintf(stderr,
+      std::fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
               parameters.opt_maxseqlength,
               discarded_long,
@@ -482,7 +482,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   parameters.opt_maxseqlength,
                   discarded_long,
@@ -497,12 +497,12 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "0 unique sequences\n");
         }
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "0 unique sequences\n\n");
         }
     }
@@ -512,7 +512,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       const auto median = find_median();
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n",
@@ -520,7 +520,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n\n",
@@ -621,7 +621,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
   progress_done();
   fastx_close(h2);
-  fclose(fp_fastaout);
+  std::fclose(fp_fastaout);
 
   show_rusage();
 
@@ -629,7 +629,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          fprintf(stderr,
+          std::fprintf(stderr,
                   "%" PRId64 " uniques written, %"
                   PRId64 " clusters discarded (%.1f%%)\n",
                   selected, clusters - selected,
@@ -638,7 +638,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
       if (parameters.opt_log != nullptr)
         {
-          fprintf(fp_log,
+          std::fprintf(fp_log,
                   "%" PRId64 " uniques written, %"
                   PRId64 " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,
