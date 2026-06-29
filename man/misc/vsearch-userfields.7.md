@@ -4,7 +4,7 @@
 
 # NAME
 
-userfields --- output fields available with the --userout option
+userfields --- output fields available with the \-\-userout option
 
 
 # DESCRIPTION
