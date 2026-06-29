@@ -4,6 +4,13 @@ remote_theme: pages-themes/hacker@v0.2.0
 baseurl: /vsearch
 url: https://torognes.github.io
 
+# keep literal double-hyphens in option names (e.g. --cluster_size)
+# instead of letting kramdown turn them into en-dashes
+kramdown:
+  typographic_symbols:
+    ndash: "--"
+    mdash: "---"
+
 plugins:
   - jekyll-relative-links
   - jekyll-remote-theme

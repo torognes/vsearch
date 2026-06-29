@@ -19,17 +19,12 @@ convert_markdown_to_github_markdown() {
 }
 
 generate_github_markdown() {
-    ## Failed tests:
-    # no replacement
-    # sed 's/\\\-\\\-/\-\-/g'
-    # sed 's/\\\-\\\-/\\-\\-/g'
-    # sed 's/\\\-\\\-/\\\-\\\-/g'
-    # sed 's/\\\-\\\-/\\\\-\\\\-/g'
-    # sed 's/\\\-\\\-/\\\\\-\\\\\-/g'
-    # sed 's/\\\-\\\-/\\\\\\-\\\\\\-/g' -> '\\\-' renders '\-'
-    # sed 's/\\\-\\\-/\\\\\\\\-\\\\\\\\-/g' -> renders \\-\\-
-    build_markdown_file "${1}" |
-        sed 's/\\\-\\\-/\\\\\\\\\-\\\\\\\\\-/g' | \
+    ## pandoc resolves the escaped option hyphens (\-\-cut) to literal
+    ## double-hyphens. The literal hyphens are kept as-is by kramdown,
+    ## the GitHub Pages renderer, thanks to the typographic_symbols
+    ## setting in _config.yml (without it, kramdown would turn them
+    ## into en-dashes).
+    build_markdown_file "${1}" | \
         convert_markdown_to_github_markdown
 }
 
