@@ -209,12 +209,116 @@ jobs:
           # instead, then surface a bounded summary so CI still reports
           # failures. root bypasses POSIX permission checks, so the "file
           # not readable/writable" tests need an unprivileged user.
+          #
+          # The suite runs in the background under its own timeout (so a hung
+          # test cannot eat the whole 20-minute job budget and skip the summary
+          # below). A watcher polls the log once a second but prints only when
+          # the last non-blank line changes — near-real-time progress without
+          # flooding the vmactions SSH channel (high output volume wedges the
+          # guest, which is why the suite output is redirected to a file in the
+          # first place). After ~30 s with no new output it dumps the test
+          # process tree with each process's state and wait channel (wchan).
+          #
+          # On FreeBSD the suite reaches its end but teardown stalls: <() is a
+          # real named FIFO there, so a negative test that fed vsearch an input
+          # via <() leaves the FIFO writer blocked in fifoow once vsearch
+          # rejects the options *before opening* the input (no reader ever
+          # appears). On Linux <() is a /dev/fd pipe, so this never happens. The
+          # watcher reaps ONLY those fifoow-blocked writers — a targeted kill by
+          # pid, never a broad `pkill -U runner`, which also kills the vmactions
+          # SSH shell (ssh exits 143) and skips copyback — which lets the suite
+          # process exit. Pass/fail is then decided purely by FAIL lines in
+          # test.log; the teardown stall is not a failure. A stall with no
+          # fifoow writers is treated as a genuine hang and fails.
           echo "========== Running tests... =========="
-          status=0
-          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH bash ./run_all_tests.sh > test.log 2>&1" || status=$?
-          echo "========== Tests finished (exit status $status) =========="
+          suite_timeout=720
+          rm -f vsearch-tests/test.log
+          su -m runner -c "cd vsearch-tests && PATH=$PWD/bin:\$PATH timeout -k 30 ${suite_timeout} bash ./run_all_tests.sh > test.log 2>&1" </dev/null >/dev/null 2>&1 &
+          suite_pid=$!
+          last_sig=""
+          stall=0
+          reaped=0
+          genuine_hang=0
+          while kill -0 "$suite_pid" 2>/dev/null; do
+            sig=$(tail -n 20 vsearch-tests/test.log 2>/dev/null | grep -v '^[[:space:]]*$' | tail -n 1)
+            if [ "$sig" != "$last_sig" ]; then
+              echo "[$(date -u +%H:%M:%S)] $sig"
+              last_sig="$sig"
+              stall=0
+            else
+              stall=$((stall + 1))
+              if [ "$stall" -ge 30 ]; then
+                echo "[$(date -u +%H:%M:%S)] no new test output for ${stall}s; test process tree (pid ppid stat wchan command):"
+                ps -U runner -o pid,ppid,stat,wchan,command 2>/dev/null | head -n 30 | sed 's/^/    /'
+                # Reap ONLY the fifoow-blocked <() writers (see the note above):
+                # a targeted kill by pid, never a broad pkill. This lets the
+                # suite process unwind and exit; pass/fail comes from FAIL lines.
+                fifoow_pids=$(ps -U runner -o pid,wchan 2>/dev/null | awk '$2 == "fifoow" { print $1 }')
+                if [ -n "$fifoow_pids" ]; then
+                  echo "[$(date -u +%H:%M:%S)] reaping orphaned fifoow <() writers: $(echo $fifoow_pids | tr '\n' ' ')"
+                  echo "$fifoow_pids" | xargs kill 2>/dev/null
+                  reaped=1
+                else
+                  # Stalled but nothing is blocked in fifoow: not the known
+                  # teardown artifact, so treat it as a genuine hang and fail.
+                  echo "[$(date -u +%H:%M:%S)] stall with no fifoow writers — treating as a genuine hang."
+                  genuine_hang=1
+                fi
+                break
+              fi
+            fi
+            sleep 1
+          done
+          # Give the (reaped) suite a moment to unwind, but never block forever
+          # on it: if it is still alive after the grace period, abandon it to the
+          # VM teardown — the background job is detached from the SSH stdio so the
+          # session still closes cleanly and vmactions runs copyback.
+          for _ in $(seq 1 20); do kill -0 "$suite_pid" 2>/dev/null || break; sleep 1; done
+          if kill -0 "$suite_pid" 2>/dev/null; then
+            echo "suite process still alive after reap; abandoning it to VM teardown."
+          else
+            wait "$suite_pid" 2>/dev/null
+          fi
+          echo "========== Tests finished =========="
+          # Pass/fail = did any test report FAIL. The teardown stall is not a
+          # failure (all tests ran). A genuine hang (no fifoow writers) fails.
           echo "===== FAIL lines ====="
-          grep -E 'FAIL' vsearch-tests/test.log || echo "(none)"
-          echo "===== last 50 lines of test.log ====="
-          tail -n 50 vsearch-tests/test.log
-          exit $status
+          if grep -E 'FAIL' vsearch-tests/test.log; then
+            status=1
+          else
+            echo "(none)"
+            status=0
+          fi
+          if [ "$genuine_hang" -eq 1 ]; then
+            echo "!!! Genuine hang detected (stall with no fifoow writers)."
+            status=124
+          fi
+          echo "===== last 60 lines of test.log ====="
+          tail -n 60 vsearch-tests/test.log
+          # Record the status and exit 0 so vmactions runs its copyback: it SKIPS
+          # copyback when the run script exits non-zero, which is why the test.log
+          # artifact kept coming up empty. The host-side "Report" step below reads
+          # test.status and turns it back into the job's pass/fail.
+          echo "$status" > vsearch-tests/test.status
+          exit 0
+
+    # vmactions copies the workspace back to the host, so the full in-VM test
+    # log (all ~7,700 result lines, not just the tail above) is available here.
+    # Upload it for offline inspection. Runs even when the suite fails.
+    - name: Upload FreeBSD test log
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: freebsd-test-log
+        path: vsearch-tests/test.log
+        if-no-files-found: warn
+
+    # The VM script exits 0 so vmactions copies test.log / test.status back to
+    # the host; the real suite status is recorded in test.status. Re-assert it
+    # here so the job's pass/fail reflects the actual result.
+    - name: Report FreeBSD test result
+      if: always()
+      run: |
+        status=$(cat vsearch-tests/test.status 2>/dev/null || echo 1)
+        echo "FreeBSD test suite exit status: ${status}"
+        exit "${status}"
