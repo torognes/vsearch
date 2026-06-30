@@ -692,6 +692,12 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 }
 
 
+// NOTE: the sequence length `len` is carried as int and used directly in the
+// "%.*s" sequence/quality output below, so a single sequence longer than
+// INT_MAX would be printed as garbage/truncated (the "%.*s" precision is an
+// int). Widening this interface and its callers is the deferred S5 Tier-2
+// sweep; see CODE_REVIEW.md. Reachable only with a >2 GB single sequence and
+// --maxseqlength raised, and read-only (no corruption).
 auto fastq_print_general(FILE * output_handle,
                          char const * seq,
                          int const len,

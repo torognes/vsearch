@@ -479,6 +479,15 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 }
 
 
+// NOTE: the sequence length `len` is still carried as int here and used for
+// the length= annotation, the --relabel_sha1/md5 digest and the
+// --relabel_self label (fprint_seq_label). fasta_print_sequence itself now
+// handles 64-bit lengths, but a single sequence longer than INT_MAX would
+// still be mis-annotated / mis-hashed and its relabel_self label truncated.
+// Widening this interface (and its ~15 callers, the digest chain and the
+// fastq equivalent) is the deferred S5 Tier-2 sweep; see CODE_REVIEW.md.
+// Reachable only with a >2 GB single sequence and --maxseqlength raised, and
+// read-only (wrong output, no corruption).
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          char const * seq,
