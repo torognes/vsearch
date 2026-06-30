@@ -403,7 +403,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
     }
 
-  std::fclose(fp_output);
+  fclose_output(fp_output);
 
   fastq_close(h);
 }
@@ -587,7 +587,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
         }
     }
 
-  std::fclose(fp_output);
+  fclose_output(fp_output);
 
   fastq_close(h);
 }

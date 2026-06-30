@@ -718,7 +718,7 @@ auto udb_fasta(struct Parameters const & parameters) -> void
       progress_update(i + 1);
     }
   progress_done();
-  std::fclose(fp_output);
+  fclose_output(fp_output);
 
   dbindex_free();
   db_free();

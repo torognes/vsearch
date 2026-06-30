@@ -2335,7 +2335,7 @@ auto close_chimera_file(std::FILE * output_stream) -> void
 {
   if (output_stream != nullptr)
     {
-      std::fclose(output_stream);
+      fclose_output(output_stream);
     }
 }
 

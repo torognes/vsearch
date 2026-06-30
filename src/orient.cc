@@ -447,19 +447,19 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (opt_tabbedout != nullptr)
     {
-      std::fclose(fp_tabbedout);
+      fclose_output(fp_tabbedout);
     }
   if (opt_notmatched != nullptr)
     {
-      std::fclose(fp_notmatched);
+      fclose_output(fp_notmatched);
     }
   if (opt_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
   if (opt_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
 
   fasta_close(query_h);

@@ -1765,31 +1765,31 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   if (opt_eetabbedout != nullptr)
     {
-      std::fclose(fp_eetabbedout);
+      fclose_output(fp_eetabbedout);
     }
   if (opt_fastaout_notmerged_rev != nullptr)
     {
-      std::fclose(fp_fastaout_notmerged_rev);
+      fclose_output(fp_fastaout_notmerged_rev);
     }
   if (opt_fastaout_notmerged_fwd != nullptr)
     {
-      std::fclose(fp_fastaout_notmerged_fwd);
+      fclose_output(fp_fastaout_notmerged_fwd);
     }
   if (opt_fastqout_notmerged_rev != nullptr)
     {
-      std::fclose(fp_fastqout_notmerged_rev);
+      fclose_output(fp_fastqout_notmerged_rev);
     }
   if (opt_fastqout_notmerged_fwd != nullptr)
     {
-      std::fclose(fp_fastqout_notmerged_fwd);
+      fclose_output(fp_fastqout_notmerged_fwd);
     }
   if (opt_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
   if (opt_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
 
   fastq_close(fastq_rev);

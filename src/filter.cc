@@ -591,22 +591,22 @@ auto filter(bool const fastq_only, char const * filename) -> void
     {
       if (opt_fastaout_rev != nullptr)
         {
-          std::fclose(fp_fastaout_rev);
+          fclose_output(fp_fastaout_rev);
         }
 
       if (opt_fastqout_rev != nullptr)
         {
-          std::fclose(fp_fastqout_rev);
+          fclose_output(fp_fastqout_rev);
         }
 
       if (opt_fastaout_discarded_rev != nullptr)
         {
-          std::fclose(fp_fastaout_discarded_rev);
+          fclose_output(fp_fastaout_discarded_rev);
         }
 
       if (opt_fastqout_discarded_rev != nullptr)
         {
-          std::fclose(fp_fastqout_discarded_rev);
+          fclose_output(fp_fastqout_discarded_rev);
         }
 
       fastx_close(reverse_handle);
@@ -614,22 +614,22 @@ auto filter(bool const fastq_only, char const * filename) -> void
 
   if (opt_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
 
   if (opt_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
 
   if (opt_fastaout_discarded != nullptr)
     {
-      std::fclose(fp_fastaout_discarded);
+      fclose_output(fp_fastaout_discarded);
     }
 
   if (opt_fastqout_discarded != nullptr)
     {
-      std::fclose(fp_fastqout_discarded);
+      fclose_output(fp_fastqout_discarded);
     }
 
   fastx_close(forward_handle);

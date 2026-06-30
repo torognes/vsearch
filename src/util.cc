@@ -415,3 +415,24 @@ auto fopen_output(char const * filename) -> std::FILE *
     }
   return std::fopen(filename, "w");
 }
+
+
+auto fclose_output(std::FILE * stream) -> void
+{
+  if (stream == nullptr)
+    {
+      return;
+    }
+  /* A write error (full disk, quota, broken pipe) is often deferred by stdio
+     until the buffer is flushed, so check fflush and the stream error flag
+     before closing; fclose itself also flushes and can report the same error.
+     Either way, fail loudly rather than leave a silently truncated output. */
+  if ((std::fflush(stream) != 0) or (std::ferror(stream) != 0))
+    {
+      fatal("Unable to write to output file (disk full, quota exceeded, or broken pipe?)");
+    }
+  if (std::fclose(stream) != 0)
+    {
+      fatal("Unable to close output file (disk full or quota exceeded?)");
+    }
+}

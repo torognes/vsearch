@@ -155,7 +155,7 @@ namespace {
   auto close_output_files(struct output_files const & outfiles) -> void {
     for (auto * fp_outputfile : {outfiles.fasta.handle, outfiles.fastq.handle}) {
       if (fp_outputfile != nullptr) {
-        static_cast<void>(std::fclose(fp_outputfile));
+        static_cast<void>(fclose_output(fp_outputfile));
       }
     }
   }

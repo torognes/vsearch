@@ -628,7 +628,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   check_for_additional_tail_data(fp_sff.get(), parameters);  // rename to warn_if_additional_tail_data()?
 
-  std::fclose(fp_fastqout);
+  fclose_output(fp_fastqout);
 
   if (not parameters.opt_quiet) {
     write_report(stderr, sff_header, sff_stats, index_kind.data());

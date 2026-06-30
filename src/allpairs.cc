@@ -706,43 +706,43 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   db_free();
   if (opt_matched != nullptr)
     {
-      std::fclose(fp_matched);
+      fclose_output(fp_matched);
     }
   if (opt_notmatched != nullptr)
     {
-      std::fclose(fp_notmatched);
+      fclose_output(fp_notmatched);
     }
   if (opt_fastapairs != nullptr)
     {
-      std::fclose(fp_fastapairs);
+      fclose_output(fp_fastapairs);
     }
   if (opt_qsegout != nullptr)
     {
-      std::fclose(fp_qsegout);
+      fclose_output(fp_qsegout);
     }
   if (opt_tsegout != nullptr)
     {
-      std::fclose(fp_tsegout);
+      fclose_output(fp_tsegout);
     }
   if (fp_uc != nullptr)
     {
-      std::fclose(fp_uc);
+      fclose_output(fp_uc);
     }
   if (fp_blast6out != nullptr)
     {
-      std::fclose(fp_blast6out);
+      fclose_output(fp_blast6out);
     }
   if (fp_userout != nullptr)
     {
-      std::fclose(fp_userout);
+      fclose_output(fp_userout);
     }
   if (fp_alnout != nullptr)
     {
-      std::fclose(fp_alnout);
+      fclose_output(fp_alnout);
     }
   if (fp_samout != nullptr)
     {
-      std::fclose(fp_samout);
+      fclose_output(fp_samout);
     }
   show_rusage();
 

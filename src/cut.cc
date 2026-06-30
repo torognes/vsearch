@@ -439,7 +439,7 @@ namespace {
         fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
         fastaout.cut.reverse.handle, fastaout.discarded.reverse.handle}) {
       if (fp_outputfile != nullptr) {
-        static_cast<void>(std::fclose(fp_outputfile));
+        static_cast<void>(fclose_output(fp_outputfile));
       }
     }
   }

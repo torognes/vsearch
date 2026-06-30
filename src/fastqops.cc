@@ -201,12 +201,12 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
 
   if (parameters.opt_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
 
   fastx_close(input_handle);
@@ -311,6 +311,6 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   progress_done();
 
-  std::fclose(fp_fastqout);
+  fclose_output(fp_fastqout);
   fastq_close(input_handle);
 }

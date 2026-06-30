@@ -746,52 +746,52 @@ auto search_exact_done() -> void
 
   if (opt_dbmatched != nullptr)
     {
-      std::fclose(fp_dbmatched);
+      fclose_output(fp_dbmatched);
     }
   if (opt_dbnotmatched != nullptr)
     {
-      std::fclose(fp_dbnotmatched);
+      fclose_output(fp_dbnotmatched);
     }
   if (opt_matched != nullptr)
     {
-      std::fclose(fp_matched);
+      fclose_output(fp_matched);
     }
   if (opt_notmatched != nullptr)
     {
-      std::fclose(fp_notmatched);
+      fclose_output(fp_notmatched);
     }
   if (opt_fastapairs != nullptr)
     {
-      std::fclose(fp_fastapairs);
+      fclose_output(fp_fastapairs);
     }
   if (opt_qsegout != nullptr)
     {
-      std::fclose(fp_qsegout);
+      fclose_output(fp_qsegout);
     }
   if (opt_tsegout != nullptr)
     {
-      std::fclose(fp_tsegout);
+      fclose_output(fp_tsegout);
     }
   if (fp_uc != nullptr)
     {
-      std::fclose(fp_uc);
+      fclose_output(fp_uc);
     }
   if (fp_blast6out != nullptr)
     {
-      std::fclose(fp_blast6out);
+      fclose_output(fp_blast6out);
     }
   if (fp_userout != nullptr)
     {
-      std::fclose(fp_userout);
+      fclose_output(fp_userout);
       clean_up(); // free userfields allocation
     }
   if (fp_alnout != nullptr)
     {
-      std::fclose(fp_alnout);
+      fclose_output(fp_alnout);
     }
   if (fp_samout != nullptr)
     {
-      std::fclose(fp_samout);
+      fclose_output(fp_samout);
     }
 
   show_rusage();
@@ -903,19 +903,19 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
   if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout);
-      std::fclose(fp_biomout);
+      fclose_output(fp_biomout);
     }
 
   if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout);
-      std::fclose(fp_otutabout);
+      fclose_output(fp_otutabout);
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
-      std::fclose(fp_mothur_shared_out);
+      fclose_output(fp_mothur_shared_out);
     }
 
   otutable_done();
