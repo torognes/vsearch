@@ -566,6 +566,15 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 {
   int added = 0;
 
+  /* Keep at most this many hits. The list is the tophits-sized si->hits buffer,
+     but tophits is clamped to seqcount; on a small dataset with large
+     --maxaccepts/--maxrejects the raw bound (maxaccepts + maxrejects - 1) can
+     exceed tophits, so the insertion/shift below would write past the buffer.
+     Clamp the bound to the actual capacity (S10). */
+  int const hit_capacity =
+    static_cast<int>(std::min<int64_t>(opt_maxaccepts + opt_maxrejects - 1,
+                                       tophits));
+
   if (extra_count != 0)
     {
       /* Check if there is a hit with one of the non-matching
@@ -602,12 +611,12 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   --x;
                 }
 
-              if (x < opt_maxaccepts + opt_maxrejects - 1)
+              if (x < hit_capacity)
                 {
                   /* insert into list at position x */
 
                   /* trash bottom element if no more space */
-                  if (si->hit_count >= opt_maxaccepts + opt_maxrejects - 1)
+                  if (si->hit_count >= hit_capacity)
                     {
                       if (si->hits[si->hit_count-1].aligned)
                         {
