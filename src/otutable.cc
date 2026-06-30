@@ -178,7 +178,7 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
 {
   /* read sample annotation in query */
 
-  int len_sample = 0;
+  std::size_t len_sample = 0;
   char const * start_sample = query_header;
   std::vector<char> sample_name;
 
@@ -189,36 +189,36 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       if (regexec(&otutable->regex_sample, query_header, 5, pmatch_sample.data(), 0) == 0)
         {
           /* match: use the matching sample name */
-          len_sample = pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so;
+          len_sample = static_cast<std::size_t>(pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so);
           start_sample += pmatch_sample[3].rm_so;
         }
 #else
       std::cmatch cmatch_sample;
       if (std::regex_search(query_header, cmatch_sample, regex_sample))
         {
-          len_sample = cmatch_sample.length(3);
+          len_sample = static_cast<std::size_t>(cmatch_sample.length(3));
           start_sample += cmatch_sample.position(3);
         }
 #endif
       else
         {
           /* no match: use first name in header with A-Za-z0-9_ */
-          len_sample = static_cast<int>(std::strspn(query_header,
+          len_sample = std::strspn(query_header,
                               "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                               "abcdefghijklmnopqrstuvwxyz"
                               "_"
-                              "0123456789"));
+                              "0123456789");
         }
 
-      sample_name.resize(static_cast<std::size_t>(len_sample) + 1);
-      std::copy(start_sample, std::next(start_sample, len_sample), sample_name.begin());
-      sample_name[static_cast<std::size_t>(len_sample)] = '\0';
+      sample_name.resize(len_sample + 1);
+      std::copy(start_sample, start_sample + len_sample, sample_name.begin());
+      sample_name[len_sample] = '\0';
     }
 
 
   /* read OTU annotation in target */
 
-  int len_otu = 0;
+  std::size_t len_otu = 0;
   char const * start_otu = target_header;
   std::vector<char> otu_name;
 
@@ -229,26 +229,26 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       if (regexec(&otutable->regex_otu, target_header, 4, pmatch_otu.data(), 0) == 0)
         {
           /* match: use the matching otu name */
-          len_otu = pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so;
+          len_otu = static_cast<std::size_t>(pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so);
           start_otu += pmatch_otu[2].rm_so;
         }
 #else
       std::cmatch cmatch_otu;
       if (std::regex_search(target_header, cmatch_otu, regex_otu))
         {
-          len_otu = cmatch_otu.length(2);
+          len_otu = static_cast<std::size_t>(cmatch_otu.length(2));
           start_otu += cmatch_otu.position(2);
         }
 #endif
       else
         {
           /* no match: use first name in header up to ; */
-          len_otu = static_cast<int>(std::strcspn(target_header, ";"));
+          len_otu = std::strcspn(target_header, ";");
         }
 
-      otu_name.resize(static_cast<std::size_t>(len_otu) + 1);
-      std::copy(start_otu, std::next(start_otu, len_otu), otu_name.begin());
-      otu_name[static_cast<std::size_t>(len_otu)] = '\0';
+      otu_name.resize(len_otu + 1);
+      std::copy(start_otu, start_otu + len_otu, otu_name.begin());
+      otu_name[len_otu] = '\0';
 
       /* read tax annotation in target */
 
@@ -257,13 +257,13 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
       if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax.data(), 0) == 0)
         {
           /* match: use the matching tax name */
-          int const len_tax = pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so;
+          std::size_t const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
           char const * start_tax = target_header;
           start_tax += pmatch_tax[2].rm_so;
 
-          std::vector<char> tax_name(static_cast<std::size_t>(len_tax) + 1);
-          std::copy(start_tax, std::next(start_tax, len_tax), tax_name.begin());
-          tax_name[static_cast<std::size_t>(len_tax)] = '\0';
+          std::vector<char> tax_name(len_tax + 1);
+          std::copy(start_tax, start_tax + len_tax, tax_name.begin());
+          tax_name[len_tax] = '\0';
           otutable->otu_tax_map[otu_name.data()] = tax_name.data();
         }
 #else

@@ -176,25 +176,25 @@ auto test_label_match(fastx_handle input_handle) -> bool
 {
   char const * header = fastx_get_header(input_handle);
   auto const header_length = fastx_get_header_length(input_handle);
-  int const hlen = static_cast<int>(header_length);
+  auto const hlen = static_cast<std::size_t>(header_length);
   auto const header_view = Span<char>{header, header_length};
   auto const longest_label = find_length_longest_label(labels_data);
   std::vector<char> field_buffer;
-  int field_len = 0;
+  std::size_t field_len = 0;
   if (opt_label_field != nullptr)
     {
-      field_len = static_cast<int>(std::strlen(opt_label_field));
-      int field_buffer_size = field_len + 2;
+      field_len = std::strlen(opt_label_field);
+      std::size_t field_buffer_size = field_len + 2;
       if (opt_label_word != nullptr)
         {
-          field_buffer_size += static_cast<int>(std::strlen(opt_label_word));
+          field_buffer_size += std::strlen(opt_label_word);
         }
       else
         {
-          field_buffer_size += static_cast<int>(longest_label);
+          field_buffer_size += longest_label;
         }
-      field_buffer.resize(static_cast<std::size_t>(field_buffer_size));
-      std::snprintf(field_buffer.data(), static_cast<std::size_t>(field_buffer_size), "%s=", opt_label_field);
+      field_buffer.resize(field_buffer_size);
+      std::snprintf(field_buffer.data(), field_buffer_size, "%s=", opt_label_field);
     }
 
   if (opt_label != nullptr)
@@ -231,10 +231,10 @@ auto test_label_match(fastx_handle input_handle) -> bool
       char const * needle = opt_label_word;
       if (opt_label_field != nullptr)
         {
-          std::strcpy(&field_buffer[static_cast<std::size_t>(field_len + 1)], needle);
+          std::strcpy(&field_buffer[field_len + 1], needle);
           needle = field_buffer.data();
         }
-      int const wlen = static_cast<int>(std::strlen(needle));
+      auto const wlen = std::strlen(needle);
       char const * hit = header_view.data();
       while (true)
         {
@@ -269,21 +269,21 @@ auto test_label_match(fastx_handle input_handle) -> bool
     }
   else if (opt_label_words != nullptr)
     {
-      char const * const header_end = std::next(header, hlen);
+      char const * const header_end = header + hlen;
       for (auto const & label: labels_data) {
         // labels read from a file are stored as std::vector<char>
         // without a trailing '\0', so the needle length must come from
         // label.size() and the search must be range-based; strlen and
         // strstr would read past the vector's storage
         char const * needle = label.data();
-        int wlen = static_cast<int>(label.size());
+        std::size_t wlen = label.size();
         if (opt_label_field != nullptr)
           {
-            std::copy(label.begin(), label.end(), &field_buffer[static_cast<std::size_t>(field_len + 1)]);
+            std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
             needle = field_buffer.data();
-            wlen = field_len + 1 + static_cast<int>(label.size());
+            wlen = field_len + 1 + label.size();
           }
-        char const * const needle_end = std::next(needle, wlen);
+        char const * const needle_end = needle + wlen;
         char const * hit = header;
         while (true)
           {

@@ -72,6 +72,7 @@
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::memcpy, std::memcmp, std::strcmp
 #include <iterator> // std::distance
+#include <limits>  // std::numeric_limits
 #include <vector>
 
 
@@ -188,6 +189,31 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
   auto raw_header = Span<char>{input_handle->header_buffer.data, input_handle->header_buffer.length};
   auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
   input_handle->header_buffer.length = count;
+
+  /* Reject a header too long for the int header-length bookkeeping used
+     downstream (searchinfo_s::query_head_len / query_head_alloc, where the
+     allocation is query_head_len + 2001). Such a header would be narrowed to a
+     negative int and overflow the per-query header buffer. The sequence length
+     is bounded by --maxseqlength, but the header length is not, so guard it
+     here, at the single point all FASTA/FASTQ (and DB) reads pass through.
+     Mirrors the deferred/fatal handling of the illegal-character check below:
+     on a worker thread the error is recorded and reported from the main
+     thread, never fatal()ed here. */
+  static constexpr auto max_header_length =
+    static_cast<std::size_t>(std::numeric_limits<int>::max()) - 2001;
+  if (count > max_header_length) {
+    std::array<char, 256> message {{}};
+    std::snprintf(message.data(), message.size(),
+                  "FASTA/FASTQ header too long (%" PRIu64 " bytes) on line %"
+                  PRIu64 ".\nHeaders longer than %" PRIu64 " bytes are not supported.",
+                  static_cast<uint64_t>(count), input_handle->lineno_start,
+                  static_cast<uint64_t>(max_header_length));
+    if (input_handle->defer_errors) {
+      fastx_set_deferred_error(input_handle, message.data());
+      return;
+    }
+    fatal(message.data());
+  }
 
   // scan for unusual symbols
   auto const trimmed_header = raw_header.first(count);

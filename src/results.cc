@@ -727,7 +727,7 @@ auto results_show_alnout(std::FILE * output_handle,
       std::fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
               dseqlen, db_getheader(target));
 
-      int const rowlen = (opt_rowlen == 0) ? static_cast<int>(qseqlen + dseqlen) : static_cast<int>(opt_rowlen);
+      int64_t const rowlen = (opt_rowlen == 0) ? (qseqlen + dseqlen) : opt_rowlen;
 
       align_show(output_handle,
                  qsequence,

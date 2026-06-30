@@ -85,5 +85,5 @@ auto align_show(std::FILE * output_handle,
                 int64_t cigarlen,
                 int numwidth,
                 int namewidth,
-                int alignwidth,
+                int64_t alignwidth,
                 int strand) -> void;

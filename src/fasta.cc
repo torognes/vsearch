@@ -443,19 +443,22 @@ auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t 
     Specify width of lines - zero (or <1) means linearize (all on one line).
   */
 
-  auto const sequence_length = static_cast<int>(len);
-
   if (width < 1)  // no sequence folding
     {
-      std::fprintf(output_handle, "%.*s\n", sequence_length, seq);
+      /* len may exceed INT_MAX, which the "%.*s" precision (an int) cannot
+         express, so write the bytes directly rather than through fprintf. */
+      std::fwrite(seq, 1, len, output_handle);
+      std::fprintf(output_handle, "\n");
     }
   else  // sequence folding every 'width'
     {
-      auto rest = sequence_length;
-      for (auto i = 0; i < sequence_length; i += width)
+      auto const width_u = static_cast<uint64_t>(width);
+      for (uint64_t i = 0; i < len; i += width_u)
         {
-          std::fprintf(output_handle, "%.*s\n", std::min(rest, width), seq + i);
-          rest -= width;
+          /* each chunk is at most 'width' (an int), so the cast is safe even
+             when the whole sequence is longer than INT_MAX */
+          auto const chunk = static_cast<int>(std::min(len - i, width_u));
+          std::fprintf(output_handle, "%.*s\n", chunk, seq + i);
         }
     }
 }
@@ -476,6 +479,15 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 }
 
 
+// NOTE: the sequence length `len` is still carried as int here and used for
+// the length= annotation, the --relabel_sha1/md5 digest and the
+// --relabel_self label (fprint_seq_label). fasta_print_sequence itself now
+// handles 64-bit lengths, but a single sequence longer than INT_MAX would
+// still be mis-annotated / mis-hashed and its relabel_self label truncated.
+// Widening this interface (and its ~15 callers, the digest chain and the
+// fastq equivalent) is the deferred S5 Tier-2 sweep; see CODE_REVIEW.md.
+// Reachable only with a >2 GB single sequence and --maxseqlength raised, and
+// read-only (wrong output, no corruption).
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          char const * seq,
