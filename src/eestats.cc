@@ -459,7 +459,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
           if (new_len_steps > len_steps)
             {
-              count_table.resize(static_cast<size_t>(new_len_steps * opt_ee_cutoffs_count));
+              count_table.resize(static_cast<size_t>(new_len_steps) * static_cast<size_t>(opt_ee_cutoffs_count));
               len_steps = new_len_steps;
             }
         }
@@ -489,7 +489,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
                     {
                       if (ee <= opt_ee_cutoffs_values[y])
                         {
-                          ++count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)];
+                          ++count_table[((static_cast<size_t>(x) * static_cast<size_t>(opt_ee_cutoffs_count)) + static_cast<size_t>(y))];
                         }
                     }
                 }
@@ -540,8 +540,8 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
         {
           std::fprintf(fp_output,
                   "   %8" PRIu64 "(%5.1f%%)",
-                  count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)],
-                  100.0 * static_cast<double>(count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)]) / static_cast<double>(seq_count));
+                  count_table[((static_cast<size_t>(x) * static_cast<size_t>(opt_ee_cutoffs_count)) + static_cast<size_t>(y))],
+                  100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(opt_ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
         }
       std::fprintf(fp_output, "\n");
     }
@@ -580,8 +580,8 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
             {
               std::fprintf(fp_log,
                       "   %8" PRIu64 "(%5.1f%%)",
-                      count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)],
-                      100.0 * static_cast<double>(count_table[static_cast<size_t>((x * opt_ee_cutoffs_count) + y)]) / static_cast<double>(seq_count));
+                      count_table[((static_cast<size_t>(x) * static_cast<size_t>(opt_ee_cutoffs_count)) + static_cast<size_t>(y))],
+                      100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(opt_ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
             }
           std::fprintf(fp_log, "\n");
         }
