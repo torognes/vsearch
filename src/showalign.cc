@@ -306,7 +306,7 @@ auto align_show(std::FILE * output_handle,
                 int64_t const cigarlen,
                 int const numwidth,
                 int const namewidth,
-                int const alignwidth,
+                int64_t const alignwidth,
                 int const strand) -> void
 {
 
