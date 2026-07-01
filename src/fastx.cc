@@ -753,35 +753,36 @@ auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -
 }
 
 
-auto fastx_query_length_ok(fastx_handle input_handle) -> bool
+auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
 {
-  /* The search engine stores a query sequence length in an int field
-     (searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom). Database
-     sequences are length-filtered by --maxseqlength in db_read, but query
-     sequences are not, so a query longer than that int field can hold would be
-     narrowed to a negative length and overflow the per-query buffer. Reject it
-     here. Mirrors fastx_filter_header: on a worker thread the error is recorded
-     and reported from the main thread (never fatal()ed off-main), otherwise
-     fatal(). Returns true if the current query may be processed. */
-  static constexpr auto limit =
+  /* Reject a sequence too long for the int sequence-length bookkeeping used
+     downstream (e.g. searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom;
+     the chimera query buffers; cut's rc_buffer). Such a sequence would be
+     narrowed to a negative int and overflow the per-record buffer. Database
+     sequences over --maxseqlength are discarded by db_read, but many commands
+     read records directly via fasta_next/fastx_next with no length filter, so
+     guard it here, at the single point all FASTA/FASTQ (and DB) reads pass
+     through -- symmetric with the header guard in fastx_filter_header. Mirrors
+     its deferred/fatal handling: on a worker thread the error is recorded and
+     reported from the main thread, never fatal()ed here. */
+  static constexpr auto max_sequence_length =
     static_cast<uint64_t>(std::numeric_limits<int>::max() - buffer_headroom);
-  auto const length = fastx_get_sequence_length(input_handle);
-  if (length <= limit)
+  auto const length = input_handle->sequence_buffer.length;
+  if (length <= max_sequence_length)
     {
-      return true;
+      return;
     }
   std::array<char, 256> message {{}};
   std::snprintf(message.data(), message.size(),
-                "FASTA/FASTQ query sequence too long (%" PRIu64 " nt).\n"
-                "Query sequences longer than %" PRIu64 " nt are not supported.",
-                length, limit);
+                "FASTA/FASTQ sequence too long (%" PRIu64 " nt) on line %"
+                PRIu64 ".\nSequences longer than %" PRIu64 " nt are not supported.",
+                length, input_handle->lineno_start, max_sequence_length);
   if (input_handle->defer_errors)
     {
       fastx_set_deferred_error(input_handle, message.data());
-      return false;
+      return;
     }
   fatal(message.data());
-  return false;
 }
 
 
