@@ -102,8 +102,11 @@ struct uhandle_s
   struct bucket_s * hash;
   unsigned int * list;
   unsigned int hash_mask;
-  int size;
-  int alloc;
+  // size and alloc are 64-bit: the hash grows to 2 * sequence length, which
+  // exceeds INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise
+  // overflow int before reaching the target). See unique_count_hash().
+  int64_t size;
+  int64_t alloc;
 
   uint64_t bitmap_size;
   uint64_t * bitmap;
@@ -264,9 +267,10 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
-  if (unique_handle->alloc < 2 * seqlen)
+  int64_t const needed = 2 * static_cast<int64_t>(seqlen);
+  if (unique_handle->alloc < needed)
     {
-      while (unique_handle->alloc < 2 * seqlen)
+      while (unique_handle->alloc < needed)
         {
           unique_handle->alloc *= 2;
         }
@@ -279,7 +283,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   /* hashtable variant */
 
   unique_handle->size = 1;
-  while (unique_handle->size < 2 * seqlen)
+  while (unique_handle->size < needed)
     {
       unique_handle->size *= 2;
     }

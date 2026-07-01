@@ -121,7 +121,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
 
       hp->count = 0;
 
-      hp->nwscore = static_cast<int>(si->qseqlen * opt_match);
+      hp->nwscore = static_cast<int>(static_cast<int64_t>(si->qseqlen) * opt_match);
       hp->nwdiff = 0;
       hp->nwgaps = 0;
       hp->nwindels = 0;
