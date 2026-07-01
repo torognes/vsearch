@@ -186,8 +186,15 @@ auto find_max_insertions_per_position(int const target_count,
 }
 
 
-auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int {
-  auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
+auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int64_t {
+  /* Sum in 64-bit: the total alignment length is centroid length plus the max
+     insertions at every position, which can exceed INT_MAX for a large cluster
+     even though each individual sequence is bounded. A 32-bit accumulator here
+     wraps to a wrong (often negative) length that then under-sizes the profile
+     and alignment buffers while the alignment walk uses the true extent -- a
+     heap overflow. With a 64-bit result the buffers are sized correctly; a true
+     length beyond int capacity fails the allocation cleanly before any walk. */
+  auto const centroid_len = static_cast<int64_t>(max_insertions.size() - 1);
   return std::accumulate(max_insertions.begin(), max_insertions.end(), centroid_len);
 }
 
