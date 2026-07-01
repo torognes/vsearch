@@ -108,9 +108,10 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
 
   /* reallocate hash table if necessary */
 
-  if (kmer_hash.alloc < 2 * len)
+  int64_t const needed = 2 * static_cast<int64_t>(len);
+  if (kmer_hash.alloc < needed)
     {
-      while (kmer_hash.alloc < 2 * len)
+      while (kmer_hash.alloc < needed)
         {
           kmer_hash.alloc *= 2;
         }
@@ -118,7 +119,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
     }
 
   kmer_hash.size = 1;
-  while (kmer_hash.size < 2 * len)
+  while (kmer_hash.size < needed)
     {
       kmer_hash.size *= 2;
     }

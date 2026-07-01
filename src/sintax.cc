@@ -519,14 +519,14 @@ auto sintax_thread_run(uint64_t const t) -> void
 
               if (si->query_head_len + 1 > si->query_head_alloc)
                 {
-                  si->query_head_alloc = si->query_head_len + 2001;
+                  si->query_head_alloc = si->query_head_len + buffer_headroom;
                   si->query_head = static_cast<char *>(
                     xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
                 }
 
               if (si->qseqlen + 1 > si->seq_alloc)
                 {
-                  si->seq_alloc = si->qseqlen + 2001;
+                  si->seq_alloc = si->qseqlen + buffer_headroom;
                   si->qsequence = static_cast<char *>(
                     xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
                 }

@@ -97,7 +97,7 @@ auto update_profile(char const nucleotide,
   static constexpr auto U_counter = 3;  // note: T converted to U?
   static constexpr auto N_counter = 4;
   static constexpr auto gap_counter = 5;
-  auto const offset = static_cast<std::vector<prof_type>::size_type>(profsize * position_in_alignment);
+  auto const offset = static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(position_in_alignment);
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
   switch (std::toupper(nucleotide))
@@ -186,8 +186,15 @@ auto find_max_insertions_per_position(int const target_count,
 }
 
 
-auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int {
-  auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
+auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int64_t {
+  /* Sum in 64-bit: the total alignment length is centroid length plus the max
+     insertions at every position, which can exceed INT_MAX for a large cluster
+     even though each individual sequence is bounded. A 32-bit accumulator here
+     wraps to a wrong (often negative) length that then under-sizes the profile
+     and alignment buffers while the alignment walk uses the true extent -- a
+     heap overflow. With a 64-bit result the buffers are sized correctly; a true
+     length beyond int capacity fails the allocation cleanly before any walk. */
+  auto const centroid_len = static_cast<int64_t>(max_insertions.size() - 1);
   return std::accumulate(max_insertions.begin(), max_insertions.end(), centroid_len);
 }
 
@@ -439,7 +446,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
       prof_type best_count = 0;
       for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
         {
-          auto const count = profile[static_cast<std::vector<prof_type>::size_type>(profsize * i) + nucleotide];
+          auto const count = profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(i)) + nucleotide];
           if (count > best_count)
             {
               best_count = count;
@@ -448,7 +455,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* if no A, C, G, or T, check if there are any N's */
-      auto const N_count = profile[static_cast<std::vector<prof_type>::size_type>((profsize * i) + 4)];
+      auto const N_count = profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(i)) + 4U];
       if ((best_count == 0) and (N_count > 0))
         {
           best_count = N_count;
@@ -456,7 +463,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* compare to the number of gap symbols */
-      auto const gap_count = profile[static_cast<std::vector<prof_type>::size_type>((profsize * i) + 5)];
+      auto const gap_count = profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(i)) + 5U];
       if (best_count >= gap_count)
         {
           auto const index = static_cast<unsigned char>(best_sym);
@@ -533,7 +540,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[static_cast<std::vector<prof_type>::size_type>((profsize * counter) + symbol_index)]));
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]));
       }
       static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;

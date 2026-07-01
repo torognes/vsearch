@@ -359,6 +359,7 @@ auto fasta_next(fastx_handle input_handle,
 
   fastx_filter_header(input_handle, truncateatspace);
   fasta_filter_sequence(input_handle, char_mapping);
+  fastx_filter_sequence_length(input_handle);
 
   return true;
 }

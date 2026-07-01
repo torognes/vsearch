@@ -4438,9 +4438,20 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --maxseqlength must be a positive integer");
     }
 
-  if (opt_maxseqlength > UINT32_MAX)
+  // The sequence length is narrowed to int in the search/cluster/chimera
+  // engine (searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom), so a
+  // longer sequence would wrap negative and overflow the per-query buffer. Cap
+  // the option at INT_MAX - buffer_headroom so that cannot happen; this mirrors
+  // the header length limit enforced in fastx_filter_header.
+  static constexpr int maxseqlength_limit =
+    std::numeric_limits<int>::max() - buffer_headroom;
+  if (opt_maxseqlength > maxseqlength_limit)
     {
-      fatal("The argument to --maxseqlength cannot exceed 4294967295");
+      std::array<char, 128> message {{}};
+      std::snprintf(message.data(), message.size(),
+                    "The argument to --maxseqlength cannot exceed %d (INT_MAX - %d)",
+                    maxseqlength_limit, buffer_headroom);
+      fatal(message.data());
     }
 
   if (parameters.opt_chimeras_denovo != nullptr)

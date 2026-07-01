@@ -598,6 +598,7 @@ auto fastq_next(fastx_handle input_handle,
     }
 
   fastx_filter_header(input_handle, truncateatspace);
+  fastx_filter_sequence_length(input_handle);
 
   input_handle->seqno++;
 

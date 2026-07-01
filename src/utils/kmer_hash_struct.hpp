@@ -58,6 +58,7 @@
 
 */
 
+#include <cstdint>  // int64_t
 #include <vector>
 
 
@@ -73,7 +74,10 @@ struct kh_handle_s
   static constexpr auto kmer_hash_mask = kmer_hash_allocation - 1U;
   std::vector<struct kh_bucket_s> hash = std::vector<struct kh_bucket_s>(kmer_hash_allocation);
   unsigned int hash_mask = kmer_hash_mask;
-  int size = 0;
-  int alloc = kmer_hash_allocation;
+  // size and alloc are 64-bit: the hash grows to 2 * sequence length, which
+  // exceeds INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise
+  // overflow int before reaching the target). See kh_insert_kmers().
+  int64_t size = 0;
+  int64_t alloc = kmer_hash_allocation;
   int maxpos = 0;
 };

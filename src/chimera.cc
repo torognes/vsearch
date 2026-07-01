@@ -252,7 +252,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
   /* realloc arrays based on query length */
 
   const int maxqlen = std::max(chimera_info->query_len, 1);
-  auto const max_2x2_size = static_cast<size_t>(maxcandidates * maxqlen);
+  auto const max_2x2_size = static_cast<size_t>(maxcandidates) * static_cast<size_t>(maxqlen);
 
   if (maxqlen > chimera_info->query_alloc)
     {
@@ -269,7 +269,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
       chimera_info->scan_p.resize(static_cast<size_t>(maxqlen) + 1);
       chimera_info->scan_q.resize(static_cast<size_t>(maxqlen) + 1);
 
-      const int maxalnlen = maxqlen + (2 * static_cast<int>(db_getlongestsequence()));
+      const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db_getlongestsequence()));
       chimera_info->paln.resize(maxparents);
       for (auto & a_parent_alignment : chimera_info->paln) {
         a_parent_alignment.resize(static_cast<size_t>(maxalnlen) + 1);
@@ -616,16 +616,16 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
               int sum = 0;
               for (int qpos = 0; qpos < ci->query_len; ++qpos)
                 {
-                  int const z = (i * ci->query_len) + qpos;
-                  sum += ci->match[static_cast<size_t>(z)];
+                  size_t const z = (static_cast<size_t>(i) * static_cast<size_t>(ci->query_len)) + static_cast<size_t>(qpos);
+                  sum += ci->match[z];
                   if (qpos >= window)
                     {
-                      sum -= ci->match[static_cast<size_t>(z - window)];
+                      sum -= ci->match[z - static_cast<size_t>(window)];
                     }
                   if (qpos >= window - 1)
                     {
-                      ci->smooth[static_cast<size_t>(z)] = sum;
-                      ci->maxsmooth[static_cast<size_t>(qpos)] = std::max(ci->smooth[static_cast<size_t>(z)], ci->maxsmooth[static_cast<size_t>(qpos)]);
+                      ci->smooth[z] = sum;
+                      ci->maxsmooth[static_cast<size_t>(qpos)] = std::max(ci->smooth[z], ci->maxsmooth[static_cast<size_t>(qpos)]);
                     }
                 }
             }
@@ -644,8 +644,8 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
                 {
                   if (not cand_selected[static_cast<size_t>(i)])
                     {
-                      int const z = (i * ci->query_len) + qpos;
-                      if (ci->smooth[static_cast<size_t>(z)] == ci->maxsmooth[static_cast<size_t>(qpos)])
+                      size_t const z = (static_cast<size_t>(i) * static_cast<size_t>(ci->query_len)) + static_cast<size_t>(qpos);
+                      if (ci->smooth[z] == ci->maxsmooth[static_cast<size_t>(qpos)])
                         {
                           ++wins[static_cast<size_t>(i)];
                         }

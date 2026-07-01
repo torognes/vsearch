@@ -158,6 +158,13 @@ auto fastx_get_sequence(fastx_handle input_handle) -> char const *;
 auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t;
 
+// Reject a sequence too long for the int length bookkeeping used downstream.
+// Called from fasta_next/fastx_next so every read is bounded at one choke
+// point, symmetric with fastx_filter_header. On a worker thread an over-long
+// sequence records a deferred error (reported from the main thread), otherwise
+// it is fatal.
+auto fastx_filter_sequence_length(fastx_handle input_handle) -> void;
+
 auto fastx_get_quality(fastx_handle input_handle) -> char const *;
 auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t;
 
