@@ -383,7 +383,8 @@ information to the log file.
 .TP
 .BI \-\-maxseqlength\~ "positive integer"
 All \fBvsearch\fR operations discard sequences longer than
-\fIinteger\fR (50,000 nucleotides by default).
+\fIinteger\fR (50,000 nucleotides by default). The value must not
+exceed 2,147,481,646 (\fIINT_MAX\fR minus 2,001).
 .TAG minseqlength
 .TP
 .BI \-\-minseqlength\~ "positive integer"
