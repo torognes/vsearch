@@ -70,13 +70,14 @@ struct seqinfo_s
   std::size_t seq_p {};
   std::size_t qual_p {};
   // headerlen and seqlen are intentionally kept 32-bit: --maxseqlength is
-  // capped at UINT32_MAX (see cli.cc), so no accepted record can overflow
-  // them, and the two fields share a single 8-byte slot here. Widening either
-  // to 64-bit grows seqinfo_s from 40 to 48 bytes — +8 bytes per sequence in
-  // the seqindex array (alignment padding makes widening just one cost the
-  // same as widening both). If the --maxseqlength cap is ever raised above
-  // UINT32_MAX, widen both to uint64_t (and drop the narrowing casts in
-  // db_add()); until then the cap is the guard for the N1(c) storage path.
+  // capped at INT_MAX - 2001 (see cli.cc), well under the 32-bit field
+  // maximum, so no accepted record can overflow them, and the two fields share
+  // a single 8-byte slot here. Widening either to 64-bit grows seqinfo_s from
+  // 40 to 48 bytes — +8 bytes per sequence in the seqindex array (alignment
+  // padding makes widening just one cost the same as widening both). If the
+  // --maxseqlength cap is ever raised above UINT32_MAX, widen both to uint64_t
+  // (and drop the narrowing casts in db_add()); until then the cap is the guard
+  // for the N1(c) storage path.
   unsigned int headerlen {};
   unsigned int seqlen {};
   uint64_t size {};  // abundance; 64-bit so a per-sequence ;size= above UINT_MAX
