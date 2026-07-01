@@ -70,7 +70,7 @@ struct seqinfo_s
   std::size_t seq_p {};
   std::size_t qual_p {};
   // headerlen and seqlen are intentionally kept 32-bit: --maxseqlength is
-  // capped at INT_MAX - 2001 (see cli.cc), well under the 32-bit field
+  // capped at INT_MAX - buffer_headroom (see cli.cc), well under the 32-bit field
   // maximum, so no accepted record can overflow them, and the two fields share
   // a single 8-byte slot here. Widening either to 64-bit grows seqinfo_s from
   // 40 to 48 bytes — +8 bytes per sequence in the seqindex array (alignment

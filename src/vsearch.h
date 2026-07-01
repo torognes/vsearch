@@ -197,6 +197,16 @@
 #include "fastq.h"
 #include "dbhash.h"
 
+/* Over-allocation headroom (bytes) for the per-query header and sequence
+   buffers in the search engine: populate_si() grows them to
+   length + buffer_headroom (see searchinfo_s::query_head_alloc / seq_alloc),
+   so a query slightly longer than the previous one does not trigger another
+   realloc. It also fixes the sequence/header length ceiling: --maxseqlength is
+   capped at INT_MAX - buffer_headroom (cli.cc) and fastx_filter_header rejects
+   longer headers, so length + buffer_headroom can never overflow the int size
+   fields. */
+constexpr int buffer_headroom = 2001;
+
 /* options */
 
 extern bool opt_bzip2_decompress;
