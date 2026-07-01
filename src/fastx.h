@@ -158,6 +158,13 @@ auto fastx_get_sequence(fastx_handle input_handle) -> char const *;
 auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t;
 auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t;
 
+// Reject a query sequence too long for the int length fields in the search
+// engine (called from the query read loops; database sequences are filtered by
+// --maxseqlength in db_read instead). Returns true if the current record may be
+// processed; on a worker thread an over-long query records a deferred error
+// (reported from the main thread), otherwise it is fatal.
+auto fastx_query_length_ok(fastx_handle input_handle) -> bool;
+
 auto fastx_get_quality(fastx_handle input_handle) -> char const *;
 auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t;
 

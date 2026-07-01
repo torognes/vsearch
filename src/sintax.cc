@@ -498,6 +498,7 @@ auto sintax_thread_run(uint64_t const t) -> void
                      opt_notrunclabels == 0,
                      chrmap_no_change_vector.data()))
         {
+          if (not fastx_query_length_ok(query_fastx_h)) { break; }
           auto const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
           auto const * qseq = fastx_get_sequence(query_fastx_h);

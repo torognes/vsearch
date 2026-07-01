@@ -427,6 +427,10 @@ auto udb_read(const char * filename,
         }
       seqindex[i].header_p = current_index;
       seqindex[i].headerlen = header_index[i + 1] - current_index - 1;
+      if (static_cast<int64_t>(seqindex[i].headerlen) > std::numeric_limits<int>::max() - buffer_headroom)
+        {
+          fatal("UDB file contains a header too long for this version of vsearch");
+        }
       seqindex[i].size = 1;
       last = current_index;
     }
@@ -457,6 +461,11 @@ auto udb_read(const char * filename,
   for (auto i = 0U; i < seqcount; i++)
     {
       unsigned int const sequence_length = sequence_lengths[i];
+
+      if (static_cast<int64_t>(sequence_length) > std::numeric_limits<int>::max() - buffer_headroom)
+        {
+          fatal("UDB file contains a sequence too long for this version of vsearch");
+        }
 
       seqindex[i].seq_p = udb_headerchars + sum;
       seqindex[i].seqlen = sequence_length;

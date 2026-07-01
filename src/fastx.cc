@@ -753,6 +753,38 @@ auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -
 }
 
 
+auto fastx_query_length_ok(fastx_handle input_handle) -> bool
+{
+  /* The search engine stores a query sequence length in an int field
+     (searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom). Database
+     sequences are length-filtered by --maxseqlength in db_read, but query
+     sequences are not, so a query longer than that int field can hold would be
+     narrowed to a negative length and overflow the per-query buffer. Reject it
+     here. Mirrors fastx_filter_header: on a worker thread the error is recorded
+     and reported from the main thread (never fatal()ed off-main), otherwise
+     fatal(). Returns true if the current query may be processed. */
+  static constexpr auto limit =
+    static_cast<uint64_t>(std::numeric_limits<int>::max() - buffer_headroom);
+  auto const length = fastx_get_sequence_length(input_handle);
+  if (length <= limit)
+    {
+      return true;
+    }
+  std::array<char, 256> message {{}};
+  std::snprintf(message.data(), message.size(),
+                "FASTA/FASTQ query sequence too long (%" PRIu64 " nt).\n"
+                "Query sequences longer than %" PRIu64 " nt are not supported.",
+                length, limit);
+  if (input_handle->defer_errors)
+    {
+      fastx_set_deferred_error(input_handle, message.data());
+      return false;
+    }
+  fatal(message.data());
+  return false;
+}
+
+
 auto fastx_get_position(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
