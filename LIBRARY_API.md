@@ -67,12 +67,7 @@ The three components are also available individually as
 ### Static library
 
 ```bash
-# From a fresh clone (autotools not pre-generated):
-autoreconf -fi
-./configure
-make -C src libvsearch.a
-
-# From the release branch (autotools pre-generated):
+# The generated build files are shipped and authoritative; no autoreconf needed.
 ./configure
 make -C src libvsearch.a
 ```
@@ -101,10 +96,12 @@ On macOS cross-compilation (arm64 runner targeting x86_64), pass
 `-arch x86_64` via `CXXFLAGS` and `CFLAGS`, and set
 `--host=x86_64-apple-darwin` on the configure command.
 
-Pre-generated autotools files are committed to the repository so
-`autoreconf` is not required at build time. If timestamps cause
-`make` to attempt regeneration, touch the generated files before
-building.
+The generated autotools files are committed to the repository and are
+authoritative: maintainer mode is disabled (`AM_MAINTAINER_MODE`), so
+`autoreconf` is not required at build time and `make` will not attempt to
+regenerate them (no matching autoconf/automake version is needed, and
+timestamps no longer matter). Run `./autogen.sh` (or `autoreconf -fi`)
+only if you modify `configure.ac` or a `Makefile.am`.
 
 ### Link dependencies
 

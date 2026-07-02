@@ -5,6 +5,15 @@ AC_PREREQ([2.63])
 AC_INIT([vsearch], [2.31.0], [torognes@ifi.uio.no], [vsearch], [https://github.com/torognes/vsearch])
 AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([subdir-objects])
+# Ship the generated build files (configure, Makefile.in, ...) and treat them
+# as authoritative: do NOT let `make` regenerate them from configure.ac/*.am
+# via the autotools rebuild rules. This decouples an ordinary build from having
+# a specific autoconf/automake version installed (a fresh checkout has no
+# reason to match the exact version that produced the committed files, and git
+# does not preserve mtimes, so the rebuild rules would otherwise fire and fail).
+# Regenerate deliberately with `./autogen.sh` after editing configure.ac/*.am;
+# CI does this explicitly. Pass --enable-maintainer-mode to opt back in.
+AM_MAINTAINER_MODE([disable])
 AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
 AC_CONFIG_HEADERS([config.h])

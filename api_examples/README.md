@@ -10,7 +10,7 @@ Build the vsearch static library and executable:
 
 ```bash
 cd ..
-autoreconf -fi && ./configure
+./configure                 # the generated build files are shipped; no autoreconf needed
 make -C src libvsearch.a    # static library for examples
 make -C src                 # executable for ground truth comparison
 ```

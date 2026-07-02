@@ -12,40 +12,40 @@
 /* Define to 1 if you have the <getopt.h> header file. */
 #undef HAVE_GETOPT_H
 
-/* Define to 1 if you have the 'gettimeofday' function. */
+/* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the 'dl' library (-ldl). */
+/* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
 
-/* Define to 1 if you have the 'psapi' library (-lpsapi). */
+/* Define to 1 if you have the `psapi' library (-lpsapi). */
 #undef HAVE_LIBPSAPI
 
-/* Define to 1 if you have the 'localtime' function. */
+/* Define to 1 if you have the `localtime' function. */
 #undef HAVE_LOCALTIME
 
-/* Define to 1 if you have the 'memchr' function. */
+/* Define to 1 if you have the `memchr' function. */
 #undef HAVE_MEMCHR
 
-/* Define to 1 if you have the 'memcpy' function. */
+/* Define to 1 if you have the `memcpy' function. */
 #undef HAVE_MEMCPY
 
-/* Define to 1 if you have the 'memmove' function. */
+/* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
 
-/* Define to 1 if you have the 'memset' function. */
+/* Define to 1 if you have the `memset' function. */
 #undef HAVE_MEMSET
 
-/* Define to 1 if you have the 'posix_memalign' function. */
+/* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
 
-/* Define to 1 if you have the 'pow' function. */
+/* Define to 1 if you have the `pow' function. */
 #undef HAVE_POW
 
-/* Define to 1 if you have the 'regcomp' function. */
+/* Define to 1 if you have the `regcomp' function. */
 #undef HAVE_REGCOMP
 
 /* Define to 1 if you have the <regex.h> header file. */
@@ -60,10 +60,10 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the 'strchr' function. */
+/* Define to 1 if you have the `strchr' function. */
 #undef HAVE_STRCHR
 
-/* Define to 1 if you have the 'strcspn' function. */
+/* Define to 1 if you have the `strcspn' function. */
 #undef HAVE_STRCSPN
 
 /* Define to 1 if you have the <strings.h> header file. */
@@ -72,7 +72,7 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the 'sysinfo' function. */
+/* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
@@ -114,7 +114,7 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if all of the C89 standard headers exist (not just the ones
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
    required in a freestanding environment). This macro is provided for
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
@@ -137,7 +137,7 @@
    #define below would cause a syntax error. */
 #undef _UINT8_T
 
-/* Define to '__inline__' or '__inline' if that's what the C compiler
+/* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
 #undef inline
@@ -147,7 +147,7 @@
    such a type exists and the standard includes do not define it. */
 #undef int64_t
 
-/* Define as 'unsigned int' if <stddef.h> doesn't define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
 /* Define to the type of an unsigned integer type of width exactly 32 bits if
