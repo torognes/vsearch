@@ -55,13 +55,12 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 wget https://github.com/torognes/vsearch/archive/v2.31.0.tar.gz
 tar xzf v2.31.0.tar.gz
 cd vsearch-2.30.6
-./autogen.sh
 ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 make ARFLAGS="cr"
 sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O2"` and `CXXFLAGS="-O2"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. GNU autoconf (version 2.63 or later), automake and the GCC C++ (`g++`) compiler is required to build vsearch. Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O2"` and `CXXFLAGS="-O2"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
 Warning: Compiling the `align_simd.cc` file on x86_64 systems using the GNU C++ compiler version 9 or later with the `-O3` optimization option on may result in incorrect code that may cause bad alignments in some circumstances. This was due to the `-ftree-partial-pre` optimization enabled by `-O3`. A compiler pragma has been inserted in the code to specifically turn off this optimization for the affected code. Using `-O3` should be safe.
 
@@ -69,12 +68,13 @@ To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll n
 
 To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, ghostscript, groff-base, make, zlib-devel.
 
+Of these, `autoconf` and `automake` are only needed if you regenerate the build system with `./autogen.sh` (e.g. after editing `configure.ac` or a `Makefile.am`); an ordinary build from the shipped files does not require them.
+
 Instead of downloading the source distribution as a compressed archive, you could clone the repo and build it as shown below. The options to `configure` as described above are still valid.
 
 ```
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
-./autogen.sh
 ./configure CFLAGS="-O2" CXXFLAGS="-O2"
 make ARFLAGS="cr"
 sudo make install
@@ -157,7 +157,7 @@ doi: [10.7717/peerj.2584](https://doi.org/10.7717/peerj.2584)
 
 ## Dependencies
 
-Compiling VSEARCH requires either GCC (`g++`) or `clang`, `make` and the autotools (`ui-auto` on Debian-based distributions). Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
+Compiling VSEARCH requires either GCC (`g++`) or `clang` and `make`. The autotools (autoconf/automake) are not needed for an ordinary build — the generated build files are shipped — and are only required to regenerate the build system with `./autogen.sh`. Optionally, the header files for the following two optional libraries are required if support for gzip and bzip2 compressed FASTA and FASTQ input files is needed:
 
 * libz (zlib library) (`zlib.h` header file, available as `zlib1g-dev` on Debian-based distributions) (optional)
 * libbz2 (bzip2lib library) (`bzlib.h` header file, available as `libbz2-dev`on Debian-based distributions) (optional)
