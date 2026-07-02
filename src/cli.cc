@@ -71,6 +71,7 @@
 #include <array>
 #include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macro SCNd64
+#include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::sscanf, std::fprintf, fprintf, stderr, stdout
 #include <cstdlib>  // exit, EXIT_FAILURE
@@ -377,7 +378,7 @@ namespace {
     errno = 0;
     auto const ret = std::sscanf(arg, "%lf%n", &temp, &len);
 
-    if ((ret == 0) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE))
+    if ((ret == 0) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE) or (not std::isfinite(temp)))
       {
         fatal("Illegal option argument");
       }
