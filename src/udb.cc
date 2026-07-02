@@ -371,6 +371,16 @@ auto udb_read(const char * filename,
   seqcount = buffer[13];
   udb_dbaccel = buffer[6];
 
+  /* The per-sequence header-index and length tables each store 4 bytes
+     per sequence, so a file cannot describe more than filesize/4
+     sequences. Rejecting a larger seqcount also keeps it well clear of
+     the seqcount + 1 wrap when the header index is sized below. */
+
+  if (seqcount > filesize / 4)
+    {
+      fatal("Invalid UDB file");
+    }
+
   if (udb_wordlength != opt_wordlength)
     {
       std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
@@ -463,6 +473,12 @@ auto udb_read(const char * filename,
     {
       unsigned int const current_index = header_index[i];
       if ((current_index < last) or (current_index >= udb_headerchars))
+        {
+          fatal("Invalid UDB file");
+        }
+      /* Header offsets must strictly increase: an equal (or smaller) next
+         offset would make headerlen (next - current - 1) underflow. */
+      if (header_index[i + 1] <= current_index)
         {
           fatal("Invalid UDB file");
         }
