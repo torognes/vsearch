@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "city.h"
+#include "vendored/city.h"
 #include "mask.h"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min

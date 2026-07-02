@@ -8,7 +8,7 @@
  *
  * Part 2: Self-validating batch vs sequential comparison.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_chimera example_chimera.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_chimera example_chimera.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_chimera
  * Verify: diff <(sort output.tsv) <(sort data/expected_chimera.tsv)
  */

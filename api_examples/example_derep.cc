@@ -6,7 +6,7 @@
  *
  * Output matches vsearch --derep_fulllength --output --sizeout format.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_derep example_derep.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_derep example_derep.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_derep
  * Verify: diff output.fasta data/expected_derep.fasta
  */

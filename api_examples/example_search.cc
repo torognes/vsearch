@@ -9,7 +9,7 @@
  * Part 2: Self-validating strand test. Verifies that opt_strand = 2 finds
  * reverse-complement hits, and opt_strand = 1 does not.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_search example_search.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_search example_search.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_search
  * Verify: diff <(sort output.tsv) <(sort data/expected_search.tsv)
  */

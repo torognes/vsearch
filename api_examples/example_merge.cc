@@ -4,7 +4,7 @@
  * Reads one forward and one reverse FASTQ read, merges them based on
  * overlap detection, and outputs the merged sequence in FASTA format.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_merge example_merge.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_merge example_merge.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_merge
  * Verify: diff output.fasta data/expected_merge.fasta
  */

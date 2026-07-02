@@ -14,7 +14,7 @@ VSEARCH_LIB = $(VSEARCH_SRC)/libvsearch.a
 VSEARCH_BIN = ../bin/vsearch
 
 CXX = g++
-CXXFLAGS = -std=c++11 -O2 -Wall -I$(VSEARCH_SRC)
+CXXFLAGS = -std=c++11 -O3 -Wall -I$(VSEARCH_SRC)
 LDFLAGS = $(VSEARCH_LIB) -lpthread -ldl
 
 SHELL = /bin/bash

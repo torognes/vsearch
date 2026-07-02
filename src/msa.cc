@@ -540,7 +540,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRId64, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]));
+        static_cast<void>(std::fprintf(fp_profile, "\t%" PRIu64, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]));
       }
       static_cast<void>(std::fprintf(fp_profile, "\n"));
       ++counter;

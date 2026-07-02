@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "city.h"
+#include "vendored/city.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 // #include "util.h"  // hash_cityhash128
@@ -415,8 +415,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (sequencecount > 0)
         {
           std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
-                  ", max %" PRIu64 ", avg %.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
+                  ", max %" PRId64 ", avg %.0f\n",
                   nucleotidecount,
                   sequencecount,
                   shortest,
@@ -437,8 +437,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (sequencecount > 0)
         {
           std::fprintf(fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64
-                  ", max %" PRIu64 ", avg %.0f\n",
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
+                  ", max %" PRId64 ", avg %.0f\n",
                   nucleotidecount,
                   sequencecount,
                   shortest,
@@ -457,7 +457,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   if (discarded_short != 0U)
     {
       std::fprintf(stderr,
-              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+              "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n",
               parameters.opt_minseqlength,
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
@@ -465,7 +465,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
-                  "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+                  "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
                   parameters.opt_minseqlength,
                   discarded_short,
                   (discarded_short == 1 ? "sequence" : "sequences"));
@@ -475,7 +475,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   if (discarded_long != 0U)
     {
       std::fprintf(stderr,
-              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
+              "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n",
               parameters.opt_maxseqlength,
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
@@ -483,7 +483,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
-                  "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
+                  "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
                   parameters.opt_maxseqlength,
                   discarded_long,
                   (discarded_long == 1 ? "sequence" : "sequences"));
@@ -513,7 +513,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (not parameters.opt_quiet)
         {
           std::fprintf(stderr,
-                  "%" PRId64
+                  "%" PRIu64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n",
                   clusters, average, median, maxsize);
@@ -521,7 +521,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
-                  "%" PRId64
+                  "%" PRIu64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n\n",
                   clusters, average, median, maxsize);
@@ -630,8 +630,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (not parameters.opt_quiet)
         {
           std::fprintf(stderr,
-                  "%" PRId64 " uniques written, %"
-                  PRId64 " clusters discarded (%.1f%%)\n",
+                  "%" PRIu64 " uniques written, %"
+                  PRIu64 " clusters discarded (%.1f%%)\n",
                   selected, clusters - selected,
                   100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }
@@ -639,8 +639,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
-                  "%" PRId64 " uniques written, %"
-                  PRId64 " clusters discarded (%.1f%%)\n\n",
+                  "%" PRIu64 " uniques written, %"
+                  PRIu64 " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,
                   100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }

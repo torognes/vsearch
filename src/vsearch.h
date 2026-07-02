@@ -183,8 +183,8 @@
 #include <bzlib.h>
 #endif
 
-#include "city.h"
-#include "sha1.h"
+#include "vendored/city.h"
+#include "vendored/sha1.h"
 
 #include "arch.h"  // TODO: rename to operating_systems.h
 #include "util.h"

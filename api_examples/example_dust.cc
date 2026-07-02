@@ -6,7 +6,7 @@
  *
  * Output matches vsearch --fastx_mask --qmask dust --fastaout format.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_dust example_dust.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_dust example_dust.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_dust
  * Verify: diff output.fasta data/expected_dust.fasta
  */

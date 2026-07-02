@@ -6,7 +6,7 @@
  *
  * Part 2: Self-validating batch vs sequential comparison.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_cluster example_cluster.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_cluster example_cluster.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_cluster
  * Verify: diff <(grep "^[SH]" output.uc | sort) <(grep "^[SH]" data/expected_cluster.uc | sort)
  */

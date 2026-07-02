@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "city.h"
+#include "vendored/city.h"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::max

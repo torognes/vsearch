@@ -64,6 +64,22 @@
 #include <cstdio>  // std::FILE
 #include <string>
 
+#ifdef _WIN32
+/*
+  A bare DLL name passed to LoadLibrary is resolved through the Windows DLL
+  search order, which can include the current working directory — so running
+  vsearch from a directory an attacker can write to lets a planted
+  zlib1.dll / libbz2.dll be loaded (DLL planting). LoadLibraryEx with
+  LOAD_LIBRARY_SEARCH_DEFAULT_DIRS restricts the search to the application
+  directory, any AddDllDirectory dirs, and System32 — never the current
+  directory. The flag is defined on Windows 8+ (and Vista/7 with KB2533623);
+  define it here in case the build SDK headers predate it.
+*/
+# ifndef LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
+#  define LOAD_LIBRARY_SEARCH_DEFAULT_DIRS 0x00001000
+# endif
+#endif
+
 
 #ifdef HAVE_ZLIB_H
 # ifdef _WIN32
@@ -112,7 +128,8 @@ auto dynlibs_open() -> void
 {
 #ifdef HAVE_ZLIB_H
 #ifdef _WIN32
-  gz_lib = LoadLibraryA(gz_libname.data());
+  gz_lib = LoadLibraryExA(gz_libname.data(), nullptr,
+                          LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 #else
   gz_lib = dlopen(gz_libname.data(), RTLD_LAZY);
 #endif
@@ -133,7 +150,8 @@ auto dynlibs_open() -> void
 
 #ifdef HAVE_BZLIB_H
 #ifdef _WIN32
-  bz2_lib = LoadLibraryA(bz2_libname.data());
+  bz2_lib = LoadLibraryExA(bz2_libname.data(), nullptr,
+                           LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
 #else
   bz2_lib = dlopen(bz2_libname.data(), RTLD_LAZY);
 #endif
