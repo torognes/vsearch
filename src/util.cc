@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "city.h"
-#include "md5.h"
+#include "vendored/city.h"
+#include "vendored/md5.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <cinttypes>  // macros PRIu64 and PRId64

@@ -160,32 +160,34 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libcityhash_a_AR = $(AR) $(ARFLAGS)
 libcityhash_a_LIBADD =
-am_libcityhash_a_OBJECTS = libcityhash_a-city.$(OBJEXT)
+am__dirstamp = $(am__leading_dot)dirstamp
+am_libcityhash_a_OBJECTS = vendored/libcityhash_a-city.$(OBJEXT)
 libcityhash_a_OBJECTS = $(am_libcityhash_a_OBJECTS)
 libcityhash_pic_a_AR = $(AR) $(ARFLAGS)
 libcityhash_pic_a_LIBADD =
-am_libcityhash_pic_a_OBJECTS = libcityhash_pic_a-city.$(OBJEXT)
+am_libcityhash_pic_a_OBJECTS =  \
+	vendored/libcityhash_pic_a-city.$(OBJEXT)
 libcityhash_pic_a_OBJECTS = $(am_libcityhash_pic_a_OBJECTS)
 libcpu_a_AR = $(AR) $(ARFLAGS)
 libcpu_a_LIBADD =
 am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
-	attributes.h bitmap.h chimera.h city.h cli.h cluster.h cpu.h \
-	cut.h db.h dbhash.h dbindex.h derep.h derep_prefix.h \
-	derep_smallmem.h dynlibs.h eestats.h fasta2fastq.h fasta.h \
-	fastq.h fastq_chars.h fastq_join.h fastq_mergepairs.h \
-	fastq_stats.h fastqops.h fastx.h fastx_syncpairs.h filter.h \
-	getseq.h kmerhash.h linmemalign.h mask.h md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h sha1.h \
-	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
-	utils/cpu_features.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
+	cluster.h cpu.h cut.h db.h dbhash.h dbindex.h derep.h \
+	derep_prefix.h derep_smallmem.h dynlibs.h eestats.h \
+	fasta2fastq.h fasta.h fastq.h fastq_chars.h fastq_join.h \
+	fastq_mergepairs.h fastq_stats.h fastqops.h fastx.h \
+	fastx_syncpairs.h filter.h getseq.h kmerhash.h linmemalign.h \
+	mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
+	rereplicate.h results.h search.h searchcore.h search_exact.h \
+	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
+	sortbylength.h sortbysize.h subsample.h tax.h udb.h unique.h \
+	userfields.h util.h utils/check_output_filehandle.hpp \
+	utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/compare_strings_nocase.hpp utils/cpu_features.hpp \
+	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/maps.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/seqcmp.hpp utils/span.hpp utils/taxonomic_fields.h \
+	utils/threads.hpp vsearch.h vsearch_api.h xstring.h
 am__objects_1 =
 @TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -193,23 +195,23 @@ libcpu_a_OBJECTS = $(am_libcpu_a_OBJECTS)
 libcpu_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_pic_a_LIBADD =
 am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
-	attributes.h bitmap.h chimera.h city.h cli.h cluster.h cpu.h \
-	cut.h db.h dbhash.h dbindex.h derep.h derep_prefix.h \
-	derep_smallmem.h dynlibs.h eestats.h fasta2fastq.h fasta.h \
-	fastq.h fastq_chars.h fastq_join.h fastq_mergepairs.h \
-	fastq_stats.h fastqops.h fastx.h fastx_syncpairs.h filter.h \
-	getseq.h kmerhash.h linmemalign.h mask.h md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h sha1.h \
-	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
-	utils/cpu_features.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
+	cluster.h cpu.h cut.h db.h dbhash.h dbindex.h derep.h \
+	derep_prefix.h derep_smallmem.h dynlibs.h eestats.h \
+	fasta2fastq.h fasta.h fastq.h fastq_chars.h fastq_join.h \
+	fastq_mergepairs.h fastq_stats.h fastqops.h fastx.h \
+	fastx_syncpairs.h filter.h getseq.h kmerhash.h linmemalign.h \
+	mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
+	rereplicate.h results.h search.h searchcore.h search_exact.h \
+	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
+	sortbylength.h sortbysize.h subsample.h tax.h udb.h unique.h \
+	userfields.h util.h utils/check_output_filehandle.hpp \
+	utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/compare_strings_nocase.hpp utils/cpu_features.hpp \
+	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/maps.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/seqcmp.hpp utils/span.hpp utils/taxonomic_fields.h \
+	utils/threads.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
 @TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -217,23 +219,23 @@ libcpu_pic_a_OBJECTS = $(am_libcpu_pic_a_OBJECTS)
 libcpu_sse2_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_a_LIBADD =
 am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
-	attributes.h bitmap.h chimera.h city.h cli.h cluster.h cpu.h \
-	cut.h db.h dbhash.h dbindex.h derep.h derep_prefix.h \
-	derep_smallmem.h dynlibs.h eestats.h fasta2fastq.h fasta.h \
-	fastq.h fastq_chars.h fastq_join.h fastq_mergepairs.h \
-	fastq_stats.h fastqops.h fastx.h fastx_syncpairs.h filter.h \
-	getseq.h kmerhash.h linmemalign.h mask.h md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h sha1.h \
-	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
-	utils/cpu_features.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
+	cluster.h cpu.h cut.h db.h dbhash.h dbindex.h derep.h \
+	derep_prefix.h derep_smallmem.h dynlibs.h eestats.h \
+	fasta2fastq.h fasta.h fastq.h fastq_chars.h fastq_join.h \
+	fastq_mergepairs.h fastq_stats.h fastqops.h fastx.h \
+	fastx_syncpairs.h filter.h getseq.h kmerhash.h linmemalign.h \
+	mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
+	rereplicate.h results.h search.h searchcore.h search_exact.h \
+	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
+	sortbylength.h sortbysize.h subsample.h tax.h udb.h unique.h \
+	userfields.h util.h utils/check_output_filehandle.hpp \
+	utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/compare_strings_nocase.hpp utils/cpu_features.hpp \
+	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/maps.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/seqcmp.hpp utils/span.hpp utils/taxonomic_fields.h \
+	utils/threads.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -241,23 +243,23 @@ libcpu_sse2_a_OBJECTS = $(am_libcpu_sse2_a_OBJECTS)
 libcpu_sse2_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_pic_a_LIBADD =
 am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
-	arch.h attributes.h bitmap.h chimera.h city.h cli.h cluster.h \
-	cpu.h cut.h db.h dbhash.h dbindex.h derep.h derep_prefix.h \
-	derep_smallmem.h dynlibs.h eestats.h fasta2fastq.h fasta.h \
-	fastq.h fastq_chars.h fastq_join.h fastq_mergepairs.h \
-	fastq_stats.h fastqops.h fastx.h fastx_syncpairs.h filter.h \
-	getseq.h kmerhash.h linmemalign.h mask.h md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h sha1.h \
-	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
-	utils/cpu_features.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	arch.h attributes.h bitmap.h chimera.h vendored/city.h cli.h \
+	cluster.h cpu.h cut.h db.h dbhash.h dbindex.h derep.h \
+	derep_prefix.h derep_smallmem.h dynlibs.h eestats.h \
+	fasta2fastq.h fasta.h fastq.h fastq_chars.h fastq_join.h \
+	fastq_mergepairs.h fastq_stats.h fastqops.h fastx.h \
+	fastx_syncpairs.h filter.h getseq.h kmerhash.h linmemalign.h \
+	mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
+	rereplicate.h results.h search.h searchcore.h search_exact.h \
+	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
+	sortbylength.h sortbysize.h subsample.h tax.h udb.h unique.h \
+	userfields.h util.h utils/check_output_filehandle.hpp \
+	utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/compare_strings_nocase.hpp utils/cpu_features.hpp \
+	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/maps.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/seqcmp.hpp utils/span.hpp utils/taxonomic_fields.h \
+	utils/threads.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -265,23 +267,23 @@ libcpu_sse2_pic_a_OBJECTS = $(am_libcpu_sse2_pic_a_OBJECTS)
 libcpu_ssse3_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_a_LIBADD =
 am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
-	arch.h attributes.h bitmap.h chimera.h city.h cli.h cluster.h \
-	cpu.h cut.h db.h dbhash.h dbindex.h derep.h derep_prefix.h \
-	derep_smallmem.h dynlibs.h eestats.h fasta2fastq.h fasta.h \
-	fastq.h fastq_chars.h fastq_join.h fastq_mergepairs.h \
-	fastq_stats.h fastqops.h fastx.h fastx_syncpairs.h filter.h \
-	getseq.h kmerhash.h linmemalign.h mask.h md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h sha1.h \
-	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
-	utils/cpu_features.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	arch.h attributes.h bitmap.h chimera.h vendored/city.h cli.h \
+	cluster.h cpu.h cut.h db.h dbhash.h dbindex.h derep.h \
+	derep_prefix.h derep_smallmem.h dynlibs.h eestats.h \
+	fasta2fastq.h fasta.h fastq.h fastq_chars.h fastq_join.h \
+	fastq_mergepairs.h fastq_stats.h fastqops.h fastx.h \
+	fastx_syncpairs.h filter.h getseq.h kmerhash.h linmemalign.h \
+	mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
+	rereplicate.h results.h search.h searchcore.h search_exact.h \
+	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
+	sortbylength.h sortbysize.h subsample.h tax.h udb.h unique.h \
+	userfields.h util.h utils/check_output_filehandle.hpp \
+	utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/compare_strings_nocase.hpp utils/cpu_features.hpp \
+	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/maps.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/seqcmp.hpp utils/span.hpp utils/taxonomic_fields.h \
+	utils/threads.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -289,30 +291,29 @@ libcpu_ssse3_a_OBJECTS = $(am_libcpu_ssse3_a_OBJECTS)
 libcpu_ssse3_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_pic_a_LIBADD =
 am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
-	arch.h attributes.h bitmap.h chimera.h city.h cli.h cluster.h \
-	cpu.h cut.h db.h dbhash.h dbindex.h derep.h derep_prefix.h \
-	derep_smallmem.h dynlibs.h eestats.h fasta2fastq.h fasta.h \
-	fastq.h fastq_chars.h fastq_join.h fastq_mergepairs.h \
-	fastq_stats.h fastqops.h fastx.h fastx_syncpairs.h filter.h \
-	getseq.h kmerhash.h linmemalign.h mask.h md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h sha1.h \
-	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
-	utils/cpu_features.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/maps.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	arch.h attributes.h bitmap.h chimera.h vendored/city.h cli.h \
+	cluster.h cpu.h cut.h db.h dbhash.h dbindex.h derep.h \
+	derep_prefix.h derep_smallmem.h dynlibs.h eestats.h \
+	fasta2fastq.h fasta.h fastq.h fastq_chars.h fastq_join.h \
+	fastq_mergepairs.h fastq_stats.h fastqops.h fastx.h \
+	fastx_syncpairs.h filter.h getseq.h kmerhash.h linmemalign.h \
+	mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
+	rereplicate.h results.h search.h searchcore.h search_exact.h \
+	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
+	sortbylength.h sortbysize.h subsample.h tax.h udb.h unique.h \
+	userfields.h util.h utils/check_output_filehandle.hpp \
+	utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/compare_strings_nocase.hpp utils/cpu_features.hpp \
+	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/maps.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/seqcmp.hpp utils/span.hpp utils/taxonomic_fields.h \
+	utils/threads.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_ssse3_pic_a_OBJECTS = $(am_libcpu_ssse3_pic_a_OBJECTS)
 libvsearch_core_a_AR = $(AR) $(ARFLAGS)
 libvsearch_core_a_LIBADD =
-am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	libvsearch_core_a-allpairs.$(OBJEXT) \
 	libvsearch_core_a-arch.$(OBJEXT) \
@@ -344,7 +345,7 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	libvsearch_core_a-kmerhash.$(OBJEXT) \
 	libvsearch_core_a-linmemalign.$(OBJEXT) \
 	libvsearch_core_a-mask.$(OBJEXT) \
-	libvsearch_core_a-md5.$(OBJEXT) \
+	vendored/libvsearch_core_a-md5.$(OBJEXT) \
 	libvsearch_core_a-minheap.$(OBJEXT) \
 	libvsearch_core_a-msa.$(OBJEXT) \
 	libvsearch_core_a-orient.$(OBJEXT) \
@@ -355,7 +356,7 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	libvsearch_core_a-searchcore.$(OBJEXT) \
 	libvsearch_core_a-search_exact.$(OBJEXT) \
 	libvsearch_core_a-sff_convert.$(OBJEXT) \
-	libvsearch_core_a-sha1.$(OBJEXT) \
+	vendored/libvsearch_core_a-sha1.$(OBJEXT) \
 	libvsearch_core_a-showalign.$(OBJEXT) \
 	libvsearch_core_a-shuffle.$(OBJEXT) \
 	libvsearch_core_a-sintax.$(OBJEXT) \
@@ -390,14 +391,15 @@ am__objects_3 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) arch.$(OBJEXT) \
 	fastq_stats.$(OBJEXT) fastqops.$(OBJEXT) fastx.$(OBJEXT) \
 	fastx_syncpairs.$(OBJEXT) filter.$(OBJEXT) getseq.$(OBJEXT) \
 	kmerhash.$(OBJEXT) linmemalign.$(OBJEXT) mask.$(OBJEXT) \
-	md5.$(OBJEXT) minheap.$(OBJEXT) msa.$(OBJEXT) orient.$(OBJEXT) \
-	otutable.$(OBJEXT) rereplicate.$(OBJEXT) results.$(OBJEXT) \
-	search.$(OBJEXT) searchcore.$(OBJEXT) search_exact.$(OBJEXT) \
-	sff_convert.$(OBJEXT) sha1.$(OBJEXT) showalign.$(OBJEXT) \
-	shuffle.$(OBJEXT) sintax.$(OBJEXT) sortbylength.$(OBJEXT) \
-	sortbysize.$(OBJEXT) subsample.$(OBJEXT) tax.$(OBJEXT) \
-	udb.$(OBJEXT) unique.$(OBJEXT) userfields.$(OBJEXT) \
-	util.$(OBJEXT) utils/fatal.$(OBJEXT) utils/maps.$(OBJEXT) \
+	vendored/md5.$(OBJEXT) minheap.$(OBJEXT) msa.$(OBJEXT) \
+	orient.$(OBJEXT) otutable.$(OBJEXT) rereplicate.$(OBJEXT) \
+	results.$(OBJEXT) search.$(OBJEXT) searchcore.$(OBJEXT) \
+	search_exact.$(OBJEXT) sff_convert.$(OBJEXT) \
+	vendored/sha1.$(OBJEXT) showalign.$(OBJEXT) shuffle.$(OBJEXT) \
+	sintax.$(OBJEXT) sortbylength.$(OBJEXT) sortbysize.$(OBJEXT) \
+	subsample.$(OBJEXT) tax.$(OBJEXT) udb.$(OBJEXT) \
+	unique.$(OBJEXT) userfields.$(OBJEXT) util.$(OBJEXT) \
+	utils/fatal.$(OBJEXT) utils/maps.$(OBJEXT) \
 	utils/check_output_filehandle.$(OBJEXT) utils/cigar.$(OBJEXT) \
 	utils/compare_strings_nocase.$(OBJEXT) \
 	utils/cpu_features.$(OBJEXT) utils/open_file.$(OBJEXT) \
@@ -447,8 +449,6 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/fastqops.Po ./$(DEPDIR)/fastx.Po \
 	./$(DEPDIR)/fastx_syncpairs.Po ./$(DEPDIR)/filter.Po \
 	./$(DEPDIR)/getseq.Po ./$(DEPDIR)/kmerhash.Po \
-	./$(DEPDIR)/libcityhash_a-city.Po \
-	./$(DEPDIR)/libcityhash_pic_a-city.Po \
 	./$(DEPDIR)/libcpu_pic_a-cpu.Po \
 	./$(DEPDIR)/libcpu_sse2_a-cpu.Po \
 	./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po \
@@ -486,7 +486,6 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/libvsearch_core_a-kmerhash.Po \
 	./$(DEPDIR)/libvsearch_core_a-linmemalign.Po \
 	./$(DEPDIR)/libvsearch_core_a-mask.Po \
-	./$(DEPDIR)/libvsearch_core_a-md5.Po \
 	./$(DEPDIR)/libvsearch_core_a-minheap.Po \
 	./$(DEPDIR)/libvsearch_core_a-msa.Po \
 	./$(DEPDIR)/libvsearch_core_a-orient.Po \
@@ -497,7 +496,6 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/libvsearch_core_a-search_exact.Po \
 	./$(DEPDIR)/libvsearch_core_a-searchcore.Po \
 	./$(DEPDIR)/libvsearch_core_a-sff_convert.Po \
-	./$(DEPDIR)/libvsearch_core_a-sha1.Po \
 	./$(DEPDIR)/libvsearch_core_a-showalign.Po \
 	./$(DEPDIR)/libvsearch_core_a-shuffle.Po \
 	./$(DEPDIR)/libvsearch_core_a-sintax.Po \
@@ -511,17 +509,17 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/libvsearch_core_a-util.Po \
 	./$(DEPDIR)/libvsearch_core_a-vsearch.Po \
 	./$(DEPDIR)/linmemalign.Po ./$(DEPDIR)/mask.Po \
-	./$(DEPDIR)/md5.Po ./$(DEPDIR)/minheap.Po ./$(DEPDIR)/msa.Po \
+	./$(DEPDIR)/minheap.Po ./$(DEPDIR)/msa.Po \
 	./$(DEPDIR)/orient.Po ./$(DEPDIR)/otutable.Po \
 	./$(DEPDIR)/rereplicate.Po ./$(DEPDIR)/results.Po \
 	./$(DEPDIR)/search.Po ./$(DEPDIR)/search_exact.Po \
 	./$(DEPDIR)/searchcore.Po ./$(DEPDIR)/sff_convert.Po \
-	./$(DEPDIR)/sha1.Po ./$(DEPDIR)/showalign.Po \
-	./$(DEPDIR)/shuffle.Po ./$(DEPDIR)/sintax.Po \
-	./$(DEPDIR)/sortbylength.Po ./$(DEPDIR)/sortbysize.Po \
-	./$(DEPDIR)/subsample.Po ./$(DEPDIR)/tax.Po ./$(DEPDIR)/udb.Po \
-	./$(DEPDIR)/unique.Po ./$(DEPDIR)/userfields.Po \
-	./$(DEPDIR)/util.Po ./$(DEPDIR)/vsearch.Po \
+	./$(DEPDIR)/showalign.Po ./$(DEPDIR)/shuffle.Po \
+	./$(DEPDIR)/sintax.Po ./$(DEPDIR)/sortbylength.Po \
+	./$(DEPDIR)/sortbysize.Po ./$(DEPDIR)/subsample.Po \
+	./$(DEPDIR)/tax.Po ./$(DEPDIR)/udb.Po ./$(DEPDIR)/unique.Po \
+	./$(DEPDIR)/userfields.Po ./$(DEPDIR)/util.Po \
+	./$(DEPDIR)/vsearch.Po \
 	utils/$(DEPDIR)/check_output_filehandle.Po \
 	utils/$(DEPDIR)/cigar.Po \
 	utils/$(DEPDIR)/compare_strings_nocase.Po \
@@ -536,7 +534,12 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po \
 	utils/$(DEPDIR)/maps.Po utils/$(DEPDIR)/open_file.Po \
-	utils/$(DEPDIR)/os_byteswap.Po utils/$(DEPDIR)/seqcmp.Po
+	utils/$(DEPDIR)/os_byteswap.Po utils/$(DEPDIR)/seqcmp.Po \
+	vendored/$(DEPDIR)/libcityhash_a-city.Po \
+	vendored/$(DEPDIR)/libcityhash_pic_a-city.Po \
+	vendored/$(DEPDIR)/libvsearch_core_a-md5.Po \
+	vendored/$(DEPDIR)/libvsearch_core_a-sha1.Po \
+	vendored/$(DEPDIR)/md5.Po vendored/$(DEPDIR)/sha1.Po
 am__mv = mv -f
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -724,7 +727,7 @@ arch.h \
 attributes.h \
 bitmap.h \
 chimera.h \
-city.h \
+vendored/city.h \
 cli.h \
 cluster.h \
 cpu.h \
@@ -752,7 +755,7 @@ getseq.h \
 kmerhash.h \
 linmemalign.h \
 mask.h \
-md5.h \
+vendored/md5.h \
 minheap.h \
 msa.h \
 orient.h \
@@ -764,7 +767,7 @@ searchcore.h \
 search_exact.h \
 sff_convert.h \
 showalign.h \
-sha1.h \
+vendored/sha1.h \
 shuffle.h \
 sintax.h \
 sortbylength.h \
@@ -808,18 +811,18 @@ xstring.h
 @TARGET_X86_64_FALSE@libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 @TARGET_X86_64_FALSE@libcpu_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
 @TARGET_X86_64_FALSE@libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
-libcityhash_a_SOURCES = city.cc city.h
-libcityhash_pic_a_SOURCES = city.cc city.h
+libcityhash_a_SOURCES = vendored/city.cc vendored/city.h
+libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
 
 # -Wno-conversion -Wno-sign-conversion: see note in the TARGET_WIN branch above.
-@TARGET_WIN_FALSE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion
+@TARGET_WIN_FALSE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -I$(srcdir)/vendored
 
 # -Wno-conversion -Wno-sign-conversion: city.cc is vendored upstream
 # (Google CityHash) and is kept verbatim for easy resynchronisation;
 # its many implicit integer conversions are not ours to fix.
-@TARGET_WIN_TRUE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER
-@TARGET_WIN_FALSE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC
-@TARGET_WIN_TRUE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC
+@TARGET_WIN_TRUE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -I$(srcdir)/vendored
+@TARGET_WIN_FALSE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC -I$(srcdir)/vendored
+@TARGET_WIN_TRUE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC -I$(srcdir)/vendored
 @TARGET_WIN_TRUE@__top_builddir__bin_vsearch_LDFLAGS = -static
 @TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
 @TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
@@ -864,7 +867,7 @@ getseq.cc \
 kmerhash.cc \
 linmemalign.cc \
 mask.cc \
-md5.c \
+vendored/md5.c \
 minheap.cc \
 msa.cc \
 orient.cc \
@@ -875,7 +878,7 @@ search.cc \
 searchcore.cc \
 search_exact.cc \
 sff_convert.cc \
-sha1.c \
+vendored/sha1.c \
 showalign.cc \
 shuffle.cc \
 sintax.cc \
@@ -989,11 +992,21 @@ clean-binPROGRAMS:
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+vendored/$(am__dirstamp):
+	@$(MKDIR_P) vendored
+	@: > vendored/$(am__dirstamp)
+vendored/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) vendored/$(DEPDIR)
+	@: > vendored/$(DEPDIR)/$(am__dirstamp)
+vendored/libcityhash_a-city.$(OBJEXT): vendored/$(am__dirstamp) \
+	vendored/$(DEPDIR)/$(am__dirstamp)
 
 libcityhash.a: $(libcityhash_a_OBJECTS) $(libcityhash_a_DEPENDENCIES) $(EXTRA_libcityhash_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcityhash.a
 	$(AM_V_AR)$(libcityhash_a_AR) libcityhash.a $(libcityhash_a_OBJECTS) $(libcityhash_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcityhash.a
+vendored/libcityhash_pic_a-city.$(OBJEXT): vendored/$(am__dirstamp) \
+	vendored/$(DEPDIR)/$(am__dirstamp)
 
 libcityhash_pic.a: $(libcityhash_pic_a_OBJECTS) $(libcityhash_pic_a_DEPENDENCIES) $(EXTRA_libcityhash_pic_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcityhash_pic.a
@@ -1029,6 +1042,10 @@ libcpu_ssse3_pic.a: $(libcpu_ssse3_pic_a_OBJECTS) $(libcpu_ssse3_pic_a_DEPENDENC
 	$(AM_V_at)-rm -f libcpu_ssse3_pic.a
 	$(AM_V_AR)$(libcpu_ssse3_pic_a_AR) libcpu_ssse3_pic.a $(libcpu_ssse3_pic_a_OBJECTS) $(libcpu_ssse3_pic_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcpu_ssse3_pic.a
+vendored/libvsearch_core_a-md5.$(OBJEXT): vendored/$(am__dirstamp) \
+	vendored/$(DEPDIR)/$(am__dirstamp)
+vendored/libvsearch_core_a-sha1.$(OBJEXT): vendored/$(am__dirstamp) \
+	vendored/$(DEPDIR)/$(am__dirstamp)
 utils/$(am__dirstamp):
 	@$(MKDIR_P) utils
 	@: > utils/$(am__dirstamp)
@@ -1058,6 +1075,10 @@ libvsearch_core.a: $(libvsearch_core_a_OBJECTS) $(libvsearch_core_a_DEPENDENCIES
 	$(AM_V_at)-rm -f libvsearch_core.a
 	$(AM_V_AR)$(libvsearch_core_a_AR) libvsearch_core.a $(libvsearch_core_a_OBJECTS) $(libvsearch_core_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libvsearch_core.a
+vendored/md5.$(OBJEXT): vendored/$(am__dirstamp) \
+	vendored/$(DEPDIR)/$(am__dirstamp)
+vendored/sha1.$(OBJEXT): vendored/$(am__dirstamp) \
+	vendored/$(DEPDIR)/$(am__dirstamp)
 utils/fatal.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/maps.$(OBJEXT): utils/$(am__dirstamp) \
@@ -1087,6 +1108,7 @@ $(top_builddir)/bin/vsearch$(EXEEXT): $(__top_builddir__bin_vsearch_OBJECTS) $(_
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f utils/*.$(OBJEXT)
+	-rm -f vendored/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -1122,8 +1144,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/getseq.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kmerhash.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcityhash_a-city.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcityhash_pic_a-city.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_pic_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_sse2_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po@am__quote@ # am--include-marker
@@ -1161,7 +1181,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-kmerhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-linmemalign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-mask.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-md5.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-minheap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-msa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-orient.Po@am__quote@ # am--include-marker
@@ -1172,7 +1191,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-search_exact.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-searchcore.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-sff_convert.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-sha1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-showalign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-shuffle.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-sintax.Po@am__quote@ # am--include-marker
@@ -1187,7 +1205,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linmemalign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mask.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minheap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/msa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/orient.Po@am__quote@ # am--include-marker
@@ -1198,7 +1215,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/search_exact.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/searchcore.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sff_convert.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/showalign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shuffle.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sintax.Po@am__quote@ # am--include-marker
@@ -1229,6 +1245,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/os_byteswap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/seqcmp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libcityhash_a-city.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libcityhash_pic_a-city.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libvsearch_core_a-md5.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libvsearch_core_a-sha1.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/md5.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/sha1.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -1252,33 +1274,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-libvsearch_core_a-md5.o: md5.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT libvsearch_core_a-md5.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-md5.Tpo -c -o libvsearch_core_a-md5.o `test -f 'md5.c' || echo '$(srcdir)/'`md5.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-md5.Tpo $(DEPDIR)/libvsearch_core_a-md5.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='md5.c' object='libvsearch_core_a-md5.o' libtool=no @AMDEPBACKSLASH@
+vendored/libvsearch_core_a-md5.o: vendored/md5.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT vendored/libvsearch_core_a-md5.o -MD -MP -MF vendored/$(DEPDIR)/libvsearch_core_a-md5.Tpo -c -o vendored/libvsearch_core_a-md5.o `test -f 'vendored/md5.c' || echo '$(srcdir)/'`vendored/md5.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libvsearch_core_a-md5.Tpo vendored/$(DEPDIR)/libvsearch_core_a-md5.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='vendored/md5.c' object='vendored/libvsearch_core_a-md5.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o libvsearch_core_a-md5.o `test -f 'md5.c' || echo '$(srcdir)/'`md5.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o vendored/libvsearch_core_a-md5.o `test -f 'vendored/md5.c' || echo '$(srcdir)/'`vendored/md5.c
 
-libvsearch_core_a-md5.obj: md5.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT libvsearch_core_a-md5.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-md5.Tpo -c -o libvsearch_core_a-md5.obj `if test -f 'md5.c'; then $(CYGPATH_W) 'md5.c'; else $(CYGPATH_W) '$(srcdir)/md5.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-md5.Tpo $(DEPDIR)/libvsearch_core_a-md5.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='md5.c' object='libvsearch_core_a-md5.obj' libtool=no @AMDEPBACKSLASH@
+vendored/libvsearch_core_a-md5.obj: vendored/md5.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT vendored/libvsearch_core_a-md5.obj -MD -MP -MF vendored/$(DEPDIR)/libvsearch_core_a-md5.Tpo -c -o vendored/libvsearch_core_a-md5.obj `if test -f 'vendored/md5.c'; then $(CYGPATH_W) 'vendored/md5.c'; else $(CYGPATH_W) '$(srcdir)/vendored/md5.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libvsearch_core_a-md5.Tpo vendored/$(DEPDIR)/libvsearch_core_a-md5.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='vendored/md5.c' object='vendored/libvsearch_core_a-md5.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o libvsearch_core_a-md5.obj `if test -f 'md5.c'; then $(CYGPATH_W) 'md5.c'; else $(CYGPATH_W) '$(srcdir)/md5.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o vendored/libvsearch_core_a-md5.obj `if test -f 'vendored/md5.c'; then $(CYGPATH_W) 'vendored/md5.c'; else $(CYGPATH_W) '$(srcdir)/vendored/md5.c'; fi`
 
-libvsearch_core_a-sha1.o: sha1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT libvsearch_core_a-sha1.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-sha1.Tpo -c -o libvsearch_core_a-sha1.o `test -f 'sha1.c' || echo '$(srcdir)/'`sha1.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-sha1.Tpo $(DEPDIR)/libvsearch_core_a-sha1.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sha1.c' object='libvsearch_core_a-sha1.o' libtool=no @AMDEPBACKSLASH@
+vendored/libvsearch_core_a-sha1.o: vendored/sha1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT vendored/libvsearch_core_a-sha1.o -MD -MP -MF vendored/$(DEPDIR)/libvsearch_core_a-sha1.Tpo -c -o vendored/libvsearch_core_a-sha1.o `test -f 'vendored/sha1.c' || echo '$(srcdir)/'`vendored/sha1.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libvsearch_core_a-sha1.Tpo vendored/$(DEPDIR)/libvsearch_core_a-sha1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='vendored/sha1.c' object='vendored/libvsearch_core_a-sha1.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o libvsearch_core_a-sha1.o `test -f 'sha1.c' || echo '$(srcdir)/'`sha1.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o vendored/libvsearch_core_a-sha1.o `test -f 'vendored/sha1.c' || echo '$(srcdir)/'`vendored/sha1.c
 
-libvsearch_core_a-sha1.obj: sha1.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT libvsearch_core_a-sha1.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-sha1.Tpo -c -o libvsearch_core_a-sha1.obj `if test -f 'sha1.c'; then $(CYGPATH_W) 'sha1.c'; else $(CYGPATH_W) '$(srcdir)/sha1.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-sha1.Tpo $(DEPDIR)/libvsearch_core_a-sha1.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sha1.c' object='libvsearch_core_a-sha1.obj' libtool=no @AMDEPBACKSLASH@
+vendored/libvsearch_core_a-sha1.obj: vendored/sha1.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -MT vendored/libvsearch_core_a-sha1.obj -MD -MP -MF vendored/$(DEPDIR)/libvsearch_core_a-sha1.Tpo -c -o vendored/libvsearch_core_a-sha1.obj `if test -f 'vendored/sha1.c'; then $(CYGPATH_W) 'vendored/sha1.c'; else $(CYGPATH_W) '$(srcdir)/vendored/sha1.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libvsearch_core_a-sha1.Tpo vendored/$(DEPDIR)/libvsearch_core_a-sha1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='vendored/sha1.c' object='vendored/libvsearch_core_a-sha1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o libvsearch_core_a-sha1.obj `if test -f 'sha1.c'; then $(CYGPATH_W) 'sha1.c'; else $(CYGPATH_W) '$(srcdir)/sha1.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CFLAGS) $(CFLAGS) -c -o vendored/libvsearch_core_a-sha1.obj `if test -f 'vendored/sha1.c'; then $(CYGPATH_W) 'vendored/sha1.c'; else $(CYGPATH_W) '$(srcdir)/vendored/sha1.c'; fi`
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -1296,33 +1318,33 @@ libvsearch_core_a-sha1.obj: sha1.c
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-libcityhash_a-city.o: city.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -MT libcityhash_a-city.o -MD -MP -MF $(DEPDIR)/libcityhash_a-city.Tpo -c -o libcityhash_a-city.o `test -f 'city.cc' || echo '$(srcdir)/'`city.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcityhash_a-city.Tpo $(DEPDIR)/libcityhash_a-city.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='city.cc' object='libcityhash_a-city.o' libtool=no @AMDEPBACKSLASH@
+vendored/libcityhash_a-city.o: vendored/city.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -MT vendored/libcityhash_a-city.o -MD -MP -MF vendored/$(DEPDIR)/libcityhash_a-city.Tpo -c -o vendored/libcityhash_a-city.o `test -f 'vendored/city.cc' || echo '$(srcdir)/'`vendored/city.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libcityhash_a-city.Tpo vendored/$(DEPDIR)/libcityhash_a-city.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vendored/city.cc' object='vendored/libcityhash_a-city.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -c -o libcityhash_a-city.o `test -f 'city.cc' || echo '$(srcdir)/'`city.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -c -o vendored/libcityhash_a-city.o `test -f 'vendored/city.cc' || echo '$(srcdir)/'`vendored/city.cc
 
-libcityhash_a-city.obj: city.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -MT libcityhash_a-city.obj -MD -MP -MF $(DEPDIR)/libcityhash_a-city.Tpo -c -o libcityhash_a-city.obj `if test -f 'city.cc'; then $(CYGPATH_W) 'city.cc'; else $(CYGPATH_W) '$(srcdir)/city.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcityhash_a-city.Tpo $(DEPDIR)/libcityhash_a-city.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='city.cc' object='libcityhash_a-city.obj' libtool=no @AMDEPBACKSLASH@
+vendored/libcityhash_a-city.obj: vendored/city.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -MT vendored/libcityhash_a-city.obj -MD -MP -MF vendored/$(DEPDIR)/libcityhash_a-city.Tpo -c -o vendored/libcityhash_a-city.obj `if test -f 'vendored/city.cc'; then $(CYGPATH_W) 'vendored/city.cc'; else $(CYGPATH_W) '$(srcdir)/vendored/city.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libcityhash_a-city.Tpo vendored/$(DEPDIR)/libcityhash_a-city.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vendored/city.cc' object='vendored/libcityhash_a-city.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -c -o libcityhash_a-city.obj `if test -f 'city.cc'; then $(CYGPATH_W) 'city.cc'; else $(CYGPATH_W) '$(srcdir)/city.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_a_CXXFLAGS) $(CXXFLAGS) -c -o vendored/libcityhash_a-city.obj `if test -f 'vendored/city.cc'; then $(CYGPATH_W) 'vendored/city.cc'; else $(CYGPATH_W) '$(srcdir)/vendored/city.cc'; fi`
 
-libcityhash_pic_a-city.o: city.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcityhash_pic_a-city.o -MD -MP -MF $(DEPDIR)/libcityhash_pic_a-city.Tpo -c -o libcityhash_pic_a-city.o `test -f 'city.cc' || echo '$(srcdir)/'`city.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcityhash_pic_a-city.Tpo $(DEPDIR)/libcityhash_pic_a-city.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='city.cc' object='libcityhash_pic_a-city.o' libtool=no @AMDEPBACKSLASH@
+vendored/libcityhash_pic_a-city.o: vendored/city.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -MT vendored/libcityhash_pic_a-city.o -MD -MP -MF vendored/$(DEPDIR)/libcityhash_pic_a-city.Tpo -c -o vendored/libcityhash_pic_a-city.o `test -f 'vendored/city.cc' || echo '$(srcdir)/'`vendored/city.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libcityhash_pic_a-city.Tpo vendored/$(DEPDIR)/libcityhash_pic_a-city.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vendored/city.cc' object='vendored/libcityhash_pic_a-city.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcityhash_pic_a-city.o `test -f 'city.cc' || echo '$(srcdir)/'`city.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o vendored/libcityhash_pic_a-city.o `test -f 'vendored/city.cc' || echo '$(srcdir)/'`vendored/city.cc
 
-libcityhash_pic_a-city.obj: city.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcityhash_pic_a-city.obj -MD -MP -MF $(DEPDIR)/libcityhash_pic_a-city.Tpo -c -o libcityhash_pic_a-city.obj `if test -f 'city.cc'; then $(CYGPATH_W) 'city.cc'; else $(CYGPATH_W) '$(srcdir)/city.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcityhash_pic_a-city.Tpo $(DEPDIR)/libcityhash_pic_a-city.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='city.cc' object='libcityhash_pic_a-city.obj' libtool=no @AMDEPBACKSLASH@
+vendored/libcityhash_pic_a-city.obj: vendored/city.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -MT vendored/libcityhash_pic_a-city.obj -MD -MP -MF vendored/$(DEPDIR)/libcityhash_pic_a-city.Tpo -c -o vendored/libcityhash_pic_a-city.obj `if test -f 'vendored/city.cc'; then $(CYGPATH_W) 'vendored/city.cc'; else $(CYGPATH_W) '$(srcdir)/vendored/city.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) vendored/$(DEPDIR)/libcityhash_pic_a-city.Tpo vendored/$(DEPDIR)/libcityhash_pic_a-city.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vendored/city.cc' object='vendored/libcityhash_pic_a-city.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcityhash_pic_a-city.obj `if test -f 'city.cc'; then $(CYGPATH_W) 'city.cc'; else $(CYGPATH_W) '$(srcdir)/city.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o vendored/libcityhash_pic_a-city.obj `if test -f 'vendored/city.cc'; then $(CYGPATH_W) 'vendored/city.cc'; else $(CYGPATH_W) '$(srcdir)/vendored/city.cc'; fi`
 
 libcpu_pic_a-cpu.o: cpu.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_pic_a-cpu.o -MD -MP -MF $(DEPDIR)/libcpu_pic_a-cpu.Tpo -c -o libcpu_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
@@ -2411,6 +2433,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f utils/$(DEPDIR)/$(am__dirstamp)
 	-rm -f utils/$(am__dirstamp)
+	-rm -f vendored/$(DEPDIR)/$(am__dirstamp)
+	-rm -f vendored/$(am__dirstamp)
 	-test -z "$(top_builddir)/bin/$(am__dirstamp)" || rm -f $(top_builddir)/bin/$(am__dirstamp)
 
 maintainer-clean-generic:
@@ -2453,8 +2477,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/filter.Po
 	-rm -f ./$(DEPDIR)/getseq.Po
 	-rm -f ./$(DEPDIR)/kmerhash.Po
-	-rm -f ./$(DEPDIR)/libcityhash_a-city.Po
-	-rm -f ./$(DEPDIR)/libcityhash_pic_a-city.Po
 	-rm -f ./$(DEPDIR)/libcpu_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_sse2_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po
@@ -2492,7 +2514,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-kmerhash.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-linmemalign.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-mask.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-md5.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-minheap.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-msa.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-orient.Po
@@ -2503,7 +2524,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-search_exact.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-searchcore.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-sff_convert.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-sha1.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-showalign.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-shuffle.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-sintax.Po
@@ -2518,7 +2538,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
 	-rm -f ./$(DEPDIR)/linmemalign.Po
 	-rm -f ./$(DEPDIR)/mask.Po
-	-rm -f ./$(DEPDIR)/md5.Po
 	-rm -f ./$(DEPDIR)/minheap.Po
 	-rm -f ./$(DEPDIR)/msa.Po
 	-rm -f ./$(DEPDIR)/orient.Po
@@ -2529,7 +2548,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/search_exact.Po
 	-rm -f ./$(DEPDIR)/searchcore.Po
 	-rm -f ./$(DEPDIR)/sff_convert.Po
-	-rm -f ./$(DEPDIR)/sha1.Po
 	-rm -f ./$(DEPDIR)/showalign.Po
 	-rm -f ./$(DEPDIR)/shuffle.Po
 	-rm -f ./$(DEPDIR)/sintax.Po
@@ -2560,6 +2578,12 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
+	-rm -f vendored/$(DEPDIR)/libcityhash_a-city.Po
+	-rm -f vendored/$(DEPDIR)/libcityhash_pic_a-city.Po
+	-rm -f vendored/$(DEPDIR)/libvsearch_core_a-md5.Po
+	-rm -f vendored/$(DEPDIR)/libvsearch_core_a-sha1.Po
+	-rm -f vendored/$(DEPDIR)/md5.Po
+	-rm -f vendored/$(DEPDIR)/sha1.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -2636,8 +2660,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/filter.Po
 	-rm -f ./$(DEPDIR)/getseq.Po
 	-rm -f ./$(DEPDIR)/kmerhash.Po
-	-rm -f ./$(DEPDIR)/libcityhash_a-city.Po
-	-rm -f ./$(DEPDIR)/libcityhash_pic_a-city.Po
 	-rm -f ./$(DEPDIR)/libcpu_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_sse2_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po
@@ -2675,7 +2697,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-kmerhash.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-linmemalign.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-mask.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-md5.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-minheap.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-msa.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-orient.Po
@@ -2686,7 +2707,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-search_exact.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-searchcore.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-sff_convert.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-sha1.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-showalign.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-shuffle.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-sintax.Po
@@ -2701,7 +2721,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
 	-rm -f ./$(DEPDIR)/linmemalign.Po
 	-rm -f ./$(DEPDIR)/mask.Po
-	-rm -f ./$(DEPDIR)/md5.Po
 	-rm -f ./$(DEPDIR)/minheap.Po
 	-rm -f ./$(DEPDIR)/msa.Po
 	-rm -f ./$(DEPDIR)/orient.Po
@@ -2712,7 +2731,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/search_exact.Po
 	-rm -f ./$(DEPDIR)/searchcore.Po
 	-rm -f ./$(DEPDIR)/sff_convert.Po
-	-rm -f ./$(DEPDIR)/sha1.Po
 	-rm -f ./$(DEPDIR)/showalign.Po
 	-rm -f ./$(DEPDIR)/shuffle.Po
 	-rm -f ./$(DEPDIR)/sintax.Po
@@ -2743,6 +2761,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
+	-rm -f vendored/$(DEPDIR)/libcityhash_a-city.Po
+	-rm -f vendored/$(DEPDIR)/libcityhash_pic_a-city.Po
+	-rm -f vendored/$(DEPDIR)/libvsearch_core_a-md5.Po
+	-rm -f vendored/$(DEPDIR)/libvsearch_core_a-sha1.Po
+	-rm -f vendored/$(DEPDIR)/md5.Po
+	-rm -f vendored/$(DEPDIR)/sha1.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

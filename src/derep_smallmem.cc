@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "city.h"
+#include "vendored/city.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 // #include "util.h"  // hash_cityhash128

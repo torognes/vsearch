@@ -79,7 +79,7 @@ arch.h \
 attributes.h \
 bitmap.h \
 chimera.h \
-city.h \
+vendored/city.h \
 cli.h \
 cluster.h \
 cpu.h \
@@ -107,7 +107,7 @@ getseq.h \
 kmerhash.h \
 linmemalign.h \
 mask.h \
-md5.h \
+vendored/md5.h \
 minheap.h \
 msa.h \
 orient.h \
@@ -119,7 +119,7 @@ searchcore.h \
 search_exact.h \
 sff_convert.h \
 showalign.h \
-sha1.h \
+vendored/sha1.h \
 shuffle.h \
 sintax.h \
 sortbylength.h \
@@ -167,16 +167,16 @@ libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
 noinst_LIBRARIES = libcpu.a libcpu_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 endif
 
-libcityhash_a_SOURCES = city.cc city.h
-libcityhash_pic_a_SOURCES = city.cc city.h
+libcityhash_a_SOURCES = vendored/city.cc vendored/city.h
+libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
 
 if TARGET_WIN
 
 # -Wno-conversion -Wno-sign-conversion: city.cc is vendored upstream
 # (Google CityHash) and is kept verbatim for easy resynchronisation;
 # its many implicit integer conversions are not ours to fix.
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER
-libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -I$(srcdir)/vendored
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC -I$(srcdir)/vendored
 __top_builddir__bin_vsearch_LDFLAGS = -static
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
@@ -184,8 +184,8 @@ VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 else
 
 # -Wno-conversion -Wno-sign-conversion: see note in the TARGET_WIN branch above.
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion
-libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -I$(srcdir)/vendored
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC -I$(srcdir)/vendored
 
 if TARGET_X86_64
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
@@ -233,7 +233,7 @@ getseq.cc \
 kmerhash.cc \
 linmemalign.cc \
 mask.cc \
-md5.c \
+vendored/md5.c \
 minheap.cc \
 msa.cc \
 orient.cc \
@@ -244,7 +244,7 @@ search.cc \
 searchcore.cc \
 search_exact.cc \
 sff_convert.cc \
-sha1.c \
+vendored/sha1.c \
 showalign.cc \
 shuffle.cc \
 sintax.cc \
