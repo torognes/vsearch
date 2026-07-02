@@ -760,7 +760,9 @@ auto results_show_alnout(std::FILE * output_handle,
 
 auto build_sam_strings(char const * alignment,
                        char const * queryseq,
+                       int64_t const queryseqlen,
                        char const * targetseq,
+                       int64_t const targetseqlen,
                        xstring & cigar,
                        xstring & md) -> void
 {
@@ -788,14 +790,36 @@ auto build_sam_strings(char const * alignment,
     {
       auto run = 1;
       auto scanned = 0;
-      std::sscanf(p, "%d%n", &run, &scanned);
+      if (std::sscanf(p, "%d%n", &run, &scanned) < 1)
+        {
+          /* no run-length number: keep the implicit run of 1 */
+          run = 1;
+        }
       p += scanned;
       auto const op = *p;
       ++p;
 
+      /*
+        Guard against a CIGAR whose run-lengths do not sum to the query
+        and target lengths: walking qpos/tpos past the sequence ends would
+        read out of bounds. Well-formed input from the in-tree aligner
+        never trips this; a corrupted or externally supplied CIGAR could.
+        'M' advances both positions, 'D' only the query, 'I' only the
+        target, so each op is bounded against exactly what it reads.
+      */
+      if (run < 0)
+        {
+          fatal("Invalid CIGAR string: negative run length");
+        }
+
       switch (op)
         {
         case 'M':
+          if ((qpos + static_cast<int64_t>(run) > queryseqlen) or
+              (tpos + static_cast<int64_t>(run) > targetseqlen))
+            {
+              fatal("Invalid CIGAR string: run length exceeds sequence bounds");
+            }
           cigar.add_d(run);
           cigar.add_c('M');
 
@@ -824,12 +848,20 @@ auto build_sam_strings(char const * alignment,
           break;
 
         case 'D':
+          if (qpos + static_cast<int64_t>(run) > queryseqlen)
+            {
+              fatal("Invalid CIGAR string: run length exceeds sequence bounds");
+            }
           cigar.add_d(run);
           cigar.add_c('I');
           qpos += run;
           break;
 
         case 'I':
+          if (tpos + static_cast<int64_t>(run) > targetseqlen)
+            {
+              fatal("Invalid CIGAR string: run length exceeds sequence bounds");
+            }
           cigar.add_d(run);
           cigar.add_c('D');
 
@@ -967,9 +999,12 @@ auto results_show_samout(std::FILE * output_handle,
       xstring md;
 
       auto const target = static_cast<uint64_t>(hp->target);
+      auto const * const query = (hp->strand != 0) ? qsequence_rc : qsequence;
       build_sam_strings(hp->nwalignment,
-                        (hp->strand != 0) ? qsequence_rc : qsequence,
+                        query,
+                        static_cast<int64_t>(std::strlen(query)),
                         db_getsequence(target),
+                        static_cast<int64_t>(db_getsequencelen(target)),
                         cigar,
                         md);
 
