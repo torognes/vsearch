@@ -329,7 +329,15 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> 
 {
   /* Save hexadecimal representation of the SHA1 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_sha1).
-     First normalize string by uppercasing it and replacing U's with T's. */
+     First normalize string by uppercasing it and replacing U's with T's.
+
+     The hash always runs on this private, per-call `normalized` copy, never
+     on `seq` directly: the vendored SHA-1 may reinterpret/byte-swap its input
+     in place, so it must only ever touch a throwaway, suitably aligned buffer.
+     Being per-call (no shared state), this is also what makes it safe to call
+     from the search worker threads (e.g. --relabel_sha1). Do not hash `seq`
+     directly, and do not enable SHA1HANDSOFF (a shared static workspace) -- see
+     S26 in CODE_REVIEW.md. */
 
   std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
   string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
@@ -354,7 +362,11 @@ auto get_hex_seq_digest_md5(char * hex, char const * seq, int const seqlen) -> v
 {
   /* Save hexadecimal representation of the MD5 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_md5).
-     First normalize string by uppercasing it and replacing U's with T's. */
+     First normalize string by uppercasing it and replacing U's with T's.
+
+     As with get_hex_seq_digest_sha1 above, the hash runs on this private,
+     per-call `normalized` copy (never `seq`): the vendored MD5 may read it
+     via an aligned reinterpret, and being per-call it is thread-safe. */
 
   std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
   string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
