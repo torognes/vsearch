@@ -935,7 +935,7 @@ auto results_show_samout(std::FILE * output_handle,
   if (hitcount == 0) {
     if (opt_output_no_hits != 0) {
       std::fprintf(output_handle,
-              "%s\t%u\t%s\t%" PRIu64 "\t%u\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
+              "%s\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
               query_head,
               0x04,
               "*",
@@ -974,8 +974,8 @@ auto results_show_samout(std::FILE * output_handle,
                         md);
 
       std::fprintf(output_handle,
-              "%s\t%u\t%s\t%" PRIu64
-              "\t%u\t%s\t%s\t%" PRIu64
+              "%s\t%d\t%s\t%" PRIu64
+              "\t%d\t%s\t%s\t%" PRIu64
               "\t%" PRIu64
               "\t%s\t%s\t"
               "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"

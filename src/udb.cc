@@ -757,8 +757,8 @@ auto udb_stats(struct Parameters const & parameters) -> void
   if (opt_log != nullptr)
     {
       std::fprintf(fp_log, "      Alphabet  nt\n");
-      std::fprintf(fp_log, "    Word width  %" PRIu64 "\n", opt_wordlength);
-      std::fprintf(fp_log, "     Word ones  %" PRIu64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "     Word ones  %" PRId64 "\n", opt_wordlength);
       std::fprintf(fp_log, "        Spaced  No\n");
       std::fprintf(fp_log, "        Hashed  No\n");
       std::fprintf(fp_log, "         Coded  No\n");
@@ -831,7 +831,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
       std::fprintf(fp_log, "\n\n");
 
-      std::fprintf(fp_log, "Word width  %" PRIu64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "Word width  %" PRId64 "\n", opt_wordlength);
       std::fprintf(fp_log, "Slots       %u\n", kmerhashsize);
       std::fprintf(fp_log, "Words       %" PRIu64 "\n", kmerindexsize);
       std::fprintf(fp_log, "Max size    %u (", wcmax);

@@ -1484,11 +1484,11 @@ auto pair_all() -> void
 auto print_stats(std::FILE * output_handle) -> void
 {
   std::fprintf(output_handle,
-          "%10" PRIu64 "  Pairs\n",
+          "%10" PRId64 "  Pairs\n",
           total);
 
   std::fprintf(output_handle,
-          "%10" PRIu64 "  Merged",
+          "%10" PRId64 "  Merged",
           merged);
   if (total > 0)
     {
@@ -1499,7 +1499,7 @@ auto print_stats(std::FILE * output_handle) -> void
   std::fprintf(output_handle, "\n");
 
   std::fprintf(output_handle,
-          "%10" PRIu64 "  Not merged",
+          "%10" PRId64 "  Not merged",
           notmerged);
   if (total > 0)
     {
