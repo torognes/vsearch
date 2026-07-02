@@ -1037,7 +1037,7 @@ cleanup.
 
 ```bash
 cd api_examples
-g++ -std=c++11 -O2 -I../src -o example_chimera example_chimera.cc \
+g++ -std=c++11 -O3 -I../src -o example_chimera example_chimera.cc \
     ../src/libvsearch.a -lpthread -ldl
 ./example_chimera
 ```

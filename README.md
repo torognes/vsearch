@@ -55,14 +55,14 @@ In the example below, VSEARCH will identify sequences in the file database.fsa t
 wget https://github.com/torognes/vsearch/archive/v2.31.0.tar.gz
 tar xzf v2.31.0.tar.gz
 cd vsearch-2.30.6
-./configure CFLAGS="-O2" CXXFLAGS="-O2"
+./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make ARFLAGS="cr"
 sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O2"` and `CXXFLAGS="-O2"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
-Warning: Compiling the `align_simd.cc` file on x86_64 systems using the GNU C++ compiler version 9 or later with the `-O3` optimization option on may result in incorrect code that may cause bad alignments in some circumstances. This was due to the `-ftree-partial-pre` optimization enabled by `-O3`. A compiler pragma has been inserted in the code to specifically turn off this optimization for the affected code. Using `-O3` should be safe.
+Historical note: earlier versions of `align_simd.cc` could be miscompiled on x86_64 by the GNU C++ compiler version 9 or later at `-O3`, producing bad alignments in some circumstances (issue #589). The root cause was a strict-aliasing violation in the SIMD aligner — individual vector lanes were accessed through a reinterpreted pointer, which is undefined behaviour — that `-O3` (via `-ftree-partial-pre` and type-based alias analysis) turned into wrong code. This has been fixed by accessing the lanes with `std::memcpy` instead, so the earlier `-fno-tree-partial-pre` workaround is no longer needed and has been removed. Building with `-O3` is safe.
 
 To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, ghostscript, groff, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
 
@@ -75,7 +75,7 @@ Instead of downloading the source distribution as a compressed archive, you coul
 ```
 git clone https://github.com/torognes/vsearch.git
 cd vsearch
-./configure CFLAGS="-O2" CXXFLAGS="-O2"
+./configure CFLAGS="-O3" CXXFLAGS="-O3"
 make ARFLAGS="cr"
 sudo make install
 ```

@@ -8,7 +8,7 @@
  * This test catches the bug where a static bool in vsearch_apply_defaults_fixups()
  * permanently prevented gap-open penalty adjustment after the first call.
  *
- * Build:  g++ -std=c++11 -O2 -I../src -o example_reinit example_reinit.cc ../src/libvsearch.a -lpthread -ldl
+ * Build:  g++ -std=c++11 -O3 -I../src -o example_reinit example_reinit.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_reinit
  */
 
