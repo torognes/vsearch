@@ -287,6 +287,24 @@ auto udb_info(struct Parameters const & parameters) -> void
 }
 
 
+/* Validate-on-load helpers for untrusted UDB header fields.
+
+   The values below are read verbatim from the file, so a crafted or
+   corrupt UDB must be rejected with a clear error rather than allowed to
+   drive an out-of-bounds allocation, index or write. There is no
+   recoverable error channel (fatal() terminates the process), so a
+   violation fatals. */
+
+static auto udb_checked_add(uint64_t const lhs, uint64_t const rhs) -> uint64_t
+{
+  if (lhs > std::numeric_limits<uint64_t>::max() - rhs)
+    {
+      fatal("Invalid UDB file");
+    }
+  return lhs + rhs;
+}
+
+
 auto udb_read(const char * filename,
               bool create_bitmaps,
               bool parse_abundances) -> void
@@ -374,7 +392,16 @@ auto udb_read(const char * filename,
   for (uint64_t i = 0; i < kmerhashsize; i++)
     {
       kmerhash[i] = kmerindexsize;
-      kmerindexsize += kmercount[i];
+      kmerindexsize = udb_checked_add(kmerindexsize, kmercount[i]);
+    }
+
+  /* The word-list section stores 4 bytes per index entry, so a file can
+     hold at most filesize/4 entries; a larger total means the kmercount[]
+     values do not match the on-disk section (padded/corrupt file). */
+
+  if (kmerindexsize > filesize / 4)
+    {
+      fatal("Invalid UDB file");
     }
 
   /* signature */
@@ -391,6 +418,20 @@ auto udb_read(const char * filename,
   kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * 4));
 
   pos += largeread(fd_udb, kmerindex, 4 * kmerindexsize, pos);
+
+  /* Every entry is a sequence number used both as a bit offset in the
+     per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
+     check) and as an index into seqindex/dbindex_map during search. A
+     value >= seqcount is therefore an out-of-bounds write or read, so
+     reject it here rather than at use. */
+
+  for (uint64_t i = 0; i < kmerindexsize; i++)
+    {
+      if (kmerindex[i] >= seqcount)
+        {
+          fatal("Invalid UDB file");
+        }
+    }
 
   /* new header */
 
@@ -438,7 +479,7 @@ auto udb_read(const char * filename,
 
   /* headers */
 
-  datap = static_cast<char *>(xmalloc(udb_headerchars + nucleotides + seqcount));
+  datap = static_cast<char *>(xmalloc(udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount)));
 
   pos += largeread(fd_udb, datap, udb_headerchars, pos);
 
