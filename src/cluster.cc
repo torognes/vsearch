@@ -1132,116 +1132,24 @@ auto cluster(char const * dbname,
         }
     }
 
-  if (opt_alnout != nullptr)
+  fp_alnout = open_optional_output(opt_alnout, "alignment");
+  if (fp_alnout != nullptr)
     {
-      fp_alnout = fopen_output(opt_alnout);
-      if (fp_alnout == nullptr)
-        {
-          fatal("Unable to open alignment output file for writing");
-        }
-
       std::fprintf(fp_alnout, "%s\n", cmdline);
       std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (opt_samout != nullptr)
-    {
-      fp_samout = fopen_output(opt_samout);
-      if (fp_samout == nullptr)
-        {
-          fatal("Unable to open SAM output file for writing");
-        }
-    }
-
-  if (opt_userout != nullptr)
-    {
-      fp_userout = fopen_output(opt_userout);
-      if (fp_userout == nullptr)
-        {
-          fatal("Unable to open user-defined output file for writing");
-        }
-    }
-
-  if (opt_blast6out != nullptr)
-    {
-      fp_blast6out = fopen_output(opt_blast6out);
-      if (fp_blast6out == nullptr)
-        {
-          fatal("Unable to open blast6-like output file for writing");
-        }
-    }
-
-  if (opt_fastapairs != nullptr)
-    {
-      fp_fastapairs = fopen_output(opt_fastapairs);
-      if (fp_fastapairs == nullptr)
-        {
-          fatal("Unable to open fastapairs output file for writing");
-        }
-    }
-
-  if (opt_qsegout != nullptr)
-    {
-      fp_qsegout = fopen_output(opt_qsegout);
-      if (fp_qsegout == nullptr)
-        {
-          fatal("Unable to open qsegout output file for writing");
-        }
-    }
-
-  if (opt_tsegout != nullptr)
-    {
-      fp_tsegout = fopen_output(opt_tsegout);
-      if (fp_tsegout == nullptr)
-        {
-          fatal("Unable to open tsegout output file for writing");
-        }
-    }
-
-  if (opt_matched != nullptr)
-    {
-      fp_matched = fopen_output(opt_matched);
-      if (fp_matched == nullptr)
-        {
-          fatal("Unable to open matched output file for writing");
-        }
-    }
-
-  if (opt_notmatched != nullptr)
-    {
-      fp_notmatched = fopen_output(opt_notmatched);
-      if (fp_notmatched == nullptr)
-        {
-          fatal("Unable to open notmatched output file for writing");
-        }
-    }
-
-  if (opt_otutabout != nullptr)
-    {
-      fp_otutabout = fopen_output(opt_otutabout);
-      if (fp_otutabout == nullptr)
-        {
-          fatal("Unable to open OTU table (text format) output file for writing");
-        }
-    }
-
-  if (opt_mothur_shared_out != nullptr)
-    {
-      fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
-      if (fp_mothur_shared_out == nullptr)
-        {
-          fatal("Unable to open OTU table (mothur format) output file for writing");
-        }
-    }
-
-  if (opt_biomout != nullptr)
-    {
-      fp_biomout = fopen_output(opt_biomout);
-      if (fp_biomout == nullptr)
-        {
-          fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
-        }
-    }
+  fp_samout = open_optional_output(opt_samout, "SAM");
+  fp_userout = open_optional_output(opt_userout, "user-defined");
+  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
+  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
+  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
+  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
+  fp_matched = open_optional_output(opt_matched, "matched");
+  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
+  fp_otutabout = open_optional_output(opt_otutabout, "OTU table (text format)");
+  fp_mothur_shared_out = open_optional_output(opt_mothur_shared_out, "OTU table (mothur format)");
+  fp_biomout = open_optional_output(opt_biomout, "OTU table (biom 1.0 format)");
 
   db_read(dbname, 0);
 
@@ -1644,51 +1552,23 @@ auto cluster(char const * dbname,
 
   otutable_done();
 
-  if (opt_matched != nullptr)
-    {
-      fclose_output(fp_matched);
-    }
-  if (opt_notmatched != nullptr)
-    {
-      fclose_output(fp_notmatched);
-    }
-  if (opt_fastapairs != nullptr)
-    {
-      fclose_output(fp_fastapairs);
-    }
-  if (opt_qsegout != nullptr)
-    {
-      fclose_output(fp_qsegout);
-    }
-  if (opt_tsegout != nullptr)
-    {
-      fclose_output(fp_tsegout);
-    }
-  if (fp_blast6out != nullptr)
-    {
-      fclose_output(fp_blast6out);
-    }
+  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+     no guard; only userout carries extra teardown. */
+  fclose_output(fp_matched);
+  fclose_output(fp_notmatched);
+  fclose_output(fp_fastapairs);
+  fclose_output(fp_qsegout);
+  fclose_output(fp_tsegout);
+  fclose_output(fp_blast6out);
   if (fp_userout != nullptr)
     {
       fclose_output(fp_userout);
       clean_up(); // free userfields allocation
     }
-  if (fp_alnout != nullptr)
-    {
-      fclose_output(fp_alnout);
-    }
-  if (fp_samout != nullptr)
-    {
-      fclose_output(fp_samout);
-    }
-  if (fp_uc != nullptr)
-    {
-      fclose_output(fp_uc);
-    }
-  if (fp_centroids != nullptr)
-    {
-      fclose_output(fp_centroids);
-    }
+  fclose_output(fp_alnout);
+  fclose_output(fp_samout);
+  fclose_output(fp_uc);
+  fclose_output(fp_centroids);
 
   dbindex_free();
   db_free();
