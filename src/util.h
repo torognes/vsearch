@@ -178,6 +178,12 @@ auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int seql
 
 auto fopen_output(char const * filename) -> std::FILE *;
 
+/* Open an optional named output stream: return nullptr when filename is null
+   (the option was not given), otherwise fopen_output() it and fatal() with
+   "Unable to open <description> output file for writing" on failure. Collapses
+   the repeated per-output open-and-check boilerplate to a single call. */
+auto open_optional_output(char const * filename, char const * description) -> std::FILE *;
+
 /* Close an output stream, surfacing any deferred write error (full disk,
    quota, broken pipe) that stdio buffered, instead of silently producing a
    truncated file. Safe to call with a null handle. Use for every FILE * opened

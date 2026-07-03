@@ -417,6 +417,21 @@ auto fopen_output(char const * filename) -> std::FILE *
 }
 
 
+auto open_optional_output(char const * filename, char const * description) -> std::FILE *
+{
+  if (filename == nullptr)
+    {
+      return nullptr;
+    }
+  std::FILE * const stream = fopen_output(filename);
+  if (stream == nullptr)
+    {
+      fatal("Unable to open %s output file for writing", description);
+    }
+  return stream;
+}
+
+
 auto fclose_output(std::FILE * stream) -> void
 {
   if (stream == nullptr)
