@@ -405,41 +405,10 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   std::FILE * fp_notmatched = nullptr;
   std::FILE * fp_notmatchedfq = nullptr;
 
-  if (opt_fastaout != nullptr)
-    {
-      fp_fastaout = fopen_output(opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
-
-  if (opt_fastqout != nullptr)
-    {
-      fp_fastqout = fopen_output(opt_fastqout);
-      if (fp_fastqout == nullptr)
-        {
-          fatal("Unable to open FASTQ output file for writing");
-        }
-    }
-
-  if (opt_notmatched != nullptr)
-    {
-      fp_notmatched = fopen_output(opt_notmatched);
-      if (fp_notmatched == nullptr)
-        {
-          fatal("Unable to open FASTA output file (notmatched) for writing");
-        }
-    }
-
-  if (opt_notmatchedfq != nullptr)
-    {
-      fp_notmatchedfq = fopen_output(opt_notmatchedfq);
-      if (fp_notmatchedfq == nullptr)
-        {
-          fatal("Unable to open FASTQ output file (notmatchedfq) for writing");
-        }
-    }
+  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
+  fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
+  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
+  fp_notmatchedfq = open_optional_output(opt_notmatchedfq, "notmatchedfq");
 
   progress_init("Extracting sequences", filesize);
 

@@ -297,53 +297,16 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   if (parameters.opt_fastx_uniques != nullptr)
     {
-      if (parameters.opt_fastaout != nullptr)
-        {
-          fp_fastaout = fopen_output(parameters.opt_fastaout);
-          if (fp_fastaout == nullptr)
-            {
-              fatal("Unable to open FASTA output file for writing");
-            }
-        }
-
-      if (parameters.opt_fastqout != nullptr)
-        {
-          fp_fastqout = fopen_output(parameters.opt_fastqout);
-          if (fp_fastqout == nullptr)
-            {
-              fatal("Unable to open FASTQ output file for writing");
-            }
-        }
-
-      if (parameters.opt_tabbedout != nullptr)
-        {
-          fp_tabbedout = fopen_output(parameters.opt_tabbedout);
-          if (fp_tabbedout == nullptr)
-            {
-              fatal("Unable to open tab delimited output file for writing");
-            }
-        }
+      fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
+      fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+      fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
     }
   else
     {
-      if (parameters.opt_output != nullptr)
-        {
-          fp_fastaout = fopen_output(parameters.opt_output);
-          if (fp_fastaout == nullptr)
-            {
-              fatal("Unable to open FASTA output file for writing");
-            }
-        }
+      fp_fastaout = open_optional_output(parameters.opt_output, "output");
     }
 
-  if (parameters.opt_uc != nullptr)
-    {
-      fp_uc = fopen_output(parameters.opt_uc);
-      if (fp_uc == nullptr)
-        {
-          fatal("Unable to open output (uc) file for writing");
-        }
-    }
+  fp_uc = open_optional_output(parameters.opt_uc, "uc");
 
   auto const filesize = fastx_get_size(input_handle);
 

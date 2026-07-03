@@ -241,14 +241,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
 
   std::FILE * fp_fastaout = nullptr;
-
   if (parameters.opt_fastaout != nullptr)
     {
-      fp_fastaout = fopen_output(parameters.opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
+      fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
     }
   else
     {
@@ -344,11 +339,12 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
 
       /*
-        Find free bucket or bucket for identical sequence.
-        Make sure sequences are exactly identical
-        in case of any hash collision.
-        With 64-bit hashes, there is about 50% chance of a
-        collision when the number of sequences is about 5e9.
+        Find a free bucket, or the bucket holding this sequence. Sequences
+        are matched by their 128-bit CityHash alone — there is no byte-wise
+        comparison here (unlike derep_fulllength and derep_prefix), a
+        deliberate memory tradeoff. A 128-bit hash collision would merge two
+        distinct sequences, but the probability only approaches 50% near
+        2^64 (~1.8e19) sequences.
       */
 
       auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));

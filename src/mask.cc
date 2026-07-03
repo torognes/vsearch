@@ -315,23 +315,8 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
   }
 
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fp_fastaout = fopen_output(parameters.opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open mask output FASTA file for writing");
-        }
-    }
-
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fp_fastqout = fopen_output(parameters.opt_fastqout);
-      if (fp_fastqout == nullptr)
-        {
-          fatal("Unable to open mask output FASTQ file for writing");
-        }
-    }
+  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
+  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
   db_read(parameters.opt_fastx_mask, 0);
   show_rusage();

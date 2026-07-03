@@ -137,29 +137,24 @@ namespace {
   }
 
 
-  auto open_output_file(char * name) -> output_file {
+  auto open_output_file(char * name, char const * description) -> output_file {
     output_file outfile;
     outfile.name = name;
-    if (outfile.name != nullptr) {
-      outfile.handle = fopen_output(outfile.name);
-      if (outfile.handle == nullptr) {
-        fatal("Unable to open file for writing (%s)", outfile.name);
-      }
-    }
+    outfile.handle = open_optional_output(name, description);
     return outfile;
   }
 
 
   auto open_output_files(struct Parameters const & parameters) -> output_files {
     output_files outfiles;
-    outfiles.synced_fwd.fasta = open_output_file(parameters.opt_fastaout);
-    outfiles.synced_fwd.fastq = open_output_file(parameters.opt_fastqout);
-    outfiles.synced_rev.fasta = open_output_file(parameters.opt_fastaout_rev);
-    outfiles.synced_rev.fastq = open_output_file(parameters.opt_fastqout_rev);
-    outfiles.orphans_fwd.fasta = open_output_file(parameters.opt_fastaout_orphans);
-    outfiles.orphans_fwd.fastq = open_output_file(parameters.opt_fastqout_orphans);
-    outfiles.orphans_rev.fasta = open_output_file(parameters.opt_fastaout_orphans_rev);
-    outfiles.orphans_rev.fastq = open_output_file(parameters.opt_fastqout_orphans_rev);
+    outfiles.synced_fwd.fasta = open_output_file(parameters.opt_fastaout, "fastaout");
+    outfiles.synced_fwd.fastq = open_output_file(parameters.opt_fastqout, "fastqout");
+    outfiles.synced_rev.fasta = open_output_file(parameters.opt_fastaout_rev, "fastaout_rev");
+    outfiles.synced_rev.fastq = open_output_file(parameters.opt_fastqout_rev, "fastqout_rev");
+    outfiles.orphans_fwd.fasta = open_output_file(parameters.opt_fastaout_orphans, "fastaout_orphans");
+    outfiles.orphans_fwd.fastq = open_output_file(parameters.opt_fastqout_orphans, "fastqout_orphans");
+    outfiles.orphans_rev.fasta = open_output_file(parameters.opt_fastaout_orphans_rev, "fastaout_orphans_rev");
+    outfiles.orphans_rev.fastq = open_output_file(parameters.opt_fastqout_orphans_rev, "fastqout_orphans_rev");
     return outfiles;
   }
 

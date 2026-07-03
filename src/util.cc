@@ -72,6 +72,7 @@
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
 #include <random>  // std::random_device
+#include <string>  // std::string
 #include <vector>
 
 
@@ -414,6 +415,26 @@ auto fopen_output(char const * filename) -> std::FILE *
       return fdopen(file_descriptor, "w");
     }
   return std::fopen(filename, "w");
+}
+
+
+auto open_optional_output(char const * filename, char const * description) -> std::FILE *
+{
+  if (filename == nullptr)
+    {
+      return nullptr;
+    }
+  std::FILE * const stream = fopen_output(filename);
+  if (stream == nullptr)
+    {
+      /* Build the whole message and pass it to the single-argument fatal(),
+         which prints it via "%s"; this keeps a filename containing '%' from
+         being interpreted as a format string. */
+      std::string const message = std::string("Unable to open ") + description +
+        " file for writing (" + filename + ")";
+      fatal(message.c_str());
+    }
+  return stream;
 }
 
 

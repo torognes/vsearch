@@ -858,21 +858,7 @@ auto cluster_core_parallel() -> void
 
   std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
 
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
 
 
   LinearMemoryAligner lma(scoring);
@@ -899,12 +885,10 @@ auto cluster_core_parallel() -> void
             {
               int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
 
-#if 1
               if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
-#endif
 
               lastlength = length;
 
@@ -1052,12 +1036,10 @@ auto cluster_core_serial() -> void
     {
       int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
 
-#if 1
       if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
-#endif
 
       lastlength = length;
 
@@ -1132,134 +1114,27 @@ auto cluster(char const * dbname,
              char const * cmdline,
              char const * progheader) -> void
 {
-  if (opt_centroids != nullptr)
-    {
-      fp_centroids = fopen_output(opt_centroids);
-      if (fp_centroids == nullptr)
-        {
-          fatal("Unable to open centroids file for writing");
-        }
-    }
+  fp_centroids = open_optional_output(opt_centroids, "centroids");
+  fp_uc = open_optional_output(opt_uc, "uc");
 
-  if (opt_uc != nullptr)
+  fp_alnout = open_optional_output(opt_alnout, "alignment");
+  if (fp_alnout != nullptr)
     {
-      fp_uc = fopen_output(opt_uc);
-      if (fp_uc == nullptr)
-        {
-          fatal("Unable to open uc file for writing");
-        }
-    }
-
-  if (opt_alnout != nullptr)
-    {
-      fp_alnout = fopen_output(opt_alnout);
-      if (fp_alnout == nullptr)
-        {
-          fatal("Unable to open alignment output file for writing");
-        }
-
       std::fprintf(fp_alnout, "%s\n", cmdline);
       std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (opt_samout != nullptr)
-    {
-      fp_samout = fopen_output(opt_samout);
-      if (fp_samout == nullptr)
-        {
-          fatal("Unable to open SAM output file for writing");
-        }
-    }
-
-  if (opt_userout != nullptr)
-    {
-      fp_userout = fopen_output(opt_userout);
-      if (fp_userout == nullptr)
-        {
-          fatal("Unable to open user-defined output file for writing");
-        }
-    }
-
-  if (opt_blast6out != nullptr)
-    {
-      fp_blast6out = fopen_output(opt_blast6out);
-      if (fp_blast6out == nullptr)
-        {
-          fatal("Unable to open blast6-like output file for writing");
-        }
-    }
-
-  if (opt_fastapairs != nullptr)
-    {
-      fp_fastapairs = fopen_output(opt_fastapairs);
-      if (fp_fastapairs == nullptr)
-        {
-          fatal("Unable to open fastapairs output file for writing");
-        }
-    }
-
-  if (opt_qsegout != nullptr)
-    {
-      fp_qsegout = fopen_output(opt_qsegout);
-      if (fp_qsegout == nullptr)
-        {
-          fatal("Unable to open qsegout output file for writing");
-        }
-    }
-
-  if (opt_tsegout != nullptr)
-    {
-      fp_tsegout = fopen_output(opt_tsegout);
-      if (fp_tsegout == nullptr)
-        {
-          fatal("Unable to open tsegout output file for writing");
-        }
-    }
-
-  if (opt_matched != nullptr)
-    {
-      fp_matched = fopen_output(opt_matched);
-      if (fp_matched == nullptr)
-        {
-          fatal("Unable to open matched output file for writing");
-        }
-    }
-
-  if (opt_notmatched != nullptr)
-    {
-      fp_notmatched = fopen_output(opt_notmatched);
-      if (fp_notmatched == nullptr)
-        {
-          fatal("Unable to open notmatched output file for writing");
-        }
-    }
-
-  if (opt_otutabout != nullptr)
-    {
-      fp_otutabout = fopen_output(opt_otutabout);
-      if (fp_otutabout == nullptr)
-        {
-          fatal("Unable to open OTU table (text format) output file for writing");
-        }
-    }
-
-  if (opt_mothur_shared_out != nullptr)
-    {
-      fp_mothur_shared_out = fopen_output(opt_mothur_shared_out);
-      if (fp_mothur_shared_out == nullptr)
-        {
-          fatal("Unable to open OTU table (mothur format) output file for writing");
-        }
-    }
-
-  if (opt_biomout != nullptr)
-    {
-      fp_biomout = fopen_output(opt_biomout);
-      if (fp_biomout == nullptr)
-        {
-          fatal("Unable to open OTU table (biom 1.0 format) output file for writing");
-        }
-    }
+  fp_samout = open_optional_output(opt_samout, "SAM");
+  fp_userout = open_optional_output(opt_userout, "user-defined");
+  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
+  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
+  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
+  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
+  fp_matched = open_optional_output(opt_matched, "matched");
+  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
+  fp_otutabout = open_optional_output(opt_otutabout, "OTU table (text format)");
+  fp_mothur_shared_out = open_optional_output(opt_mothur_shared_out, "OTU table (mothur format)");
+  fp_biomout = open_optional_output(opt_biomout, "OTU table (biom 1.0 format)");
 
   db_read(dbname, 0);
 
@@ -1454,7 +1329,7 @@ auto cluster(char const * dbname,
               fp_clusters = fopen_output(fn_clusters.data());
               if (fp_clusters == nullptr)
                 {
-                  fatal("Unable to open clusters file for writing");
+                  fatal("Unable to open clusters file for writing (%s)", fn_clusters.data());
                 }
             }
 
@@ -1540,32 +1415,9 @@ auto cluster(char const * dbname,
       std::FILE * fp_consout = nullptr;
       std::FILE * fp_profile = nullptr;
 
-      if (opt_msaout != nullptr)
-        {
-          fp_msaout = fopen_output(opt_msaout);
-          if (fp_msaout == nullptr)
-            {
-              fatal("Unable to open msaout file");
-            }
-        }
-
-      if (opt_consout != nullptr)
-        {
-          fp_consout = fopen_output(opt_consout);
-          if (fp_consout == nullptr)
-            {
-              fatal("Unable to open consout file");
-            }
-        }
-
-      if (opt_profile != nullptr)
-        {
-          fp_profile = fopen_output(opt_profile);
-          if (fp_profile == nullptr)
-            {
-              fatal("Unable to open profile file");
-            }
-        }
+      fp_msaout = open_optional_output(opt_msaout, "msaout");
+      fp_consout = open_optional_output(opt_consout, "consout");
+      fp_profile = open_optional_output(opt_profile, "profile");
 
       lastcluster = -1;
 
@@ -1612,20 +1464,9 @@ auto cluster(char const * dbname,
 
       progress_done();
 
-      if (fp_profile != nullptr)
-        {
-          fclose_output(fp_profile);
-        }
-
-      if (fp_msaout != nullptr)
-        {
-          fclose_output(fp_msaout);
-        }
-
-      if (fp_consout != nullptr)
-        {
-          fclose_output(fp_consout);
-        }
+      fclose_output(fp_profile);
+      fclose_output(fp_msaout);
+      fclose_output(fp_consout);
     }
 
   // cluster_abundance not used below that point
@@ -1662,51 +1503,23 @@ auto cluster(char const * dbname,
 
   otutable_done();
 
-  if (opt_matched != nullptr)
-    {
-      fclose_output(fp_matched);
-    }
-  if (opt_notmatched != nullptr)
-    {
-      fclose_output(fp_notmatched);
-    }
-  if (opt_fastapairs != nullptr)
-    {
-      fclose_output(fp_fastapairs);
-    }
-  if (opt_qsegout != nullptr)
-    {
-      fclose_output(fp_qsegout);
-    }
-  if (opt_tsegout != nullptr)
-    {
-      fclose_output(fp_tsegout);
-    }
-  if (fp_blast6out != nullptr)
-    {
-      fclose_output(fp_blast6out);
-    }
+  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+     no guard; only userout carries extra teardown. */
+  fclose_output(fp_matched);
+  fclose_output(fp_notmatched);
+  fclose_output(fp_fastapairs);
+  fclose_output(fp_qsegout);
+  fclose_output(fp_tsegout);
+  fclose_output(fp_blast6out);
   if (fp_userout != nullptr)
     {
       fclose_output(fp_userout);
       clean_up(); // free userfields allocation
     }
-  if (fp_alnout != nullptr)
-    {
-      fclose_output(fp_alnout);
-    }
-  if (fp_samout != nullptr)
-    {
-      fclose_output(fp_samout);
-    }
-  if (fp_uc != nullptr)
-    {
-      fclose_output(fp_uc);
-    }
-  if (fp_centroids != nullptr)
-    {
-      fclose_output(fp_centroids);
-    }
+  fclose_output(fp_alnout);
+  fclose_output(fp_samout);
+  fclose_output(fp_uc);
+  fclose_output(fp_centroids);
 
   dbindex_free();
   db_free();
@@ -1922,21 +1735,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
     }
 
   /* Scoring for intra-batch fixup alignment */
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
 
   LinearMemoryAligner lma(scoring);
 

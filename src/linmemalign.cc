@@ -96,6 +96,27 @@
 constexpr auto minimal_length = int64_t{64};
 
 
+auto scoring_from_options() -> struct Scoring
+{
+  struct Scoring scoring;
+  scoring.match = opt_match;
+  scoring.mismatch = opt_mismatch;
+  scoring.gap_open_query_left = opt_gap_open_query_left;
+  scoring.gap_open_target_left = opt_gap_open_target_left;
+  scoring.gap_open_query_interior = opt_gap_open_query_interior;
+  scoring.gap_open_target_interior = opt_gap_open_target_interior;
+  scoring.gap_open_query_right = opt_gap_open_query_right;
+  scoring.gap_open_target_right = opt_gap_open_target_right;
+  scoring.gap_extension_query_left = opt_gap_extension_query_left;
+  scoring.gap_extension_target_left = opt_gap_extension_target_left;
+  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
+  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
+  scoring.gap_extension_query_right = opt_gap_extension_query_right;
+  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  return scoring;
+}
+
+
 LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
     : go_q_l(scoring.gap_open_query_left),
       go_t_l(scoring.gap_open_target_left),

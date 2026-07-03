@@ -264,19 +264,6 @@ static int merge_error_value = 0;
    file scope; see the comment there. */
 
 
-// refactoring: replace with check_optional_output_handle()
-auto fileopenw(char const * filename) -> std::FILE *
-{
-  assert(filename != nullptr);
-  auto * output_handle = fopen_output(filename);
-  if (output_handle == nullptr)
-    {
-      fatal("Unable to open file for writing (%s)", filename);
-    }
-  return output_handle;
-}
-
-
 /* Request a cooperative abort from a worker thread. Records the first
    error seen and signals every worker to stop; the actual message and
    std::exit() happen in pair_all() on the main thread after all workers
@@ -1704,34 +1691,13 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  if (opt_fastqout != nullptr)
-    {
-      fp_fastqout = fileopenw(opt_fastqout);
-    }
-  if (opt_fastaout != nullptr)
-    {
-      fp_fastaout = fileopenw(opt_fastaout);
-    }
-  if (opt_fastqout_notmerged_fwd != nullptr)
-    {
-      fp_fastqout_notmerged_fwd = fileopenw(opt_fastqout_notmerged_fwd);
-    }
-  if (opt_fastqout_notmerged_rev != nullptr)
-    {
-      fp_fastqout_notmerged_rev = fileopenw(opt_fastqout_notmerged_rev);
-    }
-  if (opt_fastaout_notmerged_fwd != nullptr)
-    {
-      fp_fastaout_notmerged_fwd = fileopenw(opt_fastaout_notmerged_fwd);
-    }
-  if (opt_fastaout_notmerged_rev != nullptr)
-    {
-      fp_fastaout_notmerged_rev = fileopenw(opt_fastaout_notmerged_rev);
-    }
-  if (opt_eetabbedout != nullptr)
-    {
-      fp_eetabbedout = fileopenw(opt_eetabbedout);
-    }
+  fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
+  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
+  fp_fastqout_notmerged_fwd = open_optional_output(opt_fastqout_notmerged_fwd, "fastqout_notmerged_fwd");
+  fp_fastqout_notmerged_rev = open_optional_output(opt_fastqout_notmerged_rev, "fastqout_notmerged_rev");
+  fp_fastaout_notmerged_fwd = open_optional_output(opt_fastaout_notmerged_fwd, "fastaout_notmerged_fwd");
+  fp_fastaout_notmerged_rev = open_optional_output(opt_fastaout_notmerged_rev, "fastaout_notmerged_rev");
+  fp_eetabbedout = open_optional_output(opt_eetabbedout, "eetabbedout");
 
   /* precompute merged quality values */
 
@@ -1763,34 +1729,15 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  if (opt_eetabbedout != nullptr)
-    {
-      fclose_output(fp_eetabbedout);
-    }
-  if (opt_fastaout_notmerged_rev != nullptr)
-    {
-      fclose_output(fp_fastaout_notmerged_rev);
-    }
-  if (opt_fastaout_notmerged_fwd != nullptr)
-    {
-      fclose_output(fp_fastaout_notmerged_fwd);
-    }
-  if (opt_fastqout_notmerged_rev != nullptr)
-    {
-      fclose_output(fp_fastqout_notmerged_rev);
-    }
-  if (opt_fastqout_notmerged_fwd != nullptr)
-    {
-      fclose_output(fp_fastqout_notmerged_fwd);
-    }
-  if (opt_fastaout != nullptr)
-    {
-      fclose_output(fp_fastaout);
-    }
-  if (opt_fastqout != nullptr)
-    {
-      fclose_output(fp_fastqout);
-    }
+  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+     no guard. */
+  fclose_output(fp_eetabbedout);
+  fclose_output(fp_fastaout_notmerged_rev);
+  fclose_output(fp_fastaout_notmerged_fwd);
+  fclose_output(fp_fastqout_notmerged_rev);
+  fclose_output(fp_fastqout_notmerged_fwd);
+  fclose_output(fp_fastaout);
+  fclose_output(fp_fastqout);
 
   fastq_close(fastq_rev);
   fastq_rev = nullptr;

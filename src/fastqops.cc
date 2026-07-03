@@ -98,23 +98,8 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
 
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fp_fastaout = fopen_output(parameters.opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
-
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fp_fastqout = fopen_output(parameters.opt_fastqout);
-      if (fp_fastqout == nullptr)
-        {
-          fatal("Unable to open FASTQ output file for writing");
-        }
-    }
+  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
+  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
   if (input_handle->is_fastq)
     {
@@ -223,13 +208,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   auto const filesize = fastq_get_size(input_handle);
 
-  std::FILE * fp_fastqout = nullptr;
-
-  fp_fastqout = fopen_output(parameters.opt_fastqout);
-  if (fp_fastqout == nullptr)
-    {
-      fatal("Unable to open FASTQ output file for writing");
-    }
+  std::FILE * fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
   progress_init("Reading FASTQ file", filesize);
 

@@ -90,6 +90,10 @@ struct Scoring {
 };
 
 
+// Build a Scoring populated from the global opt_* penalty options.
+auto scoring_from_options() -> struct Scoring;
+
+
 class LinearMemoryAligner
 {
 private:

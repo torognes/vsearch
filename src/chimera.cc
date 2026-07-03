@@ -160,7 +160,7 @@ struct chimera_info_s
   std::array<int64_t, maxcandidates> nwmatches {{}};
   std::array<int64_t, maxcandidates> nwmismatches {{}};
   std::array<int64_t, maxcandidates> nwgaps {{}};
-  std::vector<char *> nwcigar = std::vector<char *>(maxcandidates);  // this is a test
+  std::vector<char *> nwcigar = std::vector<char *>(maxcandidates);
 
   int match_size = 0;
   std::vector<int> match;
@@ -2070,21 +2070,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
 
   LinearMemoryAligner lma(scoring);
 
@@ -2314,47 +2300,21 @@ auto chimera_threads_run() -> void
 }
 
 
-auto open_chimera_file(std::FILE ** output_stream, char const * name) -> void
-{
-  if (name != nullptr)
-    {
-      *output_stream = fopen_output(name);
-      if (*output_stream == nullptr)
-        {
-          fatal("Unable to open file %s for writing", name);
-        }
-    }
-  else
-    {
-      *output_stream = nullptr;
-    }
-}
-
-
-auto close_chimera_file(std::FILE * output_stream) -> void
-{
-  if (output_stream != nullptr)
-    {
-      fclose_output(output_stream);
-    }
-}
-
-
 auto chimera(struct Parameters const & parameters) -> void
 {
-  open_chimera_file(&fp_chimeras, opt_chimeras);
-  open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
-  open_chimera_file(&fp_borderline, opt_borderline);
+  fp_chimeras = open_optional_output(opt_chimeras, "chimeras");
+  fp_nonchimeras = open_optional_output(opt_nonchimeras, "nonchimeras");
+  fp_borderline = open_optional_output(opt_borderline, "borderline");
 
   if (parameters.opt_chimeras_denovo != nullptr)
     {
-      open_chimera_file(&fp_uchimealns, opt_alnout);
-      open_chimera_file(&fp_uchimeout, opt_tabbedout);
+      fp_uchimealns = open_optional_output(opt_alnout, "alignment");
+      fp_uchimeout = open_optional_output(opt_tabbedout, "tabbedout");
     }
   else
     {
-      open_chimera_file(&fp_uchimealns, opt_uchimealns);
-      open_chimera_file(&fp_uchimeout, opt_uchimeout);
+      fp_uchimealns = open_optional_output(opt_uchimealns, "uchimealns");
+      fp_uchimeout = open_optional_output(opt_uchimeout, "uchimeout");
     }
 
 
@@ -2669,11 +2629,11 @@ auto chimera(struct Parameters const & parameters) -> void
   dbindex_free();
   db_free();
 
-  close_chimera_file(fp_borderline);
-  close_chimera_file(fp_uchimeout);
-  close_chimera_file(fp_uchimealns);
-  close_chimera_file(fp_nonchimeras);
-  close_chimera_file(fp_chimeras);
+  fclose_output(fp_borderline);
+  fclose_output(fp_uchimeout);
+  fclose_output(fp_uchimealns);
+  fclose_output(fp_nonchimeras);
+  fclose_output(fp_chimeras);
 
   show_rusage();
 }
@@ -2761,21 +2721,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
      across calls to chimera_detect_single. */
   ci->api_allhits_list.resize(maxcandidates);
 
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
   ci->api_lma_ptr.reset(new LinearMemoryAligner(scoring));
 }
 

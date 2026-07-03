@@ -325,21 +325,7 @@ auto allpairs_thread_run(uint64_t t) -> void
                         static_cast<CELL>(opt_gap_extension_target_right));
 
 
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
 
 
   LinearMemoryAligner lma(scoring);
@@ -561,98 +547,22 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 {
   /* open output files */
 
-  if (opt_alnout != nullptr)
+  fp_alnout = open_optional_output(opt_alnout, "alignment");
+  if (fp_alnout != nullptr)
     {
-      fp_alnout = fopen_output(opt_alnout);
-      if (fp_alnout == nullptr)
-        {
-          fatal("Unable to open alignment output file for writing");
-        }
-
       std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  if (opt_samout != nullptr)
-    {
-      fp_samout = fopen_output(opt_samout);
-      if (fp_samout == nullptr)
-        {
-          fatal("Unable to open SAM output file for writing");
-        }
-    }
-
-  if (opt_userout != nullptr)
-    {
-      fp_userout = fopen_output(opt_userout);
-      if (fp_userout == nullptr)
-        {
-          fatal("Unable to open user-defined output file for writing");
-        }
-    }
-
-  if (opt_blast6out != nullptr)
-    {
-      fp_blast6out = fopen_output(opt_blast6out);
-      if (fp_blast6out == nullptr)
-        {
-          fatal("Unable to open blast6-like output file for writing");
-        }
-    }
-
-  if (opt_uc != nullptr)
-    {
-      fp_uc = fopen_output(opt_uc);
-      if (fp_uc == nullptr)
-        {
-          fatal("Unable to open uc output file for writing");
-        }
-    }
-
-  if (opt_fastapairs != nullptr)
-    {
-      fp_fastapairs = fopen_output(opt_fastapairs);
-      if (fp_fastapairs == nullptr)
-        {
-          fatal("Unable to open fastapairs output file for writing");
-        }
-    }
-
-  if (opt_qsegout != nullptr)
-    {
-      fp_qsegout = fopen_output(opt_qsegout);
-      if (fp_qsegout == nullptr)
-        {
-          fatal("Unable to open qsegout output file for writing");
-        }
-    }
-
-  if (opt_tsegout != nullptr)
-    {
-      fp_tsegout = fopen_output(opt_tsegout);
-      if (fp_tsegout == nullptr)
-        {
-          fatal("Unable to open tsegout output file for writing");
-        }
-    }
-
-  if (opt_matched != nullptr)
-    {
-      fp_matched = fopen_output(opt_matched);
-      if (fp_matched == nullptr)
-        {
-          fatal("Unable to open matched output file for writing");
-        }
-    }
-
-  if (opt_notmatched != nullptr)
-    {
-      fp_notmatched = fopen_output(opt_notmatched);
-      if (fp_notmatched == nullptr)
-        {
-          fatal("Unable to open notmatched output file for writing");
-        }
-    }
+  fp_samout = open_optional_output(opt_samout, "SAM");
+  fp_userout = open_optional_output(opt_userout, "user-defined");
+  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
+  fp_uc = open_optional_output(opt_uc, "uc");
+  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
+  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
+  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
+  fp_matched = open_optional_output(opt_matched, "matched");
+  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
 
   db_read(parameters.opt_allpairs_global, 0);
 
@@ -676,7 +586,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   queries = 0;
 
   progress = 0;
-  progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));  // refactoring: issue with parenthesis?
+  progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));
   allpairs_thread_worker_run();
   progress_done();
 
@@ -704,46 +614,18 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   /* clean up, global */
   db_free();
-  if (opt_matched != nullptr)
-    {
-      fclose_output(fp_matched);
-    }
-  if (opt_notmatched != nullptr)
-    {
-      fclose_output(fp_notmatched);
-    }
-  if (opt_fastapairs != nullptr)
-    {
-      fclose_output(fp_fastapairs);
-    }
-  if (opt_qsegout != nullptr)
-    {
-      fclose_output(fp_qsegout);
-    }
-  if (opt_tsegout != nullptr)
-    {
-      fclose_output(fp_tsegout);
-    }
-  if (fp_uc != nullptr)
-    {
-      fclose_output(fp_uc);
-    }
-  if (fp_blast6out != nullptr)
-    {
-      fclose_output(fp_blast6out);
-    }
-  if (fp_userout != nullptr)
-    {
-      fclose_output(fp_userout);
-    }
-  if (fp_alnout != nullptr)
-    {
-      fclose_output(fp_alnout);
-    }
-  if (fp_samout != nullptr)
-    {
-      fclose_output(fp_samout);
-    }
+  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+     no guard. */
+  fclose_output(fp_matched);
+  fclose_output(fp_notmatched);
+  fclose_output(fp_fastapairs);
+  fclose_output(fp_qsegout);
+  fclose_output(fp_tsegout);
+  fclose_output(fp_uc);
+  fclose_output(fp_blast6out);
+  fclose_output(fp_userout);
+  fclose_output(fp_alnout);
+  fclose_output(fp_samout);
   show_rusage();
 
   if (fp_userout != nullptr) {

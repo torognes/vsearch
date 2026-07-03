@@ -138,14 +138,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  if (opt_fastaout != nullptr)
-    {
-      fp_fastaout = fopen_output(opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open fasta output file for writing");
-        }
-    }
+  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
 
   if (opt_fastqout != nullptr)
     {
@@ -154,30 +147,11 @@ auto orient(struct Parameters const & parameters) -> void
           fatal("Cannot write FASTQ output with FASTA input");
         }
 
-      fp_fastqout = fopen_output(opt_fastqout);
-      if (fp_fastqout == nullptr)
-        {
-          fatal("Unable to open fastq output file for writing");
-        }
+      fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
     }
 
-  if (opt_notmatched != nullptr)
-    {
-      fp_notmatched = fopen_output(opt_notmatched);
-      if (fp_notmatched == nullptr)
-        {
-          fatal("Unable to open notmatched output file for writing");
-        }
-    }
-
-  if (opt_tabbedout != nullptr)
-    {
-      fp_tabbedout = fopen_output(opt_tabbedout);
-      if (fp_tabbedout == nullptr)
-        {
-          fatal("Unable to open tabbedout output file for writing");
-        }
-    }
+  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
+  fp_tabbedout = open_optional_output(opt_tabbedout, "tabbedout");
 
   /* check if it may be an UDB file */
 

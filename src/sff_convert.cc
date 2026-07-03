@@ -181,11 +181,7 @@ auto open_fastq_output(char const * filename) -> std::FILE * {
   if (filename == nullptr) {
     fatal("No output file for sff_convert specified with --fastqout.");
   }
-  auto * fastq_handle = fopen_output(filename);
-  if (fastq_handle == nullptr) {
-    fatal("Unable to open FASTQ output file for writing.");
-  }
-  return fastq_handle;
+  return open_optional_output(filename, "fastqout");
 }
 
 

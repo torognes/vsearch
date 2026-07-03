@@ -313,79 +313,17 @@ auto filter(bool const fastq_only, char const * filename) -> void
   std::FILE * fp_fastaout_discarded_rev = nullptr;
   std::FILE * fp_fastqout_discarded_rev = nullptr;
 
-  if (opt_fastaout != nullptr)
-    {
-      fp_fastaout = fopen_output(opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
-
-  if (opt_fastqout != nullptr)
-    {
-      fp_fastqout = fopen_output(opt_fastqout);
-      if (fp_fastqout == nullptr)
-        {
-          fatal("Unable to open FASTQ output file for writing");
-        }
-    }
-
-  if (opt_fastaout_discarded != nullptr)
-    {
-      fp_fastaout_discarded = fopen_output(opt_fastaout_discarded);
-      if (fp_fastaout_discarded == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
-    }
-
-  if (opt_fastqout_discarded != nullptr)
-    {
-      fp_fastqout_discarded = fopen_output(opt_fastqout_discarded);
-      if (fp_fastqout_discarded == nullptr)
-        {
-          fatal("Unable to open FASTQ output file for writing");
-        }
-    }
+  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
+  fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
+  fp_fastaout_discarded = open_optional_output(opt_fastaout_discarded, "fastaout_discarded");
+  fp_fastqout_discarded = open_optional_output(opt_fastqout_discarded, "fastqout_discarded");
 
   if (reverse_handle != nullptr)
     {
-      if (opt_fastaout_rev != nullptr)
-        {
-          fp_fastaout_rev = fopen_output(opt_fastaout_rev);
-          if (fp_fastaout_rev == nullptr)
-            {
-              fatal("Unable to open FASTA output file for writing");
-            }
-        }
-
-      if (opt_fastqout_rev != nullptr)
-        {
-          fp_fastqout_rev = fopen_output(opt_fastqout_rev);
-          if (fp_fastqout_rev == nullptr)
-            {
-              fatal("Unable to open FASTQ output file for writing");
-            }
-        }
-
-      if (opt_fastaout_discarded_rev != nullptr)
-        {
-          fp_fastaout_discarded_rev = fopen_output(opt_fastaout_discarded_rev);
-          if (fp_fastaout_discarded_rev == nullptr)
-            {
-              fatal("Unable to open FASTA output file for writing");
-            }
-        }
-
-      if (opt_fastqout_discarded_rev != nullptr)
-        {
-          fp_fastqout_discarded_rev = fopen_output(opt_fastqout_discarded_rev);
-          if (fp_fastqout_discarded_rev == nullptr)
-            {
-              fatal("Unable to open FASTQ output file for writing");
-            }
-        }
+      fp_fastaout_rev = open_optional_output(opt_fastaout_rev, "fastaout_rev");
+      fp_fastqout_rev = open_optional_output(opt_fastqout_rev, "fastqout_rev");
+      fp_fastaout_discarded_rev = open_optional_output(opt_fastaout_discarded_rev, "fastaout_discarded_rev");
+      fp_fastqout_discarded_rev = open_optional_output(opt_fastqout_discarded_rev, "fastqout_discarded_rev");
     }
 
   progress_init("Reading input file", filesize);

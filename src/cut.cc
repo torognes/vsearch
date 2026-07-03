@@ -314,22 +314,22 @@ namespace {
   auto check_output_files(struct file_purpose const & fastaout) -> void {
     if (fastaout.cut.forward.name != nullptr) {
       if (fastaout.cut.forward.handle == nullptr) {
-        fatal("Unable to open FASTA output file for writing");
+        fatal("Unable to open fastaout file for writing (%s)", fastaout.cut.forward.name);
       }
     }
     if (fastaout.discarded.forward.name != nullptr) {
       if (fastaout.discarded.forward.handle == nullptr) {
-        fatal("Unable to open FASTA output file for writing");
+        fatal("Unable to open fastaout_discarded file for writing (%s)", fastaout.discarded.forward.name);
       }
     }
     if (fastaout.cut.reverse.name != nullptr) {
       if (fastaout.cut.reverse.handle == nullptr) {
-        fatal("Unable to open FASTQ output file for writing");
+        fatal("Unable to open fastaout_rev file for writing (%s)", fastaout.cut.reverse.name);
       }
     }
     if (fastaout.discarded.reverse.name != nullptr) {
       if (fastaout.discarded.reverse.handle == nullptr) {
-        fatal("Unable to open FASTQ output file for writing");
+        fatal("Unable to open fastaout_discarded_rev file for writing (%s)", fastaout.discarded.reverse.name);
       }
     }
   }
