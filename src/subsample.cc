@@ -167,22 +167,22 @@ auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files) -> void 
 auto check_output_files(struct file_types const & ouput_files) -> void {
   if (ouput_files.fasta.kept.name != nullptr) {
     if (ouput_files.fasta.kept.handle == nullptr) {
-      fatal("Unable to open FASTA output file for writing");
+      fatal("Unable to open fastaout output file for writing (%s)", ouput_files.fasta.kept.name);
     }
   }
   if (ouput_files.fasta.lost.name != nullptr) {
     if (ouput_files.fasta.lost.handle == nullptr) {
-      fatal("Unable to open FASTA output file for writing");
+      fatal("Unable to open fastaout_discarded output file for writing (%s)", ouput_files.fasta.lost.name);
     }
   }
   if (ouput_files.fastq.kept.name != nullptr) {
     if (ouput_files.fastq.kept.handle == nullptr) {
-      fatal("Unable to open FASTQ output file for writing");
+      fatal("Unable to open fastqout output file for writing (%s)", ouput_files.fastq.kept.name);
     }
   }
   if (ouput_files.fastq.lost.name != nullptr) {
     if (ouput_files.fastq.lost.handle == nullptr) {
-      fatal("Unable to open FASTQ output file for writing");
+      fatal("Unable to open fastqout_discarded output file for writing (%s)", ouput_files.fastq.lost.name);
     }
   }
 }

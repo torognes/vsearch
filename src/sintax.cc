@@ -652,11 +652,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (opt_tabbedout != nullptr)
     {
-      fp_tabbedout = fopen_output(opt_tabbedout);
-      if (fp_tabbedout == nullptr)
-        {
-          fatal("Unable to open tabbedout output file for writing");
-        }
+      fp_tabbedout = open_optional_output(opt_tabbedout, "tabbedout");
     }
   else
     {

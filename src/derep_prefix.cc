@@ -177,18 +177,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       fp_output = fopen_output(parameters.opt_output);
       if (fp_output == nullptr)
         {
-          fatal("Unable to open output file for writing");
+          fatal("Unable to open output file for writing (%s)", parameters.opt_output);
         }
     }
-
-  if (parameters.opt_uc != nullptr)
-    {
-      fp_uc = fopen_output(parameters.opt_uc);
-      if (fp_uc == nullptr)
-        {
-          fatal("Unable to open output (uc) file for writing");
-        }
-    }
+  fp_uc = open_optional_output(parameters.opt_uc, "uc");
 
   db_read(parameters.opt_derep_prefix, 0);
 

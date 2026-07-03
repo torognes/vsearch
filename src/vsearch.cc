@@ -1638,7 +1638,7 @@ auto main(int argc, char** argv) -> int
       parameters.fp_log = fp_log;
       if (fp_log == nullptr)
         {
-          fatal("Unable to open log file for writing");
+          fatal("Unable to open log file for writing (%s)", opt_log);
         }
       std::fprintf(fp_log, "%s\n", prog_header.data());
       std::fprintf(fp_log, "%s\n", cmdline);

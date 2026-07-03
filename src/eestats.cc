@@ -141,13 +141,12 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   uint64_t const filesize = fastq_get_size(h);
 
   std::FILE * fp_output = nullptr;
-
   if (opt_output != nullptr)
     {
       fp_output = fopen_output(opt_output);
       if (fp_output == nullptr)
         {
-          fatal("Unable to open output file for writing");
+          fatal("Unable to open output file for writing (%s)", opt_output);
         }
     }
 
@@ -420,13 +419,12 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
   uint64_t const filesize = fastq_get_size(h);
 
   std::FILE * fp_output = nullptr;
-
   if (opt_output != nullptr)
     {
       fp_output = fopen_output(opt_output);
       if (fp_output == nullptr)
         {
-          fatal("Unable to open output file for writing");
+          fatal("Unable to open output file for writing (%s)", opt_output);
         }
     }
 

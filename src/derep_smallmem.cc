@@ -241,14 +241,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
 
   std::FILE * fp_fastaout = nullptr;
-
   if (parameters.opt_fastaout != nullptr)
     {
-      fp_fastaout = fopen_output(parameters.opt_fastaout);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open FASTA output file for writing");
-        }
+      fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
     }
   else
     {
