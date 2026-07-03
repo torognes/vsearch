@@ -133,7 +133,13 @@ auto round_up_to_8(uint16_t n_bytes) -> uint16_t {
   // out the remainder bits
   static constexpr uint16_t stub = 8 - 1;     // ... 00000111
   static constexpr uint16_t bitmask = static_cast<uint16_t>(~stub);  // ... 11111000
-  assert(n_bytes <= std::numeric_limits<uint16_t>::max() - stub);
+  /* Validation, not an invariant: a near-max length would overflow uint16_t
+     when rounded up. This must stay a runtime check — asserts are compiled out
+     of release builds (NDEBUG). */
+  if (n_bytes > std::numeric_limits<uint16_t>::max() - stub)
+    {
+      fatal("Invalid SFF file. Header section length too large.");
+    }
   return (n_bytes + stub) & bitmask;
 }
 
@@ -255,7 +261,13 @@ auto check_sff_header(struct sff_header_s const &sff_header) -> void {
   // required by this set of header fields, and should be equal to "31
   // + number_of_flows_per_read + key_length" rounded up to the next
   // value divisible by 8
-  assert(sff_header.flows_per_read <= std::numeric_limits<uint16_t>::max() - (n_bytes_in_header + sff_header.key_length));
+  /* Validation, not an invariant: flows_per_read and key_length come straight
+     from the file; an oversized value would wrap the uint16_t sum below. Runtime
+     check because asserts are stripped from release builds (NDEBUG). */
+  if (sff_header.flows_per_read > std::numeric_limits<uint16_t>::max() - (n_bytes_in_header + sff_header.key_length))
+    {
+      fatal("Invalid SFF file. Number of flows per read too large.");
+    }
   auto const expected_header_length = round_up_to_8(static_cast<uint16_t>(n_bytes_in_header + sff_header.flows_per_read + sff_header.key_length));
   if (sff_header.header_length != expected_header_length)
     {
@@ -285,7 +297,13 @@ auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void 
   //  The read_header_length should be set to the length of the read
   //  header for this read, and should be equal to "16 + name_length"
   //  rounded up to the next value divisible by 8.
-  assert(read_header.name_length <= std::numeric_limits<uint16_t>::max() - n_bytes_in_read_header);
+  /* Validation, not an invariant: name_length is read from the file; an
+     oversized value would wrap the uint16_t sum below. Runtime check because
+     asserts are stripped from release builds (NDEBUG). */
+  if (read_header.name_length > std::numeric_limits<uint16_t>::max() - n_bytes_in_read_header)
+    {
+      fatal("Invalid SFF file. Read name length too large.");
+    }
   auto const expected_read_header_length = round_up_to_8(n_bytes_in_read_header + read_header.name_length);
   if (read_header.read_header_length != expected_read_header_length)
     {
@@ -320,8 +338,14 @@ auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char con
 
 auto read_a_string(std::FILE * sff_handle, std::size_t n_bytes_to_read, char const * const message) -> std::vector<char> {
   assert(sff_handle != nullptr);
-  assert(n_bytes_to_read < std::numeric_limits<std::size_t>::max());
   assert(message != nullptr);
+  /* Validation, not an invariant: n_bytes_to_read is file-derived; SIZE_MAX
+     would overflow the +1 below to a zero-sized buffer. Runtime check because
+     asserts are stripped from release builds (NDEBUG). */
+  if (n_bytes_to_read >= std::numeric_limits<std::size_t>::max())
+    {
+      fatal("Invalid SFF file. Section length too large.");
+    }
   std::vector<char> a_string(n_bytes_to_read + 1);
   auto const n_bytes_read = std::fread(a_string.data(), byte_size, n_bytes_to_read, sff_handle);
   if (n_bytes_read < n_bytes_to_read) {
@@ -333,14 +357,18 @@ auto read_a_string(std::FILE * sff_handle, std::size_t n_bytes_to_read, char con
 
 auto convert_quality_scores(std::vector<char> & quality_scores,
                             struct Parameters const & parameters) -> void {
-  auto const qmin = static_cast<char>(parameters.opt_fastq_qminout);
-  auto const qmax = static_cast<char>(parameters.opt_fastq_qmaxout);
-  auto const offset = static_cast<char>(parameters.opt_fastq_asciiout);
-  auto clamp_and_offset = [&](char & quality_score) -> char {
-    // refactoring C++17: return std::clamp(quality_score, qmin, qmax) + offset;
-    quality_score = std::max(quality_score, qmin);
-    quality_score = std::min(quality_score, qmax);
-    return static_cast<char>(quality_score + offset);
+  auto const qmin = static_cast<int>(parameters.opt_fastq_qminout);
+  auto const qmax = static_cast<int>(parameters.opt_fastq_qmaxout);
+  auto const offset = static_cast<int>(parameters.opt_fastq_asciiout);
+  auto clamp_and_offset = [&](char const & quality_score) -> char {
+    // Work in int over the raw (unsigned) byte: a quality byte > 127 would be
+    // negative as a signed char, mis-clamping and risking signed overflow on
+    // the offset add (P1).
+    // refactoring C++17: return std::clamp<int>(value, qmin, qmax) + offset;
+    int value = static_cast<unsigned char>(quality_score);
+    value = std::max(value, qmin);
+    value = std::min(value, qmax);
+    return static_cast<char>(value + offset);
   };
   // note: quality_scores has room for an extra null terminator at the
   // end, be careful to stop the conversion one position before.
@@ -509,10 +537,11 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
       /* read and check the flowgram and sequence */
 
-      if (fskip(fp_sff.get(), 2UL * sff_header.flows_per_read) < sff_header.flows_per_read)
-        {
-          fatal("Invalid SFF file. Unable to read flowgram values. File may be truncated.");
-        }
+      /* the flowgram is 2 bytes per flow; the open-coded skip here previously
+         only required half that many bytes to be present, desynchronizing all
+         later offsets on a truncated file (S15). Use the helper, which checks
+         the full requested length. */
+      skip_sff_section(fp_sff.get(), 2UL * sff_header.flows_per_read, "flowgram values");
       filepos += 2UL * sff_header.flows_per_read;
 
       skip_sff_section(fp_sff.get(), read_header.number_of_bases, "flow indices");
@@ -547,16 +576,24 @@ auto sff_convert(struct Parameters const & parameters) -> void
         {
           if ((i < clip_start) or (i >= clip_end))
             {
-              bases[i] = static_cast<char>(std::tolower(bases[i]));
+              bases[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(bases[i])));
             }
           else
             {
-              bases[i] = static_cast<char>(std::toupper(bases[i]));
+              bases[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(bases[i])));
             }
         }
 
       if (parameters.opt_sff_clip)
         {
+          /* Each clip field is individually bounded by number_of_bases, but
+             nothing guarantees clip_start <= clip_end; an inverted pair would
+             underflow `length = clip_end - clip_start` (both uint32_t) to ~4 GB
+             and drive a massive out-of-bounds read below (S2). */
+          if (clip_start > clip_end)
+            {
+              fatal("Invalid SFF file. Clipping region is empty (clip start beyond clip end).");
+            }
           bases[clip_end] = '\0';
           quality_scores[clip_end] = '\0';
         }

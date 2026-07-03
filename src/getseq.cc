@@ -463,13 +463,24 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
               start = std::max(opt_subseq_start, start);
               end = std::min(opt_subseq_end, end);
             }
-          int64_t const length = end - start + 1;
+          /* When --subseq_start is past this sequence's length (trivially hit on
+             a mixed-length file), end < start and the subsequence is empty. Emit
+             it empty with in-bounds pointers rather than offsetting past the end
+             with a negative length (S4). The guard must precede the offset of
+             BOTH the sequence and the quality pointer. */
+          int64_t length = end - start + 1;
+          int64_t offset = start - 1;
+          if (length <= 0)
+            {
+              length = 0;
+              offset = 0;
+            }
 
           if (opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  fastx_get_sequence(h1) + start - 1,
+                                  fastx_get_sequence(h1) + offset,
                                   static_cast<int>(length),
                                   fastx_get_header(h1),
                                   static_cast<int>(fastx_get_header_length(h1)),
@@ -486,11 +497,11 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
           if (opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
-                                  fastx_get_sequence(h1) + start - 1,
+                                  fastx_get_sequence(h1) + offset,
                                   static_cast<int>(length),
                                   fastx_get_header(h1),
                                   static_cast<int>(fastx_get_header_length(h1)),
-                                  fastx_get_quality(h1) + start - 1,
+                                  fastx_get_quality(h1) + offset,
                                   static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   kept,
                                   -1.0);
