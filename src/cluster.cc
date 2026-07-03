@@ -1114,23 +1114,8 @@ auto cluster(char const * dbname,
              char const * cmdline,
              char const * progheader) -> void
 {
-  if (opt_centroids != nullptr)
-    {
-      fp_centroids = fopen_output(opt_centroids);
-      if (fp_centroids == nullptr)
-        {
-          fatal("Unable to open centroids file for writing");
-        }
-    }
-
-  if (opt_uc != nullptr)
-    {
-      fp_uc = fopen_output(opt_uc);
-      if (fp_uc == nullptr)
-        {
-          fatal("Unable to open uc file for writing");
-        }
-    }
+  fp_centroids = open_optional_output(opt_centroids, "centroids");
+  fp_uc = open_optional_output(opt_uc, "uc");
 
   fp_alnout = open_optional_output(opt_alnout, "alignment");
   if (fp_alnout != nullptr)
@@ -1430,32 +1415,9 @@ auto cluster(char const * dbname,
       std::FILE * fp_consout = nullptr;
       std::FILE * fp_profile = nullptr;
 
-      if (opt_msaout != nullptr)
-        {
-          fp_msaout = fopen_output(opt_msaout);
-          if (fp_msaout == nullptr)
-            {
-              fatal("Unable to open msaout file");
-            }
-        }
-
-      if (opt_consout != nullptr)
-        {
-          fp_consout = fopen_output(opt_consout);
-          if (fp_consout == nullptr)
-            {
-              fatal("Unable to open consout file");
-            }
-        }
-
-      if (opt_profile != nullptr)
-        {
-          fp_profile = fopen_output(opt_profile);
-          if (fp_profile == nullptr)
-            {
-              fatal("Unable to open profile file");
-            }
-        }
+      fp_msaout = open_optional_output(opt_msaout, "msaout");
+      fp_consout = open_optional_output(opt_consout, "consout");
+      fp_profile = open_optional_output(opt_profile, "profile");
 
       lastcluster = -1;
 
@@ -1502,20 +1464,9 @@ auto cluster(char const * dbname,
 
       progress_done();
 
-      if (fp_profile != nullptr)
-        {
-          fclose_output(fp_profile);
-        }
-
-      if (fp_msaout != nullptr)
-        {
-          fclose_output(fp_msaout);
-        }
-
-      if (fp_consout != nullptr)
-        {
-          fclose_output(fp_consout);
-        }
+      fclose_output(fp_profile);
+      fclose_output(fp_msaout);
+      fclose_output(fp_consout);
     }
 
   // cluster_abundance not used below that point
