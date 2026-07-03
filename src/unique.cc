@@ -152,23 +152,6 @@ auto unique_exit(struct uhandle_s * unique_handle) -> void
 }
 
 
-auto unique_compare(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<unsigned int const *>(a);
-  auto const * rhs = static_cast<unsigned int const *>(b);
-
-  if (lhs < rhs)
-    {
-      return -1;
-    }
-  if (lhs > rhs)
-    {
-      return +1;
-    }
-  return 0;
-}
-
-
 auto unique_count_bitmap(struct uhandle_s * unique_handle,
                          int const wordlength,
                          int const seqlen,
