@@ -2070,21 +2070,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
 
   LinearMemoryAligner lma(scoring);
 
@@ -2761,21 +2747,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
      across calls to chimera_detect_single. */
   ci->api_allhits_list.resize(maxcandidates);
 
-  struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  struct Scoring scoring = scoring_from_options();
   ci->api_lma_ptr.reset(new LinearMemoryAligner(scoring));
 }
 
