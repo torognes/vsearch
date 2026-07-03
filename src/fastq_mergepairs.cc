@@ -264,7 +264,6 @@ static int merge_error_value = 0;
    file scope; see the comment there. */
 
 
-// refactoring: replace with check_optional_output_handle()
 auto fileopenw(char const * filename) -> std::FILE *
 {
   assert(filename != nullptr);
@@ -1763,34 +1762,15 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  if (opt_eetabbedout != nullptr)
-    {
-      fclose_output(fp_eetabbedout);
-    }
-  if (opt_fastaout_notmerged_rev != nullptr)
-    {
-      fclose_output(fp_fastaout_notmerged_rev);
-    }
-  if (opt_fastaout_notmerged_fwd != nullptr)
-    {
-      fclose_output(fp_fastaout_notmerged_fwd);
-    }
-  if (opt_fastqout_notmerged_rev != nullptr)
-    {
-      fclose_output(fp_fastqout_notmerged_rev);
-    }
-  if (opt_fastqout_notmerged_fwd != nullptr)
-    {
-      fclose_output(fp_fastqout_notmerged_fwd);
-    }
-  if (opt_fastaout != nullptr)
-    {
-      fclose_output(fp_fastaout);
-    }
-  if (opt_fastqout != nullptr)
-    {
-      fclose_output(fp_fastqout);
-    }
+  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+     no guard. */
+  fclose_output(fp_eetabbedout);
+  fclose_output(fp_fastaout_notmerged_rev);
+  fclose_output(fp_fastaout_notmerged_fwd);
+  fclose_output(fp_fastqout_notmerged_rev);
+  fclose_output(fp_fastqout_notmerged_fwd);
+  fclose_output(fp_fastaout);
+  fclose_output(fp_fastqout);
 
   fastq_close(fastq_rev);
   fastq_rev = nullptr;
