@@ -885,12 +885,10 @@ auto cluster_core_parallel() -> void
             {
               int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
 
-#if 1
               if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
-#endif
 
               lastlength = length;
 
@@ -1038,12 +1036,10 @@ auto cluster_core_serial() -> void
     {
       int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
 
-#if 1
       if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
-#endif
 
       lastlength = length;
 
