@@ -141,12 +141,12 @@ namespace {
   auto check_output_files(struct output_files const & outfiles) -> void {
     if (outfiles.fasta.name != nullptr) {
       if (outfiles.fasta.handle == nullptr) {
-        fatal("Unable to open file for writing (%s)", outfiles.fasta.name);
+        fatal("Unable to open fastaout output file for writing (%s)", outfiles.fasta.name);
       }
     }
     if (outfiles.fastq.name != nullptr) {
       if (outfiles.fastq.handle == nullptr) {
-        fatal("Unable to open file for writing (%s)", outfiles.fastq.name);
+        fatal("Unable to open fastqout output file for writing (%s)", outfiles.fastq.name);
       }
     }
   }

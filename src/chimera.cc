@@ -2300,47 +2300,21 @@ auto chimera_threads_run() -> void
 }
 
 
-auto open_chimera_file(std::FILE ** output_stream, char const * name) -> void
-{
-  if (name != nullptr)
-    {
-      *output_stream = fopen_output(name);
-      if (*output_stream == nullptr)
-        {
-          fatal("Unable to open file %s for writing", name);
-        }
-    }
-  else
-    {
-      *output_stream = nullptr;
-    }
-}
-
-
-auto close_chimera_file(std::FILE * output_stream) -> void
-{
-  if (output_stream != nullptr)
-    {
-      fclose_output(output_stream);
-    }
-}
-
-
 auto chimera(struct Parameters const & parameters) -> void
 {
-  open_chimera_file(&fp_chimeras, opt_chimeras);
-  open_chimera_file(&fp_nonchimeras, opt_nonchimeras);
-  open_chimera_file(&fp_borderline, opt_borderline);
+  fp_chimeras = open_optional_output(opt_chimeras, "chimeras");
+  fp_nonchimeras = open_optional_output(opt_nonchimeras, "nonchimeras");
+  fp_borderline = open_optional_output(opt_borderline, "borderline");
 
   if (parameters.opt_chimeras_denovo != nullptr)
     {
-      open_chimera_file(&fp_uchimealns, opt_alnout);
-      open_chimera_file(&fp_uchimeout, opt_tabbedout);
+      fp_uchimealns = open_optional_output(opt_alnout, "alignment");
+      fp_uchimeout = open_optional_output(opt_tabbedout, "tabbedout");
     }
   else
     {
-      open_chimera_file(&fp_uchimealns, opt_uchimealns);
-      open_chimera_file(&fp_uchimeout, opt_uchimeout);
+      fp_uchimealns = open_optional_output(opt_uchimealns, "uchimealns");
+      fp_uchimeout = open_optional_output(opt_uchimeout, "uchimeout");
     }
 
 
@@ -2655,11 +2629,11 @@ auto chimera(struct Parameters const & parameters) -> void
   dbindex_free();
   db_free();
 
-  close_chimera_file(fp_borderline);
-  close_chimera_file(fp_uchimeout);
-  close_chimera_file(fp_uchimealns);
-  close_chimera_file(fp_nonchimeras);
-  close_chimera_file(fp_chimeras);
+  fclose_output(fp_borderline);
+  fclose_output(fp_uchimeout);
+  fclose_output(fp_uchimealns);
+  fclose_output(fp_nonchimeras);
+  fclose_output(fp_chimeras);
 
   show_rusage();
 }
