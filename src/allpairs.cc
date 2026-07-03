@@ -662,7 +662,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   queries = 0;
 
   progress = 0;
-  progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));  // refactoring: issue with parenthesis?
+  progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));
   allpairs_thread_worker_run();
   progress_done();
 
