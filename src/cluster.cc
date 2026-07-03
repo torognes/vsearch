@@ -1329,7 +1329,7 @@ auto cluster(char const * dbname,
               fp_clusters = fopen_output(fn_clusters.data());
               if (fp_clusters == nullptr)
                 {
-                  fatal("Unable to open clusters file for writing");
+                  fatal("Unable to open clusters output file for writing (%s)", fn_clusters.data());
                 }
             }
 
