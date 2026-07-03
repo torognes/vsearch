@@ -72,6 +72,7 @@
 #include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
 #include <random>  // std::random_device
+#include <string>  // std::string
 #include <vector>
 
 
@@ -426,7 +427,12 @@ auto open_optional_output(char const * filename, char const * description) -> st
   std::FILE * const stream = fopen_output(filename);
   if (stream == nullptr)
     {
-      fatal("Unable to open %s output file for writing", description);
+      /* Build the whole message and pass it to the single-argument fatal(),
+         which prints it via "%s"; this keeps a filename containing '%' from
+         being interpreted as a format string. */
+      std::string const message = std::string("Unable to open ") + description +
+        " output file for writing (" + filename + ")";
+      fatal(message.c_str());
     }
   return stream;
 }
