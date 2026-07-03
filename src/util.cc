@@ -431,7 +431,7 @@ auto open_optional_output(char const * filename, char const * description) -> st
          which prints it via "%s"; this keeps a filename containing '%' from
          being interpreted as a format string. */
       std::string const message = std::string("Unable to open ") + description +
-        " output file for writing (" + filename + ")";
+        " file for writing (" + filename + ")";
       fatal(message.c_str());
     }
   return stream;

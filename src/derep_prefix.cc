@@ -172,14 +172,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       fatal("Option '--strand both' not supported with --derep_prefix");
     }
 
-  if (parameters.opt_output != nullptr)
-    {
-      fp_output = fopen_output(parameters.opt_output);
-      if (fp_output == nullptr)
-        {
-          fatal("Unable to open output file for writing (%s)", parameters.opt_output);
-        }
-    }
+  fp_output = open_optional_output(parameters.opt_output, "output");
   fp_uc = open_optional_output(parameters.opt_uc, "uc");
 
   db_read(parameters.opt_derep_prefix, 0);

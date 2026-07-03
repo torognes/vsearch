@@ -301,13 +301,9 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
       fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
     }
-  else if (parameters.opt_output != nullptr)
+  else
     {
-      fp_fastaout = fopen_output(parameters.opt_output);
-      if (fp_fastaout == nullptr)
-        {
-          fatal("Unable to open output file for writing (%s)", parameters.opt_output);
-        }
+      fp_fastaout = open_optional_output(parameters.opt_output, "output");
     }
 
   fp_uc = open_optional_output(parameters.opt_uc, "uc");

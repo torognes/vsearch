@@ -701,7 +701,7 @@ auto udb_fasta(struct Parameters const & parameters) -> void
   auto * fp_output = fopen_output(opt_output);
   if (fp_output == nullptr)
     {
-      fatal("Unable to open FASTA output file for writing");
+      fatal("Unable to open output file for writing (%s)", opt_output);
     }
 
   /* read UDB file */
@@ -965,7 +965,7 @@ auto udb_make(struct Parameters const & parameters) -> void
   fd_output = xopen_write(opt_output);
   if (fd_output == 0)
     {
-      fatal("Unable to open output file for writing");
+      fatal("Unable to open output file for writing (%s)", opt_output);
     }
 
   db_read(parameters.opt_makeudb_usearch, 1);

@@ -180,9 +180,10 @@ auto fopen_output(char const * filename) -> std::FILE *;
 
 /* Open an optional named output stream: return nullptr when filename is null
    (the option was not given), otherwise fopen_output() it and fatal() with
-   "Unable to open <description> output file for writing (<filename>)" on
-   failure. Collapses the repeated per-output open-and-check boilerplate to a
-   single call. */
+   "Unable to open <description> file for writing (<filename>)" on failure
+   ("writing" already implies output, so the word "output" is not repeated).
+   Collapses the repeated per-output open-and-check boilerplate to a single
+   call. */
 auto open_optional_output(char const * filename, char const * description) -> std::FILE *;
 
 /* Close an output stream, surfacing any deferred write error (full disk,
