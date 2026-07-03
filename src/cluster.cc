@@ -1442,7 +1442,7 @@ auto cluster(char const * dbname,
               /* close previous (except for first time) and open new file */
               if (lastcluster != -1)
                 {
-                  std::fclose(fp_clusters);
+                  fclose_output(fp_clusters);
                 }
 
               ordinal = 0;
@@ -1477,7 +1477,7 @@ auto cluster(char const * dbname,
       /* performed with the last sequence */
       if (opt_clusters != nullptr)
         {
-          std::fclose(fp_clusters);
+          fclose_output(fp_clusters);
         }
     }
 
@@ -1614,17 +1614,17 @@ auto cluster(char const * dbname,
 
       if (fp_profile != nullptr)
         {
-          std::fclose(fp_profile);
+          fclose_output(fp_profile);
         }
 
       if (fp_msaout != nullptr)
         {
-          std::fclose(fp_msaout);
+          fclose_output(fp_msaout);
         }
 
       if (fp_consout != nullptr)
         {
-          std::fclose(fp_consout);
+          fclose_output(fp_consout);
         }
     }
 
@@ -1645,67 +1645,67 @@ auto cluster(char const * dbname,
   if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout);
-      std::fclose(fp_biomout);
+      fclose_output(fp_biomout);
     }
 
   if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout);
-      std::fclose(fp_otutabout);
+      fclose_output(fp_otutabout);
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out);
-      std::fclose(fp_mothur_shared_out);
+      fclose_output(fp_mothur_shared_out);
     }
 
   otutable_done();
 
   if (opt_matched != nullptr)
     {
-      std::fclose(fp_matched);
+      fclose_output(fp_matched);
     }
   if (opt_notmatched != nullptr)
     {
-      std::fclose(fp_notmatched);
+      fclose_output(fp_notmatched);
     }
   if (opt_fastapairs != nullptr)
     {
-      std::fclose(fp_fastapairs);
+      fclose_output(fp_fastapairs);
     }
   if (opt_qsegout != nullptr)
     {
-      std::fclose(fp_qsegout);
+      fclose_output(fp_qsegout);
     }
   if (opt_tsegout != nullptr)
     {
-      std::fclose(fp_tsegout);
+      fclose_output(fp_tsegout);
     }
   if (fp_blast6out != nullptr)
     {
-      std::fclose(fp_blast6out);
+      fclose_output(fp_blast6out);
     }
   if (fp_userout != nullptr)
     {
-      std::fclose(fp_userout);
+      fclose_output(fp_userout);
       clean_up(); // free userfields allocation
     }
   if (fp_alnout != nullptr)
     {
-      std::fclose(fp_alnout);
+      fclose_output(fp_alnout);
     }
   if (fp_samout != nullptr)
     {
-      std::fclose(fp_samout);
+      fclose_output(fp_samout);
     }
   if (fp_uc != nullptr)
     {
-      std::fclose(fp_uc);
+      fclose_output(fp_uc);
     }
   if (fp_centroids != nullptr)
     {
-      std::fclose(fp_centroids);
+      fclose_output(fp_centroids);
     }
 
   dbindex_free();

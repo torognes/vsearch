@@ -207,7 +207,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
       fprint_kmer(f, 8, kmer);
       std::fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
     }
-  std::fclose(f);
+  fclose_output(f);
 #endif
 
   /* determine minimum kmer count for bitmap usage */

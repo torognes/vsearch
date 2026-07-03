@@ -799,7 +799,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
 
       progress_done();
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
 
   if (parameters.opt_fastqout != nullptr)
@@ -832,7 +832,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
 
       progress_done();
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
 
   show_rusage();
@@ -871,7 +871,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                   i, cluster.size, cluster.header);
           progress_update(i);
         }
-      std::fclose(fp_uc);
+      fclose_output(fp_uc);
       progress_done();
     }
 
@@ -910,7 +910,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
           progress_update(i);
         }
-      std::fclose(fp_tabbedout);
+      fclose_output(fp_tabbedout);
       progress_done();
     }
 

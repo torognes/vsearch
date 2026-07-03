@@ -169,7 +169,7 @@ namespace {
                               & outfiles.orphans_fwd, & outfiles.orphans_rev}) {
       for (auto * handle : {pair->fasta.handle, pair->fastq.handle}) {
         if (handle != nullptr) {
-          static_cast<void>(std::fclose(handle));
+          static_cast<void>(fclose_output(handle));
         }
       }
     }

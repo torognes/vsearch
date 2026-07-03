@@ -135,11 +135,27 @@ auto open_input_file(char const * filename) -> FileHandle {
 }
 
 
+auto CheckedCloseOutputHandle::operator()(std::FILE * file_handle) -> void {
+  if (file_handle == nullptr) {
+    return;
+  }
+  /* A write error (full disk, quota, broken pipe) is often deferred by stdio
+     until the buffer is flushed, so check fflush and the error flag before
+     closing; fclose also flushes and can report the same error. Fail loudly
+     rather than leave a silently truncated output file. */
+  if ((std::fflush(file_handle) != 0) or (std::ferror(file_handle) != 0)) {
+    fatal("Unable to write to output file (disk full, quota exceeded, or broken pipe?)");
+  }
+  if (std::fclose(file_handle) != 0) {
+    fatal("Unable to close output file (disk full or quota exceeded?)");
+  }
+}
+
+
 // write_file, file to write, open_output_file, open_ostream
-auto open_output_file(char const * filename) -> FileHandle {
+auto open_output_file(char const * filename) -> OutputFileHandle {
   if (filename == nullptr) {
-    std::FILE * empty = nullptr;
-    return FileHandle{empty};
+    return OutputFileHandle{nullptr};
   }
   auto const mode = ModeString{"w"};  // w: writing, no b?
   /* open the output stream given by filename, but if name is '-' then
@@ -147,7 +163,7 @@ auto open_output_file(char const * filename) -> FileHandle {
   if (std::strcmp(filename, "-") == 0) {
     auto const file_descriptor = dup(STDOUT_FILENO);
     check_file_descriptor(file_descriptor);
-    return open_file_descriptor(file_descriptor, mode);
+    return OutputFileHandle{open_file_descriptor(file_descriptor, mode).release()};
   }
-  return open_file(filename, mode);
+  return OutputFileHandle{open_file(filename, mode).release()};
 }

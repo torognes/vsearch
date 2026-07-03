@@ -1866,7 +1866,7 @@ auto main(int argc, char** argv) -> int
         {
           std::fprintf(fp_log, "Max memory %.1lfGB\n", maxmem / 1024.0);
         }
-      std::fclose(fp_log);
+      fclose_output(fp_log);
     }
 
   if (opt_ee_cutoffs_values != nullptr)
@@ -1874,6 +1874,15 @@ auto main(int argc, char** argv) -> int
       xfree(opt_ee_cutoffs_values);
     }
   opt_ee_cutoffs_values = nullptr;
+
+  /* Output written directly to stdout is not closed through fclose_output, so
+     surface any deferred write error here (full disk, quota, or a broken pipe
+     such as `vsearch ... | head`) rather than exiting 0 with truncated output
+     (I1). */
+  if ((std::fflush(stdout) != 0) or (std::ferror(stdout) != 0))
+    {
+      fatal("Unable to write to standard output (disk full, quota exceeded, or broken pipe?)");
+    }
 
   xfree(cmdline);
   dynlibs_close();

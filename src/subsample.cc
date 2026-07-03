@@ -370,7 +370,7 @@ auto close_output_files(struct file_types const & ouput_files) -> void {
            ouput_files.fasta.kept.handle, ouput_files.fastq.kept.handle,
            ouput_files.fasta.lost.handle, ouput_files.fastq.lost.handle}) {
     if (fp_outputfile != nullptr) {
-      static_cast<void>(std::fclose(fp_outputfile));
+      static_cast<void>(fclose_output(fp_outputfile));
     }
   }
 }

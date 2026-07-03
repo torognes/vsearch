@@ -82,6 +82,17 @@ struct CloseFileHandle {
 using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 
 
+// Output streams get a checked close: a deferred write error (full disk, quota
+// exceeded, broken pipe) is surfaced as a fatal error rather than left as a
+// silently truncated output file. Input streams keep the plain CloseFileHandle
+// above (a stale read-error flag must not turn into a write failure).
+struct CheckedCloseOutputHandle {
+  auto operator()(std::FILE * file_handle) -> void;  // defined in open_file.cpp
+};
+
+using OutputFileHandle = std::unique_ptr<std::FILE, CheckedCloseOutputHandle>;
+
+
 auto open_input_file(char const * filename) -> FileHandle;
 
-auto open_output_file(char const * filename) -> FileHandle;
+auto open_output_file(char const * filename) -> OutputFileHandle;

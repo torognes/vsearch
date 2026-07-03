@@ -464,10 +464,10 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   if (fp_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
   if (fp_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
 }

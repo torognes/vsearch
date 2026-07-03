@@ -751,7 +751,7 @@ auto sintax(struct Parameters const & parameters) -> void
     }
 
   fastx_close(query_fastx_h);
-  std::fclose(fp_tabbedout);
+  fclose_output(fp_tabbedout);
 
   dbindex_free();
   db_free();

@@ -586,22 +586,22 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   if (opt_fastaout != nullptr)
     {
-      std::fclose(fp_fastaout);
+      fclose_output(fp_fastaout);
     }
 
   if (opt_fastqout != nullptr)
     {
-      std::fclose(fp_fastqout);
+      fclose_output(fp_fastqout);
     }
 
   if (opt_notmatched != nullptr)
     {
-      std::fclose(fp_notmatched);
+      fclose_output(fp_notmatched);
     }
 
   if (opt_notmatchedfq != nullptr)
     {
-      std::fclose(fp_notmatchedfq);
+      fclose_output(fp_notmatchedfq);
     }
 
   fastx_close(h1);

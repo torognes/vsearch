@@ -468,7 +468,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
 
       progress_done();
-      std::fclose(fp_output);
+      fclose_output(fp_output);
     }
 
   show_rusage();
@@ -507,7 +507,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   i, bp.size, db_getheader(bp.seqno_first));
           progress_update(static_cast<uint64_t>(i));
         }
-      std::fclose(fp_uc);
+      fclose_output(fp_uc);
       progress_done();
       show_rusage();
     }

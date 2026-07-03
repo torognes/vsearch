@@ -177,3 +177,10 @@ auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int seq
 auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int seqlen) -> void;
 
 auto fopen_output(char const * filename) -> std::FILE *;
+
+/* Close an output stream, surfacing any deferred write error (full disk,
+   quota, broken pipe) that stdio buffered, instead of silently producing a
+   truncated file. Safe to call with a null handle. Use for every FILE * opened
+   with fopen_output(); do NOT use on input streams (a prior read error would
+   make it fatal spuriously). */
+auto fclose_output(std::FILE * stream) -> void;

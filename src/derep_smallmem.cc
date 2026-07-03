@@ -621,7 +621,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
   progress_done();
   fastx_close(h2);
-  std::fclose(fp_fastaout);
+  fclose_output(fp_fastaout);
 
   show_rusage();
 
