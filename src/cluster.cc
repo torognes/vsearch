@@ -1704,6 +1704,20 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
       return;
     }
 
+  /* cluster_session_init() captured the database sequence count into
+     cs->seqcount and sized this session's search state from the file-static
+     seqcount; the per-thread buffers allocated below are sized from the same
+     count via cluster_query_init(). If the database has changed since session
+     init (a reload, or an interleaved cluster path), those buffers no longer
+     match the data being indexed and the k-mer buffer would be sized for the
+     wrong count -> out-of-bounds indexing. Fail loudly in release builds (an
+     assert would be stripped under NDEBUG) rather than corrupt memory (L2d). */
+  if (cs->seqcount != static_cast<int>(db_getsequencecount()))
+    {
+      fatal("cluster_assign_batch: the database changed since "
+            "cluster_session_init(); re-initialize the clustering session.");
+    }
+
   constexpr int queries_per_thread = 1;
   int const max_queries =
     queries_per_thread * static_cast<int>(opt_threads);
