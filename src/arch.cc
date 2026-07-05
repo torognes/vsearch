@@ -208,6 +208,14 @@ auto xmalloc(std::size_t size) -> void *
 
 auto xrealloc(void * ptr, std::size_t size) -> void *
 {
+  /* NOTE: unlike xmalloc (posix_memalign), the POSIX branch here uses plain
+     realloc, which only guarantees max_align_t alignment, not xmalloc's
+     vsearch_memalignment (16 bytes). Buffers that require 16-byte alignment
+     for aligned SIMD loads/stores (the align_simd.cc VECTOR_SHORT arrays) must
+     therefore be allocated with xmalloc and never grown through xrealloc. As
+     audited, no such buffer currently passes through xrealloc — every caller
+     resizes byte/scalar data (input buffers, sequence storage, query strings,
+     k-mer lists). If that ever changes, emulate an aligned realloc here. */
   static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
 #ifdef _WIN32
