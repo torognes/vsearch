@@ -120,19 +120,13 @@ static std::FILE * fp_biomout = nullptr;
 static std::FILE * fp_qsegout = nullptr;
 static std::FILE * fp_tsegout = nullptr;
 
-static struct searchinfo_s * si_plus;
-static struct searchinfo_s * si_minus;
-
-/* per-thread slice of queries assigned for the current round; the
-   threading primitives themselves live inside the ThreadRunner */
+/* per-thread slice of queries assigned for the current round; owned by
+   cluster_work_pool_s (the threading primitives live inside its ThreadRunner) */
 struct thread_work_s
 {
   int query_first;
   int query_count;
 };
-
-static std::vector<struct thread_work_s> thread_work;
-static std::unique_ptr<ThreadRunner> cluster_threadrunner;
 
 
 inline auto compare_byclusterno(const void * a, const void * b) -> int
@@ -221,67 +215,6 @@ inline auto cluster_query_core(struct searchinfo_s * si) -> void
 }
 
 
-inline auto cluster_worker(uint64_t t) -> void
-{
-  /* wrapper for the main threaded core function for clustering */
-  for (int q = 0; q < thread_work[t].query_count; q++)
-    {
-      cluster_query_core(si_plus + thread_work[t].query_first + q);
-      if (opt_strand > 1)
-        {
-          cluster_query_core(si_minus + thread_work[t].query_first + q);
-        }
-    }
-}
-
-
-auto threads_wakeup(int queries) -> void
-{
-  int const threads = queries > opt_threads ? static_cast<int>(opt_threads) : queries;
-  int queries_rest = queries;
-  int threads_rest = threads;
-  int query_next = 0;
-
-  /* assign a slice of the queries to each thread; threads beyond the
-     number of queries get an empty slice and do nothing this round */
-  for (int t = 0; t < opt_threads; t++)
-    {
-      auto const tdx = static_cast<std::size_t>(t);
-      if (t < threads)
-        {
-          thread_work[tdx].query_first = query_next;
-          thread_work[tdx].query_count = (queries_rest + threads_rest - 1) / threads_rest;
-          queries_rest -= thread_work[tdx].query_count;
-          query_next += thread_work[tdx].query_count;
-          --threads_rest;
-        }
-      else
-        {
-          thread_work[tdx].query_first = query_next;
-          thread_work[tdx].query_count = 0;
-        }
-    }
-
-  cluster_threadrunner->run();
-}
-
-
-auto threads_init() -> void
-{
-  thread_work.resize(static_cast<std::size_t>(opt_threads));
-  cluster_threadrunner.reset(new ThreadRunner(static_cast<std::size_t>(opt_threads),
-                                              cluster_worker));
-}
-
-
-auto threads_exit() -> void
-{
-  /* joins and destroys the worker threads */
-  cluster_threadrunner.reset();
-  thread_work.clear();
-}
-
-
 auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
@@ -339,6 +272,101 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
       xfree(si->kmers);
     }
 }
+
+
+/* Self-contained per-invocation worker pool for the clustering search phase.
+   It owns the per-thread searchinfo_s arrays, the per-round query slices, and
+   its own ThreadRunner, so a caller drives its own pool with no shared
+   file-static state (E4) — this is what lets cluster_assign_batch() stop
+   borrowing the CLI path's si_plus/si_minus/thread_work/cluster_threadrunner
+   via a save/restore hack.
+
+   Similar to the Scanner class in swarm (src/utils/scanner.{h,cc}), the sister
+   project's equivalent abstraction: the per-thread search state is a member
+   vector, the worker reads its own slice, and the ThreadRunner is held as the
+   last-created member whose lambda captures `this` — so the object must keep a
+   stable address and is non-copyable/non-movable. */
+struct cluster_work_pool_s
+{
+  std::vector<searchinfo_s> si_plus;    // one entry per thread
+  std::vector<searchinfo_s> si_minus;   // empty unless opt_strand > 1
+  std::vector<thread_work_s> thread_work;
+  std::unique_ptr<ThreadRunner> runner;  // constructed last; lambda captures this
+
+  cluster_work_pool_s(int const nthreads, int const seqcount,
+                      int const tophits, bool const need_minus)
+    : si_plus(static_cast<std::size_t>(nthreads)),
+      si_minus(need_minus ? static_cast<std::size_t>(nthreads) : std::size_t{0}),
+      thread_work(static_cast<std::size_t>(nthreads))
+  {
+    for (auto & si : si_plus)
+      {
+        cluster_query_init(&si, seqcount, tophits);
+        si.strand = 0;
+      }
+    for (auto & si : si_minus)
+      {
+        cluster_query_init(&si, seqcount, tophits);
+        si.strand = 1;
+      }
+    runner.reset(new ThreadRunner(static_cast<std::size_t>(nthreads),
+                                  [this](uint64_t const t) { worker(t); }));
+  }
+
+  ~cluster_work_pool_s()
+  {
+    runner.reset();  // join the workers before freeing the buffers they read
+    for (auto & si : si_plus) { cluster_query_exit(&si); }
+    for (auto & si : si_minus) { cluster_query_exit(&si); }
+  }
+
+  cluster_work_pool_s(cluster_work_pool_s const &) = delete;
+  cluster_work_pool_s(cluster_work_pool_s &&) = delete;
+  auto operator=(cluster_work_pool_s const &) -> cluster_work_pool_s & = delete;
+  auto operator=(cluster_work_pool_s &&) -> cluster_work_pool_s & = delete;
+
+  /* worker body: process this thread's assigned slice of the current round */
+  auto worker(uint64_t const t) -> void
+  {
+    auto const & work = thread_work[t];
+    for (int q = 0; q < work.query_count; q++)
+      {
+        cluster_query_core(si_plus.data() + work.query_first + q);
+        if (not si_minus.empty())
+          {
+            cluster_query_core(si_minus.data() + work.query_first + q);
+          }
+      }
+  }
+
+  /* distribute `queries` across the threads and run one round */
+  auto wakeup(int const queries) -> void
+  {
+    int const nthreads = static_cast<int>(thread_work.size());
+    int const active = queries > nthreads ? nthreads : queries;
+    int queries_rest = queries;
+    int threads_rest = active;
+    int query_next = 0;
+    for (int t = 0; t < nthreads; t++)
+      {
+        auto const tdx = static_cast<std::size_t>(t);
+        if (t < active)
+          {
+            thread_work[tdx].query_first = query_next;
+            thread_work[tdx].query_count = (queries_rest + threads_rest - 1) / threads_rest;
+            queries_rest -= thread_work[tdx].query_count;
+            query_next += thread_work[tdx].query_count;
+            --threads_rest;
+          }
+        else
+          {
+            thread_work[tdx].query_first = query_next;
+            thread_work[tdx].query_count = 0;
+          }
+      }
+    runner->run();
+  }
+};
 
 
 auto relabel_otu(int clusterno, char const * sequence, int seqlen) -> char *
@@ -558,6 +586,7 @@ auto compare_kmersample(const void * a, const void * b) -> int
 }
 
 static auto evaluate_extra_hits(struct searchinfo_s * si,
+                                struct searchinfo_s const * si_plus,
                                 const int * extra_list,
                                 int extra_count,
                                 LinearMemoryAligner & lma,
@@ -831,29 +860,15 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
 
 auto cluster_core_parallel(int const seqcount, int const tophits) -> void
 {
-  /* create threads and set them in stand-by mode */
-  threads_init();
-
   constexpr static int queries_per_thread = 1;
   const int max_queries = queries_per_thread * static_cast<int>(opt_threads);
 
-  /* allocate memory for the search information for each query;
-     and initialize it */
-  si_plus = new searchinfo_s[max_queries]{};
-  if (opt_strand > 1)
-    {
-      si_minus = new searchinfo_s[max_queries]{};
-    }
-  for (int i = 0; i < max_queries; i++)
-    {
-      cluster_query_init(si_plus + i, seqcount, tophits);
-      si_plus[i].strand = 0;
-      if (opt_strand > 1)
-        {
-          cluster_query_init(si_minus + i, seqcount, tophits);
-          si_minus[i].strand = 1;
-        }
-    }
+  /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
+     The local si_plus/si_minus aliases let the loops below read unchanged. */
+  cluster_work_pool_s pool(static_cast<int>(opt_threads), seqcount, tophits,
+                           opt_strand > 1);
+  searchinfo_s * const si_plus = pool.si_plus.data();
+  searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
   std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
 
@@ -906,7 +921,7 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
         }
 
       /* perform work in threads */
-      threads_wakeup(queries);
+      pool.wakeup(queries);
 
       /* analyse results */
       int extra_count = 0;
@@ -920,7 +935,7 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              evaluate_extra_hits(si, extra_list.data(), extra_count, lma, tophits);
+              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, tophits);
             }
 
           /* find best hit */
@@ -993,27 +1008,7 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
     }
   progress_done();
 
-  /* clean up search info */
-  for (int i = 0; i < max_queries; i++)
-    {
-      cluster_query_exit(si_plus + i);
-      if (opt_strand > 1)
-        {
-          cluster_query_exit(si_minus + i);
-        }
-    }
-
-  // extra_list no used after that point
-
-  delete [] si_plus;
-  if (opt_strand > 1)
-    {
-      delete [] si_minus;
-    }
-
-  /* terminate threads and clean up */
-  threads_exit();
-
+  /* pool's destructor joins the workers and frees the per-thread search state */
 }
 
 
@@ -1721,31 +1716,17 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
   int const max_queries =
     queries_per_thread * static_cast<int>(opt_threads);
 
-  /* Save file-statics used by cluster_worker / threads infrastructure */
-  struct searchinfo_s * saved_si_plus = si_plus;
-  struct searchinfo_s * saved_si_minus = si_minus;
-
-  /* Allocate per-thread search state for the batch */
-  si_plus = new searchinfo_s[max_queries]{};
-  if (opt_strand > 1)
-    {
-      si_minus = new searchinfo_s[max_queries]{};
-    }
-  else
-    {
-      si_minus = nullptr;
-    }
-
-  for (int i = 0; i < max_queries; i++)
-    {
-      cluster_query_init(si_plus + i, cs->seqcount, cs->tophits);
-      si_plus[i].strand = 0;
-      if (opt_strand > 1)
-        {
-          cluster_query_init(si_minus + i, cs->seqcount, cs->tophits);
-          si_minus[i].strand = 1;
-        }
-    }
+  /* This batch owns its worker pool and per-thread search state via
+     cluster_work_pool_s, rather than borrowing the CLI path's file-static
+     si_plus/si_minus/thread_work/cluster_threadrunner through a save/restore
+     hack (E4). The constructor allocates and cluster_query_init()s the
+     per-thread searchinfo arrays and creates the ThreadRunner; the destructor
+     joins the workers and cluster_query_exit()s them. The local si_plus/
+     si_minus aliases let the loop below read unchanged. */
+  cluster_work_pool_s pool(static_cast<int>(opt_threads), cs->seqcount,
+                           cs->tophits, opt_strand > 1);
+  searchinfo_s * const si_plus = pool.si_plus.data();
+  searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
   /* Scoring for intra-batch fixup alignment */
   struct Scoring scoring = scoring_from_options();
@@ -1753,9 +1734,6 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
   LinearMemoryAligner lma(scoring);
 
   std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
-
-  /* Create thread pool */
-  threads_init();
 
   int seqno = start_seqno;
   int const end_seqno = start_seqno + count;
@@ -1783,7 +1761,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
         }
 
       /* Parallel search phase */
-      threads_wakeup(queries);
+      pool.wakeup(queries);
 
       /* Serial analysis with intra-batch fixup
          (adapted from cluster_core_parallel lines 725-1053) */
@@ -1799,7 +1777,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              evaluate_extra_hits(si, extra_list.data(), extra_count, lma, cs->tophits);
+              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, cs->tophits);
             }
 
           /* Find best hit across strands */
@@ -1864,27 +1842,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
         }
     }
 
-  /* Destroy thread pool */
-  threads_exit();
-
-  /* Clean up batch search state */
-  for (int i = 0; i < max_queries; i++)
-    {
-      cluster_query_exit(si_plus + i);
-      if (opt_strand > 1)
-        {
-          cluster_query_exit(si_minus + i);
-        }
-    }
-  delete [] si_plus;
-  if (si_minus != nullptr)
-    {
-      delete [] si_minus;
-    }
-
-  /* Restore file-statics */
-  si_plus = saved_si_plus;
-  si_minus = saved_si_minus;
+  /* pool's destructor joins the workers and frees the per-thread search state */
 }
 
 
