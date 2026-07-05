@@ -94,11 +94,13 @@
  *   read-only after step 7.
  * - Cleanup (steps 11-13): single-threaded only
  *
- * vsearch_init_defaults() acquires a session mutex that blocks
- * concurrent callers until vsearch_session_end() releases it.
- * This prevents two threads from corrupting shared global state.
- * Forgetting to call vsearch_session_end() will cause the next
- * vsearch_init_defaults() call to block indefinitely.
+ * vsearch_init_defaults() acquires a session mutex, held until
+ * vsearch_session_end() releases it, so only one session can be
+ * active at a time (this prevents two threads from corrupting shared
+ * global state). The lock is taken with try_lock(): if a session is
+ * already active — e.g. a previous session was not ended —
+ * vsearch_init_defaults() fails with a fatal diagnostic rather than
+ * blocking indefinitely.
  *
  * === Global state warning ===
  *
@@ -179,7 +181,7 @@ auto vsearch_init_defaults() -> void;
 /* Release the session mutex acquired by vsearch_init_defaults().
    Call after all cleanup (dbindex_free, db_free, etc.) is complete.
    Omitting this call will cause the next vsearch_init_defaults() to
-   block indefinitely. */
+   fail with a fatal diagnostic (the session lock is still held). */
 auto vsearch_session_end() -> void;
 
 /* Resolve sentinel values in opt_* globals to computed defaults.

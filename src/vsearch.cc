@@ -393,7 +393,19 @@ auto vsearch_api_version_string() -> const char *
 
 auto vsearch_init_defaults() -> void
 {
-  session_mutex.lock();
+  /* Acquire the session lock without blocking. The lock is held for the whole
+     session (until vsearch_session_end()), so a caller that abandons a session
+     without ending it — an early return, a partial-failure path, or an
+     exception unwinding through the embedding code — would leave it held. A
+     plain blocking lock() then hangs the next vsearch_init_defaults() forever
+     with no diagnostic (L1b). try_lock() turns that silent deadlock into an
+     immediate, actionable fatal error instead. */
+  if (not session_mutex.try_lock())
+    {
+      fatal("A vsearch library session is already active: a previous "
+            "vsearch_init_defaults() was not paired with vsearch_session_end(). "
+            "Call vsearch_session_end() before starting a new session.");
+    }
   static constexpr auto int_max = std::numeric_limits<int>::max();
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
