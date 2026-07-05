@@ -90,6 +90,17 @@ static_assert(sizeof(uint16_t) == 2, "sff expects a uint16_t of size 2");
 static_assert(sizeof(uint32_t) == 4, "sff expects a uint32_t of size 4");
 static_assert(sizeof(uint64_t) == 8, "sff expects a uint64_t of size 8");
 
+// The SFF reader byteswaps every multi-byte field from the file's big-endian
+// layout to host order unconditionally (see read_sff_header), which is correct
+// only on a little-endian host. Fail the build on a big-endian target rather
+// than silently misparsing SFF files. Every platform vsearch supports (x86-64,
+// aarch64, ppc64le, mips64el, riscv64) is little-endian; compilers that do not
+// define __BYTE_ORDER__ (e.g. MSVC) only target little-endian platforms.
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__)
+static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
+              "sff_convert.cc assumes a little-endian host");
+#endif
+
 struct sff_header_s
 {
   uint32_t magic_number = 0; /* .sff */

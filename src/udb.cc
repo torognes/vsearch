@@ -79,6 +79,15 @@
 
 constexpr auto blocksize = uint64_t{4096UL * 4096UL};
 
+// The .udb binary format is read and written in host byte order with no
+// byteswapping, so a database is portable and correctly parsed only on a
+// little-endian host. Fail the build on a big-endian target rather than
+// silently reading a .udb wrong (see the little-endian note in sff_convert.cc).
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__)
+static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
+              "udb.cc assumes a little-endian host");
+#endif
+
 static unsigned int udb_dbaccel = 0;
 
 struct wordfreq
