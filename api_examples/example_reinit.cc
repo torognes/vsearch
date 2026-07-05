@@ -261,5 +261,53 @@ int main() {
         "PASS: multi-handle detection, %zu queries identical across 2 handles\n",
         query_labels.size());
 
+    /* === Test 3: apply_defaults_fixups() is idempotent (C1d) ===
+       The gap-open penalties are adjusted in place by subtracting the
+       gap-extension cost. Calling fixups twice without an intervening
+       init must NOT double-subtract. */
+    std::fprintf(stderr, "Idempotent-fixups test...\n");
+    vsearch_init_defaults();
+    opt_wordlength = 8;
+    vsearch_apply_defaults_fixups();
+    int const gap_after_first = opt_gap_open_query_interior;   /* raw 20 - ext 2 = 18 */
+    vsearch_apply_defaults_fixups();                           /* again, no re-init */
+    int const gap_after_second = opt_gap_open_query_interior;
+    vsearch_session_end();
+    if (gap_after_first != 18 || gap_after_second != 18) {
+        std::fprintf(stderr,
+            "FAIL: gap-open interior after 1st fixups=%d, after 2nd=%d (expected 18, 18)\n",
+            gap_after_first, gap_after_second);
+        return 1;
+    }
+    std::fprintf(stderr, "PASS: apply_defaults_fixups is idempotent (gap-open stays 18)\n");
+
+    /* === Test 4: init_defaults() resets behavioral globals (C1a) ===
+       Values left set by a previous session must not leak into the next.
+       opt_notmatchedfq in particular was never reset (a duplicated
+       opt_notmatched assignment took its slot). */
+    std::fprintf(stderr, "Global-reset test...\n");
+    static char stale_path[] = "stale-notmatchedfq";
+    opt_clusterout_id = true;
+    opt_clusterout_sort = true;
+    opt_bzip2_decompress = true;
+    opt_notmatchedfq = stale_path;
+    vsearch_init_defaults();
+    bool const globals_reset = (opt_clusterout_id == false) &&
+                               (opt_clusterout_sort == false) &&
+                               (opt_bzip2_decompress == false) &&
+                               (opt_notmatchedfq == nullptr);
+    vsearch_session_end();
+    if (!globals_reset) {
+        std::fprintf(stderr,
+            "FAIL: init_defaults did not reset clusterout_id=%d clusterout_sort=%d "
+            "bzip2_decompress=%d notmatchedfq=%p\n",
+            static_cast<int>(opt_clusterout_id),
+            static_cast<int>(opt_clusterout_sort),
+            static_cast<int>(opt_bzip2_decompress),
+            static_cast<void *>(opt_notmatchedfq));
+        return 1;
+    }
+    std::fprintf(stderr, "PASS: init_defaults resets behavioral globals\n");
+
     return 0;
 }
