@@ -173,6 +173,12 @@ auto dbindex_addallsequences(int seqmask) -> void
 
 auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 {
+  /* Release any state from a previous prepare first (mirrors db_init ->
+     db_free), so a second prepare without an intervening dbindex_free() does
+     not leak the earlier five buffers. dbindex_free() is a no-op on the
+     first call (all globals are null) (L2a). */
+  dbindex_free();
+
   dbindex_uh = unique_init();
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
@@ -266,18 +272,35 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
 
 auto dbindex_free() -> void
 {
-  xfree(kmerhash);
-  xfree(kmerindex);
-  xfree(kmercount);
-  xfree(dbindex_map);
+  /* Free and null every owned global so the routine is idempotent (a second
+     call, or a call before any successful prepare, is a safe no-op) and a
+     subsequent dbindex_prepare() starts from a clean slate. xfree() fatals on
+     a null pointer, so each free is guarded; the bitmap loop and unique handle
+     are likewise guarded because they may not have been allocated yet (L2a). */
+  if (kmerhash != nullptr) { xfree(kmerhash); kmerhash = nullptr; }
+  if (kmerindex != nullptr) { xfree(kmerindex); kmerindex = nullptr; }
+  if (kmercount != nullptr) { xfree(kmercount); kmercount = nullptr; }
+  if (dbindex_map != nullptr) { xfree(dbindex_map); dbindex_map = nullptr; }
 
-  for (auto kmer = 0U; kmer < kmerhashsize; kmer++)
+  if (kmerbitmap != nullptr)
     {
-      if (kmerbitmap[kmer] != nullptr)
+      for (auto kmer = 0U; kmer < kmerhashsize; kmer++)
         {
-          bitmap_free(kmerbitmap[kmer]);
+          if (kmerbitmap[kmer] != nullptr)
+            {
+              bitmap_free(kmerbitmap[kmer]);
+            }
         }
+      xfree(kmerbitmap);
+      kmerbitmap = nullptr;
     }
-  xfree(kmerbitmap);
-  unique_exit(dbindex_uh);
+
+  if (dbindex_uh != nullptr)
+    {
+      unique_exit(dbindex_uh);
+      dbindex_uh = nullptr;
+    }
+
+  kmerhashsize = 0;
+  kmerindexsize = 0;
 }
