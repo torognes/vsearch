@@ -80,57 +80,67 @@
 #include <vector>
 
 
-static struct searchinfo_s * si_plus;
-static struct searchinfo_s * si_minus;
+/* Per-invocation state for a usearch_global run — previously the file-static
+   globals below: the per-thread searchinfo arrays, the query file handle, the
+   two mutexes, the match/abundance counters, the per-db-sequence match tally
+   and the sixteen output handles. Folding them into a struct that
+   usearch_global() owns and threads through the output helper and the
+   streaming worker pool makes the command reentrant and removes the shared
+   mutable state (E4). The library session/batch paths own their own searchinfo
+   arrays and return results rather than writing files, so they do not use this
+   struct; the shared per-thread sizes (seqcount/tophits) are passed to
+   search_thread_init as parameters instead. */
+struct search_cli_state_s
+{
+  int tophits = 0;   /* the maximum number of hits to keep */
+  int seqcount = 0;  /* number of database sequences */
+  struct searchinfo_s * si_plus = nullptr;
+  struct searchinfo_s * si_minus = nullptr;
+  fastx_handle query_fastx_h = nullptr;
+  std::mutex mutex_input;   /* serializes query reads */
+  std::mutex mutex_output;  /* serializes output + counter updates */
+  int qmatches = 0;
+  uint64_t qmatches_abundance = 0;
+  int queries = 0;
+  uint64_t queries_abundance = 0;
+  uint64_t * dbmatched = nullptr;
+  FILE * fp_samout = nullptr;
+  FILE * fp_alnout = nullptr;
+  FILE * fp_userout = nullptr;
+  FILE * fp_blast6out = nullptr;
+  FILE * fp_uc = nullptr;
+  FILE * fp_fastapairs = nullptr;
+  FILE * fp_matched = nullptr;
+  FILE * fp_notmatched = nullptr;
+  FILE * fp_dbmatched = nullptr;
+  FILE * fp_dbnotmatched = nullptr;
+  FILE * fp_otutabout = nullptr;
+  FILE * fp_mothur_shared_out = nullptr;
+  FILE * fp_biomout = nullptr;
+  FILE * fp_lcaout = nullptr;
+  FILE * fp_qsegout = nullptr;
+  FILE * fp_tsegout = nullptr;
+  int count_matched = 0;
+  int count_notmatched = 0;
+};
 
-/* global constants/data, no need for synchronization */
-static int tophits; /* the maximum number of hits to keep */
-static int seqcount; /* number of database sequences */
-static fastx_handle query_fastx_h;
 
-/* global data protected by mutex */
-static std::mutex mutex_input;
-static std::mutex mutex_output;
-static int qmatches;
-static uint64_t qmatches_abundance;
-static int queries;
-static uint64_t queries_abundance;
-static uint64_t * dbmatched;
-static FILE * fp_samout = nullptr;
-static FILE * fp_alnout = nullptr;
-static FILE * fp_userout = nullptr;
-static FILE * fp_blast6out = nullptr;
-static FILE * fp_uc = nullptr;
-static FILE * fp_fastapairs = nullptr;
-static FILE * fp_matched = nullptr;
-static FILE * fp_notmatched = nullptr;
-static FILE * fp_dbmatched = nullptr;
-static FILE * fp_dbnotmatched = nullptr;
-static FILE * fp_otutabout = nullptr;
-static FILE * fp_mothur_shared_out = nullptr;
-static FILE * fp_biomout = nullptr;
-static FILE * fp_lcaout = nullptr;
-static FILE * fp_qsegout = nullptr;
-static FILE * fp_tsegout = nullptr;
-
-static int count_matched = 0;
-static int count_notmatched = 0;
-
-auto search_output_results(std::vector<struct hit> const & hits,
+static auto search_output_results(struct search_cli_state_s & state,
+                           std::vector<struct hit> const & hits,
                            char const * query_head,
                            int qseqlen,
                            char const * qsequence,
                            char const * qsequence_rc,
                            int64_t qsize) -> void
 {
-  std::lock_guard<std::mutex> const lock(mutex_output);
+  std::lock_guard<std::mutex> const lock(state.mutex_output);
 
   /* show results */
   auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hits.size()));
 
-  if (fp_alnout != nullptr)
+  if (state.fp_alnout != nullptr)
     {
-      results_show_alnout(fp_alnout,
+      results_show_alnout(state.fp_alnout,
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
@@ -138,17 +148,17 @@ auto search_output_results(std::vector<struct hit> const & hits,
                           qseqlen);
     }
 
-  if (fp_lcaout != nullptr)
+  if (state.fp_lcaout != nullptr)
     {
-      results_show_lcaout(fp_lcaout,
+      results_show_lcaout(state.fp_lcaout,
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head);
     }
 
-  if (fp_samout != nullptr)
+  if (state.fp_samout != nullptr)
     {
-      results_show_samout(fp_samout,
+      results_show_samout(state.fp_samout,
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
@@ -176,18 +186,18 @@ auto search_output_results(std::vector<struct hit> const & hits,
               break;
             }
 
-          if (fp_fastapairs != nullptr)
+          if (state.fp_fastapairs != nullptr)
             {
-              results_show_fastapairs_one(fp_fastapairs,
+              results_show_fastapairs_one(state.fp_fastapairs,
                                           hp,
                                           query_head,
                                           qsequence,
                                           qsequence_rc);
             }
 
-          if (fp_qsegout != nullptr)
+          if (state.fp_qsegout != nullptr)
             {
-              results_show_qsegout_one(fp_qsegout,
+              results_show_qsegout_one(state.fp_qsegout,
                                        hp,
                                        query_head,
                                        qsequence,
@@ -195,17 +205,17 @@ auto search_output_results(std::vector<struct hit> const & hits,
                                        qsequence_rc);
             }
 
-          if (fp_tsegout != nullptr)
+          if (state.fp_tsegout != nullptr)
             {
-              results_show_tsegout_one(fp_tsegout,
+              results_show_tsegout_one(state.fp_tsegout,
                                        hp);
             }
 
-          if (fp_uc != nullptr)
+          if (state.fp_uc != nullptr)
             {
               if ((t==0) || (opt_uc_allhits != 0))
                 {
-                  results_show_uc_one(fp_uc,
+                  results_show_uc_one(state.fp_uc,
                                       hp,
                                       query_head,
                                       qseqlen,
@@ -213,9 +223,9 @@ auto search_output_results(std::vector<struct hit> const & hits,
                 }
             }
 
-          if (fp_userout != nullptr)
+          if (state.fp_userout != nullptr)
             {
-              results_show_userout_one(fp_userout,
+              results_show_userout_one(state.fp_userout,
                                        hp,
                                        query_head,
                                        qsequence,
@@ -223,9 +233,9 @@ auto search_output_results(std::vector<struct hit> const & hits,
                                        qsequence_rc);
             }
 
-          if (fp_blast6out != nullptr)
+          if (state.fp_blast6out != nullptr)
             {
-              results_show_blast6out_one(fp_blast6out,
+              results_show_blast6out_one(state.fp_blast6out,
                                          hp,
                                          query_head,
                                          qseqlen);
@@ -241,9 +251,9 @@ auto search_output_results(std::vector<struct hit> const & hits,
                        qsize);
         }
 
-      if (fp_uc != nullptr)
+      if (state.fp_uc != nullptr)
         {
-          results_show_uc_one(fp_uc,
+          results_show_uc_one(state.fp_uc,
                               nullptr,
                               query_head,
                               qseqlen,
@@ -252,9 +262,9 @@ auto search_output_results(std::vector<struct hit> const & hits,
 
       if (opt_output_no_hits != 0)
         {
-          if (fp_userout != nullptr)
+          if (state.fp_userout != nullptr)
             {
-              results_show_userout_one(fp_userout,
+              results_show_userout_one(state.fp_userout,
                                        nullptr,
                                        query_head,
                                        qsequence,
@@ -262,9 +272,9 @@ auto search_output_results(std::vector<struct hit> const & hits,
                                        qsequence_rc);
             }
 
-          if (fp_blast6out != nullptr)
+          if (state.fp_blast6out != nullptr)
             {
-              results_show_blast6out_one(fp_blast6out,
+              results_show_blast6out_one(state.fp_blast6out,
                                          nullptr,
                                          query_head,
                                          qseqlen);
@@ -274,17 +284,17 @@ auto search_output_results(std::vector<struct hit> const & hits,
 
   if (not hits.empty())
     {
-      count_matched++;
+      state.count_matched++;
       if (opt_matched != nullptr)
         {
-          fasta_print_general(fp_matched,
+          fasta_print_general(state.fp_matched,
                               nullptr,
                               qsequence,
                               qseqlen,
                               query_head,
                               static_cast<int>(std::strlen(query_head)),
                               static_cast<uint64_t>(qsize),
-                              count_matched,
+                              state.count_matched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
                               0);
@@ -292,17 +302,17 @@ auto search_output_results(std::vector<struct hit> const & hits,
     }
   else
     {
-      count_notmatched++;
+      state.count_notmatched++;
       if (opt_notmatched != nullptr)
         {
-          fasta_print_general(fp_notmatched,
+          fasta_print_general(state.fp_notmatched,
                               nullptr,
                               qsequence,
                               qseqlen,
                               query_head,
                               static_cast<int>(std::strlen(query_head)),
                               static_cast<uint64_t>(qsize),
-                              count_notmatched,
+                              state.count_notmatched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
                               0);
@@ -312,14 +322,17 @@ auto search_output_results(std::vector<struct hit> const & hits,
   /* update matching db sequences */
   for (auto const & hit : hits) {
     if (hit.accepted or hit.weak) {
-      dbmatched[hit.target] += opt_sizein ? static_cast<uint64_t>(qsize) : 1;
+      state.dbmatched[hit.target] += opt_sizein ? static_cast<uint64_t>(qsize) : 1;
     }
   }
 }
 
 
-auto search_query(uint64_t t) -> int
+static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
 {
+  struct searchinfo_s * const si_plus = state.si_plus;
+  struct searchinfo_s * const si_minus = state.si_minus;
+
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
@@ -344,7 +357,8 @@ auto search_query(uint64_t t) -> int
                   opt_strand > 1 ? si_minus + t : nullptr,
                   hits);
 
-  search_output_results(hits,
+  search_output_results(state,
+                        hits,
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
                         si_plus[t].qsequence,
@@ -408,11 +422,14 @@ static auto populate_si(struct searchinfo_s * si,
 }
 
 
-auto search_thread_run(uint64_t t) -> void
+static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> void
 {
+  auto const query_fastx_h = state.query_fastx_h;
+  struct searchinfo_s * const si_plus = state.si_plus;
+
   while (true)
     {
-      std::unique_lock<std::mutex> input_lock(mutex_input);
+      std::unique_lock<std::mutex> input_lock(state.mutex_input);
 
       if (fastx_next(query_fastx_h,
                      (opt_notrunclabels == 0),
@@ -442,7 +459,7 @@ auto search_thread_run(uint64_t t) -> void
 
           if (opt_strand > 1)
             {
-              populate_si(si_minus + t,
+              populate_si(state.si_minus + t,
                           si_plus[t].query_head,
                           query_head_len,
                           si_plus[t].qsequence,
@@ -452,19 +469,19 @@ auto search_thread_run(uint64_t t) -> void
                           1);
             }
 
-          int const match = search_query(t);
+          int const match = search_query(state, t);
 
           /* lock mutex for update of global data and output */
-          std::lock_guard<std::mutex> const output_lock(mutex_output);
+          std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
           /* update stats */
-          ++queries;
-          queries_abundance += static_cast<uint64_t>(qsize);
+          ++state.queries;
+          state.queries_abundance += static_cast<uint64_t>(qsize);
 
           if (match != 0)
             {
-              ++qmatches;
-              qmatches_abundance += static_cast<uint64_t>(qsize);
+              ++state.qmatches;
+              state.qmatches_abundance += static_cast<uint64_t>(qsize);
             }
 
           /* show progress */
@@ -479,7 +496,7 @@ auto search_thread_run(uint64_t t) -> void
 }
 
 
-auto search_thread_init(struct searchinfo_s * si) -> void
+static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
@@ -509,7 +526,7 @@ auto search_thread_init(struct searchinfo_s * si) -> void
 }
 
 
-auto search_thread_exit(struct searchinfo_s * si) -> void
+static auto search_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
   search16_exit(si->s);
@@ -529,22 +546,28 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
 
 
 
-auto search_thread_worker_run() -> void
+static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
 {
+  struct searchinfo_s * const si_plus = state.si_plus;
+  struct searchinfo_s * const si_minus = state.si_minus;
+  int const seqcount = state.seqcount;
+  int const tophits = state.tophits;
+
   /* init per-thread search state before the workers start */
   for (int t = 0; t < opt_threads; t++)
     {
-      search_thread_init(si_plus + t);
+      search_thread_init(si_plus + t, seqcount, tophits);
       if (si_minus != nullptr)
         {
-          search_thread_init(si_minus + t);
+          search_thread_init(si_minus + t, seqcount, tophits);
         }
     }
 
   /* run the worker pool over the input file */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                              search_thread_run);
+                              [&state](uint64_t const t)
+                              { search_thread_run(state, t); });
     threadrunner.run();
   }
 
@@ -560,30 +583,30 @@ auto search_thread_worker_run() -> void
 }
 
 
-auto search_prep(char const * cmdline, char const * progheader) -> void
+static auto search_prep(struct search_cli_state_s & state, char const * cmdline, char const * progheader) -> void
 {
   /* open output files */
 
-  fp_alnout = open_optional_output(opt_alnout, "alignment");
-  if (fp_alnout != nullptr)
+  state.fp_alnout = open_optional_output(opt_alnout, "alignment");
+  if (state.fp_alnout != nullptr)
     {
-      std::fprintf(fp_alnout, "%s\n", cmdline);
-      std::fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(state.fp_alnout, "%s\n", cmdline);
+      std::fprintf(state.fp_alnout, "%s\n", progheader);
     }
 
-  fp_lcaout = open_optional_output(opt_lcaout, "lca");
-  fp_samout = open_optional_output(opt_samout, "SAM");
-  fp_userout = open_optional_output(opt_userout, "user-defined");
-  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
-  fp_uc = open_optional_output(opt_uc, "uc");
-  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
-  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
-  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
-  fp_matched = open_optional_output(opt_matched, "matched");
-  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
-  fp_otutabout = open_optional_output(opt_otutabout, "OTU table (text format)");
-  fp_mothur_shared_out = open_optional_output(opt_mothur_shared_out, "OTU table (mothur format)");
-  fp_biomout = open_optional_output(opt_biomout, "OTU table (biom 1.0 format)");
+  state.fp_lcaout = open_optional_output(opt_lcaout, "lca");
+  state.fp_samout = open_optional_output(opt_samout, "SAM");
+  state.fp_userout = open_optional_output(opt_userout, "user-defined");
+  state.fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
+  state.fp_uc = open_optional_output(opt_uc, "uc");
+  state.fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
+  state.fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
+  state.fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
+  state.fp_matched = open_optional_output(opt_matched, "matched");
+  state.fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
+  state.fp_otutabout = open_optional_output(opt_otutabout, "OTU table (text format)");
+  state.fp_mothur_shared_out = open_optional_output(opt_mothur_shared_out, "OTU table (mothur format)");
+  state.fp_biomout = open_optional_output(opt_biomout, "OTU table (biom 1.0 format)");
 
   /* check if it may be an UDB file */
 
@@ -592,14 +615,14 @@ auto search_prep(char const * cmdline, char const * progheader) -> void
   if (is_udb)
     {
       udb_read(opt_db, true, true);
-      results_show_samheader(fp_samout, cmdline, opt_db);
+      results_show_samheader(state.fp_samout, cmdline, opt_db);
       show_rusage();
-      seqcount = static_cast<int>(db_getsequencecount());
+      state.seqcount = static_cast<int>(db_getsequencecount());
     }
   else
     {
       db_read(opt_db, 0);
-      results_show_samheader(fp_samout, cmdline, opt_db);
+      results_show_samheader(state.fp_samout, cmdline, opt_db);
       if (opt_dbmask == MASK_DUST)
         {
           dust_all();
@@ -609,30 +632,30 @@ auto search_prep(char const * cmdline, char const * progheader) -> void
           hardmask_all();
         }
       show_rusage();
-      seqcount = static_cast<int>(db_getsequencecount());
+      state.seqcount = static_cast<int>(db_getsequencecount());
       dbindex_prepare(1, static_cast<int>(opt_dbmask));
       dbindex_addallsequences(static_cast<int>(opt_dbmask));
     }
 
   /* tophits = the maximum number of hits we need to store */
 
-  if ((opt_maxrejects == 0) || (opt_maxrejects > seqcount))
+  if ((opt_maxrejects == 0) || (opt_maxrejects > state.seqcount))
     {
-      opt_maxrejects = seqcount;
+      opt_maxrejects = state.seqcount;
     }
 
-  if ((opt_maxaccepts == 0) || (opt_maxaccepts > seqcount))
+  if ((opt_maxaccepts == 0) || (opt_maxaccepts > state.seqcount))
     {
-      opt_maxaccepts = seqcount;
+      opt_maxaccepts = state.seqcount;
     }
 
-  tophits = static_cast<int>(opt_maxrejects + opt_maxaccepts + MAXDELAYED);
+  state.tophits = static_cast<int>(opt_maxrejects + opt_maxaccepts + MAXDELAYED);
 
-  tophits = std::min(tophits, seqcount);
+  state.tophits = std::min(state.tophits, state.seqcount);
 }
 
 
-auto search_done() -> void
+static auto search_done(struct search_cli_state_s & state) -> void
 {
   /* clean up, global */
 
@@ -641,28 +664,44 @@ auto search_done() -> void
 
   /* fclose_output() is a no-op on a null handle, so the unopened outputs
      need no guard; only userout carries extra teardown. */
-  fclose_output(fp_lcaout);
-  fclose_output(fp_matched);
-  fclose_output(fp_notmatched);
-  fclose_output(fp_fastapairs);
-  fclose_output(fp_qsegout);
-  fclose_output(fp_tsegout);
-  fclose_output(fp_uc);
-  fclose_output(fp_blast6out);
-  if (fp_userout != nullptr)
+  fclose_output(state.fp_lcaout);
+  fclose_output(state.fp_matched);
+  fclose_output(state.fp_notmatched);
+  fclose_output(state.fp_fastapairs);
+  fclose_output(state.fp_qsegout);
+  fclose_output(state.fp_tsegout);
+  fclose_output(state.fp_uc);
+  fclose_output(state.fp_blast6out);
+  if (state.fp_userout != nullptr)
     {
-      fclose_output(fp_userout);
+      fclose_output(state.fp_userout);
       clean_up(); // free userfields allocation
     }
-  fclose_output(fp_alnout);
-  fclose_output(fp_samout);
+  fclose_output(state.fp_alnout);
+  fclose_output(state.fp_samout);
   show_rusage();
 }
 
 
 auto usearch_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
-  search_prep(cmdline, progheader);
+  /* Per-invocation state, owned here and threaded through the worker pool and
+     the output helper (E4). Aliased by reference so the long body below reads
+     unchanged; the workers receive `state`, not file-static globals. */
+  struct search_cli_state_s state;
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
+  auto & query_fastx_h = state.query_fastx_h;
+  auto & seqcount = state.seqcount;
+  auto & qmatches = state.qmatches;
+  auto & qmatches_abundance = state.qmatches_abundance;
+  auto & queries = state.queries;
+  auto & queries_abundance = state.queries_abundance;
+  auto & dbmatched = state.dbmatched;
+  auto & fp_dbmatched = state.fp_dbmatched;
+  auto & fp_dbnotmatched = state.fp_dbnotmatched;
+
+  search_prep(state, cmdline, progheader);
 
   fp_dbmatched = open_optional_output(opt_dbmatched, "dbmatched");
   fp_dbnotmatched = open_optional_output(opt_dbnotmatched, "dbnotmatched");
@@ -697,7 +736,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
     }
 
   progress_init("Searching", fastx_get_size(query_fastx_h));
-  search_thread_worker_run();
+  search_thread_worker_run(state);
   progress_done();
 
   /* all workers joined; report a deferred query parse error (CC3) from the
@@ -773,20 +812,20 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 
   if (opt_biomout != nullptr)
     {
-      otutable_print_biomout(fp_biomout);
-      fclose_output(fp_biomout);
+      otutable_print_biomout(state.fp_biomout);
+      fclose_output(state.fp_biomout);
     }
 
   if (opt_otutabout != nullptr)
     {
-      otutable_print_otutabout(fp_otutabout);
-      fclose_output(fp_otutabout);
+      otutable_print_otutabout(state.fp_otutabout);
+      fclose_output(state.fp_otutabout);
     }
 
   if (opt_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(fp_mothur_shared_out);
-      fclose_output(fp_mothur_shared_out);
+      otutable_print_mothur_shared_out(state.fp_mothur_shared_out);
+      fclose_output(state.fp_mothur_shared_out);
     }
 
   otutable_done();
@@ -842,7 +881,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
   fclose_output(fp_dbmatched);
   fclose_output(fp_dbnotmatched);
 
-  search_done();
+  search_done(state);
 }
 
 
@@ -852,6 +891,8 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 struct search_session_s {
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
+  int seqcount = 0;  /* number of database sequences */
+  int tophits = 0;   /* the maximum number of hits to keep */
 };
 
 
@@ -874,23 +915,23 @@ auto search_session_free(struct search_session_s * ss) -> void
 auto search_session_init(struct search_session_s * ss) -> void
 {
   /* Initialize search session for library use.
-     Mirrors cluster_session_init: sets file-static seqcount/tophits,
+     Mirrors cluster_session_init: stores seqcount/tophits in the session,
      allocates si_plus (always) and si_minus (when opt_strand > 1). */
-  seqcount = static_cast<int>(db_getsequencecount());
-  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
-  if (tophits > seqcount)
+  ss->seqcount = static_cast<int>(db_getsequencecount());
+  ss->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
+  if (ss->tophits > ss->seqcount)
     {
-      tophits = seqcount;
+      ss->tophits = ss->seqcount;
     }
 
   ss->si_plus = new searchinfo_s {};
-  search_thread_init(ss->si_plus);
+  search_thread_init(ss->si_plus, ss->seqcount, ss->tophits);
   ss->si_plus->strand = 0;
 
   if (opt_strand > 1)
     {
       ss->si_minus = new searchinfo_s {};
-      search_thread_init(ss->si_minus);
+      search_thread_init(ss->si_minus, ss->seqcount, ss->tophits);
       ss->si_minus->strand = 1;
     }
 }
@@ -1161,9 +1202,9 @@ auto search_batch(const char ** query_seqs,
                   int max_results_per_query,
                   int * result_counts) -> void
 {
-  /* Set up file-statics needed by search_thread_init */
-  seqcount = static_cast<int>(db_getsequencecount());
-  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
+  /* per-thread buffer sizes for search_thread_init (formerly file-statics) */
+  int const seqcount = static_cast<int>(db_getsequencecount());
+  int tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
   if (tophits > seqcount)
     {
       tophits = seqcount;
@@ -1196,10 +1237,10 @@ auto search_batch(const char ** query_seqs,
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(ctx.batch_si_plus + t);
+      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits);
       if (ctx.batch_si_minus != nullptr)
         {
-          search_thread_init(ctx.batch_si_minus + t);
+          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits);
         }
     }
 
