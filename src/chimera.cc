@@ -107,7 +107,6 @@ constexpr auto few = 4;
 constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
-static int tophits;
 static fastx_handle query_fasta_h;
 
 /* global data protected by mutex_output (file output and the global
@@ -1802,7 +1801,7 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 }
 
 
-auto query_init(struct searchinfo_s * search_info) -> void
+static auto query_init(struct searchinfo_s * search_info, int const tophits) -> void
 {
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->hits_v.resize(static_cast<size_t>(tophits));
@@ -1869,12 +1868,12 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 }
 
 
-auto chimera_thread_init(struct chimera_info_s * ci) -> void
+auto chimera_thread_init(struct chimera_info_s * ci, int const tophits) -> void
 {
 
   for (int i = 0; i < maxparts; ++i)
     {
-      query_init(&ci->si[static_cast<size_t>(i)]);
+      query_init(&ci->si[static_cast<size_t>(i)], tophits);
     }
 
   ci->s = search16_init(static_cast<CELL>(opt_match),
@@ -2077,7 +2076,11 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 auto chimera_thread_core(struct chimera_info_s * ci,
                          std::mutex & mutex_input) -> uint64_t
 {
-  chimera_thread_init(ci);
+  /* tophits sizes the per-part minheaps; it is opt_maxaccepts + opt_maxrejects,
+     which chimera() set to the chimera detection defaults before spawning the
+     pool. Computed here rather than read from a shared file-static (E4). */
+  int const tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
+  chimera_thread_init(ci, tophits);
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
@@ -2346,8 +2349,6 @@ auto chimera(struct Parameters const & parameters) -> void
       opt_threads = 1;
       opt_maxsizeratio = 1.0 / opt_abskew;
     }
-
-  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
 
   uint64_t progress_total = 0;
   chimera_count = 0;
@@ -2692,7 +2693,6 @@ auto chimera_session_init() -> void
     {
       opt_weak_id = opt_id;
     }
-  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
 
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
      themselves as candidate parents, and set opt_maxsizeratio for
@@ -2721,11 +2721,13 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
 {
   /* Per-thread initialization: SIMD aligners, k-mer finders, working
      buffers. Safe to call concurrently for different ci instances.
-     Requires chimera_session_init() to have been called first. */
-  assert(tophits > 0
-         && "chimera_session_init() must be called before chimera_detect_thread_init()");
+     Requires chimera_session_init() to have been called first, which sets
+     opt_maxaccepts/opt_maxrejects to the chimera detection defaults. tophits
+     sizes the per-part minheaps; it is derived from those options here rather
+     than read from a shared file-static (E4). */
+  int const tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
 
-  chimera_thread_init(ci);
+  chimera_thread_init(ci, tophits);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
