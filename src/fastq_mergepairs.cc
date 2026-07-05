@@ -96,53 +96,12 @@ constexpr auto merge_mismatchmax     = -4.0;
 
 /* static variables */
 
-static std::FILE * fp_fastqout = nullptr;
-static std::FILE * fp_fastaout = nullptr;
-static std::FILE * fp_fastqout_notmerged_fwd = nullptr;
-static std::FILE * fp_fastqout_notmerged_rev = nullptr;
-static std::FILE * fp_fastaout_notmerged_fwd = nullptr;
-static std::FILE * fp_fastaout_notmerged_rev = nullptr;
-static std::FILE * fp_eetabbedout = nullptr;
-
-static fastx_handle fastq_fwd;
-static fastx_handle fastq_rev;
-
-static int64_t merged = 0;
-static int64_t notmerged = 0;
-static int64_t total = 0;
-
-static double sum_read_length = 0.0;
-static double sum_squared_fragment_length = 0.0;
-static double sum_fragment_length = 0.0;
-
 constexpr auto n_quality_symbols = 128U;
 std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
 std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
 std::array<std::array<double, n_quality_symbols>, n_quality_symbols> match_score {{}};
 std::array<std::array<double, n_quality_symbols>, n_quality_symbols> mism_score {{}};
 std::array<double, n_quality_symbols> q2p {{}};
-
-static double sum_ee_fwd = 0.0;
-static double sum_ee_rev = 0.0;
-static double sum_ee_merged = 0.0;
-static uint64_t sum_errors_fwd = 0.0;
-static uint64_t sum_errors_rev = 0.0;
-
-static uint64_t failed_undefined = 0;
-static uint64_t failed_minlen = 0;
-static uint64_t failed_maxlen = 0;
-static uint64_t failed_maxns = 0;
-static uint64_t failed_minovlen = 0;
-static uint64_t failed_maxdiffs = 0;
-static uint64_t failed_maxdiffpct = 0;
-static uint64_t failed_staggered = 0;
-static uint64_t failed_indel = 0;
-static uint64_t failed_repeat = 0;
-static uint64_t failed_minmergelen = 0;
-static uint64_t failed_maxmergelen = 0;
-static uint64_t failed_maxee = 0;
-static uint64_t failed_minscore = 0;
-static uint64_t failed_nokmers = 0;
 
 /* reasons for not merging:
    - undefined
@@ -231,16 +190,70 @@ struct chunk_s
 };
 
 
-std::vector<struct chunk_s> chunks;
+/* Per-invocation state for a fastq_mergepairs run — previously the file-static
+   output/input handles, the statistics counters, and the worker-pool chunk
+   coordination block. Folding them into a struct that fastq_mergepairs() owns
+   and threads through the output helpers (keep/discard), the reader
+   (read_pair), the chunk drivers and the worker pool makes the command
+   reentrant and removes the shared mutable state (E4). The library API
+   (mergepairs_single) runs a single pair through the shared merge core
+   (process) and writes into a caller-owned merge_result_s, so it uses none of
+   this struct; only the per-run config (merge_mindiagcount/merge_minscore),
+   the quality lookup tables and the cooperative-abort atomics remain shared,
+   as they are read by that shared core. */
+struct mergepairs_cli_state_s
+{
+  std::FILE * fp_fastqout = nullptr;
+  std::FILE * fp_fastaout = nullptr;
+  std::FILE * fp_fastqout_notmerged_fwd = nullptr;
+  std::FILE * fp_fastqout_notmerged_rev = nullptr;
+  std::FILE * fp_fastaout_notmerged_fwd = nullptr;
+  std::FILE * fp_fastaout_notmerged_rev = nullptr;
+  std::FILE * fp_eetabbedout = nullptr;
 
-static int chunk_count;
-static int chunk_read_next;
-static int chunk_process_next;
-static int chunk_write_next;
-static bool finished_reading = false;
-static bool finished_all = false;
-static int pairs_read = 0;
-static int pairs_written = 0;
+  fastx_handle fastq_fwd = nullptr;
+  fastx_handle fastq_rev = nullptr;
+
+  int64_t merged = 0;
+  int64_t notmerged = 0;
+  int64_t total = 0;
+
+  double sum_read_length = 0.0;
+  double sum_squared_fragment_length = 0.0;
+  double sum_fragment_length = 0.0;
+
+  double sum_ee_fwd = 0.0;
+  double sum_ee_rev = 0.0;
+  double sum_ee_merged = 0.0;
+  uint64_t sum_errors_fwd = 0;
+  uint64_t sum_errors_rev = 0;
+
+  uint64_t failed_undefined = 0;
+  uint64_t failed_minlen = 0;
+  uint64_t failed_maxlen = 0;
+  uint64_t failed_maxns = 0;
+  uint64_t failed_minovlen = 0;
+  uint64_t failed_maxdiffs = 0;
+  uint64_t failed_maxdiffpct = 0;
+  uint64_t failed_staggered = 0;
+  uint64_t failed_indel = 0;
+  uint64_t failed_repeat = 0;
+  uint64_t failed_minmergelen = 0;
+  uint64_t failed_maxmergelen = 0;
+  uint64_t failed_maxee = 0;
+  uint64_t failed_minscore = 0;
+  uint64_t failed_nokmers = 0;
+
+  std::vector<struct chunk_s> chunks;
+  int chunk_count = 0;
+  int chunk_read_next = 0;
+  int chunk_process_next = 0;
+  int chunk_write_next = 0;
+  bool finished_reading = false;
+  bool finished_all = false;
+  int pairs_read = 0;
+  int pairs_written = 0;
+};
 
 /* A worker must never call std::exit() (e.g. via fatal()) while sibling
    workers are still running: std::exit() flushes and closes the shared
@@ -489,42 +502,42 @@ auto fprintf_ee_value(std::FILE * output_handle, double const expected_error) ->
 }
 
 
-auto keep(merge_data_t const & a_read_pair) -> void
+auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pair) -> void
 {
-  ++merged;
+  ++state.merged;
 
-  sum_fragment_length += static_cast<double>(a_read_pair.merged_length);
-  sum_squared_fragment_length += static_cast<double>(a_read_pair.merged_length * a_read_pair.merged_length);
+  state.sum_fragment_length += static_cast<double>(a_read_pair.merged_length);
+  state.sum_squared_fragment_length += static_cast<double>(a_read_pair.merged_length * a_read_pair.merged_length);
 
-  sum_ee_merged += a_read_pair.ee_merged;
-  sum_ee_fwd += a_read_pair.ee_fwd;
-  sum_ee_rev += a_read_pair.ee_rev;
-  sum_errors_fwd += static_cast<uint64_t>(a_read_pair.fwd_errors);
-  sum_errors_rev += static_cast<uint64_t>(a_read_pair.rev_errors);
+  state.sum_ee_merged += a_read_pair.ee_merged;
+  state.sum_ee_fwd += a_read_pair.ee_fwd;
+  state.sum_ee_rev += a_read_pair.ee_rev;
+  state.sum_errors_fwd += static_cast<uint64_t>(a_read_pair.fwd_errors);
+  state.sum_errors_rev += static_cast<uint64_t>(a_read_pair.rev_errors);
 
   if (opt_fastqout != nullptr)
     {
-      fastq_print_general(fp_fastqout,
+      fastq_print_general(state.fp_fastqout,
                           a_read_pair.merged_sequence.data(),
                           static_cast<int>(a_read_pair.merged_length),
                           a_read_pair.fwd_header.data(),
                           static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
                           a_read_pair.merged_quality_v.data(),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
-                          merged,
+                          state.merged,
                           a_read_pair.ee_merged);
     }
 
   if (opt_fastaout != nullptr)
     {
-      fasta_print_general(fp_fastaout,
+      fasta_print_general(state.fp_fastaout,
                           nullptr,
                           a_read_pair.merged_sequence.data(),
                           static_cast<int>(a_read_pair.merged_length),
                           a_read_pair.fwd_header.data(),
                           static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
-                          merged,
+                          state.merged,
                           a_read_pair.ee_merged,
                           -1,
                           -1,
@@ -535,121 +548,121 @@ auto keep(merge_data_t const & a_read_pair) -> void
 
   if (opt_eetabbedout != nullptr)
     {
-      fprintf_ee_value(fp_eetabbedout, a_read_pair.ee_fwd);
-      std::fprintf(fp_eetabbedout, "\t");
-      fprintf_ee_value(fp_eetabbedout, a_read_pair.ee_rev);
-      std::fprintf(fp_eetabbedout, "\t%" PRId64 "\t%" PRId64 "\n",
+      fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_fwd);
+      std::fprintf(state.fp_eetabbedout, "\t");
+      fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_rev);
+      std::fprintf(state.fp_eetabbedout, "\t%" PRId64 "\t%" PRId64 "\n",
                    a_read_pair.fwd_errors, a_read_pair.rev_errors);
     }
 }
 
 
-auto discard(merge_data_t const & a_read_pair) -> void
+auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pair) -> void
 {
   switch (a_read_pair.reason)
     {
     case Reason::undefined:
-      ++failed_undefined;
+      ++state.failed_undefined;
       break;
 
     case Reason::ok:
       break;
 
     case Reason::minlen:
-      ++failed_minlen;
+      ++state.failed_minlen;
       break;
 
     case Reason::maxlen:
-      ++failed_maxlen;
+      ++state.failed_maxlen;
       break;
 
     case Reason::maxns:
-      ++failed_maxns;
+      ++state.failed_maxns;
       break;
 
     case Reason::minovlen:
-      ++failed_minovlen;
+      ++state.failed_minovlen;
       break;
 
     case Reason::maxdiffs:
-      ++failed_maxdiffs;
+      ++state.failed_maxdiffs;
       break;
 
     case Reason::maxdiffpct:
-      ++failed_maxdiffpct;
+      ++state.failed_maxdiffpct;
       break;
 
     case Reason::staggered:
-      ++failed_staggered;
+      ++state.failed_staggered;
       break;
 
     case Reason::indel:
-      ++failed_indel;
+      ++state.failed_indel;
       break;
 
     case Reason::repeat:
-      ++failed_repeat;
+      ++state.failed_repeat;
       break;
 
     case Reason::minmergelen:
-      ++failed_minmergelen;
+      ++state.failed_minmergelen;
       break;
 
     case Reason::maxmergelen:
-      ++failed_maxmergelen;
+      ++state.failed_maxmergelen;
       break;
 
     case Reason::maxee:
-      ++failed_maxee;
+      ++state.failed_maxee;
       break;
 
     case Reason::minscore:
-      ++failed_minscore;
+      ++state.failed_minscore;
       break;
 
     case Reason::nokmers:
-      ++failed_nokmers;
+      ++state.failed_nokmers;
       break;
     }
 
-  ++notmerged;
+  ++state.notmerged;
 
   if (opt_fastqout_notmerged_fwd != nullptr)
     {
-      fastq_print_general(fp_fastqout_notmerged_fwd,
+      fastq_print_general(state.fp_fastqout_notmerged_fwd,
                           a_read_pair.fwd_sequence.data(),
                           static_cast<int>(a_read_pair.fwd_length),
                           a_read_pair.fwd_header.data(),
                           static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
                           a_read_pair.fwd_quality.data(),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
-                          notmerged,
+                          state.notmerged,
                           -1.0);
     }
 
   if (opt_fastqout_notmerged_rev != nullptr)
     {
-      fastq_print_general(fp_fastqout_notmerged_rev,
+      fastq_print_general(state.fp_fastqout_notmerged_rev,
                           a_read_pair.rev_sequence.data(),
                           static_cast<int>(a_read_pair.rev_length),
                           a_read_pair.rev_header.data(),
                           static_cast<int>(std::strlen(a_read_pair.rev_header.data())),
                           a_read_pair.rev_quality.data(),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.rev_abundance)),
-                          notmerged,
+                          state.notmerged,
                           -1.0);
     }
 
   if (opt_fastaout_notmerged_fwd != nullptr)
     {
-      fasta_print_general(fp_fastaout_notmerged_fwd,
+      fasta_print_general(state.fp_fastaout_notmerged_fwd,
                           nullptr,
                           a_read_pair.fwd_sequence.data(),
                           static_cast<int>(a_read_pair.fwd_length),
                           a_read_pair.fwd_header.data(),
                           static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
-                          notmerged,
+                          state.notmerged,
                           -1.0,
                           -1, -1,
                           nullptr, 0.0,
@@ -658,14 +671,14 @@ auto discard(merge_data_t const & a_read_pair) -> void
 
   if (opt_fastaout_notmerged_rev != nullptr)
     {
-      fasta_print_general(fp_fastaout_notmerged_rev,
+      fasta_print_general(state.fp_fastaout_notmerged_rev,
                           nullptr,
                           a_read_pair.rev_sequence.data(),
                           static_cast<int>(a_read_pair.rev_length),
                           a_read_pair.rev_header.data(),
                           static_cast<int>(std::strlen(a_read_pair.rev_header.data())),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.rev_abundance)),
-                          notmerged,
+                          state.notmerged,
                           -1.0,
                           -1, -1,
                           nullptr, 0.0,
@@ -1093,8 +1106,11 @@ auto process(merge_data_t & a_read_pair,
 }
 
 
-auto read_pair(merge_data_t & a_read_pair) -> bool
+auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair) -> bool
 {
+  auto const fastq_fwd = state.fastq_fwd;
+  auto const fastq_rev = state.fastq_rev;
+
   if (fastq_next(fastq_fwd, false, chrmap_upcase_vector.data()))
     {
       if (not fastq_next(fastq_rev, false, chrmap_upcase_vector.data()))
@@ -1123,7 +1139,7 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
       a_read_pair.rev_length = static_cast<int64_t>(fastq_get_sequence_length(fastq_rev));
       int64_t const seq_needed = std::max(a_read_pair.fwd_length, a_read_pair.rev_length) + 1;
 
-      sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
+      state.sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
 
       if (seq_needed > a_read_pair.seq_alloc)
         {
@@ -1184,7 +1200,7 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
       a_read_pair.merged_sequence[0] = 0;
       a_read_pair.merged_quality_v[0] = 0;
       a_read_pair.merged = false;
-      a_read_pair.pair_no = total++;
+      a_read_pair.pair_no = state.total++;
 
       return true;
     }
@@ -1192,46 +1208,47 @@ auto read_pair(merge_data_t & a_read_pair) -> bool
 }
 
 
-auto keep_or_discard(merge_data_t const & a_read_pair) -> void
+auto keep_or_discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pair) -> void
 {
   if (a_read_pair.merged)
     {
-      keep(a_read_pair);
+      keep(state, a_read_pair);
     }
   else
     {
-      discard(a_read_pair);
+      discard(state, a_read_pair);
     }
 }
 
 
-inline auto chunk_perform_read(std::unique_lock<std::mutex> & lock,
+inline auto chunk_perform_read(struct mergepairs_cli_state_s & state,
+                               std::unique_lock<std::mutex> & lock,
                                std::condition_variable & cond_chunks) -> void
 {
-  while ((not finished_reading) and (chunks[static_cast<std::size_t>(chunk_read_next)].state == State::empty))
+  while ((not state.finished_reading) and (state.chunks[static_cast<std::size_t>(state.chunk_read_next)].state == State::empty))
     {
       lock.unlock();
-      progress_update(fastq_get_position(fastq_fwd));
+      progress_update(fastq_get_position(state.fastq_fwd));
       auto r = 0;
       while ((r < chunk_size) and
-             read_pair(chunks[static_cast<std::size_t>(chunk_read_next)].merge_data[static_cast<std::size_t>(r)]))
+             read_pair(state, state.chunks[static_cast<std::size_t>(state.chunk_read_next)].merge_data[static_cast<std::size_t>(r)]))
         {
           ++r;
         }
-      chunks[static_cast<std::size_t>(chunk_read_next)].size = r;
+      state.chunks[static_cast<std::size_t>(state.chunk_read_next)].size = r;
       lock.lock();
-      pairs_read += r;
+      state.pairs_read += r;
       if (r > 0)
         {
-          chunks[static_cast<std::size_t>(chunk_read_next)].state = State::filled;
-          chunk_read_next = (chunk_read_next + 1) % chunk_count;
+          state.chunks[static_cast<std::size_t>(state.chunk_read_next)].state = State::filled;
+          state.chunk_read_next = (state.chunk_read_next + 1) % state.chunk_count;
         }
       if (r < chunk_size)
         {
-          finished_reading = true;
-          if (pairs_written >= pairs_read)
+          state.finished_reading = true;
+          if (state.pairs_written >= state.pairs_read)
             {
-              finished_all = true;
+              state.finished_all = true;
             }
         }
       cond_chunks.notify_all();
@@ -1239,56 +1256,59 @@ inline auto chunk_perform_read(std::unique_lock<std::mutex> & lock,
 }
 
 
-inline auto chunk_perform_write(std::unique_lock<std::mutex> & lock,
+inline auto chunk_perform_write(struct mergepairs_cli_state_s & state,
+                                std::unique_lock<std::mutex> & lock,
                                 std::condition_variable & cond_chunks) -> void
 {
-  while (chunks[static_cast<std::size_t>(chunk_write_next)].state == State::processed)
+  while (state.chunks[static_cast<std::size_t>(state.chunk_write_next)].state == State::processed)
     {
       lock.unlock();
-      for (auto i = 0; i < chunks[static_cast<std::size_t>(chunk_write_next)].size; i++)
+      for (auto i = 0; i < state.chunks[static_cast<std::size_t>(state.chunk_write_next)].size; i++)
         {
-          keep_or_discard(chunks[static_cast<std::size_t>(chunk_write_next)].merge_data[static_cast<std::size_t>(i)]);
+          keep_or_discard(state, state.chunks[static_cast<std::size_t>(state.chunk_write_next)].merge_data[static_cast<std::size_t>(i)]);
         }
       lock.lock();
-      pairs_written += chunks[static_cast<std::size_t>(chunk_write_next)].size;
-      chunks[static_cast<std::size_t>(chunk_write_next)].state = State::empty;
-      if (finished_reading and (pairs_written >= pairs_read))
+      state.pairs_written += state.chunks[static_cast<std::size_t>(state.chunk_write_next)].size;
+      state.chunks[static_cast<std::size_t>(state.chunk_write_next)].state = State::empty;
+      if (state.finished_reading and (state.pairs_written >= state.pairs_read))
         {
-          finished_all = true;
+          state.finished_all = true;
         }
-      chunk_write_next = (chunk_write_next + 1) % chunk_count;
+      state.chunk_write_next = (state.chunk_write_next + 1) % state.chunk_count;
       cond_chunks.notify_all();
     }
 }
 
 
-inline auto chunk_perform_process(struct kh_handle_s & kmerhash,
+inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
+                                  struct kh_handle_s & kmerhash,
                                   std::unique_lock<std::mutex> & lock,
                                   std::condition_variable & cond_chunks) -> void
 {
-  auto const chunk_current = chunk_process_next;
-  if (chunks[static_cast<std::size_t>(chunk_current)].state == State::filled)
+  auto const chunk_current = state.chunk_process_next;
+  if (state.chunks[static_cast<std::size_t>(chunk_current)].state == State::filled)
     {
-      chunks[static_cast<std::size_t>(chunk_current)].state = State::inprogress;
-      chunk_process_next = (chunk_current + 1) % chunk_count;
+      state.chunks[static_cast<std::size_t>(chunk_current)].state = State::inprogress;
+      state.chunk_process_next = (chunk_current + 1) % state.chunk_count;
       cond_chunks.notify_all();
       lock.unlock();
-      for (auto i = 0; i < chunks[static_cast<std::size_t>(chunk_current)].size; i++)
+      for (auto i = 0; i < state.chunks[static_cast<std::size_t>(chunk_current)].size; i++)
         {
           if (merge_abort.load(std::memory_order_relaxed))
             {
               break;
             }
-          process(chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash);
+          process(state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash);
         }
       lock.lock();
-      chunks[static_cast<std::size_t>(chunk_current)].state = State::processed;
+      state.chunks[static_cast<std::size_t>(chunk_current)].state = State::processed;
       cond_chunks.notify_all();
     }
 }
 
 
-auto pair_worker(uint64_t t,
+auto pair_worker(struct mergepairs_cli_state_s & state,
+                 uint64_t t,
                  std::mutex & mutex_chunks,
                  std::condition_variable & cond_chunks) -> void
 {
@@ -1298,7 +1318,7 @@ auto pair_worker(uint64_t t,
 
   std::unique_lock<std::mutex> lock(mutex_chunks);
 
-  while (not finished_all)
+  while (not state.finished_all)
     {
       /* a worker hit an out-of-range quality value: stop the whole pool.
          finished_all is set under the lock so the wait predicates below
@@ -1306,7 +1326,7 @@ auto pair_worker(uint64_t t,
          error is reported from the main thread in pair_all() after join. */
       if (merge_abort.load(std::memory_order_relaxed))
         {
-          finished_all = true;
+          state.finished_all = true;
           cond_chunks.notify_all();
           break;
         }
@@ -1314,9 +1334,9 @@ auto pair_worker(uint64_t t,
       if (opt_threads == 1)
         {
           /* One thread does it all */
-          chunk_perform_read(lock, cond_chunks);
-          chunk_perform_process(kmerhash, lock, cond_chunks);
-          chunk_perform_write(lock, cond_chunks);
+          chunk_perform_read(state, lock, cond_chunks);
+          chunk_perform_process(state, kmerhash, lock, cond_chunks);
+          chunk_perform_write(state, lock, cond_chunks);
         }
       else if (opt_threads == 2)
         {
@@ -1325,37 +1345,37 @@ auto pair_worker(uint64_t t,
               /* first thread reads and processes */
               while (not
                      (
-                      finished_all
+                      state.finished_all
                       or
-                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_process_next)].state == State::filled)
                       or
-                      ((not finished_reading) and
-                       chunks[static_cast<std::size_t>(chunk_read_next)].state == State::empty)))
+                      ((not state.finished_reading) and
+                       state.chunks[static_cast<std::size_t>(state.chunk_read_next)].state == State::empty)))
                 {
                   cond_chunks.wait(lock);
                 }
 
-              chunk_perform_read(lock, cond_chunks);
-              chunk_perform_process(kmerhash, lock, cond_chunks);
+              chunk_perform_read(state, lock, cond_chunks);
+              chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
           else /* t == 1 */
             {
               /* second thread writes and processes */
               while (not
                      (
-                      finished_all
+                      state.finished_all
                       or
-                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_process_next)].state == State::filled)
                       or
-                      (chunks[static_cast<std::size_t>(chunk_write_next)].state == State::processed)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_write_next)].state == State::processed)
                       )
                      )
                 {
                   cond_chunks.wait(lock);
                 }
 
-              chunk_perform_write(lock, cond_chunks);
-              chunk_perform_process(kmerhash, lock, cond_chunks);
+              chunk_perform_write(state, lock, cond_chunks);
+              chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
         }
       else
@@ -1365,55 +1385,55 @@ auto pair_worker(uint64_t t,
               /* first thread reads and processes */
               while (not
                      (
-                      finished_all
+                      state.finished_all
                       or
-                      ((not finished_reading) and
-                       (chunks[static_cast<std::size_t>(chunk_read_next)].state == State::empty))
+                      ((not state.finished_reading) and
+                       (state.chunks[static_cast<std::size_t>(state.chunk_read_next)].state == State::empty))
                       or
-                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_process_next)].state == State::filled)
                       )
                      )
                 {
                   cond_chunks.wait(lock);
                 }
 
-              chunk_perform_read(lock, cond_chunks);
-              chunk_perform_process(kmerhash, lock, cond_chunks);
+              chunk_perform_read(state, lock, cond_chunks);
+              chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
           else if (t == static_cast<uint64_t>(opt_threads) - 1)
             {
               /* last thread writes and processes */
               while (not
                      (
-                      finished_all
+                      state.finished_all
                       or
-                      (chunks[static_cast<std::size_t>(chunk_write_next)].state == State::processed)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_write_next)].state == State::processed)
                       or
-                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_process_next)].state == State::filled)
                       )
                      )
                 {
                   cond_chunks.wait(lock);
                 }
 
-              chunk_perform_write(lock, cond_chunks);
-              chunk_perform_process(kmerhash, lock, cond_chunks);
+              chunk_perform_write(state, lock, cond_chunks);
+              chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
           else
             {
               /* the other threads are only processing */
               while (not
                      (
-                      finished_all
+                      state.finished_all
                       or
-                      (chunks[static_cast<std::size_t>(chunk_process_next)].state == State::filled)
+                      (state.chunks[static_cast<std::size_t>(state.chunk_process_next)].state == State::filled)
                       )
                      )
                 {
                   cond_chunks.wait(lock);
                 }
 
-              chunk_perform_process(kmerhash, lock, cond_chunks);
+              chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
         }
     }
@@ -1422,21 +1442,21 @@ auto pair_worker(uint64_t t,
 }
 
 
-auto pair_all() -> void
+auto pair_all(struct mergepairs_cli_state_s & state) -> void
 {
   /* prepare chunks */
 
-  chunk_count = static_cast<int>(chunk_factor * opt_threads);
-  chunk_read_next = 0;
-  chunk_process_next = 0;
-  chunk_write_next = 0;
+  state.chunk_count = static_cast<int>(chunk_factor * opt_threads);
+  state.chunk_read_next = 0;
+  state.chunk_process_next = 0;
+  state.chunk_write_next = 0;
 
   /* reset the cooperative-abort state (file statics persist across
      library-API sessions) */
   merge_abort.store(false);
   merge_error_claimed.store(false);
 
-  chunks.resize(static_cast<std::size_t>(chunk_count));
+  state.chunks.resize(static_cast<std::size_t>(state.chunk_count));
 
   /* The chunk mutex and condition variable are locals (not file scope) so
      their lifetime is scoped to the worker pool. Combined with the
@@ -1451,8 +1471,8 @@ auto pair_all() -> void
      cond_chunks until all chunks have been read, processed and written */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                              [&mutex_chunks, &cond_chunks](uint64_t nth_thread) {
-                                pair_worker(nth_thread, mutex_chunks, cond_chunks);
+                              [&state, &mutex_chunks, &cond_chunks](uint64_t nth_thread) {
+                                pair_worker(state, nth_thread, mutex_chunks, cond_chunks);
                               });
     threadrunner.run();
   }
@@ -1468,8 +1488,17 @@ auto pair_all() -> void
 }
 
 
-auto print_stats(std::FILE * output_handle) -> void
+auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output_handle) -> void
 {
+  /* read-only aliases for the counters used repeatedly below; the
+     single-use counters are referenced as state.<member> directly */
+  auto const & total = state.total;
+  auto const & merged = state.merged;
+  auto const & notmerged = state.notmerged;
+  auto const & sum_fragment_length = state.sum_fragment_length;
+  auto const & sum_errors_fwd = state.sum_errors_fwd;
+  auto const & sum_errors_rev = state.sum_errors_rev;
+
   std::fprintf(output_handle,
           "%10" PRId64 "  Pairs\n",
           total);
@@ -1501,109 +1530,109 @@ auto print_stats(std::FILE * output_handle) -> void
       std::fprintf(output_handle, "\nPairs that failed merging due to various reasons:\n");
     }
 
-  if (failed_undefined != 0U)
+  if (state.failed_undefined != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  undefined reason\n",
-              failed_undefined);
+              state.failed_undefined);
     }
 
-  if (failed_minlen != 0U)
+  if (state.failed_minlen != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  reads too short (after truncation)\n",
-              failed_minlen);
+              state.failed_minlen);
     }
 
-  if (failed_maxlen != 0U)
+  if (state.failed_maxlen != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  reads too long (after truncation)\n",
-              failed_maxlen);
+              state.failed_maxlen);
     }
 
-  if (failed_maxns != 0U)
+  if (state.failed_maxns != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  too many N's\n",
-              failed_maxns);
+              state.failed_maxns);
     }
 
-  if (failed_nokmers != 0U)
+  if (state.failed_nokmers != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  too few kmers found on same diagonal\n",
-              failed_nokmers);
+              state.failed_nokmers);
     }
 
-  if (failed_repeat != 0U)
+  if (state.failed_repeat != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  multiple potential alignments\n",
-              failed_repeat);
+              state.failed_repeat);
     }
 
-  if (failed_maxdiffs != 0U)
+  if (state.failed_maxdiffs != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  too many differences\n",
-              failed_maxdiffs);
+              state.failed_maxdiffs);
     }
 
-  if (failed_maxdiffpct != 0U)
+  if (state.failed_maxdiffpct != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  too high percentage of differences\n",
-              failed_maxdiffpct);
+              state.failed_maxdiffpct);
     }
 
-  if (failed_minscore != 0U)
+  if (state.failed_minscore != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  alignment score too low, or score drop too high\n",
-              failed_minscore);
+              state.failed_minscore);
     }
 
-  if (failed_minovlen != 0U)
+  if (state.failed_minovlen != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  overlap too short\n",
-              failed_minovlen);
+              state.failed_minovlen);
     }
 
-  if (failed_maxee != 0U)
+  if (state.failed_maxee != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  expected error too high\n",
-              failed_maxee);
+              state.failed_maxee);
     }
 
-  if (failed_minmergelen != 0U)
+  if (state.failed_minmergelen != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  merged fragment too short\n",
-              failed_minmergelen);
+              state.failed_minmergelen);
     }
 
-  if (failed_maxmergelen != 0U)
+  if (state.failed_maxmergelen != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  merged fragment too long\n",
-              failed_maxmergelen);
+              state.failed_maxmergelen);
     }
 
-  if (failed_staggered != 0U)
+  if (state.failed_staggered != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  staggered read pairs\n",
-              failed_staggered);
+              state.failed_staggered);
     }
 
-  if (failed_indel != 0U)
+  if (state.failed_indel != 0U)
     {
       std::fprintf(output_handle,
               "%10" PRIu64 "  indel errors\n",
-              failed_indel);
+              state.failed_indel);
     }
 
   std::fprintf(output_handle, "\n");
@@ -1612,7 +1641,7 @@ auto print_stats(std::FILE * output_handle) -> void
     {
       std::fprintf(output_handle, "Statistics of all reads:\n");
 
-      auto const mean_read_length = sum_read_length / (2.0 * pairs_read);
+      auto const mean_read_length = state.sum_read_length / (2.0 * state.pairs_read);
 
       std::fprintf(output_handle,
               "%10.2f  Mean read length\n",
@@ -1631,7 +1660,7 @@ auto print_stats(std::FILE * output_handle) -> void
               "%10.2f  Mean fragment length\n",
               mean);
 
-      auto const stdev = std::sqrt((sum_squared_fragment_length
+      auto const stdev = std::sqrt((state.sum_squared_fragment_length
                                - (2.0 * mean * sum_fragment_length)
                                + (mean * mean * static_cast<double>(merged)))
                               / (static_cast<double>(merged) + 0.0));
@@ -1642,15 +1671,15 @@ auto print_stats(std::FILE * output_handle) -> void
 
       std::fprintf(output_handle,
               "%10.2f  Mean expected error in forward sequences\n",
-              sum_ee_fwd / static_cast<double>(merged));
+              state.sum_ee_fwd / static_cast<double>(merged));
 
       std::fprintf(output_handle,
               "%10.2f  Mean expected error in reverse sequences\n",
-              sum_ee_rev / static_cast<double>(merged));
+              state.sum_ee_rev / static_cast<double>(merged));
 
       std::fprintf(output_handle,
               "%10.2f  Mean expected error in merged sequences\n",
-              sum_ee_merged / static_cast<double>(merged));
+              state.sum_ee_merged / static_cast<double>(merged));
 
       std::fprintf(output_handle,
               "%10.2f  Mean observed errors in merged region of forward sequences\n",
@@ -1669,6 +1698,20 @@ auto print_stats(std::FILE * output_handle) -> void
 
 auto fastq_mergepairs(struct Parameters const & parameters) -> void
 {
+  /* Per-invocation state, owned here and threaded through the worker pool and
+     the output helpers (E4). Aliased by reference so the body below reads
+     unchanged; the workers receive `state`, not file-static globals. */
+  struct mergepairs_cli_state_s state;
+  auto & fastq_fwd = state.fastq_fwd;
+  auto & fastq_rev = state.fastq_rev;
+  auto & fp_fastqout = state.fp_fastqout;
+  auto & fp_fastaout = state.fp_fastaout;
+  auto & fp_fastqout_notmerged_fwd = state.fp_fastqout_notmerged_fwd;
+  auto & fp_fastqout_notmerged_rev = state.fp_fastqout_notmerged_rev;
+  auto & fp_fastaout_notmerged_fwd = state.fp_fastaout_notmerged_fwd;
+  auto & fp_fastaout_notmerged_rev = state.fp_fastaout_notmerged_rev;
+  auto & fp_eetabbedout = state.fp_eetabbedout;
+
   /* fatal error if specified overlap is too small */
 
   if (opt_fastq_minovlen < 5)
@@ -1710,7 +1753,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   if (not fastq_fwd->is_empty)
     {
-      pair_all();
+      pair_all(state);
     }
 
   progress_done();
@@ -1721,10 +1764,10 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
     }
 
   if (fp_log != nullptr) {
-    print_stats(fp_log);
+    print_stats(state, fp_log);
   }
   else {
-    print_stats(stderr);
+    print_stats(state, stderr);
   }
 
   /* clean up */
