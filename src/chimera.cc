@@ -840,7 +840,18 @@ auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> voi
   auto alnpos = 0;
   for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
     {
-      if (qpos >= (chimera_info->best_start[static_cast<size_t>(nth_parent)] + chimera_info->best_len[static_cast<size_t>(nth_parent)])) {
+      /* Advance to the next parent only while one exists. The parent segments
+         are expected to tile the query exactly, in which case nth_parent
+         reaches parents_found - 1 at the last segment and stops naturally. But
+         if the tiling leaves a tail uncovered, the default-zero tail slots make
+         "qpos >= best_start + best_len" (0 + 0) true at every remaining
+         position, so an unclamped ++nth_parent would run past parents_found —
+         reading best_start[]/best_len[] beyond the valid entries and eventually
+         past the maxparents-element array, and emitting model letters beyond
+         the last parent. Clamping keeps nth_parent in [0, parents_found - 1]
+         and attributes any uncovered tail to the last parent (S19). */
+      if ((nth_parent + 1 < chimera_info->parents_found) and
+          (qpos >= (chimera_info->best_start[static_cast<size_t>(nth_parent)] + chimera_info->best_len[static_cast<size_t>(nth_parent)]))) {
         ++nth_parent;
       }
       // add insertion (if any):
