@@ -404,6 +404,10 @@ auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int cons
 
 auto fopen_output(char const * filename) -> std::FILE *
 {
+  /* Open in binary mode ("wb"), matching the "rb" used for input: on
+     Windows/MinGW a text-mode stream translates every '\n' to "\r\n", which
+     corrupts the FASTA/FASTQ/tabular byte streams vsearch writes (they already
+     contain explicit '\n'). "b" is a no-op on POSIX. */
   /* open the output stream given by filename, but use stdout if name is - */
   if (std::strcmp(filename, "-") == 0)
     {
@@ -412,9 +416,9 @@ auto fopen_output(char const * filename) -> std::FILE *
         {
           return nullptr;
         }
-      return fdopen(file_descriptor, "w");
+      return fdopen(file_descriptor, "wb");
     }
-  return std::fopen(filename, "w");
+  return std::fopen(filename, "wb");
 }
 
 

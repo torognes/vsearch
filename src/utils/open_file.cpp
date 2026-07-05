@@ -157,7 +157,7 @@ auto open_output_file(char const * filename) -> OutputFileHandle {
   if (filename == nullptr) {
     return OutputFileHandle{nullptr};
   }
-  auto const mode = ModeString{"w"};  // w: writing, no b?
+  auto const mode = ModeString{"wb"};  // w: writing, b: binary (no \n->\r\n on non-UNIX), matches input "rb"
   /* open the output stream given by filename, but if name is '-' then
      use a duplicate of stdout (fd = STDOUT_FILENO = 1) */
   if (std::strcmp(filename, "-") == 0) {
