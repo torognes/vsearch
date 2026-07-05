@@ -98,30 +98,37 @@
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 
 
-static struct searchinfo_s * si_plus;
-static struct searchinfo_s * si_minus;
-
-/* global constants/data, no need for synchronization */
-static int tophits; /* the maximum number of hits to keep */
-static int seqcount; /* number of database sequences */
-static fastx_handle query_fastx_h;
-
 constexpr auto subset_size = 32;
 constexpr auto bootstrap_count = 100;
 
-/* global data protected by mutex */
-static std::mutex mutex_input;
-static std::mutex mutex_output;
-static std::FILE * fp_tabbedout;
-static int queries = 0;
-static int classified = 0;
+/* Per-invocation state for a sintax run — previously ten file-static globals.
+   Folding them into a struct that sintax() owns and threads through the helper
+   functions and workers makes the command reentrant and removes the shared
+   mutable state (E4). subset_size / bootstrap_count stay file-scope constexpr:
+   they are compile-time constants, not mutable state. */
+struct sintax_state_s
+{
+  struct searchinfo_s * si_plus = nullptr;
+  struct searchinfo_s * si_minus = nullptr;
+  int tophits = 0;   /* the maximum number of hits to keep */
+  int seqcount = 0;  /* number of database sequences */
+  fastx_handle query_fastx_h = nullptr;
+  std::mutex mutex_input;   /* serializes query reads */
+  std::mutex mutex_output;  /* serializes output + counter updates */
+  std::FILE * fp_tabbedout = nullptr;
+  int queries = 0;
+  int classified = 0;
+};
 
 
-auto sintax_analyse(char const * query_head,
+static auto sintax_analyse(struct sintax_state_s & state,
+                    char const * query_head,
                     int const strand,
                     int const * all_seqno,
                     int const count) -> void
 {
+  std::FILE * const fp_tabbedout = state.fp_tabbedout;
+
   std::array<int, tax_levels> level_matchcount {{}};
   std::array<int, tax_levels> level_best {{}};
   std::array<std::array<char *, tax_levels>, bootstrap_count> cand_level_name_start {{}};
@@ -208,14 +215,14 @@ auto sintax_analyse(char const * query_head,
     }
 
   /* write to tabbedout file */
-  std::lock_guard<std::mutex> const output_lock(mutex_output);
+  std::lock_guard<std::mutex> const output_lock(state.mutex_output);
   std::fprintf(fp_tabbedout, "%s\t", query_head);
 
-  queries++;
+  state.queries++;
 
   if (is_enough)
     {
-      classified++;
+      state.classified++;
 
       auto comma = false;
       for (auto j = 0; j < tax_levels; j++)
@@ -380,8 +387,11 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 }
 
 
-auto sintax_query(uint64_t const t) -> void
+static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> void
 {
+  struct searchinfo_s * const si_plus = state.si_plus;
+  struct searchinfo_s * const si_minus = state.si_minus;
+
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
   std::array<int, 2> boot_count = {0, 0};
   std::array<unsigned int, 2> best_count = {0, 0};
@@ -479,7 +489,8 @@ auto sintax_query(uint64_t const t) -> void
         }
     }
 
-  sintax_analyse(query_head,
+  sintax_analyse(state,
+                 query_head,
                  best_strand,
                  all_seqno[static_cast<std::size_t>(best_strand)].data(),
                  boot_count[static_cast<std::size_t>(best_strand)]);
@@ -488,8 +499,14 @@ auto sintax_query(uint64_t const t) -> void
 }
 
 
-auto sintax_thread_run(uint64_t const t) -> void
+static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -> void
 {
+  std::mutex & mutex_input = state.mutex_input;
+  std::mutex & mutex_output = state.mutex_output;
+  fastx_handle const query_fastx_h = state.query_fastx_h;
+  struct searchinfo_s * const si_plus = state.si_plus;
+  struct searchinfo_s * const si_minus = state.si_minus;
+
   while (true)
     {
       std::unique_lock<std::mutex> input_lock(mutex_input);
@@ -551,7 +568,7 @@ auto sintax_thread_run(uint64_t const t) -> void
                                  si_plus[t].qseqlen);
             }
 
-          sintax_query(t);
+          sintax_query(state, t);
 
           /* lock mutex for update of global data and output */
           std::lock_guard<std::mutex> const output_lock(mutex_output);
@@ -572,12 +589,12 @@ auto sintax_thread_run(uint64_t const t) -> void
 }
 
 
-auto sintax_thread_init(struct searchinfo_s * si) -> void
+static auto sintax_thread_init(struct sintax_state_s const & state, struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
-  si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
-  si->m = minheap_init(tophits);
+  si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
+  si->m = minheap_init(state.tophits);
   si->hits = nullptr;
   si->qsize = 1;
   si->query_head_alloc = 0;
@@ -589,7 +606,7 @@ auto sintax_thread_init(struct searchinfo_s * si) -> void
 }
 
 
-auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
+static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 {
   /* thread specific clean up */
   unique_exit(searchinfo->uh);
@@ -606,22 +623,26 @@ auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto sintax_thread_worker_run() -> void
+static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
 {
+  struct searchinfo_s * const si_plus = state.si_plus;
+  struct searchinfo_s * const si_minus = state.si_minus;
+
   /* init per-thread search state before the workers start */
   for (auto t = 0; t < opt_threads; t++)
     {
-      sintax_thread_init(si_plus + t);
+      sintax_thread_init(state, si_plus + t);
       if (si_minus != nullptr)
         {
-          sintax_thread_init(si_minus + t);
+          sintax_thread_init(state, si_minus + t);
         }
     }
 
   /* run the worker pool over the input file */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                              sintax_thread_run);
+                              [&state](uint64_t const t)
+                              { sintax_thread_run(state, t); });
     threadrunner.run();
   }
 
@@ -639,6 +660,19 @@ auto sintax_thread_worker_run() -> void
 
 auto sintax(struct Parameters const & parameters) -> void
 {
+  /* Per-invocation state, owned here and threaded through the workers (E4).
+     Aliased by reference so the body below reads unchanged; the workers
+     receive `state`, not file-static globals. */
+  struct sintax_state_s state;
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
+  auto & tophits = state.tophits;
+  auto & seqcount = state.seqcount;
+  auto & query_fastx_h = state.query_fastx_h;
+  auto & fp_tabbedout = state.fp_tabbedout;
+  int & queries = state.queries;
+  int & classified = state.classified;
+
   /* tophits = the maximum number of hits we need to store */
 
   tophits = 1;
@@ -707,7 +741,7 @@ auto sintax(struct Parameters const & parameters) -> void
   /* run */
 
   progress_init("Classifying sequences", fastx_get_size(query_fastx_h));
-  sintax_thread_worker_run();
+  sintax_thread_worker_run(state);
   progress_done();
 
   /* All workers have joined. If one hit a malformed query, report it now
