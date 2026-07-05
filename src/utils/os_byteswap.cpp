@@ -138,6 +138,45 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 
 #else
 
-// other operating systems?
+// Linux and other operating systems. Use the compiler byteswap builtins
+// (GCC 4.8+ / Clang) when available — identical to what glibc's <byteswap.h>
+// macros expand to — and fall back to a portable shift-based implementation
+// for any other compiler, so the build no longer depends on <byteswap.h>
+// being present.
+#include <cstdint>  // uint16_t, uint32_t, uint64_t
+
+auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+#if defined(__GNUC__) || defined(__clang__)
+  return __builtin_bswap16(bsx);
+#else
+  return static_cast<uint16_t>((bsx >> 8U) | (bsx << 8U));
+#endif
+}
+
+auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+#if defined(__GNUC__) || defined(__clang__)
+  return __builtin_bswap32(bsx);
+#else
+  return ((bsx & UINT32_C(0x000000FF)) << 24U) |
+         ((bsx & UINT32_C(0x0000FF00)) << 8U)  |
+         ((bsx & UINT32_C(0x00FF0000)) >> 8U)  |
+         ((bsx & UINT32_C(0xFF000000)) >> 24U);
+#endif
+}
+
+auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+#if defined(__GNUC__) || defined(__clang__)
+  return __builtin_bswap64(bsx);
+#else
+  return ((bsx & UINT64_C(0x00000000000000FF)) << 56U) |
+         ((bsx & UINT64_C(0x000000000000FF00)) << 40U) |
+         ((bsx & UINT64_C(0x0000000000FF0000)) << 24U) |
+         ((bsx & UINT64_C(0x00000000FF000000)) << 8U)  |
+         ((bsx & UINT64_C(0x000000FF00000000)) >> 8U)  |
+         ((bsx & UINT64_C(0x0000FF0000000000)) >> 24U) |
+         ((bsx & UINT64_C(0x00FF000000000000)) >> 40U) |
+         ((bsx & UINT64_C(0xFF00000000000000)) >> 56U);
+#endif
+}
 
 #endif
