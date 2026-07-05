@@ -64,6 +64,7 @@
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
+#include <cinttypes>  // macro PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
@@ -1460,7 +1461,7 @@ auto search16(s16info_s * s,
           char * cigar = nullptr;
           if (length > 0)
             {
-              auto const ret = xsprintf(&cigar, "%ldI", length);
+              auto const ret = xsprintf(&cigar, "%" PRId64 "I", length);
               if ((ret < 2) or (cigar == nullptr))
                 {
                   fatal("Unable to allocate enough memory.");
