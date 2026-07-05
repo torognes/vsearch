@@ -952,6 +952,13 @@ auto derep_session_free(struct derep_session_s * ds) -> void
 
 auto derep_session_init(struct derep_session_s * ds) -> void
 {
+  /* Release any state from a previous session on the same handle first. The
+     hashtable buckets own xstrdup'd seq/header strings that a bare resize()
+     would neither free nor reuse, so an init -> add* -> get_results -> init
+     reuse would leak every prior string. derep_session_cleanup() is idempotent
+     and a no-op on a freshly allocated (empty) session (L2e). */
+  derep_session_cleanup(ds);
+
   ds->alloc_clusters = 1024;
   ds->hashtablesize = 2 * ds->alloc_clusters;
   ds->hash_mask = ds->hashtablesize - 1;
@@ -1039,6 +1046,17 @@ auto derep_get_results(struct derep_session_s * ds,
                        int max_results,
                        int * result_count) -> void
 {
+  /* Guard against a null output array: without this, a populated session with
+     max_results > 0 would write results[0] through a null pointer (L2e). */
+  if (results == nullptr)
+    {
+      if (result_count != nullptr)
+        {
+          *result_count = 0;
+        }
+      return;
+    }
+
   if (!ds->finalized)
     {
       /* Sort the hashtable — same comparator as CLI */
