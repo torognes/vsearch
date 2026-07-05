@@ -96,26 +96,34 @@ struct clusterinfo_s
 
 using clusterinfo_t = struct clusterinfo_s;
 
-static clusterinfo_t * clusterinfo = nullptr;
-static int clusters = 0;
-
-static int count_matched = 0;
-static int count_notmatched = 0;
-
-static std::FILE * fp_centroids = nullptr;
-static std::FILE * fp_uc = nullptr;
-static std::FILE * fp_alnout = nullptr;
-static std::FILE * fp_samout = nullptr;
-static std::FILE * fp_userout = nullptr;
-static std::FILE * fp_blast6out = nullptr;
-static std::FILE * fp_fastapairs = nullptr;
-static std::FILE * fp_matched = nullptr;
-static std::FILE * fp_notmatched = nullptr;
-static std::FILE * fp_otutabout = nullptr;
-static std::FILE * fp_mothur_shared_out = nullptr;
-static std::FILE * fp_biomout = nullptr;
-static std::FILE * fp_qsegout = nullptr;
-static std::FILE * fp_tsegout = nullptr;
+/* Per-invocation CLI state for the cluster*() commands — the output handles,
+   the per-sequence cluster-assignment array, the cluster count and the
+   matched/not-matched counters. Threaded through cluster() and its core
+   drivers/output helpers so the command holds no shared mutable output state
+   (E4). The search/worker state lives separately in cluster_work_pool_s, and
+   the library session/batch paths return results rather than writing files, so
+   they do not use this struct. */
+struct cluster_cli_state_s
+{
+  clusterinfo_t * clusterinfo = nullptr;
+  int clusters = 0;
+  int count_matched = 0;
+  int count_notmatched = 0;
+  std::FILE * fp_centroids = nullptr;
+  std::FILE * fp_uc = nullptr;
+  std::FILE * fp_alnout = nullptr;
+  std::FILE * fp_samout = nullptr;
+  std::FILE * fp_userout = nullptr;
+  std::FILE * fp_blast6out = nullptr;
+  std::FILE * fp_fastapairs = nullptr;
+  std::FILE * fp_matched = nullptr;
+  std::FILE * fp_notmatched = nullptr;
+  std::FILE * fp_otutabout = nullptr;
+  std::FILE * fp_mothur_shared_out = nullptr;
+  std::FILE * fp_biomout = nullptr;
+  std::FILE * fp_qsegout = nullptr;
+  std::FILE * fp_tsegout = nullptr;
+};
 
 /* per-thread slice of queries assigned for the current round; owned by
    cluster_work_pool_s (the threading primitives live inside its ThreadRunner) */
@@ -334,7 +342,8 @@ auto relabel_otu(int clusterno, char const * sequence, int seqlen) -> char *
 }
 
 
-auto cluster_core_results_hit(struct hit const * best,
+auto cluster_core_results_hit(struct cluster_cli_state_s & state,
+                              struct hit const * best,
                               int clusterno,
                               char const * query_head,
                               int qseqlen,
@@ -342,7 +351,7 @@ auto cluster_core_results_hit(struct hit const * best,
                               char const * qsequence_rc,
                               int64_t qsize) -> void
 {
-  ++count_matched;
+  ++state.count_matched;
 
   if ((opt_otutabout != nullptr) or (opt_mothur_shared_out != nullptr) or (opt_biomout != nullptr))
     {
@@ -362,40 +371,40 @@ auto cluster_core_results_hit(struct hit const * best,
         }
     }
 
-  if (fp_uc != nullptr)
+  if (state.fp_uc != nullptr)
     {
-      results_show_uc_one(fp_uc,
+      results_show_uc_one(state.fp_uc,
                           best, query_head,
                           qseqlen,
                           clusterno);
     }
 
-  if (fp_alnout != nullptr)
+  if (state.fp_alnout != nullptr)
     {
-      results_show_alnout(fp_alnout,
+      results_show_alnout(state.fp_alnout,
                           best, 1, query_head,
                           qsequence, qseqlen);
     }
 
-  if (fp_samout != nullptr)
+  if (state.fp_samout != nullptr)
     {
-      results_show_samout(fp_samout,
+      results_show_samout(state.fp_samout,
                           best, 1, query_head,
                           qsequence, qsequence_rc);
     }
 
-  if (fp_fastapairs != nullptr)
+  if (state.fp_fastapairs != nullptr)
     {
-      results_show_fastapairs_one(fp_fastapairs,
+      results_show_fastapairs_one(state.fp_fastapairs,
                                   best,
                                   query_head,
                                   qsequence,
                                   qsequence_rc);
     }
 
-  if (fp_qsegout != nullptr)
+  if (state.fp_qsegout != nullptr)
     {
-      results_show_qsegout_one(fp_qsegout,
+      results_show_qsegout_one(state.fp_qsegout,
                                best,
                                query_head,
                                qsequence,
@@ -403,34 +412,34 @@ auto cluster_core_results_hit(struct hit const * best,
                                qsequence_rc);
     }
 
-  if (fp_tsegout != nullptr)
+  if (state.fp_tsegout != nullptr)
     {
-      results_show_tsegout_one(fp_tsegout,
+      results_show_tsegout_one(state.fp_tsegout,
                                best);
     }
 
-  if (fp_userout != nullptr)
+  if (state.fp_userout != nullptr)
     {
-      results_show_userout_one(fp_userout, best, query_head,
+      results_show_userout_one(state.fp_userout, best, query_head,
                                qsequence, qseqlen, qsequence_rc);
     }
 
-  if (fp_blast6out != nullptr)
+  if (state.fp_blast6out != nullptr)
     {
-      results_show_blast6out_one(fp_blast6out, best, query_head,
+      results_show_blast6out_one(state.fp_blast6out, best, query_head,
                                  qseqlen);
     }
 
   if (opt_matched != nullptr)
     {
-      fasta_print_general(fp_matched,
+      fasta_print_general(state.fp_matched,
                           nullptr,
                           qsequence,
                           qseqlen,
                           query_head,
                           static_cast<int>(std::strlen(query_head)),
                           static_cast<uint64_t>(qsize),
-                          count_matched,
+                          state.count_matched,
                           -1.0,
                           -1, -1, nullptr, 0.0,
                           0);
@@ -438,14 +447,15 @@ auto cluster_core_results_hit(struct hit const * best,
 }
 
 
-auto cluster_core_results_nohit(int clusterno,
+auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
+                                int clusterno,
                                 char const * query_head,
                                 int qseqlen,
                                 char const * qsequence,
                                 char const * qsequence_rc,
                                 int64_t qsize) -> void
 {
-  ++count_notmatched;
+  ++state.count_notmatched;
 
   if ((opt_otutabout != nullptr) or (opt_mothur_shared_out != nullptr) or (opt_biomout != nullptr))
     {
@@ -463,41 +473,41 @@ auto cluster_core_results_nohit(int clusterno,
 
   if (opt_uc != nullptr)
     {
-      std::fprintf(fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", clusters, qseqlen);
-      header_fprint_strip(fp_uc,
+      std::fprintf(state.fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", state.clusters, qseqlen);
+      header_fprint_strip(state.fp_uc,
                           query_head,
                           static_cast<int>(std::strlen(query_head)),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      std::fprintf(fp_uc, "\t*\n");
+      std::fprintf(state.fp_uc, "\t*\n");
     }
 
   if (opt_output_no_hits != 0)
     {
-      if (fp_userout != nullptr)
+      if (state.fp_userout != nullptr)
         {
-          results_show_userout_one(fp_userout, nullptr, query_head,
+          results_show_userout_one(state.fp_userout, nullptr, query_head,
                                    qsequence, qseqlen, qsequence_rc);
         }
 
-      if (fp_blast6out != nullptr)
+      if (state.fp_blast6out != nullptr)
         {
-          results_show_blast6out_one(fp_blast6out, nullptr, query_head,
+          results_show_blast6out_one(state.fp_blast6out, nullptr, query_head,
                                      qseqlen);
         }
     }
 
   if (opt_notmatched != nullptr)
     {
-      fasta_print_general(fp_notmatched,
+      fasta_print_general(state.fp_notmatched,
                           nullptr,
                           qsequence,
                           qseqlen,
                           query_head,
                           static_cast<int>(std::strlen(query_head)),
                           static_cast<uint64_t>(qsize),
-                          count_notmatched,
+                          state.count_notmatched,
                           -1.0,
                           -1, -1, nullptr, 0.0,
                           0);
@@ -794,7 +804,8 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
     }
 }
 
-auto cluster_core_parallel(int const seqcount, int const tophits) -> void
+auto cluster_core_parallel(struct cluster_cli_state_s & state,
+                           int const seqcount, int const tophits) -> void
 {
   constexpr static int queries_per_thread = 1;
   const int max_queries = queries_per_thread * static_cast<int>(opt_threads);
@@ -893,8 +904,8 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
               int const target = best->target;
 
               /* output intermediate results to uc etc */
-              cluster_core_results_hit(best,
-                                       clusterinfo[target].clusterno,
+              cluster_core_results_hit(state, best,
+                                       state.clusterinfo[target].clusterno,
                                        si_p->query_head,
                                        si_p->qseqlen,
                                        si_p->qsequence,
@@ -902,10 +913,10 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
                                        si_p->qsize);
 
               /* update cluster info about this sequence */
-              clusterinfo[myseqno].seqno = myseqno;
-              clusterinfo[myseqno].clusterno = clusterinfo[target].clusterno;
-              clusterinfo[myseqno].cigar = best->nwalignment;
-              clusterinfo[myseqno].strand = best->strand;
+              state.clusterinfo[myseqno].seqno = myseqno;
+              state.clusterinfo[myseqno].clusterno = state.clusterinfo[target].clusterno;
+              state.clusterinfo[myseqno].cigar = best->nwalignment;
+              state.clusterinfo[myseqno].strand = best->strand;
               best->nwalignment = nullptr;
             }
           else
@@ -917,22 +928,22 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
               ++extra_count;
 
               /* update cluster info about this sequence */
-              clusterinfo[myseqno].seqno = myseqno;
-              clusterinfo[myseqno].clusterno = clusters;
-              clusterinfo[myseqno].cigar = nullptr;
-              clusterinfo[myseqno].strand = 0;
+              state.clusterinfo[myseqno].seqno = myseqno;
+              state.clusterinfo[myseqno].clusterno = state.clusters;
+              state.clusterinfo[myseqno].cigar = nullptr;
+              state.clusterinfo[myseqno].strand = 0;
 
               /* add current sequence to database */
               dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(opt_qmask));
 
               /* output intermediate results to uc etc */
-              cluster_core_results_nohit(clusters,
+              cluster_core_results_nohit(state, state.clusters,
                                          si_p->query_head,
                                          si_p->qseqlen,
                                          si_p->qsequence,
                                          nullptr,
                                          si_p->qsize);
-              ++clusters;
+              ++state.clusters;
             }
 
           free_hit_alignments(si_p, si_m);
@@ -948,7 +959,8 @@ auto cluster_core_parallel(int const seqcount, int const tophits) -> void
 }
 
 
-auto cluster_core_serial(int const seqcount, int const tophits) -> void
+auto cluster_core_serial(struct cluster_cli_state_s & state,
+                         int const seqcount, int const tophits) -> void
 {
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
@@ -997,33 +1009,33 @@ auto cluster_core_serial(int const seqcount, int const tophits) -> void
       if (best != nullptr)
         {
           int const target = best->target;
-          cluster_core_results_hit(best,
-                                   clusterinfo[target].clusterno,
+          cluster_core_results_hit(state, best,
+                                   state.clusterinfo[target].clusterno,
                                    si_p[0].query_head,
                                    si_p[0].qseqlen,
                                    si_p[0].qsequence,
                                    (best->strand != 0) ? si_m[0].qsequence : nullptr,
                                    si_p[0].qsize);
-          clusterinfo[seqno].seqno = seqno;
-          clusterinfo[seqno].clusterno = clusterinfo[target].clusterno;
-          clusterinfo[seqno].cigar = best->nwalignment;
-          clusterinfo[seqno].strand = best->strand;
+          state.clusterinfo[seqno].seqno = seqno;
+          state.clusterinfo[seqno].clusterno = state.clusterinfo[target].clusterno;
+          state.clusterinfo[seqno].cigar = best->nwalignment;
+          state.clusterinfo[seqno].strand = best->strand;
           best->nwalignment = nullptr;
         }
       else
         {
-          clusterinfo[seqno].seqno = seqno;
-          clusterinfo[seqno].clusterno = clusters;
-          clusterinfo[seqno].cigar = nullptr;
-          clusterinfo[seqno].strand = 0;
+          state.clusterinfo[seqno].seqno = seqno;
+          state.clusterinfo[seqno].clusterno = state.clusters;
+          state.clusterinfo[seqno].cigar = nullptr;
+          state.clusterinfo[seqno].strand = 0;
           dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(opt_qmask));
-          cluster_core_results_nohit(clusters,
+          cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head,
                                      si_p[0].qseqlen,
                                      si_p[0].qsequence,
                                      nullptr,
                                      si_p[0].qsize);
-          ++clusters;
+          ++state.clusters;
         }
 
       free_hit_alignments(si_p.data(), si_m.data());
@@ -1044,6 +1056,24 @@ auto cluster(char const * dbname,
              char const * cmdline,
              char const * progheader) -> void
 {
+  cluster_cli_state_s state;
+  auto & clusterinfo = state.clusterinfo;
+  auto & clusters = state.clusters;
+  auto & fp_centroids = state.fp_centroids;
+  auto & fp_uc = state.fp_uc;
+  auto & fp_alnout = state.fp_alnout;
+  auto & fp_samout = state.fp_samout;
+  auto & fp_userout = state.fp_userout;
+  auto & fp_blast6out = state.fp_blast6out;
+  auto & fp_fastapairs = state.fp_fastapairs;
+  auto & fp_matched = state.fp_matched;
+  auto & fp_notmatched = state.fp_notmatched;
+  auto & fp_otutabout = state.fp_otutabout;
+  auto & fp_mothur_shared_out = state.fp_mothur_shared_out;
+  auto & fp_biomout = state.fp_biomout;
+  auto & fp_qsegout = state.fp_qsegout;
+  auto & fp_tsegout = state.fp_tsegout;
+
   fp_centroids = open_optional_output(opt_centroids, "centroids");
   fp_uc = open_optional_output(opt_uc, "uc");
 
@@ -1132,11 +1162,11 @@ auto cluster(char const * dbname,
 
   if (opt_threads == 1)
     {
-      cluster_core_serial(seqcount, tophits);
+      cluster_core_serial(state, seqcount, tophits);
     }
   else
     {
-      cluster_core_parallel(seqcount, tophits);
+      cluster_core_parallel(state, seqcount, tophits);
     }
 
 
