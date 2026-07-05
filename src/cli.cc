@@ -4124,7 +4124,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
             {
               int j = 0;
               bool option_is_valid = false;
-              while (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0)
+              while ((static_cast<size_t>(j) < max_number_of_options_per_command) and
+                     (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0))
                 {
                   if (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] == i)
                     {
@@ -4156,7 +4157,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           std::fprintf(stderr, "\nThe valid options for the %s command are:",
                   long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
           int count = 0;
-          for (int j = 1; valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0; j++)
+          for (int j = 1;
+               (static_cast<size_t>(j) < max_number_of_options_per_command) and
+               (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0);
+               j++)
             {
               std::fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
               ++count;

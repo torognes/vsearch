@@ -511,6 +511,13 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 42: /* tihi */
           std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen - hits->trim_t_right : 0);
           break;
+        default:
+          /* userfields_requested only ever holds validated indices (0..42),
+             so this is unreachable today. It guards against a userfields_names
+             entry being added or reordered in userfields.cc without a matching
+             case here — the positional coupling would otherwise print nothing
+             silently (E2). */
+          fatal("Internal error: unknown userfield index in results_show_userout_one");
         }
     }
   std::fprintf(output_handle, "\n");
