@@ -98,6 +98,17 @@ auto dbhash_close() -> void
 {
   bitmap_free(dbhash_bitmap);
   dbhash_bitmap = nullptr;
+
+  /* Return the remaining file-static state to its initial values so a second
+     session starts clean and the (potentially large) table memory is released
+     now rather than held until the next dbhash_open() or process exit. The
+     bitmap already gates every read of dbhash_table, so leaving stale buckets
+     was harmless, but symmetry with dbhash_open() avoids relying on that (L2b). */
+  dbhash_table.clear();
+  dbhash_table.shrink_to_fit();
+  dbhash_size = 0;
+  dbhash_shift = 0;
+  dbhash_mask = 0;
 }
 
 
