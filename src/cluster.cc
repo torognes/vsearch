@@ -1525,8 +1525,8 @@ auto cluster_unoise(char const * cmdline, char const * progheader) -> void
 
 
 struct cluster_session_s {
-  struct searchinfo_s * si = nullptr;
-  struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
+  std::unique_ptr<struct searchinfo_s> si;
+  std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when opt_strand > 1 */
   int cluster_count = 0;
   int seqcount = 0;
   int tophits = 0;
@@ -1572,14 +1572,14 @@ auto cluster_session_init(struct cluster_session_s * cs) -> void
       cs->tophits = cs->seqcount;
     }
 
-  cs->si = new searchinfo_s {};
-  cluster_query_init(cs->si, cs->seqcount, cs->tophits);
+  cs->si = make_unique<searchinfo_s>();
+  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits);
   cs->si->strand = 0;
 
   if (opt_strand > 1)
     {
-      cs->si_minus = new searchinfo_s {};
-      cluster_query_init(cs->si_minus, cs->seqcount, cs->tophits);
+      cs->si_minus = make_unique<searchinfo_s>();
+      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits);
       cs->si_minus->strand = 1;
     }
 
@@ -1603,23 +1603,23 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
   cs->si->query_no = seqno;
   cs->si->strand = 0;
-  cluster_query_core(cs->si);
+  cluster_query_core(cs->si.get());
 
   if (opt_strand > 1)
     {
       cs->si_minus->query_no = seqno;
       cs->si_minus->strand = 1;
-      cluster_query_core(cs->si_minus);
+      cluster_query_core(cs->si_minus.get());
     }
 
   struct hit const * best = nullptr;
   if (opt_sizeorder)
     {
-      best = search_findbest2_bysize(cs->si, cs->si_minus);
+      best = search_findbest2_bysize(cs->si.get(), cs->si_minus.get());
     }
   else
     {
-      best = search_findbest2_byid(cs->si, cs->si_minus);
+      best = search_findbest2_byid(cs->si.get(), cs->si_minus.get());
     }
 
   if (best != nullptr)
@@ -1660,7 +1660,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
   /* Free ALL hit alignments for both strands.
      search_onequery / align_delayed allocates nwalignment for each aligned hit. */
-  free_hit_alignments(cs->si, cs->si_minus);
+  free_hit_alignments(cs->si.get(), cs->si_minus.get());
 }
 
 
@@ -1824,16 +1824,14 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
 auto cluster_session_cleanup(struct cluster_session_s * cs) -> void
 {
-  if (cs->si != nullptr)
+  if (cs->si)
     {
-      cluster_query_exit(cs->si);
-      delete cs->si;
-      cs->si = nullptr;
+      cluster_query_exit(cs->si.get());
+      cs->si.reset();
     }
-  if (cs->si_minus != nullptr)
+  if (cs->si_minus)
     {
-      cluster_query_exit(cs->si_minus);
-      delete cs->si_minus;
-      cs->si_minus = nullptr;
+      cluster_query_exit(cs->si_minus.get());
+      cs->si_minus.reset();
     }
 }

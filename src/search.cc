@@ -69,6 +69,7 @@
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/make_unique.hpp"
 #include "utils/maps.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::min
@@ -889,8 +890,8 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 
 
 struct search_session_s {
-  struct searchinfo_s * si_plus = nullptr;
-  struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
+  std::unique_ptr<struct searchinfo_s> si_plus;
+  std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when opt_strand > 1 */
   int seqcount = 0;  /* number of database sequences */
   int tophits = 0;   /* the maximum number of hits to keep */
 };
@@ -924,14 +925,14 @@ auto search_session_init(struct search_session_s * ss) -> void
       ss->tophits = ss->seqcount;
     }
 
-  ss->si_plus = new searchinfo_s {};
-  search_thread_init(ss->si_plus, ss->seqcount, ss->tophits);
+  ss->si_plus = make_unique<searchinfo_s>();
+  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits);
   ss->si_plus->strand = 0;
 
   if (opt_strand > 1)
     {
-      ss->si_minus = new searchinfo_s {};
-      search_thread_init(ss->si_minus, ss->seqcount, ss->tophits);
+      ss->si_minus = make_unique<searchinfo_s>();
+      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits);
       ss->si_minus->strand = 1;
     }
 }
@@ -947,9 +948,9 @@ auto search_session_single(struct search_session_s * ss,
                            int * result_count) -> void
 {
   int const head_len = static_cast<int>(std::strlen(query_head));
-  struct searchinfo_s * si = ss->si_plus;
+  struct searchinfo_s * si = ss->si_plus.get();
 
-  populate_si(ss->si_plus,
+  populate_si(ss->si_plus.get(),
               query_head,
               head_len,
               query_seq,
@@ -960,7 +961,7 @@ auto search_session_single(struct search_session_s * ss,
 
   if (opt_strand > 1)
     {
-      populate_si(ss->si_minus,
+      populate_si(ss->si_minus.get(),
                   query_head,
                   head_len,
                   query_seq,
@@ -974,7 +975,7 @@ auto search_session_single(struct search_session_s * ss,
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * strand_si =
-        (s != 0) ? ss->si_minus : ss->si_plus;
+        (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
 
       if (opt_qmask == MASK_DUST)
         {
@@ -990,8 +991,8 @@ auto search_session_single(struct search_session_s * ss,
 
   /* Merge hits from both strands */
   std::vector<struct hit> hits;
-  search_joinhits(ss->si_plus,
-                  opt_strand > 1 ? ss->si_minus : nullptr,
+  search_joinhits(ss->si_plus.get(),
+                  opt_strand > 1 ? ss->si_minus.get() : nullptr,
                   hits);
 
   /* Populate results (search_joinhits returns only accepted/weak hits) */
@@ -1022,7 +1023,7 @@ auto search_session_single(struct search_session_s * ss,
   for (int s = 0; s < opt_strand; s++)
     {
       struct searchinfo_s * strand_si =
-        (s != 0) ? ss->si_minus : ss->si_plus;
+        (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
       for (int i = 0; i < strand_si->hit_count; ++i)
         {
           if (strand_si->hits[i].aligned &&
@@ -1038,17 +1039,15 @@ auto search_session_single(struct search_session_s * ss,
 
 auto search_session_cleanup(struct search_session_s * ss) -> void
 {
-  if (ss->si_plus != nullptr)
+  if (ss->si_plus)
     {
-      search_thread_exit(ss->si_plus);
-      delete ss->si_plus;
-      ss->si_plus = nullptr;
+      search_thread_exit(ss->si_plus.get());
+      ss->si_plus.reset();
     }
-  if (ss->si_minus != nullptr)
+  if (ss->si_minus)
     {
-      search_thread_exit(ss->si_minus);
-      delete ss->si_minus;
-      ss->si_minus = nullptr;
+      search_thread_exit(ss->si_minus.get());
+      ss->si_minus.reset();
     }
 }
 
