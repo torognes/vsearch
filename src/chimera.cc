@@ -107,17 +107,12 @@ constexpr auto few = 4;
 constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
-/* mutex_output, fp_uchimealns and fp_uchimeout remain file-static: they are
-   referenced inside eval_parents/eval_parents_long, which run on both the CLI
-   worker and the library chimera_detect_single() path (via
-   chimera_process_query). Folding them into the CLI context would mean
-   threading it through that shared detection core (an E6 decomposition target),
-   so it is deferred to that work; the library path leaves the two handles null.
-   mutex_input is not here either — it only serializes input reading on the CLI
-   path and is owned as a local by chimera_threads_run(). */
-static std::mutex mutex_output;
-static std::FILE * fp_uchimealns = nullptr;
-static std::FILE * fp_uchimeout = nullptr;
+/* mutex_output, fp_uchimealns and fp_uchimeout are no longer file-static: they
+   live in chimera_cli_state_s and are injected into the detection core
+   (eval_parents/eval_parents_long) as a nullable pointer — the CLI passes its
+   state to emit output, the library path passes nullptr (E6). mutex_input is
+   likewise not here — it only serializes input reading on the CLI path and is
+   owned as a local by chimera_threads_run(). */
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -192,13 +187,20 @@ struct chimera_info_s
 
 /* Per-invocation CLI state for the chimera() command — the statics used only
    by the CLI path: the query file handle, progress, the six stats
-   counters/abundances, the chimeras/nonchimeras/borderline output handles, and
-   the per-thread chimera_info array. Threaded through chimera_threads_run() and
-   chimera_thread_core() so the CLI command is reentrant (E4). The three
-   detection-core outputs (mutex_output, fp_uchimealns, fp_uchimeout) stay
-   file-static for now — see the note above their declarations. */
+   counters/abundances, the chimeras/nonchimeras/borderline output handles, the
+   per-thread chimera_info array, and the detection-core output handles
+   (fp_uchimealns/fp_uchimeout) with the mutex serializing all CLI writes.
+   Threaded through chimera_threads_run() and chimera_thread_core() so the CLI
+   command is reentrant (E4). The detection core (eval_parents /
+   eval_parents_long, reached from both the CLI and the library
+   chimera_detect_single) receives this state as a nullable pointer: the CLI
+   passes it to emit output, the library path passes nullptr and writes no
+   files (E6 split of the core from its CLI output). */
 struct chimera_cli_state_s
 {
+  std::mutex mutex_output;  /* serializes all CLI output + stats updates */
+  std::FILE * fp_uchimealns = nullptr;
+  std::FILE * fp_uchimeout = nullptr;
   fastx_handle query_fasta_h = nullptr;
   unsigned int seqno = 0;
   uint64_t progress = 0;
@@ -943,7 +945,7 @@ auto compute_diffs(struct chimera_info_s const * ci,
 }
 
 
-auto eval_parents_long(struct chimera_info_s * ci) -> Status
+auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) -> Status
 {
   /* always chimeric if called */
   auto const status = Status::chimeric;
@@ -1034,16 +1036,23 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       r->flag = 'Y';  /* eval_parents_long is always chimeric */
     }
 
-  std::lock_guard<std::mutex> const output_lock(mutex_output);
+  /* CLI-only alignment/tabbed output; the library path (cli == nullptr) has
+     already populated the API result above and writes no files. */
+  if (cli == nullptr)
+    {
+      return status;
+    }
+
+  std::lock_guard<std::mutex> const output_lock(cli->mutex_output);
 
   if ((opt_alnout != nullptr) and (status == Status::chimeric))
     {
-      std::fprintf(fp_uchimealns, "\n");
-      std::fprintf(fp_uchimealns, "----------------------------------------"
+      std::fprintf(cli->fp_uchimealns, "\n");
+      std::fprintf(cli->fp_uchimealns, "----------------------------------------"
                    "--------------------------------\n");
-      std::fprintf(fp_uchimealns, "Query   (%5d nt) ",
+      std::fprintf(cli->fp_uchimealns, "Query   (%5d nt) ",
                    ci->query_len);
-      header_fprint_strip(fp_uchimealns,
+      header_fprint_strip(cli->fp_uchimealns,
                           ci->query_head.data(),
                           ci->query_head_len,
                           opt_xsize,
@@ -1054,10 +1063,10 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
       for (int f = 0; f < ci->parents_found; ++f)
         {
           int const parent_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[static_cast<size_t>(f)])]);
-          std::fprintf(fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
+          std::fprintf(cli->fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                        'A' + f,
                        db_getsequencelen(static_cast<uint64_t>(parent_seqno)));
-          header_fprint_strip(fp_uchimealns,
+          header_fprint_strip(cli->fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(parent_seqno)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(parent_seqno))),
                               opt_xsize,
@@ -1065,7 +1074,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
                               opt_xlength);
         }
 
-      std::fprintf(fp_uchimealns, "\n\n");
+      std::fprintf(cli->fp_uchimealns, "\n\n");
 
 
       int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
@@ -1097,19 +1106,19 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
               }
             }
 
-          std::fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+          std::fprintf(cli->fp_uchimealns, "Q %5d %.*s %d\n",
                   qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
 
           for (int f = 0; f < ci->parents_found; ++f)
             {
-              std::fprintf(fp_uchimealns, "%c %5d %.*s %d\n",
+              std::fprintf(cli->fp_uchimealns, "%c %5d %.*s %d\n",
                       'A' + f,
                       ppos[static_cast<size_t>(f)] + 1, w, &ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
             }
 
-          std::fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
-          std::fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
-          std::fprintf(fp_uchimealns, "\n");
+          std::fprintf(cli->fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
+          std::fprintf(cli->fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
+          std::fprintf(cli->fp_uchimealns, "\n");
 
           rest -= width;
           qpos += qnt;
@@ -1118,39 +1127,39 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
           }
         }
 
-      std::fprintf(fp_uchimealns, "Ids.  QA %.2f%%, QB %.2f%%, QC %.2f%%, "
+      std::fprintf(cli->fp_uchimealns, "Ids.  QA %.2f%%, QB %.2f%%, QC %.2f%%, "
               "QT %.2f%%, QModel %.2f%%, Div. %+.2f%%\n",
               QA, QB, QC, QT, QM, divfrac);
     }
 
   if (opt_tabbedout != nullptr)
     {
-      std::fprintf(fp_uchimeout, "%.4f\t", 99.9999);
+      std::fprintf(cli->fp_uchimeout, "%.4f\t", 99.9999);
 
-      header_fprint_strip(fp_uchimeout,
+      header_fprint_strip(cli->fp_uchimeout,
                           ci->query_head.data(),
                           ci->query_head_len,
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      std::fprintf(fp_uchimeout, "\t");
-      header_fprint_strip(fp_uchimeout,
+      std::fprintf(cli->fp_uchimeout, "\t");
+      header_fprint_strip(cli->fp_uchimeout,
                           db_getheader(static_cast<uint64_t>(seqno_a)),
                           static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      std::fprintf(fp_uchimeout, "\t");
-      header_fprint_strip(fp_uchimeout,
+      std::fprintf(cli->fp_uchimeout, "\t");
+      header_fprint_strip(cli->fp_uchimeout,
                           db_getheader(static_cast<uint64_t>(seqno_b)),
                           static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                           opt_xsize,
                           opt_xee,
                           opt_xlength);
-      std::fprintf(fp_uchimeout, "\t");
+      std::fprintf(cli->fp_uchimeout, "\t");
       if (seqno_c >= 0)
         {
-          header_fprint_strip(fp_uchimeout,
+          header_fprint_strip(cli->fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_c)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_c))),
                               opt_xsize,
@@ -1159,11 +1168,11 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
         }
       else
         {
-          std::fprintf(fp_uchimeout, "*");
+          std::fprintf(cli->fp_uchimeout, "*");
         }
-      std::fprintf(fp_uchimeout, "\t");
+      std::fprintf(cli->fp_uchimeout, "\t");
 
-      std::fprintf(fp_uchimeout,
+      std::fprintf(cli->fp_uchimeout,
               "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
               "%d\t%d\t%d\t%d\t%d\t%d\t%.2f\t%c\n",
               QM,
@@ -1185,7 +1194,7 @@ auto eval_parents_long(struct chimera_info_s * ci) -> Status
 }
 
 
-auto eval_parents(struct chimera_info_s * ci) -> Status
+auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) -> Status
 {
   auto status = Status::no_alignment;
   ci->parents_found = 2;
@@ -1631,41 +1640,48 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       /* print alignment */
 
-      std::unique_lock<std::mutex> output_lock(mutex_output);
+      /* CLI-only alignment/tabbed output; the library path (cli == nullptr)
+         has already populated the API result above and writes no files. */
+      if (cli == nullptr)
+        {
+          return status;
+        }
+
+      std::unique_lock<std::mutex> output_lock(cli->mutex_output);
 
       if ((opt_uchimealns != nullptr) and (status == Status::chimeric))
         {
-          std::fprintf(fp_uchimealns, "\n");
-          std::fprintf(fp_uchimealns, "----------------------------------------"
+          std::fprintf(cli->fp_uchimealns, "\n");
+          std::fprintf(cli->fp_uchimealns, "----------------------------------------"
                   "--------------------------------\n");
-          std::fprintf(fp_uchimealns, "Query   (%5d nt) ",
+          std::fprintf(cli->fp_uchimealns, "Query   (%5d nt) ",
                   ci->query_len);
 
-          header_fprint_strip(fp_uchimealns,
+          header_fprint_strip(cli->fp_uchimealns,
                               ci->query_head.data(),
                               ci->query_head_len,
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
 
-          std::fprintf(fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
+          std::fprintf(cli->fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
                   db_getsequencelen(static_cast<uint64_t>(seqno_a)));
-          header_fprint_strip(fp_uchimealns,
+          header_fprint_strip(cli->fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(seqno_a)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
 
-          std::fprintf(fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
+          std::fprintf(cli->fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
                   db_getsequencelen(static_cast<uint64_t>(seqno_b)));
-          header_fprint_strip(fp_uchimealns,
+          header_fprint_strip(cli->fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(seqno_b)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          std::fprintf(fp_uchimealns, "\n\n");
+          std::fprintf(cli->fp_uchimealns, "\n\n");
 
           auto const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
           qpos = 0;
@@ -1701,27 +1717,27 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
               if (not best_is_reverse)
                 {
-                  std::fprintf(fp_uchimealns, "A %5d %.*s %d\n",
+                  std::fprintf(cli->fp_uchimealns, "A %5d %.*s %d\n",
                           p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
-                  std::fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                  std::fprintf(cli->fp_uchimealns, "Q %5d %.*s %d\n",
                           qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
-                  std::fprintf(fp_uchimealns, "B %5d %.*s %d\n",
+                  std::fprintf(cli->fp_uchimealns, "B %5d %.*s %d\n",
                           p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
                 }
               else
                 {
-                  std::fprintf(fp_uchimealns, "A %5d %.*s %d\n",
+                  std::fprintf(cli->fp_uchimealns, "A %5d %.*s %d\n",
                           p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
-                  std::fprintf(fp_uchimealns, "Q %5d %.*s %d\n",
+                  std::fprintf(cli->fp_uchimealns, "Q %5d %.*s %d\n",
                           qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
-                  std::fprintf(fp_uchimealns, "B %5d %.*s %d\n",
+                  std::fprintf(cli->fp_uchimealns, "B %5d %.*s %d\n",
                           p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
                 }
 
-              std::fprintf(fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
-              std::fprintf(fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[static_cast<size_t>(i)]);
-              std::fprintf(fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
-              std::fprintf(fp_uchimealns, "\n");
+              std::fprintf(cli->fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
+              std::fprintf(cli->fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[static_cast<size_t>(i)]);
+              std::fprintf(cli->fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
+              std::fprintf(cli->fp_uchimealns, "\n");
 
               qpos += qnt;
               p1pos += p1nt;
@@ -1729,11 +1745,11 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
               rest -= width;
             }
 
-          std::fprintf(fp_uchimealns, "Ids.  QA %.1f%%, QB %.1f%%, AB %.1f%%, "
+          std::fprintf(cli->fp_uchimealns, "Ids.  QA %.1f%%, QB %.1f%%, AB %.1f%%, "
                   "QModel %.1f%%, Div. %+.1f%%\n",
                   QA, QB, AB, QM, divfrac);
 
-          std::fprintf(fp_uchimealns, "Diffs Left %d: N %d, A %d, Y %d (%.1f%%); "
+          std::fprintf(cli->fp_uchimealns, "Diffs Left %d: N %d, A %d, Y %d (%.1f%%); "
                   "Right %d: N %d, A %d, Y %d (%.1f%%), Score %.4f\n",
                   sumL, best_left_n, best_left_a, best_left_y,
                   100.0 * best_left_y / sumL,
@@ -1744,35 +1760,35 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
 
       if (opt_uchimeout != nullptr)
         {
-          std::fprintf(fp_uchimeout, "%.4f\t", best_h);
+          std::fprintf(cli->fp_uchimeout, "%.4f\t", best_h);
 
-          header_fprint_strip(fp_uchimeout,
+          header_fprint_strip(cli->fp_uchimeout,
                               ci->query_head.data(),
                               ci->query_head_len,
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          std::fprintf(fp_uchimeout, "\t");
-          header_fprint_strip(fp_uchimeout,
+          std::fprintf(cli->fp_uchimeout, "\t");
+          header_fprint_strip(cli->fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_a)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          std::fprintf(fp_uchimeout, "\t");
-          header_fprint_strip(fp_uchimeout,
+          std::fprintf(cli->fp_uchimeout, "\t");
+          header_fprint_strip(cli->fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_b)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                               opt_xsize,
                               opt_xee,
                               opt_xlength);
-          std::fprintf(fp_uchimeout, "\t");
+          std::fprintf(cli->fp_uchimeout, "\t");
 
           if (opt_uchimeout5 == 0)
             {
               if (QA >= QB)
                 {
-                  header_fprint_strip(fp_uchimeout,
+                  header_fprint_strip(cli->fp_uchimeout,
                                       db_getheader(static_cast<uint64_t>(seqno_a)),
                                       static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
                                       opt_xsize,
@@ -1781,17 +1797,17 @@ auto eval_parents(struct chimera_info_s * ci) -> Status
                 }
               else
                 {
-                  header_fprint_strip(fp_uchimeout,
+                  header_fprint_strip(cli->fp_uchimeout,
                                       db_getheader(static_cast<uint64_t>(seqno_b)),
                                       static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
                                       opt_xsize,
                                       opt_xee,
                                       opt_xlength);
                 }
-              std::fprintf(fp_uchimeout, "\t");
+              std::fprintf(cli->fp_uchimeout, "\t");
             }
 
-          std::fprintf(fp_uchimeout,
+          std::fprintf(cli->fp_uchimeout,
                   "%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
                   "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
                   QM,
@@ -1924,7 +1940,8 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
    lma is the per-thread linear memory aligner (fallback for SIMD overflow). */
 static auto chimera_process_query(struct chimera_info_s * ci,
                                   std::vector<struct hit> & allhits_list,
-                                  LinearMemoryAligner & lma) -> Status
+                                  LinearMemoryAligner & lma,
+                                  struct chimera_cli_state_s * cli) -> Status
 {
   /* partition query */
   partition_query(ci);
@@ -2066,7 +2083,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       /* long high-quality reads */
       if (find_best_parents_long(ci) != 0)
         {
-          return eval_parents_long(ci);
+          return eval_parents_long(ci, cli);
         }
       else
         {
@@ -2077,7 +2094,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
     {
       if (find_best_parents(ci) != 0)
         {
-          return eval_parents(ci);
+          return eval_parents(ci, cli);
         }
       else
         {
@@ -2161,11 +2178,11 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
       input_lock.unlock();
 
-      auto const status = chimera_process_query(ci, allhits_list, lma);
+      auto const status = chimera_process_query(ci, allhits_list, lma, &state);
 
       /* output results */
 
-      std::lock_guard<std::mutex> const output_lock(mutex_output);
+      std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
       ++state.total_count;
       state.total_abundance += ci->query_size;
@@ -2232,9 +2249,9 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           /* output no parents, no chimeras */
           if ((status < Status::low_score) and (opt_uchimeout != nullptr))
             {
-              std::fprintf(fp_uchimeout, "%.4f\t", ci->best_h);
+              std::fprintf(state.fp_uchimeout, "%.4f\t", ci->best_h);
 
-              header_fprint_strip(fp_uchimeout,
+              header_fprint_strip(state.fp_uchimeout,
                                   ci->query_head.data(),
                                   ci->query_head_len,
                                   opt_xsize,
@@ -2243,12 +2260,12 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
               if (opt_uchimeout5 != 0)
                 {
-                  std::fprintf(fp_uchimeout,
+                  std::fprintf(state.fp_uchimeout,
                           "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
                 }
               else
                 {
-                  std::fprintf(fp_uchimeout,
+                  std::fprintf(state.fp_uchimeout,
                           "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
                 }
             }
@@ -2332,8 +2349,8 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
 auto chimera(struct Parameters const & parameters) -> void
 {
   /* Per-invocation CLI state, owned here and threaded through the worker pool
-     (E4). The three detection-core outputs it does not hold (mutex_output,
-     fp_uchimealns, fp_uchimeout) stay file-static — see their declarations. */
+     (E4). It also holds the detection-core output handles/mutex, injected into
+     eval_parents/eval_parents_long via chimera_process_query (E6). */
   struct chimera_cli_state_s state;
 
   state.fp_chimeras = open_optional_output(opt_chimeras, "chimeras");
@@ -2342,13 +2359,13 @@ auto chimera(struct Parameters const & parameters) -> void
 
   if (parameters.opt_chimeras_denovo != nullptr)
     {
-      fp_uchimealns = open_optional_output(opt_alnout, "alignment");
-      fp_uchimeout = open_optional_output(opt_tabbedout, "tabbedout");
+      state.fp_uchimealns = open_optional_output(opt_alnout, "alignment");
+      state.fp_uchimeout = open_optional_output(opt_tabbedout, "tabbedout");
     }
   else
     {
-      fp_uchimealns = open_optional_output(opt_uchimealns, "uchimealns");
-      fp_uchimeout = open_optional_output(opt_uchimeout, "uchimeout");
+      state.fp_uchimealns = open_optional_output(opt_uchimealns, "uchimealns");
+      state.fp_uchimeout = open_optional_output(opt_uchimeout, "uchimeout");
     }
 
 
@@ -2662,8 +2679,8 @@ auto chimera(struct Parameters const & parameters) -> void
   db_free();
 
   fclose_output(state.fp_borderline);
-  fclose_output(fp_uchimeout);
-  fclose_output(fp_uchimealns);
+  fclose_output(state.fp_uchimeout);
+  fclose_output(state.fp_uchimealns);
   fclose_output(state.fp_nonchimeras);
   fclose_output(state.fp_chimeras);
 
@@ -2690,8 +2707,9 @@ auto chimera_session_init() -> void
 {
   /* Session-level initialization for chimera detection.
      Sets search-shaping globals that chimera() normally sets but
-     the library API path bypasses, and initializes static mutexes
-     used by eval_parents/eval_parents_long.
+     the library API path bypasses. The detection core takes no output
+     lock on the library path (it receives a null CLI-output sink), so
+     there is no shared mutex to initialize here.
 
      Call once after DB is loaded and indexed, before creating
      per-thread chimera_info_s handles.
@@ -2724,16 +2742,16 @@ auto chimera_session_init() -> void
       opt_maxsizeratio = 1.0 / opt_abskew;
     }
 
-  /* eval_parents and eval_parents_long acquire mutex_output for file
-     output. The API path does not write files, but the lock is still
-     taken; mutex_output is a std::mutex and needs no initialization. */
+  /* eval_parents and eval_parents_long emit file output only when given a
+     CLI-output sink; the library path passes nullptr, so it neither writes
+     files nor takes a lock. Nothing to initialize here. */
 }
 
 
 auto chimera_session_cleanup() -> void
 {
-  /* nothing to release: mutex_output is a std::mutex with automatic
-     lifetime. Kept as a stable API symbol. */
+  /* nothing to release: the detection core holds no file-static output
+     state. Kept as a stable API symbol. */
 }
 
 
@@ -2817,9 +2835,11 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   *result = {};
   ci->result_out = result;
 
-  /* Use the SAME processing code as the CLI path */
+  /* Use the SAME processing code as the CLI path, but with no CLI output sink
+     (cli == nullptr): the detection core populates ci->result_out instead of
+     writing files, and takes no output lock. */
   auto const status = chimera_process_query(ci, ci->api_allhits_list,
-                                            *ci->api_lma_ptr);
+                                            *ci->api_lma_ptr, nullptr);
 
   if (status == Status::no_parents)
     {
