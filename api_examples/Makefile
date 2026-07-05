@@ -82,7 +82,7 @@ test: $(EXAMPLES)
 		|| (echo "FAIL: derep output differs"; diff /tmp/test_derep.fasta data/expected_derep.fasta | head -20; exit 1)
 	@echo ""
 	@echo "=== Running example_reinit ==="
-	./example_reinit \
+	@./example_reinit \
 		&& echo "PASS: re-initialization produces correct results" \
 		|| (echo "FAIL: re-initialization test failed"; exit 1)
 	@echo ""

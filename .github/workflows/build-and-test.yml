@@ -32,6 +32,11 @@ jobs:
         make ARFLAGS="cr" -j$(nproc)
         bin/vsearch -v
 
+    - name: Test the library API
+      run: |
+        make -C src libvsearch.a ARFLAGS="cr" -j$(nproc)
+        make -C api_examples test
+
     - name: Run tests
       run: |
         export PATH=$PWD/bin:$PATH
