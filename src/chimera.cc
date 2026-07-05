@@ -2743,6 +2743,30 @@ auto chimera_detect_single(struct chimera_info_s * ci,
                            int64_t query_size,
                            struct chimera_result_s * result) -> int
 {
+  /* Validate the caller-supplied query before trusting query_len: the buffers
+     are sized from query_len (via realloc_arrays) but filled with the actual
+     C-strings, so a query_len shorter than strlen(query_seq) would overflow
+     ci->query_seq on the heap (S18). query_head_len is derived with strlen
+     below and so is self-consistent; only query_len is taken on trust. There
+     is no recoverable error channel (the function always returns 0), so an
+     invalid call is fatal, as elsewhere in vsearch. */
+  if (query_seq == nullptr)
+    {
+      fatal("chimera_detect_single: query sequence must not be null");
+    }
+  if (query_head == nullptr)
+    {
+      fatal("chimera_detect_single: query header must not be null");
+    }
+  if (query_len <= 0)
+    {
+      fatal("chimera_detect_single: query length must be positive");
+    }
+  if (static_cast<size_t>(query_len) != std::strlen(query_seq))
+    {
+      fatal("chimera_detect_single: query length does not match the query sequence");
+    }
+
   /* Populate query in the chimera_info_s.
      ci is per-thread state — must NOT be shared across threads. */
   ci->query_no = 0;
