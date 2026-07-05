@@ -365,9 +365,10 @@ namespace {
    After calling this, the caller should override any options needed
    for their specific use case (e.g., chimera detection parameters).
 
-   Note: allocates opt_ee_cutoffs_values via xmalloc. Caller is responsible
-   for freeing it (or calling vsearch_init_defaults again, which leaks the
-   old allocation — acceptable for single-init library use). */
+   Note: allocates opt_ee_cutoffs_values via xmalloc; calling
+   vsearch_init_defaults again frees the previous allocation before
+   reallocating, so repeated initialization does not leak. A library
+   caller that never re-initializes is responsible for freeing it. */
 
 static std::mutex session_mutex;
 
@@ -394,6 +395,7 @@ auto vsearch_init_defaults() -> void
   opt_biomout = nullptr;
   opt_blast6out = nullptr;
   opt_borderline = nullptr;
+  opt_bzip2_decompress = false;
   opt_centroid_sizeout = false;
   opt_centroids = nullptr;
   opt_chimeras = nullptr;
@@ -406,6 +408,8 @@ auto vsearch_init_defaults() -> void
   opt_cluster_size = nullptr;
   opt_cluster_smallmem = nullptr;
   opt_cluster_unoise = nullptr;
+  opt_clusterout_id = false;
+  opt_clusterout_sort = false;
   opt_clusters = nullptr;
   opt_cons_truncate = 0;
   opt_consout = nullptr;
@@ -538,7 +542,7 @@ auto vsearch_init_defaults() -> void
   opt_no_progress = true;
   opt_nonchimeras = nullptr;
   opt_notmatched = nullptr;
-  opt_notmatched = nullptr;
+  opt_notmatchedfq = nullptr;
   opt_notrunclabels = 0;
   opt_otutabout = nullptr;
   opt_output = nullptr;
