@@ -125,6 +125,15 @@ auto parse_userfields_arg(char const * arg) -> int
   char const * ptr = arg;
   char const * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
 
+  /* Release any array left by a previous --userfields (a repeated option on
+     the CLI, or a second library session): the global is not reset elsewhere,
+     so re-parsing without this would leak the earlier allocation (L2c). */
+  if (userfields_requested != nullptr)
+    {
+      xfree(userfields_requested);
+      userfields_requested = nullptr;
+    }
+
   userfields_requested_count = static_cast<int>(std::count(ptr, end_of_string, separator) + 1);
 
   userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * static_cast<uint64_t>(userfields_requested_count)));
@@ -144,6 +153,13 @@ auto parse_userfields_arg(char const * arg) -> int
         }
 
       auto const field_length = static_cast<uint64_t>(next_separator - ptr);
+
+      if (field_length == 0)
+        {  // empty token (e.g. "a++b", "+a", "a+") -> bad argument. Previously
+           // rejected only incidentally by the name-lookup falling through; the
+           // explicit check makes the intent clear (L2c).
+          return 0;
+        }
 
       char const ** valid_userfield = userfields_names;
 
