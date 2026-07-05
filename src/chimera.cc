@@ -107,27 +107,17 @@ constexpr auto few = 4;
 constexpr auto maxcandidates = few * maxparts;
 constexpr auto rejects = 16;
 constexpr auto chimera_id = 0.55;
-static fastx_handle query_fasta_h;
-
-/* global data protected by mutex_output (file output and the global
-   stats counters). mutex_input is not here: it only serializes input
-   reading on the CLI path and is owned as a local by chimera_threads_run. */
+/* mutex_output, fp_uchimealns and fp_uchimeout remain file-static: they are
+   referenced inside eval_parents/eval_parents_long, which run on both the CLI
+   worker and the library chimera_detect_single() path (via
+   chimera_process_query). Folding them into the CLI context would mean
+   threading it through that shared detection core (an E6 decomposition target),
+   so it is deferred to that work; the library path leaves the two handles null.
+   mutex_input is not here either — it only serializes input reading on the CLI
+   path and is owned as a local by chimera_threads_run(). */
 static std::mutex mutex_output;
-static unsigned int seqno = 0;
-static uint64_t progress = 0;
-static int chimera_count = 0;
-static int nonchimera_count = 0;
-static int borderline_count = 0;
-static int total_count = 0;
-static int64_t chimera_abundance = 0;
-static int64_t nonchimera_abundance = 0;
-static int64_t borderline_abundance = 0;
-static int64_t total_abundance = 0;
-static std::FILE * fp_chimeras = nullptr;
-static std::FILE * fp_nonchimeras = nullptr;
 static std::FILE * fp_uchimealns = nullptr;
 static std::FILE * fp_uchimeout = nullptr;
-static std::FILE * fp_borderline = nullptr;
 
 /* information for each query sequence to be checked */
 struct chimera_info_s
@@ -200,7 +190,31 @@ struct chimera_info_s
 };
 
 
-static struct chimera_info_s * cia;
+/* Per-invocation CLI state for the chimera() command — the statics used only
+   by the CLI path: the query file handle, progress, the six stats
+   counters/abundances, the chimeras/nonchimeras/borderline output handles, and
+   the per-thread chimera_info array. Threaded through chimera_threads_run() and
+   chimera_thread_core() so the CLI command is reentrant (E4). The three
+   detection-core outputs (mutex_output, fp_uchimealns, fp_uchimeout) stay
+   file-static for now — see the note above their declarations. */
+struct chimera_cli_state_s
+{
+  fastx_handle query_fasta_h = nullptr;
+  unsigned int seqno = 0;
+  uint64_t progress = 0;
+  int chimera_count = 0;
+  int nonchimera_count = 0;
+  int borderline_count = 0;
+  int total_count = 0;
+  int64_t chimera_abundance = 0;
+  int64_t nonchimera_abundance = 0;
+  int64_t borderline_abundance = 0;
+  int64_t total_abundance = 0;
+  std::FILE * fp_chimeras = nullptr;
+  std::FILE * fp_nonchimeras = nullptr;
+  std::FILE * fp_borderline = nullptr;
+  struct chimera_info_s * cia = nullptr;
+};
 
 
 enum struct Status : unsigned char {
@@ -2073,7 +2087,8 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 }
 
 
-auto chimera_thread_core(struct chimera_info_s * ci,
+static auto chimera_thread_core(struct chimera_cli_state_s & state,
+                         struct chimera_info_s * ci,
                          std::mutex & mutex_input) -> uint64_t
 {
   /* tophits sizes the per-part minheaps; it is opt_maxaccepts + opt_maxrejects,
@@ -2102,21 +2117,21 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       if (opt_uchime_ref != nullptr)
         {
-          if (fasta_next(query_fasta_h, (opt_notrunclabels == 0),
+          if (fasta_next(state.query_fasta_h, (opt_notrunclabels == 0),
                          chrmap_no_change_vector.data()))
             {
-              ci->query_head_len = static_cast<int>(fasta_get_header_length(query_fasta_h));
-              ci->query_len = static_cast<int>(fasta_get_sequence_length(query_fasta_h));
-              ci->query_no = static_cast<int>(fasta_get_seqno(query_fasta_h));
-              ci->query_size = fasta_get_abundance(query_fasta_h);
+              ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
+              ci->query_len = static_cast<int>(fasta_get_sequence_length(state.query_fasta_h));
+              ci->query_no = static_cast<int>(fasta_get_seqno(state.query_fasta_h));
+              ci->query_size = fasta_get_abundance(state.query_fasta_h);
 
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
 
               /* copy the data locally (query seq, head) */
-              std::strcpy(ci->query_head.data(), fasta_get_header(query_fasta_h));
-              std::strcpy(ci->query_seq.data(), fasta_get_sequence(query_fasta_h));
-              query_position = fasta_get_position(query_fasta_h);
+              std::strcpy(ci->query_head.data(), fasta_get_header(state.query_fasta_h));
+              std::strcpy(ci->query_seq.data(), fasta_get_sequence(state.query_fasta_h));
+              query_position = fasta_get_position(state.query_fasta_h);
             }
           else
             {
@@ -2125,18 +2140,18 @@ auto chimera_thread_core(struct chimera_info_s * ci,
         }
       else
         {
-          if (seqno < db_getsequencecount())
+          if (state.seqno < db_getsequencecount())
             {
-              ci->query_no = static_cast<int>(seqno);
-              ci->query_head_len = static_cast<int>(db_getheaderlen(seqno));
-              ci->query_len = static_cast<int>(db_getsequencelen(seqno));
-              ci->query_size = static_cast<int64_t>(db_getabundance(seqno));
+              ci->query_no = static_cast<int>(state.seqno);
+              ci->query_head_len = static_cast<int>(db_getheaderlen(state.seqno));
+              ci->query_len = static_cast<int>(db_getsequencelen(state.seqno));
+              ci->query_size = static_cast<int64_t>(db_getabundance(state.seqno));
 
               /* if necessary expand memory for arrays based on query length */
               realloc_arrays(ci);
 
-              std::strcpy(ci->query_head.data(), db_getheader(seqno));
-              std::strcpy(ci->query_seq.data(), db_getsequence(seqno));
+              std::strcpy(ci->query_head.data(), db_getheader(state.seqno));
+              std::strcpy(ci->query_seq.data(), db_getsequence(state.seqno));
             }
           else
             {
@@ -2152,24 +2167,24 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       std::lock_guard<std::mutex> const output_lock(mutex_output);
 
-      ++total_count;
-      total_abundance += ci->query_size;
+      ++state.total_count;
+      state.total_abundance += ci->query_size;
 
       if (status == Status::chimeric)
         {
-          ++chimera_count;
-          chimera_abundance += ci->query_size;
+          ++state.chimera_count;
+          state.chimera_abundance += ci->query_size;
 
           if (opt_chimeras != nullptr)
             {
-              fasta_print_general(fp_chimeras,
+              fasta_print_general(state.fp_chimeras,
                                   nullptr,
                                   ci->query_seq.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
                                   static_cast<uint64_t>(ci->query_size),
-                                  chimera_count,
+                                  state.chimera_count,
                                   -1.0,
                                   -1,
                                   -1,
@@ -2184,19 +2199,19 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       if (status == Status::suspicious)
         {
-          ++borderline_count;
-          borderline_abundance += ci->query_size;
+          ++state.borderline_count;
+          state.borderline_abundance += ci->query_size;
 
           if (opt_borderline != nullptr)
             {
-              fasta_print_general(fp_borderline,
+              fasta_print_general(state.fp_borderline,
                                   nullptr,
                                   ci->query_seq.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
                                   static_cast<uint64_t>(ci->query_size),
-                                  borderline_count,
+                                  state.borderline_count,
                                   -1.0,
                                   -1,
                                   -1,
@@ -2211,8 +2226,8 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       if (status < Status::suspicious)
         {
-          ++nonchimera_count;
-          nonchimera_abundance += ci->query_size;
+          ++state.nonchimera_count;
+          state.nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
           if ((status < Status::low_score) and (opt_uchimeout != nullptr))
@@ -2240,14 +2255,14 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
           if (opt_nonchimeras != nullptr)
             {
-              fasta_print_general(fp_nonchimeras,
+              fasta_print_general(state.fp_nonchimeras,
                                   nullptr,
                                   ci->query_seq.data(),
                                   ci->query_len,
                                   ci->query_head.data(),
                                   ci->query_head_len,
                                   static_cast<uint64_t>(ci->query_size),
-                                  nonchimera_count,
+                                  state.nonchimera_count,
                                   -1.0,
                                   -1,
                                   -1,
@@ -2264,7 +2279,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
           /* uchime_denovo: add non-chimeras to db */
           if ((opt_uchime_denovo != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
             {
-              dbindex_addsequence(seqno, static_cast<int>(opt_qmask));
+              dbindex_addsequence(state.seqno, static_cast<int>(opt_qmask));
             }
         }
 
@@ -2278,16 +2293,16 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 
       if (opt_uchime_ref != nullptr)
         {
-          progress = query_position;
+          state.progress = query_position;
         }
       else
         {
-          progress += db_getsequencelen(seqno);
+          state.progress += db_getsequencelen(state.seqno);
         }
 
-      progress_update(progress);
+      progress_update(state.progress);
 
-      ++seqno;
+      ++state.seqno;
     }
 
   chimera_thread_exit(ci);
@@ -2297,7 +2312,7 @@ auto chimera_thread_core(struct chimera_info_s * ci,
 }
 
 
-auto chimera_threads_run() -> void
+static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
 {
   /* mutex_input serializes input reading among the CLI workers; it is
      owned here rather than at file scope (the API path does not use it). */
@@ -2307,8 +2322,8 @@ auto chimera_threads_run() -> void
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                            [&mutex_input](uint64_t nth_thread) {
-                              chimera_thread_core(cia + nth_thread, mutex_input);
+                            [&state, &mutex_input](uint64_t nth_thread) {
+                              chimera_thread_core(state, state.cia + nth_thread, mutex_input);
                             });
   threadrunner.run();
 }
@@ -2316,9 +2331,14 @@ auto chimera_threads_run() -> void
 
 auto chimera(struct Parameters const & parameters) -> void
 {
-  fp_chimeras = open_optional_output(opt_chimeras, "chimeras");
-  fp_nonchimeras = open_optional_output(opt_nonchimeras, "nonchimeras");
-  fp_borderline = open_optional_output(opt_borderline, "borderline");
+  /* Per-invocation CLI state, owned here and threaded through the worker pool
+     (E4). The three detection-core outputs it does not hold (mutex_output,
+     fp_uchimealns, fp_uchimeout) stay file-static — see their declarations. */
+  struct chimera_cli_state_s state;
+
+  state.fp_chimeras = open_optional_output(opt_chimeras, "chimeras");
+  state.fp_nonchimeras = open_optional_output(opt_nonchimeras, "nonchimeras");
+  state.fp_borderline = open_optional_output(opt_borderline, "borderline");
 
   if (parameters.opt_chimeras_denovo != nullptr)
     {
@@ -2351,14 +2371,14 @@ auto chimera(struct Parameters const & parameters) -> void
     }
 
   uint64_t progress_total = 0;
-  chimera_count = 0;
-  nonchimera_count = 0;
-  progress = 0;
-  seqno = 0;
+  state.chimera_count = 0;
+  state.nonchimera_count = 0;
+  state.progress = 0;
+  state.seqno = 0;
 
   /* prepare per-thread chimera detection state */
   std::vector<struct chimera_info_s> cia_v(static_cast<size_t>(opt_threads));
-  cia = cia_v.data();
+  state.cia = cia_v.data();
 
   char const * denovo_dbname = nullptr;
 
@@ -2388,15 +2408,15 @@ auto chimera(struct Parameters const & parameters) -> void
           dbindex_addallsequences(static_cast<int>(opt_dbmask));
         }
 
-      query_fasta_h = fasta_open(parameters.opt_uchime_ref);
-      progress_total = fasta_get_size(query_fasta_h);
+      state.query_fasta_h = fasta_open(parameters.opt_uchime_ref);
+      progress_total = fasta_get_size(state.query_fasta_h);
 
       /* The query file is parsed inside the worker threads
          (chimera_thread_core). Defer parse errors so a malformed query
          stops the pool cooperatively instead of calling fatal()/std::exit()
          from a worker while siblings are writing output (CC3); reported
          after the pool joins, below, from the main thread. */
-      query_fasta_h->defer_errors = true;
+      state.query_fasta_h->defer_errors = true;
     }
   else
     {
@@ -2472,20 +2492,20 @@ auto chimera(struct Parameters const & parameters) -> void
 
   progress_init("Detecting chimeras", progress_total);
 
-  chimera_threads_run();
+  chimera_threads_run(state);
 
   progress_done();
 
   /* all workers joined; report a deferred query parse error (CC3, uchime_ref
      only) from the main thread so it does not race a worker's output */
-  if ((parameters.opt_uchime_ref != nullptr) and fastx_get_error(query_fasta_h))
+  if ((parameters.opt_uchime_ref != nullptr) and fastx_get_error(state.query_fasta_h))
     {
-      fatal("%s", fastx_get_errmsg(query_fasta_h));
+      fatal("%s", fastx_get_errmsg(state.query_fasta_h));
     }
 
   if (not parameters.opt_quiet)
     {
-      if (total_count > 0)
+      if (state.total_count > 0)
         {
           if (parameters.opt_chimeras_denovo != nullptr)
             {
@@ -2493,11 +2513,11 @@ auto chimera(struct Parameters const & parameters) -> void
                       "Found %d (%.1f%%) chimeras and "
                       "%d (%.1f%%) non-chimeras "
                       "in %d unique sequences.\n",
-                      chimera_count,
-                      100.0 * chimera_count / total_count,
-                      nonchimera_count,
-                      100.0 * nonchimera_count / total_count,
-                      total_count);
+                      state.chimera_count,
+                      100.0 * state.chimera_count / state.total_count,
+                      state.nonchimera_count,
+                      100.0 * state.nonchimera_count / state.total_count,
+                      state.total_count);
             }
           else
             {
@@ -2506,13 +2526,13 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%d (%.1f%%) non-chimeras,\n"
                       "and %d (%.1f%%) borderline sequences "
                       "in %d unique sequences.\n",
-                      chimera_count,
-                      100.0 * chimera_count / total_count,
-                      nonchimera_count,
-                      100.0 * nonchimera_count / total_count,
-                      borderline_count,
-                      100.0 * borderline_count / total_count,
-                      total_count);
+                      state.chimera_count,
+                      100.0 * state.chimera_count / state.total_count,
+                      state.nonchimera_count,
+                      100.0 * state.nonchimera_count / state.total_count,
+                      state.borderline_count,
+                      100.0 * state.borderline_count / state.total_count,
+                      state.total_count);
             }
         }
       else
@@ -2523,9 +2543,9 @@ auto chimera(struct Parameters const & parameters) -> void
                       "Found %d chimeras and "
                       "%d non-chimeras "
                       "in %d unique sequences.\n",
-                      chimera_count,
-                      nonchimera_count,
-                      total_count);
+                      state.chimera_count,
+                      state.nonchimera_count,
+                      state.total_count);
             }
           else
             {
@@ -2534,14 +2554,14 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%d non-chimeras,\n"
                       "and %d borderline sequences "
                       "in %d unique sequences.\n",
-                      chimera_count,
-                      nonchimera_count,
-                      borderline_count,
-                      total_count);
+                      state.chimera_count,
+                      state.nonchimera_count,
+                      state.borderline_count,
+                      state.total_count);
             }
         }
 
-      if (total_abundance > 0)
+      if (state.total_abundance > 0)
         {
           if (parameters.opt_chimeras_denovo != nullptr)
             {
@@ -2551,11 +2571,11 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%" PRId64 " (%.1f%%) chimeras and "
                       "%" PRId64 " (%.1f%%) non-chimeras "
                       "in %" PRId64 " total sequences.\n",
-                      chimera_abundance,
-                      100.0 * static_cast<double>(chimera_abundance) / static_cast<double>(total_abundance),
-                      nonchimera_abundance,
-                      100.0 * static_cast<double>(nonchimera_abundance) / static_cast<double>(total_abundance),
-                      total_abundance);
+                      state.chimera_abundance,
+                      100.0 * static_cast<double>(state.chimera_abundance) / static_cast<double>(state.total_abundance),
+                      state.nonchimera_abundance,
+                      100.0 * static_cast<double>(state.nonchimera_abundance) / static_cast<double>(state.total_abundance),
+                      state.total_abundance);
             }
           else
             {
@@ -2566,13 +2586,13 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%" PRId64 " (%.1f%%) non-chimeras,\n"
                       "and %" PRId64 " (%.1f%%) borderline sequences "
                       "in %" PRId64 " total sequences.\n",
-                      chimera_abundance,
-                      100.0 * static_cast<double>(chimera_abundance) / static_cast<double>(total_abundance),
-                      nonchimera_abundance,
-                      100.0 * static_cast<double>(nonchimera_abundance) / static_cast<double>(total_abundance),
-                      borderline_abundance,
-                      100.0 * static_cast<double>(borderline_abundance) / static_cast<double>(total_abundance),
-                      total_abundance);
+                      state.chimera_abundance,
+                      100.0 * static_cast<double>(state.chimera_abundance) / static_cast<double>(state.total_abundance),
+                      state.nonchimera_abundance,
+                      100.0 * static_cast<double>(state.nonchimera_abundance) / static_cast<double>(state.total_abundance),
+                      state.borderline_abundance,
+                      100.0 * static_cast<double>(state.borderline_abundance) / static_cast<double>(state.total_abundance),
+                      state.total_abundance);
             }
         }
       else
@@ -2585,9 +2605,9 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%" PRId64 " chimeras, "
                       "%" PRId64 " non-chimeras "
                       "in %" PRId64 " total sequences.\n",
-                      chimera_abundance,
-                      nonchimera_abundance,
-                      total_abundance);
+                      state.chimera_abundance,
+                      state.nonchimera_abundance,
+                      state.total_abundance);
             }
           else
             {
@@ -2598,10 +2618,10 @@ auto chimera(struct Parameters const & parameters) -> void
                       "%" PRId64 " non-chimeras,\n"
                       "and %" PRId64 " borderline sequences "
                       "in %" PRId64 " total sequences.\n",
-                      chimera_abundance,
-                      nonchimera_abundance,
-                      borderline_abundance,
-                      total_abundance);
+                      state.chimera_abundance,
+                      state.nonchimera_abundance,
+                      state.borderline_abundance,
+                      state.total_abundance);
             }
         }
     }
@@ -2617,35 +2637,35 @@ auto chimera(struct Parameters const & parameters) -> void
           std::fprintf(fp_log, "%s", denovo_dbname);
         }
 
-      if (seqno > 0)
+      if (state.seqno > 0)
         {
           std::fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
-                  chimera_count,
-                  seqno,
-                  100.0 * chimera_count / seqno);
+                  state.chimera_count,
+                  state.seqno,
+                  100.0 * state.chimera_count / state.seqno);
         }
       else
         {
           std::fprintf(fp_log, ": %d/%u chimeras\n",
-                  chimera_count,
-                  seqno);
+                  state.chimera_count,
+                  state.seqno);
         }
     }
 
 
   if (parameters.opt_uchime_ref != nullptr)
     {
-      fasta_close(query_fasta_h);
+      fasta_close(state.query_fasta_h);
     }
 
   dbindex_free();
   db_free();
 
-  fclose_output(fp_borderline);
+  fclose_output(state.fp_borderline);
   fclose_output(fp_uchimeout);
   fclose_output(fp_uchimealns);
-  fclose_output(fp_nonchimeras);
-  fclose_output(fp_chimeras);
+  fclose_output(state.fp_nonchimeras);
+  fclose_output(state.fp_chimeras);
 
   show_rusage();
 }
