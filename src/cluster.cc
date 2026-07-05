@@ -86,8 +86,6 @@
 #include <vector>
 
 
-static int tophits; /* the maximum number of hits to keep */
-static int seqcount; /* number of database sequences */
 
 struct clusterinfo_s
 {
@@ -284,7 +282,7 @@ auto threads_exit() -> void
 }
 
 
-auto cluster_query_init(struct searchinfo_s * si) -> void
+auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
@@ -562,7 +560,8 @@ auto compare_kmersample(const void * a, const void * b) -> int
 static auto evaluate_extra_hits(struct searchinfo_s * si,
                                 const int * extra_list,
                                 int extra_count,
-                                LinearMemoryAligner & lma) -> void
+                                LinearMemoryAligner & lma,
+                                int const tophits) -> void
 {
   int added = 0;
 
@@ -830,7 +829,7 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
     }
 }
 
-auto cluster_core_parallel() -> void
+auto cluster_core_parallel(int const seqcount, int const tophits) -> void
 {
   /* create threads and set them in stand-by mode */
   threads_init();
@@ -847,11 +846,11 @@ auto cluster_core_parallel() -> void
     }
   for (int i = 0; i < max_queries; i++)
     {
-      cluster_query_init(si_plus + i);
+      cluster_query_init(si_plus + i, seqcount, tophits);
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
-          cluster_query_init(si_minus + i);
+          cluster_query_init(si_minus + i, seqcount, tophits);
           si_minus[i].strand = 1;
         }
     }
@@ -921,7 +920,7 @@ auto cluster_core_parallel() -> void
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              evaluate_extra_hits(si, extra_list.data(), extra_count, lma);
+              evaluate_extra_hits(si, extra_list.data(), extra_count, lma, tophits);
             }
 
           /* find best hit */
@@ -1018,15 +1017,15 @@ auto cluster_core_parallel() -> void
 }
 
 
-auto cluster_core_serial() -> void
+auto cluster_core_serial(int const seqcount, int const tophits) -> void
 {
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.data());
+  cluster_query_init(si_p.data(), seqcount, tophits);
   if (opt_strand > 1)
     {
-      cluster_query_init(si_m.data());
+      cluster_query_init(si_m.data(), seqcount, tophits);
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -1153,7 +1152,7 @@ auto cluster(char const * dbname,
 
   show_rusage();
 
-  seqcount = static_cast<int>(db_getsequencecount());
+  int const seqcount = static_cast<int>(db_getsequencecount());
 
   if (opt_cluster_fast != nullptr)
     {
@@ -1178,7 +1177,7 @@ auto cluster(char const * dbname,
       opt_maxaccepts = seqcount;
     }
 
-  tophits = static_cast<int>(opt_maxrejects + opt_maxaccepts + MAXDELAYED);
+  int tophits = static_cast<int>(opt_maxrejects + opt_maxaccepts + MAXDELAYED);
   tophits = std::min(tophits, seqcount);
 
   std::vector<clusterinfo_t> clusterinfo_v(static_cast<std::size_t>(seqcount));
@@ -1202,11 +1201,11 @@ auto cluster(char const * dbname,
 
   if (opt_threads == 1)
     {
-      cluster_core_serial();
+      cluster_core_serial(seqcount, tophits);
     }
   else
     {
-      cluster_core_parallel();
+      cluster_core_parallel(seqcount, tophits);
     }
 
 
@@ -1559,6 +1558,7 @@ struct cluster_session_s {
   struct searchinfo_s * si_minus = nullptr;  /* non-null when opt_strand > 1 */
   int cluster_count = 0;
   int seqcount = 0;
+  int tophits = 0;
   std::map<int, int> centroid_cluster_ids;  /* seqno → cluster_id for centroids */
 };
 
@@ -1594,26 +1594,25 @@ auto cluster_session_init(struct cluster_session_s * cs) -> void
      seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
      MAXDELAYED (8) is needed as safety buffer for align_delayed().
      Clamp tophits to seqcount to avoid oversized allocations. */
-  seqcount = static_cast<int>(db_getsequencecount());
-  tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
-  if (tophits > seqcount)
+  cs->seqcount = static_cast<int>(db_getsequencecount());
+  cs->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
+  if (cs->tophits > cs->seqcount)
     {
-      tophits = seqcount;
+      cs->tophits = cs->seqcount;
     }
 
   cs->si = new searchinfo_s {};
-  cluster_query_init(cs->si);
+  cluster_query_init(cs->si, cs->seqcount, cs->tophits);
   cs->si->strand = 0;
 
   if (opt_strand > 1)
     {
       cs->si_minus = new searchinfo_s {};
-      cluster_query_init(cs->si_minus);
+      cluster_query_init(cs->si_minus, cs->seqcount, cs->tophits);
       cs->si_minus->strand = 1;
     }
 
   cs->cluster_count = 0;
-  cs->seqcount = seqcount;
 }
 
 
@@ -1739,11 +1738,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
   for (int i = 0; i < max_queries; i++)
     {
-      cluster_query_init(si_plus + i);
+      cluster_query_init(si_plus + i, cs->seqcount, cs->tophits);
       si_plus[i].strand = 0;
       if (opt_strand > 1)
         {
-          cluster_query_init(si_minus + i);
+          cluster_query_init(si_minus + i, cs->seqcount, cs->tophits);
           si_minus[i].strand = 1;
         }
     }
@@ -1800,7 +1799,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              evaluate_extra_hits(si, extra_list.data(), extra_count, lma);
+              evaluate_extra_hits(si, extra_list.data(), extra_count, lma, cs->tophits);
             }
 
           /* Find best hit across strands */
