@@ -77,7 +77,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstdlib>  // std::qsort
 #include <cstring>  // std::strcpy, std::strlen
 #include <limits>
 #include <map>
@@ -103,8 +102,6 @@ static int clusters = 0;
 static int count_matched = 0;
 static int count_notmatched = 0;
 
-static int64_t * cluster_abundance;
-
 static std::FILE * fp_centroids = nullptr;
 static std::FILE * fp_uc = nullptr;
 static std::FILE * fp_alnout = nullptr;
@@ -127,67 +124,6 @@ struct thread_work_s
   int query_first;
   int query_count;
 };
-
-
-inline auto compare_byclusterno(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<clusterinfo_t const *>(a);
-  auto const * rhs = static_cast<clusterinfo_t const *>(b);
-
-  if (lhs->clusterno < rhs->clusterno)
-    {
-      return -1;
-    }
-  if (lhs->clusterno > rhs->clusterno)
-    {
-      return +1;
-    }
-
-  if (lhs->seqno < rhs->seqno)
-    {
-      return -1;
-    }
-  if (lhs->seqno > rhs->seqno)
-    {
-      return +1;
-    }
-  return 0;
-}
-
-
-inline auto compare_byclusterabundance(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<clusterinfo_t const *>(a);
-  auto const * rhs = static_cast<clusterinfo_t const *>(b);
-
-  if (cluster_abundance[lhs->clusterno] > cluster_abundance[rhs->clusterno])
-    {
-      return -1;
-    }
-  if (cluster_abundance[lhs->clusterno] < cluster_abundance[rhs->clusterno])
-    {
-      return +1;
-    }
-
-  if (lhs->clusterno < rhs->clusterno)
-    {
-      return -1;
-    }
-  if (lhs->clusterno > rhs->clusterno)
-    {
-      return +1;
-    }
-
-  if (lhs->seqno < rhs->seqno)
-    {
-      return -1;
-    }
-  if (lhs->seqno > rhs->seqno)
-    {
-      return +1;
-    }
-  return 0;
-}
 
 
 inline auto cluster_query_core(struct searchinfo_s * si) -> void
@@ -1207,7 +1143,6 @@ auto cluster(char const * dbname,
   /* find size and abundance of each cluster and save stats */
 
   std::vector<int64_t> cluster_abundance_v(static_cast<std::size_t>(clusters));
-  cluster_abundance = cluster_abundance_v.data();
   std::vector<int> cluster_size_v(static_cast<std::size_t>(clusters));
 
   for (int i = 0; i < seqcount; i++)
@@ -1236,18 +1171,28 @@ auto cluster(char const * dbname,
   /* The centroid sequence must be the first in each cluster. */
 
   progress_init("Sorting clusters", static_cast<uint64_t>(clusters));
-  if (seqcount > 0)  // qsort requires a non-null pointer even for zero elements
+  if (opt_clusterout_sort)
     {
-      if (opt_clusterout_sort)
-        {
-          std::qsort(clusterinfo_v.data(), static_cast<std::size_t>(seqcount), sizeof(clusterinfo_t),
-                compare_byclusterabundance);
-        }
-      else
-        {
-          std::qsort(clusterinfo_v.data(), static_cast<std::size_t>(seqcount), sizeof(clusterinfo_t),
-                compare_byclusterno);
-        }
+      /* by cluster abundance (descending), then cluster number, then seqno.
+         The seqno tiebreak is a strict total order, so this matches the
+         previous std::qsort result exactly. */
+      std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
+                [&cluster_abundance_v](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
+                  auto const lhs_ab = cluster_abundance_v[static_cast<std::size_t>(lhs.clusterno)];
+                  auto const rhs_ab = cluster_abundance_v[static_cast<std::size_t>(rhs.clusterno)];
+                  if (lhs_ab != rhs_ab) { return lhs_ab > rhs_ab; }
+                  if (lhs.clusterno != rhs.clusterno) { return lhs.clusterno < rhs.clusterno; }
+                  return lhs.seqno < rhs.seqno;
+                });
+    }
+  else
+    {
+      /* by cluster number, then seqno */
+      std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
+                [](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
+                  if (lhs.clusterno != rhs.clusterno) { return lhs.clusterno < rhs.clusterno; }
+                  return lhs.seqno < rhs.seqno;
+                });
     }
   progress_done();
 
