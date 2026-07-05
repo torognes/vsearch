@@ -422,6 +422,7 @@ extern std::FILE * fp_log;
 constexpr int64_t default_fasta_width = 80;
 constexpr int64_t default_fastq_tail = 4;
 constexpr int64_t default_maxseqlength = 50000;
+constexpr int64_t n_threads_max = 1024;
 constexpr int64_t default_ascii_offset = 33;
 constexpr char alternative_ascii_offset = 64;
 constexpr auto dbl_max = std::numeric_limits<double>::max();

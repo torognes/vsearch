@@ -82,9 +82,6 @@
 #include <unistd.h>  // isatty, fileno
 
 
-constexpr int64_t n_threads_max = 1024;
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 

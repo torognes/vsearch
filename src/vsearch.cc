@@ -652,25 +652,66 @@ auto vsearch_apply_defaults_fixups() -> void
 
   /* Resolve opt_threads sentinel: 0 means "auto-detect".
      The CLI resolves this in command dispatch; library callers need it
-     resolved here so that dust_all() and other threaded functions work. */
+     resolved here so that dust_all() and other threaded functions work.
+     The range is validated first (matching the CLI --threads bound): the
+     library path never runs args_init, so an out-of-range thread count would
+     otherwise flow unchecked into thread-pool sizing (S7 / C1e). */
+  if ((opt_threads < 0) or (opt_threads > n_threads_max))
+    {
+      fatal("The argument to --threads must be in the range 0 (default) to 1024");
+    }
   if (opt_threads == 0)
     {
       opt_threads = arch_get_cores();
     }
 
-  /* Resolve opt_maxrejects sentinel: -1 means "not set by user".
-     CLI resolves to 8 (cluster_fast) or 32 (others). Default to 32. */
-  if (opt_maxrejects < 0)
+  /* Resolve opt_maxrejects sentinel: -1 means "not set by user" (CLI resolves
+     to 8 for cluster_fast, 32 otherwise; the library default is 32), then
+     reject any remaining negative maxaccepts/maxrejects. Both feed the
+     tophits hit-list sizing; the CLI validates them in args_init, the library
+     path did neither (S10 / C1e). Only the exact -1 sentinel is resolved, so a
+     deliberately negative value is a fatal error here as it is on the CLI. */
+  if (opt_maxrejects == -1)
     {
       opt_maxrejects = 32;
     }
+  if (opt_maxaccepts < 0)
+    {
+      fatal("The argument to --maxaccepts must not be negative");
+    }
+  if (opt_maxrejects < 0)
+    {
+      fatal("The argument to --maxrejects must not be negative");
+    }
 
-  /* Validate opt_wordlength — 0 is a sentinel meaning "not set".
+  /* Resolve opt_wordlength — 0 is a sentinel meaning "not set".
      A wordlength of 0 destroys the k-mer index (hash size = 1).
      Library users MUST set this before calling fixups. */
   if (opt_wordlength == 0)
     {
       opt_wordlength = 8;
+    }
+
+  /* Validate opt_wordlength range [3, 15]. A value >= 16 makes the k-mer
+     index shift (1U << 2*wordlength) exceed the 32-bit width (undefined) and
+     undersizes the index relative to the true k-mer width -> OOB writes
+     (S13). Enforcing the bound here keeps the shift count <= 30 on both the
+     CLI and library paths. */
+  if ((opt_wordlength < 3) or (opt_wordlength > 15))
+    {
+      fatal("The argument to --wordlength must be in the range 3 to 15");
+    }
+
+  /* Validate opt_chimeras_parents_max range [2, maxparents]. A larger value
+     drives find_best_parents_long past its fixed maxparents-element arrays --
+     an out-of-bounds write (S17). CLI-checked in args_init; the library path
+     was unguarded. */
+  if ((opt_chimeras_parents_max < 2) or (opt_chimeras_parents_max > maxparents))
+    {
+      std::string const message =
+        "The argument to --chimeras_parents_max must be in the range 2 to "
+        + std::to_string(maxparents);
+      fatal(message.c_str());
     }
 
   /* Adjust gap-open penalties: subtract the first-nucleotide extension cost.
