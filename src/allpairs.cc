@@ -74,28 +74,31 @@
 #include <vector>
 
 
-/* global constants/data, no need for synchronization */
-static int seqcount; /* number of database sequences */
-
-/* global data protected by mutex */
-static std::mutex mutex_input;
-static std::mutex mutex_output;
-static int qmatches;
-static int queries;
-static int64_t progress = 0;
-static FILE * fp_alnout = nullptr;
-static FILE * fp_samout = nullptr;
-static FILE * fp_userout = nullptr;
-static FILE * fp_blast6out = nullptr;
-static FILE * fp_uc = nullptr;
-static FILE * fp_fastapairs = nullptr;
-static FILE * fp_matched = nullptr;
-static FILE * fp_notmatched = nullptr;
-static FILE * fp_qsegout = nullptr;
-static FILE * fp_tsegout = nullptr;
-
-static int count_matched = 0;
-static int count_notmatched = 0;
+/* Per-invocation state for an allpairs_global run — previously eighteen
+   file-static globals. Folding them into a struct that allpairs_global() owns
+   and threads through the output helper and the worker pool makes the command
+   reentrant and removes the shared mutable state (E4). */
+struct allpairs_state_s
+{
+  int seqcount = 0;         /* number of database sequences */
+  std::mutex mutex_input;   /* serializes query reads */
+  std::mutex mutex_output;  /* serializes output + counter updates */
+  int qmatches = 0;
+  int queries = 0;
+  int64_t progress = 0;
+  FILE * fp_alnout = nullptr;
+  FILE * fp_samout = nullptr;
+  FILE * fp_userout = nullptr;
+  FILE * fp_blast6out = nullptr;
+  FILE * fp_uc = nullptr;
+  FILE * fp_fastapairs = nullptr;
+  FILE * fp_matched = nullptr;
+  FILE * fp_notmatched = nullptr;
+  FILE * fp_qsegout = nullptr;
+  FILE * fp_tsegout = nullptr;
+  int count_matched = 0;
+  int count_notmatched = 0;
+};
 
 
 inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const * rhs) -> int
@@ -129,7 +132,8 @@ auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 }
 
 
-auto allpairs_output_results(int hit_count,
+static auto allpairs_output_results(struct allpairs_state_s & state,
+                             int hit_count,
                              struct hit * hits,
                              char const * query_head,
                              int qseqlen,
@@ -139,9 +143,9 @@ auto allpairs_output_results(int hit_count,
   /* show results */
   auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
 
-  if (fp_alnout != nullptr)
+  if (state.fp_alnout != nullptr)
     {
-      results_show_alnout(fp_alnout,
+      results_show_alnout(state.fp_alnout,
                           hits,
                           static_cast<int>(toreport),
                           query_head,
@@ -149,9 +153,9 @@ auto allpairs_output_results(int hit_count,
                           qseqlen);
     }
 
-  if (fp_samout != nullptr)
+  if (state.fp_samout != nullptr)
     {
-      results_show_samout(fp_samout,
+      results_show_samout(state.fp_samout,
                           hits,
                           static_cast<int>(toreport),
                           query_head,
@@ -172,18 +176,18 @@ auto allpairs_output_results(int hit_count,
               break;
             }
 
-          if (fp_fastapairs != nullptr)
+          if (state.fp_fastapairs != nullptr)
             {
-              results_show_fastapairs_one(fp_fastapairs,
+              results_show_fastapairs_one(state.fp_fastapairs,
                                           hp,
                                           query_head,
                                           qsequence,
                                           qsequence_rc);
             }
 
-          if (fp_qsegout != nullptr)
+          if (state.fp_qsegout != nullptr)
             {
-              results_show_qsegout_one(fp_qsegout,
+              results_show_qsegout_one(state.fp_qsegout,
                                        hp,
                                        query_head,
                                        qsequence,
@@ -191,17 +195,17 @@ auto allpairs_output_results(int hit_count,
                                        qsequence_rc);
             }
 
-          if (fp_tsegout != nullptr)
+          if (state.fp_tsegout != nullptr)
             {
-              results_show_tsegout_one(fp_tsegout,
+              results_show_tsegout_one(state.fp_tsegout,
                                        hp);
             }
 
-          if (fp_uc != nullptr)
+          if (state.fp_uc != nullptr)
             {
               if ((t == 0) or (opt_uc_allhits != 0))
                 {
-                  results_show_uc_one(fp_uc,
+                  results_show_uc_one(state.fp_uc,
                                       hp,
                                       query_head,
                                       qseqlen,
@@ -209,9 +213,9 @@ auto allpairs_output_results(int hit_count,
                 }
             }
 
-          if (fp_userout != nullptr)
+          if (state.fp_userout != nullptr)
             {
-              results_show_userout_one(fp_userout,
+              results_show_userout_one(state.fp_userout,
                                        hp,
                                        query_head,
                                        qsequence,
@@ -219,9 +223,9 @@ auto allpairs_output_results(int hit_count,
                                        qsequence_rc);
             }
 
-          if (fp_blast6out != nullptr)
+          if (state.fp_blast6out != nullptr)
             {
-              results_show_blast6out_one(fp_blast6out,
+              results_show_blast6out_one(state.fp_blast6out,
                                          hp,
                                          query_head,
                                          qseqlen);
@@ -230,9 +234,9 @@ auto allpairs_output_results(int hit_count,
     }
   else
     {
-      if (fp_uc != nullptr)
+      if (state.fp_uc != nullptr)
         {
-          results_show_uc_one(fp_uc,
+          results_show_uc_one(state.fp_uc,
                               nullptr,
                               query_head,
                               qseqlen,
@@ -241,9 +245,9 @@ auto allpairs_output_results(int hit_count,
 
       if (opt_output_no_hits != 0)
         {
-          if (fp_userout != nullptr)
+          if (state.fp_userout != nullptr)
             {
-              results_show_userout_one(fp_userout,
+              results_show_userout_one(state.fp_userout,
                                        nullptr,
                                        query_head,
                                        qsequence,
@@ -251,9 +255,9 @@ auto allpairs_output_results(int hit_count,
                                        qsequence_rc);
             }
 
-          if (fp_blast6out != nullptr)
+          if (state.fp_blast6out != nullptr)
             {
-              results_show_blast6out_one(fp_blast6out,
+              results_show_blast6out_one(state.fp_blast6out,
                                          nullptr,
                                          query_head,
                                          qseqlen);
@@ -263,17 +267,17 @@ auto allpairs_output_results(int hit_count,
 
   if (hit_count != 0)
     {
-      ++count_matched;
+      ++state.count_matched;
       if (opt_matched != nullptr)
         {
-          fasta_print_general(fp_matched,
+          fasta_print_general(state.fp_matched,
                               nullptr,
                               qsequence,
                               qseqlen,
                               query_head,
                               static_cast<int>(std::strlen(query_head)),
                               0,
-                              count_matched,
+                              state.count_matched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
                               0);
@@ -281,17 +285,17 @@ auto allpairs_output_results(int hit_count,
     }
   else
     {
-      ++count_notmatched;
+      ++state.count_notmatched;
       if (opt_notmatched != nullptr)
         {
-          fasta_print_general(fp_notmatched,
+          fasta_print_general(state.fp_notmatched,
                               nullptr,
                               qsequence,
                               qseqlen,
                               query_head,
                               static_cast<int>(std::strlen(query_head)),
                               0,
-                              count_notmatched,
+                              state.count_notmatched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
                               0);
@@ -300,13 +304,13 @@ auto allpairs_output_results(int hit_count,
 }
 
 
-auto allpairs_thread_run(uint64_t t) -> void
+static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> void
 {
   (void) t;
 
   struct searchinfo_s searchinfo;
 
-  searchinfo.hits_v.resize(static_cast<std::size_t>(seqcount));
+  searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
 
   searchinfo.s = search16_init(static_cast<CELL>(opt_match),
@@ -332,7 +336,7 @@ auto allpairs_thread_run(uint64_t t) -> void
 
 
   /* allocate memory for alignment results */
-  auto const maxhits = static_cast<std::size_t>(seqcount);
+  auto const maxhits = static_cast<std::size_t>(state.seqcount);
   std::vector<unsigned int> pseqnos(maxhits);
   std::vector<CELL> pscores(maxhits);
   std::vector<unsigned short> paligned(maxhits);
@@ -346,13 +350,13 @@ auto allpairs_thread_run(uint64_t t) -> void
 
   while (cont)
     {
-      std::unique_lock<std::mutex> input_lock(mutex_input);
+      std::unique_lock<std::mutex> input_lock(state.mutex_input);
 
-      int const query_no = queries;
+      int const query_no = state.queries;
 
-      if (query_no < seqcount)
+      if (query_no < state.seqcount)
         {
-          ++queries;
+          ++state.queries;
 
           /* let other threads read input */
           input_lock.unlock();
@@ -369,7 +373,7 @@ auto allpairs_thread_run(uint64_t t) -> void
           searchinfo.accepts = 0;
           searchinfo.hit_count = 0;
 
-          for (int target = searchinfo.query_no + 1; target < seqcount; target++)
+          for (int target = searchinfo.query_no + 1; target < state.seqcount; target++)
             {
               if ((opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
                 {
@@ -489,10 +493,11 @@ auto allpairs_thread_run(uint64_t t) -> void
             }
 
           /* lock mutex for update of global data and output */
-          std::unique_lock<std::mutex> output_lock(mutex_output);
+          std::unique_lock<std::mutex> output_lock(state.mutex_output);
 
           /* output results */
-          allpairs_output_results(searchinfo.accepts,
+          allpairs_output_results(state,
+                                  searchinfo.accepts,
                                   finalhits.data(),
                                   searchinfo.query_head,
                                   searchinfo.qseqlen,
@@ -502,12 +507,12 @@ auto allpairs_thread_run(uint64_t t) -> void
           /* update stats */
           if (searchinfo.accepts != 0)
             {
-              ++qmatches;
+              ++state.qmatches;
             }
 
           /* show progress */
-          progress += seqcount - query_no - 1;
-          progress_update(static_cast<uint64_t>(progress));
+          state.progress += state.seqcount - query_no - 1;
+          progress_update(static_cast<uint64_t>(state.progress));
 
           output_lock.unlock();
 
@@ -533,18 +538,38 @@ auto allpairs_thread_run(uint64_t t) -> void
 }
 
 
-auto allpairs_thread_worker_run() -> void
+static auto allpairs_thread_worker_run(struct allpairs_state_s & state) -> void
 {
   /* run the worker pool; each worker keeps its own search state and
      processes queries until the shared counter is exhausted */
   ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                            allpairs_thread_run);
+                            [&state](uint64_t const t)
+                            { allpairs_thread_run(state, t); });
   threadrunner.run();
 }
 
 
 auto allpairs_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
+  /* Per-invocation state, owned here and threaded through the worker pool (E4).
+     Aliased by reference so the body below reads unchanged; the workers receive
+     `state`, not file-static globals. */
+  struct allpairs_state_s state;
+  auto & fp_alnout = state.fp_alnout;
+  auto & fp_samout = state.fp_samout;
+  auto & fp_userout = state.fp_userout;
+  auto & fp_blast6out = state.fp_blast6out;
+  auto & fp_uc = state.fp_uc;
+  auto & fp_fastapairs = state.fp_fastapairs;
+  auto & fp_qsegout = state.fp_qsegout;
+  auto & fp_tsegout = state.fp_tsegout;
+  auto & fp_matched = state.fp_matched;
+  auto & fp_notmatched = state.fp_notmatched;
+  auto & seqcount = state.seqcount;
+  auto & qmatches = state.qmatches;
+  auto & queries = state.queries;
+  auto & progress = state.progress;
+
   /* open output files */
 
   fp_alnout = open_optional_output(opt_alnout, "alignment");
@@ -587,7 +612,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   progress = 0;
   progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));
-  allpairs_thread_worker_run();
+  allpairs_thread_worker_run(state);
   progress_done();
 
   if (not parameters.opt_quiet)
