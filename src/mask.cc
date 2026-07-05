@@ -196,21 +196,29 @@ auto dust(char * seq, int len) -> void
 }
 
 
-static std::mutex mutex;
-static uint64_t nextseq = 0;
-static uint64_t seqcount = 0;
+/* Per-invocation work-distribution state for dust_all(). This was three
+   file-static globals (mutex / nextseq / seqcount); folding them into a local
+   struct passed to the workers makes dust_all() reentrant and removes the
+   shared mutable state, so a library caller can mask across sessions (or a
+   future caller concurrently) without the counters bleeding between runs (E4). */
+struct dust_state_s
+{
+  std::mutex mutex;
+  uint64_t nextseq = 0;
+  uint64_t seqcount = 0;
+};
 
 
-auto dust_all_worker(uint64_t nth_thread) -> void
+static auto dust_all_worker(struct dust_state_s & state, uint64_t nth_thread) -> void
 {
   (void) nth_thread; // not used, but required by the ThreadRunner signature
   while (true)
     {
-      std::unique_lock<std::mutex> lock(mutex);
-      const auto seqno = nextseq;
-      if (seqno < seqcount)
+      std::unique_lock<std::mutex> lock(state.mutex);
+      const auto seqno = state.nextseq;
+      if (seqno < state.seqcount)
         {
-          ++nextseq;
+          ++state.nextseq;
           progress_update(seqno);
           lock.unlock();
           dust(db_getsequence(seqno),
@@ -227,13 +235,14 @@ auto dust_all_worker(uint64_t nth_thread) -> void
 
 auto dust_all() -> void
 {
-  nextseq = 0;
-  seqcount = db_getsequencecount();
-  progress_init("Masking", seqcount);
+  struct dust_state_s state;
+  state.seqcount = db_getsequencecount();
+  progress_init("Masking", state.seqcount);
 
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                              dust_all_worker);
+                              [&state](uint64_t const nth_thread)
+                              { dust_all_worker(state, nth_thread); });
     threadrunner.run();
   }
 
@@ -281,7 +290,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   db_read(parameters.opt_maskfasta, 0);
   show_rusage();
 
-  seqcount = db_getsequencecount();
+  uint64_t const seqcount = db_getsequencecount();
 
   if (parameters.opt_qmask == MASK_DUST)
     {
@@ -326,7 +335,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  seqcount = db_getsequencecount();
+  uint64_t const seqcount = db_getsequencecount();
 
   if (parameters.opt_qmask == MASK_DUST)
     {
