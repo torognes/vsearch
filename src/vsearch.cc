@@ -372,6 +372,15 @@ namespace {
 
 static std::mutex session_mutex;
 
+/* Tracks whether vsearch_apply_defaults_fixups() has already converted the raw
+   opt_gap_open_* penalties into their extension-adjusted form. It is reset by
+   vsearch_init_defaults() (which restores the raw values), so the adjustment is
+   applied exactly once per session and a repeated fixups call without an
+   intervening init is idempotent instead of double-subtracting (C1d). It MUST
+   be reset in init_defaults: a flag that is never reset would permanently skip
+   the adjustment after the first session. */
+static bool gap_penalties_adjusted = false;
+
 auto vsearch_api_version() -> int
 {
   return VSEARCH_API_VERSION;
@@ -485,6 +494,7 @@ auto vsearch_init_defaults() -> void
   opt_gap_open_target_interior = 20;
   opt_gap_open_target_left = 2;
   opt_gap_open_target_right = 2;
+  gap_penalties_adjusted = false;  /* raw values restored above; see fixups (C1d) */
   opt_gzip_decompress = false;
   opt_hardmask = 0;
   opt_id = -1.0;
@@ -716,14 +726,22 @@ auto vsearch_apply_defaults_fixups() -> void
 
   /* Adjust gap-open penalties: subtract the first-nucleotide extension cost.
      The rest of the code assumes gap_open does NOT include the first
-     extension. Safe to call repeatedly — vsearch_init_defaults() resets
-     opt_gap_open_* to their raw (pre-adjustment) values each time. */
-  opt_gap_open_query_left -= opt_gap_extension_query_left;
-  opt_gap_open_target_left -= opt_gap_extension_target_left;
-  opt_gap_open_query_interior -= opt_gap_extension_query_interior;
-  opt_gap_open_target_interior -= opt_gap_extension_target_interior;
-  opt_gap_open_query_right -= opt_gap_extension_query_right;
-  opt_gap_open_target_right -= opt_gap_extension_target_right;
+     extension. The adjustment mutates opt_gap_open_* in place, so it must run
+     exactly once per set of raw values. The gap_penalties_adjusted guard makes
+     a repeated fixups call (e.g. override an option, call fixups again without
+     re-init) idempotent rather than double-subtracting; vsearch_init_defaults()
+     restores the raw values and clears the guard, so the next session adjusts
+     afresh (C1d). */
+  if (not gap_penalties_adjusted)
+    {
+      opt_gap_open_query_left -= opt_gap_extension_query_left;
+      opt_gap_open_target_left -= opt_gap_extension_target_left;
+      opt_gap_open_query_interior -= opt_gap_extension_query_interior;
+      opt_gap_open_target_interior -= opt_gap_extension_target_interior;
+      opt_gap_open_query_right -= opt_gap_extension_query_right;
+      opt_gap_open_target_right -= opt_gap_extension_target_right;
+      gap_penalties_adjusted = true;
+    }
 
   /* Note: opt_minsize is NOT resolved here — it has command-specific
      defaults (1 for most commands, 8 for cluster_unoise).
