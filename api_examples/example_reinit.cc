@@ -120,6 +120,102 @@ static session_results run_session(
 }
 
 
+/* Adversarial global-state reset check (C1a regression net).
+
+   Snapshot the defaults from a fresh init, garbage-fill a representative set of
+   opt_* globals spanning every type (including the four that C1a fixed:
+   opt_notmatchedfq, opt_bzip2_decompress, opt_clusterout_id/sort, and the
+   tri-state opt_strand from the C1b drift hazard), then call
+   vsearch_init_defaults() again and assert every one is reset. Generalizes the
+   "init forgot to reset X" bug: a global added without a matching reset, or a
+   dropped reset, is caught here as long as it is in one of the arrays below.
+   The garbage values are chosen to differ from every default so a missing
+   reset cannot coincidentally pass. Returns the number of failures. */
+static int test_global_state_reset() {
+    char ** const char_globals[] = {
+        &opt_notmatchedfq, &opt_notmatched, &opt_matched,
+        &opt_fastaout, &opt_alnout, &opt_userout, &opt_output };
+    bool * const bool_globals[] = {
+        &opt_clusterout_id, &opt_clusterout_sort, &opt_bzip2_decompress,
+        &opt_gzip_decompress, &opt_sizein, &opt_sizeout };
+    int64_t * const i64_globals[] = {
+        &opt_maxaccepts, &opt_wordlength, &opt_strand, &opt_iddef, &opt_topn };
+    double * const dbl_globals[] = {
+        &opt_id, &opt_weak_id, &opt_xn, &opt_abskew };
+
+    char * char_snap[sizeof(char_globals) / sizeof(char_globals[0])];
+    bool bool_snap[sizeof(bool_globals) / sizeof(bool_globals[0])];
+    int64_t i64_snap[sizeof(i64_globals) / sizeof(i64_globals[0])];
+    double dbl_snap[sizeof(dbl_globals) / sizeof(dbl_globals[0])];
+    const size_t nc = sizeof(char_globals) / sizeof(char_globals[0]);
+    const size_t nb = sizeof(bool_globals) / sizeof(bool_globals[0]);
+    const size_t ni = sizeof(i64_globals) / sizeof(i64_globals[0]);
+    const size_t nd = sizeof(dbl_globals) / sizeof(dbl_globals[0]);
+
+    /* 1. snapshot the defaults */
+    vsearch_init_defaults();
+    for (size_t i = 0; i < nc; i++) { char_snap[i] = *char_globals[i]; }
+    for (size_t i = 0; i < nb; i++) { bool_snap[i] = *bool_globals[i]; }
+    for (size_t i = 0; i < ni; i++) { i64_snap[i] = *i64_globals[i]; }
+    for (size_t i = 0; i < nd; i++) { dbl_snap[i] = *dbl_globals[i]; }
+    vsearch_session_end();
+
+    /* 2. garbage-fill (each value differs from the corresponding default) */
+    static char junk[] = "garbage-not-a-default";
+    for (size_t i = 0; i < nc; i++) { *char_globals[i] = junk; }
+    for (size_t i = 0; i < nb; i++) { *bool_globals[i] = true; }
+    for (size_t i = 0; i < ni; i++) { *i64_globals[i] = 0x5A5A5A5A; }
+    for (size_t i = 0; i < nd; i++) { *dbl_globals[i] = -99999.0; }
+
+    /* 3. re-init and assert every one is reset to its default */
+    vsearch_init_defaults();
+    int failures = 0;
+    for (size_t i = 0; i < nc; i++) {
+        if (*char_globals[i] != char_snap[i]) {
+            std::fprintf(stderr, "FAIL: char opt_* global #%zu not reset by init_defaults\n", i);
+            ++failures;
+        }
+    }
+    for (size_t i = 0; i < nb; i++) {
+        if (*bool_globals[i] != bool_snap[i]) {
+            std::fprintf(stderr, "FAIL: bool opt_* global #%zu not reset by init_defaults\n", i);
+            ++failures;
+        }
+    }
+    for (size_t i = 0; i < ni; i++) {
+        if (*i64_globals[i] != i64_snap[i]) {
+            std::fprintf(stderr, "FAIL: int64 opt_* global #%zu not reset by init_defaults\n", i);
+            ++failures;
+        }
+    }
+    for (size_t i = 0; i < nd; i++) {
+        if (*dbl_globals[i] != dbl_snap[i]) {
+            std::fprintf(stderr, "FAIL: double opt_* global #%zu not reset by init_defaults\n", i);
+            ++failures;
+        }
+    }
+    vsearch_session_end();
+    return failures;
+}
+
+
+/* Version-consistency check: the accessors must agree with the compile-time
+   macros. This is the one public entry point with no CLI equivalent to diff
+   against, so it has no golden test. */
+static int test_api_version() {
+    int failures = 0;
+    if (vsearch_api_version() != VSEARCH_API_VERSION) {
+        std::fprintf(stderr, "FAIL: vsearch_api_version() != VSEARCH_API_VERSION\n");
+        ++failures;
+    }
+    if (std::strcmp(vsearch_api_version_string(), VSEARCH_API_VERSION_STRING) != 0) {
+        std::fprintf(stderr, "FAIL: vsearch_api_version_string() != VSEARCH_API_VERSION_STRING\n");
+        ++failures;
+    }
+    return failures;
+}
+
+
 int main() {
     /* Load test data once */
     std::vector<std::string> ref_labels, ref_seqs;
@@ -281,33 +377,23 @@ int main() {
     }
     std::fprintf(stderr, "PASS: apply_defaults_fixups is idempotent (gap-open stays 18)\n");
 
-    /* === Test 4: init_defaults() resets behavioral globals (C1a) ===
-       Values left set by a previous session must not leak into the next.
-       opt_notmatchedfq in particular was never reset (a duplicated
-       opt_notmatched assignment took its slot). */
+    /* === Test 4: adversarial global-state reset (C1a) ===
+       Garbage-fill a representative set of opt_* globals across every type,
+       re-init, and assert all are reset. Supersedes the earlier hand-picked
+       four-global check (which those globals are a subset of). */
     std::fprintf(stderr, "Global-reset test...\n");
-    static char stale_path[] = "stale-notmatchedfq";
-    opt_clusterout_id = true;
-    opt_clusterout_sort = true;
-    opt_bzip2_decompress = true;
-    opt_notmatchedfq = stale_path;
-    vsearch_init_defaults();
-    bool const globals_reset = (opt_clusterout_id == false) &&
-                               (opt_clusterout_sort == false) &&
-                               (opt_bzip2_decompress == false) &&
-                               (opt_notmatchedfq == nullptr);
-    vsearch_session_end();
-    if (!globals_reset) {
-        std::fprintf(stderr,
-            "FAIL: init_defaults did not reset clusterout_id=%d clusterout_sort=%d "
-            "bzip2_decompress=%d notmatchedfq=%p\n",
-            static_cast<int>(opt_clusterout_id),
-            static_cast<int>(opt_clusterout_sort),
-            static_cast<int>(opt_bzip2_decompress),
-            static_cast<void *>(opt_notmatchedfq));
+    if (test_global_state_reset() != 0) {
+        std::fprintf(stderr, "FAIL: init_defaults did not reset all sampled globals\n");
         return 1;
     }
-    std::fprintf(stderr, "PASS: init_defaults resets behavioral globals\n");
+    std::fprintf(stderr, "PASS: init_defaults resets sampled opt_* globals (all types)\n");
+
+    /* === Test 5: API version consistency === */
+    std::fprintf(stderr, "API-version test...\n");
+    if (test_api_version() != 0) {
+        return 1;
+    }
+    std::fprintf(stderr, "PASS: vsearch_api_version()/string match the macros\n");
 
     return 0;
 }
