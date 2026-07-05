@@ -71,6 +71,7 @@
 #include "otutable.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/make_unique.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
@@ -253,8 +254,8 @@ struct cluster_work_pool_s
         cluster_query_init(&si, seqcount, tophits);
         si.strand = 1;
       }
-    runner.reset(new ThreadRunner(static_cast<std::size_t>(nthreads),
-                                  [this](uint64_t const t) { worker(t); }));
+    runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
+                                       [this](uint64_t const t) { worker(t); });
   }
 
   ~cluster_work_pool_s()
