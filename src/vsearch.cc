@@ -1440,19 +1440,19 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
 
   if (parameters.opt_cluster_fast != nullptr)
     {
-      cluster_fast(cmdline, prog_header.data());
+      cluster_fast(cmdline, prog_header.data(), parameters);
     }
   else if (parameters.opt_cluster_smallmem != nullptr)
     {
-      cluster_smallmem(cmdline, prog_header.data());
+      cluster_smallmem(cmdline, prog_header.data(), parameters);
     }
   else if (parameters.opt_cluster_size != nullptr)
     {
-      cluster_size(cmdline, prog_header.data());
+      cluster_size(cmdline, prog_header.data(), parameters);
     }
   else if (parameters.opt_cluster_unoise != nullptr)
     {
-      cluster_unoise(cmdline, prog_header.data());
+      cluster_unoise(cmdline, prog_header.data(), parameters);
     }
 }
 

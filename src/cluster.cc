@@ -107,6 +107,12 @@ using clusterinfo_t = struct clusterinfo_s;
    they do not use this struct. */
 struct cluster_cli_state_s
 {
+  /* the run configuration, threaded through the CLI-path helpers instead of the
+     opt_* globals (E1/F3); set once at construction, read-only thereafter. The
+     helpers shared with the library path (cluster_query_init, evaluate_extra_hits,
+     free_hit_alignments, the searchcore) keep reading the globals — the library
+     session/batch entries have no Parameters. */
+  struct Parameters const & parameters;
   clusterinfo_t * clusterinfo = nullptr;
   int clusters = 0;
   int count_matched = 0;
@@ -125,6 +131,8 @@ struct cluster_cli_state_s
   std::FILE * fp_biomout = nullptr;
   std::FILE * fp_qsegout = nullptr;
   std::FILE * fp_tsegout = nullptr;
+
+  explicit cluster_cli_state_s(struct Parameters const & params) : parameters(params) {}
 };
 
 /* per-thread slice of queries assigned for the current round; owned by
@@ -315,27 +323,27 @@ struct cluster_work_pool_s
 };
 
 
-auto relabel_otu(int clusterno, char const * sequence, int seqlen) -> char *
+auto relabel_otu(int clusterno, char const * sequence, int seqlen, struct Parameters const & parameters) -> char *
 {
   char * label = nullptr;
-  if (opt_relabel != nullptr)
+  if (parameters.opt_relabel != nullptr)
     {
-      int const size = static_cast<int>(std::strlen(opt_relabel)) + 21;
+      int const size = static_cast<int>(std::strlen(parameters.opt_relabel)) + 21;
       label = static_cast<char *>(xmalloc(static_cast<std::size_t>(size)));
-      std::snprintf(label, static_cast<std::size_t>(size), "%s%d", opt_relabel, clusterno + 1);
+      std::snprintf(label, static_cast<std::size_t>(size), "%s%d", parameters.opt_relabel, clusterno + 1);
     }
-  else if (opt_relabel_self)
+  else if (parameters.opt_relabel_self)
     {
       int const size = seqlen + 1;
       label = static_cast<char *>(xmalloc(static_cast<std::size_t>(size)));
       std::snprintf(label, static_cast<std::size_t>(size), "%.*s", seqlen, sequence);
     }
-  else if (opt_relabel_sha1)
+  else if (parameters.opt_relabel_sha1)
     {
       label = static_cast<char *>(xmalloc(len_hex_dig_sha1));
       get_hex_seq_digest_sha1(label, sequence, seqlen);
     }
-  else if (opt_relabel_md5)
+  else if (parameters.opt_relabel_md5)
     {
       label = static_cast<char *>(xmalloc(len_hex_dig_md5));
       get_hex_seq_digest_md5(label, sequence, seqlen);
@@ -355,13 +363,14 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
 {
   ++state.count_matched;
 
-  if ((opt_otutabout != nullptr) or (opt_mothur_shared_out != nullptr) or (opt_biomout != nullptr))
+  if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
     {
-      if ((opt_relabel != nullptr) or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
+      if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno,
                                      db_getsequence(static_cast<uint64_t>(best->target)),
-                                     static_cast<int>(db_getsequencelen(static_cast<uint64_t>(best->target))));
+                                     static_cast<int>(db_getsequencelen(static_cast<uint64_t>(best->target))),
+                                     state.parameters);
           otutable_add(query_head, label, qsize);
           xfree(label);
         }
@@ -432,7 +441,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                  qseqlen);
     }
 
-  if (opt_matched != nullptr)
+  if (state.parameters.opt_matched != nullptr)
     {
       fasta_print_general(state.fp_matched,
                           nullptr,
@@ -459,11 +468,11 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
 {
   ++state.count_notmatched;
 
-  if ((opt_otutabout != nullptr) or (opt_mothur_shared_out != nullptr) or (opt_biomout != nullptr))
+  if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
     {
-      if ((opt_relabel != nullptr) or opt_relabel_self or opt_relabel_sha1 or opt_relabel_md5)
+      if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
-          char * label = relabel_otu(clusterno, qsequence, qseqlen);
+          char * label = relabel_otu(clusterno, qsequence, qseqlen, state.parameters);
           otutable_add(query_head, label, qsize);
           xfree(label);
         }
@@ -473,19 +482,19 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
         }
     }
 
-  if (opt_uc != nullptr)
+  if (state.parameters.opt_uc != nullptr)
     {
       std::fprintf(state.fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", state.clusters, qseqlen);
       header_fprint_strip(state.fp_uc,
                           query_head,
                           static_cast<int>(std::strlen(query_head)),
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
+                          state.parameters.opt_xsize,
+                          state.parameters.opt_xee,
+                          state.parameters.opt_xlength);
       std::fprintf(state.fp_uc, "\t*\n");
     }
 
-  if (opt_output_no_hits != 0)
+  if (state.parameters.opt_output_no_hits != 0)
     {
       if (state.fp_userout != nullptr)
         {
@@ -500,7 +509,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
         }
     }
 
-  if (opt_notmatched != nullptr)
+  if (state.parameters.opt_notmatched != nullptr)
     {
       fasta_print_general(state.fp_notmatched,
                           nullptr,
@@ -810,12 +819,12 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
                            int const seqcount, int const tophits) -> void
 {
   constexpr static int queries_per_thread = 1;
-  const int max_queries = queries_per_thread * static_cast<int>(opt_threads);
+  const int max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
 
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
-  cluster_work_pool_s pool(static_cast<int>(opt_threads), seqcount, tophits,
-                           opt_strand);
+  cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
+                           state.parameters.opt_strand);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -848,7 +857,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
             {
               int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
 
-              if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
+              if ((state.parameters.opt_cluster_smallmem != nullptr) and (state.parameters.opt_usersort == 0) and (length > lastlength))
                 {
                   fatal("Sequences not sorted by length and --usersort not specified.");
                 }
@@ -858,7 +867,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               si_plus[i].query_no = seqno;
               si_plus[i].strand = 0;
 
-              if (opt_strand)
+              if (state.parameters.opt_strand)
                 {
                   si_minus[i].query_no = seqno;
                   si_minus[i].strand = 1;
@@ -878,9 +887,9 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
       for (int i = 0; i < queries; i++)
         {
           struct searchinfo_s * si_p = si_plus + i;
-          struct searchinfo_s * si_m = opt_strand ? si_minus + i : nullptr;
+          struct searchinfo_s * si_m = state.parameters.opt_strand ? si_minus + i : nullptr;
 
-          for (int s = 0; s < number_of_strands(opt_strand); s++)
+          for (int s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
@@ -889,7 +898,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
           /* find best hit */
           struct hit * best = nullptr;
-          if (opt_sizeorder)
+          if (state.parameters.opt_sizeorder)
             {
               best = search_findbest2_bysize(si_p, si_m);
             }
@@ -936,7 +945,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               state.clusterinfo[myseqno].strand = 0;
 
               /* add current sequence to database */
-              dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(opt_qmask));
+              dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(state.parameters.opt_qmask));
 
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
@@ -968,7 +977,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_m {{}};
 
   cluster_query_init(si_p.data(), seqcount, tophits);
-  if (opt_strand)
+  if (state.parameters.opt_strand)
     {
       cluster_query_init(si_m.data(), seqcount, tophits);
     }
@@ -980,7 +989,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
     {
       int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
 
-      if ((opt_cluster_smallmem != nullptr) and (opt_usersort == 0) and (length > lastlength))
+      if ((state.parameters.opt_cluster_smallmem != nullptr) and (state.parameters.opt_usersort == 0) and (length > lastlength))
         {
           fatal("Sequences not sorted by length and --usersort not specified.");
         }
@@ -991,7 +1000,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
       si_p[0].strand = 0;
       cluster_query_core(si_p.data());
 
-      if (opt_strand)
+      if (state.parameters.opt_strand)
         {
           si_m[0].query_no = seqno;
           si_m[0].strand = 1;
@@ -999,7 +1008,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
         }
 
       struct hit * best = nullptr;
-      if (opt_sizeorder)
+      if (state.parameters.opt_sizeorder)
         {
           best = search_findbest2_bysize(si_p.data(), si_m.data());
         }
@@ -1030,7 +1039,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.clusterinfo[seqno].clusterno = state.clusters;
           state.clusterinfo[seqno].cigar = nullptr;
           state.clusterinfo[seqno].strand = 0;
-          dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(opt_qmask));
+          dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(state.parameters.opt_qmask));
           cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head,
                                      si_p[0].qseqlen,
@@ -1047,7 +1056,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   progress_done();
 
   cluster_query_exit(si_p.data());
-  if (opt_strand)
+  if (state.parameters.opt_strand)
     {
       cluster_query_exit(si_m.data());
     }
@@ -1056,9 +1065,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
 auto cluster(char const * dbname,
              char const * cmdline,
-             char const * progheader) -> void
+             char const * progheader,
+             struct Parameters const & parameters) -> void
 {
-  cluster_cli_state_s state;
+  cluster_cli_state_s state(parameters);
   auto & clusterinfo = state.clusterinfo;
   auto & clusters = state.clusters;
   auto & fp_centroids = state.fp_centroids;
@@ -1076,27 +1086,27 @@ auto cluster(char const * dbname,
   auto & fp_qsegout = state.fp_qsegout;
   auto & fp_tsegout = state.fp_tsegout;
 
-  fp_centroids = open_optional_output(opt_centroids, "centroids");
-  fp_uc = open_optional_output(opt_uc, "uc");
+  fp_centroids = open_optional_output(parameters.opt_centroids, "centroids");
+  fp_uc = open_optional_output(parameters.opt_uc, "uc");
 
-  fp_alnout = open_optional_output(opt_alnout, "alignment");
+  fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", cmdline);
       std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  fp_samout = open_optional_output(opt_samout, "SAM");
-  fp_userout = open_optional_output(opt_userout, "user-defined");
-  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
-  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
-  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
-  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
-  fp_matched = open_optional_output(opt_matched, "matched");
-  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
-  fp_otutabout = open_optional_output(opt_otutabout, "OTU table (text format)");
-  fp_mothur_shared_out = open_optional_output(opt_mothur_shared_out, "OTU table (mothur format)");
-  fp_biomout = open_optional_output(opt_biomout, "OTU table (biom 1.0 format)");
+  fp_samout = open_optional_output(parameters.opt_samout, "SAM");
+  fp_userout = open_optional_output(parameters.opt_userout, "user-defined");
+  fp_blast6out = open_optional_output(parameters.opt_blast6out, "blast6-like");
+  fp_fastapairs = open_optional_output(parameters.opt_fastapairs, "fastapairs");
+  fp_qsegout = open_optional_output(parameters.opt_qsegout, "qsegout");
+  fp_tsegout = open_optional_output(parameters.opt_tsegout, "tsegout");
+  fp_matched = open_optional_output(parameters.opt_matched, "matched");
+  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
+  fp_otutabout = open_optional_output(parameters.opt_otutabout, "OTU table (text format)");
+  fp_mothur_shared_out = open_optional_output(parameters.opt_mothur_shared_out, "OTU table (mothur format)");
+  fp_biomout = open_optional_output(parameters.opt_biomout, "OTU table (biom 1.0 format)");
 
   db_read(dbname, 0);
 
@@ -1104,11 +1114,11 @@ auto cluster(char const * dbname,
 
   results_show_samheader(fp_samout, cmdline, dbname);
 
-  if (opt_qmask == MASK_DUST)
+  if (parameters.opt_qmask == MASK_DUST)
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
+  else if ((parameters.opt_qmask == MASK_SOFT) and (parameters.opt_hardmask))
     {
       hardmask_all();
     }
@@ -1117,19 +1127,24 @@ auto cluster(char const * dbname,
 
   int const seqcount = static_cast<int>(db_getsequencecount());
 
-  if (opt_cluster_fast != nullptr)
+  if (parameters.opt_cluster_fast != nullptr)
     {
       db_sortbylength();
     }
-  else if ((opt_cluster_size != nullptr) or (opt_cluster_unoise != nullptr))
+  else if ((parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
     {
       db_sortbyabundance();
     }
 
-  dbindex_prepare(1, static_cast<int>(opt_qmask));
+  dbindex_prepare(1, static_cast<int>(parameters.opt_qmask));
 
   /* tophits = the maximum number of hits we need to store */
 
+  /* opt_maxrejects / opt_maxaccepts stay global reads: clamped to the database
+     size here at run time and read in that clamped form by cluster_core_* and
+     the shared evaluate_extra_hits; opt_wordlength likewise stays global
+     (runtime-adjustable elsewhere via udb_read). E1/F3, deferred to the
+     shared-infra phase. */
   if ((opt_maxrejects == 0) or (opt_maxrejects > seqcount))
     {
       opt_maxrejects = seqcount;
@@ -1146,7 +1161,7 @@ auto cluster(char const * dbname,
   std::vector<clusterinfo_t> clusterinfo_v(static_cast<std::size_t>(seqcount));
   clusterinfo = clusterinfo_v.data();
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       uint64_t const slots = 1ULL << (static_cast<uint64_t>(opt_wordlength) << 1ULL);
       std::fprintf(fp_log, "\n");
@@ -1162,7 +1177,7 @@ auto cluster(char const * dbname,
       std::fprintf(fp_log, "\n");
     }
 
-  if (opt_threads == 1)
+  if (parameters.opt_threads == 1)
     {
       cluster_core_serial(state, seqcount, tophits);
     }
@@ -1182,7 +1197,7 @@ auto cluster(char const * dbname,
       int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
       int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
       cluster_abundance_v[static_cast<std::size_t>(clusterno)] +=
-        opt_sizein ? static_cast<int64_t>(db_getabundance(static_cast<uint64_t>(seqno))) : 1;
+        parameters.opt_sizein ? static_cast<int64_t>(db_getabundance(static_cast<uint64_t>(seqno))) : 1;
       ++cluster_size_v[static_cast<std::size_t>(clusterno)];
     }
 
@@ -1203,7 +1218,7 @@ auto cluster(char const * dbname,
   /* The centroid sequence must be the first in each cluster. */
 
   progress_init("Sorting clusters", static_cast<uint64_t>(clusters));
-  if (opt_clusterout_sort)
+  if (parameters.opt_clusterout_sort)
     {
       /* by cluster abundance (descending), then cluster number, then seqno.
          The seqno tiebreak is a strict total order, so this matches the
@@ -1234,8 +1249,8 @@ auto cluster(char const * dbname,
   std::FILE * fp_clusters = nullptr;
   static constexpr auto space_for_cluster_id = 25;  // up to 25 digits
   std::vector<char> fn_clusters;
-  if (opt_clusters != nullptr) {
-    fn_clusters.reserve(std::strlen(opt_clusters) + space_for_cluster_id);
+  if (parameters.opt_clusters != nullptr) {
+    fn_clusters.reserve(std::strlen(parameters.opt_clusters) + space_for_cluster_id);
   }
 
   int lastcluster = -1;
@@ -1252,7 +1267,7 @@ auto cluster(char const * dbname,
           /* performed with first sequence only in each cluster */
           /* the first sequence is always the centroid */
 
-          if (opt_centroids != nullptr)
+          if (parameters.opt_centroids != nullptr)
             {
               fasta_print_general(fp_centroids,
                                   nullptr,
@@ -1264,12 +1279,12 @@ auto cluster(char const * dbname,
                                   clusterno + 1,
                                   -1.0,
                                   -1,
-                                  opt_clusterout_id ? clusterno : -1,
+                                  parameters.opt_clusterout_id ? clusterno : -1,
                                   nullptr, 0.0,
                                   db_getabundance(static_cast<uint64_t>(seqno)));
             }
 
-          if (opt_uc != nullptr)
+          if (parameters.opt_uc != nullptr)
             {
               std::fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
                       clusterno,
@@ -1277,13 +1292,13 @@ auto cluster(char const * dbname,
               header_fprint_strip(fp_uc,
                                   db_getheader(static_cast<uint64_t>(seqno)),
                                   static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
-                                  opt_xsize,
-                                  opt_xee,
-                                  opt_xlength);
+                                  parameters.opt_xsize,
+                                  parameters.opt_xee,
+                                  parameters.opt_xlength);
               std::fprintf(fp_uc, "\t*\n");
             }
 
-          if (opt_clusters != nullptr)
+          if (parameters.opt_clusters != nullptr)
             {
               /* close previous (except for first time) and open new file */
               if (lastcluster != -1)
@@ -1295,7 +1310,7 @@ auto cluster(char const * dbname,
               std::snprintf(fn_clusters.data(),
                        fn_clusters.capacity(),
                        "%s%d",
-                       opt_clusters,
+                       parameters.opt_clusters,
                        clusterno);
               fp_clusters = fopen_output(fn_clusters.data());
               if (fp_clusters == nullptr)
@@ -1309,7 +1324,7 @@ auto cluster(char const * dbname,
 
       /* performed for all sequences */
 
-      if (opt_clusters != nullptr)
+      if (parameters.opt_clusters != nullptr)
         {
           ++ordinal;
           fasta_print_db_relabel(fp_clusters, static_cast<uint64_t>(seqno), ordinal);
@@ -1321,7 +1336,7 @@ auto cluster(char const * dbname,
   if (lastcluster != -1)
     {
       /* performed with the last sequence */
-      if (opt_clusters != nullptr)
+      if (parameters.opt_clusters != nullptr)
         {
           fclose_output(fp_clusters);
         }
@@ -1331,12 +1346,12 @@ auto cluster(char const * dbname,
 
   if (clusters < 1)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           std::fprintf(stderr, "Clusters: 0\n");
           std::fprintf(stderr, "Singletons: 0\n");
         }
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log, "Clusters: 0\n");
           std::fprintf(fp_log, "Singletons: 0\n");
@@ -1344,7 +1359,7 @@ auto cluster(char const * dbname,
     }
   else
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           std::fprintf(stderr,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
@@ -1359,7 +1374,7 @@ auto cluster(char const * dbname,
                   100.0 * singletons / clusters);
         }
 
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
                   "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
@@ -1376,7 +1391,7 @@ auto cluster(char const * dbname,
         }
     }
 
-  if ((opt_msaout != nullptr) or (opt_consout != nullptr) or (opt_profile != nullptr))
+  if ((parameters.opt_msaout != nullptr) or (parameters.opt_consout != nullptr) or (parameters.opt_profile != nullptr))
     {
       int msa_target_count = 0;
       std::vector<struct msa_target_s> msa_target_list_v(static_cast<std::size_t>(size_max));
@@ -1386,9 +1401,9 @@ auto cluster(char const * dbname,
       std::FILE * fp_consout = nullptr;
       std::FILE * fp_profile = nullptr;
 
-      fp_msaout = open_optional_output(opt_msaout, "msaout");
-      fp_consout = open_optional_output(opt_consout, "consout");
-      fp_profile = open_optional_output(opt_profile, "profile");
+      fp_msaout = open_optional_output(parameters.opt_msaout, "msaout");
+      fp_consout = open_optional_output(parameters.opt_consout, "consout");
+      fp_profile = open_optional_output(parameters.opt_profile, "profile");
 
       lastcluster = -1;
 
@@ -1498,27 +1513,27 @@ auto cluster(char const * dbname,
 }
 
 
-auto cluster_fast(char const * cmdline, char const * progheader) -> void
+auto cluster_fast(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
 {
-  cluster(opt_cluster_fast, cmdline, progheader);
+  cluster(parameters.opt_cluster_fast, cmdline, progheader, parameters);
 }
 
 
-auto cluster_smallmem(char const * cmdline, char const * progheader) -> void
+auto cluster_smallmem(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
 {
-  cluster(opt_cluster_smallmem, cmdline, progheader);
+  cluster(parameters.opt_cluster_smallmem, cmdline, progheader, parameters);
 }
 
 
-auto cluster_size(char const * cmdline, char const * progheader) -> void
+auto cluster_size(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
 {
-  cluster(opt_cluster_size, cmdline, progheader);
+  cluster(parameters.opt_cluster_size, cmdline, progheader, parameters);
 }
 
 
-auto cluster_unoise(char const * cmdline, char const * progheader) -> void
+auto cluster_unoise(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
 {
-  cluster(opt_cluster_unoise, cmdline, progheader);
+  cluster(parameters.opt_cluster_unoise, cmdline, progheader, parameters);
 }
 
 
