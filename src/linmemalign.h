@@ -87,11 +87,13 @@ struct Scoring {
   int64_t gap_extension_target_interior = 0; // ge_t_i
   int64_t gap_extension_query_right = 0;     // ge_q_r
   int64_t gap_extension_target_right = 0;    // ge_t_r
+
+  bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
 };
 
 
 // Build a Scoring populated from the global opt_* penalty options.
-auto scoring_from_options() -> struct Scoring;
+auto scoring_from_options(struct Parameters const & parameters) -> struct Scoring;
 
 
 class LinearMemoryAligner
@@ -123,6 +125,8 @@ private:
   int64_t ge_t_i = 0;
   int64_t ge_q_r = 0;
   int64_t ge_t_r = 0;
+
+  bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
 
   std::size_t vector_alloc = 0;
 

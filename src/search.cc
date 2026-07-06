@@ -539,7 +539,8 @@ static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int
                         static_cast<CELL>(parameters.opt_gap_extension_query_interior),
                         static_cast<CELL>(parameters.opt_gap_extension_target_interior),
                         static_cast<CELL>(parameters.opt_gap_extension_query_right),
-                        static_cast<CELL>(parameters.opt_gap_extension_target_right));
+                        static_cast<CELL>(parameters.opt_gap_extension_target_right),
+                        parameters.opt_n_mismatch);
 }
 
 

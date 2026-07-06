@@ -203,7 +203,8 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
                         static_cast<CELL>(parameters.opt_gap_extension_query_interior),
                         static_cast<CELL>(parameters.opt_gap_extension_target_interior),
                         static_cast<CELL>(parameters.opt_gap_extension_query_right),
-                        static_cast<CELL>(parameters.opt_gap_extension_target_right));
+                        static_cast<CELL>(parameters.opt_gap_extension_target_right),
+                        parameters.opt_n_mismatch);
 }
 
 
@@ -839,7 +840,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
   std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
 
-  struct Scoring scoring = scoring_from_options();
+  struct Scoring scoring = scoring_from_options(state.parameters);
 
 
   LinearMemoryAligner lma(scoring);
@@ -1431,7 +1432,8 @@ auto cluster(char const * dbname,
                   msa(fp_msaout, fp_consout, fp_profile,
                       lastcluster,
                       msa_target_count, msa_target_list_v,
-                      cluster_abundance_v[static_cast<std::size_t>(lastcluster)]);
+                      cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                      parameters);
                 }
 
               /* start new cluster */
@@ -1454,7 +1456,8 @@ auto cluster(char const * dbname,
           msa(fp_msaout, fp_consout, fp_profile,
               lastcluster,
               msa_target_count, msa_target_list_v,
-              cluster_abundance_v[static_cast<std::size_t>(lastcluster)]);
+              cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+              parameters);
         }
 
       progress_done();
@@ -1744,7 +1747,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
   /* Scoring for intra-batch fixup alignment */
-  struct Scoring scoring = scoring_from_options();
+  struct Scoring scoring = scoring_from_options(parameters);
 
   LinearMemoryAligner lma(scoring);
 

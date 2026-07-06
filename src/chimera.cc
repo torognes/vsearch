@@ -1876,7 +1876,8 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
                                  static_cast<CELL>(parameters.opt_gap_extension_query_interior),
                                  static_cast<CELL>(parameters.opt_gap_extension_target_interior),
                                  static_cast<CELL>(parameters.opt_gap_extension_query_right),
-                                 static_cast<CELL>(parameters.opt_gap_extension_target_right));
+                                 static_cast<CELL>(parameters.opt_gap_extension_target_right),
+                                 parameters.opt_n_mismatch);
   search_info->m = minheap_init(tophits);
 }
 
@@ -1943,7 +1944,8 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
                         static_cast<CELL>(parameters.opt_gap_extension_query_interior),
                         static_cast<CELL>(parameters.opt_gap_extension_target_interior),
                         static_cast<CELL>(parameters.opt_gap_extension_query_right),
-                        static_cast<CELL>(parameters.opt_gap_extension_target_right));
+                        static_cast<CELL>(parameters.opt_gap_extension_target_right),
+                        parameters.opt_n_mismatch);
 }
 
 
@@ -2141,7 +2143,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
-  struct Scoring scoring = scoring_from_options();
+  struct Scoring scoring = scoring_from_options(state.parameters);
 
   LinearMemoryAligner lma(scoring);
 
@@ -2801,7 +2803,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
      across calls to chimera_detect_single. */
   ci->api_allhits_list.resize(maxcandidates);
 
-  struct Scoring scoring = scoring_from_options();
+  struct Scoring scoring = scoring_from_options(parameters);
   ci->api_lma_ptr.reset(new LinearMemoryAligner(scoring));
 }
 

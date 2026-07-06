@@ -73,4 +73,5 @@ struct msa_target_s
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int target_count, std::vector<struct msa_target_s> const & target_list_v,
-         int64_t totalabundance) -> void;
+         int64_t totalabundance,
+         struct Parameters const & parameters) -> void;

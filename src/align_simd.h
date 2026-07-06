@@ -79,7 +79,8 @@ auto search16_init(CELL score_match,
                    CELL penalty_gap_extension_query_interior,
                    CELL penalty_gap_extension_target_interior,
                    CELL penalty_gap_extension_query_right,
-                   CELL penalty_gap_extension_target_right) -> struct s16info_s *;
+                   CELL penalty_gap_extension_target_right,
+                   bool score_n_mismatch) -> struct s16info_s *;
 
 
 auto search16_exit(s16info_s * searchinfo) -> void;

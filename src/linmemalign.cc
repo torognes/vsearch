@@ -96,23 +96,24 @@
 constexpr auto minimal_length = int64_t{64};
 
 
-auto scoring_from_options() -> struct Scoring
+auto scoring_from_options(struct Parameters const & parameters) -> struct Scoring
 {
   struct Scoring scoring;
-  scoring.match = opt_match;
-  scoring.mismatch = opt_mismatch;
-  scoring.gap_open_query_left = opt_gap_open_query_left;
-  scoring.gap_open_target_left = opt_gap_open_target_left;
-  scoring.gap_open_query_interior = opt_gap_open_query_interior;
-  scoring.gap_open_target_interior = opt_gap_open_target_interior;
-  scoring.gap_open_query_right = opt_gap_open_query_right;
-  scoring.gap_open_target_right = opt_gap_open_target_right;
-  scoring.gap_extension_query_left = opt_gap_extension_query_left;
-  scoring.gap_extension_target_left = opt_gap_extension_target_left;
-  scoring.gap_extension_query_interior = opt_gap_extension_query_interior;
-  scoring.gap_extension_target_interior = opt_gap_extension_target_interior;
-  scoring.gap_extension_query_right = opt_gap_extension_query_right;
-  scoring.gap_extension_target_right = opt_gap_extension_target_right;
+  scoring.match = parameters.opt_match;
+  scoring.mismatch = parameters.opt_mismatch;
+  scoring.gap_open_query_left = parameters.opt_gap_open_query_left;
+  scoring.gap_open_target_left = parameters.opt_gap_open_target_left;
+  scoring.gap_open_query_interior = parameters.opt_gap_open_query_interior;
+  scoring.gap_open_target_interior = parameters.opt_gap_open_target_interior;
+  scoring.gap_open_query_right = parameters.opt_gap_open_query_right;
+  scoring.gap_open_target_right = parameters.opt_gap_open_target_right;
+  scoring.gap_extension_query_left = parameters.opt_gap_extension_query_left;
+  scoring.gap_extension_target_left = parameters.opt_gap_extension_target_left;
+  scoring.gap_extension_query_interior = parameters.opt_gap_extension_query_interior;
+  scoring.gap_extension_target_interior = parameters.opt_gap_extension_target_interior;
+  scoring.gap_extension_query_right = parameters.opt_gap_extension_query_right;
+  scoring.gap_extension_target_right = parameters.opt_gap_extension_target_right;
+  scoring.n_mismatch = parameters.opt_n_mismatch;
   return scoring;
 }
 
@@ -129,7 +130,8 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
       ge_q_i(scoring.gap_extension_query_interior),
       ge_t_i(scoring.gap_extension_target_interior),
       ge_q_r(scoring.gap_extension_query_right),
-      ge_t_r(scoring.gap_extension_target_right)
+      ge_t_r(scoring.gap_extension_target_right),
+      n_mismatch(scoring.n_mismatch)
 {
   scorematrix_fill(scoring);
 }
@@ -199,7 +201,7 @@ auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> vo
   }
 
   // if alignment with N is set to be a mismatch
-  if (opt_n_mismatch) {
+  if (scoring.n_mismatch) {
     // last column
     for (auto & row : scorematrix) {
       row.back() = scoring.mismatch;
@@ -739,7 +741,7 @@ auto LinearMemoryAligner::alignstats(char * cigar,
               auto const b_nuc = b_seq[b_pos];
               nwscore += subst_score(a_nuc, b_nuc);
 
-              if (opt_n_mismatch and ((map_4bit(a_nuc) == is_N) or
+              if (n_mismatch and ((map_4bit(a_nuc) == is_N) or
                                      (map_4bit(b_nuc) == is_N)))
                 {
                   ++nwmismatches;

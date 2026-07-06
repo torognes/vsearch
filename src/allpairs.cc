@@ -336,10 +336,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
                         static_cast<CELL>(state.parameters.opt_gap_extension_query_interior),
                         static_cast<CELL>(state.parameters.opt_gap_extension_target_interior),
                         static_cast<CELL>(state.parameters.opt_gap_extension_query_right),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_target_right));
+                        static_cast<CELL>(state.parameters.opt_gap_extension_target_right),
+                        state.parameters.opt_n_mismatch);
 
 
-  struct Scoring scoring = scoring_from_options();
+  struct Scoring scoring = scoring_from_options(state.parameters);
 
 
   LinearMemoryAligner lma(scoring);

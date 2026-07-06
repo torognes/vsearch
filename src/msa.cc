@@ -264,13 +264,14 @@ auto process_and_print_centroid(char *rc_buffer,
                                 std::vector<int> const &max_insertions,
                                 std::vector<prof_type> &profile,
                                 std::vector<char> &aln_v,
-                                std::FILE * fp_msaout) -> void {
+                                std::FILE * fp_msaout,
+                                struct Parameters const & parameters) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   auto const & target = target_list_v.front();
   auto const target_seqno = target.seqno;
   auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
                                                                  db_getsequence(static_cast<uint64_t>(target_seqno)));
-  prof_type const target_abundance = opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
+  prof_type const target_abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
   auto position_in_alignment = 0;
 
   for (auto i = 0; i < centroid_len; ++i)
@@ -318,7 +319,8 @@ auto compute_and_print_msa(int const target_count,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
-                           std::FILE * fp_msaout) -> void {
+                           std::FILE * fp_msaout,
+                           struct Parameters const & parameters) -> void {
 
   blank_line_before_each_msa(fp_msaout);
 
@@ -328,7 +330,7 @@ auto compute_and_print_msa(int const target_count,
 
   // ------------------------------------------------------- deal with centroid
   process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
-                             profile, aln_v, fp_msaout);
+                             profile, aln_v, fp_msaout, parameters);
 
   // --------------------------------- deal with other sequences in the cluster
   for (auto i = 1; i < target_count; ++i)
@@ -337,7 +339,7 @@ auto compute_and_print_msa(int const target_count,
       auto const target_seqno = target.seqno;
       auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
                                                                      rc_buffer, db_getsequence(static_cast<uint64_t>(target_seqno)));
-      prof_type const target_abundance = opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
+      prof_type const target_abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
       int position_in_alignment = 0;
 
       auto is_inserted = false;
@@ -492,7 +494,8 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
 auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & cons_v,
                               int64_t const totalabundance, int const target_count,
                               int const cluster,
-                              int const centroid_seqno) -> void {
+                              int const centroid_seqno,
+                              struct Parameters const & parameters) -> void {
   if (fp_consout == nullptr) { return ; }
   fasta_print_general(fp_consout,
                       "centroid=",
@@ -504,7 +507,7 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
                       cluster + 1,
                       -1.0,
                       target_count,
-                      opt_clusterout_id ? cluster : -1,
+                      parameters.opt_clusterout_id ? cluster : -1,
                       nullptr, 0.0,
                       0);
 }
@@ -514,7 +517,8 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                              std::vector<prof_type> const &profile,
                              int64_t const totalabundance, int const target_count,
                              int const cluster,
-                             int const centroid_seqno) -> void {
+                             int const centroid_seqno,
+                             struct Parameters const & parameters) -> void {
   if (fp_profile == nullptr) { return ; }
 
   // Note: gaps before Ns in profile output
@@ -530,7 +534,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                       cluster + 1,
                       -1.0,
                       target_count,
-                      opt_clusterout_id ? cluster : -1,
+                      parameters.opt_clusterout_id ? cluster : -1,
                       nullptr, 0.0,
                       0);
 
@@ -552,7 +556,8 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int const target_count, std::vector<struct msa_target_s> const & target_list_v,
-         int64_t totalabundance) -> void
+         int64_t totalabundance,
+         struct Parameters const & parameters) -> void
 {
   int const centroid_seqno = target_list_v[0].seqno;
   auto const centroid_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(centroid_seqno)));
@@ -569,7 +574,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   /* msaout: multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list_v, max_insertions,
                         profile, aln_v,
-                        fp_msaout);
+                        fp_msaout, parameters);
 
   /* msaout: ... and consensus sequence at the end */
   compute_and_print_consensus(max_insertions,
@@ -582,12 +587,12 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   print_consensus_sequence(fp_consout, cons_v,
                            totalabundance, target_count,
                            cluster,
-                           centroid_seqno);
+                           centroid_seqno, parameters);
 
   /* profile: multiple sequence alignment profile (dedicated input) */
   print_alignment_profile(fp_profile, aln_v,
                           profile,
                           totalabundance, target_count,
                           cluster,
-                          centroid_seqno);
+                          centroid_seqno, parameters);
 }

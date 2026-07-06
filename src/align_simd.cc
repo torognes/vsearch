@@ -437,6 +437,7 @@ struct s16info_s
   CELL penalty_gap_extension_target_interior = 0;
   CELL penalty_gap_extension_query_right = 0;
   CELL penalty_gap_extension_target_right = 0;
+  bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
 };
 
 
@@ -1187,7 +1188,7 @@ auto backtrack16(s16info_s * s,
         {
           if (is_equivalent_4bit(qseq[i], dseq[j]))
             {
-              if (opt_n_mismatch and ((map_4bit(qseq[i]) == 15) or
+              if (s->n_mismatch and ((map_4bit(qseq[i]) == 15) or
                                      (map_4bit(dseq[j]) == 15)))
                 {
                   ++mismatches;
@@ -1255,15 +1256,14 @@ auto search16_init(CELL score_match,
                    CELL penalty_gap_extension_query_interior,
                    CELL penalty_gap_extension_target_interior,
                    CELL penalty_gap_extension_query_right,
-                   CELL penalty_gap_extension_target_right) -> struct s16info_s *
+                   CELL penalty_gap_extension_target_right,
+                   bool score_n_mismatch) -> struct s16info_s *
 {
-  (void) score_match;
-  (void) score_mismatch;
-
   /* prepare alloc of qtable, dprofile, hearray, dir */
   auto * s = static_cast<struct s16info_s *>(
     xmalloc(sizeof(struct s16info_s)));
 
+  s->n_mismatch = score_n_mismatch;
   s->dprofile = static_cast<VECTOR_SHORT *>(xmalloc(2 * 4 * 8 * 16));
   s->qlen = 0;
   s->qseq = nullptr;
@@ -1281,9 +1281,9 @@ auto search16_init(CELL score_match,
       for (auto j = 0U; j < matrix_size; ++j)
         {
           CELL value = 0;
-          if (opt_n_mismatch and ((i == 15U) or (j == 15U)))
+          if (score_n_mismatch and ((i == 15U) or (j == 15U)))
             {
-              value = static_cast<CELL>(opt_mismatch);
+              value = score_mismatch;
             }
           else if (is_ambiguous_4bit(static_cast<unsigned char>(i)) or is_ambiguous_4bit(static_cast<unsigned char>(j)))
             {
@@ -1291,11 +1291,11 @@ auto search16_init(CELL score_match,
             }
           else if (i == j)
             {
-              value = static_cast<CELL>(opt_match);
+              value = score_match;
             }
           else
             {
-              value = static_cast<CELL>(opt_mismatch);
+              value = score_mismatch;
             }
           (reinterpret_cast<CELL *>(s->matrix.data()))[(matrix_size * i) + j] = value;
         }

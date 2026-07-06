@@ -838,7 +838,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
   search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
 
-  struct Scoring scoring = scoring_from_options();
+  struct Scoring scoring = scoring_from_options(*searchinfo->parameters);
 
 
   searchinfo->lma = new LinearMemoryAligner(scoring);
