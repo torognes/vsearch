@@ -2158,68 +2158,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("Unrecognized string on command line (%s)", argv[optind]);
     }
 
-  /* Below is a list of all command names, in alphabetical order. */
-
-  static constexpr std::array<int, number_of_commands> command_options =
-    {
-      option_allpairs_global,
-      option_chimeras_denovo,
-      option_cluster_fast,
-      option_cluster_size,
-      option_cluster_smallmem,
-      option_cluster_unoise,
-      option_cut,
-      option_derep_fulllength,
-      option_derep_id,
-      option_derep_prefix,
-      option_derep_smallmem,
-      option_fasta2fastq,
-      option_fastq_chars,
-      option_fastq_convert,
-      option_fastq_eestats,
-      option_fastq_eestats2,
-      option_fastq_filter,
-      option_fastq_join,
-      option_fastq_mergepairs,
-      option_fastq_stats,
-      option_fastx_filter,
-      option_fastx_getseq,
-      option_fastx_getseqs,
-      option_fastx_getsubseq,
-      option_fastx_mask,
-      option_fastx_revcomp,
-      option_fastx_subsample,
-      option_fastx_syncpairs,
-      option_fastx_uniques,
-      option_h,
-      option_help,
-      option_makeudb_usearch,
-      option_maskfasta,
-      option_orient,
-      option_rereplicate,
-      option_search_exact,
-      option_sff_convert,
-      option_shuffle,
-      option_sintax,
-      option_sortbylength,
-      option_sortbysize,
-      option_uchime2_denovo,
-      option_uchime3_denovo,
-      option_uchime_denovo,
-      option_uchime_ref,
-      option_udb2fasta,
-      option_udbinfo,
-      option_udbstats,
-      option_usearch_global,
-      option_v,
-      option_version
-    };
-
-  const int commands_count = sizeof(command_options) / sizeof(int);
-
   /*
     Below is a list of all the options that are valid for each command.
     The first line is the command and the lines below are the valid options.
+    There is one row per command, with the commands in alphabetical order by
+    name; each row is terminated by -1. A command is recognised, and its name
+    reported, through the first entry of its row (valid_options[k][0]) -- this
+    is the single source for the command list.
   */
 
   static constexpr std::array<std::array<int, max_number_of_options_per_command>, number_of_commands> valid_options =
@@ -4114,9 +4059,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   /* check that only one commmand is specified */
   int commands = 0;
   int k = -1;
-  for (int i = 0; i < commands_count; i++)
+  for (int i = 0; i < static_cast<int>(number_of_commands); i++)
     {
-      if (options_selected[static_cast<size_t>(command_options[static_cast<size_t>(i)])])
+      if (options_selected[static_cast<size_t>(valid_options[static_cast<size_t>(i)][0])])
         {
           ++commands;
           k = i;
@@ -4172,7 +4117,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
                     {
                       std::fprintf(stderr,
                               "Fatal error: Invalid options to command %s\n",
-                              long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
+                              long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
                       std::fprintf(stderr,
                               "Invalid option(s):");
                     }
@@ -4185,7 +4130,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       if (invalid_options > 0)
         {
           std::fprintf(stderr, "\nThe valid options for the %s command are:",
-                  long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
+                  long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
           int count = 0;
           for (int j = 1;
                (static_cast<size_t>(j) < max_number_of_options_per_command) and
@@ -4226,7 +4171,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (parameters.opt_threads > 1)
         {
-          std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(command_options[static_cast<size_t>(k)])].name);
+          std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
         }
       opt_threads = 1;
       parameters.opt_threads = 1;
