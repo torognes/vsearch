@@ -761,6 +761,88 @@ auto vsearch_apply_defaults_fixups() -> void
 }
 
 
+/* Parameters-based sentinel/range resolution: an exact mirror of the global
+   overload above, operating on the struct. Introduced for the E1 migration to
+   Parameters-primary configuration (F2); the two are kept in lockstep until
+   the globals are removed. The gap-open adjustment is guarded by the struct's
+   own gap_penalties_adjusted so a repeated call stays idempotent. */
+auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
+{
+  if (parameters.opt_maxhits == 0)
+    {
+      parameters.opt_maxhits = int64_max;
+    }
+
+  if (parameters.opt_minwordmatches < 0)
+    {
+      if (parameters.opt_wordlength >= 0 and
+          parameters.opt_wordlength < static_cast<int64_t>(minwordmatches_defaults.size()))
+        {
+          parameters.opt_minwordmatches = minwordmatches_defaults[static_cast<size_t>(parameters.opt_wordlength)];
+        }
+      else
+        {
+          parameters.opt_minwordmatches = 0;
+        }
+    }
+
+  if (parameters.opt_id >= 0.0 and parameters.opt_weak_id > parameters.opt_id)
+    {
+      parameters.opt_weak_id = parameters.opt_id;
+    }
+
+  if ((parameters.opt_threads < 0) or (parameters.opt_threads > n_threads_max))
+    {
+      fatal("The argument to --threads must be in the range 0 (default) to 1024");
+    }
+  if (parameters.opt_threads == 0)
+    {
+      parameters.opt_threads = arch_get_cores();
+    }
+
+  if (parameters.opt_maxrejects == -1)
+    {
+      parameters.opt_maxrejects = 32;
+    }
+  if (parameters.opt_maxaccepts < 0)
+    {
+      fatal("The argument to --maxaccepts must not be negative");
+    }
+  if (parameters.opt_maxrejects < 0)
+    {
+      fatal("The argument to --maxrejects must not be negative");
+    }
+
+  if (parameters.opt_wordlength == 0)
+    {
+      parameters.opt_wordlength = 8;
+    }
+  if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
+    {
+      fatal("The argument to --wordlength must be in the range 3 to 15");
+    }
+
+  if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
+    {
+      std::string const message =
+        "The argument to --chimeras_parents_max must be in the range 2 to "
+        + std::to_string(maxparents);
+      fatal(message.c_str());
+    }
+
+  if (not parameters.gap_penalties_adjusted)
+    {
+      parameters.opt_gap_open_query_left -= parameters.opt_gap_extension_query_left;
+      parameters.opt_gap_open_target_left -= parameters.opt_gap_extension_target_left;
+      parameters.opt_gap_open_query_interior -= parameters.opt_gap_extension_query_interior;
+      parameters.opt_gap_open_target_interior -= parameters.opt_gap_extension_target_interior;
+      parameters.opt_gap_open_query_right -= parameters.opt_gap_extension_query_right;
+      parameters.opt_gap_open_target_right -= parameters.opt_gap_extension_target_right;
+      parameters.gap_penalties_adjusted = true;
+    }
+}
+
+
 auto show_publication() -> void
 {
   std::fprintf(stdout,

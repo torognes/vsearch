@@ -397,9 +397,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* Defaults are now set by vsearch_init_defaults() above. */
 
-  /* Library defaults to quiet; CLI needs output. */
+  /* Library defaults to quiet; CLI needs output. The Parameters defaults match
+     the library (quiet), so the CLI overrides both the global and the struct. */
   opt_quiet = false;
   opt_no_progress = false;
+  parameters.opt_quiet = false;
+  parameters.opt_no_progress = false;
 
   /* opt_* defaults removed — now in vsearch_init_defaults() */
   opterr = 1;

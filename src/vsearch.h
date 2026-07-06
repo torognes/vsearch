@@ -84,6 +84,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 #include <cassert>
 #include <limits>
 
@@ -548,11 +549,11 @@ struct Parameters {
   bool opt_hardmask = false;
   bool opt_label_substr_match = false;
   bool opt_lengthout = false;
-  bool opt_no_progress = false;
+  bool opt_no_progress = true;   // library default (quiet); the CLI overrides in args_init
   bool opt_help = false;
   bool opt_join_padgapq_set_by_user = false;
   bool opt_notrunclabels = false;
-  bool opt_quiet = false;
+  bool opt_quiet = true;   // library default (quiet); the CLI overrides in args_init
   bool opt_relabel_keep = false;
   bool opt_relabel_md5 = false;
   bool opt_relabel_self = false;
@@ -570,8 +571,152 @@ struct Parameters {
   bool opt_xee = false;
   bool opt_xlength = false;
   bool opt_xsize = false;
+
+  /* Options migrated from the opt_* globals (E1/F1). Types and default
+     values mirror vsearch_init_defaults() exactly, so a default-constructed
+     Parameters equals the post-init global state (see the drift check). */
+  char *    opt_alnout                       = nullptr;
+  char *    opt_biomout                      = nullptr;
+  char *    opt_blast6out                    = nullptr;
+  char *    opt_borderline                   = nullptr;
+  char *    opt_centroids                    = nullptr;
+  char *    opt_chimeras                     = nullptr;
+  char *    opt_clusters                     = nullptr;
+  char *    opt_consout                      = nullptr;
+  char *    opt_eetabbedout                  = nullptr;
+  char *    opt_fastaout_notmerged_fwd       = nullptr;
+  char *    opt_fastaout_notmerged_rev       = nullptr;
+  char *    opt_fastapairs                   = nullptr;
+  char *    opt_fastqout_notmerged_fwd       = nullptr;
+  char *    opt_fastqout_notmerged_rev       = nullptr;
+  char *    opt_label_field                  = nullptr;
+  char *    opt_label                        = nullptr;
+  char *    opt_labels                       = nullptr;
+  char *    opt_label_word                   = nullptr;
+  char *    opt_label_words                  = nullptr;
+  char *    opt_lcaout                       = nullptr;
+  char *    opt_matched                      = nullptr;
+  char *    opt_mothur_shared_out            = nullptr;
+  char *    opt_msaout                       = nullptr;
+  char *    opt_nonchimeras                  = nullptr;
+  char *    opt_notmatchedfq                 = nullptr;
+  char *    opt_notmatched                   = nullptr;
+  char *    opt_otutabout                    = nullptr;
+  char *    opt_pattern                      = nullptr;
+  char *    opt_profile                      = nullptr;
+  char *    opt_qsegout                      = nullptr;
+  char *    opt_samout                       = nullptr;
+  char *    opt_tsegout                      = nullptr;
+  char *    opt_uchimealns                   = nullptr;
+  char *    opt_uchimeout                    = nullptr;
+  char *    opt_userout                      = nullptr;
+
+  double    opt_abskew                       = 0.0;
+  double    opt_chimeras_diff_pct            = 0.0;
+  double    opt_dn                           = 1.4;
+  double    opt_fastq_maxdiffpct             = 100.0;
+  double    opt_fastq_maxee                  = dbl_max;
+  double    opt_fastq_maxee_rate             = dbl_max;
+  double    opt_fastq_truncee                = dbl_max;
+  double    opt_id                           = -1.0;
+  double    opt_lca_cutoff                   = 1.0;
+  double    opt_maxid                        = 1.0;
+  double    opt_maxqt                        = dbl_max;
+  double    opt_maxsizeratio                 = dbl_max;
+  double    opt_maxsl                        = dbl_max;
+  double    opt_mid                          = 0.0;
+  double    opt_mindiv                       = 0.8;
+  double    opt_minh                         = 0.28;
+  double    opt_minqt                        = 0.0;
+  double    opt_minsizeratio                 = 0.0;
+  double    opt_minsl                        = 0.0;
+  double    opt_query_cov                    = 0.0;
+  double    opt_sintax_cutoff                = 0.0;
+  double    opt_target_cov                   = 0.0;
+  double    opt_unoise_alpha                 = 2.0;
+  double    opt_weak_id                      = 10.0;
+  double    opt_xn                           = 8.0;
+
+  int       opt_acceptall                    = 0;
+  int       opt_alignwidth                   = 80;
+  int       opt_chimeras_length_min          = 10;
+  int       opt_chimeras_parents_max         = 3;
+  int       opt_chimeras_parts               = 0;
+  int       opt_cons_truncate                = 0;
+  int       opt_gap_extension_query_interior = 2;
+  int       opt_gap_extension_query_left     = 1;
+  int       opt_gap_extension_query_right    = 1;
+  int       opt_gap_extension_target_interior = 2;
+  int       opt_gap_extension_target_left    = 1;
+  int       opt_gap_extension_target_right   = 1;
+  int       opt_gap_open_query_interior      = 20;
+  int       opt_gap_open_query_left          = 2;
+  int       opt_gap_open_query_right         = 2;
+  int       opt_gap_open_target_interior     = 20;
+  int       opt_gap_open_target_left         = 2;
+  int       opt_gap_open_target_right        = 2;
+  int       opt_length_cutoffs_increment     = 50;
+  int       opt_length_cutoffs_longest       = std::numeric_limits<int>::max();
+  int       opt_length_cutoffs_shortest      = 50;
+  int       opt_mindiffs                     = 3;
+  int       opt_slots                        = 0;
+  int       opt_uchimeout5                   = 0;
+  int       opt_usersort                     = 0;
+
+  int64_t   opt_dbmask                       = 1;
+  int64_t   opt_fastq_maxdiffs               = 10;
+  int64_t   opt_fastq_maxlen                 = int64_max;
+  int64_t   opt_fastq_maxmergelen            = 1000000;
+  int64_t   opt_fastq_maxns                  = int64_max;
+  int64_t   opt_fastq_minlen                 = 1;
+  int64_t   opt_fastq_minmergelen            = 0;
+  int64_t   opt_fastq_minovlen               = 10;
+  int64_t   opt_fastq_stripleft              = 0;
+  int64_t   opt_fastq_stripright             = 0;
+  int64_t   opt_fastq_trunclen               = -1;
+  int64_t   opt_fastq_trunclen_keep          = -1;
+  int64_t   opt_fastq_truncqual              = std::numeric_limits<long>::min();
+  int64_t   opt_fulldp                       = 0;
+  int64_t   opt_iddef                        = 2;
+  int64_t   opt_idprefix                     = 0;
+  int64_t   opt_idsuffix                     = 0;
+  int64_t   opt_leftjust                     = 0;
+  int64_t   opt_match                        = 2;
+  int64_t   opt_maxaccepts                   = 1;
+  int64_t   opt_maxdiffs                     = std::numeric_limits<int>::max();
+  int64_t   opt_maxgaps                      = std::numeric_limits<int>::max();
+  int64_t   opt_maxhits                      = 0;
+  int64_t   opt_maxqsize                     = int64_max;
+  int64_t   opt_maxrejects                   = -1;
+  int64_t   opt_maxsubs                      = std::numeric_limits<int>::max();
+  int64_t   opt_mincols                      = 0;
+  int64_t   opt_mintsize                     = 0;
+  int64_t   opt_minwordmatches               = -1;
+  int64_t   opt_mismatch                     = -4;
+  int64_t   opt_output_no_hits               = 0;
+  int64_t   opt_rightjust                    = 0;
+  int64_t   opt_rowlen                       = 64;
+  int64_t   opt_self                         = 0;
+  int64_t   opt_selfid                       = 0;
+  int64_t   opt_subseq_end                   = int64_max;
+  int64_t   opt_subseq_start                 = 1;
+  int64_t   opt_top_hits_only                = 0;
+  int64_t   opt_wordlength                   = 0;
+
+  bool      opt_centroid_sizeout             = false;
+  bool      opt_n_mismatch                   = false;
+
+  std::vector<double> opt_ee_cutoffs = {0.5, 1.0, 2.0};  // was opt_ee_cutoffs_values/_count
+
+  /* Internal state (not an option): guards the once-only gap-open penalty
+     adjustment in vsearch_apply_defaults_fixups() so a repeated call is
+     idempotent (mirrors the file-static of the global fixups). */
+  bool gap_penalties_adjusted = false;
 };
 
 /* Library API: global initialization */
 auto vsearch_init_defaults() -> void;
 auto vsearch_apply_defaults_fixups() -> void;
+/* Parameters-based overload: resolves the same sentinels/ranges in the struct
+   (E1/F2). The global overload above stays until every reader is migrated. */
+auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;
