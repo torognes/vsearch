@@ -1,11 +1,11 @@
 /*
  * example_reinit.cc — Regression test for library API re-initialization.
  *
- * Verifies that calling vsearch_init_defaults() + vsearch_apply_defaults_fixups()
+ * Verifies that beginning a session with vsearch_session_begin(Parameters &)
  * multiple times in the same process produces correct gap penalties and
  * identical chimera detection results each time.
  *
- * This test catches the bug where a static bool in vsearch_apply_defaults_fixups()
+ * This test catches the bug where a static bool in the fixups step
  * permanently prevented gap-open penalty adjustment after the first call.
  *
  * Build:  g++ -std=c++11 -O3 -I../src -o example_reinit example_reinit.cc ../src/libvsearch.a -lpthread -ldl
@@ -74,9 +74,9 @@ static session_results run_session(
     session_results results;
 
     /* Initialize */
-    vsearch_init_defaults();
-    opt_wordlength = 8;
-    vsearch_apply_defaults_fixups();
+    struct Parameters parameters;
+    parameters.opt_wordlength = 8;
+    vsearch_session_begin(parameters);
 
     /* Record gap penalties after fixups */
     results.gap_open_query_interior = opt_gap_open_query_interior;
@@ -125,8 +125,8 @@ static session_results run_session(
    Snapshot the defaults from a fresh init, garbage-fill a representative set of
    opt_* globals spanning every type (including the four that C1a fixed:
    opt_notmatchedfq, opt_bzip2_decompress, opt_clusterout_id/sort, and
-   opt_strand, now a bool — the former C1b drift hazard), then call
-   vsearch_init_defaults() again and assert every one is reset. Generalizes the
+   opt_strand, now a bool — the former C1b drift hazard), then begin a fresh
+   vsearch_session_begin(Parameters{}) session and assert every one is reset. Generalizes the
    "init forgot to reset X" bug: a global added without a matching reset, or a
    dropped reset, is caught here as long as it is in one of the arrays below.
    The garbage values are chosen to differ from every default so a missing
@@ -153,7 +153,8 @@ static int test_global_state_reset() {
     const size_t nd = sizeof(dbl_globals) / sizeof(dbl_globals[0]);
 
     /* 1. snapshot the defaults */
-    vsearch_init_defaults();
+    struct Parameters snapshot_params;
+    vsearch_session_begin(snapshot_params);
     for (size_t i = 0; i < nc; i++) { char_snap[i] = *char_globals[i]; }
     for (size_t i = 0; i < nb; i++) { bool_snap[i] = *bool_globals[i]; }
     for (size_t i = 0; i < ni; i++) { i64_snap[i] = *i64_globals[i]; }
@@ -168,7 +169,8 @@ static int test_global_state_reset() {
     for (size_t i = 0; i < nd; i++) { *dbl_globals[i] = -99999.0; }
 
     /* 3. re-init and assert every one is reset to its default */
-    vsearch_init_defaults();
+    struct Parameters reinit_params;
+    vsearch_session_begin(reinit_params);
     int failures = 0;
     for (size_t i = 0; i < nc; i++) {
         if (*char_globals[i] != char_snap[i]) {
@@ -289,9 +291,9 @@ int main() {
        fatal on the second call due to re-initializing an active mutex. */
     std::fprintf(stderr, "Multi-handle test...\n");
 
-    vsearch_init_defaults();
-    opt_wordlength = 8;
-    vsearch_apply_defaults_fixups();
+    struct Parameters parameters;
+    parameters.opt_wordlength = 8;
+    vsearch_session_begin(parameters);
 
     db_init();
     for (size_t i = 0; i < ref_labels.size(); i++) {
@@ -362,13 +364,12 @@ int main() {
        gap-extension cost. Calling fixups twice without an intervening
        init must NOT double-subtract. */
     std::fprintf(stderr, "Idempotent-fixups test...\n");
-    vsearch_init_defaults();
-    opt_wordlength = 8;
-    vsearch_apply_defaults_fixups();
-    int const gap_after_first = opt_gap_open_query_interior;   /* raw 20 - ext 2 = 18 */
-    vsearch_apply_defaults_fixups();                           /* again, no re-init */
-    int const gap_after_second = opt_gap_open_query_interior;
-    vsearch_session_end();
+    struct Parameters idem;
+    idem.opt_wordlength = 8;
+    vsearch_apply_defaults_fixups(idem);
+    int const gap_after_first = idem.opt_gap_open_query_interior;   /* raw 20 - ext 2 = 18 */
+    vsearch_apply_defaults_fixups(idem);                            /* again, no re-init */
+    int const gap_after_second = idem.opt_gap_open_query_interior;
     if (gap_after_first != 18 || gap_after_second != 18) {
         std::fprintf(stderr,
             "FAIL: gap-open interior after 1st fixups=%d, after 2nd=%d (expected 18, 18)\n",

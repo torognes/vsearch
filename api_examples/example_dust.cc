@@ -45,8 +45,8 @@ static void read_fasta(const char * path,
 
 int main() {
     /* 1. Initialize vsearch globals (needed for opt_hardmask) */
-    vsearch_init_defaults();
-    vsearch_apply_defaults_fixups();
+    struct Parameters parameters;
+    vsearch_session_begin(parameters);
 
     /* 2. Read sequences */
     std::vector<std::string> labels, seqs;

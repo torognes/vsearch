@@ -46,12 +46,12 @@ static void read_fasta(const char * path,
 
 /* --- Part 1: UC output for diff comparison --- */
 static int run_cluster_uc() {
-    vsearch_init_defaults();
-    opt_wordlength = 8;
-    opt_id = 0.70;
-    opt_maxaccepts = 1;
-    opt_maxrejects = 32;
-    vsearch_apply_defaults_fixups();
+    struct Parameters parameters;
+    parameters.opt_wordlength = 8;
+    parameters.opt_id = 0.70;
+    parameters.opt_maxaccepts = 1;
+    parameters.opt_maxrejects = 32;
+    vsearch_session_begin(parameters);
 
     std::vector<std::string> labels, seqs;
     read_fasta("data/chimera_ref.fasta", labels, seqs);
@@ -124,13 +124,13 @@ static int run_batch_tests()
 {
   int failures = 0;
 
-  vsearch_init_defaults();
-  opt_wordlength = 8;
-  opt_id = 0.70;
-  opt_maxaccepts = 1;
-  opt_maxrejects = 32;
-  opt_threads = 2;
-  vsearch_apply_defaults_fixups();
+  struct Parameters parameters;
+  parameters.opt_wordlength = 8;
+  parameters.opt_id = 0.70;
+  parameters.opt_maxaccepts = 1;
+  parameters.opt_maxrejects = 32;
+  parameters.opt_threads = 2;
+  vsearch_session_begin(parameters);
 
   std::vector<std::string> labels, seqs;
   read_fasta("data/chimera_ref.fasta", labels, seqs);

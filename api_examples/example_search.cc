@@ -67,14 +67,14 @@ static std::string make_reverse_complement(const std::string & seq)
 
 /* --- Part 1: TSV output for diff comparison --- */
 static int run_search_tsv() {
-    vsearch_init_defaults();
+    struct Parameters parameters;
 
-    opt_wordlength = 8;
-    opt_id = 0.5;
-    opt_maxaccepts = 3;
-    opt_maxrejects = 16;
+    parameters.opt_wordlength = 8;
+    parameters.opt_id = 0.5;
+    parameters.opt_maxaccepts = 3;
+    parameters.opt_maxrejects = 16;
 
-    vsearch_apply_defaults_fixups();
+    vsearch_session_begin(parameters);
 
     std::vector<std::string> ref_labels, ref_seqs;
     read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -130,13 +130,13 @@ static int run_batch_tests()
 {
   int failures = 0;
 
-  vsearch_init_defaults();
-  opt_wordlength = 8;
-  opt_id = 0.5;
-  opt_maxaccepts = 3;
-  opt_maxrejects = 16;
-  opt_threads = 2;
-  vsearch_apply_defaults_fixups();
+  struct Parameters parameters;
+  parameters.opt_wordlength = 8;
+  parameters.opt_id = 0.5;
+  parameters.opt_maxaccepts = 3;
+  parameters.opt_maxrejects = 16;
+  parameters.opt_threads = 2;
+  vsearch_session_begin(parameters);
 
   std::vector<std::string> ref_labels, ref_seqs;
   read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -247,13 +247,13 @@ static bool search_rc_finds_hit(const std::string & fwd,
                                 bool both_strands,
                                 int * out_strand)
 {
-  vsearch_init_defaults();
-  opt_wordlength = 8;
-  opt_id = 0.97;
-  opt_strand = both_strands;
-  opt_maxaccepts = 1;
-  opt_maxrejects = 32;
-  vsearch_apply_defaults_fixups();
+  struct Parameters parameters;
+  parameters.opt_wordlength = 8;
+  parameters.opt_id = 0.97;
+  parameters.opt_strand = both_strands;
+  parameters.opt_maxaccepts = 1;
+  parameters.opt_maxrejects = 32;
+  vsearch_session_begin(parameters);
 
   db_init();
   db_add(false, "fwd", fwd.c_str(), nullptr,

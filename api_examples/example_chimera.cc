@@ -60,9 +60,9 @@ static void read_fasta(const char * path,
 
 /* --- Part 1: TSV output for diff comparison --- */
 static int run_chimera_tsv() {
-    vsearch_init_defaults();
-    opt_wordlength = 8;
-    vsearch_apply_defaults_fixups();
+    struct Parameters parameters;
+    parameters.opt_wordlength = 8;
+    vsearch_session_begin(parameters);
 
     std::vector<std::string> ref_labels, ref_seqs;
     read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -130,10 +130,10 @@ static int run_batch_tests()
 {
   int failures = 0;
 
-  vsearch_init_defaults();
-  opt_wordlength = 8;
-  opt_threads = 2;
-  vsearch_apply_defaults_fixups();
+  struct Parameters parameters;
+  parameters.opt_wordlength = 8;
+  parameters.opt_threads = 2;
+  vsearch_session_begin(parameters);
 
   std::vector<std::string> ref_labels, ref_seqs;
   read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
