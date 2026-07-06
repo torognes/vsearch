@@ -109,6 +109,9 @@ constexpr auto bootstrap_count = 100;
    they are compile-time constants, not mutable state. */
 struct sintax_state_s
 {
+  /* the run configuration, threaded through the helpers instead of the
+     opt_* globals (E1/F3); set once at construction, read-only thereafter */
+  struct Parameters const & parameters;
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;
   int tophits = 0;   /* the maximum number of hits to keep */
@@ -119,6 +122,8 @@ struct sintax_state_s
   std::FILE * fp_tabbedout = nullptr;
   int queries = 0;
   int classified = 0;
+
+  explicit sintax_state_s(struct Parameters const & params) : parameters(params) {}
 };
 
 
@@ -245,7 +250,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
       std::fprintf(fp_tabbedout, "\t%c", (strand != 0) ? '-' : '+');
 
-      if (opt_sintax_cutoff > 0.0)
+      if (state.parameters.opt_sintax_cutoff > 0.0)
         {
           std::fprintf(fp_tabbedout, "\t");
           auto comma_cutoff = false;
@@ -254,7 +259,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
               auto const level = static_cast<std::size_t>(j);
               auto const best = static_cast<std::size_t>(level_best[level]);
               if ((cand_level_name_len[best][level] > 0) &&
-                  (1.0 * level_matchcount[level] / count >= opt_sintax_cutoff))
+                  (1.0 * level_matchcount[level] / count >= state.parameters.opt_sintax_cutoff))
                 {
                   std::fprintf(fp_tabbedout,
                           "%s%c:%.*s",
@@ -269,7 +274,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
     }
   else
     {
-      if (opt_sintax_cutoff > 0.0)
+      if (state.parameters.opt_sintax_cutoff > 0.0)
         {
           std::fprintf(fp_tabbedout, "\t\t");
         }
@@ -284,7 +289,8 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
 
 auto sintax_search_topscores(struct searchinfo_s * searchinfo,
-                             SplitMix64 & rng) -> void
+                             SplitMix64 & rng,
+                             struct Parameters const & parameters) -> void
 {
   /*
     Count the number of kmer hits in each database sequence and select
@@ -357,7 +363,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
         }
       else if (count == best.count)
         {
-          if (opt_sintax_random)
+          if (parameters.opt_sintax_random)
             {
               tophit_count++;
               if (random_bounded(rng, tophit_count) == 0)
@@ -407,7 +413,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
   auto * b = bitmap_init(static_cast<unsigned int>(qseqlen));
 
-  for (auto s = 0; s < number_of_strands(opt_strand); s++)
+  for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -416,7 +422,12 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
       auto kmersamplecount = 0U;
       unsigned int const * kmersample = nullptr;
 
-      /* find unique kmers */
+      /* find unique kmers. opt_wordlength stays a global read: udb_read()
+         overwrites it with the word length stored in a UDB file, so the
+         effective value lives in the global after the database is loaded, not
+         in parameters. Reading parameters here would extract query kmers at
+         the wrong width against a UDB index. Deferred to the shared-infra
+         phase that owns udb_read. */
       unique_count(si->uh, static_cast<int>(opt_wordlength),
                    si->qseqlen, si->qsequence,
                    &kmersamplecount, &kmersample, MASK_NONE);
@@ -444,7 +455,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
               si->kmersamplecount = static_cast<unsigned int>(subsamples);
               si->kmersample = kmersample_subset.data();
 
-              sintax_search_topscores(si, rng);
+              sintax_search_topscores(si, rng, state.parameters);
 
               if (! minheap_isempty(si->m))
                 {
@@ -463,7 +474,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
   auto best_strand = 0;
 
-  if (not opt_strand)
+  if (not state.parameters.opt_strand)
     {
       best_strand = 0;
     }
@@ -513,7 +524,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       std::unique_lock<std::mutex> input_lock(mutex_input);
 
       if (fastx_next(query_fastx_h,
-                     not opt_notrunclabels,
+                     not state.parameters.opt_notrunclabels,
                      chrmap_no_change_vector.data()))
         {
           auto const * qhead = fastx_get_header(query_fastx_h);
@@ -523,7 +534,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
           int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
           int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
-          for (auto s = 0; s < number_of_strands(opt_strand); s++)
+          for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -561,7 +572,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
           input_lock.unlock();
 
           /* minus strand: copy header and reverse complementary sequence */
-          if (opt_strand)
+          if (state.parameters.opt_strand)
             {
               std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
               reverse_complement(si_minus[t].qsequence,
@@ -630,7 +641,7 @@ static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
   struct searchinfo_s * const si_minus = state.si_minus;
 
   /* init per-thread search state before the workers start */
-  for (auto t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < state.parameters.opt_threads; t++)
     {
       sintax_thread_init(state, si_plus + t);
       if (si_minus != nullptr)
@@ -641,14 +652,14 @@ static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
 
   /* run the worker pool over the input file */
   {
-    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+    ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
                               [&state](uint64_t const t)
                               { sintax_thread_run(state, t); });
     threadrunner.run();
   }
 
   /* clean up per-thread search state */
-  for (auto t = 0; t < opt_threads; t++)
+  for (auto t = 0; t < state.parameters.opt_threads; t++)
     {
       sintax_thread_exit(si_plus + t);
       if (si_minus != nullptr)
@@ -664,7 +675,7 @@ auto sintax(struct Parameters const & parameters) -> void
   /* Per-invocation state, owned here and threaded through the workers (E4).
      Aliased by reference so the body below reads unchanged; the workers
      receive `state`, not file-static globals. */
-  struct sintax_state_s state;
+  struct sintax_state_s state(parameters);
   auto & si_plus = state.si_plus;
   auto & si_minus = state.si_minus;
   auto & tophits = state.tophits;
@@ -680,14 +691,14 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  if (opt_db == nullptr)
+  if (parameters.opt_db == nullptr)
     {
       fatal("No database file specified with --db");
     }
 
-  if (opt_tabbedout != nullptr)
+  if (parameters.opt_tabbedout != nullptr)
     {
-      fp_tabbedout = open_optional_output(opt_tabbedout, "tabbedout");
+      fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
     }
   else
     {
@@ -696,23 +707,23 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* check if db may be an UDB file */
 
-  auto const is_udb = udb_detect_isudb(opt_db);
+  auto const is_udb = udb_detect_isudb(parameters.opt_db);
 
   if (is_udb)
     {
-      udb_read(opt_db, true, true);
+      udb_read(parameters.opt_db, true, true);
     }
   else
     {
-      db_read(opt_db, 0);
+      db_read(parameters.opt_db, 0);
     }
 
   seqcount = static_cast<int>(db_getsequencecount());
 
   if (! is_udb)
     {
-      dbindex_prepare(1, static_cast<int>(opt_dbmask));
-      dbindex_addallsequences(static_cast<int>(opt_dbmask));
+      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
     }
 
   /* prepare reading of queries */
@@ -729,10 +740,10 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* allocate memory for thread info */
 
-  si_plus = new searchinfo_s[opt_threads]{};
-  if (opt_strand)
+  si_plus = new searchinfo_s[parameters.opt_threads]{};
+  if (parameters.opt_strand)
     {
-      si_minus = new searchinfo_s[opt_threads]{};
+      si_minus = new searchinfo_s[parameters.opt_threads]{};
     }
   else
     {
@@ -753,7 +764,7 @@ auto sintax(struct Parameters const & parameters) -> void
       fatal("%s", fastx_get_errmsg(query_fastx_h));
     }
 
-  if (! opt_quiet)
+  if (! parameters.opt_quiet)
     {
       std::fprintf(stderr, "Classified %d of %d sequences", classified, queries);
       if (queries > 0)
@@ -763,7 +774,7 @@ auto sintax(struct Parameters const & parameters) -> void
       std::fprintf(stderr, "\n");
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
       if (queries > 0)
