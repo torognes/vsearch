@@ -264,7 +264,7 @@ auto udb_info(struct Parameters const & parameters) -> void
       fatal("Invalid UDB file");
     }
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       std::fprintf(stderr, "           Seqs  %u\n", buffer[13]);
       std::fprintf(stderr, "     SeqIx bits  %u\n", buffer[2]);
@@ -278,7 +278,7 @@ auto udb_info(struct Parameters const & parameters) -> void
       std::fprintf(stderr, "        DBAccel  %u%%\n", buffer[6]);
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log, "           Seqs  %u\n", buffer[13]);
       std::fprintf(fp_log, "     SeqIx bits  %u\n", buffer[2]);
@@ -701,16 +701,16 @@ auto udb_read(const char * filename,
 
 auto udb_fasta(struct Parameters const & parameters) -> void
 {
-  if (opt_output == nullptr) {
+  if (parameters.opt_output == nullptr) {
     fatal("FASTA output file must be specified with --output");
   }
 
   /* open FASTA file for writing */
 
-  auto * fp_output = fopen_output(opt_output);
+  auto * fp_output = fopen_output(parameters.opt_output);
   if (fp_output == nullptr)
     {
-      fatal("Unable to open output file for writing (%s)", opt_output);
+      fatal("Unable to open output file for writing (%s)", parameters.opt_output);
     }
 
   /* read UDB file */
@@ -742,6 +742,11 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
   udb_read(parameters.opt_udbstats, false, false);
 
+  /* opt_wordlength stays a global read below: udb_read() has just overwritten
+     it with the word length stored in this UDB file, so the global holds the
+     effective value, not parameters (E1/F3, deferred to the shared-infra phase
+     that owns udb_read). */
+
   /* analyze word counts */
 
   std::vector<wordfreq_t> freqtable(kmerhashsize);
@@ -763,7 +768,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
   /* show stats */
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log, "      Alphabet  nt\n");
       std::fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
@@ -965,31 +970,31 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
 auto udb_make(struct Parameters const & parameters) -> void
 {
-  if (opt_output == nullptr) {
+  if (parameters.opt_output == nullptr) {
     fatal("UDB output file must be specified with --output");
   }
 
   auto fd_output = 0;
 
-  fd_output = xopen_write(opt_output);
+  fd_output = xopen_write(parameters.opt_output);
   if (fd_output == 0)
     {
-      fatal("Unable to open output file for writing (%s)", opt_output);
+      fatal("Unable to open output file for writing (%s)", parameters.opt_output);
     }
 
   db_read(parameters.opt_makeudb_usearch, 1);
 
-  if (opt_dbmask == MASK_DUST)
+  if (parameters.opt_dbmask == MASK_DUST)
     {
       dust_all();
     }
-  else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
+  else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
     {
       hardmask_all();
     }
 
-  dbindex_prepare(1, static_cast<int>(opt_dbmask));
-  dbindex_addallsequences(static_cast<int>(opt_dbmask));
+  dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+  dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   auto const ntcount = db_getnucleotidecount();
@@ -1000,7 +1005,7 @@ auto udb_make(struct Parameters const & parameters) -> void
       header_characters += db_getheaderlen(i) + 1;
     }
 
-  uint64_t const kmerhash_entries = uint64_t{1} << (2 * static_cast<uint64_t>(opt_wordlength));
+  uint64_t const kmerhash_entries = uint64_t{1} << (2 * static_cast<uint64_t>(parameters.opt_wordlength));
 
   /* count word matches */
   uint64_t wordmatches = 0;
@@ -1029,7 +1034,7 @@ auto udb_make(struct Parameters const & parameters) -> void
   /* Header */
   buffer[0]  = 0x55444246; /* FBDU UDBF */
   buffer[2]  = 32; /* bits */
-  buffer[4]  = static_cast<unsigned int>(opt_wordlength); /* default 8 */
+  buffer[4]  = static_cast<unsigned int>(parameters.opt_wordlength); /* default 8 */
   buffer[5]  = 1; /* dbstep */
   buffer[6]  = 100; /* dbaccelpct % */
   buffer[11] = 0; /* slots */
