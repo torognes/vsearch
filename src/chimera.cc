@@ -117,6 +117,14 @@ constexpr auto chimera_id = 0.55;
 /* information for each query sequence to be checked */
 struct chimera_info_s
 {
+  /* run configuration, set by chimera_thread_init and read by the detection
+     core instead of the opt_* globals (E1 shared-infra phase); a pointer so
+     chimera_info_s stays default-constructible for the arrays that hold it. The
+     8 saved/restored detection knobs (opt_maxaccepts/maxrejects/id/self/selfid/
+     threads/maxsizeratio/weak_id) are NOT read through this — they are
+     run-time-mutated by chimera()/chimera_session_init and stay global reads. */
+  struct Parameters const * parameters = nullptr;
+
   int query_alloc = 0; /* the longest query sequence allocated memory for */
   int head_alloc = 0; /* the longest header allocated memory for */
   int part_alloc = 0; /* the longest query part allocated memory for */
@@ -1839,9 +1847,11 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
 }
 
 
-static auto query_init(struct searchinfo_s * search_info, int const tophits) -> void
+static auto query_init(struct searchinfo_s * search_info, int const tophits,
+                       struct Parameters const & parameters) -> void
 {
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
+  search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
@@ -1849,20 +1859,20 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits) -> 
   search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
   search_info->uh = unique_init();
-  search_info->s = search16_init(static_cast<CELL>(opt_match),
-                                 static_cast<CELL>(opt_mismatch),
-                                 static_cast<CELL>(opt_gap_open_query_left),
-                                 static_cast<CELL>(opt_gap_open_target_left),
-                                 static_cast<CELL>(opt_gap_open_query_interior),
-                                 static_cast<CELL>(opt_gap_open_target_interior),
-                                 static_cast<CELL>(opt_gap_open_query_right),
-                                 static_cast<CELL>(opt_gap_open_target_right),
-                                 static_cast<CELL>(opt_gap_extension_query_left),
-                                 static_cast<CELL>(opt_gap_extension_target_left),
-                                 static_cast<CELL>(opt_gap_extension_query_interior),
-                                 static_cast<CELL>(opt_gap_extension_target_interior),
-                                 static_cast<CELL>(opt_gap_extension_query_right),
-                                 static_cast<CELL>(opt_gap_extension_target_right));
+  search_info->s = search16_init(static_cast<CELL>(parameters.opt_match),
+                                 static_cast<CELL>(parameters.opt_mismatch),
+                                 static_cast<CELL>(parameters.opt_gap_open_query_left),
+                                 static_cast<CELL>(parameters.opt_gap_open_target_left),
+                                 static_cast<CELL>(parameters.opt_gap_open_query_interior),
+                                 static_cast<CELL>(parameters.opt_gap_open_target_interior),
+                                 static_cast<CELL>(parameters.opt_gap_open_query_right),
+                                 static_cast<CELL>(parameters.opt_gap_open_target_right),
+                                 static_cast<CELL>(parameters.opt_gap_extension_query_left),
+                                 static_cast<CELL>(parameters.opt_gap_extension_target_left),
+                                 static_cast<CELL>(parameters.opt_gap_extension_query_interior),
+                                 static_cast<CELL>(parameters.opt_gap_extension_target_interior),
+                                 static_cast<CELL>(parameters.opt_gap_extension_query_right),
+                                 static_cast<CELL>(parameters.opt_gap_extension_target_right));
   search_info->m = minheap_init(tophits);
 }
 
@@ -1906,28 +1916,30 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 }
 
 
-auto chimera_thread_init(struct chimera_info_s * ci, int const tophits) -> void
+auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
+                         struct Parameters const & parameters) -> void
 {
+  ci->parameters = &parameters;  /* detection core reads config through ci (E1) */
 
   for (int i = 0; i < maxparts; ++i)
     {
-      query_init(&ci->si[static_cast<size_t>(i)], tophits);
+      query_init(&ci->si[static_cast<size_t>(i)], tophits, parameters);
     }
 
-  ci->s = search16_init(static_cast<CELL>(opt_match),
-                        static_cast<CELL>(opt_mismatch),
-                        static_cast<CELL>(opt_gap_open_query_left),
-                        static_cast<CELL>(opt_gap_open_target_left),
-                        static_cast<CELL>(opt_gap_open_query_interior),
-                        static_cast<CELL>(opt_gap_open_target_interior),
-                        static_cast<CELL>(opt_gap_open_query_right),
-                        static_cast<CELL>(opt_gap_open_target_right),
-                        static_cast<CELL>(opt_gap_extension_query_left),
-                        static_cast<CELL>(opt_gap_extension_target_left),
-                        static_cast<CELL>(opt_gap_extension_query_interior),
-                        static_cast<CELL>(opt_gap_extension_target_interior),
-                        static_cast<CELL>(opt_gap_extension_query_right),
-                        static_cast<CELL>(opt_gap_extension_target_right));
+  ci->s = search16_init(static_cast<CELL>(parameters.opt_match),
+                        static_cast<CELL>(parameters.opt_mismatch),
+                        static_cast<CELL>(parameters.opt_gap_open_query_left),
+                        static_cast<CELL>(parameters.opt_gap_open_target_left),
+                        static_cast<CELL>(parameters.opt_gap_open_query_interior),
+                        static_cast<CELL>(parameters.opt_gap_open_target_interior),
+                        static_cast<CELL>(parameters.opt_gap_open_query_right),
+                        static_cast<CELL>(parameters.opt_gap_open_target_right),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_left),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_left),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_interior),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_interior),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_right),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_right));
 }
 
 
@@ -2120,7 +2132,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
      which chimera() set to the chimera detection defaults before spawning the
      pool. Computed here rather than read from a shared file-static (E4). */
   int const tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
-  chimera_thread_init(ci, tophits);
+  chimera_thread_init(ci, tophits, state.parameters);
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
@@ -2716,7 +2728,7 @@ auto chimera_info_free(struct chimera_info_s * ci) -> void
     }
 }
 
-auto chimera_session_init() -> void
+auto chimera_session_init(struct Parameters const & parameters) -> void
 {
   /* Session-level initialization for chimera detection.
      Sets search-shaping globals that chimera() normally sets but
@@ -2725,18 +2737,17 @@ auto chimera_session_init() -> void
      there is no shared mutex to initialize here.
 
      Call once after DB is loaded and indexed, before creating
-     per-thread chimera_info_s handles.
-
-     Assumes global opt_* variables are already set (at minimum:
-     opt_match, opt_mismatch, opt_gap_*, opt_minh, opt_xn, opt_dn,
-     opt_mindiv, opt_mindiffs, opt_abskew, opt_dbmask, opt_qmask,
-     opt_wordlength). */
+     per-thread chimera_info_s handles. Reads its configuration from the
+     passed parameters (same one given to vsearch_session_begin). */
 
   /* Override search parameters to chimera detection defaults.
-     These must match what chimera() sets in the CLI path (lines 2311-2329).
+     These must match what chimera() sets in the CLI path.
+     These 8 knobs (opt_maxaccepts/maxrejects/id/self/selfid/threads/
+     maxsizeratio/weak_id) are run-time-mutated here and restored by
+     chimera_detect_cleanup(); the detection core reads the overridden
+     values, so they stay global reads throughout chimera.cc (E1/F3).
      opt_weak_id defaults to 10.0 (sentinel) — clamp to opt_id so the
-     acceptance check in search_acceptable_aligned doesn't reject everything.
-     The CLI does this in command dispatch after option parsing. */
+     acceptance check in search_acceptable_aligned doesn't reject everything. */
   opt_maxaccepts = few;
   opt_maxrejects = rejects;
   opt_id = chimera_id;
@@ -2748,11 +2759,11 @@ auto chimera_session_init() -> void
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
      themselves as candidate parents, and set opt_maxsizeratio for
      abundance skew filtering. Matches chimera() CLI setup. */
-  if (opt_uchime_ref == nullptr)
+  if (parameters.opt_uchime_ref == nullptr)
     {
       opt_self = 1;
       opt_selfid = 1;
-      opt_maxsizeratio = 1.0 / opt_abskew;
+      opt_maxsizeratio = 1.0 / parameters.opt_abskew;
     }
 
   /* eval_parents and eval_parents_long emit file output only when given a
@@ -2768,7 +2779,7 @@ auto chimera_session_cleanup() -> void
 }
 
 
-auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
+auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters) -> void
 {
   /* Per-thread initialization: SIMD aligners, k-mer finders, working
      buffers. Safe to call concurrently for different ci instances.
@@ -2778,7 +2789,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
      than read from a shared file-static (E4). */
   int const tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
 
-  chimera_thread_init(ci, tophits);
+  chimera_thread_init(ci, tophits, parameters);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
@@ -2790,14 +2801,14 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void
 }
 
 
-auto chimera_detect_init(struct chimera_info_s * ci) -> void
+auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters) -> void
 {
   /* Convenience wrapper: session init + per-thread init in one call.
      Use for single-threaded detection (one chimera_info_s per session).
      For multi-threaded detection, call chimera_session_init() once then
      chimera_detect_thread_init() per thread. */
-  chimera_session_init();
-  chimera_detect_thread_init(ci);
+  chimera_session_init(parameters);
+  chimera_detect_thread_init(ci, parameters);
 }
 
 auto chimera_detect_single(struct chimera_info_s * ci,
@@ -2957,7 +2968,8 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 }
 
 
-auto chimera_detect_batch(const char ** query_seqs,
+auto chimera_detect_batch(struct Parameters const & parameters,
+                          const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,
                           const int64_t * query_sizes,
@@ -2969,7 +2981,7 @@ auto chimera_detect_batch(const char ** query_seqs,
       return;
     }
 
-  int const nthreads = std::max(1, static_cast<int>(opt_threads));
+  int const nthreads = std::max(1, static_cast<int>(parameters.opt_threads));
 
   /* Save globals that chimera_session_init will clobber */
   int64_t const saved_maxaccepts = opt_maxaccepts;
@@ -2981,7 +2993,7 @@ auto chimera_detect_batch(const char ** query_seqs,
   double const saved_maxsizeratio = opt_maxsizeratio;
 
   /* Session-level init (sets search-shaping globals) */
-  chimera_session_init();
+  chimera_session_init(parameters);
 
   /* Allocate per-thread chimera state */
   struct chimera_batch_context_s ctx;
@@ -2999,7 +3011,7 @@ auto chimera_detect_batch(const char ** query_seqs,
   for (int t = 0; t < nthreads; t++)
     {
       ctx.ci_array[t] = chimera_info_alloc();
-      chimera_detect_thread_init(ctx.ci_array[t]);
+      chimera_detect_thread_init(ctx.ci_array[t], parameters);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */

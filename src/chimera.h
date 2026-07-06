@@ -101,14 +101,15 @@ auto chimera_info_free(struct chimera_info_s * ci) -> void;
 
 /* === Session-level initialization (call once per session) === */
 
-/* Initialize chimera detection session: set search-shaping globals
-   and init static mutexes. Call once after DB is loaded and indexed,
-   before creating per-thread handles.
-   Requires: global opt_* scoring/penalty variables already set,
-   global db + dbindex loaded and indexed.
-   Overwrites: opt_maxaccepts, opt_maxrejects, opt_id, opt_weak_id,
-   tophits, and (denovo only) opt_self, opt_selfid, opt_maxsizeratio. */
-auto chimera_session_init() -> void;
+/* Initialize chimera detection session: set search-shaping globals.
+   Call once after DB is loaded and indexed, before creating per-thread
+   handles. Reads its configuration from the passed parameters (same one
+   given to vsearch_session_begin); the db + dbindex must be loaded and
+   indexed.
+   Overwrites the globals: opt_maxaccepts, opt_maxrejects, opt_id, opt_weak_id,
+   and (denovo only) opt_self, opt_selfid, opt_maxsizeratio (restored by
+   chimera_detect_cleanup). */
+auto chimera_session_init(struct Parameters const & parameters) -> void;
 
 /* Destroy static mutexes. Call once after all per-thread handles are
    cleaned up. */
@@ -118,8 +119,10 @@ auto chimera_session_cleanup() -> void;
 
 /* Initialize per-thread chimera working state: SIMD aligners, k-mer
    finders, working buffers. Safe to call for multiple ci instances
-   after chimera_session_init(). ci must not be shared across threads. */
-auto chimera_detect_thread_init(struct chimera_info_s * ci) -> void;
+   after chimera_session_init(). ci must not be shared across threads.
+   parameters: the configured Parameters (stored in ci for the detection
+   core to read; must outlive ci). */
+auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters) -> void;
 
 /* Free per-thread resources allocated by chimera_detect_thread_init. */
 auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
@@ -128,7 +131,7 @@ auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
 
 /* Convenience: chimera_session_init() + chimera_detect_thread_init(ci).
    Use when only one chimera_info_s exists per session. */
-auto chimera_detect_init(struct chimera_info_s * ci) -> void;
+auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters) -> void;
 
 /* Detect chimera for a single query sequence.
    Supports both uchime_ref and uchime_denovo modes (based on opt_chimeras_denovo).
@@ -160,9 +163,11 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
    chimera_session_init/cleanup around this function.
    NOT safe to call concurrently with any other chimera API call.
    Creates and destroys a thread pool per call.
-   Requires: global opt_* set, database loaded and indexed.
+   Requires: parameters configured (same one passed to vsearch_session_begin),
+   database loaded and indexed.
    results: caller-allocated array of query_count elements. */
-auto chimera_detect_batch(const char ** query_seqs,
+auto chimera_detect_batch(struct Parameters const & parameters,
+                          const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,
                           const int64_t * query_sizes,

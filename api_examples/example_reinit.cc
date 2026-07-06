@@ -95,7 +95,7 @@ static session_results run_session(
 
     /* Detect chimeras */
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci);
+    chimera_detect_init(ci, parameters);
 
     for (size_t i = 0; i < query_labels.size(); i++) {
         struct chimera_result_s result;
@@ -305,13 +305,13 @@ int main() {
     dbindex_addallsequences(opt_dbmask);
 
     /* Session init once, then two per-thread handles */
-    chimera_session_init();
+    chimera_session_init(parameters);
 
     struct chimera_info_s * ci1 = chimera_info_alloc();
-    chimera_detect_thread_init(ci1);
+    chimera_detect_thread_init(ci1, parameters);
 
     struct chimera_info_s * ci2 = chimera_info_alloc();
-    chimera_detect_thread_init(ci2);
+    chimera_detect_thread_init(ci2, parameters);
 
     /* Run same queries through both handles and compare with session 1 */
     for (size_t i = 0; i < query_labels.size(); i++) {

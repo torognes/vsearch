@@ -77,7 +77,7 @@ static int run_chimera_tsv() {
     dbindex_addallsequences(opt_dbmask);
 
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci);
+    chimera_detect_init(ci, parameters);
 
     std::vector<std::string> query_labels, query_seqs;
     read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -156,7 +156,7 @@ static int run_batch_tests()
   std::vector<struct chimera_result_s> seq_results(nq);
   {
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci);
+    chimera_detect_init(ci, parameters);
 
     for (int i = 0; i < nq; i++)
       {
@@ -186,7 +186,8 @@ static int run_batch_tests()
     }
 
   std::vector<struct chimera_result_s> batch_results(nq);
-  chimera_detect_batch(q_seqs.data(), q_heads.data(), q_lens.data(),
+  chimera_detect_batch(parameters,
+                       q_seqs.data(), q_heads.data(), q_lens.data(),
                        q_sizes.data(), nq, batch_results.data());
 
   /* Compare */
