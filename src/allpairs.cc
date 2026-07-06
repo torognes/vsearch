@@ -203,7 +203,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
 
           if (state.fp_uc != nullptr)
             {
-              if ((t == 0) or (opt_uc_allhits != 0))
+              if ((t == 0) or (opt_uc_allhits))
                 {
                   results_show_uc_one(state.fp_uc,
                                       hp,

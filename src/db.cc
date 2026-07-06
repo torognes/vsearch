@@ -256,7 +256,7 @@ auto db_read(const char * filename, int upcase) -> void
   seqindex = nullptr;
 
   while (fastx_next(h,
-                   opt_notrunclabels == 0,
+                   not opt_notrunclabels,
                     (upcase != 0) ? chrmap_upcase_vector.data() : chrmap_no_change_vector.data()))
     {
       size_t const sequencelength = fastx_get_sequence_length(h);

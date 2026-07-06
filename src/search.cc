@@ -215,7 +215,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_uc != nullptr)
             {
-              if ((t==0) || (opt_uc_allhits != 0))
+              if ((t==0) || (opt_uc_allhits))
                 {
                   results_show_uc_one(state.fp_uc,
                                       hp,
@@ -344,7 +344,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
         {
           dust(si->qsequence, si->qseqlen);
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
         {
           hardmask(si->qsequence, si->qseqlen);
         }
@@ -434,7 +434,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
       std::unique_lock<std::mutex> input_lock(state.mutex_input);
 
       if (fastx_next(query_fastx_h,
-                     (opt_notrunclabels == 0),
+                     (not opt_notrunclabels),
                      chrmap_no_change_vector.data()))
         {
           char const * qhead = fastx_get_header(query_fastx_h);
@@ -629,7 +629,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
         {
           dust_all();
         }
-      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask != 0))
+      else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
         {
           hardmask_all();
         }
@@ -982,7 +982,7 @@ auto search_session_single(struct search_session_s * ss,
         {
           dust(strand_si->qsequence, strand_si->qseqlen);
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
         {
           hardmask(strand_si->qsequence, strand_si->qseqlen);
         }
@@ -1135,7 +1135,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
             {
               dust(strand_si->qsequence, strand_si->qseqlen);
             }
-          else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+          else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
             {
               hardmask(strand_si->qsequence, strand_si->qseqlen);
             }

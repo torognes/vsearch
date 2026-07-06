@@ -264,7 +264,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
 
           if (fp_uc != nullptr)
             {
-              if ((t == 0) || (opt_uc_allhits != 0))
+              if ((t == 0) || (opt_uc_allhits))
                 {
                   results_show_uc_one(fp_uc,
                                       &hit,
@@ -389,7 +389,7 @@ auto search_exact_query(uint64_t t) -> int
         {
           dust(si->qsequence, si->qseqlen);
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask != 0))
+      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
         {
           hardmask(si->qsequence, si->qseqlen);
         }
@@ -427,7 +427,7 @@ auto search_exact_thread_run(uint64_t t) -> void
     {
       std::unique_lock<std::mutex> input_lock(mutex_input);
 
-      if (fastx_next(query_fastx_h, (opt_notrunclabels == 0), chrmap_no_change_vector.data()))
+      if (fastx_next(query_fastx_h, (not opt_notrunclabels), chrmap_no_change_vector.data()))
         {
           char const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
@@ -602,7 +602,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader) -> void
     {
       dust_all();
     }
-  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask != 0))
+  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
     {
       hardmask_all();
     }

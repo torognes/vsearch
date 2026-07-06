@@ -415,7 +415,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   int64_t kept = 0;
   int64_t discarded = 0;
 
-  while (fastx_next(h1, opt_notrunclabels == 0, chrmap_no_change_vector.data()))
+  while (fastx_next(h1, not opt_notrunclabels, chrmap_no_change_vector.data()))
     {
       bool const match = test_label_match(h1);
 

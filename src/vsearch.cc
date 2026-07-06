@@ -287,7 +287,7 @@ int64_t opt_fastq_trunclen;
 int64_t opt_fastq_trunclen_keep;
 int64_t opt_fastq_truncqual;
 int64_t opt_fulldp;
-int64_t opt_hardmask;
+bool opt_hardmask;
 int64_t opt_iddef;
 int64_t opt_idprefix;
 int64_t opt_idsuffix;
@@ -310,7 +310,7 @@ int64_t opt_mintsize;
 int64_t opt_minuniquesize;
 int64_t opt_minwordmatches;
 int64_t opt_mismatch;
-int64_t opt_notrunclabels;
+bool opt_notrunclabels;
 int64_t opt_output_no_hits;
 int64_t opt_qmask;
 int64_t opt_randseed;
@@ -325,7 +325,7 @@ int64_t opt_subseq_start;
 int64_t opt_threads;
 int64_t opt_top_hits_only;
 int64_t opt_topn;
-int64_t opt_uc_allhits;
+bool opt_uc_allhits;
 int64_t opt_wordlength;
 
 /* Other variables */
@@ -508,7 +508,7 @@ auto vsearch_init_defaults() -> void
   opt_gap_open_target_right = 2;
   gap_penalties_adjusted = false;  /* raw values restored above; see fixups (C1d) */
   opt_gzip_decompress = false;
-  opt_hardmask = 0;
+  opt_hardmask = false;
   opt_id = -1.0;
   opt_iddef = 2;
   opt_idprefix = 0;
@@ -565,7 +565,7 @@ auto vsearch_init_defaults() -> void
   opt_nonchimeras = nullptr;
   opt_notmatched = nullptr;
   opt_notmatchedfq = nullptr;
-  opt_notrunclabels = 0;
+  opt_notrunclabels = false;
   opt_otutabout = nullptr;
   opt_output = nullptr;
   opt_output_no_hits = 0;
@@ -607,7 +607,7 @@ auto vsearch_init_defaults() -> void
   opt_topn = int64_max;
   opt_tsegout = nullptr;
   opt_uc = nullptr;
-  opt_uc_allhits = 0;
+  opt_uc_allhits = false;
   opt_uchime2_denovo = nullptr;
   opt_uchime3_denovo = nullptr;
   opt_uchime_denovo = nullptr;
@@ -1742,7 +1742,7 @@ auto main(int argc, char** argv) -> int
     {
       opt_strand = false;
       parameters.opt_strand = false;
-      opt_uc_allhits = 1;
+      opt_uc_allhits = true;
       parameters.opt_uc_allhits = true;
       cmd_allpairs_global(parameters);
     }

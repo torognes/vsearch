@@ -192,7 +192,7 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
 
 auto dust(char * seq, int len) -> void
 {
-  dust_core(seq, len, opt_hardmask != 0);
+  dust_core(seq, len, opt_hardmask);
 }
 
 

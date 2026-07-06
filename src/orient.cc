@@ -172,7 +172,7 @@ auto orient(struct Parameters const & parameters) -> void
         {
           dust_all();
         }
-      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask != 0))
+      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
         {
           hardmask_all();
         }
@@ -189,7 +189,7 @@ auto orient(struct Parameters const & parameters) -> void
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
   while (fastx_next(query_h,
-                    (opt_notrunclabels == 0),
+                    (not opt_notrunclabels),
                     chrmap_no_change_vector.data()))
     {
       char const * query_head = fastx_get_header(query_h);

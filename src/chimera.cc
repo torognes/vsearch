@@ -2134,7 +2134,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
       if (opt_uchime_ref != nullptr)
         {
-          if (fasta_next(state.query_fasta_h, (opt_notrunclabels == 0),
+          if (fasta_next(state.query_fasta_h, (not opt_notrunclabels),
                          chrmap_no_change_vector.data()))
             {
               ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
@@ -2417,7 +2417,7 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               dust_all();
             }
-          else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask != 0))
+          else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
             {
               hardmask_all();
             }
@@ -2464,7 +2464,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           dust_all();
         }
-      else if ((parameters.opt_qmask == MASK_SOFT) and (opt_hardmask != 0))
+      else if ((parameters.opt_qmask == MASK_SOFT) and (opt_hardmask))
         {
           hardmask_all();
         }

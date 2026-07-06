@@ -513,7 +513,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       std::unique_lock<std::mutex> input_lock(mutex_input);
 
       if (fastx_next(query_fastx_h,
-                     opt_notrunclabels == 0,
+                     not opt_notrunclabels,
                      chrmap_no_change_vector.data()))
         {
           auto const * qhead = fastx_get_header(query_fastx_h);

@@ -1108,7 +1108,7 @@ auto cluster(char const * dbname,
     {
       dust_all();
     }
-  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask != 0))
+  else if ((opt_qmask == MASK_SOFT) and (opt_hardmask))
     {
       hardmask_all();
     }

@@ -1086,12 +1086,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_uc_allhits:
-          opt_uc_allhits = 1;
+          opt_uc_allhits = true;
           parameters.opt_uc_allhits = true;
           break;
 
         case option_notrunclabels:
-          opt_notrunclabels = 1;
+          opt_notrunclabels = true;
           parameters.opt_notrunclabels = true;
           break;
 
@@ -1306,7 +1306,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           break;
 
         case option_hardmask:
-          opt_hardmask = 1;
+          opt_hardmask = true;
           parameters.opt_hardmask = true;
           break;
 
@@ -4509,7 +4509,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (parameters.opt_sintax != nullptr)
     {
-    opt_notrunclabels = 1;
+    opt_notrunclabels = true;
     parameters.opt_notrunclabels = true;
     }
 
