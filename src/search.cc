@@ -506,33 +506,34 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
 }
 
 
-static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits) -> void
+static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits,
+                               struct Parameters const & parameters) -> void
 {
   /* thread specific initialiation */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
   si->hits = static_cast<struct hit *>(xmalloc
-    (sizeof(struct hit) * static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(opt_strand))));
+    (sizeof(struct hit) * static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand))));
   si->qsize = 1;
   si->query_head_alloc = 0;
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
-  si->s = search16_init(static_cast<CELL>(opt_match),
-                        static_cast<CELL>(opt_mismatch),
-                        static_cast<CELL>(opt_gap_open_query_left),
-                        static_cast<CELL>(opt_gap_open_target_left),
-                        static_cast<CELL>(opt_gap_open_query_interior),
-                        static_cast<CELL>(opt_gap_open_target_interior),
-                        static_cast<CELL>(opt_gap_open_query_right),
-                        static_cast<CELL>(opt_gap_open_target_right),
-                        static_cast<CELL>(opt_gap_extension_query_left),
-                        static_cast<CELL>(opt_gap_extension_target_left),
-                        static_cast<CELL>(opt_gap_extension_query_interior),
-                        static_cast<CELL>(opt_gap_extension_target_interior),
-                        static_cast<CELL>(opt_gap_extension_query_right),
-                        static_cast<CELL>(opt_gap_extension_target_right));
+  si->s = search16_init(static_cast<CELL>(parameters.opt_match),
+                        static_cast<CELL>(parameters.opt_mismatch),
+                        static_cast<CELL>(parameters.opt_gap_open_query_left),
+                        static_cast<CELL>(parameters.opt_gap_open_target_left),
+                        static_cast<CELL>(parameters.opt_gap_open_query_interior),
+                        static_cast<CELL>(parameters.opt_gap_open_target_interior),
+                        static_cast<CELL>(parameters.opt_gap_open_query_right),
+                        static_cast<CELL>(parameters.opt_gap_open_target_right),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_left),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_left),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_interior),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_interior),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_right),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_right));
 }
 
 
@@ -566,10 +567,10 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* init per-thread search state before the workers start */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_init(si_plus + t, seqcount, tophits);
+      search_thread_init(si_plus + t, seqcount, tophits, state.parameters);
       if (si_minus != nullptr)
         {
-          search_thread_init(si_minus + t, seqcount, tophits);
+          search_thread_init(si_minus + t, seqcount, tophits, state.parameters);
         }
     }
 
@@ -908,6 +909,10 @@ struct search_session_s {
   std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when searching both strands */
   int seqcount = 0;  /* number of database sequences */
   int tophits = 0;   /* the maximum number of hits to keep */
+  /* run configuration, set at search_session_init and read by the per-query
+     path instead of the opt_* globals (E1 shared-infra phase); a pointer so the
+     session stays default-constructible. */
+  struct Parameters const * parameters = nullptr;
 };
 
 
@@ -927,12 +932,16 @@ auto search_session_free(struct search_session_s * ss) -> void
 }
 
 
-auto search_session_init(struct search_session_s * ss) -> void
+auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters) -> void
 {
   /* Initialize search session for library use.
      Mirrors cluster_session_init: stores seqcount/tophits in the session,
      allocates si_plus (always) and si_minus (when searching both strands). */
+  ss->parameters = &parameters;
   ss->seqcount = static_cast<int>(db_getsequencecount());
+  /* opt_maxaccepts/opt_maxrejects stay global reads: they are clamped to the
+     database size in search_prep (CLI path, which writes the globals), so the
+     library sizing must see the same values; do not migrate to parameters. */
   ss->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
   if (ss->tophits > ss->seqcount)
     {
@@ -940,13 +949,13 @@ auto search_session_init(struct search_session_s * ss) -> void
     }
 
   ss->si_plus = make_unique<searchinfo_s>();
-  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits);
+  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters);
   ss->si_plus->strand = 0;
 
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
-      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits);
+      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters);
       ss->si_minus->strand = 1;
     }
 }
@@ -963,6 +972,7 @@ auto search_session_single(struct search_session_s * ss,
 {
   int const head_len = static_cast<int>(std::strlen(query_head));
   struct searchinfo_s * si = ss->si_plus.get();
+  struct Parameters const & parameters = *ss->parameters;
 
   populate_si(ss->si_plus.get(),
               query_head,
@@ -973,7 +983,7 @@ auto search_session_single(struct search_session_s * ss,
               query_size,
               0);
 
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       populate_si(ss->si_minus.get(),
                   query_head,
@@ -986,27 +996,27 @@ auto search_session_single(struct search_session_s * ss,
     }
 
   /* Mask and search each strand independently */
-  for (int s = 0; s < number_of_strands(opt_strand); s++)
+  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
       struct searchinfo_s * strand_si =
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
 
-      if (opt_qmask == MASK_DUST)
+      if (parameters.opt_qmask == MASK_DUST)
         {
           dust(strand_si->qsequence, strand_si->qseqlen);
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+      else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
         {
           hardmask(strand_si->qsequence, strand_si->qseqlen);
         }
 
-      search_onequery(strand_si, static_cast<int>(opt_qmask));
+      search_onequery(strand_si, static_cast<int>(parameters.opt_qmask));
     }
 
   /* Merge hits from both strands */
   std::vector<struct hit> hits;
   search_joinhits(ss->si_plus.get(),
-                  opt_strand ? ss->si_minus.get() : nullptr,
+                  parameters.opt_strand ? ss->si_minus.get() : nullptr,
                   hits);
 
   /* Populate results (search_joinhits returns only accepted/weak hits) */
@@ -1034,7 +1044,7 @@ auto search_session_single(struct search_session_s * ss,
 
   /* Free alignment strings directly from si->hits (not the joinhits copy)
      to avoid dangling pointers. Follows cluster_assign_single pattern. */
-  for (int s = 0; s < number_of_strands(opt_strand); s++)
+  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
       struct searchinfo_s * strand_si =
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
@@ -1084,6 +1094,10 @@ struct search_batch_context_s {
   struct searchinfo_s * batch_si_plus;
   struct searchinfo_s * batch_si_minus;  /* nullptr when searching the plus strand only */
 
+  /* run configuration, set in search_batch and read by the workers instead of
+     the opt_* globals (E1 shared-infra phase). */
+  struct Parameters const * parameters;
+
   /* work-stealing counter */
   std::mutex mutex;
   int next_query;
@@ -1096,6 +1110,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
   struct searchinfo_s * my_si_plus = ctx.batch_si_plus + tid;
   struct searchinfo_s * my_si_minus =
     (ctx.batch_si_minus != nullptr) ? ctx.batch_si_minus + tid : nullptr;
+  struct Parameters const & parameters = *ctx.parameters;
 
   while (true)
     {
@@ -1139,27 +1154,27 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
         }
 
       /* Mask and search each strand independently */
-      for (int s = 0; s < number_of_strands(opt_strand); s++)
+      for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
         {
           struct searchinfo_s * strand_si =
             (s != 0) ? my_si_minus : my_si_plus;
 
-          if (opt_qmask == MASK_DUST)
+          if (parameters.opt_qmask == MASK_DUST)
             {
               dust(strand_si->qsequence, strand_si->qseqlen);
             }
-          else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+          else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
             {
               hardmask(strand_si->qsequence, strand_si->qseqlen);
             }
 
-          search_onequery(strand_si, static_cast<int>(opt_qmask));
+          search_onequery(strand_si, static_cast<int>(parameters.opt_qmask));
         }
 
       /* Merge hits from both strands */
       std::vector<struct hit> hits;
       search_joinhits(my_si_plus,
-                      opt_strand ? my_si_minus : nullptr,
+                      parameters.opt_strand ? my_si_minus : nullptr,
                       hits);
 
       /* Populate results for this query */
@@ -1188,7 +1203,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
       ctx.result_counts[qi] = count;
 
       /* Free alignment strings from si->hits directly */
-      for (int s = 0; s < number_of_strands(opt_strand); s++)
+      for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
         {
           struct searchinfo_s * strand_si =
             (s != 0) ? my_si_minus : my_si_plus;
@@ -1206,7 +1221,8 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 }
 
 
-auto search_batch(const char ** query_seqs,
+auto search_batch(struct Parameters const & parameters,
+                  const char ** query_seqs,
                   const char ** query_heads,
                   const int * query_lens,
                   const int64_t * query_sizes,
@@ -1215,7 +1231,10 @@ auto search_batch(const char ** query_seqs,
                   int max_results_per_query,
                   int * result_counts) -> void
 {
-  /* per-thread buffer sizes for search_thread_init (formerly file-statics) */
+  /* per-thread buffer sizes for search_thread_init (formerly file-statics).
+     opt_maxaccepts/opt_maxrejects stay global reads: they are clamped to the
+     database size in search_prep (CLI path, which writes the globals), so the
+     library sizing must see the same values; do not migrate to parameters. */
   int const seqcount = static_cast<int>(db_getsequencecount());
   int tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
   if (tophits > seqcount)
@@ -1223,7 +1242,7 @@ auto search_batch(const char ** query_seqs,
       tophits = seqcount;
     }
 
-  int const nthreads = static_cast<int>(opt_threads);
+  int const nthreads = static_cast<int>(parameters.opt_threads);
 
   /* Allocate per-thread search state */
   struct search_batch_context_s ctx;
@@ -1235,10 +1254,11 @@ auto search_batch(const char ** query_seqs,
   ctx.results = results;
   ctx.max_results_per_query = max_results_per_query;
   ctx.result_counts = result_counts;
+  ctx.parameters = &parameters;
   ctx.next_query = 0;
 
   ctx.batch_si_plus = new searchinfo_s[nthreads]{};
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       ctx.batch_si_minus = new searchinfo_s[nthreads]{};
     }
@@ -1250,10 +1270,10 @@ auto search_batch(const char ** query_seqs,
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits);
+      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters);
       if (ctx.batch_si_minus != nullptr)
         {
-          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits);
+          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters);
         }
     }
 

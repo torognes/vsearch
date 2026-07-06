@@ -89,7 +89,7 @@ static int run_search_tsv() {
     dbindex_addallsequences(opt_dbmask);
 
     struct search_session_s * ss = search_session_alloc();
-    search_session_init(ss);
+    search_session_init(ss, parameters);
 
     std::vector<std::string> query_labels, query_seqs;
     read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -161,7 +161,7 @@ static int run_batch_tests()
   std::vector<int> seq_counts(nq, 0);
 
   struct search_session_s * ss = search_session_alloc();
-  search_session_init(ss);
+  search_session_init(ss, parameters);
 
   for (int i = 0; i < nq; i++)
     {
@@ -194,7 +194,8 @@ static int run_batch_tests()
   std::vector<struct search_result_s> batch_results(nq * max_per_query);
   std::vector<int> batch_counts(nq, 0);
 
-  search_batch(q_seqs.data(), q_heads.data(), q_lens.data(), q_sizes.data(),
+  search_batch(parameters,
+               q_seqs.data(), q_heads.data(), q_lens.data(), q_sizes.data(),
                nq, batch_results.data(), max_per_query, batch_counts.data());
 
   /* Compare */
@@ -263,7 +264,7 @@ static bool search_rc_finds_hit(const std::string & fwd,
   dbindex_addallsequences(opt_dbmask);
 
   struct search_session_s * ss = search_session_alloc();
-  search_session_init(ss);
+  search_session_init(ss, parameters);
 
   struct search_result_s results[4];
   int count = 0;
