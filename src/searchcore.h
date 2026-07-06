@@ -178,7 +178,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
 auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool;
 
-auto align_trim(struct hit * hit) -> void;
+auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void;
 
 auto search_joinhits(struct searchinfo_s const * si_p,
                      struct searchinfo_s const * si_m,

@@ -759,7 +759,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
                   /* trim alignment and compute numbers
                      excluding terminal gaps */
-                  align_trim(hit);
+                  align_trim(hit, *si->parameters);
                 }
               else
                 {

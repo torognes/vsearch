@@ -258,12 +258,14 @@ auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,
                          unsigned int const count) -> bool
 {
-  return (count >= opt_minwordmatches) or (count >= searchinfo.kmersamplecount);
+  struct Parameters const & parameters = *searchinfo.parameters;
+  return (count >= parameters.opt_minwordmatches) or (count >= searchinfo.kmersamplecount);
 }
 
 
 auto search_topscores(struct searchinfo_s * searchinfo) -> void
 {
+  struct Parameters const & parameters = *searchinfo->parameters;
   /*
     Count the kmer hits in each database sequence and
     make a sorted list of a given number (th)
@@ -321,7 +323,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
         }
     }
 
-  auto const minmatches = std::min(static_cast<unsigned int>(opt_minwordmatches), searchinfo->kmersamplecount);
+  auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches), searchinfo->kmersamplecount);
 
   for (auto i = 0U; i < indexed_count; i++)
     {
@@ -344,7 +346,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto align_trim(struct hit * hit) -> void
+auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
 {
   /* trim alignment and fill in info */
   /* assumes that the hit has been aligned */
@@ -447,7 +449,7 @@ auto align_trim(struct hit * hit) -> void
   hit->id4 = hit->nwalignmentlength > 0 ?
     100.0 * hit->matches / hit->nwalignmentlength : 0.0;
 
-  switch (opt_iddef)
+  switch (parameters.opt_iddef)
     {
     case 0:
       hit->id = hit->id0;
@@ -545,6 +547,10 @@ namespace {
 auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int const target) -> bool
 {
+  struct Parameters const & parameters = *searchinfo.parameters;
+  /* opt_maxsizeratio, opt_self and opt_selfid below stay global reads: chimera()
+     / chimera_session_init overwrite them with chimera-detection defaults for the
+     shared engine, so they must NOT be migrated to parameters (E1 trap). */
   /* consider whether a hit satisfies accepted criteria before alignment */
 
   // true: needs further consideration
@@ -559,44 +565,44 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
 
   return (
           /* maxqsize */
-          (searchinfo.qsize <= opt_maxqsize)
+          (searchinfo.qsize <= parameters.opt_maxqsize)
           and
           /* mintsize */
-          (tsize >= opt_mintsize)
+          (tsize >= parameters.opt_mintsize)
           and
           /* minsizeratio */
-          (abundance_ratio_cmp(searchinfo.qsize, opt_minsizeratio, tsize) >= 0)
+          (abundance_ratio_cmp(searchinfo.qsize, parameters.opt_minsizeratio, tsize) >= 0)
           and
           /* maxsizeratio */
           (abundance_ratio_cmp(searchinfo.qsize, opt_maxsizeratio, tsize) <= 0)
           and
           /* minqt */
-          (searchinfo.qseqlen >= opt_minqt * static_cast<double>(dseqlen))
+          (searchinfo.qseqlen >= parameters.opt_minqt * static_cast<double>(dseqlen))
           and
           /* maxqt */
-          (searchinfo.qseqlen <= opt_maxqt * static_cast<double>(dseqlen))
+          (searchinfo.qseqlen <= parameters.opt_maxqt * static_cast<double>(dseqlen))
           and
           /* minsl */
           (searchinfo.qseqlen < dseqlen ?
-           searchinfo.qseqlen >= opt_minsl * static_cast<double>(dseqlen) :
-           static_cast<double>(dseqlen) >= opt_minsl * searchinfo.qseqlen)
+           searchinfo.qseqlen >= parameters.opt_minsl * static_cast<double>(dseqlen) :
+           static_cast<double>(dseqlen) >= parameters.opt_minsl * searchinfo.qseqlen)
           and
           /* maxsl */
           (searchinfo.qseqlen < dseqlen ?
-           searchinfo.qseqlen <= opt_maxsl * static_cast<double>(dseqlen) :
-           static_cast<double>(dseqlen) <= opt_maxsl * searchinfo.qseqlen)
+           searchinfo.qseqlen <= parameters.opt_maxsl * static_cast<double>(dseqlen) :
+           static_cast<double>(dseqlen) <= parameters.opt_maxsl * searchinfo.qseqlen)
           and
           /* idprefix */
-          ((searchinfo.qseqlen >= opt_idprefix) and
-           (dseqlen >= opt_idprefix) and
-           (seqcmp(qseq, dseq, opt_idprefix) == 0))
+          ((searchinfo.qseqlen >= parameters.opt_idprefix) and
+           (dseqlen >= parameters.opt_idprefix) and
+           (seqcmp(qseq, dseq, parameters.opt_idprefix) == 0))
           and
           /* idsuffix */
-          ((searchinfo.qseqlen >= opt_idsuffix) and
-           (dseqlen >= opt_idsuffix) and
-           (seqcmp(qseq + searchinfo.qseqlen - opt_idsuffix,
-                    dseq + dseqlen - opt_idsuffix,
-                    opt_idsuffix) == 0))
+          ((searchinfo.qseqlen >= parameters.opt_idsuffix) and
+           (dseqlen >= parameters.opt_idsuffix) and
+           (seqcmp(qseq + searchinfo.qseqlen - parameters.opt_idsuffix,
+                    dseq + dseqlen - parameters.opt_idsuffix,
+                    parameters.opt_idsuffix) == 0))
           and
           /* self */
           ((opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
@@ -612,37 +618,40 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
 auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool
 {
+  struct Parameters const & parameters = *searchinfo.parameters;
+  /* opt_weak_id and opt_id below stay global reads: chimera() / chimera_session_init
+     overwrite them for the shared engine, so they must NOT be migrated (E1 trap). */
   if (/* weak_id */
       (hit->id >= 100.0 * opt_weak_id) and
       /* maxsubs */
-      (hit->mismatches <= opt_maxsubs) and
+      (hit->mismatches <= parameters.opt_maxsubs) and
       /* maxgaps */
-      (hit->internal_gaps <= opt_maxgaps) and
+      (hit->internal_gaps <= parameters.opt_maxgaps) and
       /* mincols */
-      (hit->internal_alignmentlength >= opt_mincols) and
+      (hit->internal_alignmentlength >= parameters.opt_mincols) and
       /* leftjust */
-      ((opt_leftjust == 0) or (hit->trim_q_left +
+      ((parameters.opt_leftjust == 0) or (hit->trim_q_left +
                            hit->trim_t_left == 0)) and
       /* rightjust */
-      ((opt_rightjust == 0) or (hit->trim_q_right +
+      ((parameters.opt_rightjust == 0) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) and
       /* query_cov */
-      (hit->matches + hit->mismatches >= opt_query_cov * searchinfo.qseqlen) and
+      (hit->matches + hit->mismatches >= parameters.opt_query_cov * searchinfo.qseqlen) and
       /* target_cov */
       (hit->matches + hit->mismatches >=
-       opt_target_cov * static_cast<double>(db_getsequencelen(static_cast<uint64_t>(hit->target)))) and
+       parameters.opt_target_cov * static_cast<double>(db_getsequencelen(static_cast<uint64_t>(hit->target)))) and
       /* maxid */
-      (hit->id <= 100.0 * opt_maxid) and
+      (hit->id <= 100.0 * parameters.opt_maxid) and
       /* mid */
-      (100.0 * hit->matches / (hit->matches + hit->mismatches) >= opt_mid) and
+      (100.0 * hit->matches / (hit->matches + hit->mismatches) >= parameters.opt_mid) and
       /* maxdiffs */
-      (hit->mismatches + hit->internal_indels <= opt_maxdiffs))
+      (hit->mismatches + hit->internal_indels <= parameters.opt_maxdiffs))
     {
-      if (opt_cluster_unoise != nullptr)
+      if (parameters.opt_cluster_unoise != nullptr)
         {
           const auto mismatches = hit->mismatches;
           auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(db_getabundance(static_cast<uint64_t>(hit->target)));
-          auto const beta = 1.0 / std::pow(2, (1.0 * opt_unoise_alpha * mismatches) + 1);
+          auto const beta = 1.0 / std::pow(2, (1.0 * parameters.opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
             {
@@ -679,6 +688,9 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
 
 auto align_delayed(struct searchinfo_s * searchinfo) -> void
 {
+  /* opt_maxaccepts/opt_maxrejects below stay global reads: search/cluster clamp
+     them to the database size and chimera overwrites them, so they must NOT be
+     migrated to searchinfo->parameters (E1 trap). */
   /* compute global alignment */
 
   std::array<unsigned int, MAXDELAYED> target_list {{}};
@@ -790,7 +802,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               hit->mismatches = hit->nwdiff - hit->nwindels;
 
               /* trim alignment and compute numbers excluding terminal gaps */
-              align_trim(hit);
+              align_trim(hit, *searchinfo->parameters);
 
               /* test accept/reject criteria after alignment */
               if (search_acceptable_aligned(*searchinfo, hit))
@@ -819,6 +831,9 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
 auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 {
+  /* opt_wordlength (udb_read-adjusted) and opt_maxaccepts/opt_maxrejects
+     (seqcount-clamped by search/cluster, overwritten by chimera) below stay
+     global reads and must NOT be migrated to searchinfo->parameters (E1 trap). */
   searchinfo->hit_count = 0;
 
   search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
@@ -892,6 +907,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 auto search_findbest2_byid(struct searchinfo_s const * si_p,
                            struct searchinfo_s const * si_m) -> struct hit *
 {
+  struct Parameters const & parameters = *si_p->parameters;
   struct hit * best = nullptr;
 
   for (int i = 0; i < si_p->hit_count; i++)
@@ -902,7 +918,7 @@ auto search_findbest2_byid(struct searchinfo_s const * si_p,
         }
     }
 
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {
@@ -925,6 +941,7 @@ auto search_findbest2_byid(struct searchinfo_s const * si_p,
 auto search_findbest2_bysize(struct searchinfo_s const * si_p,
                              struct searchinfo_s const * si_m) -> struct hit *
 {
+  struct Parameters const & parameters = *si_p->parameters;
   struct hit * best = nullptr;
 
   for (int i = 0; i < si_p->hit_count; i++)
@@ -935,7 +952,7 @@ auto search_findbest2_bysize(struct searchinfo_s const * si_p,
         }
     }
 
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {

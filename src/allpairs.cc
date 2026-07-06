@@ -479,7 +479,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
                   hit->longest = std::max(searchinfo.qseqlen, dseqlen);
 
                   /* trim alignment, compute numbers excluding terminal gaps */
-                  align_trim(hit);
+                  align_trim(hit, state.parameters);
 
                   /* test accept/reject criteria after alignment */
                   if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
