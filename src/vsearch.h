@@ -572,9 +572,10 @@ struct Parameters {
   bool opt_xlength = false;
   bool opt_xsize = false;
 
-  /* Options migrated from the opt_* globals (E1/F1). Types and default
-     values mirror vsearch_init_defaults() exactly, so a default-constructed
-     Parameters equals the post-init global state (see the drift check). */
+  /* Options migrated from the opt_* globals (E1/F1). Types match the globals
+     and the default values are the canonical library defaults, so a
+     default-constructed Parameters is a fully-defaulted configuration that
+     vsearch_session_begin() then derives the globals from. */
   char *    opt_alnout                       = nullptr;
   char *    opt_biomout                      = nullptr;
   char *    opt_blast6out                    = nullptr;
@@ -709,20 +710,20 @@ struct Parameters {
   std::vector<double> opt_ee_cutoffs = {0.5, 1.0, 2.0};  // was opt_ee_cutoffs_values/_count
 
   /* Internal state (not an option): guards the once-only gap-open penalty
-     adjustment in vsearch_apply_defaults_fixups() so a repeated call is
-     idempotent (mirrors the file-static of the global fixups). */
+     adjustment in vsearch_apply_defaults_fixups() so a repeated call on the
+     same struct is idempotent rather than double-subtracting. */
   bool gap_penalties_adjusted = false;
 };
 
-/* Library API: global initialization */
-auto vsearch_init_defaults() -> void;
-auto vsearch_apply_defaults_fixups() -> void;
-/* Parameters-based overload: resolves the same sentinels/ranges in the struct
-   (E1/F2). The global overload above stays until every reader is migrated. */
+/* Library API: session lifecycle */
+/* Resolve a Parameters' sentinel values and ranges (maxhits, minwordmatches,
+   maxrejects, wordlength, weak_id clamp, threads, chimeras_parents_max, and the
+   once-only gap-open adjustment). Called by vsearch_session_begin(); exposed so
+   callers can inspect the resolved values. Idempotent per struct. */
 auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;
-/* Begin a library session from a Parameters (E1/F2): acquire the session lock,
-   resolve sentinels, and derive the opt_* globals from the struct. Pair with
-   vsearch_session_end(). Will replace vsearch_init_defaults() as the entry. */
+/* Begin a library session from a Parameters: acquire the session lock, resolve
+   sentinels, and derive the opt_* globals from the struct. Pair with
+   vsearch_session_end(). */
 auto vsearch_session_begin(struct Parameters & parameters) -> void;
 /* Internal (not public API): derive the opt_* globals from a Parameters. Used
    by args_init() and vsearch_session_begin() during the E1 migration. */

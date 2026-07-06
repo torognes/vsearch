@@ -37,7 +37,7 @@ The three components are also available individually as
   (`MAJOR == 0`) the API is considered unstable and MINOR bumps may
   also break compatibility.
 - **MINOR** — backward-compatible additions: new public functions,
-  new fields appended to a result struct, new `opt_*` globals.
+  new fields appended to a result struct or to the `Parameters` struct.
 - **PATCH** — backward-compatible fixes that don't change the API
   surface (bug fixes, doc updates, internal refactors).
 
@@ -147,11 +147,11 @@ also global.
 
 - Only one session can be active per process at a time
 - Initialization and configuration are not thread-safe
-- Calling `vsearch_init_defaults()` resets ALL options
+- Each session is configured by a fresh `Parameters` struct
 
-A session mutex serializes access: `vsearch_init_defaults()` acquires
-it, `vsearch_session_end()` releases it. Concurrent callers block until
-the mutex is released.
+A session mutex serializes access: `vsearch_session_begin()` acquires
+it, `vsearch_session_end()` releases it. A second `vsearch_session_begin()`
+while a session is active fails with a fatal diagnostic (it does not block).
 
 ### Per-thread working state
 
@@ -163,10 +163,10 @@ after initialization, so no locking is needed during computation.
 
 ### Output and I/O
 
-The library defaults to silent operation: `opt_quiet` and
-`opt_no_progress` are both `true` after `vsearch_init_defaults()`.
-No output is written to stdout or stderr by library functions under
-default settings. The caller has full control over I/O.
+The library defaults to silent operation: `parameters.opt_quiet` and
+`parameters.opt_no_progress` are both `true` in a default-constructed
+`Parameters`. No output is written to stdout or stderr by library functions
+under default settings. The caller has full control over I/O.
 
 ---
 
@@ -179,17 +179,16 @@ Every session must follow this protocol:
 ```cpp
 #include "vsearch_api.h"
 
-// 1. Set all ~200 globals to library defaults (quiet, no progress).
-//    Acquires the session mutex — blocks if another session is active.
-vsearch_init_defaults();
+// 1. A fresh, self-defaulting configuration (quiet, no progress).
+struct Parameters parameters;
 
-// 2. Override globals for your use case.
-opt_wordlength = 8;
-opt_id = 0.97;
+// 2. Override options for your use case.
+parameters.opt_wordlength = 8;
+parameters.opt_id = 0.97;
 
-// 3. Resolve sentinel values to computed defaults.
-//    Must be called AFTER setting overrides.
-vsearch_apply_defaults_fixups();
+// 3. Begin the session: acquires the session mutex (fatal if one is already
+//    active), resolves sentinel values, and applies the configuration.
+vsearch_session_begin(parameters);
 
 // 4-N. Use the library (load DB, run operations, etc.)
 // ...
@@ -198,8 +197,8 @@ vsearch_apply_defaults_fixups();
 vsearch_session_end();
 ```
 
-**Step 3 is mandatory.** `vsearch_apply_defaults_fixups()` resolves
-sentinel values that depend on other options:
+`vsearch_session_begin()` resolves sentinel values that depend on other
+options (via `vsearch_apply_defaults_fixups(parameters)`):
 
 - `opt_maxhits`: 0 → `INT64_MAX`
 - `opt_minwordmatches`: -1 → wordlength-based default from
@@ -208,25 +207,26 @@ sentinel values that depend on other options:
   penalties (e.g., `opt_gap_open_query_interior` 20 → 18 after
   subtracting `opt_gap_extension_query_interior` 2)
 
-Skipping this step causes silent failures — candidates are rejected
-due to wrong gap penalties, or no k-mer matches are found.
+You configure only the fields you care about; the rest keep their library
+defaults. Do not set the `opt_*` globals directly — `vsearch_session_begin()`
+derives them from the struct for the compute engines that still read them.
 
 ### Re-initialization
 
 Multiple sequential sessions in the same process are supported.
-Repeat the full sequence (init → configure → fixups → work → cleanup
-→ session end) for each session. `vsearch_init_defaults()` resets all
-globals to fresh defaults, and `vsearch_apply_defaults_fixups()`
-correctly re-applies gap penalty adjustments each time.
+Repeat the full sequence (fresh `Parameters` → configure →
+`vsearch_session_begin` → work → cleanup → `vsearch_session_end`) for each
+session. Each fresh struct re-applies the gap penalty adjustments from raw
+defaults.
 
 See `api_examples/example_reinit.cc` for a tested multi-session example.
 
-### Initialization functions
+### Session functions
 
 | Function | Description |
 |----------|-------------|
-| `vsearch_init_defaults()` | Set all opt_* globals to library defaults. Acquires session mutex. |
-| `vsearch_apply_defaults_fixups()` | Resolve sentinel values. Call after setting overrides. |
+| `vsearch_session_begin(Parameters &)` | Acquire session mutex, resolve sentinels, apply config. Call once after configuring. |
+| `vsearch_apply_defaults_fixups(Parameters &)` | Resolve a struct's sentinel values (called by session_begin; exposed for inspection). |
 | `vsearch_session_end()` | Release session mutex. Call after all cleanup. |
 
 ---
@@ -425,9 +425,9 @@ De novo mode is inherently sequential (single-threaded).
 
 ### Key options
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `opt_wordlength` | `int64_t` | 8 | K-mer length. Set before `vsearch_apply_defaults_fixups()`. |
+| `opt_wordlength` | `int64_t` | 8 | K-mer length. Set before `vsearch_session_begin()`. |
 | `opt_minh` | `double` | 0.28 | Minimum h-score for chimera classification. |
 | `opt_xn` | `double` | 8.0 | Weight of no votes. |
 | `opt_dn` | `double` | 1.4 | Pseudo-count prior for votes. |
@@ -518,7 +518,7 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 
 ### Key options
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_id` | `double` | 0.0 | Minimum identity threshold (0.0–1.0). |
 | `opt_maxaccepts` | `int64_t` | 1 | Stop after N accepted hits. |
@@ -587,7 +587,7 @@ cluster_session_free(cs);
 
 ### Key options
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_id` | `double` | 0.0 | Identity threshold for cluster membership. |
 | `opt_strand` | `bool` | `false` | `false` = plus strand only, `true` = both strands. |
@@ -712,7 +712,7 @@ calling `merge_result_free()` between calls.
 
 ### Key options
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_fastq_ascii` | `int64_t` | 33 | ASCII offset for quality scores. |
 | `opt_fastq_minovlen` | `int64_t` | 10 | Minimum overlap length. |
@@ -772,14 +772,14 @@ database and query sequences, respectively. Both default to `MASK_DUST`.
 
 ## Configuration reference
 
-All configuration is done by setting global `opt_*` variables after
-`vsearch_init_defaults()` and before `vsearch_apply_defaults_fixups()`.
-The full list of ~200 globals is declared as `extern` in `vsearch.h`.
-Below are the most commonly used options, grouped by subsystem.
+All configuration is done by setting `opt_*` fields on a `Parameters` struct
+before `vsearch_session_begin()`. The full set of ~200 options is defined in
+the `Parameters` struct in `vsearch.h`. The tables below list them by option
+name (accessed as `parameters.opt_name`), grouped by subsystem.
 
 ### Alignment scoring
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_match` | `int64_t` | 2 | Match reward. |
 | `opt_mismatch` | `int64_t` | -4 | Mismatch penalty. |
@@ -793,13 +793,13 @@ Below are the most commonly used options, grouped by subsystem.
 Target-side gap penalties mirror query-side with `_target_` in the name.
 Defaults are identical.
 
-Gap open penalties are stored as raw values. `vsearch_apply_defaults_fixups()`
+Gap open penalties are stored as raw values. `vsearch_session_begin()`
 subtracts the corresponding extension penalty (e.g., 20 - 2 = 18 for
 interior). This matches the internal scoring convention.
 
 ### Search control
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_id` | `double` | 0.0 | Minimum identity (0.0–1.0). |
 | `opt_iddef` | `int64_t` | 2 | Identity definition (0=CD-HIT, 1=edit distance, 2=default, 3=marine bio, 4=BLAST). |
@@ -812,7 +812,7 @@ interior). This matches the internal scoring convention.
 
 ### Sequence filtering
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_minseqlength` | `int64_t` | 0 | Minimum sequence length. |
 | `opt_maxseqlength` | `int64_t` | `INT_MAX` | Maximum sequence length. |
@@ -821,14 +821,14 @@ interior). This matches the internal scoring convention.
 
 ### Abundance annotation
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_sizein` | `bool` | false | Parse `;size=N` from input headers. |
 | `opt_sizeout` | `bool` | false | Write `;size=N` to output headers. |
 
 ### Output control
 
-| Global | Type | Default | Description |
+| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_quiet` | `bool` | true (library) | Suppress all stderr output. |
 | `opt_no_progress` | `bool` | true (library) | Suppress progress bars. |
@@ -927,9 +927,9 @@ only while the database is loaded (until `db_free()` is called).
 
 ### Internal allocations
 
-`vsearch_init_defaults()` allocates `opt_ee_cutoffs_values` via
-`xmalloc`. This is freed and reallocated on the next
-`vsearch_init_defaults()` call. No action is required from the caller.
+`vsearch_session_begin()` derives the internal `opt_ee_cutoffs_values` array
+from `parameters.opt_ee_cutoffs`, allocating it via `xmalloc` and freeing any
+previous allocation. No action is required from the caller.
 
 ---
 
@@ -939,9 +939,8 @@ only while the database is loaded (until `db_free()` is called).
 
 | Phase | Thread safety |
 |-------|---------------|
-| `vsearch_init_defaults()` | Single-threaded. Acquires session mutex. |
-| Option overrides (`opt_* = ...`) | Single-threaded. |
-| `vsearch_apply_defaults_fixups()` | Single-threaded. |
+| Configuring `Parameters` (`parameters.opt_* = ...`) | Single-threaded. |
+| `vsearch_session_begin()` | Single-threaded. Acquires session mutex. |
 | Database loading (`db_init`, `db_add`, `dust_all`) | Single-threaded. |
 | Index building (`dbindex_prepare`, `dbindex_addallsequences`) | Single-threaded. |
 | Session init (`chimera_session_init`, etc.) | Single-threaded. |
@@ -1051,11 +1050,11 @@ g++ -std=c++11 -O3 -I../src -o example_chimera example_chimera.cc \
 
 int main() {
     // Initialize
-    vsearch_init_defaults();
-    opt_wordlength = 8;
-    opt_id = 0.97;
-    opt_maxaccepts = 1;
-    vsearch_apply_defaults_fixups();
+    struct Parameters parameters;
+    parameters.opt_wordlength = 8;
+    parameters.opt_id = 0.97;
+    parameters.opt_maxaccepts = 1;
+    vsearch_session_begin(parameters);
 
     // Load database
     db_init();

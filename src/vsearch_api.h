@@ -45,7 +45,7 @@
  *   MINOR — incremented for backward-compatible additions:
  *             * new public functions
  *             * new fields appended to the end of a result struct
- *             * new opt_* globals (extern declarations)
+ *             * new fields appended to the end of the Parameters struct
  *
  *   PATCH — incremented for backward-compatible fixes that do not
  *           change the API surface (bug fixes, doc updates, internal
@@ -59,16 +59,15 @@
  *
  * === Initialization sequence ===
  *
- * Library users MUST initialize vsearch's global state before calling
- * any other function. The required sequence is:
+ * Library users configure vsearch through a Parameters struct and begin a
+ * session with it before calling any other function. The required sequence is:
  *
- *   1. vsearch_init_defaults()       — set all ~200 opt_* globals to
- *                                      safe library defaults (quiet,
- *                                      no progress output)
- *   2. Override any opt_* globals    — e.g., opt_wordlength = 8 for
- *      needed for your use case        chimera detection
- *   3. vsearch_apply_defaults_fixups() — resolve sentinel values
- *                                        (opt_minwordmatches, opt_maxhits)
+ *   1. struct Parameters parameters; — a fresh, self-defaulting configuration
+ *                                      (library defaults: quiet, no progress)
+ *   2. parameters.opt_x = ...        — override any options for your use case
+ *                                      (e.g., parameters.opt_wordlength = 8)
+ *   3. vsearch_session_begin(parameters) — acquire the session lock, resolve
+ *                                          sentinels, and apply the config
  *   4. db_init()                     — reset database state
  *   5. db_add() ...                  — load sequences
  *   6. dust_all()                    — apply DUST masking
@@ -94,34 +93,35 @@
  *   read-only after step 7.
  * - Cleanup (steps 11-13): single-threaded only
  *
- * vsearch_init_defaults() acquires a session mutex, held until
+ * vsearch_session_begin() acquires a session mutex, held until
  * vsearch_session_end() releases it, so only one session can be
  * active at a time (this prevents two threads from corrupting shared
  * global state). The lock is taken with try_lock(): if a session is
  * already active — e.g. a previous session was not ended —
- * vsearch_init_defaults() fails with a fatal diagnostic rather than
+ * vsearch_session_begin() fails with a fatal diagnostic rather than
  * blocking indefinitely.
  *
- * === Global state warning ===
+ * === Configuration ===
  *
- * vsearch uses ~200 global opt_* variables. vsearch_init_defaults()
- * sets ALL of them. If you override any, do so BEFORE calling
- * vsearch_apply_defaults_fixups(). Missing or wrong globals cause
- * silent search failures (e.g., wrong gap penalties → rejected
- * candidates, wrong opt_minwordmatches → no k-mer matches).
+ * All ~200 options live in the Parameters struct with correct library
+ * defaults, so a default-constructed Parameters is already a valid, quiet
+ * configuration; you only set the fields you care about. Internally the
+ * options are still mirrored to the opt_* globals that the compute engines
+ * read; vsearch_session_begin() derives them from the struct. Do not set the
+ * opt_* globals directly.
  *
  * === Re-initialization ===
  *
- * Multiple sequential sessions in the same process are supported.
- * Repeat the full initialization sequence for each session.
- * vsearch_apply_defaults_fixups() correctly re-applies gap penalty
- * adjustments from the freshly-reset defaults each time.
+ * Multiple sequential sessions in the same process are supported: build a
+ * fresh Parameters and call vsearch_session_begin() for each (pairing every
+ * one with vsearch_session_end()). Each fresh struct re-applies the gap
+ * penalty adjustments from raw defaults.
  */
 
 /* === API version === */
 
 #define VSEARCH_API_VERSION_MAJOR 0
-#define VSEARCH_API_VERSION_MINOR 4
+#define VSEARCH_API_VERSION_MINOR 5
 #define VSEARCH_API_VERSION_PATCH 0
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
@@ -169,28 +169,22 @@ auto vsearch_api_version() -> int;
 /* Runtime API version as "MAJOR.MINOR.PATCH". */
 auto vsearch_api_version_string() -> const char *;
 
-/* === Global initialization === */
+/* === Session lifecycle === */
 
-/* Set all opt_* globals to their CLI-equivalent default values.
-   Must be called once before any other vsearch function.
-   Allocates opt_ee_cutoffs_values via xmalloc.
-   Acquires the session mutex — blocks if another session is active.
-   Caller MUST call vsearch_session_end() when the session is done. */
-auto vsearch_init_defaults() -> void;
+/* Begin a library session from a configured Parameters. Must be called once,
+   after setting any overrides on the struct, before any other vsearch
+   function. Acquires the session mutex (fatal if another session is active),
+   resolves the struct's sentinel values via vsearch_apply_defaults_fixups(),
+   and derives the internal opt_* globals from it (allocating opt_ee_cutoffs).
+   Caller MUST call vsearch_session_end() when the session is done.
 
-/* Release the session mutex acquired by vsearch_init_defaults().
+   Note: parameters.opt_minsize is NOT resolved here — it has command-specific
+   defaults (1 for most commands, 8 for cluster_unoise). Set it explicitly if
+   needed (the struct default is 0). */
+auto vsearch_session_begin(struct Parameters & parameters) -> void;
+
+/* Release the session mutex acquired by vsearch_session_begin().
    Call after all cleanup (dbindex_free, db_free, etc.) is complete.
-   Omitting this call will cause the next vsearch_init_defaults() to
+   Omitting this call will cause the next vsearch_session_begin() to
    fail with a fatal diagnostic (the session lock is still held). */
 auto vsearch_session_end() -> void;
-
-/* Resolve sentinel values in opt_* globals to computed defaults.
-   Call after vsearch_init_defaults() and after setting any overrides.
-   Handles: opt_maxhits (0 → INT64_MAX), opt_minwordmatches (-1 →
-   wordlength-based default from searchcore.h minwordmatches_defaults).
-
-   Note: opt_minsize is NOT resolved here — it has command-specific
-   defaults (1 for most commands, 8 for cluster_unoise). Library users
-   should set opt_minsize explicitly if needed (default from
-   vsearch_init_defaults is 0). */
-auto vsearch_apply_defaults_fixups() -> void;

@@ -91,7 +91,7 @@ struct merge_result_s {
 /* Initialize the quality score lookup table.
    Must be called once before mergepairs_single().
    Requires: opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax set
-   (vsearch_init_defaults provides correct values). */
+   (vsearch_session_begin provides correct values). */
 auto mergepairs_init() -> void;
 
 /* Merge a single forward/reverse read pair.
@@ -113,7 +113,7 @@ auto mergepairs_init() -> void;
    Thread-safe after mergepairs_init() completes. mergepairs_init()
    must NOT run concurrently with any mergepairs_single() call.
 
-   Relevant opt_* overrides (after vsearch_init_defaults):
+   Relevant opt_* overrides (set on Parameters before vsearch_session_begin):
      opt_fastq_minovlen   — minimum overlap length (default 10)
      opt_fastq_maxdiffs   — max mismatches in overlap (default 10)
      opt_fastq_maxdiffpct — max mismatch % in overlap (default 100.0)
