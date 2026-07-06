@@ -198,6 +198,12 @@ struct chimera_info_s
    files (E6 split of the core from its CLI output). */
 struct chimera_cli_state_s
 {
+  /* the run configuration, threaded through the CLI-path helpers instead of the
+     opt_* globals (E1/F3); set once at construction, read-only thereafter. The
+     shared detection core (eval_parents/_long, chimera_process_query, ...) and
+     the library session/detect entries have no Parameters and keep reading the
+     globals. */
+  struct Parameters const & parameters;
   std::mutex mutex_output;  /* serializes all CLI output + stats updates */
   std::FILE * fp_uchimealns = nullptr;
   std::FILE * fp_uchimeout = nullptr;
@@ -216,6 +222,8 @@ struct chimera_cli_state_s
   std::FILE * fp_nonchimeras = nullptr;
   std::FILE * fp_borderline = nullptr;
   struct chimera_info_s * cia = nullptr;
+
+  explicit chimera_cli_state_s(struct Parameters const & params) : parameters(params) {}
 };
 
 
@@ -2132,9 +2140,9 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
          Reading it later under mutex_output (as before) raced that writer. */
       uint64_t query_position = 0;
 
-      if (opt_uchime_ref != nullptr)
+      if (state.parameters.opt_uchime_ref != nullptr)
         {
-          if (fasta_next(state.query_fasta_h, (not opt_notrunclabels),
+          if (fasta_next(state.query_fasta_h, (not state.parameters.opt_notrunclabels),
                          chrmap_no_change_vector.data()))
             {
               ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
@@ -2192,7 +2200,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           ++state.chimera_count;
           state.chimera_abundance += ci->query_size;
 
-          if (opt_chimeras != nullptr)
+          if (state.parameters.opt_chimeras != nullptr)
             {
               fasta_print_general(state.fp_chimeras,
                                   nullptr,
@@ -2205,8 +2213,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                   -1.0,
                                   -1,
                                   -1,
-                                  opt_fasta_score ?
-                                  ( (opt_uchime_ref != nullptr) ?
+                                  state.parameters.opt_fasta_score ?
+                                  ( (state.parameters.opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h,
                                   0);
@@ -2219,7 +2227,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           ++state.borderline_count;
           state.borderline_abundance += ci->query_size;
 
-          if (opt_borderline != nullptr)
+          if (state.parameters.opt_borderline != nullptr)
             {
               fasta_print_general(state.fp_borderline,
                                   nullptr,
@@ -2232,8 +2240,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                   -1.0,
                                   -1,
                                   -1,
-                                  opt_fasta_score ?
-                                  ( (opt_uchime_ref != nullptr) ?
+                                  state.parameters.opt_fasta_score ?
+                                  ( (state.parameters.opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h,
                                   0);
@@ -2247,18 +2255,18 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           state.nonchimera_abundance += ci->query_size;
 
           /* output no parents, no chimeras */
-          if ((status < Status::low_score) and (opt_uchimeout != nullptr))
+          if ((status < Status::low_score) and (state.parameters.opt_uchimeout != nullptr))
             {
               std::fprintf(state.fp_uchimeout, "%.4f\t", ci->best_h);
 
               header_fprint_strip(state.fp_uchimeout,
                                   ci->query_head.data(),
                                   ci->query_head_len,
-                                  opt_xsize,
-                                  opt_xee,
-                                  opt_xlength);
+                                  state.parameters.opt_xsize,
+                                  state.parameters.opt_xee,
+                                  state.parameters.opt_xlength);
 
-              if (opt_uchimeout5 != 0)
+              if (state.parameters.opt_uchimeout5 != 0)
                 {
                   std::fprintf(state.fp_uchimeout,
                           "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
@@ -2270,7 +2278,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                 }
             }
 
-          if (opt_nonchimeras != nullptr)
+          if (state.parameters.opt_nonchimeras != nullptr)
             {
               fasta_print_general(state.fp_nonchimeras,
                                   nullptr,
@@ -2283,8 +2291,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                   -1.0,
                                   -1,
                                   -1,
-                                  opt_fasta_score ?
-                                  ( (opt_uchime_ref != nullptr) ?
+                                  state.parameters.opt_fasta_score ?
+                                  ( (state.parameters.opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h,
                                   0);
@@ -2294,9 +2302,9 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
       if (status < Status::suspicious)
         {
           /* uchime_denovo: add non-chimeras to db */
-          if ((opt_uchime_denovo != nullptr) or (opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr) or (opt_chimeras_denovo != nullptr))
+          if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
             {
-              dbindex_addsequence(state.seqno, static_cast<int>(opt_qmask));
+              dbindex_addsequence(state.seqno, static_cast<int>(state.parameters.opt_qmask));
             }
         }
 
@@ -2308,7 +2316,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             }
         }
 
-      if (opt_uchime_ref != nullptr)
+      if (state.parameters.opt_uchime_ref != nullptr)
         {
           state.progress = query_position;
         }
@@ -2351,25 +2359,30 @@ auto chimera(struct Parameters const & parameters) -> void
   /* Per-invocation CLI state, owned here and threaded through the worker pool
      (E4). It also holds the detection-core output handles/mutex, injected into
      eval_parents/eval_parents_long via chimera_process_query (E6). */
-  struct chimera_cli_state_s state;
+  struct chimera_cli_state_s state(parameters);
 
-  state.fp_chimeras = open_optional_output(opt_chimeras, "chimeras");
-  state.fp_nonchimeras = open_optional_output(opt_nonchimeras, "nonchimeras");
-  state.fp_borderline = open_optional_output(opt_borderline, "borderline");
+  state.fp_chimeras = open_optional_output(parameters.opt_chimeras, "chimeras");
+  state.fp_nonchimeras = open_optional_output(parameters.opt_nonchimeras, "nonchimeras");
+  state.fp_borderline = open_optional_output(parameters.opt_borderline, "borderline");
 
   if (parameters.opt_chimeras_denovo != nullptr)
     {
-      state.fp_uchimealns = open_optional_output(opt_alnout, "alignment");
-      state.fp_uchimeout = open_optional_output(opt_tabbedout, "tabbedout");
+      state.fp_uchimealns = open_optional_output(parameters.opt_alnout, "alignment");
+      state.fp_uchimeout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
     }
   else
     {
-      state.fp_uchimealns = open_optional_output(opt_uchimealns, "uchimealns");
-      state.fp_uchimeout = open_optional_output(opt_uchimeout, "uchimeout");
+      state.fp_uchimealns = open_optional_output(parameters.opt_uchimealns, "uchimealns");
+      state.fp_uchimeout = open_optional_output(parameters.opt_uchimeout, "uchimeout");
     }
 
 
-  /* override any options the user might have set */
+  /* override any options the user might have set. These knobs
+     (opt_maxaccepts / opt_maxrejects / opt_id / opt_self / opt_selfid /
+     opt_threads / opt_maxsizeratio, and opt_weak_id in the library path) are
+     run-time-mutated here and restored by chimera_session_cleanup(); the
+     detection core reads the overridden values, so they stay global reads
+     throughout chimera.cc (E1/F3, deferred to the shared-infra phase). */
   opt_maxaccepts = few;
   opt_maxrejects = rejects;
   opt_id = chimera_id;
@@ -2384,7 +2397,7 @@ auto chimera(struct Parameters const & parameters) -> void
       opt_self = 1;
       opt_selfid = 1;
       opt_threads = 1;
-      opt_maxsizeratio = 1.0 / opt_abskew;
+      opt_maxsizeratio = 1.0 / parameters.opt_abskew;
     }
 
   uint64_t progress_total = 0;
@@ -2404,25 +2417,25 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       /* check if the reference database may be an UDB file */
 
-      auto const is_udb = udb_detect_isudb(opt_db);
+      auto const is_udb = udb_detect_isudb(parameters.opt_db);
 
       if (is_udb)
         {
-          udb_read(opt_db, true, true);
+          udb_read(parameters.opt_db, true, true);
         }
       else
         {
-          db_read(opt_db, 0);
-          if (opt_dbmask == MASK_DUST)
+          db_read(parameters.opt_db, 0);
+          if (parameters.opt_dbmask == MASK_DUST)
             {
               dust_all();
             }
-          else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
+          else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
             {
               hardmask_all();
             }
-          dbindex_prepare(1, static_cast<int>(opt_dbmask));
-          dbindex_addallsequences(static_cast<int>(opt_dbmask));
+          dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+          dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref);
@@ -2464,7 +2477,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           dust_all();
         }
-      else if ((parameters.opt_qmask == MASK_SOFT) and (opt_hardmask))
+      else if ((parameters.opt_qmask == MASK_SOFT) and (parameters.opt_hardmask))
         {
           hardmask_all();
         }
@@ -2478,7 +2491,7 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
-          std::fprintf(fp_log, "%8.2f  minh\n", opt_minh);
+          std::fprintf(fp_log, "%8.2f  minh\n", parameters.opt_minh);
         }
       auto const is_a_uchime_command = (parameters.opt_uchime_ref != nullptr) or
         (parameters.opt_uchime_denovo != nullptr) or
@@ -2486,14 +2499,14 @@ auto chimera(struct Parameters const & parameters) -> void
         (parameters.opt_uchime3_denovo != nullptr);
       if (is_a_uchime_command)
         {
-          std::fprintf(fp_log, "%8.2f  xn\n", opt_xn);
-          std::fprintf(fp_log, "%8.2f  dn\n", opt_dn);
+          std::fprintf(fp_log, "%8.2f  xn\n", parameters.opt_xn);
+          std::fprintf(fp_log, "%8.2f  dn\n", parameters.opt_dn);
           std::fprintf(fp_log, "%8.2f  xa\n", 1.0);
         }
 
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
-          std::fprintf(fp_log, "%8.2f  mindiv\n", opt_mindiv);
+          std::fprintf(fp_log, "%8.2f  mindiv\n", parameters.opt_mindiv);
         }
 
       std::fprintf(fp_log, "%8.2f  id\n", opt_id);
