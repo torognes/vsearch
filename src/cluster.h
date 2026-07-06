@@ -86,14 +86,16 @@ auto cluster_session_alloc() -> struct cluster_session_s *;
 auto cluster_session_free(struct cluster_session_s * cs) -> void;
 
 /* Initialize a clustering session.
-   Requires: global opt_* set (including opt_id for identity threshold),
-   database loaded, masked, and dbindex_prepare() called with bitmap=1.
+   Requires: parameters configured (same one passed to vsearch_session_begin,
+   including opt_id for the identity threshold), database loaded, masked, and
+   dbindex_prepare() called with bitmap=1. The session stores a reference to
+   parameters, which must outlive the session.
    Do NOT call dbindex_addallsequences — centroids are indexed
    incrementally as they are discovered.
 
    Database must be pre-sorted by length (cluster_fast) or
    abundance (cluster_size) before loading. */
-auto cluster_session_init(struct cluster_session_s * cs) -> void;
+auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters) -> void;
 
 /* Assign a single database sequence to a cluster.
    Must be called sequentially (seqno 0, 1, 2, ...).

@@ -66,7 +66,7 @@ static int run_cluster_uc() {
     dbindex_prepare(1, opt_qmask);
 
     struct cluster_session_s * cs = cluster_session_alloc();
-    cluster_session_init(cs);
+    cluster_session_init(cs, parameters);
 
     int seqcount = static_cast<int>(db_getsequencecount());
     std::vector<struct cluster_result_s> results(seqcount);
@@ -149,7 +149,7 @@ static int run_batch_tests()
   /* Sequential: use cluster_assign_single one at a time */
   dbindex_prepare(1, opt_qmask);
   struct cluster_session_s * cs_seq = cluster_session_alloc();
-  cluster_session_init(cs_seq);
+  cluster_session_init(cs_seq, parameters);
 
   std::vector<struct cluster_result_s> seq_results(sc);
   for (int i = 0; i < sc; i++)
@@ -164,7 +164,7 @@ static int run_batch_tests()
   /* Batch: use cluster_assign_batch for all at once */
   dbindex_prepare(1, opt_qmask);
   struct cluster_session_s * cs_batch = cluster_session_alloc();
-  cluster_session_init(cs_batch);
+  cluster_session_init(cs_batch, parameters);
 
   std::vector<struct cluster_result_s> batch_results(sc);
   cluster_assign_batch(cs_batch, 0, sc, batch_results.data());

@@ -144,7 +144,7 @@ struct thread_work_s
 };
 
 
-inline auto cluster_query_core(struct searchinfo_s * si) -> void
+inline auto cluster_query_core(struct searchinfo_s * si, struct Parameters const & parameters) -> void
 {
   /* the main core function for clustering */
 
@@ -165,11 +165,12 @@ inline auto cluster_query_core(struct searchinfo_s * si) -> void
     }
 
   /* perform search */
-  search_onequery(si, static_cast<int>(opt_qmask));
+  search_onequery(si, static_cast<int>(parameters.opt_qmask));
 }
 
 
-auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits) -> void
+auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits,
+                        struct Parameters const & parameters) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
@@ -188,20 +189,20 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
 
   si->uh = unique_init();
   si->m = minheap_init(tophits);
-  si->s = search16_init(static_cast<CELL>(opt_match),
-                        static_cast<CELL>(opt_mismatch),
-                        static_cast<CELL>(opt_gap_open_query_left),
-                        static_cast<CELL>(opt_gap_open_target_left),
-                        static_cast<CELL>(opt_gap_open_query_interior),
-                        static_cast<CELL>(opt_gap_open_target_interior),
-                        static_cast<CELL>(opt_gap_open_query_right),
-                        static_cast<CELL>(opt_gap_open_target_right),
-                        static_cast<CELL>(opt_gap_extension_query_left),
-                        static_cast<CELL>(opt_gap_extension_target_left),
-                        static_cast<CELL>(opt_gap_extension_query_interior),
-                        static_cast<CELL>(opt_gap_extension_target_interior),
-                        static_cast<CELL>(opt_gap_extension_query_right),
-                        static_cast<CELL>(opt_gap_extension_target_right));
+  si->s = search16_init(static_cast<CELL>(parameters.opt_match),
+                        static_cast<CELL>(parameters.opt_mismatch),
+                        static_cast<CELL>(parameters.opt_gap_open_query_left),
+                        static_cast<CELL>(parameters.opt_gap_open_target_left),
+                        static_cast<CELL>(parameters.opt_gap_open_query_interior),
+                        static_cast<CELL>(parameters.opt_gap_open_target_interior),
+                        static_cast<CELL>(parameters.opt_gap_open_query_right),
+                        static_cast<CELL>(parameters.opt_gap_open_target_right),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_left),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_left),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_interior),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_interior),
+                        static_cast<CELL>(parameters.opt_gap_extension_query_right),
+                        static_cast<CELL>(parameters.opt_gap_extension_target_right));
 }
 
 
@@ -242,25 +243,28 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
    stable address and is non-copyable/non-movable. */
 struct cluster_work_pool_s
 {
+  struct Parameters const & parameters;  // run config, read by the workers (E1)
   std::vector<searchinfo_s> si_plus;    // one entry per thread
   std::vector<searchinfo_s> si_minus;   // empty unless searching both strands
   std::vector<thread_work_s> thread_work;
   std::unique_ptr<ThreadRunner> runner;  // constructed last; lambda captures this
 
   cluster_work_pool_s(int const nthreads, int const seqcount,
-                      int const tophits, bool const need_minus)
-    : si_plus(static_cast<std::size_t>(nthreads)),
+                      int const tophits, bool const need_minus,
+                      struct Parameters const & params)
+    : parameters(params),
+      si_plus(static_cast<std::size_t>(nthreads)),
       si_minus(need_minus ? static_cast<std::size_t>(nthreads) : std::size_t{0}),
       thread_work(static_cast<std::size_t>(nthreads))
   {
     for (auto & si : si_plus)
       {
-        cluster_query_init(&si, seqcount, tophits);
+        cluster_query_init(&si, seqcount, tophits, parameters);
         si.strand = 0;
       }
     for (auto & si : si_minus)
       {
-        cluster_query_init(&si, seqcount, tophits);
+        cluster_query_init(&si, seqcount, tophits, parameters);
         si.strand = 1;
       }
     runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
@@ -285,10 +289,10 @@ struct cluster_work_pool_s
     auto const & work = thread_work[t];
     for (int q = 0; q < work.query_count; q++)
       {
-        cluster_query_core(si_plus.data() + work.query_first + q);
+        cluster_query_core(si_plus.data() + work.query_first + q, parameters);
         if (not si_minus.empty())
           {
-            cluster_query_core(si_minus.data() + work.query_first + q);
+            cluster_query_core(si_minus.data() + work.query_first + q, parameters);
           }
       }
   }
@@ -798,10 +802,11 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 }
 
 static auto free_hit_alignments(struct searchinfo_s * si_p,
-                                struct searchinfo_s * si_m) -> void
+                                struct searchinfo_s * si_m,
+                                struct Parameters const & parameters) -> void
 {
   /* free alignments */
-  for (int s = 0; s < number_of_strands(opt_strand); s++)
+  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
       struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
       for (int j = 0; j < si->hit_count; j++)
@@ -824,7 +829,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
-                           state.parameters.opt_strand);
+                           state.parameters.opt_strand, state.parameters);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -957,7 +962,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               ++state.clusters;
             }
 
-          free_hit_alignments(si_p, si_m);
+          free_hit_alignments(si_p, si_m, state.parameters);
 
           sum_nucleotides += si_p->qseqlen;
         }
@@ -976,10 +981,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.data(), seqcount, tophits);
+  cluster_query_init(si_p.data(), seqcount, tophits, state.parameters);
   if (state.parameters.opt_strand)
     {
-      cluster_query_init(si_m.data(), seqcount, tophits);
+      cluster_query_init(si_m.data(), seqcount, tophits, state.parameters);
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -998,13 +1003,13 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
       si_p[0].query_no = seqno;
       si_p[0].strand = 0;
-      cluster_query_core(si_p.data());
+      cluster_query_core(si_p.data(), state.parameters);
 
       if (state.parameters.opt_strand)
         {
           si_m[0].query_no = seqno;
           si_m[0].strand = 1;
-          cluster_query_core(si_m.data());
+          cluster_query_core(si_m.data(), state.parameters);
         }
 
       struct hit * best = nullptr;
@@ -1049,7 +1054,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           ++state.clusters;
         }
 
-      free_hit_alignments(si_p.data(), si_m.data());
+      free_hit_alignments(si_p.data(), si_m.data(), state.parameters);
 
       progress_update(static_cast<uint64_t>(seqno));
     }
@@ -1547,6 +1552,10 @@ struct cluster_session_s {
   int seqcount = 0;
   int tophits = 0;
   std::map<int, int> centroid_cluster_ids;  /* seqno → cluster_id for centroids */
+  /* run configuration, set at cluster_session_init and read by the per-query
+     path instead of the opt_* globals (E1 shared-infra phase); a pointer so the
+     session stays default-constructible. */
+  struct Parameters const * parameters = nullptr;
 };
 
 
@@ -1565,22 +1574,29 @@ auto cluster_session_free(struct cluster_session_s * cs) -> void
 }
 
 
-auto cluster_session_init(struct cluster_session_s * cs) -> void
+auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters) -> void
 {
   /* Initialize clustering session for library use.
-     Assumes global opt_* variables and database are already set up
+     Reads configuration from the passed parameters (same one given to
+     vsearch_session_begin); assumes the database is already set up
      (sequences loaded, masked, and dbindex_prepare called with
      bitmap=1 but WITHOUT dbindex_addallsequences — centroids are
-     indexed incrementally as they are discovered).
+     indexed incrementally as they are discovered). The session stores a
+     reference to parameters, which must outlive the session.
 
      The database must be pre-sorted:
      - by length (descending) for cluster_fast behavior
      - by abundance (descending) for cluster_size behavior */
 
+  cs->parameters = &parameters;
+
   /* Set search parameters matching the CLI cluster path.
      seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
      MAXDELAYED (8) is needed as safety buffer for align_delayed().
-     Clamp tophits to seqcount to avoid oversized allocations. */
+     Clamp tophits to seqcount to avoid oversized allocations.
+     opt_maxaccepts/opt_maxrejects stay global reads: they are clamped to the
+     database size in cluster() (CLI path, which writes the globals); do not
+     migrate to parameters until that writer is refactored. */
   cs->seqcount = static_cast<int>(db_getsequencecount());
   cs->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
   if (cs->tophits > cs->seqcount)
@@ -1589,13 +1605,13 @@ auto cluster_session_init(struct cluster_session_s * cs) -> void
     }
 
   cs->si = make_unique<searchinfo_s>();
-  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits);
+  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, parameters);
   cs->si->strand = 0;
 
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits);
+      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, parameters);
       cs->si_minus->strand = 1;
     }
 
@@ -1616,20 +1632,21 @@ auto cluster_assign_single(struct cluster_session_s * cs,
      New centroids are automatically indexed for subsequent queries. */
 
   *result = {};
+  struct Parameters const & parameters = *cs->parameters;
 
   cs->si->query_no = seqno;
   cs->si->strand = 0;
-  cluster_query_core(cs->si.get());
+  cluster_query_core(cs->si.get(), parameters);
 
-  if (opt_strand)
+  if (parameters.opt_strand)
     {
       cs->si_minus->query_no = seqno;
       cs->si_minus->strand = 1;
-      cluster_query_core(cs->si_minus.get());
+      cluster_query_core(cs->si_minus.get(), parameters);
     }
 
   struct hit const * best = nullptr;
-  if (opt_sizeorder)
+  if (parameters.opt_sizeorder)
     {
       best = search_findbest2_bysize(cs->si.get(), cs->si_minus.get());
     }
@@ -1670,13 +1687,13 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                     db_getheader(static_cast<uint64_t>(seqno)));
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
-      dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(opt_qmask));
+      dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(parameters.opt_qmask));
       ++cs->cluster_count;
     }
 
   /* Free ALL hit alignments for both strands.
      search_onequery / align_delayed allocates nwalignment for each aligned hit. */
-  free_hit_alignments(cs->si.get(), cs->si_minus.get());
+  free_hit_alignments(cs->si.get(), cs->si_minus.get(), parameters);
 }
 
 
@@ -1704,9 +1721,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             "cluster_session_init(); re-initialize the clustering session.");
     }
 
+  struct Parameters const & parameters = *cs->parameters;
+
   constexpr int queries_per_thread = 1;
   int const max_queries =
-    queries_per_thread * static_cast<int>(opt_threads);
+    queries_per_thread * static_cast<int>(parameters.opt_threads);
 
   /* This batch owns its worker pool and per-thread search state via
      cluster_work_pool_s, rather than borrowing the CLI path's file-static
@@ -1715,8 +1734,8 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      per-thread searchinfo arrays and creates the ThreadRunner; the destructor
      joins the workers and cluster_query_exit()s them. The local si_plus/
      si_minus aliases let the loop below read unchanged. */
-  cluster_work_pool_s pool(static_cast<int>(opt_threads), cs->seqcount,
-                           cs->tophits, opt_strand);
+  cluster_work_pool_s pool(static_cast<int>(parameters.opt_threads), cs->seqcount,
+                           cs->tophits, parameters.opt_strand, parameters);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -1741,7 +1760,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               si_plus[i].query_no = seqno;
               si_plus[i].strand = 0;
 
-              if (opt_strand)
+              if (parameters.opt_strand)
                 {
                   si_minus[i].query_no = seqno;
                   si_minus[i].strand = 1;
@@ -1763,9 +1782,9 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
         {
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m =
-            opt_strand ? si_minus + i : nullptr;
+            parameters.opt_strand ? si_minus + i : nullptr;
 
-          for (int s = 0; s < number_of_strands(opt_strand); s++)
+          for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
@@ -1774,7 +1793,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
           /* Find best hit across strands */
           struct hit const * best = nullptr;
-          if (opt_sizeorder)
+          if (parameters.opt_sizeorder)
             {
               best = search_findbest2_bysize(si_p, si_m);
             }
@@ -1826,11 +1845,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                             db_getheader(static_cast<uint64_t>(myseqno)));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
-              dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(opt_qmask));
+              dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(parameters.opt_qmask));
               ++cs->cluster_count;
             }
 
-          free_hit_alignments(si_p, si_m);
+          free_hit_alignments(si_p, si_m, parameters);
         }
     }
 
