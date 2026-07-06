@@ -252,13 +252,14 @@ namespace {
 
 auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
 {
-  if (opt_chimeras_denovo != nullptr)
+  struct Parameters const & parameters = *chimera_info->parameters;
+  if (parameters.opt_chimeras_denovo != nullptr)
     {
-      if (opt_chimeras_parts == 0) {
+      if (parameters.opt_chimeras_parts == 0) {
         chimera_info->parts = (chimera_info->query_len + 99) / 100;
       }
       else {
-        chimera_info->parts = opt_chimeras_parts;
+        chimera_info->parts = parameters.opt_chimeras_parts;
       }
       if (chimera_info->parts < 2) {
         chimera_info->parts = 2;
@@ -474,6 +475,7 @@ auto scan_matches(struct chimera_info_s * ci,
 
 auto find_best_parents_long(struct chimera_info_s * ci) -> int
 {
+  struct Parameters const & parameters = *ci->parameters;
   /* Find parents with longest matching regions, without indels, allowing
      a given percentage of mismatches (specified with --chimeras_diff_pct),
      and excluding regions matched by previously identified parents. */
@@ -487,7 +489,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
   int pos_remaining = ci->query_len;
   int parents_found = 0;
 
-  for (int f = 0; f < opt_chimeras_parents_max; ++f)
+  for (int f = 0; f < parameters.opt_chimeras_parents_max; ++f)
     {
       /* scan each candidate and find longest matching region */
 
@@ -516,7 +518,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                   if (scan_matches(ci,
                                    &ci->match[static_cast<size_t>((i * ci->query_len) + start)],
                                    len,
-                                   opt_chimeras_diff_pct,
+                                   parameters.opt_chimeras_diff_pct,
                                    & scan_best_start,
                                    & scan_best_len))
                     {
@@ -532,7 +534,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
             }
         }
 
-      if (best_len >= opt_chimeras_length_min)
+      if (best_len >= parameters.opt_chimeras_length_min)
         {
           best_parents[static_cast<size_t>(f)].cand = best_cand;
           best_parents[static_cast<size_t>(f)].start = best_start;
@@ -963,6 +965,7 @@ auto compute_diffs(struct chimera_info_s const * ci,
 
 auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) -> Status
 {
+  struct Parameters const & parameters = *ci->parameters;
   /* always chimeric if called */
   auto const status = Status::chimeric;
 
@@ -1061,7 +1064,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
   std::lock_guard<std::mutex> const output_lock(cli->mutex_output);
 
-  if ((opt_alnout != nullptr) and (status == Status::chimeric))
+  if ((parameters.opt_alnout != nullptr) and (status == Status::chimeric))
     {
       std::fprintf(cli->fp_uchimealns, "\n");
       std::fprintf(cli->fp_uchimealns, "----------------------------------------"
@@ -1071,9 +1074,9 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       header_fprint_strip(cli->fp_uchimealns,
                           ci->query_head.data(),
                           ci->query_head_len,
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
+                          parameters.opt_xsize,
+                          parameters.opt_xee,
+                          parameters.opt_xlength);
 
       assert(ci->parents_found <= 20);  // 20 parents max ('A' to 'U')
       for (int f = 0; f < ci->parents_found; ++f)
@@ -1085,15 +1088,15 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
           header_fprint_strip(cli->fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(parent_seqno)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(parent_seqno))),
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
         }
 
       std::fprintf(cli->fp_uchimealns, "\n\n");
 
 
-      int const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
+      int const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
       int qpos = 0;
       std::array<int, maxparents> ppos {{}};
       int rest = alnlen;
@@ -1148,39 +1151,39 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
               QA, QB, QC, QT, QM, divfrac);
     }
 
-  if (opt_tabbedout != nullptr)
+  if (parameters.opt_tabbedout != nullptr)
     {
       std::fprintf(cli->fp_uchimeout, "%.4f\t", 99.9999);
 
       header_fprint_strip(cli->fp_uchimeout,
                           ci->query_head.data(),
                           ci->query_head_len,
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
+                          parameters.opt_xsize,
+                          parameters.opt_xee,
+                          parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       header_fprint_strip(cli->fp_uchimeout,
                           db_getheader(static_cast<uint64_t>(seqno_a)),
                           static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
+                          parameters.opt_xsize,
+                          parameters.opt_xee,
+                          parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       header_fprint_strip(cli->fp_uchimeout,
                           db_getheader(static_cast<uint64_t>(seqno_b)),
                           static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
-                          opt_xsize,
-                          opt_xee,
-                          opt_xlength);
+                          parameters.opt_xsize,
+                          parameters.opt_xee,
+                          parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       if (seqno_c >= 0)
         {
           header_fprint_strip(cli->fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_c)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_c))),
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
         }
       else
         {
@@ -1212,6 +1215,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
 auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) -> Status
 {
+  struct Parameters const & parameters = *ci->parameters;
   auto status = Status::no_alignment;
   ci->parents_found = 2;
 
@@ -1419,8 +1423,8 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
 
               if ((left_y > left_n) and (right_y > right_n))
                 {
-                  left_h = left_y / ((opt_xn * (left_n + opt_dn)) + left_a);
-                  right_h = right_y / ((opt_xn * (right_n + opt_dn)) + right_a);
+                  left_h = left_y / ((parameters.opt_xn * (left_n + parameters.opt_dn)) + left_a);
+                  right_h = right_y / ((parameters.opt_xn * (right_n + parameters.opt_dn)) + right_a);
                   h = left_h * right_h;
 
                   if (h > best_h)
@@ -1440,8 +1444,8 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
                 {
                   /* swap left/right and yes/no */
 
-                  left_h = left_n / ((opt_xn * (left_y + opt_dn)) + left_a);
-                  right_h = right_n / ((opt_xn * (right_y + opt_dn)) + right_a);
+                  left_h = left_n / ((parameters.opt_xn * (left_y + parameters.opt_dn)) + left_a);
+                  right_h = right_n / ((parameters.opt_xn * (right_y + parameters.opt_dn)) + right_a);
                   h = left_h * right_h;
 
                   if (h > best_h)
@@ -1597,7 +1601,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
       int const sumL = best_left_n + best_left_a + best_left_y;
       int const sumR = best_right_n + best_right_a + best_right_y;
 
-      if ((opt_uchime2_denovo != nullptr) or (opt_uchime3_denovo != nullptr))
+      if ((parameters.opt_uchime2_denovo != nullptr) or (parameters.opt_uchime3_denovo != nullptr))
         {
           // fix -Wfloat-equal: if match_QM == cols, then QM == 100.0
           if ((match_QM == cols) and (QT < 100.0))
@@ -1606,12 +1610,12 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
             }
         }
       else
-        if (best_h >= opt_minh)
+        if (best_h >= parameters.opt_minh)
           {
             status = Status::suspicious;
-            if ((divdiff >= opt_mindiv) and
-                (sumL >= opt_mindiffs) and
-                (sumR >= opt_mindiffs))
+            if ((divdiff >= parameters.opt_mindiv) and
+                (sumL >= parameters.opt_mindiffs) and
+                (sumR >= parameters.opt_mindiffs))
               {
                 status = Status::chimeric;
               }
@@ -1665,7 +1669,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
 
       std::unique_lock<std::mutex> output_lock(cli->mutex_output);
 
-      if ((opt_uchimealns != nullptr) and (status == Status::chimeric))
+      if ((parameters.opt_uchimealns != nullptr) and (status == Status::chimeric))
         {
           std::fprintf(cli->fp_uchimealns, "\n");
           std::fprintf(cli->fp_uchimealns, "----------------------------------------"
@@ -1676,30 +1680,30 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
           header_fprint_strip(cli->fp_uchimealns,
                               ci->query_head.data(),
                               ci->query_head_len,
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
 
           std::fprintf(cli->fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
                   db_getsequencelen(static_cast<uint64_t>(seqno_a)));
           header_fprint_strip(cli->fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(seqno_a)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
 
           std::fprintf(cli->fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
                   db_getsequencelen(static_cast<uint64_t>(seqno_b)));
           header_fprint_strip(cli->fp_uchimealns,
                               db_getheader(static_cast<uint64_t>(seqno_b)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
           std::fprintf(cli->fp_uchimealns, "\n\n");
 
-          auto const width = opt_alignwidth > 0 ? opt_alignwidth : alnlen;
+          auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
           qpos = 0;
           auto p1pos = 0;
           auto p2pos = 0;
@@ -1774,51 +1778,51 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
                   best_h);
         }
 
-      if (opt_uchimeout != nullptr)
+      if (parameters.opt_uchimeout != nullptr)
         {
           std::fprintf(cli->fp_uchimeout, "%.4f\t", best_h);
 
           header_fprint_strip(cli->fp_uchimeout,
                               ci->query_head.data(),
                               ci->query_head_len,
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
           header_fprint_strip(cli->fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_a)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
           header_fprint_strip(cli->fp_uchimeout,
                               db_getheader(static_cast<uint64_t>(seqno_b)),
                               static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
-                              opt_xsize,
-                              opt_xee,
-                              opt_xlength);
+                              parameters.opt_xsize,
+                              parameters.opt_xee,
+                              parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
 
-          if (opt_uchimeout5 == 0)
+          if (parameters.opt_uchimeout5 == 0)
             {
               if (QA >= QB)
                 {
                   header_fprint_strip(cli->fp_uchimeout,
                                       db_getheader(static_cast<uint64_t>(seqno_a)),
                                       static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
-                                      opt_xsize,
-                                      opt_xee,
-                                      opt_xlength);
+                                      parameters.opt_xsize,
+                                      parameters.opt_xee,
+                                      parameters.opt_xlength);
                 }
               else
                 {
                   header_fprint_strip(cli->fp_uchimeout,
                                       db_getheader(static_cast<uint64_t>(seqno_b)),
                                       static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
-                                      opt_xsize,
-                                      opt_xee,
-                                      opt_xlength);
+                                      parameters.opt_xsize,
+                                      parameters.opt_xee,
+                                      parameters.opt_xlength);
                 }
               std::fprintf(cli->fp_uchimeout, "\t");
             }
@@ -1963,6 +1967,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
                                   LinearMemoryAligner & lma,
                                   struct chimera_cli_state_s * cli) -> Status
 {
+  struct Parameters const & parameters = *ci->parameters;
   /* partition query */
   partition_query(ci);
 
@@ -1976,7 +1981,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       std::vector<struct hit> hits;
       for (auto i = 0; i < ci->parts; ++i)
         {
-          search_onequery(&ci->si[static_cast<size_t>(i)], static_cast<int>(opt_qmask));
+          search_onequery(&ci->si[static_cast<size_t>(i)], static_cast<int>(parameters.opt_qmask));
           search_joinhits(&ci->si[static_cast<size_t>(i)], nullptr, hits);
           for (auto & hit : hits) {
             if (hit.accepted and allhits_count < maxcandidates)
@@ -2098,7 +2103,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* find the best pair of parents, then compute score for them */
 
-  if (opt_chimeras_denovo != nullptr)
+  if (parameters.opt_chimeras_denovo != nullptr)
     {
       /* long high-quality reads */
       if (find_best_parents_long(ci) != 0)
