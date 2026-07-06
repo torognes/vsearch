@@ -80,6 +80,9 @@
    reentrant and removes the shared mutable state (E4). */
 struct allpairs_state_s
 {
+  /* the run configuration, threaded through the helpers instead of the
+     opt_* globals (E1/F3); set once at construction, read-only thereafter */
+  struct Parameters const & parameters;
   int seqcount = 0;         /* number of database sequences */
   std::mutex mutex_input;   /* serializes query reads */
   std::mutex mutex_output;  /* serializes output + counter updates */
@@ -98,6 +101,8 @@ struct allpairs_state_s
   FILE * fp_tsegout = nullptr;
   int count_matched = 0;
   int count_notmatched = 0;
+
+  explicit allpairs_state_s(struct Parameters const & params) : parameters(params) {}
 };
 
 
@@ -141,7 +146,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                              char const * qsequence_rc) -> void
 {
   /* show results */
-  auto const toreport = std::min(opt_maxhits, static_cast<int64_t>(hit_count));
+  auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hit_count));
 
   if (state.fp_alnout != nullptr)
     {
@@ -171,7 +176,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
         {
           struct hit const * hp = hits + t;
 
-          if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
+          if ((state.parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
             {
               break;
             }
@@ -203,7 +208,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
 
           if (state.fp_uc != nullptr)
             {
-              if ((t == 0) or (opt_uc_allhits))
+              if ((t == 0) or (state.parameters.opt_uc_allhits))
                 {
                   results_show_uc_one(state.fp_uc,
                                       hp,
@@ -243,7 +248,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               0);
         }
 
-      if (opt_output_no_hits != 0)
+      if (state.parameters.opt_output_no_hits != 0)
         {
           if (state.fp_userout != nullptr)
             {
@@ -268,7 +273,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
   if (hit_count != 0)
     {
       ++state.count_matched;
-      if (opt_matched != nullptr)
+      if (state.parameters.opt_matched != nullptr)
         {
           fasta_print_general(state.fp_matched,
                               nullptr,
@@ -286,7 +291,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
   else
     {
       ++state.count_notmatched;
-      if (opt_notmatched != nullptr)
+      if (state.parameters.opt_notmatched != nullptr)
         {
           fasta_print_general(state.fp_notmatched,
                               nullptr,
@@ -313,20 +318,20 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
 
-  searchinfo.s = search16_init(static_cast<CELL>(opt_match),
-                        static_cast<CELL>(opt_mismatch),
-                        static_cast<CELL>(opt_gap_open_query_left),
-                        static_cast<CELL>(opt_gap_open_target_left),
-                        static_cast<CELL>(opt_gap_open_query_interior),
-                        static_cast<CELL>(opt_gap_open_target_interior),
-                        static_cast<CELL>(opt_gap_open_query_right),
-                        static_cast<CELL>(opt_gap_open_target_right),
-                        static_cast<CELL>(opt_gap_extension_query_left),
-                        static_cast<CELL>(opt_gap_extension_target_left),
-                        static_cast<CELL>(opt_gap_extension_query_interior),
-                        static_cast<CELL>(opt_gap_extension_target_interior),
-                        static_cast<CELL>(opt_gap_extension_query_right),
-                        static_cast<CELL>(opt_gap_extension_target_right));
+  searchinfo.s = search16_init(static_cast<CELL>(state.parameters.opt_match),
+                        static_cast<CELL>(state.parameters.opt_mismatch),
+                        static_cast<CELL>(state.parameters.opt_gap_open_query_left),
+                        static_cast<CELL>(state.parameters.opt_gap_open_target_left),
+                        static_cast<CELL>(state.parameters.opt_gap_open_query_interior),
+                        static_cast<CELL>(state.parameters.opt_gap_open_target_interior),
+                        static_cast<CELL>(state.parameters.opt_gap_open_query_right),
+                        static_cast<CELL>(state.parameters.opt_gap_open_target_right),
+                        static_cast<CELL>(state.parameters.opt_gap_extension_query_left),
+                        static_cast<CELL>(state.parameters.opt_gap_extension_target_left),
+                        static_cast<CELL>(state.parameters.opt_gap_extension_query_interior),
+                        static_cast<CELL>(state.parameters.opt_gap_extension_target_interior),
+                        static_cast<CELL>(state.parameters.opt_gap_extension_query_right),
+                        static_cast<CELL>(state.parameters.opt_gap_extension_target_right));
 
 
   struct Scoring scoring = scoring_from_options();
@@ -375,7 +380,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
 
           for (int target = searchinfo.query_no + 1; target < state.seqcount; target++)
             {
-              if ((opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
+              if ((state.parameters.opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
                 {
                   pseqnos[static_cast<std::size_t>(searchinfo.hit_count)] = static_cast<unsigned int>(target);
                   ++searchinfo.hit_count;
@@ -476,7 +481,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
                   align_trim(hit);
 
                   /* test accept/reject criteria after alignment */
-                  if ((opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
+                  if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
                     {
                       finalhits[static_cast<std::size_t>(searchinfo.accepts)] = *hit;
                       ++searchinfo.accepts;
@@ -542,7 +547,7 @@ static auto allpairs_thread_worker_run(struct allpairs_state_s & state) -> void
 {
   /* run the worker pool; each worker keeps its own search state and
      processes queries until the shared counter is exhausted */
-  ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+  ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
                             [&state](uint64_t const t)
                             { allpairs_thread_run(state, t); });
   threadrunner.run();
@@ -554,7 +559,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   /* Per-invocation state, owned here and threaded through the worker pool (E4).
      Aliased by reference so the body below reads unchanged; the workers receive
      `state`, not file-static globals. */
-  struct allpairs_state_s state;
+  struct allpairs_state_s state(parameters);
   auto & fp_alnout = state.fp_alnout;
   auto & fp_samout = state.fp_samout;
   auto & fp_userout = state.fp_userout;
@@ -572,22 +577,22 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   /* open output files */
 
-  fp_alnout = open_optional_output(opt_alnout, "alignment");
+  fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  fp_samout = open_optional_output(opt_samout, "SAM");
-  fp_userout = open_optional_output(opt_userout, "user-defined");
-  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
-  fp_uc = open_optional_output(opt_uc, "uc");
-  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
-  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
-  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
-  fp_matched = open_optional_output(opt_matched, "matched");
-  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
+  fp_samout = open_optional_output(parameters.opt_samout, "SAM");
+  fp_userout = open_optional_output(parameters.opt_userout, "user-defined");
+  fp_blast6out = open_optional_output(parameters.opt_blast6out, "blast6-like");
+  fp_uc = open_optional_output(parameters.opt_uc, "uc");
+  fp_fastapairs = open_optional_output(parameters.opt_fastapairs, "fastapairs");
+  fp_qsegout = open_optional_output(parameters.opt_qsegout, "qsegout");
+  fp_tsegout = open_optional_output(parameters.opt_tsegout, "tsegout");
+  fp_matched = open_optional_output(parameters.opt_matched, "matched");
+  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
 
   db_read(parameters.opt_allpairs_global, 0);
 
