@@ -203,6 +203,12 @@ struct chunk_s
    as they are read by that shared core. */
 struct mergepairs_cli_state_s
 {
+  /* the run configuration, threaded through the CLI-path helpers instead of the
+     opt_* globals (E1/F3); set once at construction, read-only thereafter. The
+     shared merge core (merge/optimize/process/precompute_qual) keeps reading the
+     globals: it is also reached by the library entry mergepairs_single(), which
+     has no Parameters. */
+  struct Parameters const & parameters;
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout_notmerged_fwd = nullptr;
@@ -253,6 +259,8 @@ struct mergepairs_cli_state_s
   bool finished_all = false;
   int pairs_read = 0;
   int pairs_written = 0;
+
+  explicit mergepairs_cli_state_s(struct Parameters const & params) : parameters(params) {}
 };
 
 /* A worker must never call std::exit() (e.g. via fatal()) while sibling
@@ -294,7 +302,7 @@ inline auto request_merge_abort(MergeAbortReason const reason, int const value) 
 
 /* Report the recorded worker error and terminate. Must be called from the
    main thread only, after all workers have joined. */
-auto report_merge_abort() -> void
+auto report_merge_abort(struct Parameters const & parameters) -> void
 {
   switch (merge_error_reason)
     {
@@ -302,13 +310,13 @@ auto report_merge_abort() -> void
       std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
-              merge_error_value, opt_fastq_qmin);
+              merge_error_value, parameters.opt_fastq_qmin);
       if (fp_log != nullptr)
         {
           std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
-                  merge_error_value, opt_fastq_qmin);
+                  merge_error_value, parameters.opt_fastq_qmin);
         }
       break;
 
@@ -316,7 +324,7 @@ auto report_merge_abort() -> void
       std::fprintf(stderr,
               "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
               PRId64 ")\n",
-              merge_error_value, opt_fastq_qmax);
+              merge_error_value, parameters.opt_fastq_qmax);
       std::fprintf(stderr,
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
@@ -326,7 +334,7 @@ auto report_merge_abort() -> void
           std::fprintf(fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
-                  merge_error_value, opt_fastq_qmax);
+                  merge_error_value, parameters.opt_fastq_qmax);
           std::fprintf(fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
@@ -515,7 +523,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
   state.sum_errors_fwd += static_cast<uint64_t>(a_read_pair.fwd_errors);
   state.sum_errors_rev += static_cast<uint64_t>(a_read_pair.rev_errors);
 
-  if (opt_fastqout != nullptr)
+  if (state.parameters.opt_fastqout != nullptr)
     {
       fastq_print_general(state.fp_fastqout,
                           a_read_pair.merged_sequence.data(),
@@ -528,7 +536,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           a_read_pair.ee_merged);
     }
 
-  if (opt_fastaout != nullptr)
+  if (state.parameters.opt_fastaout != nullptr)
     {
       fasta_print_general(state.fp_fastaout,
                           nullptr,
@@ -546,7 +554,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           0);
     }
 
-  if (opt_eetabbedout != nullptr)
+  if (state.parameters.opt_eetabbedout != nullptr)
     {
       fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_fwd);
       std::fprintf(state.fp_eetabbedout, "\t");
@@ -627,7 +635,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
 
   ++state.notmerged;
 
-  if (opt_fastqout_notmerged_fwd != nullptr)
+  if (state.parameters.opt_fastqout_notmerged_fwd != nullptr)
     {
       fastq_print_general(state.fp_fastqout_notmerged_fwd,
                           a_read_pair.fwd_sequence.data(),
@@ -640,7 +648,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           -1.0);
     }
 
-  if (opt_fastqout_notmerged_rev != nullptr)
+  if (state.parameters.opt_fastqout_notmerged_rev != nullptr)
     {
       fastq_print_general(state.fp_fastqout_notmerged_rev,
                           a_read_pair.rev_sequence.data(),
@@ -653,7 +661,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           -1.0);
     }
 
-  if (opt_fastaout_notmerged_fwd != nullptr)
+  if (state.parameters.opt_fastaout_notmerged_fwd != nullptr)
     {
       fasta_print_general(state.fp_fastaout_notmerged_fwd,
                           nullptr,
@@ -669,7 +677,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           0);
     }
 
-  if (opt_fastaout_notmerged_rev != nullptr)
+  if (state.parameters.opt_fastaout_notmerged_rev != nullptr)
     {
       fasta_print_general(state.fp_fastaout_notmerged_rev,
                           nullptr,
@@ -1331,14 +1339,14 @@ auto pair_worker(struct mergepairs_cli_state_s & state,
           break;
         }
 
-      if (opt_threads == 1)
+      if (state.parameters.opt_threads == 1)
         {
           /* One thread does it all */
           chunk_perform_read(state, lock, cond_chunks);
           chunk_perform_process(state, kmerhash, lock, cond_chunks);
           chunk_perform_write(state, lock, cond_chunks);
         }
-      else if (opt_threads == 2)
+      else if (state.parameters.opt_threads == 2)
         {
           if (t == 0)
             {
@@ -1400,7 +1408,7 @@ auto pair_worker(struct mergepairs_cli_state_s & state,
               chunk_perform_read(state, lock, cond_chunks);
               chunk_perform_process(state, kmerhash, lock, cond_chunks);
             }
-          else if (t == static_cast<uint64_t>(opt_threads) - 1)
+          else if (t == static_cast<uint64_t>(state.parameters.opt_threads) - 1)
             {
               /* last thread writes and processes */
               while (not
@@ -1446,7 +1454,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
 {
   /* prepare chunks */
 
-  state.chunk_count = static_cast<int>(chunk_factor * opt_threads);
+  state.chunk_count = static_cast<int>(chunk_factor * state.parameters.opt_threads);
   state.chunk_read_next = 0;
   state.chunk_process_next = 0;
   state.chunk_write_next = 0;
@@ -1470,7 +1478,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
   /* run the worker pool; the workers coordinate through mutex_chunks and
      cond_chunks until all chunks have been read, processed and written */
   {
-    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+    ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
                               [&state, &mutex_chunks, &cond_chunks](uint64_t nth_thread) {
                                 pair_worker(state, nth_thread, mutex_chunks, cond_chunks);
                               });
@@ -1483,7 +1491,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      worker thread */
   if (merge_abort.load())
     {
-      report_merge_abort();
+      report_merge_abort(state.parameters);
     }
 }
 
@@ -1701,7 +1709,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   /* Per-invocation state, owned here and threaded through the worker pool and
      the output helpers (E4). Aliased by reference so the body below reads
      unchanged; the workers receive `state`, not file-static globals. */
-  struct mergepairs_cli_state_s state;
+  struct mergepairs_cli_state_s state(parameters);
   auto & fastq_fwd = state.fastq_fwd;
   auto & fastq_rev = state.fastq_rev;
   auto & fp_fastqout = state.fp_fastqout;
@@ -1730,17 +1738,17 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   /* open input files */
 
   fastq_fwd = fastq_open(parameters.opt_fastq_mergepairs);
-  fastq_rev = fastq_open(opt_reverse);
+  fastq_rev = fastq_open(parameters.opt_reverse);
 
   /* open output files */
 
-  fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
-  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
-  fp_fastqout_notmerged_fwd = open_optional_output(opt_fastqout_notmerged_fwd, "fastqout_notmerged_fwd");
-  fp_fastqout_notmerged_rev = open_optional_output(opt_fastqout_notmerged_rev, "fastqout_notmerged_rev");
-  fp_fastaout_notmerged_fwd = open_optional_output(opt_fastaout_notmerged_fwd, "fastaout_notmerged_fwd");
-  fp_fastaout_notmerged_rev = open_optional_output(opt_fastaout_notmerged_rev, "fastaout_notmerged_rev");
-  fp_eetabbedout = open_optional_output(opt_eetabbedout, "eetabbedout");
+  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
+  fp_fastqout_notmerged_fwd = open_optional_output(parameters.opt_fastqout_notmerged_fwd, "fastqout_notmerged_fwd");
+  fp_fastqout_notmerged_rev = open_optional_output(parameters.opt_fastqout_notmerged_rev, "fastqout_notmerged_rev");
+  fp_fastaout_notmerged_fwd = open_optional_output(parameters.opt_fastaout_notmerged_fwd, "fastaout_notmerged_fwd");
+  fp_fastaout_notmerged_rev = open_optional_output(parameters.opt_fastaout_notmerged_rev, "fastaout_notmerged_rev");
+  fp_eetabbedout = open_optional_output(parameters.opt_eetabbedout, "eetabbedout");
 
   /* precompute merged quality values */
 
