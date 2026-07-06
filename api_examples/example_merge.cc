@@ -57,7 +57,7 @@ int main() {
     vsearch_session_begin(parameters);
 
     /* 2. Initialize merge quality lookup table */
-    mergepairs_init();
+    mergepairs_init(parameters);
 
     /* 3. Read paired-end reads */
     std::string fwd_header, fwd_seq, fwd_qual;
@@ -76,7 +76,8 @@ int main() {
        merged_quality buffers that must be released with
        merge_result_free() (no fixed upper bound on merged length). */
     struct merge_result_s result = {};
-    int rc = mergepairs_single(fwd_seq.c_str(), fwd_qual.c_str(),
+    int rc = mergepairs_single(parameters,
+                               fwd_seq.c_str(), fwd_qual.c_str(),
                                static_cast<int>(fwd_seq.size()),
                                rev_seq.c_str(), rev_qual.c_str(),
                                static_cast<int>(rev_seq.size()),

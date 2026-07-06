@@ -90,11 +90,14 @@ struct merge_result_s {
 
 /* Initialize the quality score lookup table.
    Must be called once before mergepairs_single().
-   Requires: opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax set
-   (vsearch_session_begin provides correct values). */
-auto mergepairs_init() -> void;
+   Reads opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax from the passed
+   parameters (configure them before vsearch_session_begin, then pass the
+   same Parameters here). */
+auto mergepairs_init(struct Parameters const & parameters) -> void;
 
 /* Merge a single forward/reverse read pair.
+   parameters: the configured Parameters (same one passed to
+     mergepairs_init/vsearch_session_begin); supplies the merge tunables.
    fwd_seq/rev_seq: null-terminated DNA sequences.
    fwd_qual/rev_qual: null-terminated quality strings (ASCII-encoded).
    fwd_len/rev_len: sequence lengths.
@@ -122,7 +125,8 @@ auto mergepairs_init() -> void;
      opt_fastq_maxlen     — max merged length (default unlimited)
      opt_fastq_maxns      — max Ns allowed (default unlimited)
      opt_fastq_ascii      — quality ASCII offset (default 33) */
-auto mergepairs_single(const char * fwd_seq,
+auto mergepairs_single(struct Parameters const & parameters,
+                        const char * fwd_seq,
                         const char * fwd_qual,
                         int fwd_len,
                         const char * rev_seq,

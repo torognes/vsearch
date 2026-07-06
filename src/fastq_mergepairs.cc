@@ -205,9 +205,11 @@ struct mergepairs_cli_state_s
 {
   /* the run configuration, threaded through the CLI-path helpers instead of the
      opt_* globals (E1/F3); set once at construction, read-only thereafter. The
-     shared merge core (merge/optimize/process/precompute_qual) keeps reading the
-     globals: it is also reached by the library entry mergepairs_single(), which
-     has no Parameters. */
+     shared merge core (get_qual/q_to_p/precompute_qual/merge/optimize/process)
+     now takes a Parameters const & directly (E1 shared-infra phase), so both the
+     CLI path and the library entry mergepairs_single() feed it the same config;
+     only opt_fastq_minovlen stays on the global there (clamped in place by
+     mergepairs_init). */
   struct Parameters const & parameters;
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_fastaout = nullptr;
@@ -350,18 +352,18 @@ auto report_merge_abort(struct Parameters const & parameters) -> void
 }
 
 
-inline auto get_qual(char const quality_symbol) -> int
+inline auto get_qual(char const quality_symbol, struct Parameters const & parameters) -> int
 {
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
 
-  auto const quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
+  auto const quality_value = static_cast<int>(quality_symbol - parameters.opt_fastq_ascii);
 
-  if (quality_value < opt_fastq_qmin)
+  if (quality_value < parameters.opt_fastq_qmin)
     {
       request_merge_abort(MergeAbortReason::quality_below_qmin, quality_value);
     }
-  else if (quality_value > opt_fastq_qmax)
+  else if (quality_value > parameters.opt_fastq_qmax)
     {
       request_merge_abort(MergeAbortReason::quality_above_qmax, quality_value);
     }
@@ -369,7 +371,7 @@ inline auto get_qual(char const quality_symbol) -> int
 }
 
 
-inline auto q_to_p(int const quality_symbol) -> double
+inline auto q_to_p(int const quality_symbol, struct Parameters const & parameters) -> double
 {
   static constexpr auto low_quality_threshold = 2;
   static constexpr auto max_probability = 0.75;
@@ -379,7 +381,7 @@ inline auto q_to_p(int const quality_symbol) -> double
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
 
-  auto const quality_value = static_cast<int>(quality_symbol - opt_fastq_ascii);
+  auto const quality_value = static_cast<int>(quality_symbol - parameters.opt_fastq_ascii);
 
   // refactor: extract branch to a separate operation
   if (quality_value < low_quality_threshold) {
@@ -390,20 +392,20 @@ inline auto q_to_p(int const quality_symbol) -> double
 }
 
 
-auto precompute_qual() -> void
+auto precompute_qual(struct Parameters const & parameters) -> void
 {
   /* Precompute tables of scores etc */
-  auto const qmaxout = static_cast<double>(opt_fastq_qmaxout);
-  auto const qminout = static_cast<double>(opt_fastq_qminout);
+  auto const qmaxout = static_cast<double>(parameters.opt_fastq_qmaxout);
+  auto const qminout = static_cast<double>(parameters.opt_fastq_qminout);
 
   for (auto x = 33U; x <= 126U; x++)
     {
-      auto const px = q_to_p(static_cast<int>(x));
+      auto const px = q_to_p(static_cast<int>(x), parameters);
       q2p[x] = px;
 
       for (auto y = 33U; y <= 126U; y++)
         {
-          auto const py = q_to_p(static_cast<int>(y));
+          auto const py = q_to_p(static_cast<int>(y), parameters);
 
           auto p = 0.0;
           auto q = 0.0;
@@ -415,14 +417,14 @@ auto precompute_qual() -> void
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          merge_qual_same[x][y] = static_cast<char>(static_cast<double>(opt_fastq_ascii) + q);
+          merge_qual_same[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - (py / 3.0)) / (px + py - (4.0 * px * py / 3.0));
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          merge_qual_diff[x][y] = static_cast<char>(static_cast<double>(opt_fastq_ascii) + q);
+          merge_qual_diff[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
 
           /*
             observed match,
@@ -695,7 +697,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
 }
 
 
-auto merge(merge_data_t & a_read_pair) -> void
+auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
@@ -803,7 +805,7 @@ auto merge(merge_data_t & a_read_pair) -> void
   a_read_pair.merged_sequence[static_cast<std::size_t>(mergelen)] = 0;
   a_read_pair.merged_quality_v[static_cast<std::size_t>(mergelen)] = 0;
 
-  if (a_read_pair.ee_merged <= opt_fastq_maxee)
+  if (a_read_pair.ee_merged <= parameters.opt_fastq_maxee)
     {
       a_read_pair.reason = Reason::ok;
       a_read_pair.merged = true;
@@ -816,7 +818,8 @@ auto merge(merge_data_t & a_read_pair) -> void
 
 
 auto optimize(merge_data_t & a_read_pair,
-              struct kh_handle_s & kmerhash) -> int64_t
+              struct kh_handle_s & kmerhash,
+              struct Parameters const & parameters) -> int64_t
 {
   /* ungapped alignment in each diagonal */
 
@@ -920,19 +923,19 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  if ((not opt_fastq_allowmergestagger) and (best_i > a_read_pair.fwd_trunc))
+  if ((not parameters.opt_fastq_allowmergestagger) and (best_i > a_read_pair.fwd_trunc))
     {
       a_read_pair.reason = Reason::staggered;
       return 0;
     }
 
-  if (best_diffs > opt_fastq_maxdiffs)
+  if (best_diffs > parameters.opt_fastq_maxdiffs)
     {
       a_read_pair.reason = Reason::maxdiffs;
       return 0;
     }
 
-  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_i)) > opt_fastq_maxdiffpct)
+  if ((100.0 * static_cast<double>(best_diffs) / static_cast<double>(best_i)) > parameters.opt_fastq_maxdiffpct)
     {
       a_read_pair.reason = Reason::maxdiffpct;
       return 0;
@@ -950,6 +953,9 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
+  /* opt_fastq_minovlen is clamped at run time by mergepairs_init()
+     (library path) which writes the global, so this comparison stays on
+     the global to see the clamped value; do not migrate to parameters. */
   if (best_i < opt_fastq_minovlen)
     {
       a_read_pair.reason = Reason::minovlen;
@@ -958,13 +964,13 @@ auto optimize(merge_data_t & a_read_pair,
 
   int const mergelen = static_cast<int>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc - best_i);
 
-  if (mergelen < opt_fastq_minmergelen)
+  if (mergelen < parameters.opt_fastq_minmergelen)
     {
       a_read_pair.reason = Reason::minmergelen;
       return 0;
     }
 
-  if (mergelen > opt_fastq_maxmergelen)
+  if (mergelen > parameters.opt_fastq_maxmergelen)
     {
       a_read_pair.reason = Reason::maxmergelen;
       return 0;
@@ -975,7 +981,8 @@ auto optimize(merge_data_t & a_read_pair,
 
 
 auto process(merge_data_t & a_read_pair,
-             struct kh_handle_s & kmerhash) -> void
+             struct kh_handle_s & kmerhash,
+             struct Parameters const & parameters) -> void
 {
   a_read_pair.merged = false;
 
@@ -990,15 +997,15 @@ auto process(merge_data_t & a_read_pair,
 
   /* check length */
 
-  if ((a_read_pair.fwd_length < opt_fastq_minlen) or
-      (a_read_pair.rev_length < opt_fastq_minlen))
+  if ((a_read_pair.fwd_length < parameters.opt_fastq_minlen) or
+      (a_read_pair.rev_length < parameters.opt_fastq_minlen))
     {
       a_read_pair.reason = Reason::minlen;
       skip = true;
     }
 
-  if ((a_read_pair.fwd_length > opt_fastq_maxlen) or
-      (a_read_pair.rev_length > opt_fastq_maxlen))
+  if ((a_read_pair.fwd_length > parameters.opt_fastq_maxlen) or
+      (a_read_pair.rev_length > parameters.opt_fastq_maxlen))
     {
       a_read_pair.reason = Reason::maxlen;
       skip = true;
@@ -1012,18 +1019,18 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
         {
-          auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)]);
+          auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)], parameters);
           if (merge_abort.load(std::memory_order_relaxed))
             {
               return;
             }
-          if (quality_value <= opt_fastq_truncqual)
+          if (quality_value <= parameters.opt_fastq_truncqual)
             {
               fwd_trunc = i;
               break;
             }
         }
-      if (fwd_trunc < opt_fastq_minlen)
+      if (fwd_trunc < parameters.opt_fastq_minlen)
         {
           a_read_pair.reason = Reason::minlen;
           skip = true;
@@ -1038,18 +1045,18 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.rev_length; i++)
         {
-          auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)]);
+          auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)], parameters);
           if (merge_abort.load(std::memory_order_relaxed))
             {
               return;
             }
-          if (quality_value <= opt_fastq_truncqual)
+          if (quality_value <= parameters.opt_fastq_truncqual)
             {
               rev_trunc = i;
               break;
             }
         }
-      if (rev_trunc < opt_fastq_minlen)
+      if (rev_trunc < parameters.opt_fastq_minlen)
         {
           a_read_pair.reason = Reason::minlen;
           skip = true;
@@ -1069,11 +1076,11 @@ auto process(merge_data_t & a_read_pair,
         {
           if (a_read_pair.fwd_sequence[static_cast<std::size_t>(i)] == 'N')
             {
-              a_read_pair.fwd_quality[static_cast<std::size_t>(i)] = static_cast<char>(opt_fastq_ascii);
+              a_read_pair.fwd_quality[static_cast<std::size_t>(i)] = static_cast<char>(parameters.opt_fastq_ascii);
               ++fwd_ncount;
             }
         }
-      if (fwd_ncount > opt_fastq_maxns)
+      if (fwd_ncount > parameters.opt_fastq_maxns)
         {
           a_read_pair.reason = Reason::maxns;
           skip = true;
@@ -1087,11 +1094,11 @@ auto process(merge_data_t & a_read_pair,
         {
           if (a_read_pair.rev_sequence[static_cast<std::size_t>(i)] == 'N')
             {
-              a_read_pair.rev_quality[static_cast<std::size_t>(i)] = static_cast<char>(opt_fastq_ascii);
+              a_read_pair.rev_quality[static_cast<std::size_t>(i)] = static_cast<char>(parameters.opt_fastq_ascii);
               ++rev_ncount;
             }
         }
-      if (rev_ncount > opt_fastq_maxns)
+      if (rev_ncount > parameters.opt_fastq_maxns)
         {
           a_read_pair.reason = Reason::maxns;
           skip = true;
@@ -1102,12 +1109,12 @@ auto process(merge_data_t & a_read_pair,
 
   if (not skip)
     {
-      a_read_pair.offset = optimize(a_read_pair, kmerhash);
+      a_read_pair.offset = optimize(a_read_pair, kmerhash, parameters);
     }
 
   if (a_read_pair.offset > 0)
     {
-      merge(a_read_pair);
+      merge(a_read_pair, parameters);
     }
 
   a_read_pair.state = State::processed;
@@ -1306,7 +1313,7 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
             {
               break;
             }
-          process(state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash);
+          process(state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash, state.parameters);
         }
       lock.lock();
       state.chunks[static_cast<std::size_t>(chunk_current)].state = State::processed;
@@ -1752,7 +1759,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* precompute merged quality values */
 
-  precompute_qual();
+  precompute_qual(parameters);
 
   /* main */
 
@@ -1800,11 +1807,14 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 /* === Library API for embedding paired-end merging === */
 
 
-auto mergepairs_init() -> void
+auto mergepairs_init(struct Parameters const & parameters) -> void
 {
   /* Relax default parameters for short overlaps, matching the CLI path
      (fastq_mergepairs lines 1560-1571). Without this, short-overlap
-     merges that work via the CLI will silently fail via the API. */
+     merges that work via the CLI will silently fail via the API.
+     opt_fastq_minovlen is clamped in place on the global here: optimize()
+     reads the clamped value from the global, so it stays global (do not
+     migrate to parameters until this writer is refactored). */
   if (opt_fastq_minovlen < 5)
     {
       opt_fastq_minovlen = 5;
@@ -1815,11 +1825,12 @@ auto mergepairs_init() -> void
       merge_minscore = 1.6 * static_cast<double>(opt_fastq_minovlen);
     }
 
-  precompute_qual();
+  precompute_qual(parameters);
 }
 
 
-auto mergepairs_single(const char * fwd_seq,
+auto mergepairs_single(struct Parameters const & parameters,
+                        const char * fwd_seq,
                         const char * fwd_qual,
                         int fwd_len,
                         const char * rev_seq,
@@ -1861,7 +1872,7 @@ auto mergepairs_single(const char * fwd_seq,
 
   /* Run the merge pipeline */
   struct kh_handle_s kmerhash;
-  process(md, kmerhash);
+  process(md, kmerhash, parameters);
 
   /* Populate result. Zero all fields including the pointers so that a
      failed merge leaves nullptr pointers for the caller. On success
