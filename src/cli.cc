@@ -1026,12 +1026,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         case option_strand:
           if (are_same_string(optarg, "plus"))
             {
-              opt_strand = 1;
+              opt_strand = false;
               parameters.opt_strand = false;
             }
           else if (are_same_string(optarg, "both"))
             {
-              opt_strand = 2;
+              opt_strand = true;
               parameters.opt_strand = true;
             }
           else

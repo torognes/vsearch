@@ -60,11 +60,9 @@
 
 #pragma once
 
-#include <cstdint>  // int64_t
-
 
 /* Number of strands to search: 1 for the plus strand only, 2 when both
-   strands are requested. strand_option is the plus/both selector (the
-   tri-state opt_strand: 1 = plus, 2 = both). Keeps the per-strand loops and
-   buffer sizes reading as a strand count without repeating the arithmetic. */
-auto number_of_strands(int64_t strand_option) -> int;
+   strands are requested. both_strands is the plus/both selector (opt_strand:
+   false = plus only, true = both). Keeps the per-strand loops and buffer
+   sizes reading as a strand count without repeating the arithmetic. */
+auto number_of_strands(bool both_strands) -> int;

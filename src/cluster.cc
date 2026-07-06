@@ -235,7 +235,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
 struct cluster_work_pool_s
 {
   std::vector<searchinfo_s> si_plus;    // one entry per thread
-  std::vector<searchinfo_s> si_minus;   // empty unless opt_strand > 1
+  std::vector<searchinfo_s> si_minus;   // empty unless searching both strands
   std::vector<thread_work_s> thread_work;
   std::unique_ptr<ThreadRunner> runner;  // constructed last; lambda captures this
 
@@ -815,7 +815,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(opt_threads), seqcount, tophits,
-                           opt_strand > 1);
+                           opt_strand);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -858,7 +858,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               si_plus[i].query_no = seqno;
               si_plus[i].strand = 0;
 
-              if (opt_strand > 1)
+              if (opt_strand)
                 {
                   si_minus[i].query_no = seqno;
                   si_minus[i].strand = 1;
@@ -878,7 +878,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
       for (int i = 0; i < queries; i++)
         {
           struct searchinfo_s * si_p = si_plus + i;
-          struct searchinfo_s * si_m = opt_strand > 1 ? si_minus + i : nullptr;
+          struct searchinfo_s * si_m = opt_strand ? si_minus + i : nullptr;
 
           for (int s = 0; s < number_of_strands(opt_strand); s++)
             {
@@ -968,7 +968,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_m {{}};
 
   cluster_query_init(si_p.data(), seqcount, tophits);
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       cluster_query_init(si_m.data(), seqcount, tophits);
     }
@@ -991,7 +991,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
       si_p[0].strand = 0;
       cluster_query_core(si_p.data());
 
-      if (opt_strand > 1)
+      if (opt_strand)
         {
           si_m[0].query_no = seqno;
           si_m[0].strand = 1;
@@ -1047,7 +1047,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   progress_done();
 
   cluster_query_exit(si_p.data());
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       cluster_query_exit(si_m.data());
     }
@@ -1527,7 +1527,7 @@ auto cluster_unoise(char const * cmdline, char const * progheader) -> void
 
 struct cluster_session_s {
   std::unique_ptr<struct searchinfo_s> si;
-  std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when opt_strand > 1 */
+  std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when searching both strands */
   int cluster_count = 0;
   int seqcount = 0;
   int tophits = 0;
@@ -1577,7 +1577,7 @@ auto cluster_session_init(struct cluster_session_s * cs) -> void
   cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits);
   cs->si->strand = 0;
 
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
       cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits);
@@ -1606,7 +1606,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
   cs->si->strand = 0;
   cluster_query_core(cs->si.get());
 
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       cs->si_minus->query_no = seqno;
       cs->si_minus->strand = 1;
@@ -1701,7 +1701,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      joins the workers and cluster_query_exit()s them. The local si_plus/
      si_minus aliases let the loop below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(opt_threads), cs->seqcount,
-                           cs->tophits, opt_strand > 1);
+                           cs->tophits, opt_strand);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -1726,7 +1726,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               si_plus[i].query_no = seqno;
               si_plus[i].strand = 0;
 
-              if (opt_strand > 1)
+              if (opt_strand)
                 {
                   si_minus[i].query_no = seqno;
                   si_minus[i].strand = 1;
@@ -1748,7 +1748,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
         {
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m =
-            opt_strand > 1 ? si_minus + i : nullptr;
+            opt_strand ? si_minus + i : nullptr;
 
           for (int s = 0; s < number_of_strands(opt_strand); s++)
             {

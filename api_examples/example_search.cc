@@ -6,8 +6,8 @@
  * Output: tab-separated query, target, identity (matching vsearch
  * --usearch_global --userfields query+target+id).
  *
- * Part 2: Self-validating strand test. Verifies that opt_strand = 2 finds
- * reverse-complement hits, and opt_strand = 1 does not.
+ * Part 2: Self-validating strand test. Verifies that opt_strand = true finds
+ * reverse-complement hits, and opt_strand = false does not.
  *
  * Build:  g++ -std=c++11 -O3 -I../src -o example_search example_search.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_search
@@ -244,13 +244,13 @@ static int run_batch_tests()
 /* --- Part 3: Self-validating strand tests --- */
 static bool search_rc_finds_hit(const std::string & fwd,
                                 const std::string & rev,
-                                int strand_opt,
+                                bool both_strands,
                                 int * out_strand)
 {
   vsearch_init_defaults();
   opt_wordlength = 8;
   opt_id = 0.97;
-  opt_strand = strand_opt;
+  opt_strand = both_strands;
   opt_maxaccepts = 1;
   opt_maxrejects = 32;
   vsearch_apply_defaults_fixups();
@@ -307,34 +307,34 @@ static int run_strand_tests()
 
   /* Test 1: plus-strand only — RC query should NOT find a hit */
   int strand_val = -1;
-  bool strand1_found = search_rc_finds_hit(fwd, rev, 1, &strand_val);
+  bool strand1_found = search_rc_finds_hit(fwd, rev, false, &strand_val);
   if (strand1_found)
     {
-      std::fprintf(stderr, "FAIL: opt_strand=1: RC query unexpectedly matched fwd\n");
+      std::fprintf(stderr, "FAIL: opt_strand=false (plus): RC query unexpectedly matched fwd\n");
       ++failures;
     }
   else
     {
-      std::fprintf(stderr, "PASS: opt_strand=1: RC query correctly found no hit\n");
+      std::fprintf(stderr, "PASS: opt_strand=false (plus): RC query correctly found no hit\n");
     }
 
   /* Test 2: both strands — RC query MUST find a hit on minus strand */
   strand_val = -1;
-  bool strand2_found = search_rc_finds_hit(fwd, rev, 2, &strand_val);
+  bool strand2_found = search_rc_finds_hit(fwd, rev, true, &strand_val);
   if (!strand2_found)
     {
-      std::fprintf(stderr, "FAIL: opt_strand=2: RC query did not match fwd\n");
+      std::fprintf(stderr, "FAIL: opt_strand=true (both): RC query did not match fwd\n");
       ++failures;
     }
   else if (strand_val != 1)
     {
-      std::fprintf(stderr, "FAIL: opt_strand=2: hit strand=%d (expected 1)\n",
+      std::fprintf(stderr, "FAIL: opt_strand=true (both): hit strand=%d (expected 1)\n",
                   strand_val);
       ++failures;
     }
   else
     {
-      std::fprintf(stderr, "PASS: opt_strand=2: RC query matched on minus strand\n");
+      std::fprintf(stderr, "PASS: opt_strand=true (both): RC query matched on minus strand\n");
     }
 
   return failures;

@@ -319,7 +319,7 @@ int64_t opt_rowlen;
 int64_t opt_sample_size;
 int64_t opt_self;
 int64_t opt_selfid;
-int64_t opt_strand;
+bool opt_strand;
 int64_t opt_subseq_end;
 int64_t opt_subseq_start;
 int64_t opt_threads;
@@ -597,7 +597,7 @@ auto vsearch_init_defaults() -> void
   opt_sizeorder = false;
   opt_sizeout = false;
   opt_slots = 0;
-  opt_strand = 1;
+  opt_strand = false;
   opt_subseq_end = int64_max;
   opt_subseq_start = 1;
   opt_tabbedout = nullptr;
@@ -1740,7 +1740,7 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_allpairs_global != nullptr)
     {
-      opt_strand = 1;
+      opt_strand = false;
       parameters.opt_strand = false;
       opt_uc_allhits = 1;
       parameters.opt_uc_allhits = true;

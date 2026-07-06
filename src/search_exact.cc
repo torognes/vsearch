@@ -401,14 +401,14 @@ auto search_exact_query(uint64_t t) -> int
   std::vector<struct hit> hits;
 
   search_joinhits(si_plus + t,
-                  opt_strand > 1 ? si_minus + t : nullptr,
+                  opt_strand ? si_minus + t : nullptr,
                   hits);
 
   search_exact_output_results(hits,
                               si_plus[t].query_head,
                               si_plus[t].qseqlen,
                               si_plus[t].qsequence,
-                              opt_strand > 1 ? si_minus[t].qsequence : nullptr,
+                              opt_strand ? si_minus[t].qsequence : nullptr,
                               si_plus[t].qsize);
 
   /* free memory for alignment strings */
@@ -474,7 +474,7 @@ auto search_exact_thread_run(uint64_t t) -> void
           input_lock.unlock();
 
           /* minus strand: copy header and reverse complementary sequence */
-          if (opt_strand > 1)
+          if (opt_strand)
             {
               std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
               reverse_complement(si_minus[t].qsequence,

@@ -463,7 +463,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
   auto best_strand = 0;
 
-  if (opt_strand == 1)
+  if (not opt_strand)
     {
       best_strand = 0;
     }
@@ -561,7 +561,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
           input_lock.unlock();
 
           /* minus strand: copy header and reverse complementary sequence */
-          if (opt_strand > 1)
+          if (opt_strand)
             {
               std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
               reverse_complement(si_minus[t].qsequence,
@@ -730,7 +730,7 @@ auto sintax(struct Parameters const & parameters) -> void
   /* allocate memory for thread info */
 
   si_plus = new searchinfo_s[opt_threads]{};
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       si_minus = new searchinfo_s[opt_threads]{};
     }

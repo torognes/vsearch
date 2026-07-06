@@ -902,7 +902,7 @@ auto search_findbest2_byid(struct searchinfo_s const * si_p,
         }
     }
 
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {
@@ -935,7 +935,7 @@ auto search_findbest2_bysize(struct searchinfo_s const * si_p,
         }
     }
 
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {

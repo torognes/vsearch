@@ -463,7 +463,7 @@ above a minimum identity threshold.
 opt_id = 0.97;           // minimum 97% identity
 opt_maxaccepts = 3;      // return up to 3 hits
 opt_maxrejects = 16;     // give up after 16 rejects
-opt_strand = 2;          // optional: search both strands
+opt_strand = true;       // optional: search both strands
 
 // Allocate and initialize the session
 struct search_session_s * ss = search_session_alloc();
@@ -510,7 +510,7 @@ search_batch(q_seqs, q_heads, q_lens, q_sizes, query_count,
 | `query_length` | `int` | Query sequence length. |
 | `target_length` | `int` | Target sequence length. |
 | `accepted` | `bool` | Whether hit passed the identity threshold. |
-| `strand` | `int` | `0` = plus strand, `1` = minus strand (when `opt_strand > 1`). |
+| `strand` | `int` | `0` = plus strand, `1` = minus strand (when `opt_strand` is true). |
 
 Results are ordered by identity (descending). The caller provides the
 result array and its capacity; `result_count` is set to the number of
@@ -525,7 +525,7 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 | `opt_maxrejects` | `int64_t` | 32 | Stop after N rejected candidates. |
 | `opt_iddef` | `int64_t` | 2 | Identity definition (0–4). |
 | `opt_wordlength` | `int64_t` | 8 | K-mer length for candidate selection. |
-| `opt_strand` | `int64_t` | 1 | 1 = plus strand only, 2 = both strands. |
+| `opt_strand` | `bool` | `false` | `false` = plus strand only, `true` = both strands. |
 
 ### Functions
 
@@ -534,7 +534,7 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 | `search_session_alloc()` | Allocate opaque session state. |
 | `search_session_free(ss)` | Free session state. Null-safe (cleanup is implicit). |
 | `search_session_init(ss)` | Initialize session. Call after DB indexed. Respects `opt_strand`. |
-| `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand > 1`). One session per process; do not share across threads. |
+| `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand` is true). One session per process; do not share across threads. |
 | `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
 | `search_batch(seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search. Internally uses `opt_threads`. |
 
@@ -590,7 +590,7 @@ cluster_session_free(cs);
 | Global | Type | Default | Description |
 |--------|------|---------|-------------|
 | `opt_id` | `double` | 0.0 | Identity threshold for cluster membership. |
-| `opt_strand` | `int64_t` | 1 | 1 = plus strand only, 2 = both strands. |
+| `opt_strand` | `bool` | `false` | `false` = plus strand only, `true` = both strands. |
 | `opt_maxaccepts` | `int64_t` | 1 | Accepts before stopping search. |
 | `opt_maxrejects` | `int64_t` | 32 | Rejects before stopping search. |
 
@@ -808,7 +808,7 @@ interior). This matches the internal scoring convention.
 | `opt_maxhits` | `int64_t` | 0 | Maximum total hits (0 = unlimited, resolved by fixups). |
 | `opt_wordlength` | `int64_t` | 8 | K-mer length for candidate selection. |
 | `opt_minwordmatches` | `int64_t` | -1 | Minimum k-mer matches (-1 = auto, resolved by fixups). |
-| `opt_strand` | `int64_t` | 1 | Strand: 1 = plus only, 2 = both. |
+| `opt_strand` | `bool` | `false` | Strand: `false` = plus only, `true` = both. |
 
 ### Sequence filtering
 

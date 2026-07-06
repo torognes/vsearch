@@ -60,10 +60,8 @@
 
 #include "number_of_strands.hpp"
 
-#include <cstdint>  // int64_t
 
-
-auto number_of_strands(int64_t const strand_option) -> int
+auto number_of_strands(bool const both_strands) -> int
 {
-  return (strand_option > 1) ? 2 : 1;
+  return both_strands ? 2 : 1;
 }

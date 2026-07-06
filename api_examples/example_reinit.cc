@@ -124,8 +124,8 @@ static session_results run_session(
 
    Snapshot the defaults from a fresh init, garbage-fill a representative set of
    opt_* globals spanning every type (including the four that C1a fixed:
-   opt_notmatchedfq, opt_bzip2_decompress, opt_clusterout_id/sort, and the
-   tri-state opt_strand from the C1b drift hazard), then call
+   opt_notmatchedfq, opt_bzip2_decompress, opt_clusterout_id/sort, and
+   opt_strand, now a bool — the former C1b drift hazard), then call
    vsearch_init_defaults() again and assert every one is reset. Generalizes the
    "init forgot to reset X" bug: a global added without a matching reset, or a
    dropped reset, is caught here as long as it is in one of the arrays below.
@@ -137,9 +137,9 @@ static int test_global_state_reset() {
         &opt_fastaout, &opt_alnout, &opt_userout, &opt_output };
     bool * const bool_globals[] = {
         &opt_clusterout_id, &opt_clusterout_sort, &opt_bzip2_decompress,
-        &opt_gzip_decompress, &opt_sizein, &opt_sizeout };
+        &opt_gzip_decompress, &opt_sizein, &opt_sizeout, &opt_strand };
     int64_t * const i64_globals[] = {
-        &opt_maxaccepts, &opt_wordlength, &opt_strand, &opt_iddef, &opt_topn };
+        &opt_maxaccepts, &opt_wordlength, &opt_iddef, &opt_topn };
     double * const dbl_globals[] = {
         &opt_id, &opt_weak_id, &opt_xn, &opt_abskew };
 

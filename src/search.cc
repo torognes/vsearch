@@ -356,7 +356,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
   std::vector<struct hit> hits;
 
   search_joinhits(si_plus + t,
-                  opt_strand > 1 ? si_minus + t : nullptr,
+                  opt_strand ? si_minus + t : nullptr,
                   hits);
 
   search_output_results(state,
@@ -364,7 +364,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
                         si_plus[t].query_head,
                         si_plus[t].qseqlen,
                         si_plus[t].qsequence,
-                        opt_strand > 1 ? si_minus[t].qsequence : nullptr,
+                        opt_strand ? si_minus[t].qsequence : nullptr,
                         si_plus[t].qsize);
 
   /* free memory for alignment strings */
@@ -459,7 +459,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
           /* let other threads read input */
           input_lock.unlock();
 
-          if (opt_strand > 1)
+          if (opt_strand)
             {
               populate_si(state.si_minus + t,
                           si_plus[t].query_head,
@@ -728,7 +728,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 
   /* allocate memory for thread info */
   si_plus = new searchinfo_s[opt_threads]{};
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       si_minus = new searchinfo_s[opt_threads]{};
     }
@@ -892,7 +892,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 
 struct search_session_s {
   std::unique_ptr<struct searchinfo_s> si_plus;
-  std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when opt_strand > 1 */
+  std::unique_ptr<struct searchinfo_s> si_minus;  /* non-null when searching both strands */
   int seqcount = 0;  /* number of database sequences */
   int tophits = 0;   /* the maximum number of hits to keep */
 };
@@ -918,7 +918,7 @@ auto search_session_init(struct search_session_s * ss) -> void
 {
   /* Initialize search session for library use.
      Mirrors cluster_session_init: stores seqcount/tophits in the session,
-     allocates si_plus (always) and si_minus (when opt_strand > 1). */
+     allocates si_plus (always) and si_minus (when searching both strands). */
   ss->seqcount = static_cast<int>(db_getsequencecount());
   ss->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
   if (ss->tophits > ss->seqcount)
@@ -930,7 +930,7 @@ auto search_session_init(struct search_session_s * ss) -> void
   search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits);
   ss->si_plus->strand = 0;
 
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
       search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits);
@@ -960,7 +960,7 @@ auto search_session_single(struct search_session_s * ss,
               query_size,
               0);
 
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       populate_si(ss->si_minus.get(),
                   query_head,
@@ -993,7 +993,7 @@ auto search_session_single(struct search_session_s * ss,
   /* Merge hits from both strands */
   std::vector<struct hit> hits;
   search_joinhits(ss->si_plus.get(),
-                  opt_strand > 1 ? ss->si_minus.get() : nullptr,
+                  opt_strand ? ss->si_minus.get() : nullptr,
                   hits);
 
   /* Populate results (search_joinhits returns only accepted/weak hits) */
@@ -1069,7 +1069,7 @@ struct search_batch_context_s {
 
   /* per-thread search state arrays (sized to opt_threads) */
   struct searchinfo_s * batch_si_plus;
-  struct searchinfo_s * batch_si_minus;  /* nullptr when opt_strand == 1 */
+  struct searchinfo_s * batch_si_minus;  /* nullptr when searching the plus strand only */
 
   /* work-stealing counter */
   std::mutex mutex;
@@ -1146,7 +1146,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
       /* Merge hits from both strands */
       std::vector<struct hit> hits;
       search_joinhits(my_si_plus,
-                      opt_strand > 1 ? my_si_minus : nullptr,
+                      opt_strand ? my_si_minus : nullptr,
                       hits);
 
       /* Populate results for this query */
@@ -1225,7 +1225,7 @@ auto search_batch(const char ** query_seqs,
   ctx.next_query = 0;
 
   ctx.batch_si_plus = new searchinfo_s[nthreads]{};
-  if (opt_strand > 1)
+  if (opt_strand)
     {
       ctx.batch_si_minus = new searchinfo_s[nthreads]{};
     }
