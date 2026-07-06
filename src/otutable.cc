@@ -393,7 +393,7 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
 }
 
 
-auto otutable_print_biomout(std::FILE * output_handle) -> void
+auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const & parameters) -> void
 {
   int64_t progress = 0;
   progress_init("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size());
@@ -417,7 +417,7 @@ auto otutable_print_biomout(std::FILE * output_handle) -> void
           "\t\"matrix_type\": \"sparse\",\n"
           "\t\"matrix_element_type\": \"int\",\n"
           "\t\"shape\": [%" PRId64 ",%" PRId64 "],\n",
-          opt_biomout,
+          parameters.opt_biomout,
           PROG_NAME, PROG_VERSION,
           date.data(),
           rows,

@@ -114,15 +114,16 @@ namespace {
     int poswidth = poswidth_default;
     int headwidth = headwidth_default;
     bool is_reverse_strand = false;
+    bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
   };
 
 
-  auto get_aligment_symbol(char const query_nuc, char const target_nuc) -> char {
+  auto get_aligment_symbol(char const query_nuc, char const target_nuc, bool const n_mismatch) -> char {
     static constexpr auto is_N = 15U;
     auto const query_coded = map_4bit(query_nuc);
     auto const target_coded = map_4bit(target_nuc);
 
-    if (opt_n_mismatch and ((query_coded == is_N) or (target_coded == is_N))) {
+    if (n_mismatch and ((query_coded == is_N) or (target_coded == is_N))) {
       return ' ';  // N are mismatches
     }
     if ((query_coded == target_coded) and not is_ambiguous_4bit(query_coded)) {
@@ -246,7 +247,7 @@ namespace {
         position.query += delta;
         position.target += 1;
         q_line[line_index] = query_nuc;
-        a_line[line_index] = get_aligment_symbol(query_nuc, target_nuc);
+        a_line[line_index] = get_aligment_symbol(query_nuc, target_nuc, alignment.n_mismatch);
         d_line[line_index] = target_nuc;
         ++position.line;
         break;
@@ -307,7 +308,8 @@ auto align_show(std::FILE * output_handle,
                 int const numwidth,
                 int const namewidth,
                 int64_t const alignwidth,
-                int const strand) -> void
+                int const strand,
+                struct Parameters const & parameters) -> void
 {
 
   Alignment alignment;
@@ -324,6 +326,7 @@ auto align_show(std::FILE * output_handle,
   alignment.poswidth = numwidth;
   alignment.headwidth = namewidth;
   alignment.is_reverse_strand = strand != 0;
+  alignment.n_mismatch = parameters.opt_n_mismatch;
 
   // C++14 refactoring: aggregate initialization of a struct with
   // default member initializers

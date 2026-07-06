@@ -765,7 +765,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
 
   if (fp_biomout != nullptr)
     {
-      otutable_print_biomout(fp_biomout);
+      otutable_print_biomout(fp_biomout, parameters);
       fclose_output(fp_biomout);
     }
 

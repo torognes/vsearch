@@ -754,7 +754,8 @@ auto results_show_alnout(std::FILE * output_handle,
                  numwidth,
                  3,
                  rowlen,
-                 hp->strand);
+                 hp->strand,
+                 parameters);
 
       std::fprintf(output_handle, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
               hp->internal_alignmentlength,

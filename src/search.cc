@@ -835,7 +835,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 
   if (parameters.opt_biomout != nullptr)
     {
-      otutable_print_biomout(state.fp_biomout);
+      otutable_print_biomout(state.fp_biomout, state.parameters);
       fclose_output(state.fp_biomout);
     }
 

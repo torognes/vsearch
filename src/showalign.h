@@ -86,4 +86,5 @@ auto align_show(std::FILE * output_handle,
                 int numwidth,
                 int namewidth,
                 int64_t alignwidth,
-                int strand) -> void;
+                int strand,
+                struct Parameters const & parameters) -> void;
