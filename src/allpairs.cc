@@ -155,7 +155,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           static_cast<int>(toreport),
                           query_head,
                           qsequence,
-                          qseqlen);
+                          qseqlen,
+                          state.parameters);
     }
 
   if (state.fp_samout != nullptr)
@@ -165,7 +166,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           static_cast<int>(toreport),
                           query_head,
                           qsequence,
-                          qsequence_rc);
+                          qsequence_rc,
+                          state.parameters);
     }
 
   if (toreport != 0)
@@ -214,7 +216,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                       hp,
                                       query_head,
                                       qseqlen,
-                                      hp->target);
+                                      hp->target,
+                                      state.parameters);
                 }
             }
 
@@ -245,7 +248,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               nullptr,
                               query_head,
                               qseqlen,
-                              0);
+                              0,
+                              state.parameters);
         }
 
       if (state.parameters.opt_output_no_hits != 0)
@@ -597,7 +601,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   db_read(parameters.opt_allpairs_global, 0);
 
-  results_show_samheader(fp_samout, cmdline, parameters.opt_allpairs_global);
+  results_show_samheader(fp_samout, cmdline, parameters.opt_allpairs_global, parameters);
 
   if (parameters.opt_qmask == MASK_DUST)
     {

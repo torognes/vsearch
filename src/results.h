@@ -69,12 +69,14 @@ auto results_show_alnout(std::FILE * output_handle,
                          int hitcount,
                          char const * query_head,
                          char const * qsequence,
-                         int64_t qseqlen) -> void;
+                         int64_t qseqlen,
+                         struct Parameters const & parameters) -> void;
 
 auto results_show_lcaout(std::FILE * output_handle,
                          struct hit const * hits,
                          int hitcount,
-                         char const * query_head) -> void;
+                         char const * query_head,
+                         struct Parameters const & parameters) -> void;
 
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hits,
@@ -85,7 +87,8 @@ auto results_show_uc_one(std::FILE * output_handle,
                          struct hit const * hits,
                          char const * query_head,
                          int64_t qseqlen,
-                         int clusterno) -> void;
+                         int clusterno,
+                         struct Parameters const & parameters) -> void;
 
 auto results_show_userout_one(std::FILE * output_handle,
                               struct hit const * hits,
@@ -112,13 +115,15 @@ auto results_show_tsegout_one(std::FILE * output_handle,
 
 auto results_show_samheader(std::FILE * output_handle,
                             char const * cmdline,
-                            char const * dbname) -> void;
+                            char const * dbname,
+                            struct Parameters const & parameters) -> void;
 
 auto results_show_samout(std::FILE * output_handle,
                          struct hit const * hits,
                          int hitcount,
                          char const * query_head,
                          char const * qsequence,
-                         char const * qsequence_rc) -> void;
+                         char const * qsequence_rc,
+                         struct Parameters const & parameters) -> void;
 
 auto clean_up() -> void;

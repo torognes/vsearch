@@ -155,7 +155,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                           static_cast<int>(toreport),
                           query_head,
                           qsequence,
-                          qseqlen);
+                          qseqlen,
+                          state.parameters);
     }
 
   if (state.fp_lcaout != nullptr)
@@ -163,7 +164,8 @@ static auto search_output_results(struct search_cli_state_s & state,
       results_show_lcaout(state.fp_lcaout,
                           hits.data(),
                           static_cast<int>(toreport),
-                          query_head);
+                          query_head,
+                          state.parameters);
     }
 
   if (state.fp_samout != nullptr)
@@ -173,7 +175,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                           static_cast<int>(toreport),
                           query_head,
                           qsequence,
-                          qsequence_rc);
+                          qsequence_rc,
+                          state.parameters);
     }
 
   if (toreport != 0)  // hits.size() >=1 and <= opt_maxhits
@@ -229,7 +232,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                                       hp,
                                       query_head,
                                       qseqlen,
-                                      hp->target);
+                                      hp->target,
+                                      state.parameters);
                 }
             }
 
@@ -267,7 +271,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                               nullptr,
                               query_head,
                               qseqlen,
-                              0);
+                              0,
+                              state.parameters);
         }
 
       if (state.parameters.opt_output_no_hits != 0)
@@ -627,14 +632,14 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
   if (is_udb)
     {
       udb_read(state.parameters.opt_db, true, true);
-      results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db);
+      results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
       show_rusage();
       state.seqcount = static_cast<int>(db_getsequencecount());
     }
   else
     {
       db_read(state.parameters.opt_db, 0);
-      results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db);
+      results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
       if (state.parameters.opt_dbmask == MASK_DUST)
         {
           dust_all();

@@ -392,21 +392,24 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
       results_show_uc_one(state.fp_uc,
                           best, query_head,
                           qseqlen,
-                          clusterno);
+                          clusterno,
+                          state.parameters);
     }
 
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout,
                           best, 1, query_head,
-                          qsequence, qseqlen);
+                          qsequence, qseqlen,
+                          state.parameters);
     }
 
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout,
                           best, 1, query_head,
-                          qsequence, qsequence_rc);
+                          qsequence, qsequence_rc,
+                          state.parameters);
     }
 
   if (state.fp_fastapairs != nullptr)
@@ -1118,7 +1121,7 @@ auto cluster(char const * dbname,
 
   otutable_init();
 
-  results_show_samheader(fp_samout, cmdline, dbname);
+  results_show_samheader(fp_samout, cmdline, dbname, parameters);
 
   if (parameters.opt_qmask == MASK_DUST)
     {

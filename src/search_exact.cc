@@ -205,7 +205,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                           static_cast<int>(n_results_to_report),
                           query_head,
                           qsequence,
-                          qseqlen);
+                          qseqlen,
+                          parameters);
     }
 
   if (fp_samout != nullptr)
@@ -215,7 +216,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                           static_cast<int>(n_results_to_report),
                           query_head,
                           qsequence,
-                          qsequence_rc);
+                          qsequence_rc,
+                          parameters);
     }
 
   if (n_results_to_report != 0)
@@ -271,7 +273,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                       &hit,
                                       query_head,
                                       qseqlen,
-                                      hit.target);
+                                      hit.target,
+                                      parameters);
                 }
             }
 
@@ -309,7 +312,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               nullptr,
                               query_head,
                               qseqlen,
-                              0);
+                              0,
+                              parameters);
         }
 
       if (parameters.opt_output_no_hits != 0)
@@ -601,7 +605,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader,
 
   db_read(parameters.opt_db, 0);
 
-  results_show_samheader(fp_samout, cmdline, parameters.opt_db);
+  results_show_samheader(fp_samout, cmdline, parameters.opt_db, parameters);
 
   if (parameters.opt_dbmask == MASK_DUST)
     {

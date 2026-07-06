@@ -263,7 +263,8 @@ auto results_show_uc_one(std::FILE * output_handle,
                          struct hit const * hits,
                          char const * query_head,
                          int64_t const qseqlen,
-                         int const clusterno) -> void
+                         int const clusterno,
+                         struct Parameters const & parameters) -> void
 {
   /*
     http://www.drive5.com/usearch/manual/ucout.html
@@ -286,7 +287,7 @@ auto results_show_uc_one(std::FILE * output_handle,
     return;
   }
 
-  auto const is_perfect_match = check_if_perfect_match(opt_cluster_fast, hits);
+  auto const is_perfect_match = check_if_perfect_match(parameters.opt_cluster_fast, hits);
 
   std::fprintf(output_handle,
           "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
@@ -299,16 +300,16 @@ auto results_show_uc_one(std::FILE * output_handle,
   header_fprint_strip(output_handle,
                       query_head,
                       static_cast<int>(std::strlen(query_head)),
-                      opt_xsize,
-                      opt_xee,
-                      opt_xlength);
+                      parameters.opt_xsize,
+                      parameters.opt_xee,
+                      parameters.opt_xlength);
   std::fprintf(output_handle, "\t");
   header_fprint_strip(output_handle,
                       db_getheader(target),
                       static_cast<int>(db_getheaderlen(target)),
-                      opt_xsize,
-                      opt_xee,
-                      opt_xlength);
+                      parameters.opt_xsize,
+                      parameters.opt_xee,
+                      parameters.opt_xlength);
   std::fprintf(output_handle, "\n");
 }
 
@@ -527,7 +528,8 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 auto results_show_lcaout(std::FILE * output_handle,
                          struct hit const * hits,
                          int const hitcount,
-                         char const * query_head) -> void
+                         char const * query_head,
+                         struct Parameters const & parameters) -> void
 {
   /* Output last common ancestor (LCA) of the hits,
      in a similar way to the Sintax command */
@@ -557,7 +559,7 @@ auto results_show_lcaout(std::FILE * output_handle,
     {
       struct hit const * hp = hits + t;
 
-      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
           break;
         }
@@ -646,7 +648,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   auto comma = false;
   for (std::size_t j = 0; j < levels; ++j)
     {
-      if (1.0 * level_match[j] / tophitcount < opt_lca_cutoff)
+      if (1.0 * level_match[j] / tophitcount < parameters.opt_lca_cutoff)
         {
           break;
         }
@@ -672,12 +674,13 @@ auto results_show_alnout(std::FILE * output_handle,
                          int const hitcount,
                          char const * query_head,
                          char const * qsequence,
-                         int64_t const qseqlen) -> void
+                         int64_t const qseqlen,
+                         struct Parameters const & parameters) -> void
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
   if (hitcount == 0) {
-    if (opt_output_no_hits != 0) {
+    if (parameters.opt_output_no_hits != 0) {
       std::fprintf(output_handle, "\n");
       std::fprintf(output_handle,"Query >%s\n", query_head);
       std::fprintf(output_handle, "No hits\n");
@@ -697,7 +700,7 @@ auto results_show_alnout(std::FILE * output_handle,
     {
       auto const * hp = hits + t;
 
-      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
           break;
         }
@@ -713,7 +716,7 @@ auto results_show_alnout(std::FILE * output_handle,
     {
       auto const * hp = hits + t;
 
-      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
           break;
         }
@@ -734,7 +737,7 @@ auto results_show_alnout(std::FILE * output_handle,
       std::fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
               dseqlen, db_getheader(target));
 
-      int64_t const rowlen = (opt_rowlen == 0) ? (qseqlen + dseqlen) : opt_rowlen;
+      int64_t const rowlen = (parameters.opt_rowlen == 0) ? (qseqlen + dseqlen) : parameters.opt_rowlen;
 
       align_show(output_handle,
                  qsequence,
@@ -898,9 +901,10 @@ auto build_sam_strings(char const * alignment,
 
 auto results_show_samheader(std::FILE * output_handle,
                             char const * cmdline,
-                            char const * dbname) -> void
+                            char const * dbname,
+                            struct Parameters const & parameters) -> void
 {
-  if ((opt_samout != nullptr) and opt_samheader)
+  if ((parameters.opt_samout != nullptr) and parameters.opt_samheader)
     {
       std::fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
@@ -932,7 +936,8 @@ auto results_show_samout(std::FILE * output_handle,
                          int const hitcount,
                          char const * query_head,
                          char const * qsequence,
-                         char const * qsequence_rc) -> void
+                         char const * qsequence_rc,
+                         struct Parameters const & parameters) -> void
 {
   /*
     SAM format output
@@ -972,7 +977,7 @@ auto results_show_samout(std::FILE * output_handle,
   */
 
   if (hitcount == 0) {
-    if (opt_output_no_hits != 0) {
+    if (parameters.opt_output_no_hits != 0) {
       std::fprintf(output_handle,
               "%s\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
               query_head,
@@ -996,7 +1001,7 @@ auto results_show_samout(std::FILE * output_handle,
     {
       auto const * hp = hits + t;
 
-      if ((opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
         {
           break;
         }
