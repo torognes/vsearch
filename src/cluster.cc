@@ -581,7 +581,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           /* find the number of shared unique kmers */
           auto const shared
             = unique_count_shared(*si->uh,
-                                  static_cast<int>(opt_wordlength),
+                                  static_cast<int>(dbindex_wordlength),
                                   static_cast<int>(sic->kmersamplecount),
                                   sic->kmersample);
 
@@ -1146,15 +1146,13 @@ auto cluster(char const * dbname,
       db_sortbyabundance();
     }
 
-  dbindex_prepare(1, static_cast<int>(parameters.opt_qmask));
+  dbindex_prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
 
   /* tophits = the maximum number of hits we need to store */
 
   /* opt_maxrejects / opt_maxaccepts stay global reads: clamped to the database
      size here at run time and read in that clamped form by cluster_core_* and
-     the shared evaluate_extra_hits; opt_wordlength likewise stays global
-     (runtime-adjustable elsewhere via udb_read). E1/F3, deferred to the
-     shared-infra phase. */
+     the shared evaluate_extra_hits. E1/F3, deferred to the shared-infra phase. */
   if ((opt_maxrejects == 0) or (opt_maxrejects > seqcount))
     {
       opt_maxrejects = seqcount;
@@ -1173,11 +1171,11 @@ auto cluster(char const * dbname,
 
   if (parameters.opt_log != nullptr)
     {
-      uint64_t const slots = 1ULL << (static_cast<uint64_t>(opt_wordlength) << 1ULL);
+      uint64_t const slots = 1ULL << (static_cast<uint64_t>(parameters.opt_wordlength) << 1ULL);
       std::fprintf(fp_log, "\n");
       std::fprintf(fp_log, "      Alphabet  nt\n");
-      std::fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
-      std::fprintf(fp_log, "     Word ones  %" PRId64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "    Word width  %" PRId64 "\n", parameters.opt_wordlength);
+      std::fprintf(fp_log, "     Word ones  %" PRId64 "\n", parameters.opt_wordlength);
       std::fprintf(fp_log, "        Spaced  No\n");
       std::fprintf(fp_log, "        Hashed  No\n");
       std::fprintf(fp_log, "         Coded  No\n");

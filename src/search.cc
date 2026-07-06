@@ -632,7 +632,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
 
   if (is_udb)
     {
-      udb_read(state.parameters.opt_db, true, true);
+      udb_read(state.parameters.opt_db, true, true, state.parameters);
       results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
       show_rusage();
       state.seqcount = static_cast<int>(db_getsequencecount());
@@ -651,7 +651,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
         }
       show_rusage();
       state.seqcount = static_cast<int>(db_getsequencecount());
-      dbindex_prepare(1, static_cast<int>(state.parameters.opt_dbmask));
+      dbindex_prepare(1, static_cast<int>(state.parameters.opt_dbmask), state.parameters);
       dbindex_addallsequences(static_cast<int>(state.parameters.opt_dbmask));
     }
 

@@ -316,7 +316,8 @@ static auto udb_checked_add(uint64_t const lhs, uint64_t const rhs) -> uint64_t
 
 auto udb_read(const char * filename,
               bool create_bitmaps,
-              bool parse_abundances) -> void
+              bool parse_abundances,
+              struct Parameters const & parameters) -> void
 {
   /* read UDB as indexed database */
 
@@ -390,11 +391,15 @@ auto udb_read(const char * filename,
       fatal("Invalid UDB file");
     }
 
-  if (udb_wordlength != opt_wordlength)
+  /* The index is built at the UDB file's own word length. Publish it as the
+     effective index width (read by the query-k-mer extractors) rather than
+     mutating the opt_wordlength config global (E1); warn when it overrides the
+     configured value. */
+  if (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength))
     {
       std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
-      opt_wordlength = udb_wordlength;
     }
+  dbindex_wordlength = udb_wordlength;
 
   /* word match counts */
 
@@ -715,7 +720,7 @@ auto udb_fasta(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udb2fasta, false, false);
+  udb_read(parameters.opt_udb2fasta, false, false, parameters);
 
   /* dump fasta */
 
@@ -740,12 +745,11 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udbstats, false, false);
+  udb_read(parameters.opt_udbstats, false, false, parameters);
 
-  /* opt_wordlength stays a global read below: udb_read() has just overwritten
-     it with the word length stored in this UDB file, so the global holds the
-     effective value, not parameters (E1/F3, deferred to the shared-infra phase
-     that owns udb_read). */
+  /* dbindex_wordlength below is the effective index width that udb_read() just
+     published from this UDB file's header (which may differ from the configured
+     parameters.opt_wordlength); read it, not the config (E1). */
 
   /* analyze word counts */
 
@@ -771,8 +775,8 @@ auto udb_stats(struct Parameters const & parameters) -> void
   if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log, "      Alphabet  nt\n");
-      std::fprintf(fp_log, "    Word width  %" PRId64 "\n", opt_wordlength);
-      std::fprintf(fp_log, "     Word ones  %" PRId64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "    Word width  %u\n", dbindex_wordlength);
+      std::fprintf(fp_log, "     Word ones  %u\n", dbindex_wordlength);
       std::fprintf(fp_log, "        Spaced  No\n");
       std::fprintf(fp_log, "        Hashed  No\n");
       std::fprintf(fp_log, "         Coded  No\n");
@@ -807,9 +811,9 @@ auto udb_stats(struct Parameters const & parameters) -> void
                   freqtable[kmerhashsize - 1 - i].kmer);
 
           std::fprintf(fp_log,
-                  "%.*s", std::max(12 - static_cast<int>(opt_wordlength), 0), "            ");
+                  "%.*s", std::max(12 - static_cast<int>(dbindex_wordlength), 0), "            ");
 
-          fprint_kmer(fp_log, static_cast<unsigned int>(opt_wordlength), freqtable[kmerhashsize - 1 - i].kmer);
+          fprint_kmer(fp_log, dbindex_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
 
           std::fprintf(fp_log,
                   "  %10u  %10u",
@@ -845,11 +849,11 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
       std::fprintf(fp_log, "\n\n");
 
-      std::fprintf(fp_log, "Word width  %" PRId64 "\n", opt_wordlength);
+      std::fprintf(fp_log, "Word width  %u\n", dbindex_wordlength);
       std::fprintf(fp_log, "Slots       %u\n", kmerhashsize);
       std::fprintf(fp_log, "Words       %" PRIu64 "\n", kmerindexsize);
       std::fprintf(fp_log, "Max size    %u (", wcmax);
-      fprint_kmer(fp_log, static_cast<unsigned int>(opt_wordlength), freqtable[kmerhashsize - 1].kmer);
+      fprint_kmer(fp_log, dbindex_wordlength, freqtable[kmerhashsize - 1].kmer);
       std::fprintf(fp_log, ")\n\n");
 
       std::fprintf(fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
@@ -993,7 +997,7 @@ auto udb_make(struct Parameters const & parameters) -> void
       hardmask_all();
     }
 
-  dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+  dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
   dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());

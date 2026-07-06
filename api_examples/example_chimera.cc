@@ -73,7 +73,7 @@ static int run_chimera_tsv() {
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all();
-    dbindex_prepare(1, opt_dbmask);
+    dbindex_prepare(1, opt_dbmask, parameters);
     dbindex_addallsequences(opt_dbmask);
 
     struct chimera_info_s * ci = chimera_info_alloc();
@@ -145,7 +145,7 @@ static int run_batch_tests()
              nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
   dust_all();
-  dbindex_prepare(1, opt_dbmask);
+  dbindex_prepare(1, opt_dbmask, parameters);
   dbindex_addallsequences(opt_dbmask);
 
   std::vector<std::string> query_labels, query_seqs;

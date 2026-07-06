@@ -77,6 +77,7 @@ unsigned int * dbindex_map;
 unsigned int kmerhashsize;
 uint64_t kmerindexsize;
 unsigned int dbindex_count;
+unsigned int dbindex_wordlength = 0;
 uhandle_s * dbindex_uh;
 
 constexpr unsigned int bitmap_threshold = 8;
@@ -136,7 +137,7 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 
   unsigned int uniquecount = 0;
   unsigned int const * uniquelist = nullptr;
-  unique_count(dbindex_uh, static_cast<int>(opt_wordlength),
+  unique_count(dbindex_uh, static_cast<int>(dbindex_wordlength),
                static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
                &uniquecount, &uniquelist, seqmask);
   dbindex_map[dbindex_count] = seqno;
@@ -171,7 +172,7 @@ auto dbindex_addallsequences(int seqmask) -> void
 }
 
 
-auto dbindex_prepare(int use_bitmap, int seqmask) -> void
+auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void
 {
   /* Release any state from a previous prepare first (mirrors db_init ->
      db_free), so a second prepare without an intervening dbindex_free() does
@@ -182,7 +183,10 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
   dbindex_uh = unique_init();
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
-  kmerhashsize = 1U << (2 * opt_wordlength);
+  /* this is the FASTA-database path; the effective index word length is the
+     configured one (a UDB database sets dbindex_wordlength in udb_read instead). */
+  dbindex_wordlength = static_cast<unsigned int>(parameters.opt_wordlength);
+  kmerhashsize = 1U << (2 * dbindex_wordlength);
 
   /* allocate memory for kmer count array */
   kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
@@ -194,7 +198,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
     {
       unsigned int uniquecount = 0;
       unsigned int const * uniquelist = nullptr;
-      unique_count(dbindex_uh, static_cast<int>(opt_wordlength),
+      unique_count(dbindex_uh, static_cast<int>(dbindex_wordlength),
                    static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
                    &uniquecount, &uniquelist, seqmask);
       for (auto i = 0U; i < uniquecount; i++)
@@ -251,8 +255,8 @@ auto dbindex_prepare(int use_bitmap, int seqmask) -> void
   kmerhash[kmerhashsize] = sum;
 
 #if 0
-  if (not opt_quiet)
-    std::fprintf(stderr, "Unique %ld-mers: %u\n", opt_wordlength, kmerindexsize);
+  if (not parameters.opt_quiet)
+    std::fprintf(stderr, "Unique %u-mers: %u\n", dbindex_wordlength, kmerindexsize);
 #endif
 
   /* reset counts */

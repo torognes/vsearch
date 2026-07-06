@@ -86,19 +86,18 @@
 // 0b010101 -> 0b101010
 auto rc_kmer(unsigned int kmer) -> unsigned int
 {
-  /* reverse complement a kmer where k = opt_wordlength */
+  /* reverse complement a kmer where k = dbindex_wordlength */
 
-  /* opt_wordlength stays a global read here: udb_read() overwrites it with
-     the word length stored in a UDB file, so the effective value lives in
-     the global after the database is loaded, not in parameters. Reading
-     parameters here would extract query kmers at the wrong width against a
-     UDB index (mismatch, and an out-of-bounds index when wider). Deferred to
-     the shared-infra phase that owns udb_read. */
-  assert(opt_wordlength * 2 <= 32);
+  /* dbindex_wordlength is the effective index word length (set by
+     dbindex_prepare for a FASTA db, or by udb_read for a UDB db whose stored
+     width overrides the configured one). Query kmers must be extracted at this
+     width to match the index; reading parameters.opt_wordlength here would use
+     the wrong width against a UDB index (mismatch, out-of-bounds when wider). */
+  assert(dbindex_wordlength * 2 <= 32);
   auto fwd = kmer;
   auto rev = 0U;
 
-  for (auto i = int64_t{0}; i < opt_wordlength; ++i)
+  for (auto i = 0U; i < dbindex_wordlength; ++i)
     {
       // compute complement of the last two bits
       auto const complement_bits = (fwd & 3U) ^ 3U;
@@ -165,7 +164,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true);
+      udb_read(parameters.opt_db, true, true, parameters);
     }
   else
     {
@@ -182,7 +181,7 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all();
         }
-      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
       dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
     }
 
@@ -210,8 +209,8 @@ auto orient(struct Parameters const & parameters) -> void
       unsigned int kmer_count_fwd = 0;
       unsigned int const * kmer_list_fwd = nullptr;
 
-      /* opt_wordlength: global read, adjusted by udb_read (see rc_kmer) */
-      unique_count(uh_fwd, static_cast<int>(opt_wordlength), qseqlen, qseq_fwd,
+      /* dbindex_wordlength: the effective index width (see rc_kmer) */
+      unique_count(uh_fwd, static_cast<int>(dbindex_wordlength), qseqlen, qseq_fwd,
                    & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
       /* count kmers matching on each strand */

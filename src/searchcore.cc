@@ -831,9 +831,10 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
 auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 {
-  /* opt_wordlength (udb_read-adjusted) and opt_maxaccepts/opt_maxrejects
-     (seqcount-clamped by search/cluster, overwritten by chimera) below stay
-     global reads and must NOT be migrated to searchinfo->parameters (E1 trap). */
+  /* opt_maxaccepts/opt_maxrejects below stay global reads (seqcount-clamped by
+     search/cluster, overwritten by chimera) and must NOT be migrated to
+     searchinfo->parameters (E1 trap). Query kmers are extracted at
+     dbindex_wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
   search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
@@ -845,7 +846,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
 
   /* extract unique kmer samples from query*/
-  unique_count(searchinfo->uh, static_cast<int>(opt_wordlength),
+  unique_count(searchinfo->uh, static_cast<int>(dbindex_wordlength),
                searchinfo->qseqlen, searchinfo->qsequence,
                &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 

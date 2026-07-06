@@ -2440,7 +2440,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (is_udb)
         {
-          udb_read(parameters.opt_db, true, true);
+          udb_read(parameters.opt_db, true, true, parameters);
         }
       else
         {
@@ -2453,7 +2453,7 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               hardmask_all();
             }
-          dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+          dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
           dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
         }
 
@@ -2502,7 +2502,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       db_sortbyabundance();
-      dbindex_prepare(1, static_cast<int>(parameters.opt_qmask));
+      dbindex_prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
       progress_total = db_getnucleotidecount();
     }
 

@@ -422,13 +422,10 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
       auto kmersamplecount = 0U;
       unsigned int const * kmersample = nullptr;
 
-      /* find unique kmers. opt_wordlength stays a global read: udb_read()
-         overwrites it with the word length stored in a UDB file, so the
-         effective value lives in the global after the database is loaded, not
-         in parameters. Reading parameters here would extract query kmers at
-         the wrong width against a UDB index. Deferred to the shared-infra
-         phase that owns udb_read. */
-      unique_count(si->uh, static_cast<int>(opt_wordlength),
+      /* find unique kmers at dbindex_wordlength, the effective index width (set
+         by dbindex_prepare for a FASTA db, or udb_read for a UDB db); reading
+         parameters.opt_wordlength would use the wrong width against a UDB index. */
+      unique_count(si->uh, static_cast<int>(dbindex_wordlength),
                    si->qseqlen, si->qsequence,
                    &kmersamplecount, &kmersample, MASK_NONE);
 
@@ -712,7 +709,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true);
+      udb_read(parameters.opt_db, true, true, parameters);
     }
   else
     {
@@ -723,7 +720,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! is_udb)
     {
-      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
       dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
     }
 

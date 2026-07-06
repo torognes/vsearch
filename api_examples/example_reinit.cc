@@ -90,7 +90,7 @@ static session_results run_session(
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all();
-    dbindex_prepare(1, opt_dbmask);
+    dbindex_prepare(1, opt_dbmask, parameters);
     dbindex_addallsequences(opt_dbmask);
 
     /* Detect chimeras */
@@ -301,7 +301,7 @@ int main() {
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all();
-    dbindex_prepare(1, opt_dbmask);
+    dbindex_prepare(1, opt_dbmask, parameters);
     dbindex_addallsequences(opt_dbmask);
 
     /* Session init once, then two per-thread handles */

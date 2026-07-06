@@ -63,7 +63,7 @@ static int run_cluster_uc() {
     }
     dust_all();
     db_sortbylength();
-    dbindex_prepare(1, opt_qmask);
+    dbindex_prepare(1, opt_qmask, parameters);
 
     struct cluster_session_s * cs = cluster_session_alloc();
     cluster_session_init(cs, parameters);
@@ -147,7 +147,7 @@ static int run_batch_tests()
   int const sc = static_cast<int>(db_getsequencecount());
 
   /* Sequential: use cluster_assign_single one at a time */
-  dbindex_prepare(1, opt_qmask);
+  dbindex_prepare(1, opt_qmask, parameters);
   struct cluster_session_s * cs_seq = cluster_session_alloc();
   cluster_session_init(cs_seq, parameters);
 
@@ -162,7 +162,7 @@ static int run_batch_tests()
   dbindex_free();
 
   /* Batch: use cluster_assign_batch for all at once */
-  dbindex_prepare(1, opt_qmask);
+  dbindex_prepare(1, opt_qmask, parameters);
   struct cluster_session_s * cs_batch = cluster_session_alloc();
   cluster_session_init(cs_batch, parameters);
 

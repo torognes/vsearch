@@ -77,10 +77,17 @@ extern unsigned int kmerhashsize;
 extern uint64_t kmerindexsize;
 extern uhandle_s * dbindex_uh;
 
+/* effective word length of the built k-mer index (derived index state, not
+   config): set by dbindex_prepare (from parameters.opt_wordlength) for a FASTA
+   database, or by udb_read for a UDB database whose stored word length differs.
+   Read by everything that extracts query k-mers, so they match the index width
+   without consulting the (immutable) opt_wordlength config. */
+extern unsigned int dbindex_wordlength;
+
 
 auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
 
-auto dbindex_prepare(int use_bitmap, int seqmask) -> void;
+auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
 
 auto dbindex_addallsequences(int seqmask) -> void;
 
