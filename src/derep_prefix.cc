@@ -175,7 +175,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   fp_output = open_optional_output(parameters.opt_output, "output");
   fp_uc = open_optional_output(parameters.opt_uc, "uc");
 
-  db_read(parameters.opt_derep_prefix, 0);
+  db_read(parameters.opt_derep_prefix, 0, parameters);
 
   db_sortbylength_shortest_first();
 

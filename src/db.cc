@@ -220,7 +220,7 @@ auto db_add(bool const is_fastq_record,
 }
 
 
-auto db_read(const char * filename, int upcase) -> void
+auto db_read(const char * filename, int upcase, struct Parameters const & parameters) -> void
 {
   h = fastx_open(filename);
 
@@ -256,21 +256,21 @@ auto db_read(const char * filename, int upcase) -> void
   seqindex = nullptr;
 
   while (fastx_next(h,
-                   not opt_notrunclabels,
+                   not parameters.opt_notrunclabels,
                     (upcase != 0) ? chrmap_upcase_vector.data() : chrmap_no_change_vector.data()))
     {
       size_t const sequencelength = fastx_get_sequence_length(h);
       int64_t const abundance = fastx_get_abundance(h);
 
-      if (sequencelength < static_cast<size_t>(opt_minseqlength))
+      if (sequencelength < static_cast<size_t>(parameters.opt_minseqlength))
         {
           ++discarded_short;
         }
-      else if (sequencelength > static_cast<size_t>(opt_maxseqlength))
+      else if (sequencelength > static_cast<size_t>(parameters.opt_maxseqlength))
         {
           ++discarded_long;
         }
-      else if ((opt_cluster_unoise != nullptr) && (abundance < opt_minsize))
+      else if ((parameters.opt_cluster_unoise != nullptr) && (abundance < parameters.opt_minsize))
         {
           ++discarded_unoise;
         }
@@ -291,7 +291,7 @@ auto db_read(const char * filename, int upcase) -> void
   xfree(prompt);
   fastx_close(h);
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (sequences > 0)
         {
@@ -313,7 +313,7 @@ auto db_read(const char * filename, int upcase) -> void
         }
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       if (sequences > 0)
         {
@@ -341,15 +341,15 @@ auto db_read(const char * filename, int upcase) -> void
     {
       std::fprintf(stderr,
               "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minseqlength,
+              parameters.opt_minseqlength,
               discarded_short,
               (discarded_short == 1 ? "sequence" : "sequences"));
 
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_minseqlength,
+                  parameters.opt_minseqlength,
                   discarded_short,
                   (discarded_short == 1 ? "sequence" : "sequences"));
         }
@@ -359,15 +359,15 @@ auto db_read(const char * filename, int upcase) -> void
     {
       std::fprintf(stderr,
               "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_maxseqlength,
+              parameters.opt_maxseqlength,
               discarded_long,
               (discarded_long == 1 ? "sequence" : "sequences"));
 
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  opt_maxseqlength,
+                  parameters.opt_maxseqlength,
                   discarded_long,
                   (discarded_long == 1 ? "sequence" : "sequences"));
         }
@@ -377,15 +377,15 @@ auto db_read(const char * filename, int upcase) -> void
     {
       std::fprintf(stderr,
               "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
-              opt_minsize,
+              parameters.opt_minsize,
               discarded_unoise,
               (discarded_unoise == 1 ? "sequence" : "sequences"));
 
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log,
                   "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
-                  opt_minsize,
+                  parameters.opt_minsize,
                   discarded_unoise,
                   (discarded_unoise == 1 ? "sequence" : "sequences"));
         }

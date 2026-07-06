@@ -2442,7 +2442,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
       else
         {
-          db_read(parameters.opt_db, 0);
+          db_read(parameters.opt_db, 0, parameters);
           if (parameters.opt_dbmask == MASK_DUST)
             {
               dust_all();
@@ -2488,7 +2488,7 @@ auto chimera(struct Parameters const & parameters) -> void
         fatal("Internal error");
       }
 
-      db_read(denovo_dbname, 0);
+      db_read(denovo_dbname, 0, parameters);
 
       if (parameters.opt_qmask == MASK_DUST)
         {

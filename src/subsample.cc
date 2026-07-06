@@ -385,7 +385,7 @@ auto subsample(struct Parameters const & parameters) -> void {
   open_output_files(ouput_files);
   check_output_files(ouput_files);
 
-  db_read(parameters.opt_fastx_subsample, 0);
+  db_read(parameters.opt_fastx_subsample, 0, parameters);
   show_rusage();
 
   abort_if_fastq_out_of_fasta(ouput_files);

@@ -169,7 +169,7 @@ auto orient(struct Parameters const & parameters) -> void
     }
   else
     {
-      db_read(parameters.opt_db, 0);
+      db_read(parameters.opt_db, 0, parameters);
     }
 
   if (not is_udb)

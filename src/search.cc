@@ -638,7 +638,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
     }
   else
     {
-      db_read(state.parameters.opt_db, 0);
+      db_read(state.parameters.opt_db, 0, state.parameters);
       results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
       if (state.parameters.opt_dbmask == MASK_DUST)
         {

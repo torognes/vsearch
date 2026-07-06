@@ -603,7 +603,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader,
   fp_mothur_shared_out = open_optional_output(parameters.opt_mothur_shared_out, "OTU table (mothur format)");
   fp_biomout = open_optional_output(parameters.opt_biomout, "OTU table (biom 1.0 format)");
 
-  db_read(parameters.opt_db, 0);
+  db_read(parameters.opt_db, 0, parameters);
 
   results_show_samheader(fp_samout, cmdline, parameters.opt_db, parameters);
 

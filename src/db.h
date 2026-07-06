@@ -127,7 +127,7 @@ auto db_add(bool is_fastq,
             size_t sequencelength,
             int64_t abundance) -> void;
 
-auto db_read(const char * filename, int upcase) -> void;
+auto db_read(const char * filename, int upcase, struct Parameters const & parameters) -> void;
 auto db_free() -> void;
 
 auto db_getsequencecount() -> uint64_t;

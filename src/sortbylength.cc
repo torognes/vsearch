@@ -202,7 +202,7 @@ namespace {
 auto sortbylength(struct Parameters const & parameters) -> void {
   auto const output_handle = open_output_file(parameters.opt_output);
   check_mandatory_output_handle(parameters.opt_output, (not output_handle));
-  db_read(parameters.opt_sortbylength, 0);
+  db_read(parameters.opt_sortbylength, 0, parameters);
   show_rusage();
 
   auto deck = create_deck(parameters);

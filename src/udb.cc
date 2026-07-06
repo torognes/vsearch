@@ -982,7 +982,7 @@ auto udb_make(struct Parameters const & parameters) -> void
       fatal("Unable to open output file for writing (%s)", parameters.opt_output);
     }
 
-  db_read(parameters.opt_makeudb_usearch, 1);
+  db_read(parameters.opt_makeudb_usearch, 1, parameters);
 
   if (parameters.opt_dbmask == MASK_DUST)
     {

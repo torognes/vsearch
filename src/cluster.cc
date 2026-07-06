@@ -1117,7 +1117,7 @@ auto cluster(char const * dbname,
   fp_mothur_shared_out = open_optional_output(parameters.opt_mothur_shared_out, "OTU table (mothur format)");
   fp_biomout = open_optional_output(parameters.opt_biomout, "OTU table (biom 1.0 format)");
 
-  db_read(dbname, 0);
+  db_read(dbname, 0, parameters);
 
   otutable_init();
 

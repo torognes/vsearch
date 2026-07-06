@@ -599,7 +599,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   fp_matched = open_optional_output(parameters.opt_matched, "matched");
   fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
 
-  db_read(parameters.opt_allpairs_global, 0);
+  db_read(parameters.opt_allpairs_global, 0, parameters);
 
   results_show_samheader(fp_samout, cmdline, parameters.opt_allpairs_global, parameters);
 

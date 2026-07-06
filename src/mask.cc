@@ -287,7 +287,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   auto const output_handle = open_output_file(parameters.opt_output);
   check_mandatory_output_handle(parameters.opt_output, (not output_handle));
 
-  db_read(parameters.opt_maskfasta, 0);
+  db_read(parameters.opt_maskfasta, 0, parameters);
   show_rusage();
 
   uint64_t const seqcount = db_getsequencecount();
@@ -327,7 +327,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
   fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
-  db_read(parameters.opt_fastx_mask, 0);
+  db_read(parameters.opt_fastx_mask, 0, parameters);
   show_rusage();
 
   if ((fp_fastqout != nullptr) && ! db_is_fastq())

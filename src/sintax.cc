@@ -716,7 +716,7 @@ auto sintax(struct Parameters const & parameters) -> void
     }
   else
     {
-      db_read(parameters.opt_db, 0);
+      db_read(parameters.opt_db, 0, parameters);
     }
 
   seqcount = static_cast<int>(db_getsequencecount());
