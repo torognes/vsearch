@@ -2070,12 +2070,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("Unrecognized string on command line (%s)", argv[optind]);
     }
 
-  /* Options are now parsed into `parameters`; derive the opt_* globals from it
-     so the command validation and the compute engines (which still read the
-     globals) see the parsed values. The command-specific overrides and the
-     global vsearch_apply_defaults_fixups() below then operate on the globals as
-     before. */
-  apply_parameters_to_globals(parameters);
 
   /*
     Below is a list of all the options that are valid for each command.
@@ -4070,7 +4064,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* multi-threaded commands */
 
-  if ((opt_threads < 0) or (opt_threads > n_threads_max))
+  if ((parameters.opt_threads < 0) or (parameters.opt_threads > n_threads_max))
     {
       fatal("The argument to --threads must be in the range 0 (default) to 1024");
     }
@@ -4082,7 +4076,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (parameters.opt_threads == 0)
         {
-          opt_threads = arch_get_cores();
           parameters.opt_threads = arch_get_cores();
         }
     }
@@ -4092,7 +4085,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         {
           std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
         }
-      opt_threads = 1;
       parameters.opt_threads = 1;
     }
   if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
@@ -4102,76 +4094,76 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   if (parameters.opt_cluster_unoise != nullptr)
     {
-      opt_weak_id = 0.90;
+      parameters.opt_weak_id = 0.90;
     }
   else
-    if (opt_weak_id > opt_id)
+    if (parameters.opt_weak_id > parameters.opt_id)
       {
-        opt_weak_id = opt_id;
+        parameters.opt_weak_id = parameters.opt_id;
       }
 
-  if (opt_maxrejects == -1)
+  if (parameters.opt_maxrejects == -1)
     {
       if (parameters.opt_cluster_fast != nullptr)
         {
-          opt_maxrejects = 8;
+          parameters.opt_maxrejects = 8;
         }
       else
         {
-          opt_maxrejects = 32;
+          parameters.opt_maxrejects = 32;
         }
     }
 
-  if (opt_maxaccepts < 0)
+  if (parameters.opt_maxaccepts < 0)
     {
       fatal("The argument to --maxaccepts must not be negative");
     }
 
-  if (opt_maxrejects < 0)
+  if (parameters.opt_maxrejects < 0)
     {
       fatal("The argument to --maxrejects must not be negative");
     }
 
-  if (opt_wordlength == 0)
+  if (parameters.opt_wordlength == 0)
     {
       /* set default word length */
       if (parameters.opt_orient != nullptr)
         {
-          opt_wordlength = 12;
+          parameters.opt_wordlength = 12;
         }
       else
         {
-          opt_wordlength = 8;
+          parameters.opt_wordlength = 8;
         }
     }
 
-  if ((opt_wordlength < 3) or (opt_wordlength > 15))
+  if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
     {
       fatal("The argument to --wordlength must be in the range 3 to 15");
     }
 
-  if ((opt_iddef < 0) or (opt_iddef > 4))
+  if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
     {
       fatal("The argument to --iddef must in the range 0 to 4");
     }
 
 #if 0
 
-  if (opt_match <= 0)
+  if (parameters.opt_match <= 0)
     fatal("The argument to --match must be positive");
 
-  if (opt_mismatch >= 0)
+  if (parameters.opt_mismatch >= 0)
     fatal("The argument to --mismatch must be negative");
 
 #endif
 
 
-  if (opt_alignwidth < 0)
+  if (parameters.opt_alignwidth < 0)
     {
       fatal("The argument to --alignwidth must not be negative");
     }
 
-  if (opt_rowlen < 0)
+  if (parameters.opt_rowlen < 0)
     {
       fatal("The argument to --rowlen must not be negative");
     }
@@ -4181,17 +4173,17 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --qmask must be none, dust or soft");
     }
 
-  if (opt_dbmask == MASK_ERROR)
+  if (parameters.opt_dbmask == MASK_ERROR)
     {
       fatal("The argument to --dbmask must be none, dust or soft");
     }
 
-  if ((opt_sample_pct < 0.0) or (opt_sample_pct > 100.0))
+  if ((parameters.opt_sample_pct < 0.0) or (parameters.opt_sample_pct > 100.0))
     {
       fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
     }
 
-  if (opt_sample_size < 0)
+  if (parameters.opt_sample_size < 0)
     {
       fatal("The argument to --sample_size must not be negative");
     }
@@ -4229,17 +4221,17 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to --fastq_ascii must be 33 or 64");
     }
 
-  if (opt_fastq_qmin > opt_fastq_qmax)
+  if (parameters.opt_fastq_qmin > parameters.opt_fastq_qmax)
     {
       fatal("The argument to --fastq_qmin cannot be greater than --fastq_qmax");
     }
 
-  if (parameters.opt_fastq_ascii + opt_fastq_qmin < 33)
+  if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmin < 33)
     {
       fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
     }
 
-  if (parameters.opt_fastq_ascii + opt_fastq_qmax > 126)
+  if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmax > 126)
     {
       fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
     }
@@ -4269,12 +4261,12 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
     }
 
-  if ((opt_sintax_cutoff < 0.0) or (opt_sintax_cutoff > 1.0))
+  if ((parameters.opt_sintax_cutoff < 0.0) or (parameters.opt_sintax_cutoff > 1.0))
     {
       fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
     }
 
-  if ((opt_lca_cutoff <= 0.5) or (opt_lca_cutoff > 1.0))
+  if ((parameters.opt_lca_cutoff <= 0.5) or (parameters.opt_lca_cutoff > 1.0))
     {
       fatal("The argument to lca_cutoff must be larger than 0.5, but not larger than 1.0");
     }
@@ -4294,42 +4286,42 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
       fatal("The argument to maxsize must be at least 1");
     }
 
-  if (opt_maxhits < 0)
+  if (parameters.opt_maxhits < 0)
     {
       fatal("The argument to maxhits cannot be negative");
     }
 
-  if (opt_chimeras_length_min < 1)
+  if (parameters.opt_chimeras_length_min < 1)
     {
       fatal("The argument to chimeras_length_min must be at least 1");
     }
 
-  if ((opt_chimeras_parents_max < 2) or (opt_chimeras_parents_max > maxparents))
+  if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
     {
       std::array<char, 25> maxparents_string {{}};
       std::snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
       fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string.data());
     }
 
-  if ((opt_chimeras_diff_pct < 0.0) or (opt_chimeras_diff_pct > 50.0))
+  if ((parameters.opt_chimeras_diff_pct < 0.0) or (parameters.opt_chimeras_diff_pct > 50.0))
     {
       fatal("The argument to chimeras_diff_pct must be in the range 0.0 to 50.0");
     }
 
   if (options_selected[option_chimeras_parts] and
-      ((opt_chimeras_parts < 2) or (opt_chimeras_parts > 100)))
+      ((parameters.opt_chimeras_parts < 2) or (parameters.opt_chimeras_parts > 100)))
     {
       fatal("The argument to chimeras_parts must be in the range 2 to 100");
     }
 
   /* --fasta_width accepts 0 to disable line wrapping (documented);
      reject only negative values. */
-  if (opt_fasta_width < 0)
+  if (parameters.opt_fasta_width < 0)
     {
       fatal("The argument to --fasta_width cannot be negative");
     }
 
-  if (opt_maxseqlength < 1)
+  if (parameters.opt_maxseqlength < 1)
     {
       fatal("The argument to --maxseqlength must be a positive integer");
     }
@@ -4341,7 +4333,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   // the header length limit enforced in fastx_filter_header.
   static constexpr int maxseqlength_limit =
     std::numeric_limits<int>::max() - buffer_headroom;
-  if (opt_maxseqlength > maxseqlength_limit)
+  if (parameters.opt_maxseqlength > maxseqlength_limit)
     {
       std::array<char, 128> message {{}};
       std::snprintf(message.data(), message.size(),
@@ -4354,7 +4346,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (not options_selected[option_alignwidth])
         {
-          opt_alignwidth = 60;
+          parameters.opt_alignwidth = 60;
         }
     }
 
@@ -4363,23 +4355,21 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* adapt/adjust parameters */
 
-  /* Resolve sentinel defaults and adjust gap penalties.
+  /* Resolve sentinel defaults and adjust gap penalties on `parameters`.
      Generic fixups (including gap-open adjustment) are in
-     vsearch_apply_defaults_fixups(); command-specific overrides
+     vsearch_apply_defaults_fixups(Parameters&); command-specific overrides
      (abskew, minsize for unoise) follow below. */
-  vsearch_apply_defaults_fixups();
+  vsearch_apply_defaults_fixups(parameters);
 
   /* set default opt_minsize depending on command */
   if (parameters.opt_minsize == 0)
     {
       if (parameters.opt_cluster_unoise != nullptr)
         {
-          opt_minsize = 8;
           parameters.opt_minsize = 8;
         }
       else
         {
-          opt_minsize = 1;
           parameters.opt_minsize = 1;
         }
     }
@@ -4389,15 +4379,15 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
     {
       if (parameters.opt_chimeras_denovo != nullptr)
         {
-          opt_abskew = 1.0;
+          parameters.opt_abskew = 1.0;
         }
-      else if (opt_uchime3_denovo != nullptr)
+      else if (parameters.opt_uchime3_denovo != nullptr)
         {
-          opt_abskew = 16.0;
+          parameters.opt_abskew = 16.0;
         }
       else
         {
-          opt_abskew = 2.0;
+          parameters.opt_abskew = 2.0;
         }
     }
 
@@ -4416,19 +4406,16 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
           (parameters.opt_sintax != nullptr) or
           (parameters.opt_usearch_global != nullptr))
         {
-          opt_minseqlength = 32;
           parameters.opt_minseqlength = 32;
         }
       else
         {
-          opt_minseqlength = 1;
           parameters.opt_minseqlength = 1;
         }
     }
 
   if (parameters.opt_sintax != nullptr)
     {
-    opt_notrunclabels = true;
     parameters.opt_notrunclabels = true;
     }
 
@@ -4437,4 +4424,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   //  - fileno() returns a file descriptor (fd)
   //  - isatty() returns 1 if a file descriptor refers to a terminal
   parameters.opt_stderr_is_tty = (isatty(fileno(stderr)) == 1);
+
+  /* Configuration is now fully resolved in `parameters` (parsed options,
+     command-specific defaults and the sentinel fixups above); derive the
+     opt_* globals from it once. The compute engines still read the globals. */
+  apply_parameters_to_globals(parameters);
 }
