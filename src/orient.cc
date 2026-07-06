@@ -84,15 +84,21 @@
 // 0b011110 -> 0b010010
 // 0b101010 -> 0b010101
 // 0b010101 -> 0b101010
-auto rc_kmer(unsigned int kmer, struct Parameters const & parameters) -> unsigned int
+auto rc_kmer(unsigned int kmer) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
 
-  assert(parameters.opt_wordlength * 2 <= 32);
+  /* opt_wordlength stays a global read here: udb_read() overwrites it with
+     the word length stored in a UDB file, so the effective value lives in
+     the global after the database is loaded, not in parameters. Reading
+     parameters here would extract query kmers at the wrong width against a
+     UDB index (mismatch, and an out-of-bounds index when wider). Deferred to
+     the shared-infra phase that owns udb_read. */
+  assert(opt_wordlength * 2 <= 32);
   auto fwd = kmer;
   auto rev = 0U;
 
-  for (auto i = int64_t{0}; i < parameters.opt_wordlength; ++i)
+  for (auto i = int64_t{0}; i < opt_wordlength; ++i)
     {
       // compute complement of the last two bits
       auto const complement_bits = (fwd & 3U) ^ 3U;
@@ -204,7 +210,8 @@ auto orient(struct Parameters const & parameters) -> void
       unsigned int kmer_count_fwd = 0;
       unsigned int const * kmer_list_fwd = nullptr;
 
-      unique_count(uh_fwd, static_cast<int>(parameters.opt_wordlength), qseqlen, qseq_fwd,
+      /* opt_wordlength: global read, adjusted by udb_read (see rc_kmer) */
+      unique_count(uh_fwd, static_cast<int>(opt_wordlength), qseqlen, qseq_fwd,
                    & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
       /* count kmers matching on each strand */
@@ -216,7 +223,7 @@ auto orient(struct Parameters const & parameters) -> void
       for (unsigned int i = 0; i < kmer_count_fwd; i++)
         {
           unsigned int const kmer_fwd = kmer_list_fwd[i];
-          unsigned int const kmer_rev = rc_kmer(kmer_fwd, parameters);
+          unsigned int const kmer_rev = rc_kmer(kmer_fwd);
 
           unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
           unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
