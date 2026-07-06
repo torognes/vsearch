@@ -122,7 +122,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
 
       hp->count = 0;
 
-      hp->nwscore = static_cast<int>(static_cast<int64_t>(si->qseqlen) * opt_match);
+      hp->nwscore = static_cast<int>(static_cast<int64_t>(si->qseqlen) * si->parameters->opt_match);
       hp->nwdiff = 0;
       hp->nwgaps = 0;
       hp->nwindels = 0;
@@ -190,12 +190,13 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                  int qseqlen,
                                  char * qsequence,
                                  char * qsequence_rc,
-                                 int64_t qsize) -> void
+                                 int64_t qsize,
+                                 struct Parameters const & parameters) -> void
 {
   std::lock_guard<std::mutex> const lock(mutex_output);
 
   /* show results */
-  auto const n_results_to_report = std::min(opt_maxhits, static_cast<int64_t>(hits.size()));
+  auto const n_results_to_report = std::min(parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
 
   if (fp_alnout != nullptr)
     {
@@ -221,7 +222,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
     {
       double const top_hit_id = hits[0].id;
 
-      if ((opt_otutabout != nullptr) || (opt_mothur_shared_out != nullptr) || (opt_biomout != nullptr))
+      if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
           otutable_add(query_head,
                        db_getheader(static_cast<uint64_t>(hits[0].target)),
@@ -232,7 +233,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
         {
           auto const & hit = hits[static_cast<std::size_t>(t)];
 
-          if ((opt_top_hits_only != 0) && (hit.id < top_hit_id))
+          if ((parameters.opt_top_hits_only != 0) && (hit.id < top_hit_id))
             {
               break;
             }
@@ -264,7 +265,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
 
           if (fp_uc != nullptr)
             {
-              if ((t == 0) || (opt_uc_allhits))
+              if ((t == 0) || (parameters.opt_uc_allhits))
                 {
                   results_show_uc_one(fp_uc,
                                       &hit,
@@ -295,7 +296,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
     }
   else
     {
-      if ((opt_otutabout != nullptr) || (opt_mothur_shared_out != nullptr) || (opt_biomout != nullptr))
+      if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
           otutable_add(query_head,
                        nullptr,
@@ -311,7 +312,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               0);
         }
 
-      if (opt_output_no_hits != 0)
+      if (parameters.opt_output_no_hits != 0)
         {
           if (fp_userout != nullptr)
             {
@@ -336,7 +337,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
   if (not hits.empty())
     {
       ++count_matched;
-      if (opt_matched != nullptr)
+      if (parameters.opt_matched != nullptr)
         {
           fasta_print_general(fp_matched,
                               nullptr,
@@ -354,7 +355,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
   else
     {
       ++count_notmatched;
-      if (opt_notmatched != nullptr)
+      if (parameters.opt_notmatched != nullptr)
         {
           fasta_print_general(fp_notmatched,
                               nullptr,
@@ -373,23 +374,23 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
   /* update matching db sequences */
     for (auto const & hit : hits) {
       if (hit.accepted) {
-        dbmatched[hit.target] += static_cast<uint64_t>(opt_sizein ? qsize : 1);
+        dbmatched[hit.target] += static_cast<uint64_t>(parameters.opt_sizein ? qsize : 1);
       }
     }
 }
 
-auto search_exact_query(uint64_t t) -> int
+auto search_exact_query(uint64_t t, struct Parameters const & parameters) -> int
 {
-  for (int s = 0; s < number_of_strands(opt_strand); s++)
+  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
       /* mask query */
-      if (opt_qmask == MASK_DUST)
+      if (parameters.opt_qmask == MASK_DUST)
         {
           dust(si->qsequence, si->qseqlen);
         }
-      else if ((opt_qmask == MASK_SOFT) && (opt_hardmask))
+      else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
         {
           hardmask(si->qsequence, si->qseqlen);
         }
@@ -401,15 +402,16 @@ auto search_exact_query(uint64_t t) -> int
   std::vector<struct hit> hits;
 
   search_joinhits(si_plus + t,
-                  opt_strand ? si_minus + t : nullptr,
+                  parameters.opt_strand ? si_minus + t : nullptr,
                   hits);
 
   search_exact_output_results(hits,
                               si_plus[t].query_head,
                               si_plus[t].qseqlen,
                               si_plus[t].qsequence,
-                              opt_strand ? si_minus[t].qsequence : nullptr,
-                              si_plus[t].qsize);
+                              parameters.opt_strand ? si_minus[t].qsequence : nullptr,
+                              si_plus[t].qsize,
+                              parameters);
 
   /* free memory for alignment strings */
   for (auto const & hit : hits) {
@@ -421,13 +423,13 @@ auto search_exact_query(uint64_t t) -> int
   return static_cast<int>(hits.size());
 }
 
-auto search_exact_thread_run(uint64_t t) -> void
+auto search_exact_thread_run(uint64_t t, struct Parameters const & parameters) -> void
 {
   while (true)
     {
       std::unique_lock<std::mutex> input_lock(mutex_input);
 
-      if (fastx_next(query_fastx_h, (not opt_notrunclabels), chrmap_no_change_vector.data()))
+      if (fastx_next(query_fastx_h, (not parameters.opt_notrunclabels), chrmap_no_change_vector.data()))
         {
           char const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
@@ -436,7 +438,7 @@ auto search_exact_thread_run(uint64_t t) -> void
           int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
           int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
-          for (int s = 0; s < number_of_strands(opt_strand); s++)
+          for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -474,7 +476,7 @@ auto search_exact_thread_run(uint64_t t) -> void
           input_lock.unlock();
 
           /* minus strand: copy header and reverse complementary sequence */
-          if (opt_strand)
+          if (parameters.opt_strand)
             {
               std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
               reverse_complement(si_minus[t].qsequence,
@@ -482,7 +484,7 @@ auto search_exact_thread_run(uint64_t t) -> void
                                  si_plus[t].qseqlen);
             }
 
-          int const match = search_exact_query(t);
+          int const match = search_exact_query(t, parameters);
 
           /* lock mutex for update of global data and output */
           std::lock_guard<std::mutex> const output_lock(mutex_output);
@@ -508,13 +510,14 @@ auto search_exact_thread_run(uint64_t t) -> void
     }
 }
 
-auto search_exact_thread_init(struct searchinfo_s * si) -> void
+auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const & parameters) -> void
 {
   /* thread specific initialiation */
+  si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->uh = nullptr;
   si->kmers = nullptr;
   si->m = nullptr;
-  si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(opt_strand)));
+  si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;
   si->query_head_alloc = 0;
@@ -538,27 +541,28 @@ auto search_exact_thread_exit(struct searchinfo_s * si) -> void
     }
 }
 
-auto search_exact_thread_worker_run() -> void
+auto search_exact_thread_worker_run(struct Parameters const & parameters) -> void
 {
   /* init per-thread search state before the workers start */
-  for (int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < parameters.opt_threads; t++)
     {
-      search_exact_thread_init(si_plus + t);
+      search_exact_thread_init(si_plus + t, parameters);
       if (si_minus != nullptr)
         {
-          search_exact_thread_init(si_minus + t);
+          search_exact_thread_init(si_minus + t, parameters);
         }
     }
 
   /* run the worker pool over the input file */
   {
-    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                              search_exact_thread_run);
+    ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
+                              [&parameters](uint64_t const t)
+                              { search_exact_thread_run(t, parameters); });
     threadrunner.run();
   }
 
   /* clean up per-thread search state */
-  for (int t = 0; t < opt_threads; t++)
+  for (int t = 0; t < parameters.opt_threads; t++)
     {
       search_exact_thread_exit(si_plus + t);
       if (si_minus != nullptr)
@@ -568,41 +572,42 @@ auto search_exact_thread_worker_run() -> void
     }
 }
 
-auto search_exact_prep(char const * cmdline, char const * progheader) -> void
+auto search_exact_prep(char const * cmdline, char const * progheader,
+                       struct Parameters const & parameters) -> void
 {
   /* open output files */
 
-  fp_alnout = open_optional_output(opt_alnout, "alignment");
+  fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", cmdline);
       std::fprintf(fp_alnout, "%s\n", progheader);
     }
 
-  fp_samout = open_optional_output(opt_samout, "SAM");
-  fp_userout = open_optional_output(opt_userout, "user-defined");
-  fp_blast6out = open_optional_output(opt_blast6out, "blast6-like");
-  fp_uc = open_optional_output(opt_uc, "uc");
-  fp_fastapairs = open_optional_output(opt_fastapairs, "fastapairs");
-  fp_qsegout = open_optional_output(opt_qsegout, "qsegout");
-  fp_tsegout = open_optional_output(opt_tsegout, "tsegout");
-  fp_matched = open_optional_output(opt_matched, "matched");
-  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
-  fp_dbmatched = open_optional_output(opt_dbmatched, "dbmatched");
-  fp_dbnotmatched = open_optional_output(opt_dbnotmatched, "dbnotmatched");
-  fp_otutabout = open_optional_output(opt_otutabout, "OTU table (text format)");
-  fp_mothur_shared_out = open_optional_output(opt_mothur_shared_out, "OTU table (mothur format)");
-  fp_biomout = open_optional_output(opt_biomout, "OTU table (biom 1.0 format)");
+  fp_samout = open_optional_output(parameters.opt_samout, "SAM");
+  fp_userout = open_optional_output(parameters.opt_userout, "user-defined");
+  fp_blast6out = open_optional_output(parameters.opt_blast6out, "blast6-like");
+  fp_uc = open_optional_output(parameters.opt_uc, "uc");
+  fp_fastapairs = open_optional_output(parameters.opt_fastapairs, "fastapairs");
+  fp_qsegout = open_optional_output(parameters.opt_qsegout, "qsegout");
+  fp_tsegout = open_optional_output(parameters.opt_tsegout, "tsegout");
+  fp_matched = open_optional_output(parameters.opt_matched, "matched");
+  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
+  fp_dbmatched = open_optional_output(parameters.opt_dbmatched, "dbmatched");
+  fp_dbnotmatched = open_optional_output(parameters.opt_dbnotmatched, "dbnotmatched");
+  fp_otutabout = open_optional_output(parameters.opt_otutabout, "OTU table (text format)");
+  fp_mothur_shared_out = open_optional_output(parameters.opt_mothur_shared_out, "OTU table (mothur format)");
+  fp_biomout = open_optional_output(parameters.opt_biomout, "OTU table (biom 1.0 format)");
 
-  db_read(opt_db, 0);
+  db_read(parameters.opt_db, 0);
 
-  results_show_samheader(fp_samout, cmdline, opt_db);
+  results_show_samheader(fp_samout, cmdline, parameters.opt_db);
 
-  if (opt_dbmask == MASK_DUST)
+  if (parameters.opt_dbmask == MASK_DUST)
     {
       dust_all();
     }
-  else if ((opt_dbmask == MASK_SOFT) && (opt_hardmask))
+  else if ((parameters.opt_dbmask == MASK_SOFT) && (parameters.opt_hardmask))
     {
       hardmask_all();
     }
@@ -654,7 +659,7 @@ auto search_exact_done() -> void
 
 auto search_exact(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
 {
-  search_exact_prep(cmdline, progheader);
+  search_exact_prep(cmdline, progheader, parameters);
 
   otutable_init();
 
@@ -683,7 +688,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
     }
 
   progress_init("Searching", fastx_get_size(query_fastx_h));
-  search_exact_thread_worker_run();
+  search_exact_thread_worker_run(parameters);
   progress_done();
 
   /* all workers joined; report a deferred query parse error (CC3) from the
@@ -746,7 +751,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
     }
 
   // Add OTUs with no matches to OTU table
-  if ((opt_otutabout != nullptr) || (opt_mothur_shared_out != nullptr) || (opt_biomout != nullptr)) {
+  if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < seqcount; i++) {
       if (dbmatched[i] == 0U) {
         otutable_add(nullptr, db_getheader(static_cast<uint64_t>(i)), 0);
@@ -774,7 +779,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
 
   otutable_done();
 
-  if ((opt_dbmatched != nullptr) || (opt_dbnotmatched != nullptr))
+  if ((parameters.opt_dbmatched != nullptr) || (parameters.opt_dbnotmatched != nullptr))
     {
       int count_dbmatched = 0;
       int count_dbnotmatched = 0;
@@ -784,7 +789,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
           if (dbmatched[i] != 0U)
             {
               ++count_dbmatched;
-              if (opt_dbmatched != nullptr)
+              if (parameters.opt_dbmatched != nullptr)
                 {
                   fasta_print_general(fp_dbmatched,
                                       nullptr,
@@ -802,7 +807,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
           else
             {
               ++count_dbnotmatched;
-              if (opt_dbnotmatched != nullptr)
+              if (parameters.opt_dbnotmatched != nullptr)
                 {
                   fasta_print_general(fp_dbnotmatched,
                                       nullptr,
