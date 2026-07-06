@@ -72,6 +72,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
+#include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
@@ -791,7 +792,7 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
                                 struct searchinfo_s * si_m) -> void
 {
   /* free alignments */
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < number_of_strands(opt_strand); s++)
     {
       struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
       for (int j = 0; j < si->hit_count; j++)
@@ -879,7 +880,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m = opt_strand > 1 ? si_minus + i : nullptr;
 
-          for (int s = 0; s < opt_strand; s++)
+          for (int s = 0; s < number_of_strands(opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
@@ -1749,7 +1750,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
           struct searchinfo_s * si_m =
             opt_strand > 1 ? si_minus + i : nullptr;
 
-          for (int s = 0; s < opt_strand; s++)
+          for (int s = 0; s < number_of_strands(opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 

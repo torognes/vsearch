@@ -63,6 +63,7 @@
 #include "otutable.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -379,7 +380,7 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
 
 auto search_exact_query(uint64_t t) -> int
 {
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < number_of_strands(opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -435,7 +436,7 @@ auto search_exact_thread_run(uint64_t t) -> void
           int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
           int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
-          for (int s = 0; s < opt_strand; s++)
+          for (int s = 0; s < number_of_strands(opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -513,7 +514,7 @@ auto search_exact_thread_init(struct searchinfo_s * si) -> void
   si->uh = nullptr;
   si->kmers = nullptr;
   si->m = nullptr;
-  si->hits_v.resize(static_cast<std::size_t>(tophits * opt_strand));
+  si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;
   si->query_head_alloc = 0;

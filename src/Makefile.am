@@ -138,6 +138,7 @@ utils/cpu_features.hpp \
 utils/fatal.hpp \
 utils/kmer_hash_struct.hpp \
 utils/maps.hpp \
+utils/number_of_strands.hpp \
 utils/open_file.hpp \
 utils/os_byteswap.hpp \
 utils/progress.hpp \
@@ -265,6 +266,7 @@ utils/cpu_features.cpp \
 utils/open_file.cpp \
 utils/os_byteswap.cpp \
 utils/seqcmp.cpp \
+utils/number_of_strands.cpp \
 vsearch.cc
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)

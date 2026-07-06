@@ -71,6 +71,7 @@
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/maps.hpp"
+#include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -334,7 +335,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
   struct searchinfo_s * const si_plus = state.si_plus;
   struct searchinfo_s * const si_minus = state.si_minus;
 
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < number_of_strands(opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -504,7 +505,7 @@ static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
   si->hits = static_cast<struct hit *>(xmalloc
-    (sizeof(struct hit) * static_cast<size_t>(tophits) * static_cast<size_t>(opt_strand)));
+    (sizeof(struct hit) * static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(opt_strand))));
   si->qsize = 1;
   si->query_head_alloc = 0;
   si->query_head = nullptr;
@@ -972,7 +973,7 @@ auto search_session_single(struct search_session_s * ss,
     }
 
   /* Mask and search each strand independently */
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < number_of_strands(opt_strand); s++)
     {
       struct searchinfo_s * strand_si =
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
@@ -1020,7 +1021,7 @@ auto search_session_single(struct search_session_s * ss,
 
   /* Free alignment strings directly from si->hits (not the joinhits copy)
      to avoid dangling pointers. Follows cluster_assign_single pattern. */
-  for (int s = 0; s < opt_strand; s++)
+  for (int s = 0; s < number_of_strands(opt_strand); s++)
     {
       struct searchinfo_s * strand_si =
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
@@ -1125,7 +1126,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
         }
 
       /* Mask and search each strand independently */
-      for (int s = 0; s < opt_strand; s++)
+      for (int s = 0; s < number_of_strands(opt_strand); s++)
         {
           struct searchinfo_s * strand_si =
             (s != 0) ? my_si_minus : my_si_plus;
@@ -1174,7 +1175,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
       ctx.result_counts[qi] = count;
 
       /* Free alignment strings from si->hits directly */
-      for (int s = 0; s < opt_strand; s++)
+      for (int s = 0; s < number_of_strands(opt_strand); s++)
         {
           struct searchinfo_s * strand_si =
             (s != 0) ? my_si_minus : my_si_plus;

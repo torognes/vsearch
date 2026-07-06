@@ -88,6 +88,7 @@
 #include "utils/cpu_features.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/number_of_strands.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::min, std::max
@@ -406,7 +407,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
   auto * b = bitmap_init(static_cast<unsigned int>(qseqlen));
 
-  for (auto s = 0; s < opt_strand; s++)
+  for (auto s = 0; s < number_of_strands(opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
@@ -522,7 +523,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
           int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
           int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
-          for (auto s = 0; s < opt_strand; s++)
+          for (auto s = 0; s < number_of_strands(opt_strand); s++)
             {
               struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
