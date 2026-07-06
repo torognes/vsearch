@@ -604,6 +604,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 static auto sintax_thread_init(struct sintax_state_s const & state, struct searchinfo_s * si) -> void
 {
   /* thread specific initialiation */
+  si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(state.tophits);

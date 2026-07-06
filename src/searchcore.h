@@ -154,6 +154,12 @@ struct searchinfo_s
   int rejects = 0;                  /* number of rejects */
   struct minheap_s * m = nullptr;   /* min heap with the top kmer db seqs */
   int finalized = 0;
+  /* run configuration, set by the per-thread init at each call site (E1
+     shared-infra phase). A pointer (default null) so searchinfo_s stays
+     default-constructible for the arrays/vectors that hold it; the searchcore
+     functions that take a searchinfo_s read parameters->opt_* through it. The
+     pointee is the caller's canonical Parameters and must outlive the si. */
+  struct Parameters const * parameters = nullptr;
 };
 
 auto search_topscores(struct searchinfo_s * searchinfo) -> void;

@@ -314,6 +314,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
   (void) t;
 
   struct searchinfo_s searchinfo;
+  searchinfo.parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();

@@ -175,6 +175,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
 
+  si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->qsize = 1;
   si->nw = nullptr;
   si->hit_count = 0;
