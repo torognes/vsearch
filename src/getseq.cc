@@ -96,7 +96,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto read_labels_file(char const * filename) -> void
+auto read_labels_file(char const * filename, struct Parameters const & parameters) -> void
 {
   auto labels_alloc = 0U;
   auto labels_count = 0U;
@@ -159,12 +159,12 @@ auto read_labels_file(char const * filename) -> void
   static constexpr auto max_label_length = std::size_t{1023};
   if (labels_longest >= max_label_length)
     {
-      if (not opt_quiet)
+      if (not parameters.opt_quiet)
         {
           std::fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
 
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
@@ -172,7 +172,7 @@ auto read_labels_file(char const * filename) -> void
 }
 
 
-auto test_label_match(fastx_handle input_handle) -> bool
+auto test_label_match(fastx_handle input_handle, struct Parameters const & parameters) -> bool
 {
   char const * header = fastx_get_header(input_handle);
   auto const header_length = fastx_get_header_length(input_handle);
@@ -181,34 +181,34 @@ auto test_label_match(fastx_handle input_handle) -> bool
   auto const longest_label = find_length_longest_label(labels_data);
   std::vector<char> field_buffer;
   std::size_t field_len = 0;
-  if (opt_label_field != nullptr)
+  if (parameters.opt_label_field != nullptr)
     {
-      field_len = std::strlen(opt_label_field);
+      field_len = std::strlen(parameters.opt_label_field);
       std::size_t field_buffer_size = field_len + 2;
-      if (opt_label_word != nullptr)
+      if (parameters.opt_label_word != nullptr)
         {
-          field_buffer_size += std::strlen(opt_label_word);
+          field_buffer_size += std::strlen(parameters.opt_label_word);
         }
       else
         {
           field_buffer_size += longest_label;
         }
       field_buffer.resize(field_buffer_size);
-      std::snprintf(field_buffer.data(), field_buffer_size, "%s=", opt_label_field);
+      std::snprintf(field_buffer.data(), field_buffer_size, "%s=", parameters.opt_label_field);
     }
 
-  if (opt_label != nullptr)
+  if (parameters.opt_label != nullptr)
     {
-      auto const needle_view = Span<char>{opt_label, std::strlen(opt_label)};
-      if (opt_label_substr_match)
+      auto const needle_view = Span<char>{parameters.opt_label, std::strlen(parameters.opt_label)};
+      if (parameters.opt_label_substr_match)
         {
           return (contains_substring(header_view, needle_view));
         }
       return (are_same_string(header_view, needle_view));
     }
-  if (opt_labels != nullptr)
+  if (parameters.opt_labels != nullptr)
     {
-      if (opt_label_substr_match)
+      if (parameters.opt_label_substr_match)
         {
           for (auto & label: labels_data) {
             auto const label_view = Span<char>{label.data(), label.size()};
@@ -226,10 +226,10 @@ auto test_label_match(fastx_handle input_handle) -> bool
           }
         }
     }
-  else if (opt_label_word != nullptr)
+  else if (parameters.opt_label_word != nullptr)
     {
-      char const * needle = opt_label_word;
-      if (opt_label_field != nullptr)
+      char const * needle = parameters.opt_label_word;
+      if (parameters.opt_label_field != nullptr)
         {
           std::strcpy(&field_buffer[field_len + 1], needle);
           needle = field_buffer.data();
@@ -242,7 +242,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
           if (hit == nullptr) {
             break;
           }
-          if (opt_label_field != nullptr)
+          if (parameters.opt_label_field != nullptr)
             {
               /* check of field */
               if (((hit == header) or
@@ -267,7 +267,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
           ++hit;
         }
     }
-  else if (opt_label_words != nullptr)
+  else if (parameters.opt_label_words != nullptr)
     {
       char const * const header_end = header + hlen;
       for (auto const & label: labels_data) {
@@ -277,7 +277,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
         // strstr would read past the vector's storage
         char const * needle = label.data();
         std::size_t wlen = label.size();
-        if (opt_label_field != nullptr)
+        if (parameters.opt_label_field != nullptr)
           {
             std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
             needle = field_buffer.data();
@@ -291,7 +291,7 @@ auto test_label_match(fastx_handle input_handle) -> bool
             if (hit == header_end) {
               break;
             }
-            if (opt_label_field != nullptr)
+            if (parameters.opt_label_field != nullptr)
               {
                 /* check of field */
                 if (((hit == header) or
@@ -323,32 +323,32 @@ auto test_label_match(fastx_handle input_handle) -> bool
 
 auto getseq(struct Parameters const & parameters, char const * filename) -> void
 {
-  if ((opt_fastqout == nullptr) and (opt_fastaout == nullptr) and
-      (opt_notmatched == nullptr) and (opt_notmatchedfq == nullptr))
+  if ((parameters.opt_fastqout == nullptr) and (parameters.opt_fastaout == nullptr) and
+      (parameters.opt_notmatched == nullptr) and (parameters.opt_notmatchedfq == nullptr))
     {
       fatal("No output files specified");
     }
 
   if (parameters.opt_fastx_getseq != nullptr)
     {
-      if (opt_label == nullptr)
+      if (parameters.opt_label == nullptr)
         {
           fatal("Missing label option");
         }
     }
   else if (parameters.opt_fastx_getsubseq != nullptr)
     {
-      if (opt_label == nullptr)
+      if (parameters.opt_label == nullptr)
         {
           fatal("Missing label option");
         }
 
-      if ((opt_subseq_start < 1) or (opt_subseq_end < 1))
+      if ((parameters.opt_subseq_start < 1) or (parameters.opt_subseq_end < 1))
         {
           fatal("The argument to options subseq_start and subseq_end must be at least 1");
         }
 
-      if (opt_subseq_start > opt_subseq_end)
+      if (parameters.opt_subseq_start > parameters.opt_subseq_end)
         {
           fatal("The argument to option subseq_start must be equal or less than to subseq_end");
         }
@@ -356,19 +356,19 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   else if (parameters.opt_fastx_getseqs != nullptr)
     {
       int label_options = 0;
-      if (opt_label != nullptr)
+      if (parameters.opt_label != nullptr)
         {
           ++label_options;
         }
-      if (opt_labels != nullptr)
+      if (parameters.opt_labels != nullptr)
         {
           ++label_options;
         }
-      if (opt_label_word != nullptr)
+      if (parameters.opt_label_word != nullptr)
         {
           ++label_options;
         }
-      if (opt_label_words != nullptr)
+      if (parameters.opt_label_words != nullptr)
         {
           ++label_options;
         }
@@ -378,14 +378,14 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
           fatal("Specify one label option (label, labels, label_word or label_words)");
         }
 
-      if (opt_labels != nullptr)
+      if (parameters.opt_labels != nullptr)
         {
-          read_labels_file(opt_labels);
+          read_labels_file(parameters.opt_labels, parameters);
         }
 
-      if (opt_label_words != nullptr)
+      if (parameters.opt_label_words != nullptr)
         {
-          read_labels_file(opt_label_words);
+          read_labels_file(parameters.opt_label_words, parameters);
         }
     }
 
@@ -393,7 +393,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   h1 = fastx_open(filename);
 
-  if (((opt_fastqout != nullptr) or (opt_notmatchedfq != nullptr)) and not (h1->is_fastq or h1->is_empty))
+  if (((parameters.opt_fastqout != nullptr) or (parameters.opt_notmatchedfq != nullptr)) and not (h1->is_fastq or h1->is_empty))
     {
       fatal("Cannot write FASTQ output from FASTA input");
     }
@@ -405,19 +405,19 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   std::FILE * fp_notmatched = nullptr;
   std::FILE * fp_notmatchedfq = nullptr;
 
-  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
-  fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
-  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
-  fp_notmatchedfq = open_optional_output(opt_notmatchedfq, "notmatchedfq");
+  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
+  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
+  fp_notmatchedfq = open_optional_output(parameters.opt_notmatchedfq, "notmatchedfq");
 
   progress_init("Extracting sequences", filesize);
 
   int64_t kept = 0;
   int64_t discarded = 0;
 
-  while (fastx_next(h1, not opt_notrunclabels, chrmap_no_change_vector.data()))
+  while (fastx_next(h1, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
     {
-      bool const match = test_label_match(h1);
+      bool const match = test_label_match(h1, parameters);
 
       if (match)
         {
@@ -429,8 +429,8 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
           int64_t end = static_cast<int64_t>(fastx_get_sequence_length(h1));
           if (parameters.opt_fastx_getsubseq != nullptr)
             {
-              start = std::max(opt_subseq_start, start);
-              end = std::min(opt_subseq_end, end);
+              start = std::max(parameters.opt_subseq_start, start);
+              end = std::min(parameters.opt_subseq_end, end);
             }
           /* When --subseq_start is past this sequence's length (trivially hit on
              a mixed-length file), end < start and the subsequence is empty. Emit
@@ -445,7 +445,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
               offset = 0;
             }
 
-          if (opt_fastaout != nullptr)
+          if (parameters.opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -463,7 +463,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                   0);
             }
 
-          if (opt_fastqout != nullptr)
+          if (parameters.opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   fastx_get_sequence(h1) + offset,
@@ -486,7 +486,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
           int64_t const length = static_cast<int64_t>(fastx_get_sequence_length(h1));
 
-          if (opt_notmatched != nullptr)
+          if (parameters.opt_notmatched != nullptr)
             {
               fasta_print_general(fp_notmatched,
                                   nullptr,
@@ -504,7 +504,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                   0);
             }
 
-          if (opt_notmatchedfq != nullptr)
+          if (parameters.opt_notmatchedfq != nullptr)
             {
               fastq_print_general(fp_notmatchedfq,
                                   fastx_get_sequence(h1),
@@ -523,7 +523,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   progress_done();
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       std::fprintf(stderr,
               "%" PRId64 " of %" PRId64 " sequences extracted",
@@ -538,7 +538,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       std::fprintf(stderr, "\n");
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log,
               "%" PRId64 " of %" PRId64 " sequences extracted",
@@ -553,22 +553,22 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       std::fprintf(fp_log, "\n");
     }
 
-  if (opt_fastaout != nullptr)
+  if (parameters.opt_fastaout != nullptr)
     {
       fclose_output(fp_fastaout);
     }
 
-  if (opt_fastqout != nullptr)
+  if (parameters.opt_fastqout != nullptr)
     {
       fclose_output(fp_fastqout);
     }
 
-  if (opt_notmatched != nullptr)
+  if (parameters.opt_notmatched != nullptr)
     {
       fclose_output(fp_notmatched);
     }
 
-  if (opt_notmatchedfq != nullptr)
+  if (parameters.opt_notmatchedfq != nullptr)
     {
       fclose_output(fp_notmatchedfq);
     }
