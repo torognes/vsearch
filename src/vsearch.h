@@ -720,3 +720,7 @@ auto vsearch_apply_defaults_fixups() -> void;
 /* Parameters-based overload: resolves the same sentinels/ranges in the struct
    (E1/F2). The global overload above stays until every reader is migrated. */
 auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;
+/* Begin a library session from a Parameters (E1/F2): acquire the session lock,
+   resolve sentinels, and derive the opt_* globals from the struct. Pair with
+   vsearch_session_end(). Will replace vsearch_init_defaults() as the entry. */
+auto vsearch_session_begin(struct Parameters & parameters) -> void;

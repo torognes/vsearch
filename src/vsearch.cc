@@ -843,6 +843,254 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
 }
 
 
+
+
+/* Derive the opt_* globals from a fully-resolved Parameters (E1/F2). Until the
+   compute reads are migrated off the globals, they are kept as a projection of
+   the single Parameters source: vsearch_session_begin() calls this once, so a
+   library caller configures a Parameters and never touches a global. */
+static auto apply_parameters_to_globals(struct Parameters const & parameters) -> void
+{
+  opt_abskew = parameters.opt_abskew;
+  opt_acceptall = parameters.opt_acceptall;
+  opt_alignwidth = parameters.opt_alignwidth;
+  opt_alnout = parameters.opt_alnout;
+  opt_biomout = parameters.opt_biomout;
+  opt_blast6out = parameters.opt_blast6out;
+  opt_borderline = parameters.opt_borderline;
+  opt_bzip2_decompress = parameters.opt_bzip2_decompress;
+  opt_centroid_sizeout = parameters.opt_centroid_sizeout;
+  opt_centroids = parameters.opt_centroids;
+  opt_chimeras_denovo = parameters.opt_chimeras_denovo;
+  opt_chimeras_diff_pct = parameters.opt_chimeras_diff_pct;
+  opt_chimeras_length_min = parameters.opt_chimeras_length_min;
+  opt_chimeras = parameters.opt_chimeras;
+  opt_chimeras_parents_max = parameters.opt_chimeras_parents_max;
+  opt_chimeras_parts = parameters.opt_chimeras_parts;
+  opt_cluster_fast = parameters.opt_cluster_fast;
+  opt_clusterout_id = parameters.opt_clusterout_id;
+  opt_clusterout_sort = parameters.opt_clusterout_sort;
+  opt_cluster_size = parameters.opt_cluster_size;
+  opt_cluster_smallmem = parameters.opt_cluster_smallmem;
+  opt_clusters = parameters.opt_clusters;
+  opt_cluster_unoise = parameters.opt_cluster_unoise;
+  opt_consout = parameters.opt_consout;
+  opt_cons_truncate = parameters.opt_cons_truncate;
+  opt_dbmask = parameters.opt_dbmask;
+  opt_dbmatched = parameters.opt_dbmatched;
+  opt_dbnotmatched = parameters.opt_dbnotmatched;
+  opt_db = parameters.opt_db;
+  opt_dn = parameters.opt_dn;
+  opt_eeout = parameters.opt_eeout;
+  opt_eetabbedout = parameters.opt_eetabbedout;
+  opt_fastaout_discarded = parameters.opt_fastaout_discarded;
+  opt_fastaout_discarded_rev = parameters.opt_fastaout_discarded_rev;
+  opt_fastaout_notmerged_fwd = parameters.opt_fastaout_notmerged_fwd;
+  opt_fastaout_notmerged_rev = parameters.opt_fastaout_notmerged_rev;
+  opt_fastaout = parameters.opt_fastaout;
+  opt_fastaout_rev = parameters.opt_fastaout_rev;
+  opt_fastapairs = parameters.opt_fastapairs;
+  opt_fasta_score = parameters.opt_fasta_score;
+  opt_fasta_width = parameters.opt_fasta_width;
+  opt_fastq_allowmergestagger = parameters.opt_fastq_allowmergestagger;
+  opt_fastq_asciiout = parameters.opt_fastq_asciiout;
+  opt_fastq_ascii = parameters.opt_fastq_ascii;
+  opt_fastq_convert = parameters.opt_fastq_convert;
+  opt_fastq_eeout = parameters.opt_fastq_eeout;
+  opt_fastq_maxdiffpct = parameters.opt_fastq_maxdiffpct;
+  opt_fastq_maxdiffs = parameters.opt_fastq_maxdiffs;
+  opt_fastq_maxee = parameters.opt_fastq_maxee;
+  opt_fastq_maxee_rate = parameters.opt_fastq_maxee_rate;
+  opt_fastq_maxlen = parameters.opt_fastq_maxlen;
+  opt_fastq_maxmergelen = parameters.opt_fastq_maxmergelen;
+  opt_fastq_maxns = parameters.opt_fastq_maxns;
+  opt_fastq_minlen = parameters.opt_fastq_minlen;
+  opt_fastq_minmergelen = parameters.opt_fastq_minmergelen;
+  opt_fastq_minovlen = parameters.opt_fastq_minovlen;
+  opt_fastq_minqual = parameters.opt_fastq_minqual;
+  opt_fastq_nostagger = parameters.opt_fastq_nostagger;
+  opt_fastqout_discarded = parameters.opt_fastqout_discarded;
+  opt_fastqout_discarded_rev = parameters.opt_fastqout_discarded_rev;
+  opt_fastqout_notmerged_fwd = parameters.opt_fastqout_notmerged_fwd;
+  opt_fastqout_notmerged_rev = parameters.opt_fastqout_notmerged_rev;
+  opt_fastqout = parameters.opt_fastqout;
+  opt_fastqout_rev = parameters.opt_fastqout_rev;
+  opt_fastq_qmaxout = parameters.opt_fastq_qmaxout;
+  opt_fastq_qmax = parameters.opt_fastq_qmax;
+  opt_fastq_qminout = parameters.opt_fastq_qminout;
+  opt_fastq_qmin = parameters.opt_fastq_qmin;
+  opt_fastq_stripleft = parameters.opt_fastq_stripleft;
+  opt_fastq_stripright = parameters.opt_fastq_stripright;
+  opt_fastq_truncee = parameters.opt_fastq_truncee;
+  opt_fastq_truncee_rate = parameters.opt_fastq_truncee_rate;
+  opt_fastq_trunclen_keep = parameters.opt_fastq_trunclen_keep;
+  opt_fastq_trunclen = parameters.opt_fastq_trunclen;
+  opt_fastq_truncqual = parameters.opt_fastq_truncqual;
+  opt_fulldp = parameters.opt_fulldp;
+  opt_gap_extension_query_interior = parameters.opt_gap_extension_query_interior;
+  opt_gap_extension_query_left = parameters.opt_gap_extension_query_left;
+  opt_gap_extension_query_right = parameters.opt_gap_extension_query_right;
+  opt_gap_extension_target_interior = parameters.opt_gap_extension_target_interior;
+  opt_gap_extension_target_left = parameters.opt_gap_extension_target_left;
+  opt_gap_extension_target_right = parameters.opt_gap_extension_target_right;
+  opt_gap_open_query_interior = parameters.opt_gap_open_query_interior;
+  opt_gap_open_query_left = parameters.opt_gap_open_query_left;
+  opt_gap_open_query_right = parameters.opt_gap_open_query_right;
+  opt_gap_open_target_interior = parameters.opt_gap_open_target_interior;
+  opt_gap_open_target_left = parameters.opt_gap_open_target_left;
+  opt_gap_open_target_right = parameters.opt_gap_open_target_right;
+  opt_gzip_decompress = parameters.opt_gzip_decompress;
+  opt_hardmask = parameters.opt_hardmask;
+  opt_iddef = parameters.opt_iddef;
+  opt_id = parameters.opt_id;
+  opt_idprefix = parameters.opt_idprefix;
+  opt_idsuffix = parameters.opt_idsuffix;
+  opt_label_field = parameters.opt_label_field;
+  opt_label = parameters.opt_label;
+  opt_labels = parameters.opt_labels;
+  opt_label_substr_match = parameters.opt_label_substr_match;
+  opt_label_suffix = parameters.opt_label_suffix;
+  opt_label_word = parameters.opt_label_word;
+  opt_label_words = parameters.opt_label_words;
+  opt_lca_cutoff = parameters.opt_lca_cutoff;
+  opt_lcaout = parameters.opt_lcaout;
+  opt_leftjust = parameters.opt_leftjust;
+  opt_length_cutoffs_increment = parameters.opt_length_cutoffs_increment;
+  opt_length_cutoffs_longest = parameters.opt_length_cutoffs_longest;
+  opt_length_cutoffs_shortest = parameters.opt_length_cutoffs_shortest;
+  opt_lengthout = parameters.opt_lengthout;
+  opt_log = parameters.opt_log;
+  opt_matched = parameters.opt_matched;
+  opt_match = parameters.opt_match;
+  opt_maxaccepts = parameters.opt_maxaccepts;
+  opt_maxdiffs = parameters.opt_maxdiffs;
+  opt_maxgaps = parameters.opt_maxgaps;
+  opt_maxhits = parameters.opt_maxhits;
+  opt_maxid = parameters.opt_maxid;
+  opt_maxqsize = parameters.opt_maxqsize;
+  opt_maxqt = parameters.opt_maxqt;
+  opt_maxrejects = parameters.opt_maxrejects;
+  opt_maxseqlength = parameters.opt_maxseqlength;
+  opt_maxsize = parameters.opt_maxsize;
+  opt_maxsizeratio = parameters.opt_maxsizeratio;
+  opt_maxsl = parameters.opt_maxsl;
+  opt_maxsubs = parameters.opt_maxsubs;
+  opt_maxuniquesize = parameters.opt_maxuniquesize;
+  opt_mid = parameters.opt_mid;
+  opt_mincols = parameters.opt_mincols;
+  opt_mindiffs = parameters.opt_mindiffs;
+  opt_mindiv = parameters.opt_mindiv;
+  opt_minh = parameters.opt_minh;
+  opt_minqt = parameters.opt_minqt;
+  opt_minseqlength = parameters.opt_minseqlength;
+  opt_minsize = parameters.opt_minsize;
+  opt_minsizeratio = parameters.opt_minsizeratio;
+  opt_minsl = parameters.opt_minsl;
+  opt_mintsize = parameters.opt_mintsize;
+  opt_minuniquesize = parameters.opt_minuniquesize;
+  opt_minwordmatches = parameters.opt_minwordmatches;
+  opt_mismatch = parameters.opt_mismatch;
+  opt_mothur_shared_out = parameters.opt_mothur_shared_out;
+  opt_msaout = parameters.opt_msaout;
+  opt_n_mismatch = parameters.opt_n_mismatch;
+  opt_nonchimeras = parameters.opt_nonchimeras;
+  opt_no_progress = parameters.opt_no_progress;
+  opt_notmatchedfq = parameters.opt_notmatchedfq;
+  opt_notmatched = parameters.opt_notmatched;
+  opt_notrunclabels = parameters.opt_notrunclabels;
+  opt_otutabout = parameters.opt_otutabout;
+  opt_output_no_hits = parameters.opt_output_no_hits;
+  opt_output = parameters.opt_output;
+  opt_pattern = parameters.opt_pattern;
+  opt_profile = parameters.opt_profile;
+  opt_qmask = parameters.opt_qmask;
+  opt_qsegout = parameters.opt_qsegout;
+  opt_query_cov = parameters.opt_query_cov;
+  opt_quiet = parameters.opt_quiet;
+  opt_randseed = parameters.opt_randseed;
+  opt_relabel_keep = parameters.opt_relabel_keep;
+  opt_relabel_md5 = parameters.opt_relabel_md5;
+  opt_relabel = parameters.opt_relabel;
+  opt_relabel_self = parameters.opt_relabel_self;
+  opt_relabel_sha1 = parameters.opt_relabel_sha1;
+  opt_reverse = parameters.opt_reverse;
+  opt_rightjust = parameters.opt_rightjust;
+  opt_rowlen = parameters.opt_rowlen;
+  opt_samheader = parameters.opt_samheader;
+  opt_samout = parameters.opt_samout;
+  opt_sample = parameters.opt_sample;
+  opt_sample_pct = parameters.opt_sample_pct;
+  opt_sample_size = parameters.opt_sample_size;
+  opt_selfid = parameters.opt_selfid;
+  opt_self = parameters.opt_self;
+  opt_sintax_cutoff = parameters.opt_sintax_cutoff;
+  opt_sintax_random = parameters.opt_sintax_random;
+  opt_sizein = parameters.opt_sizein;
+  opt_sizeorder = parameters.opt_sizeorder;
+  opt_sizeout = parameters.opt_sizeout;
+  opt_slots = parameters.opt_slots;
+  opt_strand = parameters.opt_strand;
+  opt_subseq_end = parameters.opt_subseq_end;
+  opt_subseq_start = parameters.opt_subseq_start;
+  opt_tabbedout = parameters.opt_tabbedout;
+  opt_target_cov = parameters.opt_target_cov;
+  opt_threads = parameters.opt_threads;
+  opt_top_hits_only = parameters.opt_top_hits_only;
+  opt_topn = parameters.opt_topn;
+  opt_tsegout = parameters.opt_tsegout;
+  opt_uc_allhits = parameters.opt_uc_allhits;
+  opt_uchime2_denovo = parameters.opt_uchime2_denovo;
+  opt_uchime3_denovo = parameters.opt_uchime3_denovo;
+  opt_uchimealns = parameters.opt_uchimealns;
+  opt_uchime_denovo = parameters.opt_uchime_denovo;
+  opt_uchimeout5 = parameters.opt_uchimeout5;
+  opt_uchimeout = parameters.opt_uchimeout;
+  opt_uchime_ref = parameters.opt_uchime_ref;
+  opt_uc = parameters.opt_uc;
+  opt_unoise_alpha = parameters.opt_unoise_alpha;
+  opt_userout = parameters.opt_userout;
+  opt_usersort = parameters.opt_usersort;
+  opt_weak_id = parameters.opt_weak_id;
+  opt_wordlength = parameters.opt_wordlength;
+  opt_xee = parameters.opt_xee;
+  opt_xlength = parameters.opt_xlength;
+  opt_xn = parameters.opt_xn;
+  opt_xsize = parameters.opt_xsize;
+
+  /* opt_ee_cutoffs: rebuild the owned global array from the vector. */
+  opt_ee_cutoffs_count = static_cast<int>(parameters.opt_ee_cutoffs.size());
+  if (opt_ee_cutoffs_values != nullptr)
+    {
+      xfree(opt_ee_cutoffs_values);
+    }
+  opt_ee_cutoffs_values = static_cast<double *>(xmalloc(static_cast<size_t>(opt_ee_cutoffs_count) * sizeof(double)));
+  for (int i = 0; i < opt_ee_cutoffs_count; ++i)
+    {
+      opt_ee_cutoffs_values[i] = parameters.opt_ee_cutoffs[static_cast<size_t>(i)];
+    }
+
+  /* Keep the file-static gap-adjust guard in step with the struct's, so the
+     already-adjusted gap-open values above are not adjusted a second time. */
+  gap_penalties_adjusted = parameters.gap_penalties_adjusted;
+}
+
+
+/* Begin a library session from a Parameters (E1/F2, shape A). Acquires the
+   session lock (same non-blocking semantics as the retired
+   vsearch_init_defaults), resolves the struct's sentinels/ranges, then derives
+   the globals from it. Pair with vsearch_session_end(). */
+auto vsearch_session_begin(struct Parameters & parameters) -> void
+{
+  if (not session_mutex.try_lock())
+    {
+      fatal("A vsearch library session is already active: a previous "
+            "vsearch_session_begin() was not paired with vsearch_session_end(). "
+            "Call vsearch_session_end() before starting a new session.");
+    }
+  vsearch_apply_defaults_fixups(parameters);
+  apply_parameters_to_globals(parameters);
+}
+
 auto show_publication() -> void
 {
   std::fprintf(stdout,
