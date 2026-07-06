@@ -84,15 +84,15 @@
 // 0b011110 -> 0b010010
 // 0b101010 -> 0b010101
 // 0b010101 -> 0b101010
-auto rc_kmer(unsigned int kmer) -> unsigned int
+auto rc_kmer(unsigned int kmer, struct Parameters const & parameters) -> unsigned int
 {
   /* reverse complement a kmer where k = opt_wordlength */
 
-  assert(opt_wordlength * 2 <= 32);
+  assert(parameters.opt_wordlength * 2 <= 32);
   auto fwd = kmer;
   auto rev = 0U;
 
-  for (auto i = int64_t{0}; i < opt_wordlength; ++i)
+  for (auto i = int64_t{0}; i < parameters.opt_wordlength; ++i)
     {
       // compute complement of the last two bits
       auto const complement_bits = (fwd & 3U) ^ 3U;
@@ -122,12 +122,12 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* check arguments */
 
-  if (opt_db == nullptr)
+  if (parameters.opt_db == nullptr)
     {
       fatal("Database not specified with --db");
     }
 
-  if (not ((opt_fastaout != nullptr) or (opt_fastqout != nullptr) or (opt_notmatched != nullptr) or (opt_tabbedout != nullptr)))
+  if (not ((parameters.opt_fastaout != nullptr) or (parameters.opt_fastqout != nullptr) or (parameters.opt_notmatched != nullptr) or (parameters.opt_tabbedout != nullptr)))
     {
       fatal("Output file not specified with --fastaout, --fastqout, --notmatched or --tabbedout");
     }
@@ -138,46 +138,46 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  fp_fastaout = open_optional_output(opt_fastaout, "fastaout");
+  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
 
-  if (opt_fastqout != nullptr)
+  if (parameters.opt_fastqout != nullptr)
     {
       if (not fastx_is_fastq(query_h))
         {
           fatal("Cannot write FASTQ output with FASTA input");
         }
 
-      fp_fastqout = open_optional_output(opt_fastqout, "fastqout");
+      fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
     }
 
-  fp_notmatched = open_optional_output(opt_notmatched, "notmatched");
-  fp_tabbedout = open_optional_output(opt_tabbedout, "tabbedout");
+  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
+  fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
 
   /* check if it may be an UDB file */
 
-  auto const is_udb = udb_detect_isudb(opt_db);
+  auto const is_udb = udb_detect_isudb(parameters.opt_db);
 
   if (is_udb)
     {
-      udb_read(opt_db, true, true);
+      udb_read(parameters.opt_db, true, true);
     }
   else
     {
-      db_read(opt_db, 0);
+      db_read(parameters.opt_db, 0);
     }
 
   if (not is_udb)
     {
-      if (opt_dbmask == MASK_DUST)
+      if (parameters.opt_dbmask == MASK_DUST)
         {
           dust_all();
         }
-      else if ((opt_dbmask == MASK_SOFT) and (opt_hardmask))
+      else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
         {
           hardmask_all();
         }
-      dbindex_prepare(1, static_cast<int>(opt_dbmask));
-      dbindex_addallsequences(static_cast<int>(opt_dbmask));
+      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask));
+      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
     }
 
   uhandle_s * uh_fwd = unique_init();
@@ -189,7 +189,7 @@ auto orient(struct Parameters const & parameters) -> void
   progress_init("Orienting sequences", fasta_get_size(query_h));
 
   while (fastx_next(query_h,
-                    (not opt_notrunclabels),
+                    (not parameters.opt_notrunclabels),
                     chrmap_no_change_vector.data()))
     {
       char const * query_head = fastx_get_header(query_h);
@@ -204,8 +204,8 @@ auto orient(struct Parameters const & parameters) -> void
       unsigned int kmer_count_fwd = 0;
       unsigned int const * kmer_list_fwd = nullptr;
 
-      unique_count(uh_fwd, static_cast<int>(opt_wordlength), qseqlen, qseq_fwd,
-                   & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(opt_qmask));
+      unique_count(uh_fwd, static_cast<int>(parameters.opt_wordlength), qseqlen, qseq_fwd,
+                   & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
       /* count kmers matching on each strand */
 
@@ -216,7 +216,7 @@ auto orient(struct Parameters const & parameters) -> void
       for (unsigned int i = 0; i < kmer_count_fwd; i++)
         {
           unsigned int const kmer_fwd = kmer_list_fwd[i];
-          unsigned int const kmer_rev = rc_kmer(kmer_fwd);
+          unsigned int const kmer_rev = rc_kmer(kmer_fwd, parameters);
 
           unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
           unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
@@ -253,7 +253,7 @@ auto orient(struct Parameters const & parameters) -> void
           ++matches_fwd;
           ++qmatches;
 
-          if (opt_fastaout != nullptr)
+          if (parameters.opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -271,7 +271,7 @@ auto orient(struct Parameters const & parameters) -> void
                                   0);
             }
 
-          if (opt_fastqout != nullptr)
+          if (parameters.opt_fastqout != nullptr)
             {
               fastq_print_general(fp_fastqout,
                                   qseq_fwd,
@@ -311,7 +311,7 @@ auto orient(struct Parameters const & parameters) -> void
 
           reverse_complement(qseq_rev.data(), qseq_fwd, qseqlen);
 
-          if (opt_fastaout != nullptr)
+          if (parameters.opt_fastaout != nullptr)
             {
               fasta_print_general(fp_fastaout,
                                   nullptr,
@@ -329,7 +329,7 @@ auto orient(struct Parameters const & parameters) -> void
                                   0);
             }
 
-          if (opt_fastqout != nullptr)
+          if (parameters.opt_fastqout != nullptr)
             {
               /* reverse quality scores */
 
@@ -361,7 +361,7 @@ auto orient(struct Parameters const & parameters) -> void
           strand = 2;
           ++notmatched;
 
-          if (opt_notmatched != nullptr)
+          if (parameters.opt_notmatched != nullptr)
             {
               if (fastx_is_fastq(query_h))
                 {
@@ -395,7 +395,7 @@ auto orient(struct Parameters const & parameters) -> void
             }
         }
 
-      if (opt_tabbedout != nullptr)
+      if (parameters.opt_tabbedout != nullptr)
         {
           std::fprintf(fp_tabbedout,
                   "%s\t%c\t%u\t%u\n",
@@ -419,26 +419,26 @@ auto orient(struct Parameters const & parameters) -> void
   dbindex_free();
   db_free();
 
-  if (opt_tabbedout != nullptr)
+  if (parameters.opt_tabbedout != nullptr)
     {
       fclose_output(fp_tabbedout);
     }
-  if (opt_notmatched != nullptr)
+  if (parameters.opt_notmatched != nullptr)
     {
       fclose_output(fp_notmatched);
     }
-  if (opt_fastqout != nullptr)
+  if (parameters.opt_fastqout != nullptr)
     {
       fclose_output(fp_fastqout);
     }
-  if (opt_fastaout != nullptr)
+  if (parameters.opt_fastaout != nullptr)
     {
       fclose_output(fp_fastaout);
     }
 
   fasta_close(query_h);
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       std::fprintf(stderr, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
@@ -467,7 +467,7 @@ auto orient(struct Parameters const & parameters) -> void
       std::fprintf(stderr, "Total number of sequences:  %d\n", queries);
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       std::fprintf(fp_log, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
