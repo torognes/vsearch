@@ -724,3 +724,6 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;
    resolve sentinels, and derive the opt_* globals from the struct. Pair with
    vsearch_session_end(). Will replace vsearch_init_defaults() as the entry. */
 auto vsearch_session_begin(struct Parameters & parameters) -> void;
+/* Internal (not public API): derive the opt_* globals from a Parameters. Used
+   by args_init() and vsearch_session_begin() during the E1 migration. */
+auto apply_parameters_to_globals(struct Parameters const & parameters) -> void;

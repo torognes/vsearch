@@ -849,7 +849,7 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
    compute reads are migrated off the globals, they are kept as a projection of
    the single Parameters source: vsearch_session_begin() calls this once, so a
    library caller configures a Parameters and never touches a global. */
-static auto apply_parameters_to_globals(struct Parameters const & parameters) -> void
+auto apply_parameters_to_globals(struct Parameters const & parameters) -> void
 {
   opt_abskew = parameters.opt_abskew;
   opt_acceptall = parameters.opt_acceptall;
