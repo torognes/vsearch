@@ -553,11 +553,12 @@ auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 
 auto search_exact_thread_worker_run(struct Parameters const & parameters, struct Progress & progress_bar) -> void
 {
-  /* search_exact forces 100% identity. Thread a copy with opt_id = 1.0 through
+  /* search_exact forces 100% identity: thread a copy with opt_id = 1.0 through
      si->parameters so the shared search_acceptable_aligned accepts only exact
-     matches, rather than relying on the opt_id global mutated by the command
-     dispatcher (E1). effective outlives the worker pool below, so si->parameters
-     stays valid for the duration of the run. */
+     matches. The forcing lives here, not in the command dispatcher, so the
+     "100% identity" semantics stay local to the command that needs them (E1).
+     effective outlives the worker pool below, so si->parameters stays valid for
+     the duration of the run. */
   struct Parameters effective = parameters;
   effective.opt_id = 1.0;
 

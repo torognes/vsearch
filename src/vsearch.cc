@@ -1326,7 +1326,6 @@ auto main(int argc, char** argv) -> int
     }
   else if (parameters.opt_search_exact != nullptr)
     {
-      parameters.opt_id = 1.0;
       cmd_search_exact(parameters);
     }
   else if (parameters.opt_fastx_mask != nullptr)
