@@ -744,7 +744,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  query_fastx_h = fastx_open(parameters.opt_usearch_global);
+  query_fastx_h = fastx_open(parameters.opt_usearch_global, parameters);
 
   /* The query file is parsed inside the worker threads (search_thread_run).
      Defer parse errors so a malformed query stops the pool cooperatively
@@ -780,7 +780,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
       delete [] si_minus;
     }
 
-  fastx_close(query_fastx_h);
+  fastx_close(query_fastx_h, parameters);
 
   if (! parameters.opt_quiet)
     {

@@ -233,7 +233,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   show_rusage();
 
   auto * input_filename = parameters.opt_derep_smallmem;
-  auto * h = fastx_open(input_filename);
+  auto * h = fastx_open(input_filename, parameters);
 
   if (h->is_pipe)
     {
@@ -402,7 +402,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       progress_update(fastx_get_position(h));
     }
   progress_done();
-  fastx_close(h);
+  fastx_close(h, parameters);
 
   show_rusage();
 
@@ -528,7 +528,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* second pass with output */
 
-  auto * h2 = fastx_open(input_filename);
+  auto * h2 = fastx_open(input_filename, parameters);
 
   progress_init("Writing FASTA output file", filesize);
 
@@ -617,7 +617,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       progress_update(fastx_get_position(h2));
     }
   progress_done();
-  fastx_close(h2);
+  fastx_close(h2, parameters);
   fclose_output(fp_fastaout);
 
   show_rusage();

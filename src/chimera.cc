@@ -2460,7 +2460,7 @@ auto chimera(struct Parameters const & parameters) -> void
           dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
         }
 
-      state.query_fasta_h = fasta_open(parameters.opt_uchime_ref);
+      state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
       progress_total = fasta_get_size(state.query_fasta_h);
 
       /* The query file is parsed inside the worker threads
@@ -2707,7 +2707,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
   if (parameters.opt_uchime_ref != nullptr)
     {
-      fasta_close(state.query_fasta_h);
+      fasta_close(state.query_fasta_h, parameters);
     }
 
   dbindex_free();

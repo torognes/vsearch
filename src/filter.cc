@@ -266,7 +266,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fatal("No output files specified");
     }
 
-  auto * forward_handle = fastx_open(filename);
+  auto * forward_handle = fastx_open(filename, parameters);
   fastx_handle reverse_handle = nullptr;  // refactoring: direct initialization
 
   if (not (forward_handle->is_fastq or forward_handle->is_empty))
@@ -295,7 +295,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
   if (parameters.opt_reverse != nullptr)
     {
-      reverse_handle = fastx_open(parameters.opt_reverse);
+      reverse_handle = fastx_open(parameters.opt_reverse, parameters);
 
       if (forward_handle->is_fastq != reverse_handle->is_fastq)
         {
@@ -555,7 +555,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
           fclose_output(fp_fastqout_discarded_rev);
         }
 
-      fastx_close(reverse_handle);
+      fastx_close(reverse_handle, parameters);
     }
 
   if (parameters.opt_fastaout != nullptr)
@@ -578,7 +578,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fclose_output(fp_fastqout_discarded);
     }
 
-  fastx_close(forward_handle);
+  fastx_close(forward_handle, parameters);
 }
 
 

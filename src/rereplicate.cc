@@ -78,7 +78,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
 {
   auto const output_handle = open_output_file(parameters.opt_output);
   check_mandatory_output_handle(parameters.opt_output, (not output_handle));
-  auto * input_handle = fasta_open(parameters.opt_rereplicate);
+  auto * input_handle = fasta_open(parameters.opt_rereplicate, parameters);
   auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
   progress_init("Rereplicating", static_cast<uint64_t>(filesize));
@@ -136,5 +136,5 @@ auto rereplicate(struct Parameters const & parameters) -> void
       std::fprintf(fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
 
-  fasta_close(input_handle);
+  fasta_close(input_handle, parameters);
 }

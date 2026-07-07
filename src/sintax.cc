@@ -726,7 +726,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* prepare reading of queries */
 
-  query_fastx_h = fastx_open(parameters.opt_sintax);
+  query_fastx_h = fastx_open(parameters.opt_sintax, parameters);
 
   /* The query file is parsed inside the worker threads (see
      sintax_thread_run). Enable deferred error reporting so a malformed
@@ -790,7 +790,7 @@ auto sintax(struct Parameters const & parameters) -> void
       delete [] si_minus;
     }
 
-  fastx_close(query_fastx_h);
+  fastx_close(query_fastx_h, parameters);
   fclose_output(fp_tabbedout);
 
   dbindex_free();

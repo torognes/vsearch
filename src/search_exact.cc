@@ -677,7 +677,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  query_fastx_h = fastx_open(parameters.opt_search_exact);
+  query_fastx_h = fastx_open(parameters.opt_search_exact, parameters);
 
   /* The query file is parsed inside the worker threads
      (search_exact_thread_run). Defer parse errors so a malformed query
@@ -711,7 +711,7 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
   // si_minus not used below that point
 
 
-  fastx_close(query_fastx_h);
+  fastx_close(query_fastx_h, parameters);
 
   if (! parameters.opt_quiet)
     {

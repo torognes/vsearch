@@ -228,7 +228,7 @@ auto db_add(bool const is_fastq_record,
 
 auto db_read(const char * filename, int upcase, struct Parameters const & parameters) -> void
 {
-  h = fastx_open(filename);
+  h = fastx_open(filename, parameters);
 
   is_fastq = fastx_is_fastq(h);
 
@@ -301,7 +301,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
 
   progress_done();
   xfree(prompt);
-  fastx_close(h);
+  fastx_close(h, parameters);
 
   if (not parameters.opt_quiet)
     {

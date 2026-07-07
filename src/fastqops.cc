@@ -81,7 +81,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
     fatal("No output files specified");
   }
 
-  auto * input_handle = fastx_open(parameters.opt_fastx_revcomp);
+  auto * input_handle = fastx_open(parameters.opt_fastx_revcomp, parameters);
 
   // if (input_handle == nullptr)
   //   {
@@ -196,7 +196,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
       fclose_output(fp_fastqout);
     }
 
-  fastx_close(input_handle);
+  fastx_close(input_handle, parameters);
 }
 
 
@@ -206,7 +206,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
     fatal("No output file specified with --fastqout");
   }
 
-  auto * input_handle = fastq_open(parameters.opt_fastq_convert);
+  auto * input_handle = fastq_open(parameters.opt_fastq_convert, parameters);
 
   auto const filesize = fastq_get_size(input_handle);
 
@@ -294,5 +294,5 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   progress_done();
 
   fclose_output(fp_fastqout);
-  fastq_close(input_handle);
+  fastq_close(input_handle, parameters);
 }

@@ -65,8 +65,8 @@
 
 
 auto fastq_open_rest(fastx_handle input_handle) -> void;
-auto fastq_open(const char * filename) -> fastx_handle;
-auto fastq_close(fastx_handle input_handle) -> void;
+auto fastq_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
+auto fastq_close(fastx_handle input_handle, struct Parameters const & parameters) -> void;
 auto fastq_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;

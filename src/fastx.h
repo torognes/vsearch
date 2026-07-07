@@ -144,8 +144,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 auto fastx_get_error(struct fastx_s const * input_handle) -> bool;
 auto fastx_get_errmsg(struct fastx_s const * input_handle) -> char const *;
 auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -> void;
-auto fastx_open(const char * filename) -> fastx_handle;
-auto fastx_close(fastx_handle input_handle) -> void;
+auto fastx_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
+auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters) -> void;
 auto fastx_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;

@@ -171,9 +171,9 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto fasta_open(const char * filename) -> fastx_handle
+auto fasta_open(const char * filename, struct Parameters const & parameters) -> fastx_handle
 {
-  auto * input_handle = fastx_open(filename);
+  auto * input_handle = fastx_open(filename, parameters);
 
   if (fastx_is_fastq(input_handle) and not input_handle->is_empty)
     {
@@ -185,9 +185,9 @@ auto fasta_open(const char * filename) -> fastx_handle
 }
 
 
-auto fasta_close(fastx_handle input_handle) -> void
+auto fasta_close(fastx_handle input_handle, struct Parameters const & parameters) -> void
 {
-  fastx_close(input_handle);
+  fastx_close(input_handle, parameters);
 }
 
 

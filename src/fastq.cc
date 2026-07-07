@@ -299,9 +299,9 @@ auto buffer_filter_extend(fastx_handle input_handle,
 }
 
 
-auto fastq_open(const char * filename) -> fastx_handle
+auto fastq_open(const char * filename, struct Parameters const & parameters) -> fastx_handle
 {
-  auto * input_handle = fastx_open(filename);
+  auto * input_handle = fastx_open(filename, parameters);
 
   if (not fastx_is_fastq(input_handle))
     {
@@ -313,9 +313,9 @@ auto fastq_open(const char * filename) -> fastx_handle
 }
 
 
-auto fastq_close(fastx_handle input_handle) -> void
+auto fastq_close(fastx_handle input_handle, struct Parameters const & parameters) -> void
 {
-  fastx_close(input_handle);
+  fastx_close(input_handle, parameters);
 }
 
 

@@ -1750,8 +1750,8 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* open input files */
 
-  fastq_fwd = fastq_open(parameters.opt_fastq_mergepairs);
-  fastq_rev = fastq_open(parameters.opt_reverse);
+  fastq_fwd = fastq_open(parameters.opt_fastq_mergepairs, parameters);
+  fastq_rev = fastq_open(parameters.opt_reverse, parameters);
 
   /* open output files */
 
@@ -1803,9 +1803,9 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   fclose_output(fp_fastaout);
   fclose_output(fp_fastqout);
 
-  fastq_close(fastq_rev);
+  fastq_close(fastq_rev, parameters);
   fastq_rev = nullptr;
-  fastq_close(fastq_fwd);
+  fastq_close(fastq_fwd, parameters);
   fastq_fwd = nullptr;
 }
 

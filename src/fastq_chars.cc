@@ -288,7 +288,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.tail_chars.resize(n_characters);
   stats.maxrun.resize(n_characters);
 
-  auto * fastq_handle = fastq_open(parameters.opt_fastq_chars);
+  auto * fastq_handle = fastq_open(parameters.opt_fastq_chars, parameters);
 
   auto const filesize = fastq_get_size(fastq_handle);
 
@@ -346,7 +346,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
     }
   progress_done();
 
-  fastq_close(fastq_handle);
+  fastq_close(fastq_handle, parameters);
 
   find_lowest_quality_symbol(stats);
   find_highest_quality_symbol(stats);

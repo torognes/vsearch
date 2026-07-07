@@ -295,8 +295,8 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   /* open and check input files */
 
-  auto * forward_handle = fastx_open(parameters.opt_fastx_syncpairs);
-  auto * reverse_handle = fastx_open(parameters.opt_reverse);
+  auto * forward_handle = fastx_open(parameters.opt_fastx_syncpairs, parameters);
+  auto * reverse_handle = fastx_open(parameters.opt_reverse, parameters);
 
   auto const forward_empty = fastx_is_empty(forward_handle);
   auto const reverse_empty = fastx_is_empty(reverse_handle);
@@ -389,6 +389,6 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   /* clean up */
 
   close_output_files(outfiles);
-  fastx_close(forward_handle);
-  fastx_close(reverse_handle);
+  fastx_close(forward_handle, parameters);
+  fastx_close(reverse_handle, parameters);
 }

@@ -136,7 +136,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
     fatal("Output file for fastq_eestats must be specified with --output");
   }
 
-  fastx_handle h = fastq_open(parameters.opt_fastq_eestats);
+  fastx_handle h = fastq_open(parameters.opt_fastq_eestats, parameters);
 
   uint64_t const filesize = fastq_get_size(h);
 
@@ -396,7 +396,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   fclose_output(fp_output);
 
-  fastq_close(h);
+  fastq_close(h, parameters);
 }
 
 
@@ -412,7 +412,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
   auto const & ee_cutoffs = parameters.opt_ee_cutoffs;
   auto const ee_cutoffs_count = static_cast<int>(ee_cutoffs.size());
 
-  fastx_handle h = fastq_open(parameters.opt_fastq_eestats2);
+  fastx_handle h = fastq_open(parameters.opt_fastq_eestats2, parameters);
 
   uint64_t const filesize = fastq_get_size(h);
 
@@ -577,5 +577,5 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   fclose_output(fp_output);
 
-  fastq_close(h);
+  fastq_close(h, parameters);
 }

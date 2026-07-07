@@ -265,7 +265,7 @@ auto fopen_input(const char * filename) -> std::FILE *
 }
 
 
-auto fastx_open(char const * filename) -> fastx_handle
+auto fastx_open(char const * filename, struct Parameters const & parameters) -> fastx_handle
 {
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
   auto * input_handle = new fastx_s;
@@ -319,11 +319,11 @@ auto fastx_open(char const * filename) -> fastx_handle
     {
       /* stdin cannot be rewound or peeked without consuming bytes,
          so rely on the user-provided flags */
-      if (opt_gzip_decompress)
+      if (parameters.opt_gzip_decompress)
         {
           input_handle->format = Format::gzip;
         }
-      else if (opt_bzip2_decompress)
+      else if (parameters.opt_bzip2_decompress)
         {
           input_handle->format = Format::bzip;
         }
@@ -535,7 +535,7 @@ auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool
 }
 
 
-auto fastx_close(fastx_handle input_handle) -> void
+auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters) -> void
 {
   /* Warn about stripped chars */
 
@@ -552,7 +552,7 @@ auto fastx_close(fastx_handle input_handle) -> void
       std::fprintf(stderr, "\n");
       std::fprintf(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
 
-      if (opt_log != nullptr)
+      if (parameters.opt_log != nullptr)
         {
           std::fprintf(fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
           for (int i = 0; i < 256; i++)

@@ -139,7 +139,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* prepare reading of queries */
 
-  query_h = fastx_open(parameters.opt_orient);
+  query_h = fastx_open(parameters.opt_orient, parameters);
 
   /* open output files */
 
@@ -448,7 +448,7 @@ auto orient(struct Parameters const & parameters) -> void
       fclose_output(fp_fastaout);
     }
 
-  fasta_close(query_h);
+  fasta_close(query_h, parameters);
 
   if (not parameters.opt_quiet)
     {

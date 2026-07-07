@@ -391,7 +391,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   fastx_handle h1 = nullptr;
 
-  h1 = fastx_open(filename);
+  h1 = fastx_open(filename, parameters);
 
   if (((parameters.opt_fastqout != nullptr) or (parameters.opt_notmatchedfq != nullptr)) and not (h1->is_fastq or h1->is_empty))
     {
@@ -577,7 +577,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       fclose_output(fp_notmatchedfq);
     }
 
-  fastx_close(h1);
+  fastx_close(h1, parameters);
 }
 
 

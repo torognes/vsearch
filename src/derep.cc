@@ -254,7 +254,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   show_rusage();
 
-  auto * input_handle = fastx_open(input_filename);
+  auto * input_handle = fastx_open(input_filename, parameters);
 
   if (not fastx_is_empty(input_handle))
     {
@@ -593,7 +593,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       progress_update(fastx_get_position(input_handle));
     }
   progress_done();
-  fastx_close(input_handle);
+  fastx_close(input_handle, parameters);
 
   show_rusage();
 

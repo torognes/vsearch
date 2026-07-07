@@ -506,7 +506,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   constexpr auto initial_memory_allocation = std::size_t{512};
   constexpr std::array<uint64_t, 4> quality_thresholds = {5, 10, 15, 20};
   constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
-  auto * input_handle = fastq_open(parameters.opt_fastq_stats);
+  auto * input_handle = fastq_open(parameters.opt_fastq_stats, parameters);
 
   auto const filesize = fastq_get_size(input_handle);
 
@@ -594,7 +594,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
       progress_update(fastq_get_position(input_handle));
     }
   progress_done();
-  fastq_close(input_handle);
+  fastq_close(input_handle, parameters);
 
 
   // note: operations below represent 1% of total wallclock time

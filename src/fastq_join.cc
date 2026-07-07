@@ -115,10 +115,10 @@ namespace {
     infiles.forward.name = parameters.opt_fastq_join;
     infiles.reverse.name = parameters.opt_reverse;
     if (infiles.forward.name != nullptr) {
-      infiles.forward.handle = fastq_open(infiles.forward.name);
+      infiles.forward.handle = fastq_open(infiles.forward.name, parameters);
     }
     if (infiles.reverse.name != nullptr) {
-      infiles.reverse.handle = fastq_open(infiles.reverse.name);
+      infiles.reverse.handle = fastq_open(infiles.reverse.name, parameters);
     }
     return infiles;
   }
@@ -161,10 +161,10 @@ namespace {
   }
 
 
-  auto close_input_files(struct input_files const & infiles) -> void {
+  auto close_input_files(struct input_files const & infiles, struct Parameters const & parameters) -> void {
     for (auto * fp_inputfile : {infiles.forward.handle, infiles.reverse.handle}) {
       if (fp_inputfile != nullptr) {
-        fastq_close(fp_inputfile);
+        fastq_close(fp_inputfile, parameters);
       }
     }
   }
@@ -332,5 +332,5 @@ auto fastq_join(struct Parameters const & parameters) -> void
   /* clean up */
 
   close_output_files(outfiles);
-  close_input_files(infiles);
+  close_input_files(infiles, parameters);
 }

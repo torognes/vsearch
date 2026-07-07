@@ -73,7 +73,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 {
   auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
 
-  auto * fp_input = fasta_open(parameters.opt_fasta2fastq);
+  auto * fp_input = fasta_open(parameters.opt_fasta2fastq, parameters);
   assert(fp_input != nullptr);  // check performed in fasta_open(fastx_open())
 
   auto const output_handle = open_output_file(parameters.opt_fastqout);
@@ -119,5 +119,5 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       progress.update(fasta_get_position(fp_input));
     }
 
-  fasta_close(fp_input);
+  fasta_close(fp_input, parameters);
 }
