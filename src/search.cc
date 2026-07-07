@@ -366,7 +366,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
       /* mask query */
       if (state.parameters.opt_qmask == MASK_DUST)
         {
-          dust(si->qsequence, si->qseqlen);
+          dust(si->qsequence, si->qseqlen, state.parameters);
         }
       else if ((state.parameters.opt_qmask == MASK_SOFT) && (state.parameters.opt_hardmask))
         {
@@ -1029,7 +1029,7 @@ auto search_session_single(struct search_session_s * ss,
 
       if (parameters.opt_qmask == MASK_DUST)
         {
-          dust(strand_si->qsequence, strand_si->qseqlen);
+          dust(strand_si->qsequence, strand_si->qseqlen, parameters);
         }
       else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
         {
@@ -1187,7 +1187,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
           if (parameters.opt_qmask == MASK_DUST)
             {
-              dust(strand_si->qsequence, strand_si->qseqlen);
+              dust(strand_si->qsequence, strand_si->qseqlen, parameters);
             }
           else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
             {

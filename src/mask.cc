@@ -191,9 +191,9 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
 }
 
 
-auto dust(char * seq, int len) -> void
+auto dust(char * seq, int len, struct Parameters const & parameters) -> void
 {
-  dust_core(seq, len, opt_hardmask);
+  dust_core(seq, len, parameters.opt_hardmask);
 }
 
 
@@ -208,6 +208,7 @@ struct dust_state_s
   uint64_t nextseq = 0;
   uint64_t seqcount = 0;
   Progress * progress = nullptr;  /* owner progress bar; worker updates it under state.mutex */
+  Parameters const * parameters = nullptr;  /* set by dust_all(); read by dust() via the worker */
 };
 
 
@@ -224,7 +225,8 @@ static auto dust_all_worker(struct dust_state_s & state, uint64_t nth_thread) ->
           state.progress->update(seqno);
           lock.unlock();
           dust(db_getsequence(seqno),
-               static_cast<int>(db_getsequencelen(seqno)));
+               static_cast<int>(db_getsequencelen(seqno)),
+               *state.parameters);
         }
       else
         {
@@ -239,6 +241,7 @@ auto dust_all(struct Parameters const & parameters) -> void
 {
   struct dust_state_s state;
   state.seqcount = db_getsequencecount();
+  state.parameters = &parameters;
   Progress progress("Masking", state.seqcount, parameters);
   state.progress = &progress;
 

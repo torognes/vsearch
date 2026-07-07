@@ -398,7 +398,7 @@ auto search_exact_query(uint64_t t, struct Parameters const & parameters) -> int
       /* mask query */
       if (parameters.opt_qmask == MASK_DUST)
         {
-          dust(si->qsequence, si->qseqlen);
+          dust(si->qsequence, si->qseqlen, parameters);
         }
       else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
         {
