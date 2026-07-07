@@ -9,12 +9,16 @@
  * abundance/quality bookkeeping. Every check here is self-validating against
  * values known from the input, not against native vsearch output.
  *
- * NOTE: db_read() applies the opt_minseqlength / opt_maxseqlength filters. A
- * default-constructed Parameters leaves opt_minseqlength at its -1 sentinel,
- * which db_read casts to size_t (SIZE_MAX) and then discards every sequence as
- * "too short". A library caller must therefore set opt_minseqlength before
- * db_read(); these tests set it to 1. (See the review notes accompanying this
- * change — the sentinel handling is arguably a library-API defect.)
+ * Two of these checks are regression guards for library-only bugs fixed
+ * alongside them (db.cc):
+ *   - db_read() with a default Parameters used to discard every sequence: the
+ *     -1 "unset" opt_minseqlength sentinel was cast to size_t (SIZE_MAX), so
+ *     every length compared as "too short". db_read now treats a non-positive
+ *     minimum as "no lower bound" (test_db_read_fasta_accessors uses a default
+ *     Parameters and expects all sequences to load).
+ *   - db_add(is_fastq=true, ...) stored the quality string but left the global
+ *     is_fastq flag false, so db_is_fastq()/db_getquality() could not reach it.
+ *     db_add now sets the flag (test_db_add_fastq_quality).
  *
  * Build:  g++ -std=c++11 -O3 -I../src -o example_dbinfo example_dbinfo.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_dbinfo
@@ -32,13 +36,15 @@
 
 /* --- Test 1: db_read (FASTA) + statistical accessors ---
    chimera_ref.fasta holds 6 sequences of 300 nt each with headers "ref1".."ref6"
-   (4 characters). Verify every summary accessor against those known values. */
+   (4 characters). Verify every summary accessor against those known values.
+   Also a regression guard: this uses a *default* Parameters (opt_minseqlength
+   left at its -1 sentinel), so all 6 sequences must load — previously db_read
+   discarded every sequence in this case. */
 static int test_db_read_fasta_accessors()
 {
   int failures = 0;
 
   struct Parameters parameters;
-  parameters.opt_minseqlength = 1;   /* work around the -1 sentinel filter */
   vsearch_session_begin(parameters);
 
   db_read("data/chimera_ref.fasta", 0, parameters);
@@ -108,7 +114,6 @@ static int test_db_read_fastq_quality()
   int failures = 0;
 
   struct Parameters parameters;
-  parameters.opt_minseqlength = 1;
   vsearch_session_begin(parameters);
 
   db_read("data/merge_fwd.fastq", 0, parameters);
@@ -146,6 +151,52 @@ static int test_db_read_fastq_quality()
   if (failures == 0)
     {
       std::fprintf(stderr, "PASS: db_read(FASTQ) sets db_is_fastq() and exposes quality\n");
+    }
+  return failures;
+}
+
+
+/* --- Test 2b: db_add(is_fastq=true) exposes quality (regression guard) ---
+   Building a FASTQ database directly with db_add() must set db_is_fastq() and
+   make db_getquality() return the stored quality. Previously db_add stored the
+   quality but left the global flag false, so the quality was unreachable. */
+static int test_db_add_fastq_quality()
+{
+  int failures = 0;
+
+  struct Parameters parameters;
+  vsearch_session_begin(parameters);
+
+  db_init();
+  char const * const header = "read1";
+  char const * const sequence = "ACGTACGTACGT";
+  char const * const quality  = "IIIIIIIIIIII";
+  db_add(true, header, sequence, quality,
+         std::strlen(header), std::strlen(sequence), 1);
+
+  if (not db_is_fastq())
+    {
+      std::fprintf(stderr, "FAIL: db_is_fastq() false after db_add(is_fastq=true)\n");
+      ++failures;
+    }
+  char const * const stored = db_getquality(0);
+  if (stored == nullptr)
+    {
+      std::fprintf(stderr, "FAIL: db_getquality(0) null after db_add(is_fastq=true)\n");
+      ++failures;
+    }
+  else if (std::strcmp(stored, quality) != 0)
+    {
+      std::fprintf(stderr, "FAIL: db_getquality(0) = '%s', expected '%s'\n", stored, quality);
+      ++failures;
+    }
+
+  db_free();
+  vsearch_session_end();
+
+  if (failures == 0)
+    {
+      std::fprintf(stderr, "PASS: db_add(is_fastq=true) sets db_is_fastq() and exposes quality\n");
     }
   return failures;
 }
@@ -460,6 +511,7 @@ int main()
   int failures = 0;
   failures += test_db_read_fasta_accessors();
   failures += test_db_read_fastq_quality();
+  failures += test_db_add_fastq_quality();
   failures += test_db_add_accessors();
   failures += test_sort_contracts();
   failures += test_incremental_indexing();

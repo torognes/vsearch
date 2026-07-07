@@ -122,7 +122,7 @@
 
 #define VSEARCH_API_VERSION_MAJOR 0
 #define VSEARCH_API_VERSION_MINOR 5
-#define VSEARCH_API_VERSION_PATCH 0
+#define VSEARCH_API_VERSION_PATCH 1
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
    convention), so each component may range 0..999 without collision:
