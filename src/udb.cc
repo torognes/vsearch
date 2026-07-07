@@ -665,7 +665,7 @@ auto udb_read(const char * filename,
 
   /* some stats */
 
-  if (not opt_quiet)
+  if (not parameters.opt_quiet)
     {
       if (seqcount > 0)
         {
@@ -686,7 +686,7 @@ auto udb_read(const char * filename,
         }
     }
 
-  if (opt_log != nullptr)
+  if (parameters.opt_log != nullptr)
     {
       if (seqcount > 0)
         {
