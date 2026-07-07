@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
@@ -79,15 +80,14 @@ namespace {
   }
 
 
-  auto shuffle_deck(std::vector<int> & deck) -> void {
+  auto shuffle_deck(std::vector<int> & deck, struct Parameters const & parameters) -> void {
     static constexpr auto one_hundred_percent = 100ULL;
-    progress_init("Shuffling", one_hundred_percent);
+    Progress const progress("Shuffling", one_hundred_percent, parameters);
     /* random_base_seed() carries the full 64-bit --randseed (or an OS value
        when 0); random_shuffle() is a portable Fisher-Yates so the order is
        identical across platforms for a given seed (see util.h) */
     std::mt19937_64 uniform_generator(random_base_seed());
     random_shuffle(deck.data(), deck.size(), uniform_generator);
-    progress_done();
   }
 
 
@@ -105,14 +105,13 @@ namespace {
   auto output_shuffled_fasta(std::vector<int> const & deck,
                              std::FILE * output_file,
                              struct Parameters const & parameters) -> void {
-    progress_init("Writing output", deck.size());
+    Progress progress("Writing output", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto const sequence_id: deck) {
       fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1, parameters);
-      progress_update(counter);
+      progress.update(counter);
       ++counter;
     }
-    progress_done();
   }
 
 }  // end of anonymous namespace
@@ -125,7 +124,7 @@ auto shuffle(struct Parameters const & parameters) -> void {
   show_rusage();
 
   auto deck = create_deck();
-  shuffle_deck(deck);
+  shuffle_deck(deck, parameters);
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);

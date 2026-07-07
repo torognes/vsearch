@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "dbindex.h"
 #include "mask.h"
 #include "udb.h"
@@ -191,238 +192,239 @@ auto orient(struct Parameters const & parameters) -> void
   std::vector<char> qseq_rev;
   std::vector<char> query_qual_rev;
 
-  progress_init("Orienting sequences", fasta_get_size(query_h));
+  {
+    Progress progress_bar("Orienting sequences", fasta_get_size(query_h), parameters);
 
-  while (fastx_next(query_h,
-                    (not parameters.opt_notrunclabels),
-                    chrmap_no_change_vector.data()))
-    {
-      char const * query_head = fastx_get_header(query_h);
-      int const query_head_len = static_cast<int>(fastx_get_header_length(query_h));
-      char const * qseq_fwd = fastx_get_sequence(query_h);
-      int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_h));
-      int64_t const qsize = fastx_get_abundance(query_h);
-      char const * query_qual_fwd = fastx_get_quality(query_h);
+    while (fastx_next(query_h,
+                      (not parameters.opt_notrunclabels),
+                      chrmap_no_change_vector.data()))
+      {
+        char const * query_head = fastx_get_header(query_h);
+        int const query_head_len = static_cast<int>(fastx_get_header_length(query_h));
+        char const * qseq_fwd = fastx_get_sequence(query_h);
+        int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_h));
+        int64_t const qsize = fastx_get_abundance(query_h);
+        char const * query_qual_fwd = fastx_get_quality(query_h);
 
-      /* find kmers in query sequence */
+        /* find kmers in query sequence */
 
-      unsigned int kmer_count_fwd = 0;
-      unsigned int const * kmer_list_fwd = nullptr;
+        unsigned int kmer_count_fwd = 0;
+        unsigned int const * kmer_list_fwd = nullptr;
 
-      /* dbindex_wordlength: the effective index width (see rc_kmer) */
-      unique_count(uh_fwd, static_cast<int>(dbindex_wordlength), qseqlen, qseq_fwd,
-                   & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
+        /* dbindex_wordlength: the effective index width (see rc_kmer) */
+        unique_count(uh_fwd, static_cast<int>(dbindex_wordlength), qseqlen, qseq_fwd,
+                     & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
-      /* count kmers matching on each strand */
+        /* count kmers matching on each strand */
 
-      unsigned int count_fwd = 0;
-      unsigned int count_rev = 0;
-      constexpr auto hits_factor = 8U;
+        unsigned int count_fwd = 0;
+        unsigned int count_rev = 0;
+        constexpr auto hits_factor = 8U;
 
-      for (unsigned int i = 0; i < kmer_count_fwd; i++)
-        {
-          unsigned int const kmer_fwd = kmer_list_fwd[i];
-          unsigned int const kmer_rev = rc_kmer(kmer_fwd);
+        for (unsigned int i = 0; i < kmer_count_fwd; i++)
+          {
+            unsigned int const kmer_fwd = kmer_list_fwd[i];
+            unsigned int const kmer_rev = rc_kmer(kmer_fwd);
 
-          unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
-          unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
+            unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
+            unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
 
-          /* require 8 times as many matches on one stand than the other */
+            /* require 8 times as many matches on one stand than the other */
 
-          if (hits_fwd > hits_factor * hits_rev)
-            {
-              ++count_fwd;
-            }
-          else if (hits_rev > hits_factor * hits_fwd)
-            {
-              ++count_rev;
-            }
-        }
+            if (hits_fwd > hits_factor * hits_rev)
+              {
+                ++count_fwd;
+              }
+            else if (hits_rev > hits_factor * hits_fwd)
+              {
+                ++count_rev;
+              }
+          }
 
-      /* get progress as amount of input file read */
+        /* get progress as amount of input file read */
 
-      auto const progress = fasta_get_position(query_h);
+        auto const progress = fasta_get_position(query_h);
 
-      /* update stats */
+        /* update stats */
 
-      ++queries;
+        ++queries;
 
-      auto strand = 2;  // refactoring: enum struct Strand : char {positive = '+', negative = '-', undetermined = '?'};
-      auto const min_count = 1U;
-      auto const min_factor = 4U;
+        auto strand = 2;  // refactoring: enum struct Strand : char {positive = '+', negative = '-', undetermined = '?'};
+        auto const min_count = 1U;
+        auto const min_factor = 4U;
 
-      if ((count_fwd >= min_count) and (count_fwd >= min_factor * count_rev))
-        {
-          /* fwd */
+        if ((count_fwd >= min_count) and (count_fwd >= min_factor * count_rev))
+          {
+            /* fwd */
 
-          strand = 0;
-          ++matches_fwd;
-          ++qmatches;
+            strand = 0;
+            ++matches_fwd;
+            ++qmatches;
 
-          if (parameters.opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  qseq_fwd,
-                                  qseqlen,
-                                  query_head,
-                                  query_head_len,
-                                  static_cast<uint64_t>(qsize),
-                                  qmatches,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_fastaout != nullptr)
+              {
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    qseq_fwd,
+                                    qseqlen,
+                                    query_head,
+                                    query_head_len,
+                                    static_cast<uint64_t>(qsize),
+                                    qmatches,
+                                    -1.0,
+                                    -1,
+                                    -1,
+                                    nullptr,
+                                    0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_fastqout != nullptr)
-            {
-              fastq_print_general(fp_fastqout,
-                                  qseq_fwd,
-                                  qseqlen,
-                                  query_head,
-                                  query_head_len,
-                                  query_qual_fwd,
-                                  static_cast<uint64_t>(qsize),
-                                  qmatches,
-                                  -1.0,
-                                  parameters);
-            }
-        }
-      else if ((count_rev >= min_count) and (count_rev >= min_factor * count_fwd))
-        {
-          /* rev */
+            if (parameters.opt_fastqout != nullptr)
+              {
+                fastq_print_general(fp_fastqout,
+                                    qseq_fwd,
+                                    qseqlen,
+                                    query_head,
+                                    query_head_len,
+                                    query_qual_fwd,
+                                    static_cast<uint64_t>(qsize),
+                                    qmatches,
+                                    -1.0,
+                                    parameters);
+              }
+          }
+        else if ((count_rev >= min_count) and (count_rev >= min_factor * count_fwd))
+          {
+            /* rev */
 
-          strand = 1;
-          ++matches_rev;
-          ++qmatches;
+            strand = 1;
+            ++matches_rev;
+            ++qmatches;
 
-          /* alloc more mem if necessary to keep reverse sequence and qual */
-          assert(qseqlen > 0);
-          static_assert(sizeof(std::size_t) >= sizeof(int), "size_t is too small");
-          const std::size_t requirements = static_cast<std::size_t>(qseqlen) + 1;
-          // refactoring: unsigned int qseqlen
-          if (requirements > alloc)
-            {
-              alloc = requirements;
-              qseq_rev.resize(alloc);
-              if (fastx_is_fastq(query_h))
-                {
-                  query_qual_rev.resize(alloc);
-                }
-            }
+            /* alloc more mem if necessary to keep reverse sequence and qual */
+            assert(qseqlen > 0);
+            static_assert(sizeof(std::size_t) >= sizeof(int), "size_t is too small");
+            const std::size_t requirements = static_cast<std::size_t>(qseqlen) + 1;
+            // refactoring: unsigned int qseqlen
+            if (requirements > alloc)
+              {
+                alloc = requirements;
+                qseq_rev.resize(alloc);
+                if (fastx_is_fastq(query_h))
+                  {
+                    query_qual_rev.resize(alloc);
+                  }
+              }
 
-          /* get reverse complementary sequence */
+            /* get reverse complementary sequence */
 
-          reverse_complement(qseq_rev.data(), qseq_fwd, qseqlen);
+            reverse_complement(qseq_rev.data(), qseq_fwd, qseqlen);
 
-          if (parameters.opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  qseq_rev.data(),
-                                  qseqlen,
-                                  query_head,
-                                  query_head_len,
-                                  static_cast<uint64_t>(qsize),
-                                  qmatches,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_fastaout != nullptr)
+              {
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    qseq_rev.data(),
+                                    qseqlen,
+                                    query_head,
+                                    query_head_len,
+                                    static_cast<uint64_t>(qsize),
+                                    qmatches,
+                                    -1.0,
+                                    -1,
+                                    -1,
+                                    nullptr,
+                                    0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_fastqout != nullptr)
-            {
-              /* reverse quality scores */
+            if (parameters.opt_fastqout != nullptr)
+              {
+                /* reverse quality scores */
 
-              if (fastx_is_fastq(query_h))
-                {
-                  // copy query string in reverse order
-                  for (int i = 0; i < qseqlen; i++)
-                    {
-                      query_qual_rev[static_cast<std::size_t>(i)] = query_qual_fwd[qseqlen - 1 - i];
-                    }
-                  query_qual_rev[static_cast<std::size_t>(qseqlen)] = '\0';
-                }
+                if (fastx_is_fastq(query_h))
+                  {
+                    // copy query string in reverse order
+                    for (int i = 0; i < qseqlen; i++)
+                      {
+                        query_qual_rev[static_cast<std::size_t>(i)] = query_qual_fwd[qseqlen - 1 - i];
+                      }
+                    query_qual_rev[static_cast<std::size_t>(qseqlen)] = '\0';
+                  }
 
-              fastq_print_general(fp_fastqout,
-                                  qseq_rev.data(),
-                                  qseqlen,
-                                  query_head,
-                                  query_head_len,
-                                  query_qual_rev.data(),
-                                  static_cast<uint64_t>(qsize),
-                                  qmatches,
-                                  -1.0,
-                                  parameters);
-            }
-        }
-      else
-        {
-          /* undecided */
+                fastq_print_general(fp_fastqout,
+                                    qseq_rev.data(),
+                                    qseqlen,
+                                    query_head,
+                                    query_head_len,
+                                    query_qual_rev.data(),
+                                    static_cast<uint64_t>(qsize),
+                                    qmatches,
+                                    -1.0,
+                                    parameters);
+              }
+          }
+        else
+          {
+            /* undecided */
 
-          strand = 2;
-          ++notmatched;
+            strand = 2;
+            ++notmatched;
 
-          if (parameters.opt_notmatched != nullptr)
-            {
-              if (fastx_is_fastq(query_h))
-                {
-                  fastq_print_general(fp_notmatched,
-                                      qseq_fwd,
-                                      qseqlen,
-                                      query_head,
-                                      query_head_len,
-                                      query_qual_fwd,
-                                      static_cast<uint64_t>(qsize),
-                                      notmatched,
-                                      -1.0,
-                                      parameters);
-                }
-              else
-                {
-                  fasta_print_general(fp_notmatched,
-                                      nullptr,
-                                      qseq_fwd,
-                                      qseqlen,
-                                      query_head,
-                                      query_head_len,
-                                      static_cast<uint64_t>(qsize),
-                                      notmatched,
-                                      -1.0,
-                                      -1,
-                                      -1,
-                                      nullptr,
-                                      0.0,
-                                      0,
-                                      parameters);
-                }
-            }
-        }
+            if (parameters.opt_notmatched != nullptr)
+              {
+                if (fastx_is_fastq(query_h))
+                  {
+                    fastq_print_general(fp_notmatched,
+                                        qseq_fwd,
+                                        qseqlen,
+                                        query_head,
+                                        query_head_len,
+                                        query_qual_fwd,
+                                        static_cast<uint64_t>(qsize),
+                                        notmatched,
+                                        -1.0,
+                                        parameters);
+                  }
+                else
+                  {
+                    fasta_print_general(fp_notmatched,
+                                        nullptr,
+                                        qseq_fwd,
+                                        qseqlen,
+                                        query_head,
+                                        query_head_len,
+                                        static_cast<uint64_t>(qsize),
+                                        notmatched,
+                                        -1.0,
+                                        -1,
+                                        -1,
+                                        nullptr,
+                                        0.0,
+                                        0,
+                                        parameters);
+                  }
+              }
+          }
 
-      if (parameters.opt_tabbedout != nullptr)
-        {
-          std::fprintf(fp_tabbedout,
-                  "%s\t%c\t%u\t%u\n",
-                  query_head,
-                  strand == 0 ? '+' : (strand == 1 ? '-' : '?'),
-                  count_fwd,
-                  count_rev);
-        }
+        if (parameters.opt_tabbedout != nullptr)
+          {
+            std::fprintf(fp_tabbedout,
+                    "%s\t%c\t%u\t%u\n",
+                    query_head,
+                    strand == 0 ? '+' : (strand == 1 ? '-' : '?'),
+                    count_fwd,
+                    count_rev);
+          }
 
-      /* show progress */
+        /* show progress */
 
-      progress_update(progress);
-    }
+        progress_bar.update(progress);
+      }
+  }
 
-  progress_done();
 
   /* clean up */
 
