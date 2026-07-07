@@ -84,9 +84,9 @@ static int run_search_tsv() {
         db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-    dust_all();
+    dust_all(parameters);
     dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask);
+    dbindex_addallsequences(opt_dbmask, parameters);
 
     struct search_session_s * ss = search_session_alloc();
     search_session_init(ss, parameters);
@@ -147,9 +147,9 @@ static int run_batch_tests()
       db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
              nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-  dust_all();
+  dust_all(parameters);
   dbindex_prepare(1, opt_dbmask, parameters);
-  dbindex_addallsequences(opt_dbmask);
+  dbindex_addallsequences(opt_dbmask, parameters);
 
   /* Sequential: search each query one-by-one */
   std::vector<std::string> query_labels, query_seqs;
@@ -259,9 +259,9 @@ static bool search_rc_finds_hit(const std::string & fwd,
   db_init();
   db_add(false, "fwd", fwd.c_str(), nullptr,
          3, static_cast<int>(fwd.size()), 1);
-  dust_all();
+  dust_all(parameters);
   dbindex_prepare(1, opt_dbmask, parameters);
-  dbindex_addallsequences(opt_dbmask);
+  dbindex_addallsequences(opt_dbmask, parameters);
 
   struct search_session_s * ss = search_session_alloc();
   search_session_init(ss, parameters);

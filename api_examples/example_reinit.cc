@@ -89,9 +89,9 @@ static session_results run_session(
         db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-    dust_all();
+    dust_all(parameters);
     dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask);
+    dbindex_addallsequences(opt_dbmask, parameters);
 
     /* Detect chimeras */
     struct chimera_info_s * ci = chimera_info_alloc();
@@ -300,9 +300,9 @@ int main() {
         db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-    dust_all();
+    dust_all(parameters);
     dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask);
+    dbindex_addallsequences(opt_dbmask, parameters);
 
     /* Session init once, then two per-thread handles */
     chimera_session_init(parameters);

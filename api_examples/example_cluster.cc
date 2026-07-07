@@ -61,8 +61,8 @@ static int run_cluster_uc() {
         db_add(false, labels[i].c_str(), seqs[i].c_str(),
                nullptr, labels[i].size(), seqs[i].size(), 1);
     }
-    dust_all();
-    db_sortbylength();
+    dust_all(parameters);
+    db_sortbylength(parameters);
     dbindex_prepare(1, opt_qmask, parameters);
 
     struct cluster_session_s * cs = cluster_session_alloc();
@@ -141,8 +141,8 @@ static int run_batch_tests()
       db_add(false, labels[i].c_str(), seqs[i].c_str(),
              nullptr, labels[i].size(), seqs[i].size(), 1);
     }
-  dust_all();
-  db_sortbylength();
+  dust_all(parameters);
+  db_sortbylength(parameters);
 
   int const sc = static_cast<int>(db_getsequencecount());
 

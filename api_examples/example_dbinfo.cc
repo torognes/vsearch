@@ -330,7 +330,7 @@ static int test_sort_contracts()
   std::vector<uint64_t> const reference_lengths = current_lengths();
 
   /* db_sortbyabundance: abundance non-increasing */
-  db_sortbyabundance();
+  db_sortbyabundance(parameters);
   for (uint64_t seqno = 1; seqno < db_getsequencecount(); ++seqno)
     {
       if (db_getabundance(seqno) > db_getabundance(seqno - 1))
@@ -342,7 +342,7 @@ static int test_sort_contracts()
     }
 
   /* db_sortbylength: length non-increasing */
-  db_sortbylength();
+  db_sortbylength(parameters);
   for (uint64_t seqno = 1; seqno < db_getsequencecount(); ++seqno)
     {
       if (db_getsequencelen(seqno) > db_getsequencelen(seqno - 1))
@@ -354,7 +354,7 @@ static int test_sort_contracts()
     }
 
   /* db_sortbylength_shortest_first: length non-decreasing */
-  db_sortbylength_shortest_first();
+  db_sortbylength_shortest_first(parameters);
   for (uint64_t seqno = 1; seqno < db_getsequencecount(); ++seqno)
     {
       if (db_getsequencelen(seqno) < db_getsequencelen(seqno - 1))
@@ -460,7 +460,7 @@ static int test_incremental_indexing()
         db_add(false, ref_labels[idx].c_str(), ref_seqs[idx].c_str(), nullptr,
                ref_labels[idx].size(), ref_seqs[idx].size(), 1);
       }
-    dust_all();
+    dust_all(parameters);
   };
 
   char const * const query = ref_seqs[0].c_str();
@@ -468,7 +468,7 @@ static int test_incremental_indexing()
   /* (a) batch indexing */
   load_db();
   dbindex_prepare(1, opt_dbmask, parameters);
-  dbindex_addallsequences(opt_dbmask);
+  dbindex_addallsequences(opt_dbmask, parameters);
   std::vector<std::string> const hits_batch = search_hits(parameters, query);
   dbindex_free();
 
