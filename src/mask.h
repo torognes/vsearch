@@ -72,7 +72,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void;
 
 auto dust(char * seq, int len) -> void;
 auto hardmask(char * seq, int len) -> void;
-auto dust_all() -> void;
+auto dust_all(struct Parameters const & parameters) -> void;
 auto hardmask_all() -> void;
 
 /* === Library API for single-sequence masking === */

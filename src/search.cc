@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "search.h"
 #include "searchcore.h"
 #include "align_simd.h"
@@ -130,6 +131,7 @@ struct search_cli_state_s
   FILE * fp_tsegout = nullptr;
   int count_matched = 0;
   int count_notmatched = 0;
+  Progress * progress = nullptr;  /* the owner's progress bar; worker updates it under mutex_output */
 
   explicit search_cli_state_s(struct Parameters const & params) : parameters(params) {}
 };
@@ -505,7 +507,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
             }
 
           /* show progress */
-          progress_update(progress);
+          state.progress->update(progress);
         }
       else
         {
@@ -648,7 +650,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
       results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
       if (state.parameters.opt_dbmask == MASK_DUST)
         {
-          dust_all();
+          dust_all(state.parameters);
         }
       else if ((state.parameters.opt_dbmask == MASK_SOFT) && (state.parameters.opt_hardmask))
         {
@@ -763,9 +765,11 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
       si_minus = nullptr;
     }
 
-  progress_init("Searching", fastx_get_size(query_fastx_h));
-  search_thread_worker_run(state);
-  progress_done();
+  {
+    Progress progress("Searching", fastx_get_size(query_fastx_h), parameters);
+    state.progress = &progress;
+    search_thread_worker_run(state);
+  }
 
   /* all workers joined; report a deferred query parse error (CC3) from the
      main thread so it does not race a worker's output */

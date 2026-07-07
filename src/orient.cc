@@ -176,7 +176,7 @@ auto orient(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_dbmask == MASK_DUST)
         {
-          dust_all();
+          dust_all(parameters);
         }
       else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
         {

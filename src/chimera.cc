@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "align_simd.h"
 #include "attributes.h"
 #include "chimera.h"
@@ -230,6 +231,8 @@ struct chimera_cli_state_s
   std::FILE * fp_nonchimeras = nullptr;
   std::FILE * fp_borderline = nullptr;
   struct chimera_info_s * cia = nullptr;
+
+  Progress * progress_bar = nullptr;  /* owner progress bar; worker updates it under output_lock (state.progress is the counter) */
 
   explicit chimera_cli_state_s(struct Parameters const & params) : parameters(params) {}
 };
@@ -2347,7 +2350,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           state.progress += db_getsequencelen(state.seqno);
         }
 
-      progress_update(state.progress);
+      state.progress_bar->update(state.progress);
 
       ++state.seqno;
     }
@@ -2450,7 +2453,7 @@ auto chimera(struct Parameters const & parameters) -> void
           db_read(parameters.opt_db, 0, parameters);
           if (parameters.opt_dbmask == MASK_DUST)
             {
-              dust_all();
+              dust_all(parameters);
             }
           else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
             {
@@ -2497,7 +2500,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (parameters.opt_qmask == MASK_DUST)
         {
-          dust_all();
+          dust_all(parameters);
         }
       else if ((parameters.opt_qmask == MASK_SOFT) and (parameters.opt_hardmask))
         {
@@ -2542,11 +2545,11 @@ auto chimera(struct Parameters const & parameters) -> void
     }
 
 
-  progress_init("Detecting chimeras", progress_total);
-
-  chimera_threads_run(state);
-
-  progress_done();
+  {
+    Progress progress_bar("Detecting chimeras", progress_total, parameters);
+    state.progress_bar = &progress_bar;
+    chimera_threads_run(state);
+  }
 
   /* all workers joined; report a deferred query parse error (CC3, uchime_ref
      only) from the main thread so it does not race a worker's output */

@@ -207,6 +207,7 @@ struct dust_state_s
   std::mutex mutex;
   uint64_t nextseq = 0;
   uint64_t seqcount = 0;
+  Progress * progress = nullptr;  /* owner progress bar; worker updates it under state.mutex */
 };
 
 
@@ -220,7 +221,7 @@ static auto dust_all_worker(struct dust_state_s & state, uint64_t nth_thread) ->
       if (seqno < state.seqcount)
         {
           ++state.nextseq;
-          progress_update(seqno);
+          state.progress->update(seqno);
           lock.unlock();
           dust(db_getsequence(seqno),
                static_cast<int>(db_getsequencelen(seqno)));
@@ -234,20 +235,17 @@ static auto dust_all_worker(struct dust_state_s & state, uint64_t nth_thread) ->
 }
 
 
-auto dust_all() -> void
+auto dust_all(struct Parameters const & parameters) -> void
 {
   struct dust_state_s state;
   state.seqcount = db_getsequencecount();
-  progress_init("Masking", state.seqcount);
+  Progress progress("Masking", state.seqcount, parameters);
+  state.progress = &progress;
 
-  {
-    ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
-                              [&state](uint64_t const nth_thread)
-                              { dust_all_worker(state, nth_thread); });
-    threadrunner.run();
-  }
-
-  progress_done();
+  ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
+                            [&state](uint64_t const nth_thread)
+                            { dust_all_worker(state, nth_thread); });
+  threadrunner.run();
 }
 
 
@@ -295,7 +293,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
 
   if (parameters.opt_qmask == MASK_DUST)
     {
-      dust_all();
+      dust_all(parameters);
     }
   else if ((parameters.opt_qmask == MASK_SOFT) && parameters.opt_hardmask)
     {
@@ -341,7 +339,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   if (parameters.opt_qmask == MASK_DUST)
     {
-      dust_all();
+      dust_all(parameters);
     }
   else if ((parameters.opt_qmask == MASK_SOFT) && parameters.opt_hardmask)
     {

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "mask.h"
 #include "otutable.h"
 #include "utils/fatal.hpp"
@@ -432,7 +433,7 @@ auto search_exact_query(uint64_t t, struct Parameters const & parameters) -> int
   return static_cast<int>(hits.size());
 }
 
-auto search_exact_thread_run(uint64_t t, struct Parameters const & parameters) -> void
+auto search_exact_thread_run(uint64_t t, struct Parameters const & parameters, struct Progress & progress_bar) -> void
 {
   while (true)
     {
@@ -509,7 +510,7 @@ auto search_exact_thread_run(uint64_t t, struct Parameters const & parameters) -
             }
 
           /* show progress */
-          progress_update(progress);
+          progress_bar.update(progress);
         }
       else
         {
@@ -550,7 +551,7 @@ auto search_exact_thread_exit(struct searchinfo_s * si) -> void
     }
 }
 
-auto search_exact_thread_worker_run(struct Parameters const & parameters) -> void
+auto search_exact_thread_worker_run(struct Parameters const & parameters, struct Progress & progress_bar) -> void
 {
   /* init per-thread search state before the workers start */
   for (int t = 0; t < parameters.opt_threads; t++)
@@ -565,8 +566,8 @@ auto search_exact_thread_worker_run(struct Parameters const & parameters) -> voi
   /* run the worker pool over the input file */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
-                              [&parameters](uint64_t const t)
-                              { search_exact_thread_run(t, parameters); });
+                              [&parameters, &progress_bar](uint64_t const t)
+                              { search_exact_thread_run(t, parameters, progress_bar); });
     threadrunner.run();
   }
 
@@ -614,7 +615,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader,
 
   if (parameters.opt_dbmask == MASK_DUST)
     {
-      dust_all();
+      dust_all(parameters);
     }
   else if ((parameters.opt_dbmask == MASK_SOFT) && (parameters.opt_hardmask))
     {
@@ -696,9 +697,10 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
       si_minus = si_minus_v.data();
     }
 
-  progress_init("Searching", fastx_get_size(query_fastx_h));
-  search_exact_thread_worker_run(parameters);
-  progress_done();
+  {
+    Progress progress_bar("Searching", fastx_get_size(query_fastx_h), parameters);
+    search_exact_thread_worker_run(parameters, progress_bar);
+  }
 
   /* all workers joined; report a deferred query parse error (CC3) from the
      main thread so it does not race a worker's output */

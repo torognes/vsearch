@@ -78,6 +78,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "bitmap.h"
 #include "dbindex.h"
 #include "mask.h"
@@ -122,6 +123,8 @@ struct sintax_state_s
   std::FILE * fp_tabbedout = nullptr;
   int queries = 0;
   int classified = 0;
+
+  Progress * progress = nullptr;  /* owner progress bar; worker updates it under the output lock */
 
   explicit sintax_state_s(struct Parameters const & params) : parameters(params) {}
 };
@@ -583,7 +586,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
           std::lock_guard<std::mutex> const output_lock(mutex_output);
 
           /* show progress */
-          progress_update(progress);
+          state.progress->update(progress);
         }
       else
         {
@@ -750,9 +753,11 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* run */
 
-  progress_init("Classifying sequences", fastx_get_size(query_fastx_h));
-  sintax_thread_worker_run(state);
-  progress_done();
+  {
+    Progress progress("Classifying sequences", fastx_get_size(query_fastx_h), parameters);
+    state.progress = &progress;
+    sintax_thread_worker_run(state);
+  }
 
   /* All workers have joined. If one hit a malformed query, report it now
      from the main thread (single-threaded) so the message is emitted and

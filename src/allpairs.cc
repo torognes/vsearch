@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "align_simd.h"
 #include "linmemalign.h"
 #include "mask.h"
@@ -101,6 +102,8 @@ struct allpairs_state_s
   FILE * fp_tsegout = nullptr;
   int count_matched = 0;
   int count_notmatched = 0;
+
+  Progress * progress_bar = nullptr;  /* owner progress bar; worker updates it under output_lock (state.progress is the counter) */
 
   explicit allpairs_state_s(struct Parameters const & params) : parameters(params) {}
 };
@@ -528,7 +531,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
 
           /* show progress */
           state.progress += state.seqcount - query_no - 1;
-          progress_update(static_cast<uint64_t>(state.progress));
+          state.progress_bar->update(static_cast<uint64_t>(state.progress));
 
           output_lock.unlock();
 
@@ -611,7 +614,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
 
   if (parameters.opt_qmask == MASK_DUST)
     {
-      dust_all();
+      dust_all(parameters);
     }
   else if ((parameters.opt_qmask == MASK_SOFT) and parameters.opt_hardmask)
     {
@@ -627,9 +630,11 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   queries = 0;
 
   progress = 0;
-  progress_init("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2));
-  allpairs_thread_worker_run(state);
-  progress_done();
+  {
+    Progress progress_bar("Aligning", static_cast<uint64_t>(std::max(int64_t{0}, (static_cast<int64_t>(seqcount)) * (static_cast<int64_t>(seqcount) - 1)) / 2), parameters);
+    state.progress_bar = &progress_bar;
+    allpairs_thread_worker_run(state);
+  }
 
   if (not parameters.opt_quiet)
     {

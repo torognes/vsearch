@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "fastq_mergepairs.h"
 #include "kmerhash.h"
 #include "utils/fatal.hpp"
@@ -261,6 +262,8 @@ struct mergepairs_cli_state_s
   bool finished_all = false;
   int pairs_read = 0;
   int pairs_written = 0;
+
+  Progress * progress = nullptr;  /* owner progress bar; the chunk reader updates it */
 
   explicit mergepairs_cli_state_s(struct Parameters const & params) : parameters(params) {}
 };
@@ -1249,7 +1252,7 @@ inline auto chunk_perform_read(struct mergepairs_cli_state_s & state,
   while ((not state.finished_reading) and (state.chunks[static_cast<std::size_t>(state.chunk_read_next)].state == State::empty))
     {
       lock.unlock();
-      progress_update(fastq_get_position(state.fastq_fwd));
+      state.progress->update(fastq_get_position(state.fastq_fwd));
       auto r = 0;
       while ((r < chunk_size) and
              read_pair(state, state.chunks[static_cast<std::size_t>(state.chunk_read_next)].merge_data[static_cast<std::size_t>(r)]))
@@ -1770,14 +1773,15 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   /* main */
 
   uint64_t const filesize = fastq_get_size(fastq_fwd);
-  progress_init("Merging reads", filesize);
+  {
+    Progress progress("Merging reads", filesize, parameters);
+    state.progress = &progress;
 
-  if (not fastq_fwd->is_empty)
-    {
-      pair_all(state);
-    }
-
-  progress_done();
+    if (not fastq_fwd->is_empty)
+      {
+        pair_all(state);
+      }
+  }
 
   if (fastq_next(fastq_rev, true, chrmap_upcase_vector.data()))
     {
