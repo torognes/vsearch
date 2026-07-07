@@ -1285,15 +1285,15 @@ auto cmd_allpairs_global(struct Parameters const & parameters) -> void
 {
   /* check options */
 
-  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
-      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
-      (opt_samout == nullptr) and (opt_fastapairs == nullptr))
+  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
+      (parameters.opt_samout == nullptr) and (parameters.opt_fastapairs == nullptr))
     {
       fatal("No output files specified");
     }
 
-  if (not ((opt_acceptall != 0) or ((opt_id >= 0.0) and (opt_id <= 1.0))))
+  if (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0))))
     {
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
@@ -1306,13 +1306,13 @@ auto cmd_usearch_global(struct Parameters const & parameters) -> void
 {
   /* check options */
 
-  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
-      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
+  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
       (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
-      (opt_samout == nullptr) and (opt_otutabout == nullptr) and
-      (opt_biomout == nullptr) and (opt_mothur_shared_out == nullptr) and
-      (opt_fastapairs == nullptr) and (opt_lcaout == nullptr))
+      (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
+      (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
+      (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
     {
       fatal("No output files specified");
     }
@@ -1322,7 +1322,7 @@ auto cmd_usearch_global(struct Parameters const & parameters) -> void
       fatal("Database filename not specified with --db");
     }
 
-  if ((opt_id < 0.0) or (opt_id > 1.0))
+  if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
     {
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
     }
@@ -1335,13 +1335,13 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
 {
   /* check options */
 
-  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
-      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
+  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
       (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
-      (opt_samout == nullptr) and (opt_otutabout == nullptr) and
-      (opt_biomout == nullptr) and (opt_mothur_shared_out == nullptr) and
-      (opt_fastapairs == nullptr) and (opt_lcaout == nullptr))
+      (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
+      (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
+      (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
     {
       fatal("No output files specified");
     }
@@ -1357,12 +1357,12 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
 
 auto cmd_subsample(struct Parameters const & parameters) -> void
 {
-  if ((opt_fastaout == nullptr) and (opt_fastqout == nullptr))
+  if ((parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr))
     {
       fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
     }
 
-  if ((opt_sample_pct > 0) == (opt_sample_size > 0))
+  if ((parameters.opt_sample_pct > 0) == (parameters.opt_sample_size > 0))
     {
       fatal("Specify either --sample_pct or --sample_size");
     }
@@ -1418,21 +1418,21 @@ auto cmd_none(struct Parameters const & parameters) -> void {
 
 auto cmd_cluster(struct Parameters const & parameters) -> void
 {
-  if ((opt_alnout == nullptr) and (opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (opt_blast6out == nullptr) and
-      (opt_matched == nullptr) and (opt_notmatched == nullptr) and
-      (opt_centroids == nullptr) and (opt_clusters == nullptr) and
-      (opt_consout == nullptr) and (opt_msaout == nullptr) and
-      (opt_samout == nullptr) and (opt_profile == nullptr) and
-      (opt_otutabout == nullptr) and (opt_biomout == nullptr) and
-      (opt_mothur_shared_out == nullptr))
+  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
+      (parameters.opt_centroids == nullptr) and (parameters.opt_clusters == nullptr) and
+      (parameters.opt_consout == nullptr) and (parameters.opt_msaout == nullptr) and
+      (parameters.opt_samout == nullptr) and (parameters.opt_profile == nullptr) and
+      (parameters.opt_otutabout == nullptr) and (parameters.opt_biomout == nullptr) and
+      (parameters.opt_mothur_shared_out == nullptr))
     {
       fatal("No output files specified");
     }
 
   if (parameters.opt_cluster_unoise == nullptr)
     {
-      if ((opt_id < 0.0) or (opt_id > 1.0))
+      if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
         {
           fatal("Identity between 0.0 and 1.0 must be specified with --id");
         }
@@ -1459,9 +1459,9 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
 
 auto cmd_chimera(struct Parameters const & parameters) -> void
 {
-  if ((opt_chimeras == nullptr)  and (opt_nonchimeras == nullptr) and
-      (opt_uchimeout == nullptr) and (opt_uchimealns == nullptr) and
-      (opt_tabbedout == nullptr) and (opt_alnout == nullptr))
+  if ((parameters.opt_chimeras == nullptr)  and (parameters.opt_nonchimeras == nullptr) and
+      (parameters.opt_uchimeout == nullptr) and (parameters.opt_uchimealns == nullptr) and
+      (parameters.opt_tabbedout == nullptr) and (parameters.opt_alnout == nullptr))
     {
       fatal("No output files specified");
     }
@@ -1471,34 +1471,34 @@ auto cmd_chimera(struct Parameters const & parameters) -> void
       fatal("Database filename not specified with --db");
     }
 
-  if (opt_abskew < 1.0)
+  if (parameters.opt_abskew < 1.0)
     {
       fatal("Argument to --abskew must be >= 1.0");
     }
 
-  if (opt_xn <= 1.0)
+  if (parameters.opt_xn <= 1.0)
     {
       fatal("Argument to --xn must be > 1");
     }
 
-  if (opt_dn <= 0.0)
+  if (parameters.opt_dn <= 0.0)
     {
       fatal("Argument to --dn must be > 0");
     }
 
   if ((parameters.opt_uchime2_denovo == nullptr) and (parameters.opt_uchime3_denovo == nullptr))
     {
-      if (opt_mindiffs <= 0)
+      if (parameters.opt_mindiffs <= 0)
         {
           fatal("Argument to --mindiffs must be > 0");
         }
 
-      if (opt_mindiv <= 0.0)
+      if (parameters.opt_mindiv <= 0.0)
         {
           fatal("Argument to --mindiv must be > 0");
         }
 
-      if (opt_minh <= 0.0)
+      if (parameters.opt_minh <= 0.0)
         {
           fatal("Argument to --minh must be > 0");
         }
@@ -1532,18 +1532,18 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
     }
   if ((parameters.opt_fastqout == nullptr) and
       (parameters.opt_fastaout == nullptr) and
-      (opt_fastqout_notmerged_fwd == nullptr) and
-      (opt_fastqout_notmerged_rev == nullptr) and
-      (opt_fastaout_notmerged_fwd == nullptr) and
-      (opt_fastaout_notmerged_rev == nullptr) and
-      (opt_eetabbedout == nullptr))
+      (parameters.opt_fastqout_notmerged_fwd == nullptr) and
+      (parameters.opt_fastqout_notmerged_rev == nullptr) and
+      (parameters.opt_fastaout_notmerged_fwd == nullptr) and
+      (parameters.opt_fastaout_notmerged_rev == nullptr) and
+      (parameters.opt_eetabbedout == nullptr))
     {
       fatal("No output files specified");
     }
-  if (opt_fastq_maxdiffs < 0) {
+  if (parameters.opt_fastq_maxdiffs < 0) {
     fatal("Argument to --fastq_maxdiffs must be positive");
   }
-  if (opt_fastq_maxee <= 0.0) {
+  if (parameters.opt_fastq_maxee <= 0.0) {
     /* expected error is the sum of per-base error probabilities;
        probabilities are strictly positive (min quality score is 93,
        corresponding to probability ~1e-9.3), so the sum cannot be
@@ -1551,19 +1551,19 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
        reject every read and is almost certainly a user mistake. */
     fatal("Argument to --fastq_maxee must be a strictly positive number");
   }
-  if (opt_fastq_maxlen < 1) {
+  if (parameters.opt_fastq_maxlen < 1) {
     fatal("Argument to --fastq_maxlen must be a positive integer");
   }
-  if (opt_fastq_minlen < 1) {
+  if (parameters.opt_fastq_minlen < 1) {
     fatal("Argument to --fastq_minlen must be a positive integer");
   }
-  if (opt_fastq_maxns < 0) {
+  if (parameters.opt_fastq_maxns < 0) {
     fatal("Argument to --fastq_maxns must be a non-negative integer");
   }
-  if (opt_fastq_maxmergelen < 1) {
+  if (parameters.opt_fastq_maxmergelen < 1) {
     fatal("Argument to --fastq_maxmergelen must be a positive integer");
   }
-  if (opt_fastq_minmergelen < 0) {
+  if (parameters.opt_fastq_minmergelen < 0) {
     fatal("Argument to --fastq_minmergelen must be a non-negative integer");
   }
   {
@@ -1572,8 +1572,8 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
        "no truncation"; skip the range check in that case so the default
        is preserved. */
     static constexpr auto long_min = std::numeric_limits<long>::min();
-    if ((opt_fastq_truncqual != long_min) and
-        ((opt_fastq_truncqual < 0) or (opt_fastq_truncqual > 93))) {
+    if ((parameters.opt_fastq_truncqual != long_min) and
+        ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
       fatal("Argument to --fastq_truncqual must be in range 0..93");
     }
   }
@@ -1660,7 +1660,7 @@ auto main(int argc, char** argv) -> int
 
   if (parameters.opt_log != nullptr)
     {
-      fp_log = open_optional_output(opt_log, "log");
+      fp_log = open_optional_output(parameters.opt_log, "log");
       parameters.fp_log = fp_log;
       std::fprintf(fp_log, "%s\n", prog_header.data());
       std::fprintf(fp_log, "%s\n", cmdline);
