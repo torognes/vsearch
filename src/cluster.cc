@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "align_simd.h"
 #include "cluster.h"
 #include "searchcore.h"
@@ -857,7 +858,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
   int64_t sum_nucleotides = 0;
 
-  progress_init("Clustering", db_getnucleotidecount());
+  Progress progress("Clustering", db_getnucleotidecount(), state.parameters);
 
   while (seqno < seqcount)
     {
@@ -977,9 +978,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
           sum_nucleotides += si_p->qseqlen;
         }
 
-      progress_update(static_cast<uint64_t>(sum_nucleotides));
+      progress.update(static_cast<uint64_t>(sum_nucleotides));
     }
-  progress_done();
 
   /* pool's destructor joins the workers and frees the per-thread search state */
 }
@@ -999,7 +999,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
   auto lastlength = std::numeric_limits<int>::max();
 
-  progress_init("Clustering", static_cast<uint64_t>(seqcount));
+  Progress progress("Clustering", static_cast<uint64_t>(seqcount), state.parameters);
   for (int seqno = 0; seqno < seqcount; seqno++)
     {
       int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
@@ -1066,9 +1066,8 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
       free_hit_alignments(si_p.data(), si_m.data(), state.parameters);
 
-      progress_update(static_cast<uint64_t>(seqno));
+      progress.update(static_cast<uint64_t>(seqno));
     }
-  progress_done();
 
   cluster_query_exit(si_p.data());
   if (state.parameters.opt_strand)
@@ -1230,33 +1229,33 @@ auto cluster(char const * dbname,
   /* Sequences in same cluster must always come right after each other. */
   /* The centroid sequence must be the first in each cluster. */
 
-  progress_init("Sorting clusters", static_cast<uint64_t>(clusters));
-  if (parameters.opt_clusterout_sort)
-    {
-      /* by cluster abundance (descending), then cluster number, then seqno.
-         The seqno tiebreak is a strict total order, so this matches the
-         previous std::qsort result exactly. */
-      std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
-                [&cluster_abundance_v](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
-                  auto const lhs_ab = cluster_abundance_v[static_cast<std::size_t>(lhs.clusterno)];
-                  auto const rhs_ab = cluster_abundance_v[static_cast<std::size_t>(rhs.clusterno)];
-                  if (lhs_ab != rhs_ab) { return lhs_ab > rhs_ab; }
-                  if (lhs.clusterno != rhs.clusterno) { return lhs.clusterno < rhs.clusterno; }
-                  return lhs.seqno < rhs.seqno;
-                });
-    }
-  else
-    {
-      /* by cluster number, then seqno */
-      std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
-                [](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
-                  if (lhs.clusterno != rhs.clusterno) { return lhs.clusterno < rhs.clusterno; }
-                  return lhs.seqno < rhs.seqno;
-                });
-    }
-  progress_done();
+  {
+    Progress const progress("Sorting clusters", static_cast<uint64_t>(clusters), parameters);
+    if (parameters.opt_clusterout_sort)
+      {
+        /* by cluster abundance (descending), then cluster number, then seqno.
+           The seqno tiebreak is a strict total order, so this matches the
+           previous std::qsort result exactly. */
+        std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
+                  [&cluster_abundance_v](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
+                    auto const lhs_ab = cluster_abundance_v[static_cast<std::size_t>(lhs.clusterno)];
+                    auto const rhs_ab = cluster_abundance_v[static_cast<std::size_t>(rhs.clusterno)];
+                    if (lhs_ab != rhs_ab) { return lhs_ab > rhs_ab; }
+                    if (lhs.clusterno != rhs.clusterno) { return lhs.clusterno < rhs.clusterno; }
+                    return lhs.seqno < rhs.seqno;
+                  });
+      }
+    else
+      {
+        /* by cluster number, then seqno */
+        std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
+                  [](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
+                    if (lhs.clusterno != rhs.clusterno) { return lhs.clusterno < rhs.clusterno; }
+                    return lhs.seqno < rhs.seqno;
+                  });
+      }
+  }
 
-  progress_init("Writing clusters", static_cast<uint64_t>(seqcount));
 
   /* allocate memory for full file name of the clusters files */
   std::FILE * fp_clusters = nullptr;
@@ -1269,94 +1268,96 @@ auto cluster(char const * dbname,
   int lastcluster = -1;
   uint64_t ordinal = 0;
 
-  for (int i = 0; i < seqcount; i++)
-    {
-      int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
-      int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
+  {
+    Progress progress("Writing clusters", static_cast<uint64_t>(seqcount), parameters);
+    for (int i = 0; i < seqcount; i++)
+      {
+        int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
+        int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
 
-      if (clusterno != lastcluster)
-        {
-          /* prepare for new cluster */
-          /* performed with first sequence only in each cluster */
-          /* the first sequence is always the centroid */
+        if (clusterno != lastcluster)
+          {
+            /* prepare for new cluster */
+            /* performed with first sequence only in each cluster */
+            /* the first sequence is always the centroid */
 
-          if (parameters.opt_centroids != nullptr)
-            {
-              fasta_print_general(fp_centroids,
-                                  nullptr,
-                                  db_getsequence(static_cast<uint64_t>(seqno)),
-                                  static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno))),
-                                  db_getheader(static_cast<uint64_t>(seqno)),
-                                  static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
-                                  static_cast<uint64_t>(cluster_abundance_v[static_cast<std::size_t>(clusterno)]),
-                                  clusterno + 1,
-                                  -1.0,
-                                  -1,
-                                  parameters.opt_clusterout_id ? clusterno : -1,
-                                  nullptr, 0.0,
-                                  db_getabundance(static_cast<uint64_t>(seqno)),
-                                  parameters);
-            }
+            if (parameters.opt_centroids != nullptr)
+              {
+                fasta_print_general(fp_centroids,
+                                    nullptr,
+                                    db_getsequence(static_cast<uint64_t>(seqno)),
+                                    static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno))),
+                                    db_getheader(static_cast<uint64_t>(seqno)),
+                                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
+                                    static_cast<uint64_t>(cluster_abundance_v[static_cast<std::size_t>(clusterno)]),
+                                    clusterno + 1,
+                                    -1.0,
+                                    -1,
+                                    parameters.opt_clusterout_id ? clusterno : -1,
+                                    nullptr, 0.0,
+                                    db_getabundance(static_cast<uint64_t>(seqno)),
+                                    parameters);
+              }
 
-          if (parameters.opt_uc != nullptr)
-            {
-              std::fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
-                      clusterno,
-                      cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
-              header_fprint_strip(fp_uc,
-                                  db_getheader(static_cast<uint64_t>(seqno)),
-                                  static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
-                                  parameters.opt_xsize,
-                                  parameters.opt_xee,
-                                  parameters.opt_xlength);
-              std::fprintf(fp_uc, "\t*\n");
-            }
+            if (parameters.opt_uc != nullptr)
+              {
+                std::fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
+                        clusterno,
+                        cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
+                header_fprint_strip(fp_uc,
+                                    db_getheader(static_cast<uint64_t>(seqno)),
+                                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
+                                    parameters.opt_xsize,
+                                    parameters.opt_xee,
+                                    parameters.opt_xlength);
+                std::fprintf(fp_uc, "\t*\n");
+              }
 
-          if (parameters.opt_clusters != nullptr)
-            {
-              /* close previous (except for first time) and open new file */
-              if (lastcluster != -1)
-                {
-                  fclose_output(fp_clusters);
-                }
+            if (parameters.opt_clusters != nullptr)
+              {
+                /* close previous (except for first time) and open new file */
+                if (lastcluster != -1)
+                  {
+                    fclose_output(fp_clusters);
+                  }
 
-              ordinal = 0;
-              std::snprintf(fn_clusters.data(),
-                       fn_clusters.capacity(),
-                       "%s%d",
-                       parameters.opt_clusters,
-                       clusterno);
-              fp_clusters = fopen_output(fn_clusters.data());
-              if (fp_clusters == nullptr)
-                {
-                  fatal("Unable to open clusters file for writing (%s)", fn_clusters.data());
-                }
-            }
+                ordinal = 0;
+                std::snprintf(fn_clusters.data(),
+                         fn_clusters.capacity(),
+                         "%s%d",
+                         parameters.opt_clusters,
+                         clusterno);
+                fp_clusters = fopen_output(fn_clusters.data());
+                if (fp_clusters == nullptr)
+                  {
+                    fatal("Unable to open clusters file for writing (%s)", fn_clusters.data());
+                  }
+              }
 
-          lastcluster = clusterno;
-        }
+            lastcluster = clusterno;
+          }
 
-      /* performed for all sequences */
+        /* performed for all sequences */
 
-      if (parameters.opt_clusters != nullptr)
-        {
-          ++ordinal;
-          fasta_print_db_relabel(fp_clusters, static_cast<uint64_t>(seqno), ordinal, parameters);
-        }
+        if (parameters.opt_clusters != nullptr)
+          {
+            ++ordinal;
+            fasta_print_db_relabel(fp_clusters, static_cast<uint64_t>(seqno), ordinal, parameters);
+          }
 
-      progress_update(static_cast<uint64_t>(i));
-    }
+        progress.update(static_cast<uint64_t>(i));
+      }
 
-  if (lastcluster != -1)
-    {
-      /* performed with the last sequence */
-      if (parameters.opt_clusters != nullptr)
-        {
-          fclose_output(fp_clusters);
-        }
-    }
+    if (lastcluster != -1)
+      {
+        /* performed with the last sequence */
+        if (parameters.opt_clusters != nullptr)
+          {
+            fclose_output(fp_clusters);
+          }
+      }
+  }
 
-  progress_done();
 
   if (clusters < 1)
     {
@@ -1409,7 +1410,6 @@ auto cluster(char const * dbname,
     {
       int msa_target_count = 0;
       std::vector<struct msa_target_s> msa_target_list_v(static_cast<std::size_t>(size_max));
-      progress_init("Multiple alignments", static_cast<uint64_t>(seqcount));
 
       std::FILE * fp_msaout = nullptr;
       std::FILE * fp_consout = nullptr;
@@ -1421,50 +1421,52 @@ auto cluster(char const * dbname,
 
       lastcluster = -1;
 
-      for (int i = 0; i < seqcount; i++)
-        {
-          int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
-          int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
-          char * cigar = clusterinfo_v[static_cast<std::size_t>(i)].cigar;
-          int const strand = clusterinfo_v[static_cast<std::size_t>(i)].strand;
+      {
+        Progress progress("Multiple alignments", static_cast<uint64_t>(seqcount), parameters);
+        for (int i = 0; i < seqcount; i++)
+          {
+            int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
+            int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
+            char * cigar = clusterinfo_v[static_cast<std::size_t>(i)].cigar;
+            int const strand = clusterinfo_v[static_cast<std::size_t>(i)].strand;
 
-          if (clusterno != lastcluster)
-            {
-              if (lastcluster != -1)
-                {
-                  /* compute msa & consensus */
-                  msa(fp_msaout, fp_consout, fp_profile,
-                      lastcluster,
-                      msa_target_count, msa_target_list_v,
-                      cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
-                      parameters);
-                }
+            if (clusterno != lastcluster)
+              {
+                if (lastcluster != -1)
+                  {
+                    /* compute msa & consensus */
+                    msa(fp_msaout, fp_consout, fp_profile,
+                        lastcluster,
+                        msa_target_count, msa_target_list_v,
+                        cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                        parameters);
+                  }
 
-              /* start new cluster */
-              msa_target_count = 0;
-              lastcluster = clusterno;
-            }
+                /* start new cluster */
+                msa_target_count = 0;
+                lastcluster = clusterno;
+              }
 
-          /* add current sequence to the cluster */
-          msa_target_list_v[static_cast<std::size_t>(msa_target_count)].seqno = seqno;
-          msa_target_list_v[static_cast<std::size_t>(msa_target_count)].cigar = cigar;
-          msa_target_list_v[static_cast<std::size_t>(msa_target_count)].strand = strand;
-          ++msa_target_count;
+            /* add current sequence to the cluster */
+            msa_target_list_v[static_cast<std::size_t>(msa_target_count)].seqno = seqno;
+            msa_target_list_v[static_cast<std::size_t>(msa_target_count)].cigar = cigar;
+            msa_target_list_v[static_cast<std::size_t>(msa_target_count)].strand = strand;
+            ++msa_target_count;
 
-          progress_update(static_cast<uint64_t>(i));
-        }
+            progress.update(static_cast<uint64_t>(i));
+          }
 
-      if (lastcluster != -1)
-        {
-          /* compute msa & consensus */
-          msa(fp_msaout, fp_consout, fp_profile,
-              lastcluster,
-              msa_target_count, msa_target_list_v,
-              cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
-              parameters);
-        }
+        if (lastcluster != -1)
+          {
+            /* compute msa & consensus */
+            msa(fp_msaout, fp_consout, fp_profile,
+                lastcluster,
+                msa_target_count, msa_target_list_v,
+                cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                parameters);
+          }
+      }
 
-      progress_done();
 
       fclose_output(fp_profile);
       fclose_output(fp_msaout);
