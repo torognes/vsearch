@@ -78,6 +78,22 @@ vsearch --fastq_mergepairs data/merge_fwd.fastq \
   --fastaout output.fasta
 ```
 
+### example_lifecycle
+
+Library API contract checks that have no CLI equivalent: null-safety of every
+free function, the `merge_result_free()` no-op/idempotency contract, the
+`mergepairs_single()` `-1` failure return with null buffers, result-struct
+reuse, the non-chimeric result zeroing contract, and the `dust_single()`
+hardmask parameter. Self-validating (no ground-truth comparison).
+
+### example_dbinfo
+
+Database query and indexing surface: `db_read()` for FASTA and FASTQ, all
+statistical accessors (`db_getnucleotidecount()`, `db_getlongestsequence()`,
+etc.), quality retrieval, the three `db_sortby*()` ordering contracts, and the
+incremental `dbindex_addsequence()` primitive checked against
+`dbindex_addallsequences()`. Self-validating.
+
 ## Test data
 
 All test data uses synthetic 300bp DNA sequences with known properties:

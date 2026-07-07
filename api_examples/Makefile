@@ -29,7 +29,7 @@ endif
 
 SHELL = /bin/bash
 
-EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep example_reinit
+EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo
 
 all: $(EXAMPLES)
 
@@ -52,6 +52,12 @@ example_derep: example_derep.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 example_reinit: example_reinit.cc $(VSEARCH_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+example_lifecycle: example_lifecycle.cc $(VSEARCH_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+example_dbinfo: example_dbinfo.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 test: $(EXAMPLES)
@@ -95,6 +101,16 @@ test: $(EXAMPLES)
 	@./example_reinit \
 		&& echo "PASS: re-initialization produces correct results" \
 		|| (echo "FAIL: re-initialization test failed"; exit 1)
+	@echo ""
+	@echo "=== Running example_lifecycle ==="
+	@./example_lifecycle \
+		&& echo "PASS: library memory/error contracts hold" \
+		|| (echo "FAIL: lifecycle contract test failed"; exit 1)
+	@echo ""
+	@echo "=== Running example_dbinfo ==="
+	@./example_dbinfo \
+		&& echo "PASS: database query/indexing surface behaves as documented" \
+		|| (echo "FAIL: dbinfo test failed"; exit 1)
 	@echo ""
 	@echo "All tests passed."
 
