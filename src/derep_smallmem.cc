@@ -608,7 +608,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                                   static_cast<int64_t>(selected),
                                   -1.0,
                                   -1, -1, nullptr, 0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
           bp->size = static_cast<uint64_t>(-1);
         }

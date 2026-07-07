@@ -707,7 +707,8 @@ auto fastq_print_general(FILE * output_handle,
                          char const * quality,
                          uint64_t const abundance,
                          int64_t const ordinal,
-                         double const expected_error) -> void
+                         double const expected_error,
+                         struct Parameters const & parameters) -> void
 {
   std::fprintf(output_handle, "@");
 
@@ -716,27 +717,27 @@ auto fastq_print_general(FILE * output_handle,
   // separator instead of producing ";;" (see issue #271)
   auto trailing_separator = false;
 
-  if (opt_relabel_self)
+  if (parameters.opt_relabel_self)
     {
       fprint_seq_label(output_handle, seq, len);
     }
-  else if (opt_relabel_sha1)
+  else if (parameters.opt_relabel_sha1)
     {
       fprint_seq_digest_sha1(output_handle, seq, len);
     }
-  else if (opt_relabel_md5)
+  else if (parameters.opt_relabel_md5)
     {
       fprint_seq_digest_md5(output_handle, seq, len);
     }
-  else if ((opt_relabel != nullptr) && (ordinal > 0))
+  else if ((parameters.opt_relabel != nullptr) && (ordinal > 0))
     {
-      std::fprintf(output_handle, "%s%" PRId64, opt_relabel, ordinal);
+      std::fprintf(output_handle, "%s%" PRId64, parameters.opt_relabel, ordinal);
     }
   else
     {
-      auto const xsize = opt_xsize || (opt_sizeout && (abundance > 0));
-      auto const xee = opt_xee || ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0));
-      auto const xlength = opt_xlength || opt_lengthout;
+      auto const xsize = parameters.opt_xsize || (parameters.opt_sizeout && (abundance > 0));
+      auto const xee = parameters.opt_xee || ((parameters.opt_eeout || parameters.opt_fastq_eeout) && (expected_error >= 0.0));
+      auto const xlength = parameters.opt_xlength || parameters.opt_lengthout;
       trailing_separator = header_fprint_strip(output_handle,
                                                header,
                                                header_len,
@@ -745,26 +746,26 @@ auto fastq_print_general(FILE * output_handle,
                                                xlength);
     }
 
-  if (opt_label_suffix != nullptr)
+  if (parameters.opt_label_suffix != nullptr)
     {
-      std::fprintf(output_handle, "%s", opt_label_suffix);
-      if (*opt_label_suffix != '\0')
+      std::fprintf(output_handle, "%s", parameters.opt_label_suffix);
+      if (*parameters.opt_label_suffix != '\0')
         {
-          trailing_separator = (opt_label_suffix[std::strlen(opt_label_suffix) - 1] == ';');
+          trailing_separator = (parameters.opt_label_suffix[std::strlen(parameters.opt_label_suffix) - 1] == ';');
         }
     }
 
-  if (opt_sample != nullptr)
+  if (parameters.opt_sample != nullptr)
     {
-      std::fprintf(output_handle, "%ssample=%s", annotation_separator(trailing_separator), opt_sample);
+      std::fprintf(output_handle, "%ssample=%s", annotation_separator(trailing_separator), parameters.opt_sample);
     }
 
-  if (opt_sizeout && (abundance > 0))
+  if (parameters.opt_sizeout && (abundance > 0))
     {
       std::fprintf(output_handle, "%ssize=%" PRIu64, annotation_separator(trailing_separator), abundance);
     }
 
-  if ((opt_eeout || opt_fastq_eeout) && (expected_error >= 0.0))
+  if ((parameters.opt_eeout || parameters.opt_fastq_eeout) && (expected_error >= 0.0))
     {
       auto const * separator = annotation_separator(trailing_separator);
       if (expected_error < 0.000000001) {
@@ -790,13 +791,13 @@ auto fastq_print_general(FILE * output_handle,
       }
     }
 
-  if (opt_lengthout)
+  if (parameters.opt_lengthout)
     {
       std::fprintf(output_handle, "%slength=%d", annotation_separator(trailing_separator), len);
     }
 
-  if (opt_relabel_keep &&
-      (((opt_relabel != nullptr) && (ordinal > 0)) || opt_relabel_sha1 || opt_relabel_md5 || opt_relabel_self))
+  if (parameters.opt_relabel_keep &&
+      (((parameters.opt_relabel != nullptr) && (ordinal > 0)) || parameters.opt_relabel_sha1 || parameters.opt_relabel_md5 || parameters.opt_relabel_self))
     {
       std::fprintf(output_handle, " %.*s", header_len, header);
     }
@@ -805,9 +806,10 @@ auto fastq_print_general(FILE * output_handle,
 }
 
 
-auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality) -> void
+auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality,
+                 struct Parameters const & parameters) -> void
 {
   auto const slen = static_cast<int>(std::strlen(sequence));
   auto const hlen = static_cast<int>(std::strlen(header));
-  fastq_print_general(output_handle, sequence, slen, header, hlen, quality, 0, 0, -1.0);
+  fastq_print_general(output_handle, sequence, slen, header, hlen, quality, 0, 0, -1.0, parameters);
 }

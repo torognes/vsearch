@@ -370,7 +370,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                   -1,
                                   nullptr,
                                   0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_fastqout_discarded != nullptr)
@@ -383,7 +384,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                   fastx_get_quality(forward_handle) + res1.start,
                                   static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
                                   discarded,
-                                  res1.ee);
+                                  res1.ee,
+                                  parameters);
             }
 
           if (reverse_handle != nullptr)
@@ -403,7 +405,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                       -1,
                                       nullptr,
                                       0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
 
               if (parameters.opt_fastqout_discarded_rev != nullptr)
@@ -416,7 +419,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                       fastx_get_quality(reverse_handle) + res2.start,
                                       static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
                                       discarded,
-                                      res2.ee);
+                                      res2.ee,
+                                      parameters);
                 }
             }
         }
@@ -446,7 +450,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                   -1,
                                   nullptr,
                                   0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_fastqout != nullptr)
@@ -459,7 +464,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                   fastx_get_quality(forward_handle) + res1.start,
                                   static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
                                   kept,
-                                  res1.ee);
+                                  res1.ee,
+                                  parameters);
             }
 
           if (reverse_handle != nullptr)
@@ -479,7 +485,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                       -1,
                                       nullptr,
                                       0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
 
               if (parameters.opt_fastqout_rev != nullptr)
@@ -492,7 +499,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                       fastx_get_quality(reverse_handle) + res2.start,
                                       static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
                                       kept,
-                                      res2.ee);
+                                      res2.ee,
+                                      parameters);
                 }
             }
         }

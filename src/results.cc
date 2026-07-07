@@ -99,7 +99,8 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const * hits,
                                  char const * query_head,
                                  char const * qsequence,
-                                 char const * qsequence_rc) -> void
+                                 char const * qsequence_rc,
+                                 struct Parameters const & parameters) -> void
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
 
@@ -124,7 +125,8 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       -1,
                       nullptr,
                       0.0,
-                      0);
+                      0,
+                      parameters);
 
   auto const target = static_cast<uint64_t>(hits->target);
   auto const trow = get_alignment_trow(Span<char>{db_getsequence(target), static_cast<std::size_t>(db_getsequencelen(target))},
@@ -143,7 +145,8 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       -1,
                       nullptr,
                       0.0,
-                      0);
+                      0,
+                      parameters);
 
   std::fprintf(output_handle, "\n");
 }
@@ -154,7 +157,8 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                               char const * query_head,
                               char const * qsequence,
                               int64_t const qseqlen,
-                              char const * qsequence_rc) -> void
+                              char const * qsequence_rc,
+                              struct Parameters const & parameters) -> void
 {
   if (hits == nullptr) {
     return;
@@ -176,12 +180,14 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                       -1,
                       nullptr,
                       0.0,
-                      0);
+                      0,
+                      parameters);
 }
 
 
 auto results_show_tsegout_one(std::FILE * output_handle,
-                              struct hit const * hits) -> void
+                              struct hit const * hits,
+                              struct Parameters const & parameters) -> void
 {
   if (hits == nullptr) {
     return;
@@ -203,7 +209,8 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                       -1,
                       nullptr,
                       0.0,
-                      0);
+                      0,
+                      parameters);
 }
 
 

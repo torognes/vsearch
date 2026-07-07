@@ -460,7 +460,8 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                   -1,
                                   nullptr,
                                   0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_fastqout != nullptr)
@@ -473,7 +474,8 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                   fastx_get_quality(h1) + offset,
                                   static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   kept,
-                                  -1.0);
+                                  -1.0,
+                                  parameters);
             }
         }
       else
@@ -501,7 +503,8 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                   -1,
                                   nullptr,
                                   0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_notmatchedfq != nullptr)
@@ -514,7 +517,8 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                   fastx_get_quality(h1),
                                   static_cast<uint64_t>(fastx_get_abundance(h1)),
                                   discarded,
-                                  -1.0);
+                                  -1.0,
+                                  parameters);
             }
         }
 

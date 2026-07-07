@@ -189,7 +189,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                           hp,
                                           query_head,
                                           qsequence,
-                                          qsequence_rc);
+                                          qsequence_rc,
+                                          state.parameters);
             }
 
           if (state.fp_qsegout != nullptr)
@@ -199,13 +200,15 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       state.parameters);
             }
 
           if (state.fp_tsegout != nullptr)
             {
               results_show_tsegout_one(state.fp_tsegout,
-                                       hp);
+                                       hp,
+                                       state.parameters);
             }
 
           if (state.fp_uc != nullptr)
@@ -289,7 +292,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               state.count_matched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              state.parameters);
         }
     }
   else
@@ -307,7 +311,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               state.count_notmatched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              state.parameters);
         }
     }
 }

@@ -213,7 +213,8 @@ namespace {
 
   auto write_record(output_pair const & destination,
                     read_record const & record,
-                    int64_t const ordinal) -> void {
+                    int64_t const ordinal,
+                    struct Parameters const & parameters) -> void {
     auto const length = static_cast<int>(record.sequence.length());
     auto const header_length = static_cast<int>(record.header.length());
     if (destination.fastq.handle != nullptr) {
@@ -225,7 +226,8 @@ namespace {
                           record.quality.c_str(),
                           static_cast<uint64_t>(record.abundance),
                           ordinal,
-                          -1.0);
+                          -1.0,
+                          parameters);
     }
     if (destination.fasta.handle != nullptr) {
       fasta_print_general(destination.fasta.handle,
@@ -241,7 +243,8 @@ namespace {
                           -1,
                           nullptr,
                           0,
-                          0);
+                          0,
+                          parameters);
     }
   }
 
@@ -340,7 +343,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
     auto const match = reverse_index.find(key);
     if (match == reverse_index.end()) {
       write_record(outfiles.orphans_fwd, store_record(forward_handle, is_fastq),
-                   static_cast<int64_t>(orphans_fwd + 1));
+                   static_cast<int64_t>(orphans_fwd + 1), parameters);
       ++orphans_fwd;
     }
     else {
@@ -355,9 +358,9 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
       reverse_used[position] = true;
       ++pairs;
       write_record(outfiles.synced_fwd, store_record(forward_handle, is_fastq),
-                   static_cast<int64_t>(pairs));
+                   static_cast<int64_t>(pairs), parameters);
       write_record(outfiles.synced_rev, reverse_records[position],
-                   static_cast<int64_t>(pairs));
+                   static_cast<int64_t>(pairs), parameters);
     }
     progress_update(fastx_get_position(forward_handle));
   }
@@ -369,7 +372,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   for (std::size_t position = 0; position < reverse_records.size(); ++position) {
     if (not reverse_used[position]) {
       write_record(outfiles.orphans_rev, reverse_records[position],
-                   static_cast<int64_t>(orphans_rev + 1));
+                   static_cast<int64_t>(orphans_rev + 1), parameters);
       ++orphans_rev;
     }
   }

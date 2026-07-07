@@ -113,7 +113,8 @@ namespace {
                       struct restriction_pattern const & restriction,
                       struct file_purpose const & fastaout,
                       struct statistics & counters,
-                      std::vector<char> & rc_buffer) -> void
+                      std::vector<char> & rc_buffer,
+                      struct Parameters const & parameters) -> void
   {
     auto const pattern_length = static_cast<int>(restriction.pattern.size());
     char const * seq = fasta_get_sequence(input_handle);
@@ -166,7 +167,8 @@ namespace {
                                 -1,
                                 nullptr,
                                 0.0,
-                                0);
+                                0,
+                                parameters);
           }
 
         if ((rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
@@ -184,7 +186,8 @@ namespace {
                                 -1,
                                 nullptr,
                                 0.0,
-                                0);
+                                0,
+                                parameters);
           }
 
         frag_start += frag_length;
@@ -213,7 +216,8 @@ namespace {
                             -1,
                             nullptr,
                             0.0,
-                            0);
+                            0,
+                            parameters);
       }
 
     if ((local_matches > 0) and (rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
@@ -231,7 +235,8 @@ namespace {
                             -1,
                             nullptr,
                             0.0,
-                            0);
+                            0,
+                            parameters);
       }
 
     if (local_matches == 0)
@@ -254,7 +259,8 @@ namespace {
                             -1,
                             nullptr,
                             0.0,
-                            0);
+                            0,
+                            parameters);
       }
 
     if ((local_matches == 0) and (fastaout.discarded.reverse.name != nullptr))
@@ -272,7 +278,8 @@ namespace {
                             -1,
                             nullptr,
                             0.0,
-                            0);
+                            0,
+                            parameters);
       }
 
     counters.matches += local_matches;
@@ -478,7 +485,7 @@ auto cut(struct Parameters const & parameters) -> void {
   std::vector<char> rc_buffer;
   while (fasta_next(input_handle, false, chrmap_no_change_vector.data()))
     {
-      cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer);
+      cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer, parameters);
 
       progress.update(fasta_get_position(input_handle));
     }

@@ -83,7 +83,8 @@ auto fastq_get_header_length(fastx_handle input_handle) -> uint64_t;
 auto fastq_get_sequence_length(fastx_handle input_handle) -> uint64_t;
 auto fastq_get_quality_length(fastx_handle input_handle) -> uint64_t;
 
-auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality) -> void;
+auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality,
+                 struct Parameters const & parameters) -> void;
 
 auto fastq_print_general(std::FILE * output_handle,
                          char const * seq,
@@ -93,4 +94,5 @@ auto fastq_print_general(std::FILE * output_handle,
                          char const * quality,
                          uint64_t abundance,
                          int64_t ordinal,
-                         double expected_error) -> void;
+                         double expected_error,
+                         struct Parameters const & parameters) -> void;

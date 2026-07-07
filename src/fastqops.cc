@@ -164,7 +164,8 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
                               count,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              parameters);
         }
 
       if (parameters.opt_fastqout != nullptr)
@@ -177,7 +178,8 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
                               qual_buffer.data(),
                               static_cast<uint64_t>(abundance),
                               count,
-                              -1.0);
+                              -1.0,
+                              parameters);
         }
 
       progress_update(fastx_get_position(input_handle));
@@ -281,7 +283,8 @@ auto fastq_convert(struct Parameters const & parameters) -> void
                           normalized_quality.data(),
                           static_cast<uint64_t>(abundance),
                           n_entries,
-                          default_expected_error);  // refactoring: prefer function overload?
+                          default_expected_error,
+                          parameters);  // refactoring: prefer function overload?
 
       ++n_entries;
       normalized_quality.clear();

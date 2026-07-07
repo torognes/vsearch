@@ -292,7 +292,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               final_quality.c_str(),
                               static_cast<uint64_t>(static_cast<int>(fastq_get_abundance(infiles.forward.handle))),
                               static_cast<int>(total + 1),
-                              -1.0);
+                              -1.0,
+                              parameters);
         }
 
       if (parameters.opt_fastaout != nullptr)
@@ -310,7 +311,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
                               -1,
                               nullptr,
                               0,
-                              0);
+                              0,
+                              parameters);
         }
 
       ++total;

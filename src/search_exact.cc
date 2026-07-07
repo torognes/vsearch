@@ -246,7 +246,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                           &hit,
                                           query_head,
                                           qsequence,
-                                          qsequence_rc);
+                                          qsequence_rc,
+                                          parameters);
             }
 
           if (fp_qsegout != nullptr)
@@ -256,13 +257,15 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       parameters);
             }
 
           if (fp_tsegout != nullptr)
             {
               results_show_tsegout_one(fp_tsegout,
-                                       &hit);
+                                       &hit,
+                                       parameters);
             }
 
           if (fp_uc != nullptr)
@@ -353,7 +356,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               count_matched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              parameters);
         }
     }
   else
@@ -371,7 +375,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                               count_notmatched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              parameters);
         }
     }
 
@@ -805,7 +810,8 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
                                       count_dbmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
             }
           else
@@ -823,7 +829,8 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
                                       count_dbnotmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
             }
         }

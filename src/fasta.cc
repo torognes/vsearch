@@ -466,10 +466,11 @@ auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t 
 
 
 auto fasta_print(std::FILE * output_handle, char const * header,
-                 char const * seq, uint64_t const len) -> void
+                 char const * seq, uint64_t const len,
+                 struct Parameters const & parameters) -> void
 {
   std::fprintf(output_handle, ">%s\n", header);
-  fasta_print_sequence(output_handle, seq, len, static_cast<int>(opt_fasta_width));
+  fasta_print_sequence(output_handle, seq, len, static_cast<int>(parameters.opt_fasta_width));
 }
 
 
@@ -502,7 +503,8 @@ auto fasta_print_general(std::FILE * output_handle,
                          int const clusterid,
                          char const * score_name,
                          double const score,
-                         uint64_t const centroid_size) -> void
+                         uint64_t const centroid_size,
+                         struct Parameters const & parameters) -> void
 {
   std::fprintf(output_handle, ">");
 
@@ -516,27 +518,27 @@ auto fasta_print_general(std::FILE * output_handle,
   // separator instead of producing ";;" (see issue #271)
   auto trailing_separator = false;
 
-  if (opt_relabel_self)
+  if (parameters.opt_relabel_self)
     {
       fprint_seq_label(output_handle, seq, len);
     }
-  else if (opt_relabel_sha1)
+  else if (parameters.opt_relabel_sha1)
     {
       fprint_seq_digest_sha1(output_handle, seq, len);
     }
-  else if (opt_relabel_md5)
+  else if (parameters.opt_relabel_md5)
     {
       fprint_seq_digest_md5(output_handle, seq, len);
     }
-  else if ((opt_relabel != nullptr) and (ordinal > 0))
+  else if ((parameters.opt_relabel != nullptr) and (ordinal > 0))
     {
-      std::fprintf(output_handle, "%s%" PRId64, opt_relabel, ordinal);
+      std::fprintf(output_handle, "%s%" PRId64, parameters.opt_relabel, ordinal);
     }
   else
     {
-      bool const strip_size = opt_xsize or (opt_sizeout and (abundance > 0));
-      bool const strip_ee = opt_xee or ((opt_eeout or opt_fastq_eeout) and (expected_error >= 0.0));
-      bool const strip_length = opt_xlength or opt_lengthout;
+      bool const strip_size = parameters.opt_xsize or (parameters.opt_sizeout and (abundance > 0));
+      bool const strip_ee = parameters.opt_xee or ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (expected_error >= 0.0));
+      bool const strip_length = parameters.opt_xlength or parameters.opt_lengthout;
       trailing_separator = header_fprint_strip(output_handle,
                                                header,
                                                header_length,
@@ -545,18 +547,18 @@ auto fasta_print_general(std::FILE * output_handle,
                                                strip_length);
     }
 
-  if (opt_label_suffix != nullptr)
+  if (parameters.opt_label_suffix != nullptr)
     {
-      std::fprintf(output_handle, "%s", opt_label_suffix);
-      if (*opt_label_suffix != '\0')
+      std::fprintf(output_handle, "%s", parameters.opt_label_suffix);
+      if (*parameters.opt_label_suffix != '\0')
         {
-          trailing_separator = (opt_label_suffix[std::strlen(opt_label_suffix) - 1] == ';');
+          trailing_separator = (parameters.opt_label_suffix[std::strlen(parameters.opt_label_suffix) - 1] == ';');
         }
     }
 
-  if (opt_sample != nullptr)
+  if (parameters.opt_sample != nullptr)
     {
-      std::fprintf(output_handle, "%ssample=%s", annotation_separator(trailing_separator), opt_sample);
+      std::fprintf(output_handle, "%ssample=%s", annotation_separator(trailing_separator), parameters.opt_sample);
     }
 
   if (clustersize > 0)
@@ -569,17 +571,17 @@ auto fasta_print_general(std::FILE * output_handle,
       std::fprintf(output_handle, "%sclusterid=%d", annotation_separator(trailing_separator), clusterid);
     }
 
-  if (opt_sizeout and (abundance > 0))
+  if (parameters.opt_sizeout and (abundance > 0))
     {
       std::fprintf(output_handle, "%ssize=%" PRIu64, annotation_separator(trailing_separator), abundance);
     }
 
-  if (opt_centroid_sizeout and (centroid_size > 0))
+  if (parameters.opt_centroid_sizeout and (centroid_size > 0))
     {
       std::fprintf(output_handle, "%scentroid_size=%" PRIu64, annotation_separator(trailing_separator), centroid_size);
     }
 
-  if ((opt_eeout or opt_fastq_eeout) and (expected_error >= 0.0))
+  if ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (expected_error >= 0.0))
     {
       auto const * separator = annotation_separator(trailing_separator);
       if (expected_error < 0.000000001) {
@@ -605,7 +607,7 @@ auto fasta_print_general(std::FILE * output_handle,
       }
     }
 
-  if (opt_lengthout)
+  if (parameters.opt_lengthout)
     {
       std::fprintf(output_handle, "%slength=%d", annotation_separator(trailing_separator), len);
     }
@@ -615,8 +617,8 @@ auto fasta_print_general(std::FILE * output_handle,
       std::fprintf(output_handle, "%s%s=%.4lf", annotation_separator(trailing_separator), score_name, score);
     }
 
-  if (opt_relabel_keep and
-      (((opt_relabel != nullptr) and (ordinal > 0)) or opt_relabel_sha1 or opt_relabel_md5 or opt_relabel_self))
+  if (parameters.opt_relabel_keep and
+      (((parameters.opt_relabel != nullptr) and (ordinal > 0)) or parameters.opt_relabel_sha1 or parameters.opt_relabel_md5 or parameters.opt_relabel_self))
     {
       std::fprintf(output_handle, " %s", header);
     }
@@ -625,7 +627,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (seq != nullptr)
     {
-      fasta_print_sequence(output_handle, seq, static_cast<uint64_t>(len), static_cast<int>(opt_fasta_width));
+      fasta_print_sequence(output_handle, seq, static_cast<uint64_t>(len), static_cast<int>(parameters.opt_fasta_width));
     }
 }
 
@@ -637,7 +639,8 @@ auto fasta_print_general(std::FILE * output_handle,
 // uint64_t, size_t and int are all distinct types (e.g. macOS).
 auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
-                            uint64_t ordinal) -> void
+                            uint64_t ordinal,
+                            struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
                       nullptr,
@@ -650,11 +653,13 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
                       -1.0,
                       -1, -1,
                       nullptr, 0.0,
-                      0);
+                      0,
+                      parameters);
 }
 
 
-auto fasta_print_db(std::FILE * output_handle, uint64_t seqno) -> void
+auto fasta_print_db(std::FILE * output_handle, uint64_t seqno,
+                    struct Parameters const & parameters) -> void
 {
   fasta_print_general(output_handle,
                       nullptr,
@@ -667,5 +672,6 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t seqno) -> void
                       -1.0,
                       -1, -1,
                       nullptr, 0.0,
-                      0);
+                      0,
+                      parameters);
 }

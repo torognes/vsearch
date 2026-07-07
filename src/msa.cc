@@ -235,7 +235,8 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 
 auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix,
                                int const target_seqno,
-                               std::vector<char> const & aln_v) -> void {
+                               std::vector<char> const & aln_v,
+                               struct Parameters const & parameters) -> void {
   // header_prefix == "*" or "", resulting in ">*header" or ">header"
   if (fp_msaout == nullptr) { return ; }
 
@@ -246,7 +247,7 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
                       db_getheader(static_cast<uint64_t>(target_seqno)),
                       static_cast<int>(db_getheaderlen(static_cast<uint64_t>(target_seqno))),
                       db_getabundance(static_cast<uint64_t>(target_seqno)),
-                      0, -1.0, -1, -1, nullptr, 0.0, 0);
+                      0, -1.0, -1, -1, nullptr, 0.0, 0, parameters);
 }
 
 
@@ -296,7 +297,7 @@ auto process_and_print_centroid(char *rc_buffer,
   aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
 
   /* print header & sequence */
-  print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v);
+  print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v, parameters);
 }
 
 
@@ -413,7 +414,7 @@ auto compute_and_print_msa(int const target_count,
       aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
 
       /* print header & sequence */
-      print_header_and_sequence(fp_msaout, "", target_seqno, aln_v);
+      print_header_and_sequence(fp_msaout, "", target_seqno, aln_v, parameters);
     }
 }
 
@@ -422,7 +423,8 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
                                  std::vector<char> &aln_v,
                                  std::vector<char> &cons_v,
                                  std::vector<prof_type> const &profile,
-                                 std::FILE * fp_msaout) -> void {
+                                 std::FILE * fp_msaout,
+                                 struct Parameters const & parameters) -> void {
   static constexpr std::array<char, 16> sym_nt_4bit = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
   static constexpr char index_of_N = 15;  // 15th char in sym_nt_4bit[] (=> 'N')
 
@@ -486,7 +488,7 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
 
   if (fp_msaout != nullptr)
     {
-      fasta_print(fp_msaout, "consensus", aln_v.data(), static_cast<uint64_t>(alignment_length));
+      fasta_print(fp_msaout, "consensus", aln_v.data(), static_cast<uint64_t>(alignment_length), parameters);
     }
 }
 
@@ -509,7 +511,8 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
                       target_count,
                       parameters.opt_clusterout_id ? cluster : -1,
                       nullptr, 0.0,
-                      0);
+                      0,
+                      parameters);
 }
 
 
@@ -536,7 +539,8 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                       target_count,
                       parameters.opt_clusterout_id ? cluster : -1,
                       nullptr, 0.0,
-                      0);
+                      0,
+                      parameters);
 
   aln_v.pop_back(); // remove last element ('\0')
   auto counter = 0;
@@ -581,7 +585,8 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
                               aln_v,
                               cons_v,
                               profile,
-                              fp_msaout);
+                              fp_msaout,
+                              parameters);
 
   /* consout: consensus sequence (dedicated input) */
   print_consensus_sequence(fp_consout, cons_v,

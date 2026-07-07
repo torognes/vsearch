@@ -205,7 +205,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                                           hp,
                                           query_head,
                                           qsequence,
-                                          qsequence_rc);
+                                          qsequence_rc,
+                                          state.parameters);
             }
 
           if (state.fp_qsegout != nullptr)
@@ -215,13 +216,15 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       state.parameters);
             }
 
           if (state.fp_tsegout != nullptr)
             {
               results_show_tsegout_one(state.fp_tsegout,
-                                       hp);
+                                       hp,
+                                       state.parameters);
             }
 
           if (state.fp_uc != nullptr)
@@ -312,7 +315,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                               state.count_matched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              state.parameters);
         }
     }
   else
@@ -330,7 +334,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                               state.count_notmatched,
                               -1.0,
                               -1, -1, nullptr, 0.0,
-                              0);
+                              0,
+                              state.parameters);
         }
     }
 
@@ -875,7 +880,8 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
                                       count_dbmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
             }
           else
@@ -893,7 +899,8 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
                                       count_dbnotmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
             }
         }

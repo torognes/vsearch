@@ -101,17 +101,20 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const * hits,
                                  char const * query_head,
                                  char const * qsequence,
-                                 char const * qsequence_rc) -> void;
+                                 char const * qsequence_rc,
+                                 struct Parameters const & parameters) -> void;
 
 auto results_show_qsegout_one(std::FILE * output_handle,
                               struct hit const * hits,
                               char const * query_head,
                               char const * qsequence,
                               int64_t qseqlen,
-                              char const * qsequence_rc) -> void;
+                              char const * qsequence_rc,
+                              struct Parameters const & parameters) -> void;
 
 auto results_show_tsegout_one(std::FILE * output_handle,
-                              struct hit const * hits) -> void;
+                              struct hit const * hits,
+                              struct Parameters const & parameters) -> void;
 
 auto results_show_samheader(std::FILE * output_handle,
                             char const * cmdline,

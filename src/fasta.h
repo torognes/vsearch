@@ -88,7 +88,8 @@ auto fasta_get_abundance_and_presence(struct fastx_s const * input_handle) -> in
 auto fasta_print(std::FILE * output_handle,
                  char const * header,
                  char const * seq,
-                 uint64_t len) -> void;
+                 uint64_t len,
+                 struct Parameters const & parameters) -> void;
 
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
@@ -103,11 +104,14 @@ auto fasta_print_general(std::FILE * output_handle,
                          int clusterid,
                          char const * score_name,
                          double score,
-                         uint64_t centroid_size) -> void;
+                         uint64_t centroid_size,
+                         struct Parameters const & parameters) -> void;
 
 auto fasta_print_db(std::FILE * output_handle,
-                    uint64_t seqno) -> void;
+                    uint64_t seqno,
+                    struct Parameters const & parameters) -> void;
 
 auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
-                            uint64_t ordinal) -> void;
+                            uint64_t ordinal,
+                            struct Parameters const & parameters) -> void;

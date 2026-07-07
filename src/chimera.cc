@@ -2236,7 +2236,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                   ( (state.parameters.opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h,
-                                  0);
+                                  0,
+                                  state.parameters);
 
             }
         }
@@ -2263,7 +2264,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                   ( (state.parameters.opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h,
-                                  0);
+                                  0,
+                                  state.parameters);
 
             }
         }
@@ -2314,7 +2316,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                   ( (state.parameters.opt_uchime_ref != nullptr) ?
                                     "uchime_ref" : "uchime_denovo" ) : nullptr,
                                   ci->best_h,
-                                  0);
+                                  0,
+                                  state.parameters);
             }
         }
 

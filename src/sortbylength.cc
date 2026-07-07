@@ -190,7 +190,7 @@ namespace {
     Progress progress("Writing output", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto const & sequence: deck) {
-      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
+      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1, parameters);
       progress.update(counter);
       ++counter;
     }

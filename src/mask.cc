@@ -305,7 +305,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   progress_init("Writing output", seqcount);
   for (uint64_t i = 0; i < seqcount; i++)
     {
-      fasta_print_db_relabel(output_handle.get(), i, i + 1);
+      fasta_print_db_relabel(output_handle.get(), i, i + 1, parameters);
       progress_update(i);
     }
   progress_done();
@@ -406,7 +406,8 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                                   kept,
                                   -1.0,
                                   -1, -1, nullptr, 0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_fastqout != nullptr)
@@ -419,7 +420,8 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                                   db_getquality(i),
                                   db_getabundance(i),
                                   kept,
-                                  -1.0);
+                                  -1.0,
+                                  parameters);
             }
         }
 

@@ -419,7 +419,8 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                   best,
                                   query_head,
                                   qsequence,
-                                  qsequence_rc);
+                                  qsequence_rc,
+                                  state.parameters);
     }
 
   if (state.fp_qsegout != nullptr)
@@ -429,13 +430,15 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                query_head,
                                qsequence,
                                qseqlen,
-                               qsequence_rc);
+                               qsequence_rc,
+                               state.parameters);
     }
 
   if (state.fp_tsegout != nullptr)
     {
       results_show_tsegout_one(state.fp_tsegout,
-                               best);
+                               best,
+                               state.parameters);
     }
 
   if (state.fp_userout != nullptr)
@@ -462,7 +465,8 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                           state.count_matched,
                           -1.0,
                           -1, -1, nullptr, 0.0,
-                          0);
+                          0,
+                          state.parameters);
     }
 }
 
@@ -530,7 +534,8 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                           state.count_notmatched,
                           -1.0,
                           -1, -1, nullptr, 0.0,
-                          0);
+                          0,
+                          state.parameters);
     }
 }
 
@@ -1289,7 +1294,8 @@ auto cluster(char const * dbname,
                                   -1,
                                   parameters.opt_clusterout_id ? clusterno : -1,
                                   nullptr, 0.0,
-                                  db_getabundance(static_cast<uint64_t>(seqno)));
+                                  db_getabundance(static_cast<uint64_t>(seqno)),
+                                  parameters);
             }
 
           if (parameters.opt_uc != nullptr)
@@ -1335,7 +1341,7 @@ auto cluster(char const * dbname,
       if (parameters.opt_clusters != nullptr)
         {
           ++ordinal;
-          fasta_print_db_relabel(fp_clusters, static_cast<uint64_t>(seqno), ordinal);
+          fasta_print_db_relabel(fp_clusters, static_cast<uint64_t>(seqno), ordinal, parameters);
         }
 
       progress_update(static_cast<uint64_t>(i));

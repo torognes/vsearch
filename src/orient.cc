@@ -274,7 +274,8 @@ auto orient(struct Parameters const & parameters) -> void
                                   -1,
                                   nullptr,
                                   0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_fastqout != nullptr)
@@ -287,7 +288,8 @@ auto orient(struct Parameters const & parameters) -> void
                                   query_qual_fwd,
                                   static_cast<uint64_t>(qsize),
                                   qmatches,
-                                  -1.0);
+                                  -1.0,
+                                  parameters);
             }
         }
       else if ((count_rev >= min_count) and (count_rev >= min_factor * count_fwd))
@@ -332,7 +334,8 @@ auto orient(struct Parameters const & parameters) -> void
                                   -1,
                                   nullptr,
                                   0.0,
-                                  0);
+                                  0,
+                                  parameters);
             }
 
           if (parameters.opt_fastqout != nullptr)
@@ -357,7 +360,8 @@ auto orient(struct Parameters const & parameters) -> void
                                   query_qual_rev.data(),
                                   static_cast<uint64_t>(qsize),
                                   qmatches,
-                                  -1.0);
+                                  -1.0,
+                                  parameters);
             }
         }
       else
@@ -379,7 +383,8 @@ auto orient(struct Parameters const & parameters) -> void
                                       query_qual_fwd,
                                       static_cast<uint64_t>(qsize),
                                       notmatched,
-                                      -1.0);
+                                      -1.0,
+                                      parameters);
                 }
               else
                 {
@@ -396,7 +401,8 @@ auto orient(struct Parameters const & parameters) -> void
                                       -1,
                                       nullptr,
                                       0.0,
-                                      0);
+                                      0,
+                                      parameters);
                 }
             }
         }

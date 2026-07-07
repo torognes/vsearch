@@ -618,7 +618,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
                           read_name.data(),
                           static_cast<int>(read_name.size() - 1),
                           quality_scores.data() + clip_start,
-                          1, read_no + 1, -1.0);
+                          1, read_no + 1, -1.0,
+                          parameters);
 
 
       sff_stats.total_length += length;

@@ -752,7 +752,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                                   relabel_count,
                                   -1.0,
                                   -1, -1, nullptr, 0.0,
-                                  0);
+                                  0,
+                                  parameters);
               if (relabel_count == parameters.opt_topn)
                 {
                   break;
@@ -785,7 +786,8 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                                   cluster.qual,
                                   static_cast<uint64_t>(size),
                                   relabel_count,
-                                  -1.0);
+                                  -1.0,
+                                  parameters);
               if (relabel_count == parameters.opt_topn)
                 {
                   break;

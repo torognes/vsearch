@@ -113,7 +113,8 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           quality.data(),
                           static_cast<uint64_t>(static_cast<int>(fastq_get_abundance(fp_input))),
                           counter,
-                          -1.0);
+                          -1.0,
+                          parameters);
 
       progress.update(fasta_get_position(fp_input));
     }

@@ -103,11 +103,12 @@ namespace {
 
 
   auto output_shuffled_fasta(std::vector<int> const & deck,
-                             std::FILE * output_file) -> void {
+                             std::FILE * output_file,
+                             struct Parameters const & parameters) -> void {
     progress_init("Writing output", deck.size());
     auto counter = std::size_t{0};
     for (auto const sequence_id: deck) {
-      fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1);
+      fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1, parameters);
       progress_update(counter);
       ++counter;
     }
@@ -128,7 +129,7 @@ auto shuffle(struct Parameters const & parameters) -> void {
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_shuffled_fasta(deck, output_handle.get());
+  output_shuffled_fasta(deck, output_handle.get(), parameters);
   show_rusage();
 
   db_free();

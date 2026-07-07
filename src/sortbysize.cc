@@ -200,11 +200,12 @@ namespace {
 
   // refactoring: extract as a template
   auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
-                           std::FILE * output_file) -> void {
+                           std::FILE * output_file,
+                           struct Parameters const & parameters) -> void {
     progress_init("Writing output", deck.size());
     auto counter = std::size_t{0};
     for (auto const & sequence: deck) {
-      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1);
+      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1, parameters);
       progress_update(counter);
       ++counter;
     }
@@ -256,7 +257,7 @@ auto sortbysize(struct Parameters const & parameters) -> void
   show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, output_handle.get());
+  output_sorted_fasta(deck, output_handle.get(), parameters);
   show_rusage();  // refactoring: why three calls to show_rusage()?
 
   db_free();

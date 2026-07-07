@@ -535,7 +535,8 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           a_read_pair.merged_quality_v.data(),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
                           state.merged,
-                          a_read_pair.ee_merged);
+                          a_read_pair.ee_merged,
+                          state.parameters);
     }
 
   if (state.parameters.opt_fastaout != nullptr)
@@ -553,7 +554,8 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           -1,
                           nullptr,
                           0.0,
-                          0);
+                          0,
+                          state.parameters);
     }
 
   if (state.parameters.opt_eetabbedout != nullptr)
@@ -647,7 +649,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           a_read_pair.fwd_quality.data(),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.fwd_abundance)),
                           state.notmerged,
-                          -1.0);
+                          -1.0,
+                          state.parameters);
     }
 
   if (state.parameters.opt_fastqout_notmerged_rev != nullptr)
@@ -660,7 +663,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           a_read_pair.rev_quality.data(),
                           static_cast<uint64_t>(static_cast<int>(a_read_pair.rev_abundance)),
                           state.notmerged,
-                          -1.0);
+                          -1.0,
+                          state.parameters);
     }
 
   if (state.parameters.opt_fastaout_notmerged_fwd != nullptr)
@@ -676,7 +680,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           -1.0,
                           -1, -1,
                           nullptr, 0.0,
-                          0);
+                          0,
+                          state.parameters);
     }
 
   if (state.parameters.opt_fastaout_notmerged_rev != nullptr)
@@ -692,7 +697,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           -1.0,
                           -1, -1,
                           nullptr, 0.0,
-                          0);
+                          0,
+                          state.parameters);
     }
 }
 
