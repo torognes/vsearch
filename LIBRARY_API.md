@@ -411,9 +411,11 @@ are populated; all other fields are zero/empty.
 
 ### De novo mode
 
-For de novo chimera detection (`--uchime_denovo` equivalent), set
-`opt_chimeras_denovo` to a non-null value before calling
-`chimera_detect_init()`. In this mode:
+For de novo chimera detection, set `opt_chimeras_denovo` to a non-null
+value before calling `chimera_detect_init()`. This selects the
+`--chimeras_denovo` algorithm (detection in long exact sequences), which
+is distinct from `--uchime_denovo` — the two produce different
+classifications and output. In this mode:
 
 - Process queries in decreasing abundance order
 - After classifying a query as non-chimeric, add it to the reference
@@ -814,7 +816,7 @@ interior). This matches the internal scoring convention.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `opt_minseqlength` | `int64_t` | 0 | Minimum sequence length. |
+| `opt_minseqlength` | `int64_t` | -1 | Minimum sequence length. The default is the -1 "unset" sentinel; `db_read()` treats any non-positive value as no lower bound (the CLI resolves it to a command-specific 1 or 32). |
 | `opt_maxseqlength` | `int64_t` | `INT_MAX` | Maximum sequence length. |
 | `opt_minsize` | `int64_t` | 0 | Minimum abundance. Set explicitly for your use case. |
 | `opt_maxsize` | `int64_t` | `INT_MAX` | Maximum abundance. |
@@ -1026,11 +1028,12 @@ cleanup.
 | `example_chimera.cc` | Chimera detection (reference) | Single-threaded convenience API, 18-column output |
 | `example_search.cc` | Global search | Identity filtering, multi-hit results |
 | `example_cluster.cc` | Greedy clustering | Length-sorted DB, incremental centroid indexing |
-| `example_cluster_strand.cc` | Clustering with strands | `opt_strand` behavior, reverse complement |
 | `example_derep.cc` | Dereplication | Self-contained (no global DB), abundance output |
 | `example_merge.cc` | Paired-end merging | FASTQ quality handling, stateless API |
 | `example_dust.cc` | DUST masking | Standalone per-sequence, no init needed |
 | `example_reinit.cc` | Re-initialization | Multi-session, multi-handle, gap penalty regression |
+| `example_lifecycle.cc` | API memory/error contracts | Free null-safety, `merge_result_free` idempotency, `mergepairs_single` -1 return, result reuse |
+| `example_dbinfo.cc` | Database query/indexing surface | `db_read`, statistical accessors, quality, sort ordering, incremental `dbindex_addsequence` |
 
 ### Building examples
 
