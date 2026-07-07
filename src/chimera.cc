@@ -2392,6 +2392,10 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
 }
 
 
+/* Defined below (next to the library detection entry that also uses it). */
+static auto chimera_detection_parameters(struct Parameters const & parameters) -> struct Parameters;
+
+
 auto chimera(struct Parameters const & parameters) -> void
 {
   /* Per-invocation CLI state, owned here and threaded through the worker pool
@@ -2415,27 +2419,23 @@ auto chimera(struct Parameters const & parameters) -> void
     }
 
 
-  /* override any options the user might have set. These detection knobs
-     (opt_maxaccepts / opt_maxrejects / opt_id / opt_self / opt_selfid /
-     opt_threads / opt_maxsizeratio) are applied to a private copy threaded to
-     the detection core (via si->parameters) and to chimera_threads_run (pool
-     size), rather than mutating the shared opt_* config globals (E1). */
-  state.detection_parameters = parameters;
-  state.detection_parameters.opt_maxaccepts = few;
-  state.detection_parameters.opt_maxrejects = rejects;
-  state.detection_parameters.opt_id = chimera_id;
+  /* Build the detection configuration (maxaccepts/maxrejects/id/weak_id, and in
+     denovo mode self/selfid/maxsizeratio) through the shared builder so the CLI
+     and library detection paths stay identical, rather than mutating the shared
+     opt_* config globals (E1). The private copy is threaded to the detection
+     core (via si->parameters) and to chimera_threads_run (pool size). */
+  state.detection_parameters = chimera_detection_parameters(parameters);
 
   if (parameters.opt_strand)
     {
       fatal("Only --strand plus is allowed with uchime_ref.");
     }
 
+  /* CLI-only: denovo detection is order-dependent (each query is compared
+     against previously processed sequences), so run its pool single-threaded. */
   if (parameters.opt_uchime_ref == nullptr)
     {
-      state.detection_parameters.opt_self = 1;
-      state.detection_parameters.opt_selfid = 1;
       state.detection_parameters.opt_threads = 1;
-      state.detection_parameters.opt_maxsizeratio = 1.0 / parameters.opt_abskew;
     }
 
   uint64_t progress_total = 0;
@@ -2754,27 +2754,33 @@ auto chimera_info_free(struct chimera_info_s * ci) -> void
     }
 }
 
-/* Build the chimera-detection configuration for the library path: a copy of the
-   caller's parameters with the detection knobs applied. Mirrors what chimera()
-   sets on the CLI path, with two intentional differences preserved from the
-   pre-E1 code: the library clamps opt_weak_id to opt_id (opt_weak_id defaults to
-   the 10.0 sentinel here, which would make search_acceptable_aligned reject
-   everything), and it leaves opt_threads at the caller's value (the batch worker
-   pool is sized from the caller's parameters, not forced to 1 as in uchime_ref). */
+/* Build the chimera-detection configuration shared by the CLI (chimera()) and
+   the library (chimera_detect_thread_init): a copy of the caller's parameters
+   with the detection knobs applied — maxaccepts/maxrejects/id, and in denovo
+   mode self/selfid/maxsizeratio.
+
+   Chimera detection has no weak band: the candidate parents are exactly the hits
+   accepted at chimera_id (chimera_process_query keeps only hit.accepted and
+   discards the weak hits search_acceptable_aligned would otherwise retain), and
+   the weak/rejected distinction does not affect the maxaccepts/maxrejects search
+   termination (both increment `rejects`). We therefore set weak_id == id (an
+   empty [id, id) band): this is deterministic and identical on the CLI and
+   library paths, and it never inherits the opt_weak_id 10.0 sentinel — which,
+   left unclamped, would make search_acceptable_aligned's gate reject everything.
+
+   opt_threads is left at the caller's value; the CLI overrides it to 1 for the
+   order-dependent denovo pool (see chimera()). */
 static auto chimera_detection_parameters(struct Parameters const & parameters) -> struct Parameters
 {
   struct Parameters detection = parameters;
   detection.opt_maxaccepts = few;
   detection.opt_maxrejects = rejects;
   detection.opt_id = chimera_id;
-  if (detection.opt_weak_id > detection.opt_id)
-    {
-      detection.opt_weak_id = detection.opt_id;
-    }
+  detection.opt_weak_id = detection.opt_id;
 
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
      themselves as candidate parents, and set opt_maxsizeratio for
-     abundance skew filtering. Matches chimera() CLI setup. */
+     abundance skew filtering. */
   if (parameters.opt_uchime_ref == nullptr)
     {
       detection.opt_self = 1;
