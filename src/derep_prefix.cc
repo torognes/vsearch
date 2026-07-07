@@ -177,7 +177,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   db_read(parameters.opt_derep_prefix, 0, parameters);
 
-  db_sortbylength_shortest_first();
+  db_sortbylength_shortest_first(parameters);
 
   show_rusage();
 

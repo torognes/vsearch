@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/progress.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -240,8 +241,6 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
       fatal("Out of memory");
     }
 
-  progress_init(prompt, static_cast<uint64_t>(filesize));
-
   longest = 0;
   shortest = std::numeric_limits<uint64_t>::max();  // refactoring: direct initialization
   longestheader = 0;
@@ -261,45 +260,46 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
   seqindex_alloc = 0;
   seqindex = nullptr;
 
-  while (fastx_next(h,
-                   not parameters.opt_notrunclabels,
-                    (upcase != 0) ? chrmap_upcase_vector.data() : chrmap_no_change_vector.data()))
-    {
-      size_t const sequencelength = fastx_get_sequence_length(h);
-      int64_t const abundance = fastx_get_abundance(h);
+  {
+    Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
+    while (fastx_next(h,
+                     not parameters.opt_notrunclabels,
+                      (upcase != 0) ? chrmap_upcase_vector.data() : chrmap_no_change_vector.data()))
+      {
+        size_t const sequencelength = fastx_get_sequence_length(h);
+        int64_t const abundance = fastx_get_abundance(h);
 
-      /* opt_minseqlength defaults to the -1 "unset" sentinel, which the CLI
-         resolves to a command-specific value (1 or 32) before db_read runs.
-         A library caller may leave it unset, so guard the cast: a non-positive
-         minimum means "no lower bound". Without this, static_cast<size_t>(-1)
-         is SIZE_MAX and every sequence is discarded as too short. */
-      if ((parameters.opt_minseqlength > 0) and
-          (sequencelength < static_cast<size_t>(parameters.opt_minseqlength)))
-        {
-          ++discarded_short;
-        }
-      else if (sequencelength > static_cast<size_t>(parameters.opt_maxseqlength))
-        {
-          ++discarded_long;
-        }
-      else if ((parameters.opt_cluster_unoise != nullptr) && (abundance < parameters.opt_minsize))
-        {
-          ++discarded_unoise;
-        }
-      else
-        {
-          db_add(is_fastq,
-                 fastx_get_header(h),
-                 fastx_get_sequence(h),
-                 is_fastq ? fastx_get_quality(h) : nullptr,
-                 fastx_get_header_length(h),
-                 sequencelength,
-                 abundance);
-        }
-      progress_update(fastx_get_position(h));
-    }
-
-  progress_done();
+        /* opt_minseqlength defaults to the -1 "unset" sentinel, which the CLI
+           resolves to a command-specific value (1 or 32) before db_read runs.
+           A library caller may leave it unset, so guard the cast: a non-positive
+           minimum means "no lower bound". Without this, static_cast<size_t>(-1)
+           is SIZE_MAX and every sequence is discarded as too short. */
+        if ((parameters.opt_minseqlength > 0) and
+            (sequencelength < static_cast<size_t>(parameters.opt_minseqlength)))
+          {
+            ++discarded_short;
+          }
+        else if (sequencelength > static_cast<size_t>(parameters.opt_maxseqlength))
+          {
+            ++discarded_long;
+          }
+        else if ((parameters.opt_cluster_unoise != nullptr) && (abundance < parameters.opt_minsize))
+          {
+            ++discarded_unoise;
+          }
+        else
+          {
+            db_add(is_fastq,
+                   fastx_get_header(h),
+                   fastx_get_sequence(h),
+                   is_fastq ? fastx_get_quality(h) : nullptr,
+                   fastx_get_header_length(h),
+                   sequencelength,
+                   abundance);
+          }
+        progress.update(fastx_get_position(h));
+      }
+  }
   xfree(prompt);
   fastx_close(h, parameters);
 
@@ -580,9 +580,9 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
 }
 
 
-auto db_sortbylength() -> void
+auto db_sortbylength(struct Parameters const & parameters) -> void
 {
-  progress_init("Sorting by length", 100);
+  Progress const progress("Sorting by length", 100, parameters);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
       std::qsort(seqindex,
@@ -590,13 +590,12 @@ auto db_sortbylength() -> void
             sizeof(seqinfo_t),
             compare_bylength);
     }
-  progress_done();
 }
 
 
-auto db_sortbylength_shortest_first() -> void
+auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> void
 {
-  progress_init("Sorting by length", 100);
+  Progress const progress("Sorting by length", 100, parameters);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
       std::qsort(seqindex,
@@ -604,13 +603,12 @@ auto db_sortbylength_shortest_first() -> void
             sizeof(seqinfo_t),
             compare_bylength_shortest_first);
     }
-  progress_done();
 }
 
 
-auto db_sortbyabundance() -> void
+auto db_sortbyabundance(struct Parameters const & parameters) -> void
 {
-  progress_init("Sorting by abundance", 100);
+  Progress const progress("Sorting by abundance", 100, parameters);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
       std::qsort(seqindex,
@@ -618,5 +616,4 @@ auto db_sortbyabundance() -> void
             sizeof(seqinfo_t),
             compare_byabundance);
     }
-  progress_done();
 }

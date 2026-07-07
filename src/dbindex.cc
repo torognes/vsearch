@@ -62,6 +62,7 @@
 #include "bitmap.h"
 #include "dbindex.h"
 #include "unique.h"
+#include "utils/progress.hpp"
 #include <array>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -159,16 +160,15 @@ auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
 }
 
 
-auto dbindex_addallsequences(int seqmask) -> void
+auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void
 {
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
-  progress_init("Creating k-mer index", seqcount);
+  Progress progress("Creating k-mer index", seqcount, parameters);
   for (auto seqno = 0U; seqno < seqcount ; seqno++)
     {
       dbindex_addsequence(seqno, seqmask);
-      progress_update(seqno);
+      progress.update(seqno);
     }
-  progress_done();
 }
 
 
@@ -193,21 +193,22 @@ auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & para
   std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
-  progress_init("Counting k-mers", seqcount);
-  for (auto seqno = 0U; seqno < seqcount ; seqno++)
-    {
-      unsigned int uniquecount = 0;
-      unsigned int const * uniquelist = nullptr;
-      unique_count(dbindex_uh, static_cast<int>(dbindex_wordlength),
-                   static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
-                   &uniquecount, &uniquelist, seqmask);
-      for (auto i = 0U; i < uniquecount; i++)
-        {
-          ++kmercount[uniquelist[i]];
-        }
-      progress_update(seqno);
-    }
-  progress_done();
+  {
+    Progress progress("Counting k-mers", seqcount, parameters);
+    for (auto seqno = 0U; seqno < seqcount ; seqno++)
+      {
+        unsigned int uniquecount = 0;
+        unsigned int const * uniquelist = nullptr;
+        unique_count(dbindex_uh, static_cast<int>(dbindex_wordlength),
+                     static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
+                     &uniquecount, &uniquelist, seqmask);
+        for (auto i = 0U; i < uniquecount; i++)
+          {
+            ++kmercount[uniquelist[i]];
+          }
+        progress.update(seqno);
+      }
+  }
 
 #if 0
   /* dump kmer counts */

@@ -2457,7 +2457,7 @@ auto chimera(struct Parameters const & parameters) -> void
               hardmask_all();
             }
           dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-          dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
+          dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
@@ -2504,7 +2504,7 @@ auto chimera(struct Parameters const & parameters) -> void
           hardmask_all();
         }
 
-      db_sortbyabundance();
+      db_sortbyabundance(parameters);
       dbindex_prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
       progress_total = db_getnucleotidecount();
     }

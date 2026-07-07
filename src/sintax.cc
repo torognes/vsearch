@@ -721,7 +721,7 @@ auto sintax(struct Parameters const & parameters) -> void
   if (! is_udb)
     {
       dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
+      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
     }
 
   /* prepare reading of queries */

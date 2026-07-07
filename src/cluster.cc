@@ -1144,11 +1144,11 @@ auto cluster(char const * dbname,
 
   if (parameters.opt_cluster_fast != nullptr)
     {
-      db_sortbylength();
+      db_sortbylength(parameters);
     }
   else if ((parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
     {
-      db_sortbyabundance();
+      db_sortbyabundance(parameters);
     }
 
   dbindex_prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
@@ -1493,13 +1493,13 @@ auto cluster(char const * dbname,
 
   if (fp_otutabout != nullptr)
     {
-      otutable_print_otutabout(fp_otutabout);
+      otutable_print_otutabout(fp_otutabout, parameters);
       fclose_output(fp_otutabout);
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(fp_mothur_shared_out);
+      otutable_print_mothur_shared_out(fp_mothur_shared_out, parameters);
       fclose_output(fp_mothur_shared_out);
     }
 

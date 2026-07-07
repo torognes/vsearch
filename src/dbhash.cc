@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "bitmap.h"
 #include "utils/seqcmp.hpp"
 #include <cstdint>  // int64_t, uint64_t
@@ -188,9 +189,9 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 }
 
 
-auto dbhash_add_all() -> void
+auto dbhash_add_all(struct Parameters const & parameters) -> void
 {
-  progress_init("Hashing database sequences", db_getsequencecount());
+  Progress progress("Hashing database sequences", db_getsequencecount(), parameters);
   std::vector<char> normalized(db_getlongestsequence() + 1);
   for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
     {
@@ -198,7 +199,6 @@ auto dbhash_add_all() -> void
       auto const seqlen = db_getsequencelen(seqno);
       string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
       dbhash_add(normalized.data(), seqlen, seqno);
-      progress_update(seqno + 1);
+      progress.update(seqno + 1);
     }
-  progress_done();
 }

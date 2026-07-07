@@ -998,7 +998,7 @@ auto udb_make(struct Parameters const & parameters) -> void
     }
 
   dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-  dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
+  dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   auto const ntcount = db_getnucleotidecount();

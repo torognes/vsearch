@@ -89,7 +89,7 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t k
 
 auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
 
-auto dbindex_addallsequences(int seqmask) -> void;
+auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void;
 
 auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void;
 

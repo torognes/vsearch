@@ -657,7 +657,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
       show_rusage();
       state.seqcount = static_cast<int>(db_getsequencecount());
       dbindex_prepare(1, static_cast<int>(state.parameters.opt_dbmask), state.parameters);
-      dbindex_addallsequences(static_cast<int>(state.parameters.opt_dbmask));
+      dbindex_addallsequences(static_cast<int>(state.parameters.opt_dbmask), state.parameters);
     }
 
   /* tophits = the maximum number of hits we need to store */
@@ -846,13 +846,13 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
 
   if (parameters.opt_otutabout != nullptr)
     {
-      otutable_print_otutabout(state.fp_otutabout);
+      otutable_print_otutabout(state.fp_otutabout, state.parameters);
       fclose_output(state.fp_otutabout);
     }
 
   if (parameters.opt_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(state.fp_mothur_shared_out);
+      otutable_print_mothur_shared_out(state.fp_mothur_shared_out, state.parameters);
       fclose_output(state.fp_mothur_shared_out);
     }
 

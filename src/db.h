@@ -139,10 +139,10 @@ auto db_getshortestsequence() -> uint64_t;
 /* Note: the sorting functions below must be called after db_read,
    but before dbindex_prepare */
 
-auto db_sortbylength() -> void;
-auto db_sortbylength_shortest_first() -> void;
+auto db_sortbylength(struct Parameters const & parameters) -> void;
+auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> void;
 
-auto db_sortbyabundance() -> void;
+auto db_sortbyabundance(struct Parameters const & parameters) -> void;
 
 auto db_is_fastq() -> bool;
 auto db_getquality(uint64_t seqno) -> char *;

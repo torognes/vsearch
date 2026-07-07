@@ -632,7 +632,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader,
   std::memset(dbmatched, 0, static_cast<size_t>(seqcount) * sizeof(uint64_t));
 
   dbhash_open(static_cast<uint64_t>(seqcount));
-  dbhash_add_all();
+  dbhash_add_all(parameters);
 }
 
 auto search_exact_done() -> void
@@ -776,13 +776,13 @@ auto search_exact(struct Parameters const & parameters, char const * cmdline, ch
 
   if (fp_otutabout != nullptr)
     {
-      otutable_print_otutabout(fp_otutabout);
+      otutable_print_otutabout(fp_otutabout, parameters);
       fclose_output(fp_otutabout);
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(fp_mothur_shared_out);
+      otutable_print_mothur_shared_out(fp_mothur_shared_out, parameters);
       fclose_output(fp_mothur_shared_out);
     }
 

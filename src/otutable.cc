@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::copy
 #include <array>
@@ -294,10 +295,10 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
 }
 
 
-auto otutable_print_otutabout(std::FILE * output_handle) -> void
+auto otutable_print_otutabout(std::FILE * output_handle, struct Parameters const & parameters) -> void
 {
   int64_t progress = 0;
-  progress_init("Writing OTU table (classic)", otutable->otu_set.size());
+  Progress progress_bar("Writing OTU table (classic)", otutable->otu_set.size(), parameters);
 
   std::fprintf(output_handle, "#OTU ID");
   for (auto const & it_sample : otutable->sample_set)
@@ -342,16 +343,15 @@ auto otutable_print_otutabout(std::FILE * output_handle) -> void
             }
         }
       std::fprintf(output_handle, "\n");
-      progress_update(static_cast<uint64_t>(++progress));
+      progress_bar.update(static_cast<uint64_t>(++progress));
     }
-  progress_done();
 }
 
 
-auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
+auto otutable_print_mothur_shared_out(std::FILE * output_handle, struct Parameters const & parameters) -> void
 {
   int64_t progress = 0;
-  progress_init("Writing OTU table (mothur)", otutable->sample_set.size());
+  Progress progress_bar("Writing OTU table (mothur)", otutable->sample_set.size(), parameters);
 
   std::fprintf(output_handle, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
@@ -387,16 +387,15 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle) -> void
         }
 
       std::fprintf(output_handle, "\n");
-      progress_update(static_cast<uint64_t>(++progress));
+      progress_bar.update(static_cast<uint64_t>(++progress));
     }
-  progress_done();
 }
 
 
 auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const & parameters) -> void
 {
   int64_t progress = 0;
-  progress_init("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size());
+  Progress progress_bar("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size(), parameters);
 
   int64_t const rows = static_cast<int64_t>(otutable->otu_set.size());
   int64_t const columns = static_cast<int64_t>(otutable->sample_set.size());
@@ -491,10 +490,9 @@ auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const &
       std::fprintf(output_handle, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
       first = false;
       ++progress;
-      progress_update(static_cast<uint64_t>(progress));
+      progress_bar.update(static_cast<uint64_t>(progress));
     }
   std::fprintf(output_handle, "\n\t]\n");
 
   std::fprintf(output_handle, "}\n");
-  progress_done();
 }

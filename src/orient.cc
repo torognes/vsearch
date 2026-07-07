@@ -182,7 +182,7 @@ auto orient(struct Parameters const & parameters) -> void
           hardmask_all();
         }
       dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask));
+      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
     }
 
   uhandle_s * uh_fwd = unique_init();
