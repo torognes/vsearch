@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "attributes.h"
 #include "bitmap.h"
 #include "dbindex.h"
@@ -124,7 +125,7 @@ auto wc_compare(const void * a, const void * b) -> int
 }
 
 
-auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset) -> uint64_t
+auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
 {
   /* call pread multiple times and update progress */
 
@@ -145,13 +146,13 @@ auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset)
         }
 
       progress += rem;
-      progress_update(progress);
+      progress_bar.update(progress);
     }
   return nbyte;
 }
 
 
-auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, bool seek) -> uint64_t
+auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, bool seek, struct Progress & progress_bar) -> uint64_t
 {
   /* call write multiple times and update progress */
 
@@ -175,7 +176,7 @@ auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset
         }
 
       progress += rem;
-      progress_update(progress);
+      progress_bar.update(progress);
     }
   return nbyte;
 }
@@ -357,282 +358,286 @@ auto udb_read(const char * filename,
       fatal("Out of memory");
     }
 
-  progress_init(prompt, filesize);
 
   /* header */
 
   std::array<unsigned int, 50> buffer {{}};
   uint64_t pos = 0;
 
-  pos += largeread(fd_udb, buffer.data(), 4 * 50, pos);
-
-  if ((buffer[0]  != 0x55444246) or
-      (buffer[2] != 32) or
-      (buffer[4] < 3) or
-      (buffer[4] > 15) or
-      (buffer[13] == 0) or
-      (buffer[17] != 0x0000746e) or
-      (buffer[49] != 0x55444266))
-    {
-      fatal("Invalid UDB file");
-    }
-
-  udb_wordlength = buffer[4];
-  seqcount = buffer[13];
-  udb_dbaccel = buffer[6];
-
-  /* The per-sequence header-index and length tables each store 4 bytes
-     per sequence, so a file cannot describe more than filesize/4
-     sequences. Rejecting a larger seqcount also keeps it well clear of
-     the seqcount + 1 wrap when the header index is sized below. */
-
-  if (seqcount > filesize / 4)
-    {
-      fatal("Invalid UDB file");
-    }
-
-  /* The index is built at the UDB file's own word length. Publish it as the
-     effective index width (read by the query-k-mer extractors) rather than
-     mutating the opt_wordlength config global (E1); warn when it overrides the
-     configured value. */
-  if (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength))
-    {
-      std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
-    }
-  dbindex_wordlength = udb_wordlength;
-
-  /* word match counts */
-
-  kmerhashsize = 1U << (2 * udb_wordlength);
-  kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
-  kmerhash = static_cast<uint64_t *>(xmalloc(kmerhashsize * sizeof(uint64_t)));
-  kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(kmerhashsize * sizeof(struct bitmap_s **)));
-
-  std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
-
-  pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos);
-
-  kmerindexsize = 0;
-  for (uint64_t i = 0; i < kmerhashsize; i++)
-    {
-      kmerhash[i] = kmerindexsize;
-      kmerindexsize = udb_checked_add(kmerindexsize, kmercount[i]);
-    }
-
-  /* The word-list section stores 4 bytes per index entry, so a file can
-     hold at most filesize/4 entries; a larger total means the kmercount[]
-     values do not match the on-disk section (padded/corrupt file). */
-
-  if (kmerindexsize > filesize / 4)
-    {
-      fatal("Invalid UDB file");
-    }
-
-  /* signature */
-
-  pos += largeread(fd_udb, buffer.data(), 4, pos);
-
-  if (buffer[0] != 0x55444233)
-    {
-      fatal("Invalid UDB file");
-    }
-
-  /* sequence numbers for word matches */
-
-  kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * 4));
-
-  pos += largeread(fd_udb, kmerindex, 4 * kmerindexsize, pos);
-
-  /* Every entry is a sequence number used both as a bit offset in the
-     per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
-     check) and as an index into seqindex/dbindex_map during search. A
-     value >= seqcount is therefore an out-of-bounds write or read, so
-     reject it here rather than at use. */
-
-  for (uint64_t i = 0; i < kmerindexsize; i++)
-    {
-      if (kmerindex[i] >= seqcount)
-        {
-          fatal("Invalid UDB file");
-        }
-    }
-
-  /* new header */
-
-  pos += largeread(fd_udb, buffer.data(), 4 * 8, pos);
-
-  if ((buffer[0] != 0x55444234) or
-      (buffer[1] != 0x005e0db3) or
-      (buffer[2] != seqcount) or
-      (buffer[7] != 0x005e0db4))
-    {
-      fatal("Invalid UDB file");
-    }
-
-  nucleotides = ((static_cast<uint64_t>(buffer[4])) << 32U) | buffer[3];
-  auto const udb_headerchars = ((static_cast<uint64_t>(buffer[6])) << 32U) | buffer[5];
-
-  /* header index */
-
-  seqindex = static_cast<seqinfo_t *>(xmalloc(seqcount * sizeof(seqinfo_t)));
-
-  std::vector<unsigned int> header_index(seqcount + 1);
-
-  pos += largeread(fd_udb, header_index.data(), 4 * seqcount, pos);
-
-  header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
-
-  auto last = 0U;
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      unsigned int const current_index = header_index[i];
-      if ((current_index < last) or (current_index >= udb_headerchars))
-        {
-          fatal("Invalid UDB file");
-        }
-      /* Header offsets must strictly increase: an equal (or smaller) next
-         offset would make headerlen (next - current - 1) underflow. */
-      if (header_index[i + 1] <= current_index)
-        {
-          fatal("Invalid UDB file");
-        }
-      seqindex[i].header_p = current_index;
-      seqindex[i].headerlen = header_index[i + 1] - current_index - 1;
-      if (static_cast<int64_t>(seqindex[i].headerlen) > std::numeric_limits<int>::max() - buffer_headroom)
-        {
-          fatal("UDB file contains a header too long for this version of vsearch");
-        }
-      seqindex[i].size = 1;
-      last = current_index;
-    }
-
-
-  /* headers */
-
-  datap = static_cast<char *>(xmalloc(udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount)));
-
-  pos += largeread(fd_udb, datap, udb_headerchars, pos);
-
   uint64_t longestheader = 0;
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      longestheader = std::max<uint64_t>(seqindex[i].headerlen, longestheader);
-    }
-
-  /* sequence lengths */
-
-  std::vector<unsigned int> sequence_lengths(seqcount);
-
-  pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos);
-
-  uint64_t sum = 0;
   auto shortest = std::numeric_limits<unsigned int>::max();
   auto longest = 0U;
+  {
+    Progress progress_bar(prompt, filesize, parameters);
+    pos += largeread(fd_udb, buffer.data(), 4 * 50, pos, progress_bar);
 
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      unsigned int const sequence_length = sequence_lengths[i];
+    if ((buffer[0]  != 0x55444246) or
+        (buffer[2] != 32) or
+        (buffer[4] < 3) or
+        (buffer[4] > 15) or
+        (buffer[13] == 0) or
+        (buffer[17] != 0x0000746e) or
+        (buffer[49] != 0x55444266))
+      {
+        fatal("Invalid UDB file");
+      }
 
-      if (static_cast<int64_t>(sequence_length) > std::numeric_limits<int>::max() - buffer_headroom)
-        {
-          fatal("UDB file contains a sequence too long for this version of vsearch");
-        }
+    udb_wordlength = buffer[4];
+    seqcount = buffer[13];
+    udb_dbaccel = buffer[6];
 
-      seqindex[i].seq_p = udb_headerchars + sum;
-      seqindex[i].seqlen = sequence_length;
-      seqindex[i].qual_p = 0;
+    /* The per-sequence header-index and length tables each store 4 bytes
+       per sequence, so a file cannot describe more than filesize/4
+       sequences. Rejecting a larger seqcount also keeps it well clear of
+       the seqcount + 1 wrap when the header index is sized below. */
 
-      shortest = std::min(sequence_length, shortest);
-      longest = std::max(sequence_length, longest);
+    if (seqcount > filesize / 4)
+      {
+        fatal("Invalid UDB file");
+      }
 
-      sum += sequence_length;
+    /* The index is built at the UDB file's own word length. Publish it as the
+       effective index width (read by the query-k-mer extractors) rather than
+       mutating the opt_wordlength config global (E1); warn when it overrides the
+       configured value. */
+    if (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength))
+      {
+        std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
+      }
+    dbindex_wordlength = udb_wordlength;
 
-      if (sum > nucleotides)
-        {
-          fatal("Invalid UDB file");
-        }
-    }
+    /* word match counts */
+
+    kmerhashsize = 1U << (2 * udb_wordlength);
+    kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
+    kmerhash = static_cast<uint64_t *>(xmalloc(kmerhashsize * sizeof(uint64_t)));
+    kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(kmerhashsize * sizeof(struct bitmap_s **)));
+
+    std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
+
+    pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos, progress_bar);
+
+    kmerindexsize = 0;
+    for (uint64_t i = 0; i < kmerhashsize; i++)
+      {
+        kmerhash[i] = kmerindexsize;
+        kmerindexsize = udb_checked_add(kmerindexsize, kmercount[i]);
+      }
+
+    /* The word-list section stores 4 bytes per index entry, so a file can
+       hold at most filesize/4 entries; a larger total means the kmercount[]
+       values do not match the on-disk section (padded/corrupt file). */
+
+    if (kmerindexsize > filesize / 4)
+      {
+        fatal("Invalid UDB file");
+      }
+
+    /* signature */
+
+    pos += largeread(fd_udb, buffer.data(), 4, pos, progress_bar);
+
+    if (buffer[0] != 0x55444233)
+      {
+        fatal("Invalid UDB file");
+      }
+
+    /* sequence numbers for word matches */
+
+    kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * 4));
+
+    pos += largeread(fd_udb, kmerindex, 4 * kmerindexsize, pos, progress_bar);
+
+    /* Every entry is a sequence number used both as a bit offset in the
+       per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
+       check) and as an index into seqindex/dbindex_map during search. A
+       value >= seqcount is therefore an out-of-bounds write or read, so
+       reject it here rather than at use. */
+
+    for (uint64_t i = 0; i < kmerindexsize; i++)
+      {
+        if (kmerindex[i] >= seqcount)
+          {
+            fatal("Invalid UDB file");
+          }
+      }
+
+    /* new header */
+
+    pos += largeread(fd_udb, buffer.data(), 4 * 8, pos, progress_bar);
+
+    if ((buffer[0] != 0x55444234) or
+        (buffer[1] != 0x005e0db3) or
+        (buffer[2] != seqcount) or
+        (buffer[7] != 0x005e0db4))
+      {
+        fatal("Invalid UDB file");
+      }
+
+    nucleotides = ((static_cast<uint64_t>(buffer[4])) << 32U) | buffer[3];
+    auto const udb_headerchars = ((static_cast<uint64_t>(buffer[6])) << 32U) | buffer[5];
+
+    /* header index */
+
+    seqindex = static_cast<seqinfo_t *>(xmalloc(seqcount * sizeof(seqinfo_t)));
+
+    std::vector<unsigned int> header_index(seqcount + 1);
+
+    pos += largeread(fd_udb, header_index.data(), 4 * seqcount, pos, progress_bar);
+
+    header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
+
+    auto last = 0U;
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        unsigned int const current_index = header_index[i];
+        if ((current_index < last) or (current_index >= udb_headerchars))
+          {
+            fatal("Invalid UDB file");
+          }
+        /* Header offsets must strictly increase: an equal (or smaller) next
+           offset would make headerlen (next - current - 1) underflow. */
+        if (header_index[i + 1] <= current_index)
+          {
+            fatal("Invalid UDB file");
+          }
+        seqindex[i].header_p = current_index;
+        seqindex[i].headerlen = header_index[i + 1] - current_index - 1;
+        if (static_cast<int64_t>(seqindex[i].headerlen) > std::numeric_limits<int>::max() - buffer_headroom)
+          {
+            fatal("UDB file contains a header too long for this version of vsearch");
+          }
+        seqindex[i].size = 1;
+        last = current_index;
+      }
 
 
-  if (sum != nucleotides)
-    {
-      fatal("Invalid UDB file");
-    }
+    /* headers */
 
-  /* sequences */
+    datap = static_cast<char *>(xmalloc(udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount)));
 
-  pos += largeread(fd_udb, datap + udb_headerchars, nucleotides, pos);
+    pos += largeread(fd_udb, datap, udb_headerchars, pos, progress_bar);
 
-  if (pos != filesize)
-    {
-      fatal("Incorrect UDB file size");
-    }
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        longestheader = std::max<uint64_t>(seqindex[i].headerlen, longestheader);
+      }
 
-  /* close UDB file */
+    /* sequence lengths */
 
-  close(fd_udb);
+    std::vector<unsigned int> sequence_lengths(seqcount);
 
-  progress_done();
+    pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos, progress_bar);
+
+    uint64_t sum = 0;
+
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        unsigned int const sequence_length = sequence_lengths[i];
+
+        if (static_cast<int64_t>(sequence_length) > std::numeric_limits<int>::max() - buffer_headroom)
+          {
+            fatal("UDB file contains a sequence too long for this version of vsearch");
+          }
+
+        seqindex[i].seq_p = udb_headerchars + sum;
+        seqindex[i].seqlen = sequence_length;
+        seqindex[i].qual_p = 0;
+
+        shortest = std::min(sequence_length, shortest);
+        longest = std::max(sequence_length, longest);
+
+        sum += sequence_length;
+
+        if (sum > nucleotides)
+          {
+            fatal("Invalid UDB file");
+          }
+      }
+
+
+    if (sum != nucleotides)
+      {
+        fatal("Invalid UDB file");
+      }
+
+    /* sequences */
+
+    pos += largeread(fd_udb, datap + udb_headerchars, nucleotides, pos, progress_bar);
+
+    if (pos != filesize)
+      {
+        fatal("Incorrect UDB file size");
+      }
+
+    /* close UDB file */
+
+    close(fd_udb);
+  }
+
   xfree(prompt);
 
   /* move sequences and insert zero at end of each sequence */
 
-  progress_init("Reorganizing data in memory", seqcount);
-  for (auto i = seqcount - 1; i > 0; i--)
-    {
-      auto const old_p = seqindex[i].seq_p;
-      auto const new_p = seqindex[i].seq_p + i;
-      auto const len   = seqindex[i].seqlen;
-      std::memmove(datap + new_p, datap + old_p, len);
-      *(datap + new_p + len) = 0;
-      seqindex[i].seq_p = new_p;
-      progress_update(seqcount - i);
-    }
-  *(datap + seqindex[0].seq_p + seqindex[0].seqlen) = 0;
-  progress_done();
+  {
+    Progress progress("Reorganizing data in memory", seqcount, parameters);
+    for (auto i = seqcount - 1; i > 0; i--)
+      {
+        auto const old_p = seqindex[i].seq_p;
+        auto const new_p = seqindex[i].seq_p + i;
+        auto const len   = seqindex[i].seqlen;
+        std::memmove(datap + new_p, datap + old_p, len);
+        *(datap + new_p + len) = 0;
+        seqindex[i].seq_p = new_p;
+        progress.update(seqcount - i);
+      }
+    *(datap + seqindex[0].seq_p + seqindex[0].seqlen) = 0;
+  }
 
   /* Create bitmaps for the most frequent words */
 
   if (create_bitmaps)
     {
-      progress_init("Creating bitmaps", kmerhashsize);
       auto const bitmap_mincount = seqcount / 8;
-      for (auto i = 0U; i < kmerhashsize; i++)
-        {
-          if (kmercount[i] >= bitmap_mincount)
-            {
-              kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
-              bitmap_reset_all(kmerbitmap[i]);
-              for (auto j = 0U; j < kmercount[i]; j++)
-                {
-                  bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
-                }
-            }
-          progress_update(i + 1);
-        }
-      progress_done();
+      {
+        Progress progress("Creating bitmaps", kmerhashsize, parameters);
+        for (auto i = 0U; i < kmerhashsize; i++)
+          {
+            if (kmercount[i] >= bitmap_mincount)
+              {
+                kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
+                bitmap_reset_all(kmerbitmap[i]);
+                for (auto j = 0U; j < kmercount[i]; j++)
+                  {
+                    bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
+                  }
+              }
+            progress.update(i + 1);
+          }
+      }
     }
 
   /* get abundances and longest header */
 
   if (parse_abundances)
     {
-      progress_init("Parsing abundances", seqcount);
-      for (auto i = 0U; i < seqcount; i++)
-        {
-          auto const size = header_get_size(datap + seqindex[i].header_p,
-                                         static_cast<int>(seqindex[i].headerlen));
-          if (size > 0)
-            {
-              seqindex[i].size = static_cast<uint64_t>(size);
-            }
-          else
-            {
-              seqindex[i].size = 1;
-            }
-          progress_update(i + 1);
-        }
-      progress_done();
+      {
+        Progress progress("Parsing abundances", seqcount, parameters);
+        for (auto i = 0U; i < seqcount; i++)
+          {
+            auto const size = header_get_size(datap + seqindex[i].header_p,
+                                           static_cast<int>(seqindex[i].headerlen));
+            if (size > 0)
+              {
+                seqindex[i].size = static_cast<uint64_t>(size);
+              }
+            else
+              {
+                seqindex[i].size = 1;
+              }
+            progress.update(i + 1);
+          }
+      }
     }
 
   /* set database info */
@@ -725,13 +730,14 @@ auto udb_fasta(struct Parameters const & parameters) -> void
   /* dump fasta */
 
   auto const seqcount = db_getsequencecount();
-  progress_init("Writing FASTA file", seqcount);
-  for (std::size_t i = 0; i < seqcount; i++)
-    {
-      fasta_print_db_relabel(fp_output, i, i + 1, parameters);
-      progress_update(i + 1);
-    }
-  progress_done();
+  {
+    Progress progress("Writing FASTA file", seqcount, parameters);
+    for (std::size_t i = 0; i < seqcount; i++)
+      {
+        fasta_print_db_relabel(fp_output, i, i + 1, parameters);
+        progress.update(i + 1);
+      }
+  }
   fclose_output(fp_output);
 
   dbindex_free();
@@ -1030,7 +1036,6 @@ auto udb_make(struct Parameters const & parameters) -> void
     (4 * seqcount) +
     ntcount;
 
-  progress_init("Writing UDB file", progress_all);
 
   uint64_t const buffersize = std::max(50U, seqcount);
   std::vector<unsigned int> buffer(buffersize);
@@ -1045,96 +1050,98 @@ auto udb_make(struct Parameters const & parameters) -> void
   buffer[13] = seqcount; /* number of sequences */
   buffer[17] = 0x0000746e; /* alphabet: "nt" */
   buffer[49] = 0x55444266; /* fBDU UDBf */
-  pos += largewrite(fd_output, buffer.data(), 50 * 4, 0, false);
+  {
+    Progress progress_bar("Writing UDB file", progress_all, parameters);
+    pos += largewrite(fd_output, buffer.data(), 50 * 4, 0, false, progress_bar);
 
-  /* write 4^wordlength uint32_t's with word match counts */
-  pos += largewrite(fd_output, kmercount, 4 * kmerhash_entries, pos, false);
+    /* write 4^wordlength uint32_t's with word match counts */
+    pos += largewrite(fd_output, kmercount, 4 * kmerhash_entries, pos, false, progress_bar);
 
-  /* 3BDU */
-  buffer[0] = 0x55444233; /* 3BDU UDB3 */
-  pos += largewrite(fd_output, buffer.data(), 1 * 4, pos, false);
+    /* 3BDU */
+    buffer[0] = 0x55444233; /* 3BDU UDB3 */
+    pos += largewrite(fd_output, buffer.data(), 1 * 4, pos, false, progress_bar);
 
-  /* lists of sequence no's with matches for all words */
-  for (auto i = 0U; i < kmerhash_entries; i++)
-    {
-      if (kmerbitmap[i] != nullptr)
-        {
-          std::memset(buffer.data(), 0, 4 * kmercount[i]);
-          auto elements = 0U;
-          for (auto j = 0U; j < seqcount; j++)
-            {
-              if (bitmap_get(kmerbitmap[i], j) != 0U)
-                {
-                  buffer[elements++] = j;
-                }
-            }
-          pos += largewrite(fd_output, buffer.data(), 4 * elements, pos, false);
-        }
-      else
-        {
-          if (kmercount[i] > 0)
-            {
-              pos += largewrite(fd_output,
-                                kmerindex + kmerhash[i],
-                                4 * kmercount[i],
-                                pos,
-                                false);
-            }
-        }
-    }
+    /* lists of sequence no's with matches for all words */
+    for (auto i = 0U; i < kmerhash_entries; i++)
+      {
+        if (kmerbitmap[i] != nullptr)
+          {
+            std::memset(buffer.data(), 0, 4 * kmercount[i]);
+            auto elements = 0U;
+            for (auto j = 0U; j < seqcount; j++)
+              {
+                if (bitmap_get(kmerbitmap[i], j) != 0U)
+                  {
+                    buffer[elements++] = j;
+                  }
+              }
+            pos += largewrite(fd_output, buffer.data(), 4 * elements, pos, false, progress_bar);
+          }
+        else
+          {
+            if (kmercount[i] > 0)
+              {
+                pos += largewrite(fd_output,
+                                  kmerindex + kmerhash[i],
+                                  4 * kmercount[i],
+                                  pos,
+                                  false, progress_bar);
+              }
+          }
+      }
 
-  /* New header */
-  buffer[0] = 0x55444234; /* 4BDU UDB4 */
-  /* 0x005e0db3 */
-  buffer[1] = 0x005e0db3;
-  /* number of sequences, uint32_t */
-  buffer[2] = seqcount;
-  /* total number of nucleotides, uint64_t */
-  buffer[3] = static_cast<unsigned int>(ntcount & 0xffffffff);
-  buffer[4] = static_cast<unsigned int>(ntcount >> 32U);
-  /* total number of header characters, incl zero-terminator, uint64_t */
-  buffer[5] = static_cast<unsigned int>(header_characters & 0xffffffff);
-  buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
-  /* 0x005e0db4 */
-  buffer[7] = 0x005e0db4;
-  pos += largewrite(fd_output, buffer.data(), 4 * 8, pos, false);
+    /* New header */
+    buffer[0] = 0x55444234; /* 4BDU UDB4 */
+    /* 0x005e0db3 */
+    buffer[1] = 0x005e0db3;
+    /* number of sequences, uint32_t */
+    buffer[2] = seqcount;
+    /* total number of nucleotides, uint64_t */
+    buffer[3] = static_cast<unsigned int>(ntcount & 0xffffffff);
+    buffer[4] = static_cast<unsigned int>(ntcount >> 32U);
+    /* total number of header characters, incl zero-terminator, uint64_t */
+    buffer[5] = static_cast<unsigned int>(header_characters & 0xffffffff);
+    buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
+    /* 0x005e0db4 */
+    buffer[7] = 0x005e0db4;
+    pos += largewrite(fd_output, buffer.data(), 4 * 8, pos, false, progress_bar);
 
-  /* indices to headers (uint32_t) */
-  auto sum = 0U;
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      buffer[i] = sum;
-      sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
-    }
-  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false);
+    /* indices to headers (uint32_t) */
+    auto sum = 0U;
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        buffer[i] = sum;
+        sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
+      }
+    pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false, progress_bar);
 
-  /* headers (ascii, zero terminated, not padded) */
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
-      pos += largewrite(fd_output, db_getheader(i), len + 1, pos, false);
-    }
+    /* headers (ascii, zero terminated, not padded) */
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
+        pos += largewrite(fd_output, db_getheader(i), len + 1, pos, false, progress_bar);
+      }
 
-  /* sequence lengths (uint32_t) */
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
-    }
-  pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false);
+    /* sequence lengths (uint32_t) */
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
+      }
+    pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false, progress_bar);
 
-  /* sequences (ascii, no term, no pad) */
-  for (auto i = 0U; i < seqcount; i++)
-    {
-      unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
-      pos += largewrite(fd_output, db_getsequence(i), len, pos, false);
-    }
+    /* sequences (ascii, no term, no pad) */
+    for (auto i = 0U; i < seqcount; i++)
+      {
+        unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
+        pos += largewrite(fd_output, db_getsequence(i), len, pos, false, progress_bar);
+      }
 
-  if (close(fd_output) != 0)
-    {
-      fatal("Unable to close UDB file");
-    }
+    if (close(fd_output) != 0)
+      {
+        fatal("Unable to close UDB file");
+      }
+  }
 
-  progress_done();
   dbindex_free();
   db_free();
 }
