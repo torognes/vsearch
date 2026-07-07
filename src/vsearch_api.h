@@ -22,9 +22,9 @@
  * same core operations as the CLI: sequence database management, DUST
  * masking, dereplication, paired-end merging, global search, greedy
  * clustering, and chimera detection. Callers drive these operations
- * by setting the opt_* globals that the CLI parses from command-line
- * flags and calling the per-subsystem functions declared here and in
- * the module headers included below.
+ * by configuring a Parameters struct (the same options the CLI parses
+ * from command-line flags) and calling the per-subsystem functions
+ * declared here and in the module headers included below.
  *
  * See LIBRARY_API.md for a full walk-through of each subsystem,
  * result structures, thread-safety rules, and worked examples.
@@ -105,10 +105,10 @@
  *
  * All ~200 options live in the Parameters struct with correct library
  * defaults, so a default-constructed Parameters is already a valid, quiet
- * configuration; you only set the fields you care about. Internally the
- * options are still mirrored to the opt_* globals that the compute engines
- * read; vsearch_session_begin() derives them from the struct. Do not set the
- * opt_* globals directly.
+ * configuration; you only set the fields you care about. The struct is the
+ * single configuration source: the compute engines read it directly (threaded
+ * through the session/batch handles and the per-query state), so there are no
+ * opt_* globals to set or keep in sync.
  *
  * === Re-initialization ===
  *
@@ -121,8 +121,8 @@
 /* === API version === */
 
 #define VSEARCH_API_VERSION_MAJOR 0
-#define VSEARCH_API_VERSION_MINOR 5
-#define VSEARCH_API_VERSION_PATCH 1
+#define VSEARCH_API_VERSION_MINOR 6
+#define VSEARCH_API_VERSION_PATCH 0
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
    convention), so each component may range 0..999 without collision:
@@ -142,7 +142,7 @@
   VSEARCH_API_STRINGIFY(VSEARCH_API_VERSION_PATCH)
 
 /* Aggregate header — includes config.h, system headers, and all
-   module headers. Also declares all global opt_* extern variables. */
+   module headers, and defines the Parameters configuration struct. */
 #include "vsearch.h"
 
 /* Module headers for API functions not declared in vsearch.h.
@@ -173,9 +173,8 @@ auto vsearch_api_version_string() -> const char *;
 
 /* Begin a library session from a configured Parameters. Must be called once,
    after setting any overrides on the struct, before any other vsearch
-   function. Acquires the session mutex (fatal if another session is active),
-   resolves the struct's sentinel values via vsearch_apply_defaults_fixups(),
-   and derives the internal opt_* globals from it (allocating opt_ee_cutoffs).
+   function. Acquires the session mutex (fatal if another session is active)
+   and resolves the struct's sentinel values via vsearch_apply_defaults_fixups().
    Caller MUST call vsearch_session_end() when the session is done.
 
    Note: parameters.opt_minsize is NOT resolved here — it has command-specific

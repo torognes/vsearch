@@ -78,10 +78,11 @@ static session_results run_session(
     parameters.opt_wordlength = 8;
     vsearch_session_begin(parameters);
 
-    /* Record gap penalties after fixups */
-    results.gap_open_query_interior = opt_gap_open_query_interior;
-    results.gap_open_query_left = opt_gap_open_query_left;
-    results.gap_open_query_right = opt_gap_open_query_right;
+    /* Record gap penalties after fixups (vsearch_session_begin resolved them
+       in place on the passed struct) */
+    results.gap_open_query_interior = parameters.opt_gap_open_query_interior;
+    results.gap_open_query_left = parameters.opt_gap_open_query_left;
+    results.gap_open_query_right = parameters.opt_gap_open_query_right;
 
     /* Load reference database */
     db_init();
@@ -90,8 +91,8 @@ static session_results run_session(
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all(parameters);
-    dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask, parameters);
+    dbindex_prepare(1, parameters.opt_dbmask, parameters);
+    dbindex_addallsequences(parameters.opt_dbmask, parameters);
 
     /* Detect chimeras */
     struct chimera_info_s * ci = chimera_info_alloc();
@@ -117,87 +118,6 @@ static session_results run_session(
     vsearch_session_end();
 
     return results;
-}
-
-
-/* Adversarial global-state reset check (C1a regression net).
-
-   Snapshot the defaults from a fresh init, garbage-fill a representative set of
-   opt_* globals spanning every type (including the four that C1a fixed:
-   opt_notmatchedfq, opt_bzip2_decompress, opt_clusterout_id/sort, and
-   opt_strand, now a bool — the former C1b drift hazard), then begin a fresh
-   vsearch_session_begin(Parameters{}) session and assert every one is reset. Generalizes the
-   "init forgot to reset X" bug: a global added without a matching reset, or a
-   dropped reset, is caught here as long as it is in one of the arrays below.
-   The garbage values are chosen to differ from every default so a missing
-   reset cannot coincidentally pass. Returns the number of failures. */
-static int test_global_state_reset() {
-    char ** const char_globals[] = {
-        &opt_notmatchedfq, &opt_notmatched, &opt_matched,
-        &opt_fastaout, &opt_alnout, &opt_userout, &opt_output };
-    bool * const bool_globals[] = {
-        &opt_clusterout_id, &opt_clusterout_sort, &opt_bzip2_decompress,
-        &opt_gzip_decompress, &opt_sizein, &opt_sizeout, &opt_strand };
-    int64_t * const i64_globals[] = {
-        &opt_maxaccepts, &opt_wordlength, &opt_iddef, &opt_topn };
-    double * const dbl_globals[] = {
-        &opt_id, &opt_weak_id, &opt_xn, &opt_abskew };
-
-    char * char_snap[sizeof(char_globals) / sizeof(char_globals[0])];
-    bool bool_snap[sizeof(bool_globals) / sizeof(bool_globals[0])];
-    int64_t i64_snap[sizeof(i64_globals) / sizeof(i64_globals[0])];
-    double dbl_snap[sizeof(dbl_globals) / sizeof(dbl_globals[0])];
-    const size_t nc = sizeof(char_globals) / sizeof(char_globals[0]);
-    const size_t nb = sizeof(bool_globals) / sizeof(bool_globals[0]);
-    const size_t ni = sizeof(i64_globals) / sizeof(i64_globals[0]);
-    const size_t nd = sizeof(dbl_globals) / sizeof(dbl_globals[0]);
-
-    /* 1. snapshot the defaults */
-    struct Parameters snapshot_params;
-    vsearch_session_begin(snapshot_params);
-    for (size_t i = 0; i < nc; i++) { char_snap[i] = *char_globals[i]; }
-    for (size_t i = 0; i < nb; i++) { bool_snap[i] = *bool_globals[i]; }
-    for (size_t i = 0; i < ni; i++) { i64_snap[i] = *i64_globals[i]; }
-    for (size_t i = 0; i < nd; i++) { dbl_snap[i] = *dbl_globals[i]; }
-    vsearch_session_end();
-
-    /* 2. garbage-fill (each value differs from the corresponding default) */
-    static char junk[] = "garbage-not-a-default";
-    for (size_t i = 0; i < nc; i++) { *char_globals[i] = junk; }
-    for (size_t i = 0; i < nb; i++) { *bool_globals[i] = true; }
-    for (size_t i = 0; i < ni; i++) { *i64_globals[i] = 0x5A5A5A5A; }
-    for (size_t i = 0; i < nd; i++) { *dbl_globals[i] = -99999.0; }
-
-    /* 3. re-init and assert every one is reset to its default */
-    struct Parameters reinit_params;
-    vsearch_session_begin(reinit_params);
-    int failures = 0;
-    for (size_t i = 0; i < nc; i++) {
-        if (*char_globals[i] != char_snap[i]) {
-            std::fprintf(stderr, "FAIL: char opt_* global #%zu not reset by init_defaults\n", i);
-            ++failures;
-        }
-    }
-    for (size_t i = 0; i < nb; i++) {
-        if (*bool_globals[i] != bool_snap[i]) {
-            std::fprintf(stderr, "FAIL: bool opt_* global #%zu not reset by init_defaults\n", i);
-            ++failures;
-        }
-    }
-    for (size_t i = 0; i < ni; i++) {
-        if (*i64_globals[i] != i64_snap[i]) {
-            std::fprintf(stderr, "FAIL: int64 opt_* global #%zu not reset by init_defaults\n", i);
-            ++failures;
-        }
-    }
-    for (size_t i = 0; i < nd; i++) {
-        if (*dbl_globals[i] != dbl_snap[i]) {
-            std::fprintf(stderr, "FAIL: double opt_* global #%zu not reset by init_defaults\n", i);
-            ++failures;
-        }
-    }
-    vsearch_session_end();
-    return failures;
 }
 
 
@@ -301,8 +221,8 @@ int main() {
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all(parameters);
-    dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask, parameters);
+    dbindex_prepare(1, parameters.opt_dbmask, parameters);
+    dbindex_addallsequences(parameters.opt_dbmask, parameters);
 
     /* Session init once, then two per-thread handles */
     chimera_session_init(parameters);
@@ -378,18 +298,7 @@ int main() {
     }
     std::fprintf(stderr, "PASS: apply_defaults_fixups is idempotent (gap-open stays 18)\n");
 
-    /* === Test 4: adversarial global-state reset (C1a) ===
-       Garbage-fill a representative set of opt_* globals across every type,
-       re-init, and assert all are reset. Supersedes the earlier hand-picked
-       four-global check (which those globals are a subset of). */
-    std::fprintf(stderr, "Global-reset test...\n");
-    if (test_global_state_reset() != 0) {
-        std::fprintf(stderr, "FAIL: init_defaults did not reset all sampled globals\n");
-        return 1;
-    }
-    std::fprintf(stderr, "PASS: init_defaults resets sampled opt_* globals (all types)\n");
-
-    /* === Test 5: API version consistency === */
+    /* === Test 4: API version consistency === */
     std::fprintf(stderr, "API-version test...\n");
     if (test_api_version() != 0) {
         return 1;

@@ -73,8 +73,8 @@ static int run_chimera_tsv() {
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all(parameters);
-    dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask, parameters);
+    dbindex_prepare(1, parameters.opt_dbmask, parameters);
+    dbindex_addallsequences(parameters.opt_dbmask, parameters);
 
     struct chimera_info_s * ci = chimera_info_alloc();
     chimera_detect_init(ci, parameters);
@@ -145,8 +145,8 @@ static int run_batch_tests()
              nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
   dust_all(parameters);
-  dbindex_prepare(1, opt_dbmask, parameters);
-  dbindex_addallsequences(opt_dbmask, parameters);
+  dbindex_prepare(1, parameters.opt_dbmask, parameters);
+  dbindex_addallsequences(parameters.opt_dbmask, parameters);
 
   std::vector<std::string> query_labels, query_seqs;
   read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -221,7 +221,7 @@ static int run_batch_tests()
   if (failures == 0)
     {
       std::fprintf(stderr, "PASS: batch chimera matches sequential "
-                   "(%d queries, %ld threads)\n", nq, (long) opt_threads);
+                   "(%d queries, %ld threads)\n", nq, (long) parameters.opt_threads);
     }
 
   dbindex_free();

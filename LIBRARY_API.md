@@ -137,11 +137,11 @@ higher).
 
 ### Global state model
 
-vsearch was designed as a CLI tool and uses approximately 200 global
-`opt_*` variables to control all behavior. The library API inherits
-this architecture. There is no context object — configuration is set
-by writing to globals, and internal state (database, k-mer index) is
-also global.
+vsearch was designed as a CLI tool with roughly 200 options. Configuration
+now lives entirely in a `Parameters` struct threaded through the API — there
+are no `opt_*` configuration globals. Internal compute state (the sequence
+database and k-mer index) is still process-global, so there is no per-session
+context object for it.
 
 **Consequences:**
 
@@ -208,8 +208,8 @@ options (via `vsearch_apply_defaults_fixups(parameters)`):
   subtracting `opt_gap_extension_query_interior` 2)
 
 You configure only the fields you care about; the rest keep their library
-defaults. Do not set the `opt_*` globals directly — `vsearch_session_begin()`
-derives them from the struct for the compute engines that still read them.
+defaults. The `Parameters` struct is the single configuration source — the
+compute engines read it directly, so there are no `opt_*` globals to set.
 
 ### Re-initialization
 
@@ -443,7 +443,7 @@ De novo mode is inherently sequential (single-threaded).
 |----------|-------------|
 | `chimera_info_alloc()` | Allocate opaque per-thread state. Returns heap pointer. |
 | `chimera_info_free(ci)` | Free per-thread state. Does NOT call cleanup. Null-safe. |
-| `chimera_session_init(parameters)` | Session-level init: set search globals, init mutexes. Call once after DB indexed. |
+| `chimera_session_init(parameters)` | Session-level init hook. Currently a no-op — detection config is built per-thread in `chimera_detect_thread_init` — but kept as a stable API symbol; call once after DB indexed. |
 | `chimera_session_cleanup()` | Session-level teardown: destroy mutexes. Call after all per-thread cleanup. |
 | `chimera_detect_thread_init(ci, parameters)` | Per-thread init: allocate SIMD aligners, k-mer finders. |
 | `chimera_detect_thread_cleanup(ci)` | Per-thread teardown: free resources. |

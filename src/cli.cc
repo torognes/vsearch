@@ -389,9 +389,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   parameters.progname = argv[0];
 
-  /* The option switch below parses into this Parameters (self-defaulting);
-     the globals are derived from it via apply_parameters_to_globals() once
-     parsing is done. */
+  /* The option switch below parses into this Parameters (self-defaulting),
+     which is the single configuration source the run reads from. */
 
   /* Library defaults to quiet; the CLI needs output. */
   parameters.opt_quiet = false;
@@ -4426,7 +4425,6 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   parameters.opt_stderr_is_tty = (isatty(fileno(stderr)) == 1);
 
   /* Configuration is now fully resolved in `parameters` (parsed options,
-     command-specific defaults and the sentinel fixups above); derive the
-     opt_* globals from it once. The compute engines still read the globals. */
-  apply_parameters_to_globals(parameters);
+     command-specific defaults and the sentinel fixups above); the compute
+     engines and command dispatch read it directly. */
 }

@@ -237,8 +237,8 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
   db_add(false, header, sequence, nullptr,
          std::strlen(header), std::strlen(sequence), 1);
   dust_all(parameters);
-  dbindex_prepare(1, opt_dbmask, parameters);
-  dbindex_addallsequences(opt_dbmask, parameters);
+  dbindex_prepare(1, parameters.opt_dbmask, parameters);
+  dbindex_addallsequences(parameters.opt_dbmask, parameters);
 
   struct chimera_info_s * const info = chimera_info_alloc();
   chimera_detect_init(info, parameters);

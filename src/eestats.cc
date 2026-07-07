@@ -408,9 +408,8 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
     fatal("Output file for fastq_eestats2 must be specified with --output");
   }
 
-  /* opt_ee_cutoffs_values/_count are the flattened global form that
-     apply_parameters_to_globals rebuilds from parameters.opt_ee_cutoffs; read
-     the vector directly here (E1/F3). */
+  /* read the expected-error cutoffs directly from the configured Parameters
+     vector (E1). */
   auto const & ee_cutoffs = parameters.opt_ee_cutoffs;
   auto const ee_cutoffs_count = static_cast<int>(ee_cutoffs.size());
 

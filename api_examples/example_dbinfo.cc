@@ -467,16 +467,16 @@ static int test_incremental_indexing()
 
   /* (a) batch indexing */
   load_db();
-  dbindex_prepare(1, opt_dbmask, parameters);
-  dbindex_addallsequences(opt_dbmask, parameters);
+  dbindex_prepare(1, parameters.opt_dbmask, parameters);
+  dbindex_addallsequences(parameters.opt_dbmask, parameters);
   std::vector<std::string> const hits_batch = search_hits(parameters, query);
   dbindex_free();
 
   /* (b) incremental indexing: one dbindex_addsequence() per sequence */
-  dbindex_prepare(1, opt_dbmask, parameters);
+  dbindex_prepare(1, parameters.opt_dbmask, parameters);
   for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
     {
-      dbindex_addsequence(static_cast<unsigned int>(seqno), opt_dbmask);
+      dbindex_addsequence(static_cast<unsigned int>(seqno), parameters.opt_dbmask);
     }
   std::vector<std::string> const hits_incremental = search_hits(parameters, query);
   dbindex_free();
