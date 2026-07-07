@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
@@ -213,144 +214,146 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   unsigned int const len_shortest = static_cast<unsigned int>(db_getshortestsequence());
   std::vector<uint64_t> prefix_hashes(len_longest + 1);
 
-  progress_init("Dereplicating", static_cast<uint64_t>(dbsequencecount));
-  for (int64_t i = 0; i < dbsequencecount; i++)
-    {
-      unsigned int const seqlen = static_cast<unsigned int>(db_getsequencelen(static_cast<uint64_t>(i)));
-      auto const * seq = db_getsequence(static_cast<uint64_t>(i));
+  {
+    Progress progress("Dereplicating", static_cast<uint64_t>(dbsequencecount), parameters);
+    for (int64_t i = 0; i < dbsequencecount; i++)
+      {
+        unsigned int const seqlen = static_cast<unsigned int>(db_getsequencelen(static_cast<uint64_t>(i)));
+        auto const * seq = db_getsequence(static_cast<uint64_t>(i));
 
-      /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up.data(), seq, seqlen);
+        /* normalize sequence: uppercase and replace U by T  */
+        string_normalize(seq_up.data(), seq, seqlen);
 
-      auto const abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
-      sumsize += static_cast<int64_t>(abundance);
+        auto const abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
+        sumsize += static_cast<int64_t>(abundance);
 
-      /*
-        Look for matching identical or prefix sequences.
+        /*
+          Look for matching identical or prefix sequences.
 
-        Use a hash function that can quickly be applied iteratively on longer
-        and longer sequences.
+          Use a hash function that can quickly be applied iteratively on longer
+          and longer sequences.
 
-        Hash values are generated for all prefixes and saved.
+          Hash values are generated for all prefixes and saved.
 
-        Should start at exact sequence and then try shorter and shorter
-        sequences.
+          Should start at exact sequence and then try shorter and shorter
+          sequences.
 
-        No need to check shorter sequences than the shortest in the database.
+          No need to check shorter sequences than the shortest in the database.
 
-        Three cases:
-        1) Exact match: Update count, point to next
-        2) Prefix match: Mark old, insert new, update count, point to next
-        3) No match: Insert new entry
+          Three cases:
+          1) Exact match: Update count, point to next
+          2) Prefix match: Mark old, insert new, update count, point to next
+          3) No match: Insert new entry
 
-      */
+        */
 
-      compute_hashes_of_all_prefixes(prefix_hashes, Span<char>{seq_up.data(), seqlen});
+        compute_hashes_of_all_prefixes(prefix_hashes, Span<char>{seq_up.data(), seqlen});
 
-      /* first, look for an identical match */
+        /* first, look for an identical match */
 
-      auto prefix_len = seqlen;
+        auto prefix_len = seqlen;
 
-      uint64_t hash = prefix_hashes[prefix_len];
-      auto * bp = &hashtable[hash & hash_mask];
+        uint64_t hash = prefix_hashes[prefix_len];
+        auto * bp = &hashtable[hash & hash_mask];
 
-      while ((bp->size != 0U) and
-             ((bp->deleted) or
-              (bp->hash != hash) or
-              (prefix_len != db_getsequencelen(bp->seqno_first)) or
-              (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len) != 0)))
-        {
-          ++bp;
-          if (bp > &hashtable.back())
-            {
-              bp = hashtable.data();
-            }
-        }
+        while ((bp->size != 0U) and
+               ((bp->deleted) or
+                (bp->hash != hash) or
+                (prefix_len != db_getsequencelen(bp->seqno_first)) or
+                (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len) != 0)))
+          {
+            ++bp;
+            if (bp > &hashtable.back())
+              {
+                bp = hashtable.data();
+              }
+          }
 
-      /* at this point, bp points either to (1) a free empty hash bucket, or
-         (2) a bucket with an exact match. */
+        /* at this point, bp points either to (1) a free empty hash bucket, or
+           (2) a bucket with an exact match. */
 
-      auto const orig_hash = hash;
-      auto * orig_bp = bp;
+        auto const orig_hash = hash;
+        auto * orig_bp = bp;
 
-      if (bp->size != 0U)
-        {
-          /* exact match */
-          bp->size += static_cast<unsigned int>(abundance);
-          auto const last = bp->seqno_last;
-          nextseqtab[last] = static_cast<unsigned int>(i);
-          bp->seqno_last = static_cast<unsigned int>(i);
+        if (bp->size != 0U)
+          {
+            /* exact match */
+            bp->size += static_cast<unsigned int>(abundance);
+            auto const last = bp->seqno_last;
+            nextseqtab[last] = static_cast<unsigned int>(i);
+            bp->seqno_last = static_cast<unsigned int>(i);
 
-          maxsize = std::max<uint64_t>(bp->size, maxsize);
-        }
-      else
-        {
-          /* look for prefix match */
+            maxsize = std::max<uint64_t>(bp->size, maxsize);
+          }
+        else
+          {
+            /* look for prefix match */
 
-          while ((bp->size == 0U) and (prefix_len > len_shortest))
-            {
-              --prefix_len;
-              hash = prefix_hashes[prefix_len];
-              bp = &hashtable[hash & hash_mask];
+            while ((bp->size == 0U) and (prefix_len > len_shortest))
+              {
+                --prefix_len;
+                hash = prefix_hashes[prefix_len];
+                bp = &hashtable[hash & hash_mask];
 
-              while ((bp->size != 0U) and
-                     ((bp->deleted) or
-                      (bp->hash != hash) or
-                      (prefix_len != db_getsequencelen(bp->seqno_first)) or
-                      (seqcmp(seq_up.data(),
-                              db_getsequence(bp->seqno_first),
-                              prefix_len) != 0)))
-                {
-                  ++bp;
-                  if (bp > &hashtable.back())
-                    {
-                      bp = hashtable.data();
-                    }
-                }
-            }
+                while ((bp->size != 0U) and
+                       ((bp->deleted) or
+                        (bp->hash != hash) or
+                        (prefix_len != db_getsequencelen(bp->seqno_first)) or
+                        (seqcmp(seq_up.data(),
+                                db_getsequence(bp->seqno_first),
+                                prefix_len) != 0)))
+                  {
+                    ++bp;
+                    if (bp > &hashtable.back())
+                      {
+                        bp = hashtable.data();
+                      }
+                  }
+              }
 
-          if (bp->size != 0U)
-            {
-              /* prefix match */
+            if (bp->size != 0U)
+              {
+                /* prefix match */
 
-              /* get necessary info, then delete prefix from hash */
-              auto const first = bp->seqno_first;
-              auto const last = bp->seqno_last;
-              auto const size = bp->size;
-              bp->deleted = true;
+                /* get necessary info, then delete prefix from hash */
+                auto const first = bp->seqno_first;
+                auto const last = bp->seqno_last;
+                auto const size = bp->size;
+                bp->deleted = true;
 
-              /* create new hash entry */
-              bp = orig_bp;
-              bp->size = static_cast<unsigned int>(size + abundance);
-              bp->hash = orig_hash;
-              bp->seqno_first = static_cast<unsigned int>(i);
-              nextseqtab[static_cast<std::vector<unsigned int>::size_type>(i)] = first;
-              bp->seqno_last = last;
+                /* create new hash entry */
+                bp = orig_bp;
+                bp->size = static_cast<unsigned int>(size + abundance);
+                bp->hash = orig_hash;
+                bp->seqno_first = static_cast<unsigned int>(i);
+                nextseqtab[static_cast<std::vector<unsigned int>::size_type>(i)] = first;
+                bp->seqno_last = last;
 
-              maxsize = std::max<uint64_t>(bp->size, maxsize);
-            }
-          else
-            {
-              /* no match */
-              orig_bp->size = static_cast<unsigned int>(abundance);
-              orig_bp->hash = orig_hash;
-              orig_bp->seqno_first = static_cast<unsigned int>(i);
-              orig_bp->seqno_last = static_cast<unsigned int>(i);
+                maxsize = std::max<uint64_t>(bp->size, maxsize);
+              }
+            else
+              {
+                /* no match */
+                orig_bp->size = static_cast<unsigned int>(abundance);
+                orig_bp->hash = orig_hash;
+                orig_bp->seqno_first = static_cast<unsigned int>(i);
+                orig_bp->seqno_last = static_cast<unsigned int>(i);
 
-              maxsize = std::max(abundance, maxsize);
-              ++clusters;
-            }
-        }
+                maxsize = std::max(abundance, maxsize);
+                ++clusters;
+              }
+          }
 
-      progress_update(static_cast<uint64_t>(i));
-    }
-  progress_done();
+        progress.update(static_cast<uint64_t>(i));
+      }
+  }
 
   show_rusage();
 
-  progress_init("Sorting", 1);
-  std::qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
-  progress_done();
+  {
+    Progress const progress("Sorting", 1, parameters);
+    std::qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
+  }
 
   if (clusters > 0)
     {
@@ -423,37 +426,38 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (parameters.opt_output != nullptr)
     {
-      progress_init("Writing output file", static_cast<uint64_t>(clusters));
 
       int64_t relabel_count = 0;
-      for (int64_t i = 0; i < clusters; i++)
-        {
-          auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-          int64_t const size = bp.size;
-          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-            {
-              ++relabel_count;
-              fasta_print_general(fp_output,
-                                  nullptr,
-                                  db_getsequence(bp.seqno_first),
-                                  static_cast<int>(db_getsequencelen(bp.seqno_first)),
-                                  db_getheader(bp.seqno_first),
-                                  static_cast<int>(db_getheaderlen(bp.seqno_first)),
-                                  static_cast<uint64_t>(size),
-                                  relabel_count,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0,
-                                  0,
-                                  parameters);
-              if (relabel_count == parameters.opt_topn)
-                {
-                  break;
-                }
-            }
-          progress_update(static_cast<uint64_t>(i));
-        }
+      {
+        Progress progress("Writing output file", static_cast<uint64_t>(clusters), parameters);
+        for (int64_t i = 0; i < clusters; i++)
+          {
+            auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
+            int64_t const size = bp.size;
+            if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
+              {
+                ++relabel_count;
+                fasta_print_general(fp_output,
+                                    nullptr,
+                                    db_getsequence(bp.seqno_first),
+                                    static_cast<int>(db_getsequencelen(bp.seqno_first)),
+                                    db_getheader(bp.seqno_first),
+                                    static_cast<int>(db_getheaderlen(bp.seqno_first)),
+                                    static_cast<uint64_t>(size),
+                                    relabel_count,
+                                    -1.0,
+                                    -1, -1, nullptr, 0.0,
+                                    0,
+                                    parameters);
+                if (relabel_count == parameters.opt_topn)
+                  {
+                    break;
+                  }
+              }
+            progress.update(static_cast<uint64_t>(i));
+          }
+      }
 
-      progress_done();
       fclose_output(fp_output);
     }
 
@@ -461,40 +465,42 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   if (parameters.opt_uc != nullptr)
     {
-      progress_init("Writing uc file, first part", static_cast<uint64_t>(clusters));
-      for (int64_t i = 0; i < clusters; i++)
-        {
-          auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-          auto const * h =  db_getheader(bp.seqno_first);
-          int64_t const len = static_cast<int64_t>(db_getsequencelen(bp.seqno_first));
+      {
+        Progress progress("Writing uc file, first part", static_cast<uint64_t>(clusters), parameters);
+        for (int64_t i = 0; i < clusters; i++)
+          {
+            auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
+            auto const * h =  db_getheader(bp.seqno_first);
+            int64_t const len = static_cast<int64_t>(db_getsequencelen(bp.seqno_first));
 
-          std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, h);
+            std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+                    i, len, h);
 
-          for (auto next = nextseqtab[bp.seqno_first];
-               next != terminal;
-               next = nextseqtab[next])
-            {
-              std::fprintf(fp_uc,
-                      "H\t%" PRId64 "\t%" PRIu64 "\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
-                      i, db_getsequencelen(next), 100.0, db_getheader(next), h);
-            }
+            for (auto next = nextseqtab[bp.seqno_first];
+                 next != terminal;
+                 next = nextseqtab[next])
+              {
+                std::fprintf(fp_uc,
+                        "H\t%" PRId64 "\t%" PRIu64 "\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
+                        i, db_getsequencelen(next), 100.0, db_getheader(next), h);
+              }
 
-          progress_update(static_cast<uint64_t>(i));
-        }
-      progress_done();
+            progress.update(static_cast<uint64_t>(i));
+          }
+      }
       show_rusage();
 
-      progress_init("Writing uc file, second part", static_cast<uint64_t>(clusters));
-      for (int64_t i = 0; i < clusters; i++)
-        {
-          auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-          std::fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, bp.size, db_getheader(bp.seqno_first));
-          progress_update(static_cast<uint64_t>(i));
-        }
-      fclose_output(fp_uc);
-      progress_done();
+      {
+        Progress progress("Writing uc file, second part", static_cast<uint64_t>(clusters), parameters);
+        for (int64_t i = 0; i < clusters; i++)
+          {
+            auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
+            std::fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+                    i, bp.size, db_getheader(bp.seqno_first));
+            progress.update(static_cast<uint64_t>(i));
+          }
+        fclose_output(fp_uc);
+      }
       show_rusage();
     }
 

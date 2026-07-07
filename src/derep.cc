@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "derep.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -353,7 +354,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   std::vector<char> rc_seq_up(static_cast<std::size_t>(alloc_seqlen) + 1);
   std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
-  progress_init(prompt.c_str(), filesize);
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
@@ -366,233 +366,235 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   uint64_t maxsize = 0;
   auto average = 0.0;
 
-  while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
-    {
-      int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(input_handle));
+  {
+    Progress progress(prompt.c_str(), filesize, parameters);
+    while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+      {
+        int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(input_handle));
 
-      if (seqlen < parameters.opt_minseqlength)
-        {
-          ++discarded_short;
-          continue;
-        }
-
-      if (seqlen > parameters.opt_maxseqlength)
-        {
-          ++discarded_long;
-          continue;
-        }
-
-      nucleotidecount += static_cast<uint64_t>(seqlen);
-      longest = std::max(seqlen, longest);
-      shortest = std::min(seqlen, shortest);
-
-      /* check allocations */
-
-      if (seqlen > alloc_seqlen)
-        {
-          alloc_seqlen = seqlen;
-          seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
-          rc_seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
-
-          show_rusage();
-        }
-
-      if (extra_info and (sequencecount + 1 > alloc_seqs))
-        {
-          uint64_t const new_alloc_seqs = 2 * alloc_seqs;
-
-          nextseqtab.resize(new_alloc_seqs, terminal);
-
-          headertab.resize(new_alloc_seqs);
-
-          match_strand.resize(new_alloc_seqs);
-
-          alloc_seqs = new_alloc_seqs;
-
-          show_rusage();
-        }
-
-      if (clusters + 1 > alloc_clusters)
-        {
-          uint64_t const new_alloc_clusters = 2 * alloc_clusters;
-
-          rehash(hashtable);
-
-          alloc_clusters = new_alloc_clusters;
-          hashtablesize = 2 * alloc_clusters;
-          hash_mask = hashtablesize - 1;
-
-          show_rusage();
-        }
-
-      auto const * seq = fastx_get_sequence(input_handle);
-      auto const * header = fastx_get_header(input_handle);
-      auto const headerlen = fastx_get_header_length(input_handle);
-      auto const * qual = fastx_get_quality(input_handle); // nullptr if FASTA
-
-      /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
-
-      /* reverse complement if necessary */
-      if (parameters.opt_strand)
-        {
-          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
-        }
-
-      /*
-        Find free bucket or bucket for identical sequence.
-        Make sure sequences are exactly identical
-        in case of any hash collision.
-        With 64-bit hashes, there is about 50% chance of a
-        collision when the number of sequences is about 5e9.
-      */
-
-      auto const hash_header = use_header ? hash_function(header, headerlen) : uint64_t{0};
-
-      auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen)) ^ hash_header;
-      auto j = hash & hash_mask;
-      auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
-
-      while ((bp->size != 0U) and
-             ((hash != bp->hash) or
-              (seqcmp(seq_up.data(), bp->seq, seqlen) != 0) or
-              (use_header and (std::strcmp(header, bp->header) != 0))))
-        {
-          j = (j + 1) & hash_mask;
-          bp = &hashtable[j];
-        }
-
-      if (parameters.opt_strand and (bp->size == 0U))
-        {
-          /* no match on plus strand */
-          /* check minus strand as well */
-
-          auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen)) ^ hash_header;
-          auto k = rc_hash & hash_mask;
-          auto * rc_bp = &hashtable[k];
-
-          while ((rc_bp->size != 0U)
-                 and
-                 ((rc_hash != rc_bp->hash) or
-                  (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen) != 0U) or
-                  (use_header and (std::strcmp(header, rc_bp->header) != 0))))
-            {
-              k = (k + 1) & hash_mask;
-              rc_bp = &hashtable[k];
-            }
-
-          if (rc_bp->size != 0U)
-            {
-              bp = rc_bp;
-              j = k;
-              if (extra_info)
-                {
-                  match_strand[sequencecount] = 1;
-                }
-            }
-        }
-
-      auto const abundance = parameters.opt_sizein ? fastx_get_abundance(input_handle) : int64_t{1};
-      sumsize += abundance;
-
-      if (bp->size != 0U)
-        {
-          /* at least one identical sequence already */
-          if (extra_info)
-            {
-              unsigned int const last = bp->seqno_last;
-              nextseqtab[last] = static_cast<unsigned int>(sequencecount);
-              bp->seqno_last = static_cast<unsigned int>(sequencecount);
-              headertab[sequencecount] = header;
-            }
-
-          int64_t const s1 = bp->size;
-          int64_t const s2 = abundance;
-          int64_t const s3 = s1 + s2;
-
-          if (parameters.opt_fastqout != nullptr)
-            {
-              /* update quality scores */
-              for (int i = 0; i < seqlen; i++)
-                {
-                  int const q1 = bp->qual[i];
-                  int const q2 = qual[i];
-                  auto const p1 = convert_quality_symbol_to_probability(q1, parameters);
-                  auto const p2 = convert_quality_symbol_to_probability(q2, parameters);
-                  auto p3 = 0.0;
-
-                  /* how to compute the new quality score? */
-
-                  if (parameters.opt_fastq_qout_max)
-                    {
-                      // fastq_qout_max
-                      /* min error prob, highest quality */
-                      p3 = std::min(p1, p2);
-                    }
-                  else
-                    {
-                      // fastq_qout_avg
-                      /* average, as in USEARCH */
-                      p3 = ((p1 * static_cast<double>(s1)) + (p2 * static_cast<double>(s2))) / static_cast<double>(s3);
-                    }
-
-                  // fastq_qout_min
-                  /* max error prob, lowest quality */
-                  // p3 = std::max(p1, p2);
-
-                  // fastq_qout_first
-                  /* keep first */
-                  // p3 = p1;
-
-                  // fastq_qout_last
-                  /* keep last */
-                  // p3 = p2;
-
-                  // fastq_qout_ef
-                  /* Compute as multiple independent observations
-                     Edgar & Flyvbjerg (2015)
-                     But what about s1 and s2? */
-                  // p3 = p1 * p2 / 3.0 / (1.0 - p1 - p2 + (4.0 * p1 * p2 / 3.0));
-
-                  /* always worst quality possible, certain error */
-                  // p3 = 1.0;
-
-                  // always best quality possible, perfect, no errors */
-                  // p3 = 0.0;
-
-                  int const q3 = convert_probability_to_quality_symbol(p3, parameters);
-                  bp->qual[i] = static_cast<char>(q3);
-                }
-            }
-
-          bp->size = static_cast<unsigned int>(s3);
-          ++bp->count;
-        }
-      else
-        {
-          /* no identical sequences yet */
-          bp->size = static_cast<unsigned int>(abundance);
-          bp->hash = hash;
-          bp->seqno_first = static_cast<unsigned int>(sequencecount);
-          bp->seqno_last = static_cast<unsigned int>(sequencecount);
-          bp->seq = xstrdup(seq);
-          bp->header = xstrdup(header);
-          bp->count = 1;
-          if (qual != nullptr) {
-            bp->qual = xstrdup(qual);
-          } else {
-            bp->qual = nullptr;
+        if (seqlen < parameters.opt_minseqlength)
+          {
+            ++discarded_short;
+            continue;
           }
-          ++clusters;
-        }
 
-      maxsize = std::max<uint64_t>(bp->size, maxsize);
+        if (seqlen > parameters.opt_maxseqlength)
+          {
+            ++discarded_long;
+            continue;
+          }
 
-      ++sequencecount;
+        nucleotidecount += static_cast<uint64_t>(seqlen);
+        longest = std::max(seqlen, longest);
+        shortest = std::min(seqlen, shortest);
 
-      progress_update(fastx_get_position(input_handle));
-    }
-  progress_done();
+        /* check allocations */
+
+        if (seqlen > alloc_seqlen)
+          {
+            alloc_seqlen = seqlen;
+            seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
+            rc_seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
+
+            show_rusage();
+          }
+
+        if (extra_info and (sequencecount + 1 > alloc_seqs))
+          {
+            uint64_t const new_alloc_seqs = 2 * alloc_seqs;
+
+            nextseqtab.resize(new_alloc_seqs, terminal);
+
+            headertab.resize(new_alloc_seqs);
+
+            match_strand.resize(new_alloc_seqs);
+
+            alloc_seqs = new_alloc_seqs;
+
+            show_rusage();
+          }
+
+        if (clusters + 1 > alloc_clusters)
+          {
+            uint64_t const new_alloc_clusters = 2 * alloc_clusters;
+
+            rehash(hashtable);
+
+            alloc_clusters = new_alloc_clusters;
+            hashtablesize = 2 * alloc_clusters;
+            hash_mask = hashtablesize - 1;
+
+            show_rusage();
+          }
+
+        auto const * seq = fastx_get_sequence(input_handle);
+        auto const * header = fastx_get_header(input_handle);
+        auto const headerlen = fastx_get_header_length(input_handle);
+        auto const * qual = fastx_get_quality(input_handle); // nullptr if FASTA
+
+        /* normalize sequence: uppercase and replace U by T  */
+        string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
+
+        /* reverse complement if necessary */
+        if (parameters.opt_strand)
+          {
+            reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
+          }
+
+        /*
+          Find free bucket or bucket for identical sequence.
+          Make sure sequences are exactly identical
+          in case of any hash collision.
+          With 64-bit hashes, there is about 50% chance of a
+          collision when the number of sequences is about 5e9.
+        */
+
+        auto const hash_header = use_header ? hash_function(header, headerlen) : uint64_t{0};
+
+        auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen)) ^ hash_header;
+        auto j = hash & hash_mask;
+        auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
+
+        while ((bp->size != 0U) and
+               ((hash != bp->hash) or
+                (seqcmp(seq_up.data(), bp->seq, seqlen) != 0) or
+                (use_header and (std::strcmp(header, bp->header) != 0))))
+          {
+            j = (j + 1) & hash_mask;
+            bp = &hashtable[j];
+          }
+
+        if (parameters.opt_strand and (bp->size == 0U))
+          {
+            /* no match on plus strand */
+            /* check minus strand as well */
+
+            auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen)) ^ hash_header;
+            auto k = rc_hash & hash_mask;
+            auto * rc_bp = &hashtable[k];
+
+            while ((rc_bp->size != 0U)
+                   and
+                   ((rc_hash != rc_bp->hash) or
+                    (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen) != 0U) or
+                    (use_header and (std::strcmp(header, rc_bp->header) != 0))))
+              {
+                k = (k + 1) & hash_mask;
+                rc_bp = &hashtable[k];
+              }
+
+            if (rc_bp->size != 0U)
+              {
+                bp = rc_bp;
+                j = k;
+                if (extra_info)
+                  {
+                    match_strand[sequencecount] = 1;
+                  }
+              }
+          }
+
+        auto const abundance = parameters.opt_sizein ? fastx_get_abundance(input_handle) : int64_t{1};
+        sumsize += abundance;
+
+        if (bp->size != 0U)
+          {
+            /* at least one identical sequence already */
+            if (extra_info)
+              {
+                unsigned int const last = bp->seqno_last;
+                nextseqtab[last] = static_cast<unsigned int>(sequencecount);
+                bp->seqno_last = static_cast<unsigned int>(sequencecount);
+                headertab[sequencecount] = header;
+              }
+
+            int64_t const s1 = bp->size;
+            int64_t const s2 = abundance;
+            int64_t const s3 = s1 + s2;
+
+            if (parameters.opt_fastqout != nullptr)
+              {
+                /* update quality scores */
+                for (int i = 0; i < seqlen; i++)
+                  {
+                    int const q1 = bp->qual[i];
+                    int const q2 = qual[i];
+                    auto const p1 = convert_quality_symbol_to_probability(q1, parameters);
+                    auto const p2 = convert_quality_symbol_to_probability(q2, parameters);
+                    auto p3 = 0.0;
+
+                    /* how to compute the new quality score? */
+
+                    if (parameters.opt_fastq_qout_max)
+                      {
+                        // fastq_qout_max
+                        /* min error prob, highest quality */
+                        p3 = std::min(p1, p2);
+                      }
+                    else
+                      {
+                        // fastq_qout_avg
+                        /* average, as in USEARCH */
+                        p3 = ((p1 * static_cast<double>(s1)) + (p2 * static_cast<double>(s2))) / static_cast<double>(s3);
+                      }
+
+                    // fastq_qout_min
+                    /* max error prob, lowest quality */
+                    // p3 = std::max(p1, p2);
+
+                    // fastq_qout_first
+                    /* keep first */
+                    // p3 = p1;
+
+                    // fastq_qout_last
+                    /* keep last */
+                    // p3 = p2;
+
+                    // fastq_qout_ef
+                    /* Compute as multiple independent observations
+                       Edgar & Flyvbjerg (2015)
+                       But what about s1 and s2? */
+                    // p3 = p1 * p2 / 3.0 / (1.0 - p1 - p2 + (4.0 * p1 * p2 / 3.0));
+
+                    /* always worst quality possible, certain error */
+                    // p3 = 1.0;
+
+                    // always best quality possible, perfect, no errors */
+                    // p3 = 0.0;
+
+                    int const q3 = convert_probability_to_quality_symbol(p3, parameters);
+                    bp->qual[i] = static_cast<char>(q3);
+                  }
+              }
+
+            bp->size = static_cast<unsigned int>(s3);
+            ++bp->count;
+          }
+        else
+          {
+            /* no identical sequences yet */
+            bp->size = static_cast<unsigned int>(abundance);
+            bp->hash = hash;
+            bp->seqno_first = static_cast<unsigned int>(sequencecount);
+            bp->seqno_last = static_cast<unsigned int>(sequencecount);
+            bp->seq = xstrdup(seq);
+            bp->header = xstrdup(header);
+            bp->count = 1;
+            if (qual != nullptr) {
+              bp->qual = xstrdup(qual);
+            } else {
+              bp->qual = nullptr;
+            }
+            ++clusters;
+          }
+
+        maxsize = std::max<uint64_t>(bp->size, maxsize);
+
+        ++sequencecount;
+
+        progress.update(fastx_get_position(input_handle));
+      }
+  }
   fastx_close(input_handle, parameters);
 
   show_rusage();
@@ -679,9 +681,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   show_rusage();
 
-  progress_init("Sorting", 1);
-  std::qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
-  progress_done();
+  {
+    Progress const progress("Sorting", 1, parameters);
+    std::qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
+  }
 
   show_rusage();
 
@@ -732,71 +735,73 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   if ((parameters.opt_output != nullptr) or (parameters.opt_fastaout != nullptr))
     {
-      progress_init("Writing FASTA output file", clusters);
 
       int64_t relabel_count = 0;
-      for (uint64_t i = 0; i < clusters; ++i)
-        {
-          auto const & cluster = hashtable[i];
-          int64_t const size = cluster.size;
-          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-            {
-              ++relabel_count;
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  cluster.seq,
-                                  static_cast<int>(std::strlen(cluster.seq)),
-                                  cluster.header,
-                                  static_cast<int>(std::strlen(cluster.header)),
-                                  static_cast<uint64_t>(size),
-                                  relabel_count,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0,
-                                  0,
-                                  parameters);
-              if (relabel_count == parameters.opt_topn)
-                {
-                  break;
-                }
-            }
-          progress_update(i);
-        }
+      {
+        Progress progress("Writing FASTA output file", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; ++i)
+          {
+            auto const & cluster = hashtable[i];
+            int64_t const size = cluster.size;
+            if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
+              {
+                ++relabel_count;
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    cluster.seq,
+                                    static_cast<int>(std::strlen(cluster.seq)),
+                                    cluster.header,
+                                    static_cast<int>(std::strlen(cluster.header)),
+                                    static_cast<uint64_t>(size),
+                                    relabel_count,
+                                    -1.0,
+                                    -1, -1, nullptr, 0.0,
+                                    0,
+                                    parameters);
+                if (relabel_count == parameters.opt_topn)
+                  {
+                    break;
+                  }
+              }
+            progress.update(i);
+          }
+      }
 
-      progress_done();
       fclose_output(fp_fastaout);
     }
 
   if (parameters.opt_fastqout != nullptr)
     {
-      progress_init("Writing FASTQ output file", clusters);
 
       int64_t relabel_count = 0;
-      for (uint64_t i = 0; i < clusters; ++i)
-        {
-          auto const & cluster = hashtable[i];
-          int64_t const size = cluster.size;
-          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-            {
-              ++relabel_count;
-              fastq_print_general(fp_fastqout,
-                                  cluster.seq,
-                                  static_cast<int>(std::strlen(cluster.seq)),
-                                  cluster.header,
-                                  static_cast<int>(std::strlen(cluster.header)),
-                                  cluster.qual,
-                                  static_cast<uint64_t>(size),
-                                  relabel_count,
-                                  -1.0,
-                                  parameters);
-              if (relabel_count == parameters.opt_topn)
-                {
-                  break;
-                }
-            }
-          progress_update(i);
-        }
+      {
+        Progress progress("Writing FASTQ output file", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; ++i)
+          {
+            auto const & cluster = hashtable[i];
+            int64_t const size = cluster.size;
+            if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
+              {
+                ++relabel_count;
+                fastq_print_general(fp_fastqout,
+                                    cluster.seq,
+                                    static_cast<int>(std::strlen(cluster.seq)),
+                                    cluster.header,
+                                    static_cast<int>(std::strlen(cluster.header)),
+                                    cluster.qual,
+                                    static_cast<uint64_t>(size),
+                                    relabel_count,
+                                    -1.0,
+                                    parameters);
+                if (relabel_count == parameters.opt_topn)
+                  {
+                    break;
+                  }
+              }
+            progress.update(i);
+          }
+      }
 
-      progress_done();
       fclose_output(fp_fastqout);
     }
 
@@ -804,79 +809,82 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   if (parameters.opt_uc != nullptr)
     {
-      progress_init("Writing uc file, first part", clusters);
-      for (uint64_t i = 0; i < clusters; ++i)
-        {
-          auto const & cluster = hashtable[i];
-          int64_t const len = static_cast<int64_t>(std::strlen(cluster.seq));
+      {
+        Progress progress("Writing uc file, first part", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; ++i)
+          {
+            auto const & cluster = hashtable[i];
+            int64_t const len = static_cast<int64_t>(std::strlen(cluster.seq));
 
-          std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, cluster.header);
+            std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+                    i, len, cluster.header);
 
-          for (auto next = nextseqtab[cluster.seqno_first];
-               next != terminal;
-               next = nextseqtab[next])
-            {
-              std::fprintf(fp_uc,
-                      "H\t%" PRIu64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
-                      i, len, 100.0,
-                      ((match_strand[next] != 0) ? "-" : "+"),
-                      headertab[next].c_str(), cluster.header);
-            }
+            for (auto next = nextseqtab[cluster.seqno_first];
+                 next != terminal;
+                 next = nextseqtab[next])
+              {
+                std::fprintf(fp_uc,
+                        "H\t%" PRIu64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
+                        i, len, 100.0,
+                        ((match_strand[next] != 0) ? "-" : "+"),
+                        headertab[next].c_str(), cluster.header);
+              }
 
-          progress_update(i);
-        }
-      progress_done();
+            progress.update(i);
+          }
+      }
 
-      progress_init("Writing uc file, second part", clusters);
-      for (uint64_t i = 0; i < clusters; ++i)
-        {
-          auto const & cluster = hashtable[i];
-          std::fprintf(fp_uc, "C\t%" PRIu64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, cluster.size, cluster.header);
-          progress_update(i);
-        }
-      fclose_output(fp_uc);
-      progress_done();
+      {
+        Progress progress("Writing uc file, second part", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; ++i)
+          {
+            auto const & cluster = hashtable[i];
+            std::fprintf(fp_uc, "C\t%" PRIu64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+                    i, cluster.size, cluster.header);
+            progress.update(i);
+          }
+        fclose_output(fp_uc);
+      }
     }
 
   if (parameters.opt_tabbedout != nullptr)
     {
-      progress_init("Writing tab separated file", clusters);
-      for (uint64_t i = 0; i < clusters; ++i)
-        {
-          auto const & cluster = hashtable[i];
+      {
+        Progress progress("Writing tab separated file", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; ++i)
+          {
+            auto const & cluster = hashtable[i];
 
-          if (parameters.opt_relabel != nullptr) {
-            std::fprintf(fp_tabbedout,
-                    "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header, parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
-          } else {
-            std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header, cluster.header, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
-          }
-
-          uint64_t j = 1;
-          for (auto next = nextseqtab[cluster.seqno_first];
-               next != terminal;
-               next = nextseqtab[next])
-            {
-              if (parameters.opt_relabel != nullptr) {
-                std::fprintf(fp_tabbedout,
-                        "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header);
-              } else {
-                std::fprintf(fp_tabbedout,
-                        "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), cluster.header, i, j, cluster.count, cluster.header);
-              }
-              ++j;
+            if (parameters.opt_relabel != nullptr) {
+              std::fprintf(fp_tabbedout,
+                      "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                      cluster.header, parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
+            } else {
+              std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                      cluster.header, cluster.header, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
             }
 
-          progress_update(i);
-        }
-      fclose_output(fp_tabbedout);
-      progress_done();
+            uint64_t j = 1;
+            for (auto next = nextseqtab[cluster.seqno_first];
+                 next != terminal;
+                 next = nextseqtab[next])
+              {
+                if (parameters.opt_relabel != nullptr) {
+                  std::fprintf(fp_tabbedout,
+                          "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                          headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header);
+                } else {
+                  std::fprintf(fp_tabbedout,
+                          "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                          headertab[next].c_str(), cluster.header, i, j, cluster.count, cluster.header);
+                }
+                ++j;
+              }
+
+            progress.update(i);
+          }
+        fclose_output(fp_tabbedout);
+      }
     }
 
 

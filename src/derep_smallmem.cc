@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "vendored/city.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -275,7 +276,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
-  progress_init(prompt.c_str(), filesize);
 
   uint64_t sequencecount = 0;
   uint64_t nucleotidecount = 0;
@@ -289,119 +289,121 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* first pass */
 
-  while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
-    {
-      int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h));
+  {
+    Progress progress(prompt.c_str(), filesize, parameters);
+    while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+      {
+        int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h));
 
-      if (seqlen < parameters.opt_minseqlength)
-        {
-          ++discarded_short;
-          continue;
-        }
+        if (seqlen < parameters.opt_minseqlength)
+          {
+            ++discarded_short;
+            continue;
+          }
 
-      if (seqlen > parameters.opt_maxseqlength)
-        {
-          ++discarded_long;
-          continue;
-        }
+        if (seqlen > parameters.opt_maxseqlength)
+          {
+            ++discarded_long;
+            continue;
+          }
 
-      nucleotidecount += static_cast<uint64_t>(seqlen);
-      longest = std::max(seqlen, longest);
-      shortest = std::min(seqlen, shortest);
+        nucleotidecount += static_cast<uint64_t>(seqlen);
+        longest = std::max(seqlen, longest);
+        shortest = std::min(seqlen, shortest);
 
-      /* check allocations */
+        /* check allocations */
 
-      if (seqlen > alloc_seqlen)
-        {
-          alloc_seqlen = seqlen;
-          seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
-          rc_seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
+        if (seqlen > alloc_seqlen)
+          {
+            alloc_seqlen = seqlen;
+            seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
+            rc_seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
 
-          show_rusage();
-        }
+            show_rusage();
+          }
 
-      if (100 * (clusters + 1) > 95 * hashtablesize)
-        {
-          // keep hash table fill rate at max 95% */
-          rehash_smallmem();
-          show_rusage();
-        }
+        if (100 * (clusters + 1) > 95 * hashtablesize)
+          {
+            // keep hash table fill rate at max 95% */
+            rehash_smallmem();
+            show_rusage();
+          }
 
-      auto const * seq = fastx_get_sequence(h);
+        auto const * seq = fastx_get_sequence(h);
 
-      /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
+        /* normalize sequence: uppercase and replace U by T  */
+        string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
 
-      /* reverse complement if necessary */
-      if (parameters.opt_strand)
-        {
-          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
-        }
+        /* reverse complement if necessary */
+        if (parameters.opt_strand)
+          {
+            reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
+          }
 
-      /*
-        Find a free bucket, or the bucket holding this sequence. Sequences
-        are matched by their 128-bit CityHash alone — there is no byte-wise
-        comparison here (unlike derep_fulllength and derep_prefix), a
-        deliberate memory tradeoff. A 128-bit hash collision would merge two
-        distinct sequences, but the probability only approaches 50% near
-        2^64 (~1.8e19) sequences.
-      */
+        /*
+          Find a free bucket, or the bucket holding this sequence. Sequences
+          are matched by their 128-bit CityHash alone — there is no byte-wise
+          comparison here (unlike derep_fulllength and derep_prefix), a
+          deliberate memory tradeoff. A 128-bit hash collision would merge two
+          distinct sequences, but the probability only approaches 50% near
+          2^64 (~1.8e19) sequences.
+        */
 
-      auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
-      auto j =  hash2bucket(hash, hashtablesize);
-      auto * bp = hashtable + j;
+        auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
+        auto j =  hash2bucket(hash, hashtablesize);
+        auto * bp = hashtable + j;
 
-      while ((bp->size != 0U) and (hash != bp->hash))
-        {
-          j = next_bucket(j, hashtablesize);
-          bp = hashtable + j;
-        }
+        while ((bp->size != 0U) and (hash != bp->hash))
+          {
+            j = next_bucket(j, hashtablesize);
+            bp = hashtable + j;
+          }
 
-      if (parameters.opt_strand and (bp->size == 0U))
-        {
-          /* no match on plus strand */
-          /* check minus strand as well */
+        if (parameters.opt_strand and (bp->size == 0U))
+          {
+            /* no match on plus strand */
+            /* check minus strand as well */
 
-          auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
-          auto k =  hash2bucket(rc_hash, hashtablesize);
-          auto * rc_bp = hashtable + k;
+            auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
+            auto k =  hash2bucket(rc_hash, hashtablesize);
+            auto * rc_bp = hashtable + k;
 
-          while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
-            {
-              k = next_bucket(k, hashtablesize);
-              rc_bp = hashtable + k;
-            }
+            while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
+              {
+                k = next_bucket(k, hashtablesize);
+                rc_bp = hashtable + k;
+              }
 
-          if (rc_bp->size != 0U)
-            {
-              bp = rc_bp;
-              j = k;  // cppcheck: 'j' is assigned a value that is never used
-            }
-        }
+            if (rc_bp->size != 0U)
+              {
+                bp = rc_bp;
+                j = k;  // cppcheck: 'j' is assigned a value that is never used
+              }
+          }
 
-      int64_t const abundance = fastx_get_abundance(h);
-      int64_t const ab = parameters.opt_sizein ? abundance : 1;
-      sumsize += ab;
+        int64_t const abundance = fastx_get_abundance(h);
+        int64_t const ab = parameters.opt_sizein ? abundance : 1;
+        sumsize += ab;
 
-      if (bp->size != 0U)
-        {
-          /* at least one identical sequence already */
-          bp->size += static_cast<uint64_t>(ab);
-        }
-      else
-        {
-          /* no identical sequences yet */
-          bp->size = static_cast<uint64_t>(ab);
-          bp->hash = hash;
-          ++clusters;
-        }
+        if (bp->size != 0U)
+          {
+            /* at least one identical sequence already */
+            bp->size += static_cast<uint64_t>(ab);
+          }
+        else
+          {
+            /* no identical sequences yet */
+            bp->size = static_cast<uint64_t>(ab);
+            bp->hash = hash;
+            ++clusters;
+          }
 
-      maxsize = std::max(bp->size, maxsize);
+        maxsize = std::max(bp->size, maxsize);
 
-      ++sequencecount;
-      progress_update(fastx_get_position(h));
-    }
-  progress_done();
+        ++sequencecount;
+        progress.update(fastx_get_position(h));
+      }
+  }
   fastx_close(h, parameters);
 
   show_rusage();
@@ -530,93 +532,94 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   auto * h2 = fastx_open(input_filename, parameters);
 
-  progress_init("Writing FASTA output file", filesize);
 
   uint64_t selected = 0;
 
-  while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
-    {
-      int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h2));
+  {
+    Progress progress("Writing FASTA output file", filesize, parameters);
+    while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+      {
+        int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h2));
 
-      if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
-        {
-          continue;
-        }
+        if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
+          {
+            continue;
+          }
 
-      auto const * seq = fastx_get_sequence(h2);
+        auto const * seq = fastx_get_sequence(h2);
 
-      /* normalize sequence: uppercase and replace U by T  */
-      string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
+        /* normalize sequence: uppercase and replace U by T  */
+        string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
 
-      /* reverse complement if necessary */
-      if (parameters.opt_strand)
-        {
-          reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
-        }
+        /* reverse complement if necessary */
+        if (parameters.opt_strand)
+          {
+            reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
+          }
 
-      auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
-      auto j =  hash2bucket(hash, hashtablesize);
-      auto * bp = hashtable + j;
+        auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
+        auto j =  hash2bucket(hash, hashtablesize);
+        auto * bp = hashtable + j;
 
-      while ((bp->size != 0U) and (hash != bp->hash))
-        {
-          j = next_bucket(j, hashtablesize);
-          bp = hashtable + j;
-        }
+        while ((bp->size != 0U) and (hash != bp->hash))
+          {
+            j = next_bucket(j, hashtablesize);
+            bp = hashtable + j;
+          }
 
-      if (parameters.opt_strand and (bp->size == 0U))
-        {
-          /* no match on plus strand */
-          /* check minus strand as well */
+        if (parameters.opt_strand and (bp->size == 0U))
+          {
+            /* no match on plus strand */
+            /* check minus strand as well */
 
-          auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
-          auto k =  hash2bucket(rc_hash, hashtablesize);
-          auto * rc_bp = hashtable + k;
+            auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
+            auto k =  hash2bucket(rc_hash, hashtablesize);
+            auto * rc_bp = hashtable + k;
 
-          while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
-            {
-              k = next_bucket(k, hashtablesize);
-              rc_bp = hashtable + k;
-            }
+            while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
+              {
+                k = next_bucket(k, hashtablesize);
+                rc_bp = hashtable + k;
+              }
 
-          if (rc_bp->size != 0U)
-            {
-              bp = rc_bp;
-              j = k;  // cppcheck: 'j' is assigned a value that is never used
-            }
-        }
+            if (rc_bp->size != 0U)
+              {
+                bp = rc_bp;
+                j = k;  // cppcheck: 'j' is assigned a value that is never used
+              }
+          }
 
-      int64_t const size = static_cast<int64_t>(bp->size);
+        int64_t const size = static_cast<int64_t>(bp->size);
 
-      if (size > 0)
-        {
-          /* print sequence */
+        if (size > 0)
+          {
+            /* print sequence */
 
-          auto const * header = fastx_get_header(h2);
-          int const headerlen = static_cast<int>(fastx_get_header_length(h2));
+            auto const * header = fastx_get_header(h2);
+            int const headerlen = static_cast<int>(fastx_get_header_length(h2));
 
-          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-            {
-              ++selected;
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  seq,
-                                  static_cast<int>(seqlen),
-                                  header,
-                                  headerlen,
-                                  static_cast<uint64_t>(size),
-                                  static_cast<int64_t>(selected),
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0,
-                                  0,
-                                  parameters);
-            }
-          bp->size = static_cast<uint64_t>(-1);
-        }
+            if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
+              {
+                ++selected;
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    seq,
+                                    static_cast<int>(seqlen),
+                                    header,
+                                    headerlen,
+                                    static_cast<uint64_t>(size),
+                                    static_cast<int64_t>(selected),
+                                    -1.0,
+                                    -1, -1, nullptr, 0.0,
+                                    0,
+                                    parameters);
+              }
+            bp->size = static_cast<uint64_t>(-1);
+          }
 
-      progress_update(fastx_get_position(h2));
-    }
-  progress_done();
+        progress.update(fastx_get_position(h2));
+      }
+  }
   fastx_close(h2, parameters);
   fclose_output(fp_fastaout);
 
