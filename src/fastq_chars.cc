@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::find_if
@@ -292,59 +293,60 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   auto const filesize = fastq_get_size(fastq_handle);
 
-  progress_init("Reading FASTQ file", filesize);
+  {
+    Progress progress("Reading FASTQ file", filesize, parameters);
 
-  while (fastq_next(fastq_handle, false, chrmap_upcase_vector.data()))
-    {
-      auto const seq_length = fastq_get_sequence_length(fastq_handle);
-      auto const * seq_ptr = fastq_get_sequence(fastq_handle);
-      auto const * qual_ptr = fastq_get_quality(fastq_handle);
+    while (fastq_next(fastq_handle, false, chrmap_upcase_vector.data()))
+      {
+        auto const seq_length = fastq_get_sequence_length(fastq_handle);
+        auto const * seq_ptr = fastq_get_sequence(fastq_handle);
+        auto const * qual_ptr = fastq_get_quality(fastq_handle);
 
-      ++stats.seq_count;
-      stats.total_chars += seq_length;
+        ++stats.seq_count;
+        stats.total_chars += seq_length;
 
-      auto run_char = -1;
-      auto run = 0;
+        auto run_char = -1;
+        auto run = 0;
 
-      for (auto i = 0ULL ; i < seq_length ; ++i)
-        {
-          auto const seq_symbol = static_cast<unsigned char>(*seq_ptr);
-          std::advance(seq_ptr, 1);
-          auto const qual_symbol = static_cast<unsigned char>(*qual_ptr);
-          std::advance(qual_ptr, 1);
-          ++stats.sequence_chars[seq_symbol];
-          ++stats.quality_chars[qual_symbol];
+        for (auto i = 0ULL ; i < seq_length ; ++i)
+          {
+            auto const seq_symbol = static_cast<unsigned char>(*seq_ptr);
+            std::advance(seq_ptr, 1);
+            auto const qual_symbol = static_cast<unsigned char>(*qual_ptr);
+            std::advance(qual_ptr, 1);
+            ++stats.sequence_chars[seq_symbol];
+            ++stats.quality_chars[qual_symbol];
 
-          if (seq_symbol == 'N')
-            {
-              stats.qmin_n = std::min(qual_symbol, stats.qmin_n);
-              stats.qmax_n = std::max(qual_symbol, stats.qmax_n);
-            }
+            if (seq_symbol == 'N')
+              {
+                stats.qmin_n = std::min(qual_symbol, stats.qmin_n);
+                stats.qmax_n = std::max(qual_symbol, stats.qmax_n);
+              }
 
-          if (seq_symbol == run_char)
-            {
-              ++run;
-              auto const run_index = static_cast<unsigned char>(run_char);
-              stats.maxrun[run_index] = std::max(run, stats.maxrun[run_index]);
-            }
-          else
-            {
-              run_char = seq_symbol;
-              run = 0;
-            }
+            if (seq_symbol == run_char)
+              {
+                ++run;
+                auto const run_index = static_cast<unsigned char>(run_char);
+                stats.maxrun[run_index] = std::max(run, stats.maxrun[run_index]);
+              }
+            else
+              {
+                run_char = seq_symbol;
+                run = 0;
+              }
+          }
+
+        // search for trailing homopolymers in quality strings
+        auto const tail_char =
+          search_trailing_homopolymers(Span<char>{fastq_get_quality(fastq_handle), seq_length},
+                                       parameters.opt_fastq_tail);
+        if (tail_char != '\0') {
+          ++stats.tail_chars[static_cast<unsigned char>(tail_char)];
         }
 
-      // search for trailing homopolymers in quality strings
-      auto const tail_char =
-        search_trailing_homopolymers(Span<char>{fastq_get_quality(fastq_handle), seq_length},
-                                     parameters.opt_fastq_tail);
-      if (tail_char != '\0') {
-        ++stats.tail_chars[static_cast<unsigned char>(tail_char)];
+        progress.update(fastq_get_position(fastq_handle));
       }
-
-      progress_update(fastq_get_position(fastq_handle));
-    }
-  progress_done();
+  }
 
   fastq_close(fastq_handle, parameters);
 

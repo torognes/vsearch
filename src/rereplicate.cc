@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -81,42 +82,42 @@ auto rereplicate(struct Parameters const & parameters) -> void
   auto * input_handle = fasta_open(parameters.opt_rereplicate, parameters);
   auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
-  progress_init("Rereplicating", static_cast<uint64_t>(filesize));
-
   int64_t n_amplicons = 0;
   auto missing_abundance = false;
   int64_t n_reads = 0;
   auto const truncateatspace = not parameters.opt_notrunclabels;
-  while (fasta_next(input_handle, truncateatspace, chrmap_no_change_vector.data()))
-    {
-      ++n_amplicons;
-      auto abundance = fasta_get_abundance_and_presence(input_handle);
-      if (abundance == 0)
-        {
-          missing_abundance = true;
-          abundance = 1;
-        }
+  {
+    Progress progress("Rereplicating", static_cast<uint64_t>(filesize), parameters);
+    while (fasta_next(input_handle, truncateatspace, chrmap_no_change_vector.data()))
+      {
+        ++n_amplicons;
+        auto abundance = fasta_get_abundance_and_presence(input_handle);
+        if (abundance == 0)
+          {
+            missing_abundance = true;
+            abundance = 1;
+          }
 
-      for (int64_t i = 0; i < abundance; ++i)
-        {
-          ++n_reads;
-          fasta_print_general(output_handle.get(),
-                              nullptr,
-                              fasta_get_sequence(input_handle),
-                              static_cast<int>(fasta_get_sequence_length(input_handle)),
-                              fasta_get_header(input_handle),
-                              static_cast<int>(fasta_get_header_length(input_handle)),
-                              1,
-                              n_reads,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
-                              parameters);
-        }
+        for (int64_t i = 0; i < abundance; ++i)
+          {
+            ++n_reads;
+            fasta_print_general(output_handle.get(),
+                                nullptr,
+                                fasta_get_sequence(input_handle),
+                                static_cast<int>(fasta_get_sequence_length(input_handle)),
+                                fasta_get_header(input_handle),
+                                static_cast<int>(fasta_get_header_length(input_handle)),
+                                1,
+                                n_reads,
+                                -1.0,
+                                -1, -1, nullptr, 0.0,
+                                0,
+                                parameters);
+          }
 
-      progress_update(fasta_get_position(input_handle));
-    }
-  progress_done();
+        progress.update(fasta_get_position(input_handle));
+      }
+  }
 
   if (not parameters.opt_quiet)
     {

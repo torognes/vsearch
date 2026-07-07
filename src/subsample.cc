@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include "utils/progress.hpp"
 #include <algorithm>  // std::count_if
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -245,7 +246,8 @@ auto write_subsampling_stats(std::vector<uint64_t> const &deck,
 
 
 auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
-                        uint64_t const n_reads, bool const sizein_requested) -> void {
+                        uint64_t const n_reads, bool const sizein_requested,
+                        struct Parameters const & parameters) -> void {
   auto n_reads_left = n_reads;
   uint64_t amplicon_number = 0;
   uint64_t n_read_being_checked = 0;
@@ -256,7 +258,7 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
   std::mt19937_64 generator(random_base_seed());
 
   // refactoring C++17: std::sample()
-  progress_init("Subsampling", mass_total);
+  Progress progress("Subsampling", mass_total, parameters);
   while (n_reads_left > 0)
     {
       auto const random = random_bounded(generator, mass_total - n_read_being_checked);
@@ -285,9 +287,8 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
             }
           accumulated_mass = 0;
         }
-      progress_update(n_read_being_checked);
+      progress.update(n_read_being_checked);
     }
-  progress_done();
 }
 
 
@@ -308,7 +309,7 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
     return;
   }
   int amplicons_printed = 0;
-  progress_init("Writing fasta output", deck.size());
+  Progress progress("Writing fasta output", deck.size(), parameters);
   auto counter = 0U;
   for (auto const abundance_value : deck) {
     uint64_t const new_abundance = abundance_value;
@@ -329,10 +330,9 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
                           -1, -1, nullptr, 0.0,
                           0,
                           parameters);
-      progress_update(counter);
+      progress.update(counter);
       ++counter;
     }
-  progress_done();
 }
 
 
@@ -343,7 +343,7 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
     return;
   }
   int amplicons_printed = 0;
-  progress_init("Writing fastq output", deck.size());
+  Progress progress("Writing fastq output", deck.size(), parameters);
   auto counter = 0U;
   for (auto const abundance_value : deck) {
     uint64_t const new_abundance = abundance_value;
@@ -362,10 +362,9 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
                           amplicons_printed,
                           -1.0,
                           parameters);
-      progress_update(counter);
+      progress.update(counter);
       ++counter;
   }
-  progress_done();
 }
 
 
@@ -409,7 +408,7 @@ auto subsample(struct Parameters const & parameters) -> void {
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein);  // refactoring: pass & original, copy, subsample, return new (const) vector
+  random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein, parameters);  // refactoring: pass & original, copy, subsample, return new (const) vector
 
   // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept, parameters);

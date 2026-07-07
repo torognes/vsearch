@@ -62,6 +62,7 @@
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
+#include "utils/progress.hpp"
 #include <algorithm>  // std::min, std::sort
 #include <cassert>
 #include <cstdint>  // int64_t
@@ -89,7 +90,7 @@ namespace {
     auto const dbsequencecount = db_getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
     std::vector<struct sortinfo_size_s> deck(dbsequencecount);
-    progress_init("Getting sizes", deck.size());
+    Progress progress("Getting sizes", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto seqno = 0U; seqno < dbsequencecount; ++seqno) {
       auto const size = static_cast<int64_t>(db_getabundance(seqno));
@@ -98,16 +99,15 @@ namespace {
       }
       deck[counter].seqno = seqno;
       deck[counter].size = static_cast<unsigned int>(size);
-      progress_update(seqno);
+      progress.update(seqno);
       ++counter;
     }
-    progress_done();
     deck.resize(counter);
     return deck;
   }
 
 
-  auto sort_deck(std::vector<sortinfo_size_s> & deck) -> void {
+  auto sort_deck(std::vector<sortinfo_size_s> & deck, struct Parameters const & parameters) -> void {
     auto compare_sequences = [](struct sortinfo_size_s const & lhs,
                                 struct sortinfo_size_s const & rhs) noexcept -> bool {
       // highest abundance first...
@@ -124,9 +124,8 @@ namespace {
     };
 
     static constexpr auto one_hundred_percent = 100ULL;
-    progress_init("Sorting", one_hundred_percent);
+    Progress const progress("Sorting", one_hundred_percent, parameters);
     std::stable_sort(deck.begin(), deck.end(), compare_sequences);
-    progress_done();
   }
 
 
@@ -202,14 +201,13 @@ namespace {
   auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
                            std::FILE * output_file,
                            struct Parameters const & parameters) -> void {
-    progress_init("Writing output", deck.size());
+    Progress progress("Writing output", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto const & sequence: deck) {
       fasta_print_db_relabel(output_file, sequence.seqno, counter + 1, parameters);
-      progress_update(counter);
+      progress.update(counter);
       ++counter;
     }
-    progress_done();
   }
 
 
@@ -251,7 +249,7 @@ auto sortbysize(struct Parameters const & parameters) -> void
   auto deck = create_deck(parameters);
   show_rusage();
 
-  sort_deck(deck);
+  sort_deck(deck, parameters);
 
   output_median_abundance(deck, parameters);
   show_rusage();

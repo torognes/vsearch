@@ -62,6 +62,7 @@
 #include "fastq.h"  // fastq_open, fastq_get_sequence, fastq_get_quality
 #include "fastx.h"  // fastx_handle
 #include "util.h"  // progress_done
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::transform
@@ -216,7 +217,6 @@ auto fastq_join(struct Parameters const & parameters) -> void
   /* main */
 
   auto const filesize = fastq_get_size(infiles.forward.handle);
-  progress_init("Joining reads", filesize);
 
   /* do it */
 
@@ -232,94 +232,95 @@ auto fastq_join(struct Parameters const & parameters) -> void
   std::string reverse_quality;
   reverse_quality.reserve(bufferlength);
 
-  while (fastq_next(infiles.forward.handle, false, chrmap_no_change_vector.data()))
-    {
-      if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
-        {
-          fatal("More forward reads than reverse reads");
+  {
+    Progress progress("Joining reads", filesize, parameters);
+    while (fastq_next(infiles.forward.handle, false, chrmap_no_change_vector.data()))
+      {
+        if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
+          {
+            fatal("More forward reads than reverse reads");
+          }
+
+        final_sequence.clear();
+        final_quality.clear();
+        reverse_sequence.clear();
+        reverse_quality.clear();
+
+        auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
+        auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
+        auto const needed = fwd_seq_length + padlen + rev_seq_length;
+
+        /* allocate enough memory */
+        if (rev_seq_length > reverse_sequence.capacity()) {
+          reverse_sequence.reserve(rev_seq_length);
+        }
+        if (rev_seq_length > reverse_quality.capacity()) {
+          reverse_quality.reserve(rev_seq_length);
+        }
+        if (needed > final_sequence.capacity()) {
+          final_sequence.reserve(needed);
         }
 
-      final_sequence.clear();
-      final_quality.clear();
-      reverse_sequence.clear();
-      reverse_quality.clear();
+        /* reverse read: reverse-complement sequence */
 
-      auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
-      auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
-      auto const needed = fwd_seq_length + padlen + rev_seq_length;
+        reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), rev_seq_length);
+        std::reverse(reverse_sequence.begin(), reverse_sequence.end());
+        std::transform(reverse_sequence.begin(),
+                       reverse_sequence.end(),
+                       reverse_sequence.begin(),
+                       [](char const nucleotide) -> char {
+                         return map_complement(nucleotide);
+                       });
 
-      /* allocate enough memory */
-      if (rev_seq_length > reverse_sequence.capacity()) {
-        reverse_sequence.reserve(rev_seq_length);
+        /* reverse read: reverse quality */
+
+        reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), rev_seq_length);
+        std::reverse(reverse_quality.begin(), reverse_quality.end());
+
+        /* join them */
+
+        final_sequence = std::string{fastq_get_sequence(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgap + reverse_sequence;
+        final_quality = std::string{fastq_get_quality(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgapq + reverse_quality;
+
+        /* write output */
+
+        if (parameters.opt_fastqout != nullptr)
+          {
+            fastq_print_general(outfiles.fastq.handle,
+                                final_sequence.c_str(),
+                                static_cast<int>(needed),
+                                fastq_get_header(infiles.forward.handle),
+                                static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
+                                final_quality.c_str(),
+                                static_cast<uint64_t>(static_cast<int>(fastq_get_abundance(infiles.forward.handle))),
+                                static_cast<int>(total + 1),
+                                -1.0,
+                                parameters);
+          }
+
+        if (parameters.opt_fastaout != nullptr)
+          {
+            fasta_print_general(outfiles.fasta.handle,
+                                nullptr,
+                                final_sequence.c_str(),
+                                static_cast<int>(needed),
+                                fastq_get_header(infiles.forward.handle),
+                                static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
+                                static_cast<uint64_t>(static_cast<int>(fasta_get_abundance(infiles.forward.handle))),
+                                static_cast<int>(total + 1),
+                                -1.0,
+                                -1,
+                                -1,
+                                nullptr,
+                                0,
+                                0,
+                                parameters);
+          }
+
+        ++total;
+        progress.update(fastq_get_position(infiles.forward.handle));
       }
-      if (rev_seq_length > reverse_quality.capacity()) {
-        reverse_quality.reserve(rev_seq_length);
-      }
-      if (needed > final_sequence.capacity()) {
-        final_sequence.reserve(needed);
-      }
-
-      /* reverse read: reverse-complement sequence */
-
-      reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), rev_seq_length);
-      std::reverse(reverse_sequence.begin(), reverse_sequence.end());
-      std::transform(reverse_sequence.begin(),
-                     reverse_sequence.end(),
-                     reverse_sequence.begin(),
-                     [](char const nucleotide) -> char {
-                       return map_complement(nucleotide);
-                     });
-
-      /* reverse read: reverse quality */
-
-      reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), rev_seq_length);
-      std::reverse(reverse_quality.begin(), reverse_quality.end());
-
-      /* join them */
-
-      final_sequence = std::string{fastq_get_sequence(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgap + reverse_sequence;
-      final_quality = std::string{fastq_get_quality(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgapq + reverse_quality;
-
-      /* write output */
-
-      if (parameters.opt_fastqout != nullptr)
-        {
-          fastq_print_general(outfiles.fastq.handle,
-                              final_sequence.c_str(),
-                              static_cast<int>(needed),
-                              fastq_get_header(infiles.forward.handle),
-                              static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
-                              final_quality.c_str(),
-                              static_cast<uint64_t>(static_cast<int>(fastq_get_abundance(infiles.forward.handle))),
-                              static_cast<int>(total + 1),
-                              -1.0,
-                              parameters);
-        }
-
-      if (parameters.opt_fastaout != nullptr)
-        {
-          fasta_print_general(outfiles.fasta.handle,
-                              nullptr,
-                              final_sequence.c_str(),
-                              static_cast<int>(needed),
-                              fastq_get_header(infiles.forward.handle),
-                              static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
-                              static_cast<uint64_t>(static_cast<int>(fasta_get_abundance(infiles.forward.handle))),
-                              static_cast<int>(total + 1),
-                              -1.0,
-                              -1,
-                              -1,
-                              nullptr,
-                              0,
-                              0,
-                              parameters);
-        }
-
-      ++total;
-      progress_update(fastq_get_position(infiles.forward.handle));
-    }
-
-  progress_done();
+  }
 
   if (fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
     {

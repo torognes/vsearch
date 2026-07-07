@@ -62,6 +62,7 @@
    https://drive5.com/usearch/manual/cmd_fastx_getseqs.html                  */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -116,42 +117,42 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
   auto const is_pipe = S_ISFIFO(file_status.st_mode);  // linuxism
   uint64_t const file_size = is_pipe ? 0: static_cast<uint64_t>(file_status.st_size);
 
-  progress_init("Reading labels", file_size);
+  {
+    Progress const progress("Reading labels", file_size, parameters);
 
-  static constexpr auto a_memory_chunck = 1024U;
-  while (true)
-    {
-      static constexpr auto buffer_size = 1024U;
-      std::array<char, buffer_size> buffer {{}};
-      auto const * return_value = std::fgets(buffer.data(), buffer_size, fp_labels.get());
-      if (return_value == nullptr) { break; }
+    static constexpr auto a_memory_chunck = 1024U;
+    while (true)
+      {
+        static constexpr auto buffer_size = 1024U;
+        std::array<char, buffer_size> buffer {{}};
+        auto const * return_value = std::fgets(buffer.data(), buffer_size, fp_labels.get());
+        if (return_value == nullptr) { break; }
 
-      auto length = std::strlen(buffer.data());
-      if ((length != 0) and (buffer[length - 1] == '\n'))
-        {
-          buffer[length - 1] = '\0';
-          --length;
-        }
+        auto length = std::strlen(buffer.data());
+        if ((length != 0) and (buffer[length - 1] == '\n'))
+          {
+            buffer[length - 1] = '\0';
+            --length;
+          }
 
-      // silently skip empty lines: an empty label would match every
-      // header, and storing an empty std::vector<char> would make
-      // label.data() return nullptr, crashing downstream scanners
-      if (length == 0) { continue; }
+        // silently skip empty lines: an empty label would match every
+        // header, and storing an empty std::vector<char> would make
+        // label.data() return nullptr, crashing downstream scanners
+        if (length == 0) { continue; }
 
-      labels_longest = std::max(length, labels_longest);
+        labels_longest = std::max(length, labels_longest);
 
-      if (labels_count + 1 > labels_alloc)
-        {
-          labels_alloc += a_memory_chunck;
-          labels_data.resize(labels_alloc);
-        }
-      labels_data[labels_count].resize(length);
-      std::copy(buffer.begin(), std::next(buffer.begin(), static_cast<std::ptrdiff_t>(length)),
-                labels_data[labels_count].begin());
-      ++labels_count;
-    }
-
-  progress_done();
+        if (labels_count + 1 > labels_alloc)
+          {
+            labels_alloc += a_memory_chunck;
+            labels_data.resize(labels_alloc);
+          }
+        labels_data[labels_count].resize(length);
+        std::copy(buffer.begin(), std::next(buffer.begin(), static_cast<std::ptrdiff_t>(length)),
+                  labels_data[labels_count].begin());
+        ++labels_count;
+      }
+  }
 
   // definitive number of labels is known
   labels_data.resize(labels_count);
@@ -410,122 +411,121 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
   fp_notmatchedfq = open_optional_output(parameters.opt_notmatchedfq, "notmatchedfq");
 
-  progress_init("Extracting sequences", filesize);
-
   int64_t kept = 0;
   int64_t discarded = 0;
 
-  while (fastx_next(h1, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
-    {
-      bool const match = test_label_match(h1, parameters);
+  {
+    Progress progress("Extracting sequences", filesize, parameters);
+    while (fastx_next(h1, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+      {
+        bool const match = test_label_match(h1, parameters);
 
-      if (match)
-        {
-          /* keep the sequence(s) */
+        if (match)
+          {
+            /* keep the sequence(s) */
 
-          ++kept;
+            ++kept;
 
-          int64_t start = 1;
-          int64_t end = static_cast<int64_t>(fastx_get_sequence_length(h1));
-          if (parameters.opt_fastx_getsubseq != nullptr)
-            {
-              start = std::max(parameters.opt_subseq_start, start);
-              end = std::min(parameters.opt_subseq_end, end);
-            }
-          /* When --subseq_start is past this sequence's length (trivially hit on
-             a mixed-length file), end < start and the subsequence is empty. Emit
-             it empty with in-bounds pointers rather than offsetting past the end
-             with a negative length (S4). The guard must precede the offset of
-             BOTH the sequence and the quality pointer. */
-          int64_t length = end - start + 1;
-          int64_t offset = start - 1;
-          if (length <= 0)
-            {
-              length = 0;
-              offset = 0;
-            }
+            int64_t start = 1;
+            int64_t end = static_cast<int64_t>(fastx_get_sequence_length(h1));
+            if (parameters.opt_fastx_getsubseq != nullptr)
+              {
+                start = std::max(parameters.opt_subseq_start, start);
+                end = std::min(parameters.opt_subseq_end, end);
+              }
+            /* When --subseq_start is past this sequence's length (trivially hit on
+               a mixed-length file), end < start and the subsequence is empty. Emit
+               it empty with in-bounds pointers rather than offsetting past the end
+               with a negative length (S4). The guard must precede the offset of
+               BOTH the sequence and the quality pointer. */
+            int64_t length = end - start + 1;
+            int64_t offset = start - 1;
+            if (length <= 0)
+              {
+                length = 0;
+                offset = 0;
+              }
 
-          if (parameters.opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  fastx_get_sequence(h1) + offset,
-                                  static_cast<int>(length),
-                                  fastx_get_header(h1),
-                                  static_cast<int>(fastx_get_header_length(h1)),
-                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
-                                  kept,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_fastaout != nullptr)
+              {
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    fastx_get_sequence(h1) + offset,
+                                    static_cast<int>(length),
+                                    fastx_get_header(h1),
+                                    static_cast<int>(fastx_get_header_length(h1)),
+                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    kept,
+                                    -1.0,
+                                    -1,
+                                    -1,
+                                    nullptr,
+                                    0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_fastqout != nullptr)
-            {
-              fastq_print_general(fp_fastqout,
-                                  fastx_get_sequence(h1) + offset,
-                                  static_cast<int>(length),
-                                  fastx_get_header(h1),
-                                  static_cast<int>(fastx_get_header_length(h1)),
-                                  fastx_get_quality(h1) + offset,
-                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
-                                  kept,
-                                  -1.0,
-                                  parameters);
-            }
-        }
-      else
-        {
-          /* discard the sequence: non-matching sequences are always
-             written in full, even when --subseq_start/--subseq_end
-             are set (see vsearch-fastx_getsubseq(1)) */
+            if (parameters.opt_fastqout != nullptr)
+              {
+                fastq_print_general(fp_fastqout,
+                                    fastx_get_sequence(h1) + offset,
+                                    static_cast<int>(length),
+                                    fastx_get_header(h1),
+                                    static_cast<int>(fastx_get_header_length(h1)),
+                                    fastx_get_quality(h1) + offset,
+                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    kept,
+                                    -1.0,
+                                    parameters);
+              }
+          }
+        else
+          {
+            /* discard the sequence: non-matching sequences are always
+               written in full, even when --subseq_start/--subseq_end
+               are set (see vsearch-fastx_getsubseq(1)) */
 
-          ++discarded;
+            ++discarded;
 
-          int64_t const length = static_cast<int64_t>(fastx_get_sequence_length(h1));
+            int64_t const length = static_cast<int64_t>(fastx_get_sequence_length(h1));
 
-          if (parameters.opt_notmatched != nullptr)
-            {
-              fasta_print_general(fp_notmatched,
-                                  nullptr,
-                                  fastx_get_sequence(h1),
-                                  static_cast<int>(length),
-                                  fastx_get_header(h1),
-                                  static_cast<int>(fastx_get_header_length(h1)),
-                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
-                                  discarded,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_notmatched != nullptr)
+              {
+                fasta_print_general(fp_notmatched,
+                                    nullptr,
+                                    fastx_get_sequence(h1),
+                                    static_cast<int>(length),
+                                    fastx_get_header(h1),
+                                    static_cast<int>(fastx_get_header_length(h1)),
+                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    discarded,
+                                    -1.0,
+                                    -1,
+                                    -1,
+                                    nullptr,
+                                    0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_notmatchedfq != nullptr)
-            {
-              fastq_print_general(fp_notmatchedfq,
-                                  fastx_get_sequence(h1),
-                                  static_cast<int>(length),
-                                  fastx_get_header(h1),
-                                  static_cast<int>(fastx_get_header_length(h1)),
-                                  fastx_get_quality(h1),
-                                  static_cast<uint64_t>(fastx_get_abundance(h1)),
-                                  discarded,
-                                  -1.0,
-                                  parameters);
-            }
-        }
+            if (parameters.opt_notmatchedfq != nullptr)
+              {
+                fastq_print_general(fp_notmatchedfq,
+                                    fastx_get_sequence(h1),
+                                    static_cast<int>(length),
+                                    fastx_get_header(h1),
+                                    static_cast<int>(fastx_get_header_length(h1)),
+                                    fastx_get_quality(h1),
+                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    discarded,
+                                    -1.0,
+                                    parameters);
+              }
+          }
 
-      progress_update(fastx_get_position(h1));
-    }
-
-  progress_done();
+        progress.update(fastx_get_position(h1));
+      }
+  }
 
   if (not parameters.opt_quiet)
     {

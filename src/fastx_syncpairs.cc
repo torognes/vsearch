@@ -63,6 +63,7 @@
 #include "fastq.h"  // fastq_print_general
 #include "fastx.h"  // fastx_handle
 #include "util.h"  // progress_init, progress_update, progress_done, fopen_output
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // chrmap_no_change_vector
 #include <cinttypes>  // macros PRIu64
@@ -255,8 +256,9 @@ namespace {
                      bool const is_fastq,
                      std::string const & separators,
                      std::vector<read_record> & records,
-                     read_index & index) -> void {
-    progress_init("Indexing reverse reads", fastx_get_size(reverse_handle));
+                     read_index & index,
+                     struct Parameters const & parameters) -> void {
+    Progress progress("Indexing reverse reads", fastx_get_size(reverse_handle), parameters);
     while (fastx_next(reverse_handle, false, chrmap_no_change_vector.data())) {
       auto key = matching_key(fastx_get_header(reverse_handle),
                               fastx_get_header_length(reverse_handle),
@@ -267,9 +269,8 @@ namespace {
         fatal("Duplicate read label in reverse file");
       }
       records.push_back(store_record(reverse_handle, is_fastq));
-      progress_update(fastx_get_position(reverse_handle));
+      progress.update(fastx_get_position(reverse_handle));
     }
-    progress_done();
   }
 
 
@@ -327,7 +328,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   std::vector<read_record> reverse_records;
   read_index reverse_index;
-  index_reverse(reverse_handle, is_fastq, separators, reverse_records, reverse_index);
+  index_reverse(reverse_handle, is_fastq, separators, reverse_records, reverse_index, parameters);
 
   /* stream the forward file, emitting synced pairs in forward order */
 
@@ -335,36 +336,37 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   uint64_t pairs = 0;
   uint64_t orphans_fwd = 0;
 
-  progress_init("Synchronizing reads", fastx_get_size(forward_handle));
-  while (fastx_next(forward_handle, false, chrmap_no_change_vector.data())) {
-    auto const key = matching_key(fastx_get_header(forward_handle),
-                                  fastx_get_header_length(forward_handle),
-                                  separators);
-    auto const match = reverse_index.find(key);
-    if (match == reverse_index.end()) {
-      write_record(outfiles.orphans_fwd, store_record(forward_handle, is_fastq),
-                   static_cast<int64_t>(orphans_fwd + 1), parameters);
-      ++orphans_fwd;
-    }
-    else {
-      auto const position = match->second;
-      // a reverse read already claimed by an earlier forward read means
-      // two forward reads share the same matching key: the pairing is
-      // ambiguous. Forward orphans that share a key are harmless and are
-      // not detected here (they are simply written out twice).
-      if (reverse_used[position]) {
-        fatal("Duplicate read label in forward file");
+  {
+    Progress progress("Synchronizing reads", fastx_get_size(forward_handle), parameters);
+    while (fastx_next(forward_handle, false, chrmap_no_change_vector.data())) {
+      auto const key = matching_key(fastx_get_header(forward_handle),
+                                    fastx_get_header_length(forward_handle),
+                                    separators);
+      auto const match = reverse_index.find(key);
+      if (match == reverse_index.end()) {
+        write_record(outfiles.orphans_fwd, store_record(forward_handle, is_fastq),
+                     static_cast<int64_t>(orphans_fwd + 1), parameters);
+        ++orphans_fwd;
       }
-      reverse_used[position] = true;
-      ++pairs;
-      write_record(outfiles.synced_fwd, store_record(forward_handle, is_fastq),
-                   static_cast<int64_t>(pairs), parameters);
-      write_record(outfiles.synced_rev, reverse_records[position],
-                   static_cast<int64_t>(pairs), parameters);
+      else {
+        auto const position = match->second;
+        // a reverse read already claimed by an earlier forward read means
+        // two forward reads share the same matching key: the pairing is
+        // ambiguous. Forward orphans that share a key are harmless and are
+        // not detected here (they are simply written out twice).
+        if (reverse_used[position]) {
+          fatal("Duplicate read label in forward file");
+        }
+        reverse_used[position] = true;
+        ++pairs;
+        write_record(outfiles.synced_fwd, store_record(forward_handle, is_fastq),
+                     static_cast<int64_t>(pairs), parameters);
+        write_record(outfiles.synced_rev, reverse_records[position],
+                     static_cast<int64_t>(pairs), parameters);
+      }
+      progress.update(fastx_get_position(forward_handle));
     }
-    progress_update(fastx_get_position(forward_handle));
   }
-  progress_done();
 
   /* write the reverse reads that had no forward mate, in reverse order */
 

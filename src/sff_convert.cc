@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/os_byteswap.hpp"
@@ -501,135 +502,136 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto const index_padding = compute_padding_length(sff_header.index_length);
 
 
-  progress_init("Converting SFF: ", sff_header.number_of_reads);
+  {
+    Progress progress("Converting SFF: ", sff_header.number_of_reads, parameters);
 
-  for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
-    {
-      /* check if the index block is here */
+    for (uint32_t read_no = 0; read_no < sff_header.number_of_reads; read_no++)
+      {
+        /* check if the index block is here */
 
-      if ((not index_is_done) and (filepos == sff_header.index_offset))
-        {
-          if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff.get()) < index_header_length)
-            {
-              fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
-            }
-          filepos += index_header_length;
-          index_kind[index_header_length] = 0;
+        if ((not index_is_done) and (filepos == sff_header.index_offset))
+          {
+            if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff.get()) < index_header_length)
+              {
+                fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
+              }
+            filepos += index_header_length;
+            index_kind[index_header_length] = 0;
 
-          uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;  // refactoring: skip index data and padding in one go?
-          if (fskip(fp_sff.get(), index_size) != index_size)
-            {
-              fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
-            }
+            uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;  // refactoring: skip index data and padding in one go?
+            if (fskip(fp_sff.get(), index_size) != index_size)
+              {
+                fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
+              }
 
-          filepos += index_size;
-          index_is_done = true;
-          index_is_odd = true;
-        }
+            filepos += index_size;
+            index_is_done = true;
+            index_is_odd = true;
+          }
 
-      /* read and check each read header */
+        /* read and check each read header */
 
-      auto const read_header = read_sff_read_header(fp_sff.get());
+        auto const read_header = read_sff_read_header(fp_sff.get());
 
-      filepos += n_bytes_in_read_header;
+        filepos += n_bytes_in_read_header;
 
-      check_sff_read_header(read_header);
+        check_sff_read_header(read_header);
 
-      auto read_name = read_a_string(fp_sff.get(), read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
-      filepos += read_header.name_length;
+        auto read_name = read_a_string(fp_sff.get(), read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
+        filepos += read_header.name_length;
 
-      uint32_t const read_header_padding_length = static_cast<uint32_t>(read_header.read_header_length - read_header.name_length - n_bytes_in_read_header);
-      skip_sff_section(fp_sff.get(), read_header_padding_length, "read header padding");
-      filepos += read_header_padding_length;
+        uint32_t const read_header_padding_length = static_cast<uint32_t>(read_header.read_header_length - read_header.name_length - n_bytes_in_read_header);
+        skip_sff_section(fp_sff.get(), read_header_padding_length, "read header padding");
+        filepos += read_header_padding_length;
 
-      /* read and check the flowgram and sequence */
+        /* read and check the flowgram and sequence */
 
-      /* the flowgram is 2 bytes per flow; the open-coded skip here previously
-         only required half that many bytes to be present, desynchronizing all
-         later offsets on a truncated file (S15). Use the helper, which checks
-         the full requested length. */
-      skip_sff_section(fp_sff.get(), 2UL * sff_header.flows_per_read, "flowgram values");
-      filepos += 2UL * sff_header.flows_per_read;
+        /* the flowgram is 2 bytes per flow; the open-coded skip here previously
+           only required half that many bytes to be present, desynchronizing all
+           later offsets on a truncated file (S15). Use the helper, which checks
+           the full requested length. */
+        skip_sff_section(fp_sff.get(), 2UL * sff_header.flows_per_read, "flowgram values");
+        filepos += 2UL * sff_header.flows_per_read;
 
-      skip_sff_section(fp_sff.get(), read_header.number_of_bases, "flow indices");
-      filepos += read_header.number_of_bases;
+        skip_sff_section(fp_sff.get(), read_header.number_of_bases, "flow indices");
+        filepos += read_header.number_of_bases;
 
-      auto bases = read_a_string(fp_sff.get(), read_header.number_of_bases, "read length");
-      filepos += read_header.number_of_bases;
+        auto bases = read_a_string(fp_sff.get(), read_header.number_of_bases, "read length");
+        filepos += read_header.number_of_bases;
 
-      auto quality_scores = read_a_string(fp_sff.get(), read_header.number_of_bases, "quality scores");
-      filepos += read_header.number_of_bases;
+        auto quality_scores = read_a_string(fp_sff.get(), read_header.number_of_bases, "quality scores");
+        filepos += read_header.number_of_bases;
 
-      /* convert quality scores to ascii characters */
+        /* convert quality scores to ascii characters */
 
-      convert_quality_scores(quality_scores, parameters);
+        convert_quality_scores(quality_scores, parameters);
 
-      uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
-      // refactoring: replace with round_up_to_8() (uint32_t version)
-      uint32_t const read_data_padded_length = memory_alignment * ((read_data_length + max_padding_length) / memory_alignment);
-      uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;  // refactoring: replace with compute_padding_length()
+        uint32_t const read_data_length = ((2 * sff_header.flows_per_read) + (3 * read_header.number_of_bases));
+        // refactoring: replace with round_up_to_8() (uint32_t version)
+        uint32_t const read_data_padded_length = memory_alignment * ((read_data_length + max_padding_length) / memory_alignment);
+        uint32_t const read_data_padding_length = read_data_padded_length - read_data_length;  // refactoring: replace with compute_padding_length()
 
-      skip_sff_section(fp_sff.get(), read_data_padding_length, "read data padding");
-      filepos += read_data_padding_length;
+        skip_sff_section(fp_sff.get(), read_data_padding_length, "read data padding");
+        filepos += read_data_padding_length;
 
-      // refactoring; mask_start, mask_end_5prime, mask_end_3prime, left_mask_end, right_mask_start
-      uint32_t clip_start = std::max({uint16_t{1}, read_header.clip_qual_left, read_header.clip_adapter_left}) - 1 ;
+        // refactoring; mask_start, mask_end_5prime, mask_end_3prime, left_mask_end, right_mask_start
+        uint32_t clip_start = std::max({uint16_t{1}, read_header.clip_qual_left, read_header.clip_adapter_left}) - 1 ;
 
-      uint32_t clip_end = std::min((read_header.clip_qual_right == 0 ? read_header.number_of_bases : read_header.clip_qual_right), (read_header.clip_adapter_right == 0 ? read_header.number_of_bases : read_header.clip_adapter_right));
+        uint32_t clip_end = std::min((read_header.clip_qual_right == 0 ? read_header.number_of_bases : read_header.clip_qual_right), (read_header.clip_adapter_right == 0 ? read_header.number_of_bases : read_header.clip_adapter_right));
 
-      /* make the clipped bases lowercase and the rest uppercase */
-      // refactoring: soft_mask_read(transform(begin(), left_mask_end); transform(right_mask_start, end()))
-      for (uint32_t i = 0; i < read_header.number_of_bases; i++)
-        {
-          if ((i < clip_start) or (i >= clip_end))
-            {
-              bases[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(bases[i])));
-            }
-          else
-            {
-              bases[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(bases[i])));
-            }
-        }
+        /* make the clipped bases lowercase and the rest uppercase */
+        // refactoring: soft_mask_read(transform(begin(), left_mask_end); transform(right_mask_start, end()))
+        for (uint32_t i = 0; i < read_header.number_of_bases; i++)
+          {
+            if ((i < clip_start) or (i >= clip_end))
+              {
+                bases[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(bases[i])));
+              }
+            else
+              {
+                bases[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(bases[i])));
+              }
+          }
 
-      if (parameters.opt_sff_clip)
-        {
-          /* Each clip field is individually bounded by number_of_bases, but
-             nothing guarantees clip_start <= clip_end; an inverted pair would
-             underflow `length = clip_end - clip_start` (both uint32_t) to ~4 GB
-             and drive a massive out-of-bounds read below (S2). */
-          if (clip_start > clip_end)
-            {
-              fatal("Invalid SFF file. Clipping region is empty (clip start beyond clip end).");
-            }
-          bases[clip_end] = '\0';
-          quality_scores[clip_end] = '\0';
-        }
-      else
-        {
-          clip_start = 0;
-          clip_end = read_header.number_of_bases;
-        }
+        if (parameters.opt_sff_clip)
+          {
+            /* Each clip field is individually bounded by number_of_bases, but
+               nothing guarantees clip_start <= clip_end; an inverted pair would
+               underflow `length = clip_end - clip_start` (both uint32_t) to ~4 GB
+               and drive a massive out-of-bounds read below (S2). */
+            if (clip_start > clip_end)
+              {
+                fatal("Invalid SFF file. Clipping region is empty (clip start beyond clip end).");
+              }
+            bases[clip_end] = '\0';
+            quality_scores[clip_end] = '\0';
+          }
+        else
+          {
+            clip_start = 0;
+            clip_end = read_header.number_of_bases;
+          }
 
-      uint32_t const length = clip_end - clip_start;
+        uint32_t const length = clip_end - clip_start;
 
-      fastq_print_general(fp_fastqout,
-                          bases.data() + clip_start,
-                          static_cast<int>(length),
-                          read_name.data(),
-                          static_cast<int>(read_name.size() - 1),
-                          quality_scores.data() + clip_start,
-                          1, read_no + 1, -1.0,
-                          parameters);
+        fastq_print_general(fp_fastqout,
+                            bases.data() + clip_start,
+                            static_cast<int>(length),
+                            read_name.data(),
+                            static_cast<int>(read_name.size() - 1),
+                            quality_scores.data() + clip_start,
+                            1, read_no + 1, -1.0,
+                            parameters);
 
 
-      sff_stats.total_length += length;
-      sff_stats.minimum = std::min(length, sff_stats.minimum);
-      sff_stats.maximum = std::max(length, sff_stats.maximum);
+        sff_stats.total_length += length;
+        sff_stats.minimum = std::min(length, sff_stats.minimum);
+        sff_stats.maximum = std::max(length, sff_stats.maximum);
 
-      progress_update(read_no + 1);
-    }
-  progress_done();
+        progress.update(read_no + 1);
+      }
 
+  }
   /* check if the index block is here */
 
   if (not index_is_done)

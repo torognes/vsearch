@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
@@ -326,189 +327,188 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fp_fastqout_discarded_rev = open_optional_output(parameters.opt_fastqout_discarded_rev, "fastqout_discarded_rev");
     }
 
-  progress_init("Reading input file", filesize);
-
   int64_t kept = 0;
   int64_t discarded = 0;
   int64_t truncated = 0;
 
-  while (fastx_next(forward_handle, false, chrmap_no_change_vector.data()))
-    {
-      if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
-        {
-          fatal("More forward reads than reverse reads");
-        }
+  {
+    Progress progress("Reading input file", filesize, parameters);
+    while (fastx_next(forward_handle, false, chrmap_no_change_vector.data()))
+      {
+        if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
+          {
+            fatal("More forward reads than reverse reads");
+          }
 
-      struct analysis_res res1;
-      res1.ee = 0.0;
-      struct analysis_res res2;
+        struct analysis_res res1;
+        res1.ee = 0.0;
+        struct analysis_res res2;
 
-      res1 = analyse(forward_handle, parameters);
-      if (reverse_handle != nullptr)
-        {
-          res2 = analyse(reverse_handle, parameters);
-        }
+        res1 = analyse(forward_handle, parameters);
+        if (reverse_handle != nullptr)
+          {
+            res2 = analyse(reverse_handle, parameters);
+          }
 
-      if (res1.discarded or res2.discarded)
-        {
-          /* discard the sequence(s) */
+        if (res1.discarded or res2.discarded)
+          {
+            /* discard the sequence(s) */
 
-          ++discarded;
+            ++discarded;
 
-          if (parameters.opt_fastaout_discarded != nullptr)
-            {
-              fasta_print_general(fp_fastaout_discarded,
-                                  nullptr,
-                                  fastx_get_sequence(forward_handle) + res1.start,
-                                  res1.length,
-                                  fastx_get_header(forward_handle),
-                                  static_cast<int>(fastx_get_header_length(forward_handle)),
-                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
-                                  discarded,
-                                  res1.ee,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_fastaout_discarded != nullptr)
+              {
+                fasta_print_general(fp_fastaout_discarded,
+                                    nullptr,
+                                    fastx_get_sequence(forward_handle) + res1.start,
+                                    res1.length,
+                                    fastx_get_header(forward_handle),
+                                    static_cast<int>(fastx_get_header_length(forward_handle)),
+                                    static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
+                                    discarded,
+                                    res1.ee,
+                                    -1,
+                                    -1,
+                                    nullptr,
+                                    0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_fastqout_discarded != nullptr)
-            {
-              fastq_print_general(fp_fastqout_discarded,
-                                  fastx_get_sequence(forward_handle) + res1.start,
-                                  res1.length,
-                                  fastx_get_header(forward_handle),
-                                  static_cast<int>(fastx_get_header_length(forward_handle)),
-                                  fastx_get_quality(forward_handle) + res1.start,
-                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
-                                  discarded,
-                                  res1.ee,
-                                  parameters);
-            }
+            if (parameters.opt_fastqout_discarded != nullptr)
+              {
+                fastq_print_general(fp_fastqout_discarded,
+                                    fastx_get_sequence(forward_handle) + res1.start,
+                                    res1.length,
+                                    fastx_get_header(forward_handle),
+                                    static_cast<int>(fastx_get_header_length(forward_handle)),
+                                    fastx_get_quality(forward_handle) + res1.start,
+                                    static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
+                                    discarded,
+                                    res1.ee,
+                                    parameters);
+              }
 
-          if (reverse_handle != nullptr)
-            {
-              if (parameters.opt_fastaout_discarded_rev != nullptr)
-                {
-                  fasta_print_general(fp_fastaout_discarded_rev,
-                                      nullptr,
-                                      fastx_get_sequence(reverse_handle) + res2.start,
-                                      res2.length,
-                                      fastx_get_header(reverse_handle),
-                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
-                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
-                                      discarded,
-                                      res2.ee,
-                                      -1,
-                                      -1,
-                                      nullptr,
-                                      0.0,
-                                      0,
-                                      parameters);
-                }
+            if (reverse_handle != nullptr)
+              {
+                if (parameters.opt_fastaout_discarded_rev != nullptr)
+                  {
+                    fasta_print_general(fp_fastaout_discarded_rev,
+                                        nullptr,
+                                        fastx_get_sequence(reverse_handle) + res2.start,
+                                        res2.length,
+                                        fastx_get_header(reverse_handle),
+                                        static_cast<int>(fastx_get_header_length(reverse_handle)),
+                                        static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
+                                        discarded,
+                                        res2.ee,
+                                        -1,
+                                        -1,
+                                        nullptr,
+                                        0.0,
+                                        0,
+                                        parameters);
+                  }
 
-              if (parameters.opt_fastqout_discarded_rev != nullptr)
-                {
-                  fastq_print_general(fp_fastqout_discarded_rev,
-                                      fastx_get_sequence(reverse_handle) + res2.start,
-                                      res2.length,
-                                      fastx_get_header(reverse_handle),
-                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
-                                      fastx_get_quality(reverse_handle) + res2.start,
-                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
-                                      discarded,
-                                      res2.ee,
-                                      parameters);
-                }
-            }
-        }
-      else
-        {
-          /* keep the sequence(s) */
+                if (parameters.opt_fastqout_discarded_rev != nullptr)
+                  {
+                    fastq_print_general(fp_fastqout_discarded_rev,
+                                        fastx_get_sequence(reverse_handle) + res2.start,
+                                        res2.length,
+                                        fastx_get_header(reverse_handle),
+                                        static_cast<int>(fastx_get_header_length(reverse_handle)),
+                                        fastx_get_quality(reverse_handle) + res2.start,
+                                        static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
+                                        discarded,
+                                        res2.ee,
+                                        parameters);
+                  }
+              }
+          }
+        else
+          {
+            /* keep the sequence(s) */
 
-          ++kept;
+            ++kept;
 
-          if (res1.truncated or res2.truncated)
-            {
-              ++truncated;
-            }
+            if (res1.truncated or res2.truncated)
+              {
+                ++truncated;
+              }
 
-          if (parameters.opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  fastx_get_sequence(forward_handle) + res1.start,
-                                  res1.length,
-                                  fastx_get_header(forward_handle),
-                                  static_cast<int>(fastx_get_header_length(forward_handle)),
-                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
-                                  kept,
-                                  res1.ee,
-                                  -1,
-                                  -1,
-                                  nullptr,
-                                  0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_fastaout != nullptr)
+              {
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    fastx_get_sequence(forward_handle) + res1.start,
+                                    res1.length,
+                                    fastx_get_header(forward_handle),
+                                    static_cast<int>(fastx_get_header_length(forward_handle)),
+                                    static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
+                                    kept,
+                                    res1.ee,
+                                    -1,
+                                    -1,
+                                    nullptr,
+                                    0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_fastqout != nullptr)
-            {
-              fastq_print_general(fp_fastqout,
-                                  fastx_get_sequence(forward_handle) + res1.start,
-                                  res1.length,
-                                  fastx_get_header(forward_handle),
-                                  static_cast<int>(fastx_get_header_length(forward_handle)),
-                                  fastx_get_quality(forward_handle) + res1.start,
-                                  static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
-                                  kept,
-                                  res1.ee,
-                                  parameters);
-            }
+            if (parameters.opt_fastqout != nullptr)
+              {
+                fastq_print_general(fp_fastqout,
+                                    fastx_get_sequence(forward_handle) + res1.start,
+                                    res1.length,
+                                    fastx_get_header(forward_handle),
+                                    static_cast<int>(fastx_get_header_length(forward_handle)),
+                                    fastx_get_quality(forward_handle) + res1.start,
+                                    static_cast<uint64_t>(fastx_get_abundance(forward_handle)),
+                                    kept,
+                                    res1.ee,
+                                    parameters);
+              }
 
-          if (reverse_handle != nullptr)
-            {
-              if (parameters.opt_fastaout_rev != nullptr)
-                {
-                  fasta_print_general(fp_fastaout_rev,
-                                      nullptr,
-                                      fastx_get_sequence(reverse_handle) + res2.start,
-                                      res2.length,
-                                      fastx_get_header(reverse_handle),
-                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
-                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
-                                      kept,
-                                      res2.ee,
-                                      -1,
-                                      -1,
-                                      nullptr,
-                                      0.0,
-                                      0,
-                                      parameters);
-                }
+            if (reverse_handle != nullptr)
+              {
+                if (parameters.opt_fastaout_rev != nullptr)
+                  {
+                    fasta_print_general(fp_fastaout_rev,
+                                        nullptr,
+                                        fastx_get_sequence(reverse_handle) + res2.start,
+                                        res2.length,
+                                        fastx_get_header(reverse_handle),
+                                        static_cast<int>(fastx_get_header_length(reverse_handle)),
+                                        static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
+                                        kept,
+                                        res2.ee,
+                                        -1,
+                                        -1,
+                                        nullptr,
+                                        0.0,
+                                        0,
+                                        parameters);
+                  }
 
-              if (parameters.opt_fastqout_rev != nullptr)
-                {
-                  fastq_print_general(fp_fastqout_rev,
-                                      fastx_get_sequence(reverse_handle) + res2.start,
-                                      res2.length,
-                                      fastx_get_header(reverse_handle),
-                                      static_cast<int>(fastx_get_header_length(reverse_handle)),
-                                      fastx_get_quality(reverse_handle) + res2.start,
-                                      static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
-                                      kept,
-                                      res2.ee,
-                                      parameters);
-                }
-            }
-        }
+                if (parameters.opt_fastqout_rev != nullptr)
+                  {
+                    fastq_print_general(fp_fastqout_rev,
+                                        fastx_get_sequence(reverse_handle) + res2.start,
+                                        res2.length,
+                                        fastx_get_header(reverse_handle),
+                                        static_cast<int>(fastx_get_header_length(reverse_handle)),
+                                        fastx_get_quality(reverse_handle) + res2.start,
+                                        static_cast<uint64_t>(fastx_get_abundance(reverse_handle)),
+                                        kept,
+                                        res2.ee,
+                                        parameters);
+                  }
+              }
+          }
 
-      progress_update(fastx_get_position(forward_handle));
-    }
-
-  progress_done();
+        progress.update(fastx_get_position(forward_handle));
+      }
+  }
 
   if ((reverse_handle != nullptr) and fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
     {
