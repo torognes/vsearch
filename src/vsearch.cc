@@ -117,8 +117,6 @@
 
 constexpr auto max_line_length = std::size_t{80};
 
-/* options */
-
 /* Other variables */
 
 static std::array<char, max_line_length> prog_header {{}};

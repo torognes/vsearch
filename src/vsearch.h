@@ -208,8 +208,6 @@
    fields. */
 constexpr int buffer_headroom = 2001;
 
-/* options */
-
 extern std::FILE * fp_log;
 
 constexpr int64_t default_fasta_width = 80;
