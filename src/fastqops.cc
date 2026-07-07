@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::max
@@ -101,90 +102,83 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
   fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
   fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
-  if (input_handle->is_fastq)
-    {
-      progress_init("Reading FASTQ file", filesize);
-    }
-  else
-    {
-      progress_init("Reading FASTA file", filesize);
-    }
-
   auto count = 0;
 
-  while (fastx_next(input_handle, false, chrmap_no_change_vector.data()))
-    {
-      ++count;
+  {
+    Progress progress(input_handle->is_fastq ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
+    while (fastx_next(input_handle, false, chrmap_no_change_vector.data()))
+      {
+        ++count;
 
-      /* header */
+        /* header */
 
-      auto const hlen = fastx_get_header_length(input_handle);
-      auto const * header = fastx_get_header(input_handle);
-      auto const abundance = fastx_get_abundance(input_handle);
-
-
-      /* sequence */
-
-      auto const length = fastx_get_sequence_length(input_handle);
-
-      if (length + 1 > buffer_alloc)
-        {
-          buffer_alloc = length + 1;
-          seq_buffer.resize(buffer_alloc);
-          qual_buffer.resize(buffer_alloc);
-        }
-
-      auto const * p = fastx_get_sequence(input_handle);
-      reverse_complement(seq_buffer.data(), p, static_cast<int64_t>(length));
+        auto const hlen = fastx_get_header_length(input_handle);
+        auto const * header = fastx_get_header(input_handle);
+        auto const abundance = fastx_get_abundance(input_handle);
 
 
-      /* quality values */
+        /* sequence */
 
-      auto const * q = fastx_get_quality(input_handle);
+        auto const length = fastx_get_sequence_length(input_handle);
 
-      if (fastx_is_fastq(input_handle))
-        {
-          /* reverse quality values */
-          for (uint64_t i = 0; i < length; i++)
-            {
-              qual_buffer[i] = q[length - 1 - i];
-            }
-          qual_buffer[length] = 0;
-        }
+        if (length + 1 > buffer_alloc)
+          {
+            buffer_alloc = length + 1;
+            seq_buffer.resize(buffer_alloc);
+            qual_buffer.resize(buffer_alloc);
+          }
 
-      if (parameters.opt_fastaout != nullptr)
-        {
-          fasta_print_general(fp_fastaout,
-                              nullptr,
-                              seq_buffer.data(),
-                              static_cast<int>(length),
-                              header,
-                              static_cast<int>(hlen),
-                              static_cast<uint64_t>(abundance),
-                              count,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
-                              parameters);
-        }
+        auto const * p = fastx_get_sequence(input_handle);
+        reverse_complement(seq_buffer.data(), p, static_cast<int64_t>(length));
 
-      if (parameters.opt_fastqout != nullptr)
-        {
-          fastq_print_general(fp_fastqout,
-                              seq_buffer.data(),
-                              static_cast<int>(length),
-                              header,
-                              static_cast<int>(hlen),
-                              qual_buffer.data(),
-                              static_cast<uint64_t>(abundance),
-                              count,
-                              -1.0,
-                              parameters);
-        }
 
-      progress_update(fastx_get_position(input_handle));
-    }
-  progress_done();
+        /* quality values */
+
+        auto const * q = fastx_get_quality(input_handle);
+
+        if (fastx_is_fastq(input_handle))
+          {
+            /* reverse quality values */
+            for (uint64_t i = 0; i < length; i++)
+              {
+                qual_buffer[i] = q[length - 1 - i];
+              }
+            qual_buffer[length] = 0;
+          }
+
+        if (parameters.opt_fastaout != nullptr)
+          {
+            fasta_print_general(fp_fastaout,
+                                nullptr,
+                                seq_buffer.data(),
+                                static_cast<int>(length),
+                                header,
+                                static_cast<int>(hlen),
+                                static_cast<uint64_t>(abundance),
+                                count,
+                                -1.0,
+                                -1, -1, nullptr, 0.0,
+                                0,
+                                parameters);
+          }
+
+        if (parameters.opt_fastqout != nullptr)
+          {
+            fastq_print_general(fp_fastqout,
+                                seq_buffer.data(),
+                                static_cast<int>(length),
+                                header,
+                                static_cast<int>(hlen),
+                                qual_buffer.data(),
+                                static_cast<uint64_t>(abundance),
+                                count,
+                                -1.0,
+                                parameters);
+          }
+
+        progress.update(fastx_get_position(input_handle));
+      }
+  }
 
   if (parameters.opt_fastaout != nullptr)
     {
@@ -212,86 +206,87 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   std::FILE * fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
-  progress_init("Reading FASTQ file", filesize);
 
   std::vector<char> normalized_quality;
   auto n_entries = 1;
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
-  while (fastq_next(input_handle, false, chrmap_no_change_vector.data()))
-    {
-      /* header */
+  {
+    Progress progress("Reading FASTQ file", filesize, parameters);
+    while (fastq_next(input_handle, false, chrmap_no_change_vector.data()))
+      {
+        /* header */
 
-      auto const * header = fastq_get_header(input_handle);
-      auto const abundance = fastq_get_abundance(input_handle);
+        auto const * header = fastq_get_header(input_handle);
+        auto const abundance = fastq_get_abundance(input_handle);
 
-      /* sequence */
+        /* sequence */
 
-      auto const length = fastq_get_sequence_length(input_handle);
-      auto const * sequence = fastq_get_sequence(input_handle);
+        auto const length = fastq_get_sequence_length(input_handle);
+        auto const * sequence = fastq_get_sequence(input_handle);
 
-      /* convert quality values */
+        /* convert quality values */
 
-      // refactoring: std::copy(quality, normalized_quality);
-      // - subspan(0, end - 1)
-      // - substract parameters.opt_fastq_ascii
-      // - clamp qminout < x < qmaxout
-      // - add parameters.opt_fastq_asciiout
-      // - clamp 33 < x < 126
-      normalized_quality.resize(length + 1);
-      auto const * quality = fastq_get_quality(input_handle);
-      for (uint64_t i = 0; i < length; i++)
-        {
-          int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
-          if (q < parameters.opt_fastq_qmin)
-            {
-              std::fprintf(stderr,
-                      "\nFASTQ quality score (%d) below minimum (%" PRId64
-                      ") in entry no %" PRIu64
-                      " starting on line %" PRIu64 "\n",
-                      q,
-                      parameters.opt_fastq_qmin,
-                      fastq_get_seqno(input_handle) + 1,
-                      fastq_get_lineno(input_handle));
-              fatal("FASTQ quality score too low");
-            }
-          if (q > parameters.opt_fastq_qmax)
-            {
-              std::fprintf(stderr,
-                      "\nFASTQ quality score (%d) above maximum (%" PRId64
-                      ") in entry no %" PRIu64
-                      " starting on line %" PRIu64 "\n",
-                      q,
-                      parameters.opt_fastq_qmax,
-                      fastq_get_seqno(input_handle) + 1,
-                      fastq_get_lineno(input_handle));
-              fatal("FASTQ quality score too high");
-            }
-          q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));
-          q = static_cast<int>(std::min<int64_t>(q, parameters.opt_fastq_qmaxout));
-          q += static_cast<int>(parameters.opt_fastq_asciiout);
-          q = std::max(q, 33);
-          q = std::min(q, 126);
-          normalized_quality[i] = static_cast<char>(q);
-        }
+        // refactoring: std::copy(quality, normalized_quality);
+        // - subspan(0, end - 1)
+        // - substract parameters.opt_fastq_ascii
+        // - clamp qminout < x < qmaxout
+        // - add parameters.opt_fastq_asciiout
+        // - clamp 33 < x < 126
+        normalized_quality.resize(length + 1);
+        auto const * quality = fastq_get_quality(input_handle);
+        for (uint64_t i = 0; i < length; i++)
+          {
+            int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
+            if (q < parameters.opt_fastq_qmin)
+              {
+                std::fprintf(stderr,
+                        "\nFASTQ quality score (%d) below minimum (%" PRId64
+                        ") in entry no %" PRIu64
+                        " starting on line %" PRIu64 "\n",
+                        q,
+                        parameters.opt_fastq_qmin,
+                        fastq_get_seqno(input_handle) + 1,
+                        fastq_get_lineno(input_handle));
+                fatal("FASTQ quality score too low");
+              }
+            if (q > parameters.opt_fastq_qmax)
+              {
+                std::fprintf(stderr,
+                        "\nFASTQ quality score (%d) above maximum (%" PRId64
+                        ") in entry no %" PRIu64
+                        " starting on line %" PRIu64 "\n",
+                        q,
+                        parameters.opt_fastq_qmax,
+                        fastq_get_seqno(input_handle) + 1,
+                        fastq_get_lineno(input_handle));
+                fatal("FASTQ quality score too high");
+              }
+            q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));
+            q = static_cast<int>(std::min<int64_t>(q, parameters.opt_fastq_qmaxout));
+            q += static_cast<int>(parameters.opt_fastq_asciiout);
+            q = std::max(q, 33);
+            q = std::min(q, 126);
+            normalized_quality[i] = static_cast<char>(q);
+          }
 
-      int const hlen = static_cast<int>(fastq_get_header_length(input_handle));
-      fastq_print_general(fp_fastqout,
-                          sequence,
-                          static_cast<int>(length),
-                          header,
-                          hlen,
-                          normalized_quality.data(),
-                          static_cast<uint64_t>(abundance),
-                          n_entries,
-                          default_expected_error,
-                          parameters);  // refactoring: prefer function overload?
+        int const hlen = static_cast<int>(fastq_get_header_length(input_handle));
+        fastq_print_general(fp_fastqout,
+                            sequence,
+                            static_cast<int>(length),
+                            header,
+                            hlen,
+                            normalized_quality.data(),
+                            static_cast<uint64_t>(abundance),
+                            n_entries,
+                            default_expected_error,
+                            parameters);  // refactoring: prefer function overload?
 
-      ++n_entries;
-      normalized_quality.clear();
-      progress_update(fastq_get_position(input_handle));
-    }
+        ++n_entries;
+        normalized_quality.clear();
+        progress.update(fastq_get_position(input_handle));
+      }
+  }
 
-  progress_done();
 
   fclose_output(fp_fastqout);
   fastq_close(input_handle, parameters);

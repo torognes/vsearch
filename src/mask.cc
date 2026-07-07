@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "mask.h"
 #include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
@@ -302,13 +303,14 @@ auto maskfasta(struct Parameters const & parameters) -> void
     }
   show_rusage();
 
-  progress_init("Writing output", seqcount);
-  for (uint64_t i = 0; i < seqcount; i++)
-    {
-      fasta_print_db_relabel(output_handle.get(), i, i + 1, parameters);
-      progress_update(i);
-    }
-  progress_done();
+  {
+    Progress progress("Writing output", seqcount, parameters);
+    for (uint64_t i = 0; i < seqcount; i++)
+      {
+        fasta_print_db_relabel(output_handle.get(), i, i + 1, parameters);
+        progress.update(i);
+      }
+  }
   show_rusage();
 
   db_free();
@@ -350,84 +352,85 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   auto kept = 0;
   auto discarded_less = 0;
   auto discarded_more = 0;
-  progress_init("Writing output", seqcount);
-  for (uint64_t i = 0; i < seqcount; i++)
-    {
-      auto unmasked = 0;
-      auto const * seq = db_getsequence(i);
-      const int len = static_cast<int>(db_getsequencelen(i));
-      if (parameters.opt_qmask == MASK_NONE)
-        {
-          unmasked = len;
-        }
-      else if (parameters.opt_hardmask)
-        {
-          for (auto j = 0; j < len; j++)
-            {
-              if (seq[j] != 'N')
-                {
-                  ++unmasked;
-                }
-            }
-        }
-      else
-        {
-          for (auto j = 0; j < len; j++)
-            {
-              if (std::isupper(seq[j]) != 0)
-                {
-                  ++unmasked;
-                }
-            }
-        }
-      auto const unmasked_pct = 100.0 * unmasked / len;
+  {
+    Progress progress("Writing output", seqcount, parameters);
+    for (uint64_t i = 0; i < seqcount; i++)
+      {
+        auto unmasked = 0;
+        auto const * seq = db_getsequence(i);
+        const int len = static_cast<int>(db_getsequencelen(i));
+        if (parameters.opt_qmask == MASK_NONE)
+          {
+            unmasked = len;
+          }
+        else if (parameters.opt_hardmask)
+          {
+            for (auto j = 0; j < len; j++)
+              {
+                if (seq[j] != 'N')
+                  {
+                    ++unmasked;
+                  }
+              }
+          }
+        else
+          {
+            for (auto j = 0; j < len; j++)
+              {
+                if (std::isupper(seq[j]) != 0)
+                  {
+                    ++unmasked;
+                  }
+              }
+          }
+        auto const unmasked_pct = 100.0 * unmasked / len;
 
-      if (unmasked_pct < parameters.opt_min_unmasked_pct)
-        {
-          ++discarded_less;
-        }
-      else if (unmasked_pct >  parameters.opt_max_unmasked_pct)
-        {
-          ++discarded_more;
-        }
-      else
-        {
-          ++kept;
+        if (unmasked_pct < parameters.opt_min_unmasked_pct)
+          {
+            ++discarded_less;
+          }
+        else if (unmasked_pct >  parameters.opt_max_unmasked_pct)
+          {
+            ++discarded_more;
+          }
+        else
+          {
+            ++kept;
 
-          if (parameters.opt_fastaout != nullptr)
-            {
-              fasta_print_general(fp_fastaout,
-                                  nullptr,
-                                  seq,
-                                  len,
-                                  db_getheader(i),
-                                  static_cast<int>(db_getheaderlen(i)),
-                                  db_getabundance(i),
-                                  kept,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0,
-                                  0,
-                                  parameters);
-            }
+            if (parameters.opt_fastaout != nullptr)
+              {
+                fasta_print_general(fp_fastaout,
+                                    nullptr,
+                                    seq,
+                                    len,
+                                    db_getheader(i),
+                                    static_cast<int>(db_getheaderlen(i)),
+                                    db_getabundance(i),
+                                    kept,
+                                    -1.0,
+                                    -1, -1, nullptr, 0.0,
+                                    0,
+                                    parameters);
+              }
 
-          if (parameters.opt_fastqout != nullptr)
-            {
-              fastq_print_general(fp_fastqout,
-                                  seq,
-                                  len,
-                                  db_getheader(i),
-                                  static_cast<int>(db_getheaderlen(i)),
-                                  db_getquality(i),
-                                  db_getabundance(i),
-                                  kept,
-                                  -1.0,
-                                  parameters);
-            }
-        }
+            if (parameters.opt_fastqout != nullptr)
+              {
+                fastq_print_general(fp_fastqout,
+                                    seq,
+                                    len,
+                                    db_getheader(i),
+                                    static_cast<int>(db_getheaderlen(i)),
+                                    db_getquality(i),
+                                    db_getabundance(i),
+                                    kept,
+                                    -1.0,
+                                    parameters);
+              }
+          }
 
-      progress_update(i);
-    }
-  progress_done();
+        progress.update(i);
+      }
+  }
 
   if (! parameters.opt_quiet)
     {

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
@@ -510,7 +511,6 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   auto const filesize = fastq_get_size(input_handle);
 
-  progress_init("Reading FASTQ file", filesize);
 
   auto const symbol_to_score = precompute_quality_scores(parameters);
   auto const symbol_to_probability = precompute_probability_values(parameters);
@@ -522,78 +522,80 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   // refactoring: separate parse_fastq() and compute_distributions()
   // note: fastq parsing represents 99% of total wallclock time
-  while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
-    {
+  {
+    Progress progress("Reading FASTQ file", filesize, parameters);
+    while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
+      {
 
-      /* update length statistics */
+        /* update length statistics */
 
-      auto const length = fastq_get_sequence_length(input_handle);
+        auto const length = fastq_get_sequence_length(input_handle);
 
-      if (length + 1 > read_length_table.size())
-        {
-          read_length_table.resize(length + 1);
-          qual_length_table.resize(length + 1, std::vector<uint64_t>(n_eight_bit_values));
-          ee_length_table.resize(length + 1);
-          q_length_table.resize(length + 1);
-          sumee_length_table.resize(length + 1);
-        }
+        if (length + 1 > read_length_table.size())
+          {
+            read_length_table.resize(length + 1);
+            qual_length_table.resize(length + 1, std::vector<uint64_t>(n_eight_bit_values));
+            ee_length_table.resize(length + 1);
+            q_length_table.resize(length + 1);
+            sumee_length_table.resize(length + 1);
+          }
 
-      ++read_length_table[length];  // can NOT be derived from qual_length_table
+        ++read_length_table[length];  // can NOT be derived from qual_length_table
 
 
-      /* update quality statistics */
+        /* update quality statistics */
 
-      auto const * quality_symbols = fastq_get_quality(input_handle);
-      auto expected_error = 0.0;
-      auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed so far in this read
+        auto const * quality_symbols = fastq_get_quality(input_handle);
+        auto expected_error = 0.0;
+        auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed so far in this read
 
-      check_minmax_scores(Span<char>{quality_symbols, length}, symbol_to_score, parameters);
+        check_minmax_scores(Span<char>{quality_symbols, length}, symbol_to_score, parameters);
 
-      // refactoring: replace for-loop below with three functions:
-      // 0)
-      //  - transform(quality_symbols, qual_length_table, [](auto& position){ ++position[quality_symbol]; })
-      // 1)
-      //  - search first position with symbol <= 20 + offset
-      //  - increment counts from begin to position
-      //  - do the same for 15, 10 and 5
-      // 2)
-      //  - create a temporary vector
-      //  - populate with probability values
-      //  - std::partial_sum() to compte EE
-      //  - search first position with EE <= 1.0
-      //  - increment counts from begin to position
-      //  - do the same for EE <= 0.5, 0.25, and 0.1
-      for (auto i = 0UL; i < length; ++i)
-        {
-          auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
-          auto const quality_score = symbol_to_score[quality_symbol];
+        // refactoring: replace for-loop below with three functions:
+        // 0)
+        //  - transform(quality_symbols, qual_length_table, [](auto& position){ ++position[quality_symbol]; })
+        // 1)
+        //  - search first position with symbol <= 20 + offset
+        //  - increment counts from begin to position
+        //  - do the same for 15, 10 and 5
+        // 2)
+        //  - create a temporary vector
+        //  - populate with probability values
+        //  - std::partial_sum() to compte EE
+        //  - search first position with EE <= 1.0
+        //  - increment counts from begin to position
+        //  - do the same for EE <= 0.5, 0.25, and 0.1
+        for (auto i = 0UL; i < length; ++i)
+          {
+            auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
+            auto const quality_score = symbol_to_score[quality_symbol];
 
-          ++qual_length_table[i][quality_symbol];
+            ++qual_length_table[i][quality_symbol];
 
-          qmin = std::min(quality_score, qmin);
+            qmin = std::min(quality_score, qmin);
 
-          // increment quality observations if the current Q > 5, 10, 15, or 20
-          std::transform(quality_thresholds.begin(), quality_thresholds.end(),
-                         q_length_table[i].begin(), q_length_table[i].begin(),
-                         [qmin](uint64_t const threshold, uint64_t current_value) -> uint64_t {
-                           return current_value + (qmin > threshold ? 1 : 0);
-                         });
+            // increment quality observations if the current Q > 5, 10, 15, or 20
+            std::transform(quality_thresholds.begin(), quality_thresholds.end(),
+                           q_length_table[i].begin(), q_length_table[i].begin(),
+                           [qmin](uint64_t const threshold, uint64_t current_value) -> uint64_t {
+                             return current_value + (qmin > threshold ? 1 : 0);
+                           });
 
-          expected_error += symbol_to_probability[quality_symbol];
+            expected_error += symbol_to_probability[quality_symbol];
 
-          sumee_length_table[i] += expected_error;  // can NOT be derived from qual_length_table
+            sumee_length_table[i] += expected_error;  // can NOT be derived from qual_length_table
 
-          // increment EE observations if the current EE <= 1.0, 0.5, 0.25, or 0.1
-          std::transform(ee_thresholds.begin(), ee_thresholds.end(),
-                         ee_length_table[i].begin(), ee_length_table[i].begin(),
-                         [expected_error](double const threshold, uint64_t current_value) -> uint64_t {
-                           return current_value + (expected_error <= threshold ? 1 : 0);
-                         });
-        }
+            // increment EE observations if the current EE <= 1.0, 0.5, 0.25, or 0.1
+            std::transform(ee_thresholds.begin(), ee_thresholds.end(),
+                           ee_length_table[i].begin(), ee_length_table[i].begin(),
+                           [expected_error](double const threshold, uint64_t current_value) -> uint64_t {
+                             return current_value + (expected_error <= threshold ? 1 : 0);
+                           });
+          }
 
-      progress_update(fastq_get_position(input_handle));
-    }
-  progress_done();
+        progress.update(fastq_get_position(input_handle));
+      }
+  }
   fastq_close(input_handle, parameters);
 
 

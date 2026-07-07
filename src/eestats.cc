@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::max, std::min
@@ -142,7 +143,6 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   std::FILE * fp_output = open_optional_output(parameters.opt_output, "output");
 
-  progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
 
@@ -165,66 +165,68 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   int64_t len_min = std::numeric_limits<long>::max();
   int64_t len_max = 0;
 
-  while (fastq_next(h, false, chrmap_upcase_vector.data()))
-    {
-      ++seq_count;
+  {
+    Progress progress("Reading FASTQ file", filesize, parameters);
+    while (fastq_next(h, false, chrmap_upcase_vector.data()))
+      {
+        ++seq_count;
 
-      int64_t const len = static_cast<int64_t>(fastq_get_sequence_length(h));
-      char const * q = fastq_get_quality(h);
+        int64_t const len = static_cast<int64_t>(fastq_get_sequence_length(h));
+        char const * q = fastq_get_quality(h);
 
-      /* update length statistics */
+        /* update length statistics */
 
-      int64_t const new_alloc = len + 1;
+        int64_t const new_alloc = len + 1;
 
-      if (new_alloc > len_alloc)
-        {
-          int64_t const new_ee_size = ee_start(new_alloc, resolution);
+        if (new_alloc > len_alloc)
+          {
+            int64_t const new_ee_size = ee_start(new_alloc, resolution);
 
-          read_length_table.resize(static_cast<size_t>(new_alloc));
-          qual_length_table.resize(static_cast<size_t>(new_alloc * (max_quality + 1)));
-          ee_length_table.resize(static_cast<size_t>(new_ee_size));
-          sum_ee_length_table.resize(static_cast<size_t>(new_alloc));
-          sum_pe_length_table.resize(static_cast<size_t>(new_alloc));
+            read_length_table.resize(static_cast<size_t>(new_alloc));
+            qual_length_table.resize(static_cast<size_t>(new_alloc * (max_quality + 1)));
+            ee_length_table.resize(static_cast<size_t>(new_ee_size));
+            sum_ee_length_table.resize(static_cast<size_t>(new_alloc));
+            sum_pe_length_table.resize(static_cast<size_t>(new_alloc));
 
-          len_alloc = new_alloc;
-          ee_size = new_ee_size;
-        }
+            len_alloc = new_alloc;
+            ee_size = new_ee_size;
+          }
 
-      len_min = std::min(len, len_min);
-      len_max = std::max(len, len_max);
+        len_min = std::min(len, len_min);
+        len_max = std::max(len, len_max);
 
-      /* update quality statistics */
+        /* update quality statistics */
 
-      double ee = 0.0;
+        double ee = 0.0;
 
-      for (int64_t i = 0; i < len; i++)
-        {
-          ++read_length_table[static_cast<size_t>(i)];
+        for (int64_t i = 0; i < len; i++)
+          {
+            ++read_length_table[static_cast<size_t>(i)];
 
-          /* quality score */
+            /* quality score */
 
-          auto const qual = std::max(fastq_get_qual_eestats(q[i], parameters), 0);
-          ++qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + qual)];
-
-
-          /* probability of error (Pe) */
-
-          auto const probability_of_error = q2p(qual);
-          sum_pe_length_table[static_cast<size_t>(i)] += probability_of_error;
+            auto const qual = std::max(fastq_get_qual_eestats(q[i], parameters), 0);
+            ++qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + qual)];
 
 
-          /* expected number of errors */
+            /* probability of error (Pe) */
 
-          ee += probability_of_error;
+            auto const probability_of_error = q2p(qual);
+            sum_pe_length_table[static_cast<size_t>(i)] += probability_of_error;
 
-          auto const e_int = std::min<int64_t>(resolution * (i + 1), static_cast<int>(resolution * ee));
-          ++ee_length_table[static_cast<size_t>(ee_start(i, resolution) + e_int)];
 
-          sum_ee_length_table[static_cast<size_t>(i)] += ee;
-        }
-      progress_update(fastq_get_position(h));
-    }
-  progress_done();
+            /* expected number of errors */
+
+            ee += probability_of_error;
+
+            auto const e_int = std::min<int64_t>(resolution * (i + 1), static_cast<int>(resolution * ee));
+            ++ee_length_table[static_cast<size_t>(ee_start(i, resolution) + e_int)];
+
+            sum_ee_length_table[static_cast<size_t>(i)] += ee;
+          }
+        progress.update(fastq_get_position(h));
+      }
+  }
 
   std::fprintf(fp_output,
           "Pos\tRecs\tPctRecs\t"
@@ -418,7 +420,6 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   std::FILE * fp_output = open_optional_output(parameters.opt_output, "output");
 
-  progress_init("Reading FASTQ file", filesize);
 
   uint64_t seq_count = 0;
   uint64_t symbols = 0;
@@ -428,65 +429,67 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   std::vector<uint64_t> count_table;
 
-  while (fastq_next(h, false, chrmap_upcase_vector.data()))
-    {
-      ++seq_count;
+  {
+    Progress progress("Reading FASTQ file", filesize, parameters);
+    while (fastq_next(h, false, chrmap_upcase_vector.data()))
+      {
+        ++seq_count;
 
-      auto const len = fastq_get_sequence_length(h);
-      auto const * q = fastq_get_quality(h);
+        auto const len = fastq_get_sequence_length(h);
+        auto const * q = fastq_get_quality(h);
 
-      /* update length statistics */
+        /* update length statistics */
 
-      if (len > longest)
-        {
-          longest = len;
-          // parameters.opt_length_cutoffs_longest is an int between 1 and INT_MAX
-          int const high = static_cast<int>(std::min(longest, static_cast<uint64_t>(parameters.opt_length_cutoffs_longest)));
-          auto const new_len_steps = 1 + std::max(0, ((high - parameters.opt_length_cutoffs_shortest)
-                                          / parameters.opt_length_cutoffs_increment));
+        if (len > longest)
+          {
+            longest = len;
+            // parameters.opt_length_cutoffs_longest is an int between 1 and INT_MAX
+            int const high = static_cast<int>(std::min(longest, static_cast<uint64_t>(parameters.opt_length_cutoffs_longest)));
+            auto const new_len_steps = 1 + std::max(0, ((high - parameters.opt_length_cutoffs_shortest)
+                                            / parameters.opt_length_cutoffs_increment));
 
-          if (new_len_steps > len_steps)
-            {
-              count_table.resize(static_cast<size_t>(new_len_steps) * static_cast<size_t>(ee_cutoffs_count));
-              len_steps = new_len_steps;
-            }
-        }
+            if (new_len_steps > len_steps)
+              {
+                count_table.resize(static_cast<size_t>(new_len_steps) * static_cast<size_t>(ee_cutoffs_count));
+                len_steps = new_len_steps;
+              }
+          }
 
-      /* update quality statistics */
+        /* update quality statistics */
 
-      symbols += len;
+        symbols += len;
 
-      auto ee = 0.0;
+        auto ee = 0.0;
 
-      for (uint64_t i = 0; i < len; i++)
-        {
-          /* quality score */
+        for (uint64_t i = 0; i < len; i++)
+          {
+            /* quality score */
 
-          auto const qual = std::max(fastq_get_qual_eestats(q[i], parameters), 0);
+            auto const qual = std::max(fastq_get_qual_eestats(q[i], parameters), 0);
 
-          auto const pe = q2p(qual);
+            auto const pe = q2p(qual);
 
-          ee += pe;
+            ee += pe;
 
-          for (int x = 0; x < len_steps; x++)
-            {
-              uint64_t const len_cutoff = static_cast<uint64_t>(parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment));
-              if (i + 1 == len_cutoff)
-                {
-                  for (int y = 0; y < ee_cutoffs_count; y++)
-                    {
-                      if (ee <= ee_cutoffs[static_cast<size_t>(y)])
-                        {
-                          ++count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))];
-                        }
-                    }
-                }
-            }
-        }
+            for (int x = 0; x < len_steps; x++)
+              {
+                uint64_t const len_cutoff = static_cast<uint64_t>(parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment));
+                if (i + 1 == len_cutoff)
+                  {
+                    for (int y = 0; y < ee_cutoffs_count; y++)
+                      {
+                        if (ee <= ee_cutoffs[static_cast<size_t>(y)])
+                          {
+                            ++count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))];
+                          }
+                      }
+                  }
+              }
+          }
 
-      progress_update(fastq_get_position(h));
-    }
-  progress_done();
+        progress.update(fastq_get_position(h));
+      }
+  }
 
   std::fprintf(fp_output,
           "%" PRIu64 " reads",
