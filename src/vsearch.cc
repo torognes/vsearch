@@ -1672,7 +1672,7 @@ auto main(int argc, char** argv) -> int
       std::fprintf(fp_log, "Started  %s\n", time_string.data());
     }
 
-  random_init();
+  random_init(parameters);
 
   show_header(parameters);
 

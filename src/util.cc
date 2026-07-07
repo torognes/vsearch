@@ -208,7 +208,7 @@ auto show_rusage() -> void
   std::fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
           user_time, system_time, megabytes);
 
-  if (opt_log)
+  if (fp_log != nullptr)
     std::fprintf(fp_log, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
             user_time, system_time, megabytes);
 #endif
@@ -264,14 +264,14 @@ auto random_substream_seed(uint64_t const base, uint64_t const index) -> uint64_
 }
 
 
-auto random_init() -> void
+auto random_init(struct Parameters const & parameters) -> void
 {
   /* 64-bit base seed for the reproducible RNG (SplitMix64/mt19937_64).
      opt_randseed is used in full when non-zero (no 32-bit truncation);
      otherwise a non-deterministic value is taken from the OS. */
-  if (opt_randseed != 0)
+  if (parameters.opt_randseed != 0)
     {
-      base_seed = static_cast<uint64_t>(opt_randseed);
+      base_seed = static_cast<uint64_t>(parameters.opt_randseed);
     }
   else
     {
