@@ -101,14 +101,14 @@ auto chimera_info_free(struct chimera_info_s * ci) -> void;
 
 /* === Session-level initialization (call once per session) === */
 
-/* Initialize chimera detection session: set search-shaping globals.
-   Call once after DB is loaded and indexed, before creating per-thread
-   handles. Reads its configuration from the passed parameters (same one
-   given to vsearch_session_begin); the db + dbindex must be loaded and
-   indexed.
-   Overwrites the globals: opt_maxaccepts, opt_maxrejects, opt_id, opt_weak_id,
-   and (denovo only) opt_self, opt_selfid, opt_maxsizeratio (restored by
-   chimera_detect_cleanup). */
+/* Initialize chimera detection session. Call once after DB is loaded and
+   indexed, before creating per-thread handles; the db + dbindex must be loaded
+   and indexed.
+   No longer mutates any global: the chimera-detection knobs (opt_maxaccepts,
+   opt_maxrejects, opt_id, opt_weak_id, and denovo-only opt_self, opt_selfid,
+   opt_maxsizeratio) are applied to a per-thread copy in
+   chimera_detect_thread_init and read by the detection core through that copy.
+   Kept as a stable API symbol. */
 auto chimera_session_init(struct Parameters const & parameters) -> void;
 
 /* Destroy static mutexes. Call once after all per-thread handles are

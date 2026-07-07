@@ -101,6 +101,10 @@ struct search_cli_state_s
      searchcore) keep reading the globals — the library session/batch entries
      have no Parameters. */
   struct Parameters const & parameters;
+  /* a copy of parameters with opt_maxaccepts/opt_maxrejects clamped to the
+     database size (search_prep); si->parameters points here so the shared
+     searchcore reads the clamped values without a mutated global (E1). */
+  struct Parameters effective_parameters;
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
   struct searchinfo_s * si_plus = nullptr;
@@ -581,10 +585,10 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* init per-thread search state before the workers start */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_init(si_plus + t, seqcount, tophits, state.parameters);
+      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters);
       if (si_minus != nullptr)
         {
-          search_thread_init(si_minus + t, seqcount, tophits, state.parameters);
+          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters);
         }
     }
 
@@ -664,22 +668,26 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
 
   /* tophits = the maximum number of hits we need to store */
 
-  /* opt_maxrejects / opt_maxaccepts stay global reads: they are clamped to the
-     database size here at run time (0 or "> seqcount" means "all"), and the
-     shared searchcore, search_thread_init and the library session/batch paths
-     read that clamped value. Migrating them to parameters would use the
-     unclamped CLI value (E1/F3, deferred to the shared-infra phase). */
-  if ((opt_maxrejects == 0) || (opt_maxrejects > state.seqcount))
+  /* Clamp maxrejects/maxaccepts to the database size (0 or "> seqcount" means
+     "all"). Apply the clamp to a local Parameters copy that is threaded to the
+     workers via si->parameters, rather than mutating the shared config globals
+     (E1 trap-writer): the shared searchcore reads the clamped values through
+     si->parameters. */
+  state.effective_parameters = state.parameters;
+  if ((state.effective_parameters.opt_maxrejects == 0) ||
+      (state.effective_parameters.opt_maxrejects > state.seqcount))
     {
-      opt_maxrejects = state.seqcount;
+      state.effective_parameters.opt_maxrejects = state.seqcount;
     }
 
-  if ((opt_maxaccepts == 0) || (opt_maxaccepts > state.seqcount))
+  if ((state.effective_parameters.opt_maxaccepts == 0) ||
+      (state.effective_parameters.opt_maxaccepts > state.seqcount))
     {
-      opt_maxaccepts = state.seqcount;
+      state.effective_parameters.opt_maxaccepts = state.seqcount;
     }
 
-  state.tophits = static_cast<int>(opt_maxrejects + opt_maxaccepts + MAXDELAYED);
+  state.tophits = static_cast<int>(state.effective_parameters.opt_maxrejects +
+                                   state.effective_parameters.opt_maxaccepts + MAXDELAYED);
 
   state.tophits = std::min(state.tophits, state.seqcount);
 }
@@ -957,10 +965,10 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
      allocates si_plus (always) and si_minus (when searching both strands). */
   ss->parameters = &parameters;
   ss->seqcount = static_cast<int>(db_getsequencecount());
-  /* opt_maxaccepts/opt_maxrejects stay global reads: they are clamped to the
-     database size in search_prep (CLI path, which writes the globals), so the
-     library sizing must see the same values; do not migrate to parameters. */
-  ss->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
+  /* The library path does not clamp to the database size (only the CLI
+     search_prep does), so the sizing uses the configured values from
+     parameters; si->parameters (set in search_thread_init) carries the same. */
+  ss->tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
   if (ss->tophits > ss->seqcount)
     {
       ss->tophits = ss->seqcount;
@@ -1250,11 +1258,11 @@ auto search_batch(struct Parameters const & parameters,
                   int * result_counts) -> void
 {
   /* per-thread buffer sizes for search_thread_init (formerly file-statics).
-     opt_maxaccepts/opt_maxrejects stay global reads: they are clamped to the
-     database size in search_prep (CLI path, which writes the globals), so the
-     library sizing must see the same values; do not migrate to parameters. */
+     The library path does not clamp to the database size (only the CLI
+     search_prep does), so the sizing uses the configured values from
+     parameters; si->parameters (set in search_thread_init) carries the same. */
   int const seqcount = static_cast<int>(db_getsequencecount());
-  int tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
+  int tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
   if (tophits > seqcount)
     {
       tophits = seqcount;

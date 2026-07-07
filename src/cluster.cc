@@ -114,6 +114,11 @@ struct cluster_cli_state_s
      free_hit_alignments, the searchcore) keep reading the globals — the library
      session/batch entries have no Parameters. */
   struct Parameters const & parameters;
+  /* a copy of parameters with opt_maxaccepts/opt_maxrejects clamped to the
+     database size (cluster()); si->parameters points here so the shared
+     searchcore and evaluate_extra_hits read the clamped values without a
+     mutated global (E1). */
+  struct Parameters effective_parameters;
   clusterinfo_t * clusterinfo = nullptr;
   int clusters = 0;
   int count_matched = 0;
@@ -572,7 +577,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
      exceed tophits, so the insertion/shift below would write past the buffer.
      Clamp the bound to the actual capacity (S10). */
   int const hit_capacity =
-    static_cast<int>(std::min<int64_t>(opt_maxaccepts + opt_maxrejects - 1,
+    static_cast<int>(std::min<int64_t>(si->parameters->opt_maxaccepts + si->parameters->opt_maxrejects - 1,
                                        tophits));
 
   if (extra_count != 0)
@@ -666,8 +671,8 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
         }
 
       for (int t = 0;
-           (si->accepts < opt_maxaccepts) and
-             (si->rejects < opt_maxrejects) and
+           (si->accepts < si->parameters->opt_maxaccepts) and
+             (si->rejects < si->parameters->opt_maxrejects) and
              (t < si->hit_count);
            ++t)
         {
@@ -840,7 +845,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
-                           state.parameters.opt_strand, state.parameters);
+                           state.parameters.opt_strand, state.effective_parameters);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -991,10 +996,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.data(), seqcount, tophits, state.parameters);
+  cluster_query_init(si_p.data(), seqcount, tophits, state.effective_parameters);
   if (state.parameters.opt_strand)
     {
-      cluster_query_init(si_m.data(), seqcount, tophits, state.parameters);
+      cluster_query_init(si_m.data(), seqcount, tophits, state.effective_parameters);
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -1154,20 +1159,25 @@ auto cluster(char const * dbname,
 
   /* tophits = the maximum number of hits we need to store */
 
-  /* opt_maxrejects / opt_maxaccepts stay global reads: clamped to the database
-     size here at run time and read in that clamped form by cluster_core_* and
-     the shared evaluate_extra_hits. E1/F3, deferred to the shared-infra phase. */
-  if ((opt_maxrejects == 0) or (opt_maxrejects > seqcount))
+  /* Clamp maxrejects/maxaccepts to the database size (0 or "> seqcount" means
+     "all"). Apply the clamp to a local Parameters copy threaded to cluster_core_*
+     and evaluate_extra_hits via si->parameters, rather than mutating the shared
+     config globals (E1 trap-writer). */
+  state.effective_parameters = state.parameters;
+  if ((state.effective_parameters.opt_maxrejects == 0) or
+      (state.effective_parameters.opt_maxrejects > seqcount))
     {
-      opt_maxrejects = seqcount;
+      state.effective_parameters.opt_maxrejects = seqcount;
     }
 
-  if ((opt_maxaccepts == 0) or (opt_maxaccepts > seqcount))
+  if ((state.effective_parameters.opt_maxaccepts == 0) or
+      (state.effective_parameters.opt_maxaccepts > seqcount))
     {
-      opt_maxaccepts = seqcount;
+      state.effective_parameters.opt_maxaccepts = seqcount;
     }
 
-  int tophits = static_cast<int>(opt_maxrejects + opt_maxaccepts + MAXDELAYED);
+  int tophits = static_cast<int>(state.effective_parameters.opt_maxrejects +
+                                 state.effective_parameters.opt_maxaccepts + MAXDELAYED);
   tophits = std::min(tophits, seqcount);
 
   std::vector<clusterinfo_t> clusterinfo_v(static_cast<std::size_t>(seqcount));
@@ -1607,11 +1617,11 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
      seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
      MAXDELAYED (8) is needed as safety buffer for align_delayed().
      Clamp tophits to seqcount to avoid oversized allocations.
-     opt_maxaccepts/opt_maxrejects stay global reads: they are clamped to the
-     database size in cluster() (CLI path, which writes the globals); do not
-     migrate to parameters until that writer is refactored. */
+     The library path does not clamp to the database size (only the CLI
+     cluster() does), so the sizing uses the configured values from parameters;
+     si->parameters (set in cluster_query_init) carries the same. */
   cs->seqcount = static_cast<int>(db_getsequencecount());
-  cs->tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects + MAXDELAYED);
+  cs->tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
   if (cs->tophits > cs->seqcount)
     {
       cs->tophits = cs->seqcount;

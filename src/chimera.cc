@@ -120,11 +120,20 @@ struct chimera_info_s
 {
   /* run configuration, set by chimera_thread_init and read by the detection
      core instead of the opt_* globals (E1 shared-infra phase); a pointer so
-     chimera_info_s stays default-constructible for the arrays that hold it. The
-     8 saved/restored detection knobs (opt_maxaccepts/maxrejects/id/self/selfid/
-     threads/maxsizeratio/weak_id) are NOT read through this — they are
-     run-time-mutated by chimera()/chimera_session_init and stay global reads. */
+     chimera_info_s stays default-constructible for the arrays that hold it.
+     On the CLI path it points at chimera_cli_state_s::detection_parameters; on
+     the library path it points at detection_parameters below. The detection
+     knobs (maxaccepts/maxrejects/id/self/selfid/threads/maxsizeratio/weak_id)
+     are carried in that copy, so neither path mutates the opt_* globals (E1). */
   struct Parameters const * parameters = nullptr;
+
+  /* the chimera-detection configuration for the library path: a copy of the
+     caller's Parameters with the detection knobs (maxaccepts/maxrejects/id, the
+     weak_id clamp, and in denovo mode self/selfid/maxsizeratio) applied, built
+     by chimera_detect_thread_init. The detection core reads these through
+     `parameters` above. Unused on the CLI path, which threads the equivalent
+     copy held in chimera_cli_state_s. */
+  struct Parameters detection_parameters;
 
   int query_alloc = 0; /* the longest query sequence allocated memory for */
   int head_alloc = 0; /* the longest header allocated memory for */
@@ -208,11 +217,14 @@ struct chimera_info_s
 struct chimera_cli_state_s
 {
   /* the run configuration, threaded through the CLI-path helpers instead of the
-     opt_* globals (E1/F3); set once at construction, read-only thereafter. The
-     shared detection core (eval_parents/_long, chimera_process_query, ...) and
-     the library session/detect entries have no Parameters and keep reading the
-     globals. */
+     opt_* globals (E1/F3); set once at construction, read-only thereafter. */
   struct Parameters const & parameters;
+  /* a copy of parameters with the chimera-detection knobs applied (maxaccepts/
+     maxrejects/id and, in denovo mode, self/selfid/threads/maxsizeratio); built
+     once in chimera(). The detection core reads these through si->parameters and
+     chimera_threads_run sizes the pool from opt_threads here, so chimera() no
+     longer mutates the opt_* globals (E1 trap-writer). */
+  struct Parameters detection_parameters;
   std::mutex mutex_output;  /* serializes all CLI output + stats updates */
   std::FILE * fp_uchimealns = nullptr;
   std::FILE * fp_uchimeout = nullptr;
@@ -2138,11 +2150,12 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                          struct chimera_info_s * ci,
                          std::mutex & mutex_input) -> uint64_t
 {
-  /* tophits sizes the per-part minheaps; it is opt_maxaccepts + opt_maxrejects,
-     which chimera() set to the chimera detection defaults before spawning the
-     pool. Computed here rather than read from a shared file-static (E4). */
-  int const tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
-  chimera_thread_init(ci, tophits, state.parameters);
+  /* tophits sizes the per-part minheaps; it is maxaccepts + maxrejects from
+     the chimera-detection copy chimera() built before spawning the pool.
+     Computed here rather than read from a shared file-static (E4). */
+  int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
+                                       state.detection_parameters.opt_maxrejects);
+  chimera_thread_init(ci, tophits, state.detection_parameters);
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
@@ -2371,7 +2384,7 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
   /* run the worker pool; each worker processes queries until the input
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
-  ThreadRunner threadrunner(static_cast<std::size_t>(opt_threads),
+  ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
                             [&state, &mutex_input](uint64_t nth_thread) {
                               chimera_thread_core(state, state.cia + nth_thread, mutex_input);
                             });
@@ -2402,15 +2415,15 @@ auto chimera(struct Parameters const & parameters) -> void
     }
 
 
-  /* override any options the user might have set. These knobs
+  /* override any options the user might have set. These detection knobs
      (opt_maxaccepts / opt_maxrejects / opt_id / opt_self / opt_selfid /
-     opt_threads / opt_maxsizeratio, and opt_weak_id in the library path) are
-     run-time-mutated here and restored by chimera_session_cleanup(); the
-     detection core reads the overridden values, so they stay global reads
-     throughout chimera.cc (E1/F3, deferred to the shared-infra phase). */
-  opt_maxaccepts = few;
-  opt_maxrejects = rejects;
-  opt_id = chimera_id;
+     opt_threads / opt_maxsizeratio) are applied to a private copy threaded to
+     the detection core (via si->parameters) and to chimera_threads_run (pool
+     size), rather than mutating the shared opt_* config globals (E1). */
+  state.detection_parameters = parameters;
+  state.detection_parameters.opt_maxaccepts = few;
+  state.detection_parameters.opt_maxrejects = rejects;
+  state.detection_parameters.opt_id = chimera_id;
 
   if (parameters.opt_strand)
     {
@@ -2419,10 +2432,10 @@ auto chimera(struct Parameters const & parameters) -> void
 
   if (parameters.opt_uchime_ref == nullptr)
     {
-      opt_self = 1;
-      opt_selfid = 1;
-      opt_threads = 1;
-      opt_maxsizeratio = 1.0 / parameters.opt_abskew;
+      state.detection_parameters.opt_self = 1;
+      state.detection_parameters.opt_selfid = 1;
+      state.detection_parameters.opt_threads = 1;
+      state.detection_parameters.opt_maxsizeratio = 1.0 / parameters.opt_abskew;
     }
 
   uint64_t progress_total = 0;
@@ -2432,7 +2445,7 @@ auto chimera(struct Parameters const & parameters) -> void
   state.seqno = 0;
 
   /* prepare per-thread chimera detection state */
-  std::vector<struct chimera_info_s> cia_v(static_cast<size_t>(opt_threads));
+  std::vector<struct chimera_info_s> cia_v(static_cast<size_t>(state.detection_parameters.opt_threads));
   state.cia = cia_v.data();
 
   char const * denovo_dbname = nullptr;
@@ -2534,7 +2547,7 @@ auto chimera(struct Parameters const & parameters) -> void
           std::fprintf(fp_log, "%8.2f  mindiv\n", parameters.opt_mindiv);
         }
 
-      std::fprintf(fp_log, "%8.2f  id\n", opt_id);
+      std::fprintf(fp_log, "%8.2f  id\n", state.detection_parameters.opt_id);
 
       if (is_a_uchime_command)
         {
@@ -2741,32 +2754,22 @@ auto chimera_info_free(struct chimera_info_s * ci) -> void
     }
 }
 
-auto chimera_session_init(struct Parameters const & parameters) -> void
+/* Build the chimera-detection configuration for the library path: a copy of the
+   caller's parameters with the detection knobs applied. Mirrors what chimera()
+   sets on the CLI path, with two intentional differences preserved from the
+   pre-E1 code: the library clamps opt_weak_id to opt_id (opt_weak_id defaults to
+   the 10.0 sentinel here, which would make search_acceptable_aligned reject
+   everything), and it leaves opt_threads at the caller's value (the batch worker
+   pool is sized from the caller's parameters, not forced to 1 as in uchime_ref). */
+static auto chimera_detection_parameters(struct Parameters const & parameters) -> struct Parameters
 {
-  /* Session-level initialization for chimera detection.
-     Sets search-shaping globals that chimera() normally sets but
-     the library API path bypasses. The detection core takes no output
-     lock on the library path (it receives a null CLI-output sink), so
-     there is no shared mutex to initialize here.
-
-     Call once after DB is loaded and indexed, before creating
-     per-thread chimera_info_s handles. Reads its configuration from the
-     passed parameters (same one given to vsearch_session_begin). */
-
-  /* Override search parameters to chimera detection defaults.
-     These must match what chimera() sets in the CLI path.
-     These 8 knobs (opt_maxaccepts/maxrejects/id/self/selfid/threads/
-     maxsizeratio/weak_id) are run-time-mutated here and restored by
-     chimera_detect_cleanup(); the detection core reads the overridden
-     values, so they stay global reads throughout chimera.cc (E1/F3).
-     opt_weak_id defaults to 10.0 (sentinel) — clamp to opt_id so the
-     acceptance check in search_acceptable_aligned doesn't reject everything. */
-  opt_maxaccepts = few;
-  opt_maxrejects = rejects;
-  opt_id = chimera_id;
-  if (opt_weak_id > opt_id)
+  struct Parameters detection = parameters;
+  detection.opt_maxaccepts = few;
+  detection.opt_maxrejects = rejects;
+  detection.opt_id = chimera_id;
+  if (detection.opt_weak_id > detection.opt_id)
     {
-      opt_weak_id = opt_id;
+      detection.opt_weak_id = detection.opt_id;
     }
 
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
@@ -2774,14 +2777,23 @@ auto chimera_session_init(struct Parameters const & parameters) -> void
      abundance skew filtering. Matches chimera() CLI setup. */
   if (parameters.opt_uchime_ref == nullptr)
     {
-      opt_self = 1;
-      opt_selfid = 1;
-      opt_maxsizeratio = 1.0 / parameters.opt_abskew;
+      detection.opt_self = 1;
+      detection.opt_selfid = 1;
+      detection.opt_maxsizeratio = 1.0 / parameters.opt_abskew;
     }
+  return detection;
+}
 
-  /* eval_parents and eval_parents_long emit file output only when given a
-     CLI-output sink; the library path passes nullptr, so it neither writes
-     files nor takes a lock. Nothing to initialize here. */
+
+auto chimera_session_init(struct Parameters const & /*parameters*/) -> void
+{
+  /* Session-level initialization for chimera detection. Formerly overwrote the
+     search-shaping opt_* globals to the detection defaults; those are now built
+     per-thread in chimera_detect_thread_init and read through ci->parameters,
+     so this no longer mutates any global (E1). Kept as a stable API symbol.
+
+     The detection core takes no output lock on the library path (it receives a
+     null CLI-output sink), so there is no shared mutex to initialize here. */
 }
 
 
@@ -2796,13 +2808,16 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
 {
   /* Per-thread initialization: SIMD aligners, k-mer finders, working
      buffers. Safe to call concurrently for different ci instances.
-     Requires chimera_session_init() to have been called first, which sets
-     opt_maxaccepts/opt_maxrejects to the chimera detection defaults. tophits
-     sizes the per-part minheaps; it is derived from those options here rather
-     than read from a shared file-static (E4). */
-  int const tophits = static_cast<int>(opt_maxaccepts + opt_maxrejects);
+     Build this thread's chimera-detection configuration (formerly the globals
+     set by chimera_session_init) and store it in ci so the detection core reads
+     it through ci->parameters (E1). tophits sizes the per-part minheaps; it is
+     derived from those options here rather than read from a shared file-static
+     (E4). */
+  ci->detection_parameters = chimera_detection_parameters(parameters);
+  int const tophits = static_cast<int>(ci->detection_parameters.opt_maxaccepts +
+                                       ci->detection_parameters.opt_maxrejects);
 
-  chimera_thread_init(ci, tophits, parameters);
+  chimera_thread_init(ci, tophits, ci->detection_parameters);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
@@ -2996,16 +3011,8 @@ auto chimera_detect_batch(struct Parameters const & parameters,
 
   int const nthreads = std::max(1, static_cast<int>(parameters.opt_threads));
 
-  /* Save globals that chimera_session_init will clobber */
-  int64_t const saved_maxaccepts = opt_maxaccepts;
-  int64_t const saved_maxrejects = opt_maxrejects;
-  double const saved_id = opt_id;
-  double const saved_weak_id = opt_weak_id;
-  bool const saved_self = opt_self;
-  bool const saved_selfid = opt_selfid;
-  double const saved_maxsizeratio = opt_maxsizeratio;
-
-  /* Session-level init (sets search-shaping globals) */
+  /* Session-level init (no longer mutates globals; the per-thread detection
+     configuration is built in chimera_detect_thread_init) */
   chimera_session_init(parameters);
 
   /* Allocate per-thread chimera state */
@@ -3046,13 +3053,4 @@ auto chimera_detect_batch(struct Parameters const & parameters,
 
   /* Session-level cleanup */
   chimera_session_cleanup();
-
-  /* Restore globals that chimera_session_init clobbered */
-  opt_maxaccepts = saved_maxaccepts;
-  opt_maxrejects = saved_maxrejects;
-  opt_id = saved_id;
-  opt_weak_id = saved_weak_id;
-  opt_self = saved_self;
-  opt_selfid = saved_selfid;
-  opt_maxsizeratio = saved_maxsizeratio;
 }

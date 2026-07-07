@@ -548,9 +548,9 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int const target) -> bool
 {
   struct Parameters const & parameters = *searchinfo.parameters;
-  /* opt_maxsizeratio, opt_self and opt_selfid below stay global reads: chimera()
-     / chimera_session_init overwrite them with chimera-detection defaults for the
-     shared engine, so they must NOT be migrated to parameters (E1 trap). */
+  /* opt_maxsizeratio, opt_self and opt_selfid are read through `parameters`: the
+     chimera path threads a detection copy that overrides them via si->parameters,
+     so the engine sees the detection values without a mutated global (E1). */
   /* consider whether a hit satisfies accepted criteria before alignment */
 
   // true: needs further consideration
@@ -574,7 +574,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           (abundance_ratio_cmp(searchinfo.qsize, parameters.opt_minsizeratio, tsize) >= 0)
           and
           /* maxsizeratio */
-          (abundance_ratio_cmp(searchinfo.qsize, opt_maxsizeratio, tsize) <= 0)
+          (abundance_ratio_cmp(searchinfo.qsize, parameters.opt_maxsizeratio, tsize) <= 0)
           and
           /* minqt */
           (searchinfo.qseqlen >= parameters.opt_minqt * static_cast<double>(dseqlen))
@@ -605,10 +605,10 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                     parameters.opt_idsuffix) == 0))
           and
           /* self */
-          ((opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
+          ((parameters.opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
           and
           /* selfid */
-          ((opt_selfid == 0) or
+          ((parameters.opt_selfid == 0) or
            (searchinfo.qseqlen != dseqlen) or
            (seqcmp(qseq, dseq, searchinfo.qseqlen) != 0))
           );
@@ -619,10 +619,11 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool
 {
   struct Parameters const & parameters = *searchinfo.parameters;
-  /* opt_weak_id and opt_id below stay global reads: chimera() / chimera_session_init
-     overwrite them for the shared engine, so they must NOT be migrated (E1 trap). */
+  /* opt_weak_id and opt_id are read through `parameters`: the chimera path threads
+     a detection copy that overrides them via si->parameters, so the engine sees
+     the detection values without a mutated global (E1). */
   if (/* weak_id */
-      (hit->id >= 100.0 * opt_weak_id) and
+      (hit->id >= 100.0 * parameters.opt_weak_id) and
       /* maxsubs */
       (hit->mismatches <= parameters.opt_maxsubs) and
       /* maxgaps */
@@ -666,7 +667,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
           return false;
         }
 
-      if (hit->id >= 100.0 * opt_id)
+      if (hit->id >= 100.0 * parameters.opt_id)
         {
           /* accepted */
           hit->accepted = true;
@@ -688,9 +689,9 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
 
 auto align_delayed(struct searchinfo_s * searchinfo) -> void
 {
-  /* opt_maxaccepts/opt_maxrejects below stay global reads: search/cluster clamp
-     them to the database size and chimera overwrites them, so they must NOT be
-     migrated to searchinfo->parameters (E1 trap). */
+  /* opt_maxaccepts/opt_maxrejects are read through searchinfo->parameters: each
+     caller threads a copy carrying its adjustment (search/cluster the seqcount
+     clamp, chimera the detection defaults), so no global is mutated (E1). */
   /* compute global alignment */
 
   std::array<unsigned int, MAXDELAYED> target_list {{}};
@@ -730,7 +731,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
   for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
-      if ((searchinfo->rejects < opt_maxrejects) and (searchinfo->accepts < opt_maxaccepts))
+      if ((searchinfo->rejects < searchinfo->parameters->opt_maxrejects) and (searchinfo->accepts < searchinfo->parameters->opt_maxaccepts))
         {
           struct hit * hit = searchinfo->hits + x;
 
@@ -831,10 +832,10 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
 auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 {
-  /* opt_maxaccepts/opt_maxrejects below stay global reads (seqcount-clamped by
-     search/cluster, overwritten by chimera) and must NOT be migrated to
-     searchinfo->parameters (E1 trap). Query kmers are extracted at
-     dbindex_wordlength, the effective index width. */
+  /* opt_maxaccepts/opt_maxrejects are read through searchinfo->parameters: each
+     caller threads a copy carrying its adjustment (search/cluster the seqcount
+     clamp, chimera the detection defaults), so no global is mutated (E1). Query
+     kmers are extracted at dbindex_wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
   search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
@@ -860,9 +861,9 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
   int delayed = 0;
 
-  while ((searchinfo->finalized + delayed < opt_maxaccepts + opt_maxrejects - 1) and
-         (searchinfo->rejects < opt_maxrejects) and
-         (searchinfo->accepts < opt_maxaccepts) and
+  while ((searchinfo->finalized + delayed < searchinfo->parameters->opt_maxaccepts + searchinfo->parameters->opt_maxrejects - 1) and
+         (searchinfo->rejects < searchinfo->parameters->opt_maxrejects) and
+         (searchinfo->accepts < searchinfo->parameters->opt_maxaccepts) and
          (not minheap_isempty(searchinfo->m)))
     {
       elem_t const e = minheap_poplast(searchinfo->m);

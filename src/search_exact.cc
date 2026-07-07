@@ -553,13 +553,21 @@ auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 
 auto search_exact_thread_worker_run(struct Parameters const & parameters, struct Progress & progress_bar) -> void
 {
+  /* search_exact forces 100% identity. Thread a copy with opt_id = 1.0 through
+     si->parameters so the shared search_acceptable_aligned accepts only exact
+     matches, rather than relying on the opt_id global mutated by the command
+     dispatcher (E1). effective outlives the worker pool below, so si->parameters
+     stays valid for the duration of the run. */
+  struct Parameters effective = parameters;
+  effective.opt_id = 1.0;
+
   /* init per-thread search state before the workers start */
   for (int t = 0; t < parameters.opt_threads; t++)
     {
-      search_exact_thread_init(si_plus + t, parameters);
+      search_exact_thread_init(si_plus + t, effective);
       if (si_minus != nullptr)
         {
-          search_exact_thread_init(si_minus + t, parameters);
+          search_exact_thread_init(si_minus + t, effective);
         }
     }
 
