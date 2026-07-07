@@ -208,9 +208,9 @@ struct mergepairs_cli_state_s
      opt_* globals (E1/F3); set once at construction, read-only thereafter. The
      shared merge core (get_qual/q_to_p/precompute_qual/merge/optimize/process)
      now takes a Parameters const & directly (E1 shared-infra phase), so both the
-     CLI path and the library entry mergepairs_single() feed it the same config;
-     only opt_fastq_minovlen stays on the global there (clamped in place by
-     mergepairs_init). */
+     CLI path and the library entry mergepairs_single() feed it the same config.
+     The <5 minimum-overlap clamp is applied to a local Parameters copy that is
+     threaded to the merge core, so opt_fastq_minovlen no longer needs the global. */
   struct Parameters const & parameters;
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_fastaout = nullptr;
@@ -962,10 +962,10 @@ auto optimize(merge_data_t & a_read_pair,
       return 0;
     }
 
-  /* opt_fastq_minovlen is clamped at run time by mergepairs_init()
-     (library path) which writes the global, so this comparison stays on
-     the global to see the clamped value; do not migrate to parameters. */
-  if (best_i < opt_fastq_minovlen)
+  /* the effective minimum overlap is at least 5: the CLI path requires it and
+     the library entry (mergepairs_single) threads a Parameters copy clamped to
+     >= 5, so this reads the effective value from parameters (E1). */
+  if (best_i < parameters.opt_fastq_minovlen)
     {
       a_read_pair.reason = Reason::minovlen;
       return 0;
@@ -1738,17 +1738,17 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* fatal error if specified overlap is too small */
 
-  if (opt_fastq_minovlen < 5)
+  if (parameters.opt_fastq_minovlen < 5)
     {
       fatal("Overlap specified with --fastq_minovlen must be at least 5");
     }
 
   /* relax default parameters in case of short overlaps */
 
-  if (opt_fastq_minovlen < 9)
+  if (parameters.opt_fastq_minovlen < 9)
     {
-      merge_mindiagcount = static_cast<int>(opt_fastq_minovlen - 4);
-      merge_minscore = 1.6 * static_cast<double>(opt_fastq_minovlen);
+      merge_mindiagcount = static_cast<int>(parameters.opt_fastq_minovlen - 4);
+      merge_minscore = 1.6 * static_cast<double>(parameters.opt_fastq_minovlen);
     }
 
   /* open input files */
@@ -1819,20 +1819,22 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
 auto mergepairs_init(struct Parameters const & parameters) -> void
 {
-  /* Relax default parameters for short overlaps, matching the CLI path
-     (fastq_mergepairs lines 1560-1571). Without this, short-overlap
-     merges that work via the CLI will silently fail via the API.
-     opt_fastq_minovlen is clamped in place on the global here: optimize()
-     reads the clamped value from the global, so it stays global (do not
-     migrate to parameters until this writer is refactored). */
-  if (opt_fastq_minovlen < 5)
+  /* Relax default parameters for short overlaps, matching the CLI path.
+     Without this, short-overlap merges that work via the CLI would silently
+     fail via the API. The merge core requires a minimum overlap of 5; a
+     library caller may pass a smaller value, so derive the tunables from a
+     clamped local copy rather than mutating the shared config global (E1).
+     optimize() sees the same clamp because mergepairs_single threads a
+     Parameters copy clamped the same way. */
+  struct Parameters clamped = parameters;
+  if (clamped.opt_fastq_minovlen < 5)
     {
-      opt_fastq_minovlen = 5;
+      clamped.opt_fastq_minovlen = 5;
     }
-  if (opt_fastq_minovlen < 9)
+  if (clamped.opt_fastq_minovlen < 9)
     {
-      merge_mindiagcount = static_cast<int>(opt_fastq_minovlen - 4);
-      merge_minscore = 1.6 * static_cast<double>(opt_fastq_minovlen);
+      merge_mindiagcount = static_cast<int>(clamped.opt_fastq_minovlen - 4);
+      merge_minscore = 1.6 * static_cast<double>(clamped.opt_fastq_minovlen);
     }
 
   precompute_qual(parameters);
@@ -1880,9 +1882,16 @@ auto mergepairs_single(struct Parameters const & parameters,
   std::memcpy(md.rev_quality.data(), rev_qual, static_cast<std::size_t>(rev_len));
   md.rev_quality[static_cast<std::size_t>(rev_len)] = '\0';
 
-  /* Run the merge pipeline */
+  /* Run the merge pipeline. The merge core enforces a minimum overlap of 5
+     (see mergepairs_init); a library caller may pass a smaller value, so thread
+     a clamped local copy rather than mutating the shared config global (E1). */
+  struct Parameters clamped = parameters;
+  if (clamped.opt_fastq_minovlen < 5)
+    {
+      clamped.opt_fastq_minovlen = 5;
+    }
   struct kh_handle_s kmerhash;
-  process(md, kmerhash, parameters);
+  process(md, kmerhash, clamped);
 
   /* Populate result. Zero all fields including the pointers so that a
      failed merge leaves nullptr pointers for the caller. On success
