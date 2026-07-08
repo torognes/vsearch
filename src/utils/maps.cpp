@@ -61,7 +61,6 @@
 #include "maps.hpp"
 #include <array>
 #include <cassert>
-#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -186,7 +185,7 @@ namespace {
     }};
 
 
-  const std::vector<bool> chrmap_ambiguous_4bit = {
+  constexpr std::array<bool, 16> chrmap_ambiguous_4bit = {{
     true,
     false,  // Aa
     false,  // Cc
@@ -203,7 +202,7 @@ namespace {
     true,
     true,
     true
-  };
+  }};
 
 
   constexpr std::array<unsigned int, 256> chrmap_mask_ambig =
