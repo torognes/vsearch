@@ -2529,7 +2529,7 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
-          std::fprintf(fp_log, "%8.2f  minh\n", parameters.opt_minh);
+          std::fprintf(parameters.fp_log, "%8.2f  minh\n", parameters.opt_minh);
         }
       auto const is_a_uchime_command = (parameters.opt_uchime_ref != nullptr) or
         (parameters.opt_uchime_denovo != nullptr) or
@@ -2537,24 +2537,24 @@ auto chimera(struct Parameters const & parameters) -> void
         (parameters.opt_uchime3_denovo != nullptr);
       if (is_a_uchime_command)
         {
-          std::fprintf(fp_log, "%8.2f  xn\n", parameters.opt_xn);
-          std::fprintf(fp_log, "%8.2f  dn\n", parameters.opt_dn);
-          std::fprintf(fp_log, "%8.2f  xa\n", 1.0);
+          std::fprintf(parameters.fp_log, "%8.2f  xn\n", parameters.opt_xn);
+          std::fprintf(parameters.fp_log, "%8.2f  dn\n", parameters.opt_dn);
+          std::fprintf(parameters.fp_log, "%8.2f  xa\n", 1.0);
         }
 
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
-          std::fprintf(fp_log, "%8.2f  mindiv\n", parameters.opt_mindiv);
+          std::fprintf(parameters.fp_log, "%8.2f  mindiv\n", parameters.opt_mindiv);
         }
 
-      std::fprintf(fp_log, "%8.2f  id\n", state.detection_parameters.opt_id);
+      std::fprintf(parameters.fp_log, "%8.2f  id\n", state.detection_parameters.opt_id);
 
       if (is_a_uchime_command)
         {
-          std::fprintf(fp_log, "%8d  maxp\n", 2);
+          std::fprintf(parameters.fp_log, "%8d  maxp\n", 2);
         }
 
-      std::fprintf(fp_log, "\n");
+      std::fprintf(parameters.fp_log, "\n");
     }
 
 
@@ -2698,23 +2698,23 @@ auto chimera(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_uchime_ref != nullptr)
         {
-          std::fprintf(fp_log, "%s", parameters.opt_uchime_ref);
+          std::fprintf(parameters.fp_log, "%s", parameters.opt_uchime_ref);
         }
       else
         {
-          std::fprintf(fp_log, "%s", denovo_dbname);
+          std::fprintf(parameters.fp_log, "%s", denovo_dbname);
         }
 
       if (state.seqno > 0)
         {
-          std::fprintf(fp_log, ": %d/%u chimeras (%.1f%%)\n",
+          std::fprintf(parameters.fp_log, ": %d/%u chimeras (%.1f%%)\n",
                   state.chimera_count,
                   state.seqno,
                   100.0 * state.chimera_count / state.seqno);
         }
       else
         {
-          std::fprintf(fp_log, ": %d/%u chimeras\n",
+          std::fprintf(parameters.fp_log, ": %d/%u chimeras\n",
                   state.chimera_count,
                   state.seqno);
         }

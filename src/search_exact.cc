@@ -746,24 +746,24 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(fp_log, "Matching unique query sequences: %d of %d",
+      std::fprintf(parameters.fp_log, "Matching unique query sequences: %d of %d",
               qmatches, queries);
       if (queries > 0)
         {
-          std::fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fprintf(fp_log, "\n");
+      std::fprintf(parameters.fp_log, "\n");
       if (parameters.opt_sizein)
         {
-          std::fprintf(fp_log, "Matching total query sequences: %" PRIu64 " of %"
+          std::fprintf(parameters.fp_log, "Matching total query sequences: %" PRIu64 " of %"
                   PRIu64,
                   qmatches_abundance, queries_abundance);
           if (queries_abundance > 0)
             {
-              std::fprintf(fp_log, " (%.2f%%)",
+              std::fprintf(parameters.fp_log, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          std::fprintf(fp_log, "\n");
+          std::fprintf(parameters.fp_log, "\n");
         }
     }
 
