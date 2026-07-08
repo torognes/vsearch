@@ -1211,7 +1211,7 @@ auto main(int argc, char** argv) -> int
   getentirecommandline(argc, argv);
   parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
 
-  cpu_features_detect();
+  cpu_features_detect(parameters);
 
   args_init(argc, argv, parameters);
 
@@ -1236,7 +1236,7 @@ auto main(int argc, char** argv) -> int
   dynlibs_open();
 
 #ifdef __x86_64__
-  if (sse2_present == 0)
+  if (parameters.sse2_present == 0)
     {
       fatal("Sorry, this program requires a cpu with SSE2.");
     }

@@ -64,25 +64,7 @@
 
 #pragma once
 
-#include <cstdint>  // int64_t
+struct Parameters;
 
 
-/* cpu features available */
-
-extern int64_t altivec_present;
-extern int64_t neon_present;
-extern int64_t mmx_present;
-extern int64_t sse_present;
-extern int64_t sse2_present;
-extern int64_t sse3_present;
-extern int64_t ssse3_present;
-extern int64_t sse41_present;
-extern int64_t sse42_present;
-extern int64_t popcnt_present;
-extern int64_t avx_present;
-extern int64_t avx2_present;
-
-
-auto cpu_features_detect() -> void;
-
-auto cpu_features_show() -> void;
+auto cpu_features_detect(struct Parameters & parameters) -> void;

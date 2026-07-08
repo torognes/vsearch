@@ -59,27 +59,11 @@
 */
 
 #include "cpu_features.hpp"
+#include "vsearch.h"  // struct Parameters
 #include <cstdint>  // int64_t
-#include <cstdio>  // fprintf, stderr
 #ifdef __x86_64__
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks
 #endif
-
-
-/* cpu features available */
-
-int64_t altivec_present = 0;
-int64_t neon_present = 0;
-int64_t mmx_present = 0;
-int64_t sse_present = 0;
-int64_t sse2_present = 0;
-int64_t sse3_present = 0;
-int64_t ssse3_present = 0;
-int64_t sse41_present = 0;
-int64_t sse42_present = 0;
-int64_t popcnt_present = 0;
-int64_t avx_present = 0;
-int64_t avx2_present = 0;
 
 
 #ifdef __x86_64__
@@ -114,17 +98,17 @@ namespace {
 #endif
 
 
-auto cpu_features_detect() -> void
+auto cpu_features_detect(struct Parameters & parameters) -> void
 {
 #ifdef __aarch64__
 #ifdef __ARM_NEON
   /* may check /proc/cpuinfo for asimd or neon */
-  neon_present = 1;
+  parameters.neon_present = 1;
 #else
 #error ARM Neon not present
 #endif
 #elif __PPC__
-  altivec_present = 1;
+  parameters.altivec_present = 1;
 #elif __x86_64__
   // Feature masks (bit_MMX, bit_SSE, ...) come from <cpuid.h>. bit_OSXSAVE
   // is not defined by older <cpuid.h> versions (GCC 4.x), so spell it out.
@@ -139,14 +123,14 @@ auto cpu_features_detect() -> void
   if (maxlevel >= 1U)
     {
       cpuid_registers const leaf1 = get_cpuid(1U);
-      mmx_present    = static_cast<int64_t>((leaf1.edx & bit_MMX)    != 0U);
-      sse_present    = static_cast<int64_t>((leaf1.edx & bit_SSE)    != 0U);
-      sse2_present   = static_cast<int64_t>((leaf1.edx & bit_SSE2)   != 0U);
-      sse3_present   = static_cast<int64_t>((leaf1.ecx & bit_SSE3)   != 0U);
-      ssse3_present  = static_cast<int64_t>((leaf1.ecx & bit_SSSE3)  != 0U);
-      sse41_present  = static_cast<int64_t>((leaf1.ecx & bit_SSE4_1) != 0U);
-      sse42_present  = static_cast<int64_t>((leaf1.ecx & bit_SSE4_2) != 0U);
-      popcnt_present = static_cast<int64_t>((leaf1.ecx & bit_POPCNT) != 0U);
+      parameters.mmx_present    = static_cast<int64_t>((leaf1.edx & bit_MMX)    != 0U);
+      parameters.sse_present    = static_cast<int64_t>((leaf1.edx & bit_SSE)    != 0U);
+      parameters.sse2_present   = static_cast<int64_t>((leaf1.edx & bit_SSE2)   != 0U);
+      parameters.sse3_present   = static_cast<int64_t>((leaf1.ecx & bit_SSE3)   != 0U);
+      parameters.ssse3_present  = static_cast<int64_t>((leaf1.ecx & bit_SSSE3)  != 0U);
+      parameters.sse41_present  = static_cast<int64_t>((leaf1.ecx & bit_SSE4_1) != 0U);
+      parameters.sse42_present  = static_cast<int64_t>((leaf1.ecx & bit_SSE4_2) != 0U);
+      parameters.popcnt_present = static_cast<int64_t>((leaf1.ecx & bit_POPCNT) != 0U);
 
       // AVX/AVX2 are only usable if the OS has enabled saving of the YMM
       // register state: CPUID must report OSXSAVE (leaf-1 ECX bit 27) and
@@ -157,71 +141,16 @@ auto cpu_features_detect() -> void
       bool const avx_os_enabled =
         osxsave_present and ((read_xcr0() & xcr0_avx_state) == xcr0_avx_state);
       bool const avx_supported = (leaf1.ecx & bit_AVX) != 0U;
-      avx_present = static_cast<int64_t>(avx_supported and avx_os_enabled);
+      parameters.avx_present = static_cast<int64_t>(avx_supported and avx_os_enabled);
 
       if (maxlevel >= extended_features_leaf)
         {
           cpuid_registers const leaf7 = get_cpuid(extended_features_leaf);
           bool const avx2_supported = (leaf7.ebx & bit_AVX2) != 0U;
-          avx2_present = static_cast<int64_t>(avx2_supported and avx_os_enabled);
+          parameters.avx2_present = static_cast<int64_t>(avx2_supported and avx_os_enabled);
         }
     }
 #else
     // simde
 #endif
-}
-
-
-auto cpu_features_show() -> void
-{
-  std::fprintf(stderr, "CPU features:");
-  if (neon_present != 0)
-    {
-      std::fprintf(stderr, " neon");
-    }
-  if (altivec_present != 0)
-    {
-      std::fprintf(stderr, " altivec");
-    }
-  if (mmx_present != 0)
-    {
-      std::fprintf(stderr, " mmx");
-    }
-  if (sse_present != 0)
-    {
-      std::fprintf(stderr, " sse");
-    }
-  if (sse2_present != 0)
-    {
-      std::fprintf(stderr, " sse2");
-    }
-  if (sse3_present != 0)
-    {
-      std::fprintf(stderr, " sse3");
-    }
-  if (ssse3_present != 0)
-    {
-      std::fprintf(stderr, " ssse3");
-    }
-  if (sse41_present != 0)
-    {
-      std::fprintf(stderr, " sse4.1");
-    }
-  if (sse42_present != 0)
-    {
-      std::fprintf(stderr, " sse4.2");
-    }
-  if (popcnt_present != 0)
-    {
-      std::fprintf(stderr, " popcnt");
-    }
-  if (avx_present != 0)
-    {
-      std::fprintf(stderr, " avx");
-    }
-  if (avx2_present != 0)
-    {
-      std::fprintf(stderr, " avx2");
-    }
-  std::fprintf(stderr, "\n");
 }
