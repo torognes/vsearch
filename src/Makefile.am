@@ -137,6 +137,7 @@ utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
 utils/fatal.hpp \
 utils/kmer_hash_struct.hpp \
+utils/logfile.hpp \
 utils/maps.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
@@ -268,6 +269,7 @@ utils/os_byteswap.cpp \
 utils/seqcmp.cpp \
 utils/number_of_strands.cpp \
 utils/timestamp.cpp \
+utils/logfile.cpp \
 vsearch.cc
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes

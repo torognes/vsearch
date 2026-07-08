@@ -97,13 +97,11 @@
 #include "arch/x86_64/cpu_features.hpp"
 #endif
 #include "utils/fatal.hpp"
-#include "utils/timestamp.hpp"  // iso8601_local_timestamp
+#include "utils/logfile.hpp"  // LogFile
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cerrno>  // errno, ERANGE
-#include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <cmath>  // std::floor
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::sscanf, std::fclose, std::snprintf, std::printf, std::strcat
 #include <cstdlib>  // std::exit, EXIT_FAILURE
@@ -1391,66 +1389,6 @@ auto dispatch_command(struct Parameters & parameters) -> void
 }
 
 
-/* RAII owner of the optional --log file. When --log is given, the constructor
-   opens the file, publishes it through the fp_log global and parameters.fp_log
-   (so the rest of the program logs to it) and writes the program header, the
-   command line and the "Started" timestamp; the destructor writes the
-   "Finished"/elapsed-time/max-memory footer and closes the file. Co-locating
-   open and close keeps the two halves of the log lifecycle together and emits
-   the footer on every exit path out of the enclosing scope. Without --log the
-   object owns no file and both halves are no-ops. */
-class LogFile
-{
-public:
-  explicit LogFile(struct Parameters & parameters)
-  {
-    if (parameters.opt_log == nullptr) { return; }
-    handle = open_optional_output(parameters.opt_log, "log");
-    fp_log = handle;
-    parameters.fp_log = handle;
-    std::fprintf(handle, "%s\n", prog_header.data());
-    std::fprintf(handle, "%s\n", cmdline);
-
-    start_time = std::chrono::steady_clock::now();
-    std::fprintf(handle, "Started  %s\n", iso8601_local_timestamp().c_str());
-  }
-
-  ~LogFile()
-  {
-    if (handle == nullptr) { return; }
-    auto const finish_time = std::chrono::steady_clock::now();
-    std::fprintf(handle, "\n");
-    std::fprintf(handle, "Finished %s", iso8601_local_timestamp().c_str());
-
-    double const time_diff =
-      std::chrono::duration<double>(finish_time - start_time).count();
-    std::fprintf(handle, "\n");
-    std::fprintf(handle, "Elapsed time %02.0lf:%02.0lf\n",
-            std::floor(time_diff / 60.0),
-            std::floor(time_diff - (60.0 * std::floor(time_diff / 60.0))));
-    double const maxmem = static_cast<double>(arch_get_memused()) / 1048576.0;
-    if (maxmem < 1024.0)
-      {
-        std::fprintf(handle, "Max memory %.1lfMB\n", maxmem);
-      }
-    else
-      {
-        std::fprintf(handle, "Max memory %.1lfGB\n", maxmem / 1024.0);
-      }
-    fclose_output(handle);
-  }
-
-  LogFile(LogFile const &) = delete;
-  LogFile(LogFile &&) = delete;
-  auto operator=(LogFile const &) -> LogFile & = delete;
-  auto operator=(LogFile &&) -> LogFile & = delete;
-
-private:
-  std::FILE * handle = nullptr;
-  std::chrono::steady_clock::time_point start_time {};
-};
-
-
 auto main(int argc, char** argv) -> int
 {
   std::set_new_handler(vsearch_new_handler);
@@ -1458,6 +1396,7 @@ auto main(int argc, char** argv) -> int
   struct Parameters parameters;
 
   fill_prog_header();
+  parameters.prog_header = prog_header.data();
 
   getentirecommandline(argc, argv);
   parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
