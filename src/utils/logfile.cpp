@@ -89,20 +89,24 @@ LogFile::~LogFile()
   std::fprintf(handle, "\n");
   std::fprintf(handle, "Finished %s", iso8601_local_timestamp().c_str());
 
+  constexpr auto seconds_per_minute = 60.0;
   double const time_diff =
     std::chrono::duration<double>(finish_time - start_time).count();
   std::fprintf(handle, "\n");
   std::fprintf(handle, "Elapsed time %02.0lf:%02.0lf\n",
-          std::floor(time_diff / 60.0),
-          std::floor(time_diff - (60.0 * std::floor(time_diff / 60.0))));
-  double const maxmem = static_cast<double>(arch_get_memused()) / 1048576.0;
-  if (maxmem < 1024.0)
+          std::floor(time_diff / seconds_per_minute),
+          std::floor(time_diff - (seconds_per_minute * std::floor(time_diff / seconds_per_minute))));
+
+  constexpr auto bytes_per_mebibyte = 1024.0 * 1024.0;
+  constexpr auto mebibytes_per_gibibyte = 1024.0;
+  double const maxmem = static_cast<double>(arch_get_memused()) / bytes_per_mebibyte;
+  if (maxmem < mebibytes_per_gibibyte)
     {
       std::fprintf(handle, "Max memory %.1lfMB\n", maxmem);
     }
   else
     {
-      std::fprintf(handle, "Max memory %.1lfGB\n", maxmem / 1024.0);
+      std::fprintf(handle, "Max memory %.1lfGB\n", maxmem / mebibytes_per_gibibyte);
     }
   fclose_output(handle);
 }
