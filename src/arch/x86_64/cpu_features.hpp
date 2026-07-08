@@ -59,8 +59,8 @@
 */
 
 // CPU feature discovery: detect at runtime which SIMD instruction sets the
-// host processor supports, and report them. Extracted from vsearch.cc so the
-// low-level detection stays decoupled from the main translation unit.
+// host processor supports. Extracted from vsearch.cc so the low-level
+// detection stays decoupled from the main translation unit.
 
 #pragma once
 
