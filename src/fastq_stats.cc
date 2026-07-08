@@ -616,14 +616,14 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* print report */
 
-  if (fp_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
-      report_read_length_distribution(fp_log, stats, read_length_table);  // section 1
-      report_q_score_distribution(fp_log, stats, symbol_to_probability, symbol_to_score);  // section 2
-      report_length_vs_quality_distribution(fp_log, stats);  // section 3
-      report_expected_error_and_length_filtering(fp_log, stats, ee_length_table);  // section 4
-      report_minimum_quality_and_length_filtering(fp_log, stats, q_length_table);  // section 5
-      report_sequence_stats(fp_log, stats);  // closing section
+      report_read_length_distribution(parameters.fp_log, stats, read_length_table);  // section 1
+      report_q_score_distribution(parameters.fp_log, stats, symbol_to_probability, symbol_to_score);  // section 2
+      report_length_vs_quality_distribution(parameters.fp_log, stats);  // section 3
+      report_expected_error_and_length_filtering(parameters.fp_log, stats, ee_length_table);  // section 4
+      report_minimum_quality_and_length_filtering(parameters.fp_log, stats, q_length_table);  // section 5
+      report_sequence_stats(parameters.fp_log, stats);  // closing section
     }
 
   if (not parameters.opt_quiet)

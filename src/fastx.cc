@@ -556,16 +556,16 @@ auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
+          std::fprintf(parameters.fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
           for (int i = 0; i < 256; i++)
             {
               if (input_handle->stripped[static_cast<std::size_t>(i)] != 0U)
                 {
-                  std::fprintf(fp_log, " %c(%" PRIu64 ")", i, input_handle->stripped[static_cast<std::size_t>(i)]);
+                  std::fprintf(parameters.fp_log, " %c(%" PRIu64 ")", i, input_handle->stripped[static_cast<std::size_t>(i)]);
                 }
             }
-          std::fprintf(fp_log, "\n");
-          std::fprintf(fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
+          std::fprintf(parameters.fp_log, "\n");
+          std::fprintf(parameters.fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }
     }
 

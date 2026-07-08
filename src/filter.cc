@@ -81,9 +81,9 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               quality_score, parameters.opt_fastq_qmin);
-      if (fp_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   quality_score, parameters.opt_fastq_qmin);
@@ -100,13 +100,13 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", quality_score);
-      if (fp_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
                   quality_score, parameters.opt_fastq_qmax);
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
                   "please use the option --fastq_qmax %d\n", quality_score);
@@ -526,7 +526,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(fp_log,
+      std::fprintf(parameters.fp_log,
               "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
               kept,
               truncated,

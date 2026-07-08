@@ -447,13 +447,13 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          std::fprintf(fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
+          std::fprintf(parameters.fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
         }
       if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          std::fprintf(fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
+          std::fprintf(parameters.fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
         }
-      std::fprintf(fp_log, "%d sequences kept\n", kept);
+      std::fprintf(parameters.fp_log, "%d sequences kept\n", kept);
     }
 
   db_free();

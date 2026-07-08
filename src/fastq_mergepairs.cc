@@ -316,9 +316,9 @@ auto report_merge_abort(struct Parameters const & parameters) -> void
               "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
               PRId64 ")\n",
               merge_error_value, parameters.opt_fastq_qmin);
-      if (fp_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
                   PRId64 ")\n",
                   merge_error_value, parameters.opt_fastq_qmin);
@@ -334,13 +334,13 @@ auto report_merge_abort(struct Parameters const & parameters) -> void
               "By default, quality values range from 0 to 41.\n"
               "To allow higher quality values, "
               "please use the option --fastq_qmax %d\n", merge_error_value);
-      if (fp_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
                   PRId64 ")\n",
                   merge_error_value, parameters.opt_fastq_qmax);
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "By default, quality values range from 0 to 41.\n"
                   "To allow higher quality values, "
                   "please use the option --fastq_qmax %d\n", merge_error_value);
@@ -1788,8 +1788,8 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
       fatal("More reverse reads than forward reads");
     }
 
-  if (fp_log != nullptr) {
-    print_stats(state, fp_log);
+  if (parameters.fp_log != nullptr) {
+    print_stats(state, parameters.fp_log);
   }
   else {
     print_stats(state, stderr);
