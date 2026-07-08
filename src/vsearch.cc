@@ -1202,47 +1202,13 @@ static auto vsearch_new_handler() -> void
   _exit(EXIT_FAILURE);
 }
 
-auto main(int argc, char** argv) -> int
+
+/* Run the command selected on the command line. Exactly one command option is
+   set (enforced during parsing); the chain below picks it out and calls the
+   matching handler. A few commands adjust parameters just before running, and
+   an unrecognised (or empty) command falls through to cmd_none(). */
+auto dispatch_command(struct Parameters & parameters) -> void
 {
-  std::set_new_handler(vsearch_new_handler);
-
-  struct Parameters parameters;
-
-  fill_prog_header();
-
-  getentirecommandline(argc, argv);
-  parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
-
-#ifdef __x86_64__
-  cpu_features_detect(parameters);
-#endif
-
-  args_init(argc, argv, parameters);
-
-  if (parameters.opt_log != nullptr)
-    {
-      fp_log = open_optional_output(parameters.opt_log, "log");
-      parameters.fp_log = fp_log;
-      std::fprintf(fp_log, "%s\n", prog_header.data());
-      std::fprintf(fp_log, "%s\n", cmdline);
-
-      std::array<char, 26> time_string {{}};
-      time_start = std::time(nullptr);
-      struct tm const * tm_start = localtime(& time_start);
-      std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
-      std::fprintf(fp_log, "Started  %s\n", time_string.data());
-    }
-
-  random_init(parameters);
-
-  show_header(parameters);
-
-  dynlibs_open();
-
-#ifdef __x86_64__
-  cpu_features_test(parameters);
-#endif
-
   if (parameters.opt_help)
     {
       cmd_help(parameters);
@@ -1418,6 +1384,51 @@ auto main(int argc, char** argv) -> int
     {
       cmd_none(parameters);
     }
+}
+
+
+auto main(int argc, char** argv) -> int
+{
+  std::set_new_handler(vsearch_new_handler);
+
+  struct Parameters parameters;
+
+  fill_prog_header();
+
+  getentirecommandline(argc, argv);
+  parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
+
+#ifdef __x86_64__
+  cpu_features_detect(parameters);
+#endif
+
+  args_init(argc, argv, parameters);
+
+  if (parameters.opt_log != nullptr)
+    {
+      fp_log = open_optional_output(parameters.opt_log, "log");
+      parameters.fp_log = fp_log;
+      std::fprintf(fp_log, "%s\n", prog_header.data());
+      std::fprintf(fp_log, "%s\n", cmdline);
+
+      std::array<char, 26> time_string {{}};
+      time_start = std::time(nullptr);
+      struct tm const * tm_start = localtime(& time_start);
+      std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
+      std::fprintf(fp_log, "Started  %s\n", time_string.data());
+    }
+
+  random_init(parameters);
+
+  show_header(parameters);
+
+  dynlibs_open();
+
+#ifdef __x86_64__
+  cpu_features_test(parameters);
+#endif
+
+  dispatch_command(parameters);
 
   if (parameters.opt_log != nullptr)
     {
