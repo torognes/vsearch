@@ -60,15 +60,6 @@
 
 #pragma once
 
-#include <vector>
-
-
-extern const std::vector<unsigned char> chrmap_no_change_vector;
-
-extern const std::vector<unsigned char> chrmap_normalize_vector;
-
-extern const std::vector<unsigned char> chrmap_upcase_vector;
-
 auto chrmap_no_change() -> unsigned char const *;
 
 auto chrmap_normalize() -> unsigned char const *;

@@ -266,9 +266,6 @@ namespace {
     };
 
 
-}  // end of anonymous namespace
-
-
 const std::vector<unsigned char> chrmap_no_change_vector = {
     /*
 
@@ -367,6 +364,9 @@ const std::vector<unsigned char> chrmap_upcase_vector =
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
   };
+
+
+}  // end of anonymous namespace
 
 
 auto chrmap_no_change() -> unsigned char const * {
