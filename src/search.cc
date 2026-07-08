@@ -612,7 +612,7 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
 }
 
 
-static auto search_prep(struct search_cli_state_s & state, char const * cmdline, char const * progheader) -> void
+static auto search_prep(struct search_cli_state_s & state, char const * cmdline) -> void
 {
   /* open output files */
 
@@ -620,7 +620,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
   if (state.fp_alnout != nullptr)
     {
       std::fprintf(state.fp_alnout, "%s\n", cmdline);
-      std::fprintf(state.fp_alnout, "%s\n", progheader);
+      std::fprintf(state.fp_alnout, "%s\n", state.parameters.prog_header.c_str());
     }
 
   state.fp_lcaout = open_optional_output(state.parameters.opt_lcaout, "lca");
@@ -720,7 +720,7 @@ static auto search_done(struct search_cli_state_s & state) -> void
 }
 
 
-auto usearch_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
+auto usearch_global(struct Parameters const & parameters, char const * cmdline) -> void
 {
   /* Per-invocation state, owned here and threaded through the worker pool and
      the output helper (E4). Aliased by reference so the long body below reads
@@ -738,7 +738,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline, 
   auto & fp_dbmatched = state.fp_dbmatched;
   auto & fp_dbnotmatched = state.fp_dbnotmatched;
 
-  search_prep(state, cmdline, progheader);
+  search_prep(state, cmdline);
 
   fp_dbmatched = open_optional_output(parameters.opt_dbmatched, "dbmatched");
   fp_dbnotmatched = open_optional_output(parameters.opt_dbnotmatched, "dbnotmatched");

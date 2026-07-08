@@ -858,7 +858,7 @@ auto cmd_allpairs_global(struct Parameters const & parameters) -> void
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
 
-  allpairs_global(parameters, cmdline, parameters.prog_header.c_str());
+  allpairs_global(parameters, cmdline);
 }
 
 
@@ -887,7 +887,7 @@ auto cmd_usearch_global(struct Parameters const & parameters) -> void
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
     }
 
-  usearch_global(parameters, cmdline, parameters.prog_header.c_str());
+  usearch_global(parameters, cmdline);
 }
 
 
@@ -911,7 +911,7 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
       fatal("Database filename not specified with --db");
     }
 
-  search_exact(parameters, cmdline, parameters.prog_header.c_str());
+  search_exact(parameters, cmdline);
 }
 
 
@@ -1000,19 +1000,19 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
 
   if (parameters.opt_cluster_fast != nullptr)
     {
-      cluster_fast(cmdline, parameters.prog_header.c_str(), parameters);
+      cluster_fast(cmdline, parameters);
     }
   else if (parameters.opt_cluster_smallmem != nullptr)
     {
-      cluster_smallmem(cmdline, parameters.prog_header.c_str(), parameters);
+      cluster_smallmem(cmdline, parameters);
     }
   else if (parameters.opt_cluster_size != nullptr)
     {
-      cluster_size(cmdline, parameters.prog_header.c_str(), parameters);
+      cluster_size(cmdline, parameters);
     }
   else if (parameters.opt_cluster_unoise != nullptr)
     {
-      cluster_unoise(cmdline, parameters.prog_header.c_str(), parameters);
+      cluster_unoise(cmdline, parameters);
     }
 }
 

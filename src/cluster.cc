@@ -1084,7 +1084,6 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
 auto cluster(char const * dbname,
              char const * cmdline,
-             char const * progheader,
              struct Parameters const & parameters) -> void
 {
   cluster_cli_state_s state(parameters);
@@ -1112,7 +1111,7 @@ auto cluster(char const * dbname,
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", cmdline);
-      std::fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
   fp_samout = open_optional_output(parameters.opt_samout, "SAM");
@@ -1540,27 +1539,27 @@ auto cluster(char const * dbname,
 }
 
 
-auto cluster_fast(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
+auto cluster_fast(char const * cmdline, struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_fast, cmdline, progheader, parameters);
+  cluster(parameters.opt_cluster_fast, cmdline, parameters);
 }
 
 
-auto cluster_smallmem(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
+auto cluster_smallmem(char const * cmdline, struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_smallmem, cmdline, progheader, parameters);
+  cluster(parameters.opt_cluster_smallmem, cmdline, parameters);
 }
 
 
-auto cluster_size(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
+auto cluster_size(char const * cmdline, struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_size, cmdline, progheader, parameters);
+  cluster(parameters.opt_cluster_size, cmdline, parameters);
 }
 
 
-auto cluster_unoise(char const * cmdline, char const * progheader, struct Parameters const & parameters) -> void
+auto cluster_unoise(char const * cmdline, struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_unoise, cmdline, progheader, parameters);
+  cluster(parameters.opt_cluster_unoise, cmdline, parameters);
 }
 
 

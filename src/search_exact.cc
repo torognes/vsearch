@@ -591,7 +591,7 @@ auto search_exact_thread_worker_run(struct Parameters const & parameters, struct
     }
 }
 
-auto search_exact_prep(char const * cmdline, char const * progheader,
+auto search_exact_prep(char const * cmdline,
                        struct Parameters const & parameters) -> void
 {
   /* open output files */
@@ -600,7 +600,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader,
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", cmdline);
-      std::fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
   fp_samout = open_optional_output(parameters.opt_samout, "SAM");
@@ -674,9 +674,9 @@ auto search_exact_done() -> void
 }
 
 
-auto search_exact(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
+auto search_exact(struct Parameters const & parameters, char const * cmdline) -> void
 {
-  search_exact_prep(cmdline, progheader, parameters);
+  search_exact_prep(cmdline, parameters);
 
   otutable_init();
 

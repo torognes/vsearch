@@ -568,7 +568,7 @@ static auto allpairs_thread_worker_run(struct allpairs_state_s & state) -> void
 }
 
 
-auto allpairs_global(struct Parameters const & parameters, char const * cmdline, char const * progheader) -> void
+auto allpairs_global(struct Parameters const & parameters, char const * cmdline) -> void
 {
   /* Per-invocation state, owned here and threaded through the worker pool (E4).
      Aliased by reference so the body below reads unchanged; the workers receive
@@ -595,7 +595,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
-      std::fprintf(fp_alnout, "%s\n", progheader);
+      std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
   fp_samout = open_optional_output(parameters.opt_samout, "SAM");
