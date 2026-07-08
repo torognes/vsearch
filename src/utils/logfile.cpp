@@ -59,7 +59,7 @@
 */
 
 #include "logfile.hpp"
-#include "vsearch.h"  // struct Parameters, fp_log
+#include "vsearch.h"  // struct Parameters
 #include "util.h"  // open_optional_output, fclose_output
 #include "arch.h"  // arch_get_memused
 #include "timestamp.hpp"  // iso8601_local_timestamp
@@ -87,7 +87,6 @@ LogFile::LogFile(struct Parameters & parameters)
 {
   if (parameters.opt_log == nullptr) { return; }
   handle = open_optional_output(parameters.opt_log, "log");
-  fp_log = handle;
   parameters.fp_log = handle;
   log_file::set_handle(handle);
   std::fprintf(handle, "%s\n", parameters.prog_header.c_str());

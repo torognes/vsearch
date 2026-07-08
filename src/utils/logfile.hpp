@@ -77,8 +77,9 @@ namespace log_file
 
 
 /* RAII owner of the optional --log file. When --log is given, the constructor
-   opens the file, publishes it through the fp_log global and parameters.fp_log
-   (so the rest of the program logs to it) and writes the program header, the
+   opens the file, publishes it through parameters.fp_log (for code that holds a
+   Parameters) and log_file::set_handle() (for the Parameters-less reporters)
+   so the rest of the program logs to it, and writes the program header, the
    command line and the "Started" timestamp; the destructor writes the
    "Finished"/elapsed-time/max-memory footer and closes the file. Co-locating
    open and close keeps the two halves of the log lifecycle together and emits

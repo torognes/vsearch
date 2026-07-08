@@ -115,11 +115,6 @@
 #include <vector>
 
 
-/* Other variables */
-
-std::FILE * fp_log = nullptr;
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
