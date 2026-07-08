@@ -159,32 +159,6 @@ auto arch_get_cores() -> long
 }
 
 
-auto arch_get_user_system_time(double * user_time, double * system_time) -> void
-{
-  *user_time = 0;
-  *system_time = 0;
-#ifdef _WIN32
-  HANDLE hProcess = GetCurrentProcess();
-  FILETIME ftCreation, ftExit, ftKernel, ftUser;
-  ULARGE_INTEGER ul;
-  GetProcessTimes(hProcess, &ftCreation, &ftExit, &ftKernel, &ftUser);
-  ul.u.HighPart = ftUser.dwHighDateTime;
-  ul.u.LowPart = ftUser.dwLowDateTime;
-  *user_time = ul.QuadPart * 100.0e-9;
-  ul.u.HighPart = ftKernel.dwHighDateTime;
-  ul.u.LowPart = ftKernel.dwLowDateTime;
-  *system_time = ul.QuadPart * 100.0e-9;
-#else
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  * user_time = (static_cast<double>(r_usage.ru_utime.tv_sec) * 1.0)
-    + (static_cast<double>(r_usage.ru_utime.tv_usec) * 1.0e-6);
-  * system_time = (static_cast<double>(r_usage.ru_stime.tv_sec) * 1.0)
-    + (static_cast<double>(r_usage.ru_stime.tv_usec) * 1.0e-6);
-#endif
-}
-
-
 auto xmalloc(std::size_t size) -> void *
 {
   static constexpr auto minimal_allocation = std::size_t{1};
