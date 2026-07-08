@@ -483,7 +483,7 @@ auto cut(struct Parameters const & parameters) -> void {
 
   struct statistics counters;
   std::vector<char> rc_buffer;
-  while (fasta_next(input_handle, false, chrmap_no_change_vector.data()))
+  while (fasta_next(input_handle, false, chrmap_no_change()))
     {
       cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer, parameters);
 

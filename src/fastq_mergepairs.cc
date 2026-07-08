@@ -1135,9 +1135,9 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
   auto const fastq_fwd = state.fastq_fwd;
   auto const fastq_rev = state.fastq_rev;
 
-  if (fastq_next(fastq_fwd, false, chrmap_upcase_vector.data()))
+  if (fastq_next(fastq_fwd, false, chrmap_upcase()))
     {
-      if (not fastq_next(fastq_rev, false, chrmap_upcase_vector.data()))
+      if (not fastq_next(fastq_rev, false, chrmap_upcase()))
         {
           /* runs in a worker thread with the chunk lock released; request
              a cooperative abort instead of exiting here, and stop reading
@@ -1783,7 +1783,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
       }
   }
 
-  if (fastq_next(fastq_rev, true, chrmap_upcase_vector.data()))
+  if (fastq_next(fastq_rev, true, chrmap_upcase()))
     {
       fatal("More reverse reads than forward reads");
     }

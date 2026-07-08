@@ -291,7 +291,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress(prompt.c_str(), filesize, parameters);
-    while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+    while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change()))
       {
         int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h));
 
@@ -537,7 +537,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Writing FASTA output file", filesize, parameters);
-    while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+    while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change()))
       {
         int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h2));
 

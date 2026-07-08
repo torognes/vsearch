@@ -106,7 +106,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   {
     Progress progress(input_handle->is_fastq ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
-    while (fastx_next(input_handle, false, chrmap_no_change_vector.data()))
+    while (fastx_next(input_handle, false, chrmap_no_change()))
       {
         ++count;
 
@@ -212,7 +212,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(input_handle, false, chrmap_no_change_vector.data()))
+    while (fastq_next(input_handle, false, chrmap_no_change()))
       {
         /* header */
 

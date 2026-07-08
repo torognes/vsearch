@@ -368,7 +368,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   {
     Progress progress(prompt.c_str(), filesize, parameters);
-    while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+    while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change()))
       {
         int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(input_handle));
 

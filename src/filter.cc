@@ -333,9 +333,9 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
   {
     Progress progress("Reading input file", filesize, parameters);
-    while (fastx_next(forward_handle, false, chrmap_no_change_vector.data()))
+    while (fastx_next(forward_handle, false, chrmap_no_change()))
       {
-        if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
+        if ((reverse_handle != nullptr) and not fastx_next(reverse_handle, false, chrmap_no_change()))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -510,7 +510,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       }
   }
 
-  if ((reverse_handle != nullptr) and fastx_next(reverse_handle, false, chrmap_no_change_vector.data()))
+  if ((reverse_handle != nullptr) and fastx_next(reverse_handle, false, chrmap_no_change()))
     {
       fatal("More reverse reads than forward reads");
     }

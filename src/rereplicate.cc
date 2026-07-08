@@ -88,7 +88,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
   auto const truncateatspace = not parameters.opt_notrunclabels;
   {
     Progress progress("Rereplicating", static_cast<uint64_t>(filesize), parameters);
-    while (fasta_next(input_handle, truncateatspace, chrmap_no_change_vector.data()))
+    while (fasta_next(input_handle, truncateatspace, chrmap_no_change()))
       {
         ++n_amplicons;
         auto abundance = fasta_get_abundance_and_presence(input_handle);

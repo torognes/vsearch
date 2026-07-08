@@ -234,9 +234,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Joining reads", filesize, parameters);
-    while (fastq_next(infiles.forward.handle, false, chrmap_no_change_vector.data()))
+    while (fastq_next(infiles.forward.handle, false, chrmap_no_change()))
       {
-        if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
+        if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change()))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -322,7 +322,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
       }
   }
 
-  if (fastq_next(infiles.reverse.handle, false, chrmap_no_change_vector.data()))
+  if (fastq_next(infiles.reverse.handle, false, chrmap_no_change()))
     {
       fatal("More reverse reads than forward reads");
     }

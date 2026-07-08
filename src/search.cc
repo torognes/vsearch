@@ -459,7 +459,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
 
       if (fastx_next(query_fastx_h,
                      (not state.parameters.opt_notrunclabels),
-                     chrmap_no_change_vector.data()))
+                     chrmap_no_change()))
         {
           char const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));

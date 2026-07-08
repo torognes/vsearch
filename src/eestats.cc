@@ -167,7 +167,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(h, false, chrmap_upcase_vector.data()))
+    while (fastq_next(h, false, chrmap_upcase()))
       {
         ++seq_count;
 
@@ -430,7 +430,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(h, false, chrmap_upcase_vector.data()))
+    while (fastq_next(h, false, chrmap_upcase()))
       {
         ++seq_count;
 

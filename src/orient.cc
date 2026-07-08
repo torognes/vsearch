@@ -197,7 +197,7 @@ auto orient(struct Parameters const & parameters) -> void
 
     while (fastx_next(query_h,
                       (not parameters.opt_notrunclabels),
-                      chrmap_no_change_vector.data()))
+                      chrmap_no_change()))
       {
         char const * query_head = fastx_get_header(query_h);
         int const query_head_len = static_cast<int>(fastx_get_header_length(query_h));

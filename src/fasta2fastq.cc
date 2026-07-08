@@ -88,7 +88,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                     parameters);
 
   auto counter = 0;
-  while (fasta_next(fp_input, false, chrmap_no_change_vector.data()))
+  while (fasta_next(fp_input, false, chrmap_no_change()))
     {
       /* get sequence length and allocate more mem if necessary */
 

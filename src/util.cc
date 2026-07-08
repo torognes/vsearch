@@ -212,10 +212,11 @@ auto random_init(struct Parameters const & parameters) -> void
 auto string_normalize(char * normalized, char const * raw_seq, unsigned int const len) -> void
 {
   /* convert string to upper case and replace U by T */
+  auto const * normalize_map = chrmap_normalize();
   for (auto i = 0U; i < len; ++i)
     {
       auto const unsigned_char = static_cast<unsigned char>(*raw_seq);
-      auto const normalized_char = chrmap_normalize_vector[unsigned_char];
+      auto const normalized_char = normalize_map[unsigned_char];
       *normalized = static_cast<char>(normalized_char);
       std::advance(normalized, 1);
       std::advance(raw_seq, 1);

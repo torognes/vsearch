@@ -524,7 +524,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   // note: fastq parsing represents 99% of total wallclock time
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(input_handle, false, chrmap_upcase_vector.data()))
+    while (fastq_next(input_handle, false, chrmap_upcase()))
       {
 
         /* update length statistics */

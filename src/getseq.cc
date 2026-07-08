@@ -416,7 +416,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   {
     Progress progress("Extracting sequences", filesize, parameters);
-    while (fastx_next(h1, not parameters.opt_notrunclabels, chrmap_no_change_vector.data()))
+    while (fastx_next(h1, not parameters.opt_notrunclabels, chrmap_no_change()))
       {
         bool const match = test_label_match(h1, parameters);
 

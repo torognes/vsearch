@@ -524,7 +524,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 
       if (fastx_next(query_fastx_h,
                      not state.parameters.opt_notrunclabels,
-                     chrmap_no_change_vector.data()))
+                     chrmap_no_change()))
         {
           auto const * qhead = fastx_get_header(query_fastx_h);
           int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));

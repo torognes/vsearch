@@ -296,7 +296,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
 
-    while (fastq_next(fastq_handle, false, chrmap_upcase_vector.data()))
+    while (fastq_next(fastq_handle, false, chrmap_upcase()))
       {
         auto const seq_length = fastq_get_sequence_length(fastq_handle);
         auto const * seq_ptr = fastq_get_sequence(fastq_handle);

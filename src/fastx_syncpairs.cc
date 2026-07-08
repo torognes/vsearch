@@ -65,7 +65,7 @@
 #include "util.h"  // progress_init, progress_update, progress_done, fopen_output
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
-#include "utils/maps.hpp"  // chrmap_no_change_vector
+#include "utils/maps.hpp"  // chrmap_no_change()
 #include <cinttypes>  // macros PRIu64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
@@ -259,7 +259,7 @@ namespace {
                      read_index & index,
                      struct Parameters const & parameters) -> void {
     Progress progress("Indexing reverse reads", fastx_get_size(reverse_handle), parameters);
-    while (fastx_next(reverse_handle, false, chrmap_no_change_vector.data())) {
+    while (fastx_next(reverse_handle, false, chrmap_no_change())) {
       auto key = matching_key(fastx_get_header(reverse_handle),
                               fastx_get_header_length(reverse_handle),
                               separators);
@@ -338,7 +338,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Synchronizing reads", fastx_get_size(forward_handle), parameters);
-    while (fastx_next(forward_handle, false, chrmap_no_change_vector.data())) {
+    while (fastx_next(forward_handle, false, chrmap_no_change())) {
       auto const key = matching_key(fastx_get_header(forward_handle),
                                     fastx_get_header_length(forward_handle),
                                     separators);

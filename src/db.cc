@@ -264,7 +264,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
     Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
     while (fastx_next(h,
                      not parameters.opt_notrunclabels,
-                      (upcase != 0) ? chrmap_upcase_vector.data() : chrmap_no_change_vector.data()))
+                      (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))
       {
         size_t const sequencelength = fastx_get_sequence_length(h);
         int64_t const abundance = fastx_get_abundance(h);

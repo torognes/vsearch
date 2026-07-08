@@ -2178,7 +2178,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
       if (state.parameters.opt_uchime_ref != nullptr)
         {
           if (fasta_next(state.query_fasta_h, (not state.parameters.opt_notrunclabels),
-                         chrmap_no_change_vector.data()))
+                         chrmap_no_change()))
             {
               ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
               ci->query_len = static_cast<int>(fasta_get_sequence_length(state.query_fasta_h));
