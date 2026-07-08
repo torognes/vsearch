@@ -378,25 +378,10 @@ namespace {
     return temp;
   }
 
-}  // end of anonymous namespace
 
-
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
-{
   static constexpr auto number_of_commands = std::size_t{51};
   static constexpr auto number_of_options = std::size_t{254};
   static constexpr auto max_number_of_options_per_command = std::size_t{100};
-
-  parameters.progname = argv[0];
-
-  /* The option switch below parses into this Parameters (self-defaulting),
-     which is the single configuration source the run reads from. */
-
-  /* Library defaults to quiet; the CLI needs output. */
-  parameters.opt_quiet = false;
-  parameters.opt_no_progress = false;
-
-  opterr = 1;
 
   enum
     {
@@ -933,17 +918,38 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   static_assert(option_specs.size() + 1 == number_of_options,
                 "number_of_options must be the option count plus the getopt sentinel");
 
-  /* Derive the getopt long_options array from the single-source table above.
-     The array is value-initialised, so the trailing element is left as the
-     {nullptr, 0, nullptr, 0} sentinel getopt_long_only expects. */
-  std::array<struct option, number_of_options> long_options {};
-  for (std::size_t idx = 0; idx < option_specs.size(); ++idx)
-    {
-      long_options[idx].name    = option_specs[idx].name;
-      long_options[idx].has_arg = option_specs[idx].needs_arg ? required_argument : no_argument;
-      long_options[idx].flag    = nullptr;
-      long_options[idx].val     = 0;
-    }
+  auto build_long_options() -> std::array<struct option, number_of_options>
+  {
+    /* Derive the getopt long_options array from the single-source table above.
+       The array is value-initialised, so the trailing element is left as the
+       {nullptr, 0, nullptr, 0} sentinel getopt_long_only expects. */
+    std::array<struct option, number_of_options> long_options {};
+    for (std::size_t idx = 0; idx < option_specs.size(); ++idx)
+      {
+        long_options[idx].name    = option_specs[idx].name;
+        long_options[idx].has_arg = option_specs[idx].needs_arg ? required_argument : no_argument;
+        long_options[idx].flag    = nullptr;
+        long_options[idx].val     = 0;
+      }
+    return long_options;
+  }
+}  // end of anonymous namespace
+
+
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+{
+  parameters.progname = argv[0];
+
+  /* The option switch below parses into this Parameters (self-defaulting),
+     which is the single configuration source the run reads from. */
+
+  /* Library defaults to quiet; the CLI needs output. */
+  parameters.opt_quiet = false;
+  parameters.opt_no_progress = false;
+
+  opterr = 1;
+
+  auto const long_options = build_long_options();
 
   std::vector<bool> options_selected(static_cast<std::size_t>(option_count));
 
