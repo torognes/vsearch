@@ -116,8 +116,6 @@
 #include <vector>
 
 
-constexpr auto max_line_length = std::size_t{80};
-
 /* Other variables */
 
 static char * cmdline;
@@ -1143,6 +1141,7 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
 
 auto fill_prog_header(struct Parameters & parameters) -> void
 {
+  static constexpr auto max_line_length = std::size_t{80};
   static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
   auto const * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
   std::array<char, max_line_length> buffer {{}};
