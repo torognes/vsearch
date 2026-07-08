@@ -3966,6 +3966,484 @@ namespace {
 
     return options_selected;
   }
+
+  /* Identify the single requested command (its row in valid_options), warn if
+     options were given with no command, and fatally reject any option that is
+     not valid for the chosen command. Returns the command's row index. */
+  auto resolve_command(std::vector<bool> const & options_selected,
+                       std::array<struct option, number_of_options> const & long_options) -> int
+  {
+    /* check that only one commmand is specified */
+    int commands = 0;
+    int k = -1;
+    for (int i = 0; i < static_cast<int>(number_of_commands); i++)
+      {
+        if (options_selected[static_cast<size_t>(valid_options[static_cast<size_t>(i)][0])])
+          {
+            ++commands;
+            k = i;
+          }
+      }
+    if (commands > 1)
+      {
+        fatal("More than one command specified");
+      }
+
+    /* check that only valid options are specified */
+    int invalid_options = 0;
+
+    if (commands == 0)
+      {
+        /* check if any options are specified */
+        bool any_options = false;
+        for (bool const i: options_selected)
+          {
+            if (i)
+              {
+                any_options = true;
+              }
+          }
+        if (any_options)
+          {
+            std::fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
+          }
+      }
+    else
+      {
+        for (int i = 0; i < option_count; i++)
+          {
+            if (options_selected[static_cast<size_t>(i)])
+              {
+                int j = 0;
+                bool option_is_valid = false;
+                while ((static_cast<size_t>(j) < max_number_of_options_per_command) and
+                       (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0))
+                  {
+                    if (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] == i)
+                      {
+                        option_is_valid = true;
+                        break;
+                      }
+                    ++j;
+                  }
+                if (not option_is_valid)
+                  {
+                    ++invalid_options;
+
+                    if (invalid_options == 1)
+                      {
+                        std::fprintf(stderr,
+                                "Fatal error: Invalid options to command %s\n",
+                                long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
+                        std::fprintf(stderr,
+                                "Invalid option(s):");
+                      }
+                    std::fprintf(stderr, " --%s",
+                            long_options[static_cast<size_t>(i)].name);
+                  }
+              }
+          }
+
+        if (invalid_options > 0)
+          {
+            std::fprintf(stderr, "\nThe valid options for the %s command are:",
+                    long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
+            int count = 0;
+            for (int j = 1;
+                 (static_cast<size_t>(j) < max_number_of_options_per_command) and
+                 (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0);
+                 j++)
+              {
+                std::fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
+                ++count;
+              }
+            if (count == 0)
+              {
+                std::fprintf(stderr, " (none)");
+              }
+            std::fprintf(stderr, "\n");
+            std::exit(EXIT_FAILURE);
+          }
+      }
+    return k;
+  }
+
+  /* Resolve the thread count: validate the --threads range, use all cores for
+     the multithreaded commands (otherwise force a single thread, warning if the
+     user asked for more), and warn about --sintax --randseed across threads. */
+  auto configure_threads(int k,
+                         std::array<struct option, number_of_options> const & long_options,
+                         struct Parameters & parameters) -> void
+  {
+    /* multi-threaded commands */
+
+    if ((parameters.opt_threads < 0) or (parameters.opt_threads > n_threads_max))
+      {
+        fatal("The argument to --threads must be in the range 0 (default) to 1024");
+      }
+
+    if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
+        (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
+        (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (parameters.opt_sintax != nullptr) or
+        (parameters.opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
+      {
+        if (parameters.opt_threads == 0)
+          {
+            parameters.opt_threads = arch_get_cores();
+          }
+      }
+    else
+      {
+        if (parameters.opt_threads > 1)
+          {
+            std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
+          }
+        parameters.opt_threads = 1;
+      }
+    if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
+      {
+        std::fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
+      }
+  }
+
+  /* Validate option value ranges (fatal on out-of-range input) and resolve the
+     co-dependent defaults that must be settled alongside the range checks
+     (weak_id, maxrejects, wordlength, ...). */
+  auto validate_option_values(std::vector<bool> const & options_selected,
+                              struct Parameters & parameters) -> void
+  {
+    if (parameters.opt_cluster_unoise != nullptr)
+      {
+        parameters.opt_weak_id = 0.90;
+      }
+    else
+      if (parameters.opt_weak_id > parameters.opt_id)
+        {
+          parameters.opt_weak_id = parameters.opt_id;
+        }
+
+    if (parameters.opt_maxrejects == -1)
+      {
+        if (parameters.opt_cluster_fast != nullptr)
+          {
+            parameters.opt_maxrejects = 8;
+          }
+        else
+          {
+            parameters.opt_maxrejects = 32;
+          }
+      }
+
+    if (parameters.opt_maxaccepts < 0)
+      {
+        fatal("The argument to --maxaccepts must not be negative");
+      }
+
+    if (parameters.opt_maxrejects < 0)
+      {
+        fatal("The argument to --maxrejects must not be negative");
+      }
+
+    if (parameters.opt_wordlength == 0)
+      {
+        /* set default word length */
+        if (parameters.opt_orient != nullptr)
+          {
+            parameters.opt_wordlength = 12;
+          }
+        else
+          {
+            parameters.opt_wordlength = 8;
+          }
+      }
+
+    if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
+      {
+        fatal("The argument to --wordlength must be in the range 3 to 15");
+      }
+
+    if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
+      {
+        fatal("The argument to --iddef must in the range 0 to 4");
+      }
+
+  #if 0
+
+    if (parameters.opt_match <= 0)
+      fatal("The argument to --match must be positive");
+
+    if (parameters.opt_mismatch >= 0)
+      fatal("The argument to --mismatch must be negative");
+
+  #endif
+
+
+    if (parameters.opt_alignwidth < 0)
+      {
+        fatal("The argument to --alignwidth must not be negative");
+      }
+
+    if (parameters.opt_rowlen < 0)
+      {
+        fatal("The argument to --rowlen must not be negative");
+      }
+
+    if (parameters.opt_qmask == MASK_ERROR)
+      {
+        fatal("The argument to --qmask must be none, dust or soft");
+      }
+
+    if (parameters.opt_dbmask == MASK_ERROR)
+      {
+        fatal("The argument to --dbmask must be none, dust or soft");
+      }
+
+    if ((parameters.opt_sample_pct < 0.0) or (parameters.opt_sample_pct > 100.0))
+      {
+        fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
+      }
+
+    if (parameters.opt_sample_size < 0)
+      {
+        fatal("The argument to --sample_size must not be negative");
+      }
+
+    if ((((parameters.opt_relabel != nullptr) ? 1 : 0) +
+         static_cast<int>(parameters.opt_relabel_md5) +
+         static_cast<int>(parameters.opt_relabel_self) +
+         static_cast<int>(parameters.opt_relabel_sha1)) > 1)
+      {
+        fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
+      }
+
+    if (parameters.opt_fastq_tail < 1)
+      {
+        fatal("The argument to --fastq_tail must be greater than zero");
+      }
+
+    if ((parameters.opt_min_unmasked_pct < 0.0) or (parameters.opt_min_unmasked_pct > 100.0))
+      {
+        fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
+      }
+
+    if ((parameters.opt_max_unmasked_pct < 0.0) or (parameters.opt_max_unmasked_pct > 100.0))
+      {
+        fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
+      }
+
+    if (parameters.opt_min_unmasked_pct > parameters.opt_max_unmasked_pct)
+      {
+        fatal("The argument to --min_unmasked_pct cannot be larger than --max_unmasked_pct");
+      }
+
+    if ((parameters.opt_fastq_ascii != 33) and (parameters.opt_fastq_ascii != 64))
+      {
+        fatal("The argument to --fastq_ascii must be 33 or 64");
+      }
+
+    if (parameters.opt_fastq_qmin > parameters.opt_fastq_qmax)
+      {
+        fatal("The argument to --fastq_qmin cannot be greater than --fastq_qmax");
+      }
+
+    if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmin < 33)
+      {
+        fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
+      }
+
+    if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmax > 126)
+      {
+        fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
+      }
+
+    if (parameters.opt_fastq_qminout > parameters.opt_fastq_qmaxout)
+      {
+        fatal("The argument to --fastq_qminout cannot be larger than --fastq_qmaxout");
+      }
+
+    if ((parameters.opt_fastq_asciiout != 33) and (parameters.opt_fastq_asciiout != 64))
+      {
+        fatal("The argument to --fastq_asciiout must be 33 or 64");
+      }
+
+    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < 33)
+      {
+        fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
+      }
+
+    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout > 126)
+      {
+        fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
+      }
+
+    if (parameters.opt_gzip_decompress and parameters.opt_bzip2_decompress)
+      {
+        fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
+      }
+
+    if ((parameters.opt_sintax_cutoff < 0.0) or (parameters.opt_sintax_cutoff > 1.0))
+      {
+        fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
+      }
+
+    if ((parameters.opt_lca_cutoff <= 0.5) or (parameters.opt_lca_cutoff > 1.0))
+      {
+        fatal("The argument to lca_cutoff must be larger than 0.5, but not larger than 1.0");
+      }
+
+    if (parameters.opt_minuniquesize < 1)
+      {
+        fatal("The argument to minuniquesize must be at least 1");
+      }
+
+    if (parameters.opt_maxuniquesize < 1)
+      {
+        fatal("The argument to maxuniquesize must be at least 1");
+      }
+
+    if (parameters.opt_maxsize < 1)
+      {
+        fatal("The argument to maxsize must be at least 1");
+      }
+
+    if (parameters.opt_maxhits < 0)
+      {
+        fatal("The argument to maxhits cannot be negative");
+      }
+
+    if (parameters.opt_chimeras_length_min < 1)
+      {
+        fatal("The argument to chimeras_length_min must be at least 1");
+      }
+
+    if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
+      {
+        std::array<char, 25> maxparents_string {{}};
+        std::snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
+        fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string.data());
+      }
+
+    if ((parameters.opt_chimeras_diff_pct < 0.0) or (parameters.opt_chimeras_diff_pct > 50.0))
+      {
+        fatal("The argument to chimeras_diff_pct must be in the range 0.0 to 50.0");
+      }
+
+    if (options_selected[option_chimeras_parts] and
+        ((parameters.opt_chimeras_parts < 2) or (parameters.opt_chimeras_parts > 100)))
+      {
+        fatal("The argument to chimeras_parts must be in the range 2 to 100");
+      }
+
+    /* --fasta_width accepts 0 to disable line wrapping (documented);
+       reject only negative values. */
+    if (parameters.opt_fasta_width < 0)
+      {
+        fatal("The argument to --fasta_width cannot be negative");
+      }
+
+    if (parameters.opt_maxseqlength < 1)
+      {
+        fatal("The argument to --maxseqlength must be a positive integer");
+      }
+
+    // The sequence length is narrowed to int in the search/cluster/chimera
+    // engine (searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom), so a
+    // longer sequence would wrap negative and overflow the per-query buffer. Cap
+    // the option at INT_MAX - buffer_headroom so that cannot happen; this mirrors
+    // the header length limit enforced in fastx_filter_header.
+    static constexpr int maxseqlength_limit =
+      std::numeric_limits<int>::max() - buffer_headroom;
+    if (parameters.opt_maxseqlength > maxseqlength_limit)
+      {
+        std::array<char, 128> message {{}};
+        std::snprintf(message.data(), message.size(),
+                      "The argument to --maxseqlength cannot exceed %d (INT_MAX - %d)",
+                      maxseqlength_limit, buffer_headroom);
+        fatal(message.data());
+      }
+
+    if (parameters.opt_chimeras_denovo != nullptr)
+      {
+        if (not options_selected[option_alignwidth])
+          {
+            parameters.opt_alignwidth = 60;
+          }
+      }
+  }
+
+  /* Apply the generic sentinel fixups and the command-specific defaults
+     (minsize, abskew, minseqlength, sintax label handling). */
+  auto apply_command_defaults(std::vector<bool> const & options_selected,
+                              struct Parameters & parameters) -> void
+  {
+    /* TODO: check valid range of gap penalties */
+
+    /* adapt/adjust parameters */
+
+    /* Resolve sentinel defaults and adjust gap penalties on `parameters`.
+       Generic fixups (including gap-open adjustment) are in
+       vsearch_apply_defaults_fixups(Parameters&); command-specific overrides
+       (abskew, minsize for unoise) follow below. */
+    vsearch_apply_defaults_fixups(parameters);
+
+    /* set default opt_minsize depending on command */
+    if (parameters.opt_minsize == 0)
+      {
+        if (parameters.opt_cluster_unoise != nullptr)
+          {
+            parameters.opt_minsize = 8;
+          }
+        else
+          {
+            parameters.opt_minsize = 1;
+          }
+      }
+
+    /* set default opt_abskew depending on command */
+    if (not options_selected[option_abskew])
+      {
+        if (parameters.opt_chimeras_denovo != nullptr)
+          {
+            parameters.opt_abskew = 1.0;
+          }
+        else if (parameters.opt_uchime3_denovo != nullptr)
+          {
+            parameters.opt_abskew = 16.0;
+          }
+        else
+          {
+            parameters.opt_abskew = 2.0;
+          }
+      }
+
+    /* set default opt_minseqlength depending on command */
+
+    if (parameters.opt_minseqlength < 0)
+      {
+        if ((parameters.opt_cluster_fast != nullptr) or
+            (parameters.opt_cluster_size != nullptr) or
+            (parameters.opt_cluster_smallmem != nullptr) or
+            (parameters.opt_cluster_unoise != nullptr) or
+            (parameters.opt_derep_fulllength != nullptr) or
+            (parameters.opt_derep_id != nullptr) or
+            (parameters.opt_derep_prefix != nullptr) or
+            (parameters.opt_makeudb_usearch != nullptr) or
+            (parameters.opt_sintax != nullptr) or
+            (parameters.opt_usearch_global != nullptr))
+          {
+            parameters.opt_minseqlength = 32;
+          }
+        else
+          {
+            parameters.opt_minseqlength = 1;
+          }
+      }
+
+    if (parameters.opt_sintax != nullptr)
+      {
+      parameters.opt_notrunclabels = true;
+      }
+  }
 }  // end of anonymous namespace
 
 
@@ -3986,455 +4464,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   auto const options_selected = parse_options(argc, argv, long_options, parameters);
 
-  /* check that only one commmand is specified */
-  int commands = 0;
-  int k = -1;
-  for (int i = 0; i < static_cast<int>(number_of_commands); i++)
-    {
-      if (options_selected[static_cast<size_t>(valid_options[static_cast<size_t>(i)][0])])
-        {
-          ++commands;
-          k = i;
-        }
-    }
-  if (commands > 1)
-    {
-      fatal("More than one command specified");
-    }
+  int const k = resolve_command(options_selected, long_options);
 
-  /* check that only valid options are specified */
-  int invalid_options = 0;
+  configure_threads(k, long_options, parameters);
 
-  if (commands == 0)
-    {
-      /* check if any options are specified */
-      bool any_options = false;
-      for (bool const i: options_selected)
-        {
-          if (i)
-            {
-              any_options = true;
-            }
-        }
-      if (any_options)
-        {
-          std::fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
-        }
-    }
-  else
-    {
-      for (int i = 0; i < option_count; i++)
-        {
-          if (options_selected[static_cast<size_t>(i)])
-            {
-              int j = 0;
-              bool option_is_valid = false;
-              while ((static_cast<size_t>(j) < max_number_of_options_per_command) and
-                     (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0))
-                {
-                  if (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] == i)
-                    {
-                      option_is_valid = true;
-                      break;
-                    }
-                  ++j;
-                }
-              if (not option_is_valid)
-                {
-                  ++invalid_options;
+  validate_option_values(options_selected, parameters);
 
-                  if (invalid_options == 1)
-                    {
-                      std::fprintf(stderr,
-                              "Fatal error: Invalid options to command %s\n",
-                              long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
-                      std::fprintf(stderr,
-                              "Invalid option(s):");
-                    }
-                  std::fprintf(stderr, " --%s",
-                          long_options[static_cast<size_t>(i)].name);
-                }
-            }
-        }
-
-      if (invalid_options > 0)
-        {
-          std::fprintf(stderr, "\nThe valid options for the %s command are:",
-                  long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
-          int count = 0;
-          for (int j = 1;
-               (static_cast<size_t>(j) < max_number_of_options_per_command) and
-               (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0);
-               j++)
-            {
-              std::fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
-              ++count;
-            }
-          if (count == 0)
-            {
-              std::fprintf(stderr, " (none)");
-            }
-          std::fprintf(stderr, "\n");
-          std::exit(EXIT_FAILURE);
-        }
-    }
-
-  /* multi-threaded commands */
-
-  if ((parameters.opt_threads < 0) or (parameters.opt_threads > n_threads_max))
-    {
-      fatal("The argument to --threads must be in the range 0 (default) to 1024");
-    }
-
-  if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
-      (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or
-      (parameters.opt_fastx_mask != nullptr) or (parameters.opt_maskfasta != nullptr) or (parameters.opt_search_exact != nullptr) or (parameters.opt_sintax != nullptr) or
-      (parameters.opt_uchime_ref != nullptr) or (parameters.opt_usearch_global != nullptr))
-    {
-      if (parameters.opt_threads == 0)
-        {
-          parameters.opt_threads = arch_get_cores();
-        }
-    }
-  else
-    {
-      if (parameters.opt_threads > 1)
-        {
-          std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
-        }
-      parameters.opt_threads = 1;
-    }
-  if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
-    {
-      std::fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
-    }
-
-  if (parameters.opt_cluster_unoise != nullptr)
-    {
-      parameters.opt_weak_id = 0.90;
-    }
-  else
-    if (parameters.opt_weak_id > parameters.opt_id)
-      {
-        parameters.opt_weak_id = parameters.opt_id;
-      }
-
-  if (parameters.opt_maxrejects == -1)
-    {
-      if (parameters.opt_cluster_fast != nullptr)
-        {
-          parameters.opt_maxrejects = 8;
-        }
-      else
-        {
-          parameters.opt_maxrejects = 32;
-        }
-    }
-
-  if (parameters.opt_maxaccepts < 0)
-    {
-      fatal("The argument to --maxaccepts must not be negative");
-    }
-
-  if (parameters.opt_maxrejects < 0)
-    {
-      fatal("The argument to --maxrejects must not be negative");
-    }
-
-  if (parameters.opt_wordlength == 0)
-    {
-      /* set default word length */
-      if (parameters.opt_orient != nullptr)
-        {
-          parameters.opt_wordlength = 12;
-        }
-      else
-        {
-          parameters.opt_wordlength = 8;
-        }
-    }
-
-  if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
-    {
-      fatal("The argument to --wordlength must be in the range 3 to 15");
-    }
-
-  if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
-    {
-      fatal("The argument to --iddef must in the range 0 to 4");
-    }
-
-#if 0
-
-  if (parameters.opt_match <= 0)
-    fatal("The argument to --match must be positive");
-
-  if (parameters.opt_mismatch >= 0)
-    fatal("The argument to --mismatch must be negative");
-
-#endif
-
-
-  if (parameters.opt_alignwidth < 0)
-    {
-      fatal("The argument to --alignwidth must not be negative");
-    }
-
-  if (parameters.opt_rowlen < 0)
-    {
-      fatal("The argument to --rowlen must not be negative");
-    }
-
-  if (parameters.opt_qmask == MASK_ERROR)
-    {
-      fatal("The argument to --qmask must be none, dust or soft");
-    }
-
-  if (parameters.opt_dbmask == MASK_ERROR)
-    {
-      fatal("The argument to --dbmask must be none, dust or soft");
-    }
-
-  if ((parameters.opt_sample_pct < 0.0) or (parameters.opt_sample_pct > 100.0))
-    {
-      fatal("The argument to --sample_pct must be in the range 0.0 to 100.0");
-    }
-
-  if (parameters.opt_sample_size < 0)
-    {
-      fatal("The argument to --sample_size must not be negative");
-    }
-
-  if ((((parameters.opt_relabel != nullptr) ? 1 : 0) +
-       static_cast<int>(parameters.opt_relabel_md5) +
-       static_cast<int>(parameters.opt_relabel_self) +
-       static_cast<int>(parameters.opt_relabel_sha1)) > 1)
-    {
-      fatal("Specify only one of --relabel, --relabel_self, --relabel_sha1, or --relabel_md5");
-    }
-
-  if (parameters.opt_fastq_tail < 1)
-    {
-      fatal("The argument to --fastq_tail must be greater than zero");
-    }
-
-  if ((parameters.opt_min_unmasked_pct < 0.0) or (parameters.opt_min_unmasked_pct > 100.0))
-    {
-      fatal("The argument to --min_unmasked_pct must be between 0.0 and 100.0");
-    }
-
-  if ((parameters.opt_max_unmasked_pct < 0.0) or (parameters.opt_max_unmasked_pct > 100.0))
-    {
-      fatal("The argument to --max_unmasked_pct must be between 0.0 and 100.0");
-    }
-
-  if (parameters.opt_min_unmasked_pct > parameters.opt_max_unmasked_pct)
-    {
-      fatal("The argument to --min_unmasked_pct cannot be larger than --max_unmasked_pct");
-    }
-
-  if ((parameters.opt_fastq_ascii != 33) and (parameters.opt_fastq_ascii != 64))
-    {
-      fatal("The argument to --fastq_ascii must be 33 or 64");
-    }
-
-  if (parameters.opt_fastq_qmin > parameters.opt_fastq_qmax)
-    {
-      fatal("The argument to --fastq_qmin cannot be greater than --fastq_qmax");
-    }
-
-  if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmin < 33)
-    {
-      fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
-    }
-
-  if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmax > 126)
-    {
-      fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
-    }
-
-  if (parameters.opt_fastq_qminout > parameters.opt_fastq_qmaxout)
-    {
-      fatal("The argument to --fastq_qminout cannot be larger than --fastq_qmaxout");
-    }
-
-  if ((parameters.opt_fastq_asciiout != 33) and (parameters.opt_fastq_asciiout != 64))
-    {
-      fatal("The argument to --fastq_asciiout must be 33 or 64");
-    }
-
-  if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < 33)
-    {
-      fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
-    }
-
-  if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout > 126)
-    {
-      fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
-    }
-
-  if (parameters.opt_gzip_decompress and parameters.opt_bzip2_decompress)
-    {
-      fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
-    }
-
-  if ((parameters.opt_sintax_cutoff < 0.0) or (parameters.opt_sintax_cutoff > 1.0))
-    {
-      fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
-    }
-
-  if ((parameters.opt_lca_cutoff <= 0.5) or (parameters.opt_lca_cutoff > 1.0))
-    {
-      fatal("The argument to lca_cutoff must be larger than 0.5, but not larger than 1.0");
-    }
-
-  if (parameters.opt_minuniquesize < 1)
-    {
-      fatal("The argument to minuniquesize must be at least 1");
-    }
-
-  if (parameters.opt_maxuniquesize < 1)
-    {
-      fatal("The argument to maxuniquesize must be at least 1");
-    }
-
-  if (parameters.opt_maxsize < 1)
-    {
-      fatal("The argument to maxsize must be at least 1");
-    }
-
-  if (parameters.opt_maxhits < 0)
-    {
-      fatal("The argument to maxhits cannot be negative");
-    }
-
-  if (parameters.opt_chimeras_length_min < 1)
-    {
-      fatal("The argument to chimeras_length_min must be at least 1");
-    }
-
-  if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
-    {
-      std::array<char, 25> maxparents_string {{}};
-      std::snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
-      fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string.data());
-    }
-
-  if ((parameters.opt_chimeras_diff_pct < 0.0) or (parameters.opt_chimeras_diff_pct > 50.0))
-    {
-      fatal("The argument to chimeras_diff_pct must be in the range 0.0 to 50.0");
-    }
-
-  if (options_selected[option_chimeras_parts] and
-      ((parameters.opt_chimeras_parts < 2) or (parameters.opt_chimeras_parts > 100)))
-    {
-      fatal("The argument to chimeras_parts must be in the range 2 to 100");
-    }
-
-  /* --fasta_width accepts 0 to disable line wrapping (documented);
-     reject only negative values. */
-  if (parameters.opt_fasta_width < 0)
-    {
-      fatal("The argument to --fasta_width cannot be negative");
-    }
-
-  if (parameters.opt_maxseqlength < 1)
-    {
-      fatal("The argument to --maxseqlength must be a positive integer");
-    }
-
-  // The sequence length is narrowed to int in the search/cluster/chimera
-  // engine (searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom), so a
-  // longer sequence would wrap negative and overflow the per-query buffer. Cap
-  // the option at INT_MAX - buffer_headroom so that cannot happen; this mirrors
-  // the header length limit enforced in fastx_filter_header.
-  static constexpr int maxseqlength_limit =
-    std::numeric_limits<int>::max() - buffer_headroom;
-  if (parameters.opt_maxseqlength > maxseqlength_limit)
-    {
-      std::array<char, 128> message {{}};
-      std::snprintf(message.data(), message.size(),
-                    "The argument to --maxseqlength cannot exceed %d (INT_MAX - %d)",
-                    maxseqlength_limit, buffer_headroom);
-      fatal(message.data());
-    }
-
-  if (parameters.opt_chimeras_denovo != nullptr)
-    {
-      if (not options_selected[option_alignwidth])
-        {
-          parameters.opt_alignwidth = 60;
-        }
-    }
-
-
-  /* TODO: check valid range of gap penalties */
-
-  /* adapt/adjust parameters */
-
-  /* Resolve sentinel defaults and adjust gap penalties on `parameters`.
-     Generic fixups (including gap-open adjustment) are in
-     vsearch_apply_defaults_fixups(Parameters&); command-specific overrides
-     (abskew, minsize for unoise) follow below. */
-  vsearch_apply_defaults_fixups(parameters);
-
-  /* set default opt_minsize depending on command */
-  if (parameters.opt_minsize == 0)
-    {
-      if (parameters.opt_cluster_unoise != nullptr)
-        {
-          parameters.opt_minsize = 8;
-        }
-      else
-        {
-          parameters.opt_minsize = 1;
-        }
-    }
-
-  /* set default opt_abskew depending on command */
-  if (not options_selected[option_abskew])
-    {
-      if (parameters.opt_chimeras_denovo != nullptr)
-        {
-          parameters.opt_abskew = 1.0;
-        }
-      else if (parameters.opt_uchime3_denovo != nullptr)
-        {
-          parameters.opt_abskew = 16.0;
-        }
-      else
-        {
-          parameters.opt_abskew = 2.0;
-        }
-    }
-
-  /* set default opt_minseqlength depending on command */
-
-  if (parameters.opt_minseqlength < 0)
-    {
-      if ((parameters.opt_cluster_fast != nullptr) or
-          (parameters.opt_cluster_size != nullptr) or
-          (parameters.opt_cluster_smallmem != nullptr) or
-          (parameters.opt_cluster_unoise != nullptr) or
-          (parameters.opt_derep_fulllength != nullptr) or
-          (parameters.opt_derep_id != nullptr) or
-          (parameters.opt_derep_prefix != nullptr) or
-          (parameters.opt_makeudb_usearch != nullptr) or
-          (parameters.opt_sintax != nullptr) or
-          (parameters.opt_usearch_global != nullptr))
-        {
-          parameters.opt_minseqlength = 32;
-        }
-      else
-        {
-          parameters.opt_minseqlength = 1;
-        }
-    }
-
-  if (parameters.opt_sintax != nullptr)
-    {
-    parameters.opt_notrunclabels = true;
-    }
+  apply_command_defaults(options_selected, parameters);
 
   // refactoring: C++17 <filesystem> std::filesystem::is_regular_file
   // check if stderr is referring to a terminal
