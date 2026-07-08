@@ -146,6 +146,7 @@ utils/seqcmp.hpp \
 utils/span.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
+utils/timestamp.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -266,6 +267,7 @@ utils/open_file.cpp \
 utils/os_byteswap.cpp \
 utils/seqcmp.cpp \
 utils/number_of_strands.cpp \
+utils/timestamp.cpp \
 vsearch.cc
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes

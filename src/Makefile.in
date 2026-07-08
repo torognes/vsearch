@@ -188,7 +188,7 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h
 am__objects_1 =
 @TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -213,7 +213,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
 @TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -238,7 +238,7 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -263,7 +263,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -288,7 +288,7 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -313,7 +313,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -338,13 +338,13 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h arch.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h align_simd.cc allpairs.cc \
-	arch.cc attributes.cc bitmap.cc chimera.cc cli.cc cluster.cc \
-	cut.cc db.cc dbhash.cc dbindex.cc derep.cc derep_prefix.cc \
-	derep_smallmem.cc dynlibs.cc eestats.cc fasta2fastq.cc \
-	fasta.cc fastq.cc fastq_chars.cc fastq_join.cc \
-	fastq_mergepairs.cc fastq_stats.cc fastqops.cc fastx.cc \
-	fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h \
+	align_simd.cc allpairs.cc arch.cc attributes.cc bitmap.cc \
+	chimera.cc cli.cc cluster.cc cut.cc db.cc dbhash.cc dbindex.cc \
+	derep.cc derep_prefix.cc derep_smallmem.cc dynlibs.cc \
+	eestats.cc fasta2fastq.cc fasta.cc fastq.cc fastq_chars.cc \
+	fastq_join.cc fastq_mergepairs.cc fastq_stats.cc fastqops.cc \
+	fastx.cc fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
 	linmemalign.cc mask.cc vendored/md5.c minheap.cc msa.cc \
 	orient.cc otutable.cc rereplicate.cc results.cc search.cc \
 	searchcore.cc search_exact.cc sff_convert.cc vendored/sha1.c \
@@ -354,7 +354,7 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h arch.h \
 	utils/check_output_filehandle.cpp utils/cigar.cpp \
 	utils/compare_strings_nocase.cpp utils/open_file.cpp \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
-	utils/number_of_strands.cpp vsearch.cc \
+	utils/number_of_strands.cpp utils/timestamp.cpp vsearch.cc \
 	arch/x86_64/cpu_features.cpp
 am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	libvsearch_core_a-allpairs.$(OBJEXT) \
@@ -419,6 +419,7 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-os_byteswap.$(OBJEXT) \
 	utils/libvsearch_core_a-seqcmp.$(OBJEXT) \
 	utils/libvsearch_core_a-number_of_strands.$(OBJEXT) \
+	utils/libvsearch_core_a-timestamp.$(OBJEXT) \
 	libvsearch_core_a-vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
 am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
@@ -442,13 +443,13 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	vsearch.h vsearch_api.h xstring.h align_simd.cc allpairs.cc \
-	arch.cc attributes.cc bitmap.cc chimera.cc cli.cc cluster.cc \
-	cut.cc db.cc dbhash.cc dbindex.cc derep.cc derep_prefix.cc \
-	derep_smallmem.cc dynlibs.cc eestats.cc fasta2fastq.cc \
-	fasta.cc fastq.cc fastq_chars.cc fastq_join.cc \
-	fastq_mergepairs.cc fastq_stats.cc fastqops.cc fastx.cc \
-	fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
+	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h \
+	align_simd.cc allpairs.cc arch.cc attributes.cc bitmap.cc \
+	chimera.cc cli.cc cluster.cc cut.cc db.cc dbhash.cc dbindex.cc \
+	derep.cc derep_prefix.cc derep_smallmem.cc dynlibs.cc \
+	eestats.cc fasta2fastq.cc fasta.cc fastq.cc fastq_chars.cc \
+	fastq_join.cc fastq_mergepairs.cc fastq_stats.cc fastqops.cc \
+	fastx.cc fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
 	linmemalign.cc mask.cc vendored/md5.c minheap.cc msa.cc \
 	orient.cc otutable.cc rereplicate.cc results.cc search.cc \
 	searchcore.cc search_exact.cc sff_convert.cc vendored/sha1.c \
@@ -458,7 +459,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	utils/check_output_filehandle.cpp utils/cigar.cpp \
 	utils/compare_strings_nocase.cpp utils/open_file.cpp \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
-	utils/number_of_strands.cpp vsearch.cc \
+	utils/number_of_strands.cpp utils/timestamp.cpp vsearch.cc \
 	arch/x86_64/cpu_features.cpp
 am__objects_4 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) arch.$(OBJEXT) \
 	attributes.$(OBJEXT) bitmap.$(OBJEXT) chimera.$(OBJEXT) \
@@ -484,7 +485,7 @@ am__objects_4 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) arch.$(OBJEXT) \
 	utils/compare_strings_nocase.$(OBJEXT) \
 	utils/open_file.$(OBJEXT) utils/os_byteswap.$(OBJEXT) \
 	utils/seqcmp.$(OBJEXT) utils/number_of_strands.$(OBJEXT) \
-	vsearch.$(OBJEXT)
+	utils/timestamp.$(OBJEXT) vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_5 =  \
 @TARGET_X86_64_TRUE@	arch/x86_64/cpu_features.$(OBJEXT)
 am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
@@ -616,9 +617,10 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-open_file.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po \
 	utils/$(DEPDIR)/maps.Po utils/$(DEPDIR)/number_of_strands.Po \
 	utils/$(DEPDIR)/open_file.Po utils/$(DEPDIR)/os_byteswap.Po \
-	utils/$(DEPDIR)/seqcmp.Po \
+	utils/$(DEPDIR)/seqcmp.Po utils/$(DEPDIR)/timestamp.Po \
 	vendored/$(DEPDIR)/libcityhash_a-city.Po \
 	vendored/$(DEPDIR)/libcityhash_pic_a-city.Po \
 	vendored/$(DEPDIR)/libvsearch_core_a-md5.Po \
@@ -878,6 +880,7 @@ utils/seqcmp.hpp \
 utils/span.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
+utils/timestamp.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -984,6 +987,7 @@ utils/open_file.cpp \
 utils/os_byteswap.cpp \
 utils/seqcmp.cpp \
 utils/number_of_strands.cpp \
+utils/timestamp.cpp \
 vsearch.cc
 
 @TARGET_X86_64_FALSE@VSEARCH_ARCH_SOURCES = 
@@ -1162,6 +1166,8 @@ utils/libvsearch_core_a-seqcmp.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-number_of_strands.$(OBJEXT):  \
 	utils/$(am__dirstamp) utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-timestamp.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/$(am__dirstamp):
 	@$(MKDIR_P) arch/x86_64
 	@: > arch/x86_64/$(am__dirstamp)
@@ -1197,6 +1203,8 @@ utils/os_byteswap.$(OBJEXT): utils/$(am__dirstamp) \
 utils/seqcmp.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/number_of_strands.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/timestamp.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/cpu_features.$(OBJEXT): arch/x86_64/$(am__dirstamp) \
 	arch/x86_64/$(DEPDIR)/$(am__dirstamp)
@@ -1346,11 +1354,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/maps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/number_of_strands.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/os_byteswap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/seqcmp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/timestamp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libcityhash_a-city.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libcityhash_pic_a-city.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libvsearch_core_a-md5.Po@am__quote@ # am--include-marker
@@ -2390,6 +2400,20 @@ utils/libvsearch_core_a-number_of_strands.obj: utils/number_of_strands.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-number_of_strands.obj `if test -f 'utils/number_of_strands.cpp'; then $(CYGPATH_W) 'utils/number_of_strands.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/number_of_strands.cpp'; fi`
 
+utils/libvsearch_core_a-timestamp.o: utils/timestamp.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-timestamp.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-timestamp.Tpo -c -o utils/libvsearch_core_a-timestamp.o `test -f 'utils/timestamp.cpp' || echo '$(srcdir)/'`utils/timestamp.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-timestamp.Tpo utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/timestamp.cpp' object='utils/libvsearch_core_a-timestamp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-timestamp.o `test -f 'utils/timestamp.cpp' || echo '$(srcdir)/'`utils/timestamp.cpp
+
+utils/libvsearch_core_a-timestamp.obj: utils/timestamp.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-timestamp.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-timestamp.Tpo -c -o utils/libvsearch_core_a-timestamp.obj `if test -f 'utils/timestamp.cpp'; then $(CYGPATH_W) 'utils/timestamp.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/timestamp.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-timestamp.Tpo utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/timestamp.cpp' object='utils/libvsearch_core_a-timestamp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-timestamp.obj `if test -f 'utils/timestamp.cpp'; then $(CYGPATH_W) 'utils/timestamp.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/timestamp.cpp'; fi`
+
 libvsearch_core_a-vsearch.o: vsearch.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-vsearch.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-vsearch.Tpo -c -o libvsearch_core_a-vsearch.o `test -f 'vsearch.cc' || echo '$(srcdir)/'`vsearch.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-vsearch.Tpo $(DEPDIR)/libvsearch_core_a-vsearch.Po
@@ -2697,11 +2721,13 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po
 	-rm -f utils/$(DEPDIR)/maps.Po
 	-rm -f utils/$(DEPDIR)/number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
+	-rm -f utils/$(DEPDIR)/timestamp.Po
 	-rm -f vendored/$(DEPDIR)/libcityhash_a-city.Po
 	-rm -f vendored/$(DEPDIR)/libcityhash_pic_a-city.Po
 	-rm -f vendored/$(DEPDIR)/libvsearch_core_a-md5.Po
@@ -2882,11 +2908,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po
 	-rm -f utils/$(DEPDIR)/maps.Po
 	-rm -f utils/$(DEPDIR)/number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
+	-rm -f utils/$(DEPDIR)/timestamp.Po
 	-rm -f vendored/$(DEPDIR)/libcityhash_a-city.Po
 	-rm -f vendored/$(DEPDIR)/libcityhash_pic_a-city.Po
 	-rm -f vendored/$(DEPDIR)/libvsearch_core_a-md5.Po
