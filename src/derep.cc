@@ -621,7 +621,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (sequencecount > 0)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
                   ", max %" PRId64 ", avg %.0f\n",
                   nucleotidecount,
@@ -632,7 +632,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
       else
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
                   nucleotidecount,
                   sequencecount);
@@ -649,7 +649,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
                   parameters.opt_minseqlength,
                   discarded_short,
@@ -667,7 +667,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
                   parameters.opt_maxseqlength,
                   discarded_long,
@@ -693,7 +693,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "0 unique sequences\n\n");
         }
     }
@@ -709,7 +709,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRIu64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n\n",
@@ -889,7 +889,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRIu64 " uniques written, %"
                   PRIu64 " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,

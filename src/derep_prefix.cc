@@ -377,7 +377,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "0 unique sequences\n\n");
         }
     }
@@ -393,7 +393,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRId64
                   " unique sequences, avg cluster %.1lf, median %.0f, max %"
                   PRIu64 "\n\n",
@@ -509,7 +509,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRId64 " uniques written, %" PRId64
                   " clusters discarded (%.1f%%)\n\n",
                   selected, clusters - selected,

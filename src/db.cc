@@ -329,7 +329,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
     {
       if (sequences > 0)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, "
                   "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
                   db_getnucleotidecount(),
@@ -340,7 +340,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
         }
       else
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
                   db_getnucleotidecount(),
                   db_getsequencecount());
@@ -359,7 +359,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   parameters.opt_minseqlength,
                   discarded_short,
@@ -377,7 +377,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
                   parameters.opt_maxseqlength,
                   discarded_long,
@@ -395,7 +395,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
                   parameters.opt_minsize,
                   discarded_unoise,
