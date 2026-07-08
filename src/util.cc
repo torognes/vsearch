@@ -69,7 +69,6 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::vsnprintf, std::fopen
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
-#include <ctime>  // timeval, gettimeofday
 #include <iterator>  // std::next
 #include <random>  // std::random_device
 #include <string>  // std::string
