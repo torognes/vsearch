@@ -73,8 +73,8 @@ namespace {
   }
 
 
-  const std::vector<unsigned char> chrmap_4bit =
-    {
+  constexpr std::array<unsigned char, 256> chrmap_4bit =
+    {{
       /*
         Map from ascii to 4-bit nucleotide code
 
@@ -116,11 +116,11 @@ namespace {
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-    };
+    }};
 
 
-  const std::vector<unsigned char> chrmap_complement =
-    {
+  constexpr std::array<unsigned char, 256> chrmap_complement =
+    {{
       /*
 
         Map from ascii to ascii, complementary nucleotide
@@ -148,7 +148,7 @@ namespace {
       'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
       'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
       'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-    };
+    }};
 
 
   const std::vector<unsigned int> chrmap_2bit =
@@ -267,7 +267,7 @@ namespace {
     };
 
 
-const std::vector<unsigned char> chrmap_no_change_vector = {
+constexpr std::array<unsigned char, 256> chrmap_no_change_vector = {{
     /*
 
       Map from ascii to ascii - no change
@@ -298,11 +298,11 @@ const std::vector<unsigned char> chrmap_no_change_vector = {
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
-    'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'};
+    'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'}};
 
 
-const std::vector<unsigned char> chrmap_normalize_vector =
-  {
+constexpr std::array<unsigned char, 256> chrmap_normalize_vector =
+  {{
     /*
 
       Map from ascii to ascii
@@ -331,7 +331,7 @@ const std::vector<unsigned char> chrmap_normalize_vector =
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
+  }};
 
 
 constexpr std::array<unsigned char, 256> chrmap_upcase_vector =
