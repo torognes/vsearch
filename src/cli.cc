@@ -933,1148 +933,6 @@ namespace {
       }
     return long_options;
   }
-}  // end of anonymous namespace
-
-
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
-{
-  parameters.progname = argv[0];
-
-  /* The option switch below parses into this Parameters (self-defaulting),
-     which is the single configuration source the run reads from. */
-
-  /* Library defaults to quiet; the CLI needs output. */
-  parameters.opt_quiet = false;
-  parameters.opt_no_progress = false;
-
-  opterr = 1;
-
-  auto const long_options = build_long_options();
-
-  std::vector<bool> options_selected(static_cast<std::size_t>(option_count));
-
-  int options_index = 0;
-  int val = 0;  // recognized long option: return 'val' if 'flag' is nullptr
-
-  while ((val = getopt_long_only(argc, argv, "", long_options.data(),
-                               &options_index)) == 0)
-    {
-      if (options_index < option_count)
-        {
-          options_selected[static_cast<size_t>(options_index)] = true;
-        }
-
-      switch (options_index)
-        {
-        case option_help:
-          parameters.opt_help = true;
-          break;
-
-        case option_version:
-          parameters.opt_version = true;
-          break;
-
-        case option_alnout:
-          parameters.opt_alnout = optarg;
-          break;
-
-        case option_usearch_global:
-          parameters.opt_usearch_global = optarg;
-          break;
-
-        case option_db:
-          parameters.opt_db = optarg;
-          break;
-
-        case option_id:
-          parameters.opt_id = args_getdouble(optarg);
-          break;
-
-        case option_maxaccepts:
-          parameters.opt_maxaccepts = args_getlong(optarg);
-          break;
-
-        case option_maxrejects:
-          parameters.opt_maxrejects = args_getlong(optarg);
-          break;
-
-        case option_wordlength:
-          parameters.opt_wordlength = args_getlong(optarg);
-          /* 0 is reserved as the "not set" sentinel (resolved later
-             to a command-specific default); reject an explicit 0 so
-             the user-facing range matches the manpage (3..15). */
-          if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
-            {
-              fatal("Argument to --wordlength must be in the range 3 to 15");
-            }
-          break;
-
-        case option_match:
-          parameters.opt_match = args_getlong(optarg);
-          break;
-
-        case option_mismatch:
-          parameters.opt_mismatch = args_getlong(optarg);
-          break;
-
-        case option_fulldp:
-          parameters.opt_fulldp = 1;
-          std::fprintf(stderr, "WARNING: Option --fulldp is ignored\n");
-          break;
-
-        case option_strand:
-          if (are_same_string(optarg, "plus"))
-            {
-              parameters.opt_strand = false;
-            }
-          else if (are_same_string(optarg, "both"))
-            {
-              parameters.opt_strand = true;
-            }
-          else
-            {
-              fatal("The argument to --strand must be plus or both");
-            }
-          break;
-
-        case option_threads:
-          parameters.opt_threads = static_cast<int64_t>(args_getdouble(optarg));
-          break;
-
-        case option_gapopen:
-          args_get_gap_penalty_string(optarg, true, parameters);
-          break;
-
-        case option_gapext:
-          args_get_gap_penalty_string(optarg, false, parameters);
-          break;
-
-        case option_rowlen:
-          parameters.opt_rowlen = args_getlong(optarg);
-          break;
-
-        case option_userfields:
-          if (parse_userfields_arg(optarg) == 0)
-            {
-              fatal("Unrecognized userfield argument");
-            }
-          break;
-
-        case option_userout:
-          parameters.opt_userout = optarg;
-          break;
-
-        case option_self:
-          parameters.opt_self = 1;
-          break;
-
-        case option_blast6out:
-          parameters.opt_blast6out = optarg;
-          break;
-
-        case option_uc:
-          parameters.opt_uc = optarg;
-          break;
-
-        case option_weak_id:
-          parameters.opt_weak_id = args_getdouble(optarg);
-          break;
-
-        case option_uc_allhits:
-          parameters.opt_uc_allhits = true;
-          break;
-
-        case option_notrunclabels:
-          parameters.opt_notrunclabels = true;
-          break;
-
-        case option_sortbysize:
-          parameters.opt_sortbysize = optarg;
-          break;
-
-        case option_output:
-          parameters.opt_output = optarg;
-          break;
-
-        case option_minsize:
-          parameters.opt_minsize = args_getlong(optarg);
-          if (parameters.opt_minsize <= 0)
-            {
-              fatal("The argument to --minsize must be at least 1");
-            }
-          break;
-
-        case option_maxsize:
-          parameters.opt_maxsize = args_getlong(optarg);
-          break;
-
-        case option_relabel:
-          parameters.opt_relabel = optarg;
-          break;
-
-        case option_sizeout:
-          parameters.opt_sizeout = true;
-          break;
-
-        case option_derep_fulllength:
-          parameters.opt_derep_fulllength = optarg;
-          break;
-
-        case option_minseqlength:
-          parameters.opt_minseqlength = args_getlong(optarg);
-          if (parameters.opt_minseqlength < 0)
-            {
-              fatal("The argument to --minseqlength must not be negative");
-            }
-          break;
-
-        case option_minuniquesize:
-          parameters.opt_minuniquesize = args_getlong(optarg);
-          break;
-
-        case option_topn:
-          parameters.opt_topn = args_getlong(optarg);
-          if (parameters.opt_topn == 0)
-            {
-              fatal("The argument to --topn must be greater than zero");
-            }
-          break;
-
-        case option_maxseqlength:
-          parameters.opt_maxseqlength = args_getlong(optarg);
-          break;
-
-        case option_sizein:
-          parameters.opt_sizein = true;
-          break;
-
-        case option_sortbylength:
-          parameters.opt_sortbylength = optarg;
-          break;
-
-        case option_matched:
-          parameters.opt_matched = optarg;
-          break;
-
-        case option_notmatched:
-          parameters.opt_notmatched = optarg;
-          break;
-
-        case option_dbmatched:
-          parameters.opt_dbmatched = optarg;
-          break;
-
-        case option_dbnotmatched:
-          parameters.opt_dbnotmatched = optarg;
-          break;
-
-        case option_fastapairs:
-          parameters.opt_fastapairs = optarg;
-          break;
-
-        case option_output_no_hits:
-          parameters.opt_output_no_hits = 1;
-          break;
-
-        case option_maxhits:
-          parameters.opt_maxhits = args_getlong(optarg);
-          break;
-
-        case option_top_hits_only:
-          parameters.opt_top_hits_only = 1;
-          break;
-
-        case option_fasta_width:
-          parameters.opt_fasta_width = args_getlong(optarg);
-          break;
-
-        case option_query_cov:
-          parameters.opt_query_cov = args_getdouble(optarg);
-          break;
-
-        case option_target_cov:
-          parameters.opt_target_cov = args_getdouble(optarg);
-          break;
-
-        case option_idprefix:
-          parameters.opt_idprefix = args_getlong(optarg);
-          break;
-
-        case option_idsuffix:
-          parameters.opt_idsuffix = args_getlong(optarg);
-          break;
-
-        case option_minqt:
-          parameters.opt_minqt = args_getdouble(optarg);
-          break;
-
-        case option_maxqt:
-          parameters.opt_maxqt = args_getdouble(optarg);
-          break;
-
-        case option_minsl:
-          parameters.opt_minsl = args_getdouble(optarg);
-          break;
-
-        case option_maxsl:
-          parameters.opt_maxsl = args_getdouble(optarg);
-          break;
-
-        case option_leftjust:
-          parameters.opt_leftjust = 1;
-          break;
-
-        case option_rightjust:
-          parameters.opt_rightjust = 1;
-          break;
-
-        case option_selfid:
-          parameters.opt_selfid = 1;
-          break;
-
-        case option_maxid:
-          parameters.opt_maxid = args_getdouble(optarg);
-          break;
-
-        case option_minsizeratio:
-          parameters.opt_minsizeratio = args_getdouble(optarg);
-          break;
-
-        case option_maxsizeratio:
-          parameters.opt_maxsizeratio = args_getdouble(optarg);
-          break;
-
-        case option_maxdiffs:
-          parameters.opt_maxdiffs = args_getlong(optarg);
-          break;
-
-        case option_maxsubs:
-          parameters.opt_maxsubs = args_getlong(optarg);
-          break;
-
-        case option_maxgaps:
-          parameters.opt_maxgaps = args_getlong(optarg);
-          break;
-
-        case option_mincols:
-          parameters.opt_mincols = args_getlong(optarg);
-          break;
-
-        case option_maxqsize:
-          parameters.opt_maxqsize = args_getlong(optarg);
-          break;
-
-        case option_mintsize:
-          parameters.opt_mintsize = args_getlong(optarg);
-          break;
-
-        case option_mid:
-          parameters.opt_mid = args_getdouble(optarg);
-          break;
-
-        case option_shuffle:
-          parameters.opt_shuffle = optarg;
-          break;
-
-        case option_randseed:
-          parameters.opt_randseed = args_getlong(optarg);
-          break;
-
-        case option_maskfasta:
-          parameters.opt_maskfasta = optarg;
-          break;
-
-        case option_hardmask:
-          parameters.opt_hardmask = true;
-          break;
-
-        case option_qmask:
-          if (are_same_string(optarg, "none"))
-            {
-              parameters.opt_qmask = MASK_NONE;
-            }
-          else if (are_same_string(optarg, "dust"))
-            {
-              parameters.opt_qmask = MASK_DUST;
-            }
-          else if (are_same_string(optarg, "soft"))
-            {
-              parameters.opt_qmask = MASK_SOFT;
-            }
-          else
-            {
-              parameters.opt_qmask = MASK_ERROR;
-            }
-          break;
-
-        case option_dbmask:
-          if (are_same_string(optarg, "none"))
-            {
-              parameters.opt_dbmask = MASK_NONE;
-            }
-          else if (are_same_string(optarg, "dust"))
-            {
-              parameters.opt_dbmask = MASK_DUST;
-            }
-          else if (are_same_string(optarg, "soft"))
-            {
-              parameters.opt_dbmask = MASK_SOFT;
-            }
-          else
-            {
-              parameters.opt_dbmask = MASK_ERROR;
-            }
-          break;
-
-        case option_cluster_smallmem:
-          parameters.opt_cluster_smallmem = optarg;
-          break;
-
-        case option_cluster_fast:
-          parameters.opt_cluster_fast = optarg;
-          break;
-
-        case option_centroids:
-          parameters.opt_centroids = optarg;
-          break;
-
-        case option_clusters:
-          parameters.opt_clusters = optarg;
-          break;
-
-        case option_consout:
-          parameters.opt_consout = optarg;
-          break;
-
-        case option_cons_truncate:
-          std::fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
-          parameters.opt_cons_truncate = 1;
-          break;
-
-        case option_msaout:
-          parameters.opt_msaout = optarg;
-          break;
-
-        case option_usersort:
-          parameters.opt_usersort = 1;
-          break;
-
-        case option_xn:
-          parameters.opt_xn = args_getdouble(optarg);
-          break;
-
-        case option_iddef:
-          parameters.opt_iddef = args_getlong(optarg);
-          break;
-
-        case option_slots:
-          std::fprintf(stderr, "WARNING: Option --slots is ignored\n");
-          parameters.opt_slots = static_cast<int>(args_getlong(optarg));
-          break;
-
-        case option_pattern:
-          std::fprintf(stderr, "WARNING: Option --pattern is ignored\n");
-          parameters.opt_pattern = optarg;
-          break;
-
-        case option_maxuniquesize:
-          parameters.opt_maxuniquesize = args_getlong(optarg);
-          break;
-
-        case option_abskew:
-          parameters.opt_abskew = args_getdouble(optarg);
-          break;
-
-        case option_chimeras:
-          parameters.opt_chimeras = optarg;
-          break;
-
-        case option_dn:
-          parameters.opt_dn = args_getdouble(optarg);
-          break;
-
-        case option_mindiffs:
-          parameters.opt_mindiffs = static_cast<int>(args_getlong(optarg));
-          break;
-
-        case option_mindiv:
-          parameters.opt_mindiv = args_getdouble(optarg);
-          break;
-
-        case option_minh:
-          parameters.opt_minh = args_getdouble(optarg);
-          break;
-
-        case option_nonchimeras:
-          parameters.opt_nonchimeras = optarg;
-          break;
-
-        case option_uchime_denovo:
-          parameters.opt_uchime_denovo = optarg;
-          break;
-
-        case option_uchime_ref:
-          parameters.opt_uchime_ref = optarg;
-          break;
-
-        case option_uchimealns:
-          parameters.opt_uchimealns = optarg;
-          break;
-
-        case option_uchimeout:
-          parameters.opt_uchimeout = optarg;
-          break;
-
-        case option_uchimeout5:
-          parameters.opt_uchimeout5 = 1;
-          break;
-
-        case option_alignwidth:
-          parameters.opt_alignwidth = static_cast<int>(args_getlong(optarg));
-          break;
-
-        case option_allpairs_global:
-          parameters.opt_allpairs_global = optarg;
-          break;
-
-        case option_acceptall:
-          parameters.opt_acceptall = 1;
-          break;
-
-        case option_cluster_size:
-          parameters.opt_cluster_size = optarg;
-          break;
-
-        case option_samout:
-          parameters.opt_samout = optarg;
-          break;
-
-        case option_log:
-          parameters.opt_log = optarg;
-          break;
-
-        case option_quiet:
-          parameters.opt_quiet = true;
-          break;
-
-        case option_fastx_subsample:
-          parameters.opt_fastx_subsample = optarg;
-          break;
-
-        case option_sample_pct:
-          parameters.opt_sample_pct = args_getdouble(optarg);
-          break;
-
-        case option_fastq_chars:
-          parameters.opt_fastq_chars = optarg;
-          break;
-
-        case option_profile:
-          parameters.opt_profile = optarg;
-          break;
-
-        case option_sample_size:
-          parameters.opt_sample_size = args_getlong(optarg);
-          break;
-
-        case option_fastaout:
-          parameters.opt_fastaout = optarg;
-          break;
-
-        case option_xsize:
-          parameters.opt_xsize = true;
-          break;
-
-        case option_clusterout_id:
-          parameters.opt_clusterout_id = true;
-          break;
-
-        case option_clusterout_sort:
-          parameters.opt_clusterout_sort = true;
-          break;
-
-        case option_borderline:
-          parameters.opt_borderline = optarg;
-          break;
-
-        case option_relabel_sha1:
-          parameters.opt_relabel_sha1 = true;
-          break;
-
-        case option_relabel_md5:
-          parameters.opt_relabel_md5 = true;
-          break;
-
-        case option_derep_prefix:
-          parameters.opt_derep_prefix = optarg;
-          break;
-
-        case option_fastq_filter:
-          parameters.opt_fastq_filter = optarg;
-          break;
-
-        case option_fastqout:
-          parameters.opt_fastqout = optarg;
-          break;
-
-        case option_fastaout_discarded:
-          parameters.opt_fastaout_discarded = optarg;
-          break;
-
-        case option_fastqout_discarded:
-          parameters.opt_fastqout_discarded = optarg;
-          break;
-
-        case option_fastx_syncpairs:
-          parameters.opt_fastx_syncpairs = optarg;
-          break;
-
-        case option_fastaout_orphans:
-          parameters.opt_fastaout_orphans = optarg;
-          break;
-
-        case option_fastaout_orphans_rev:
-          parameters.opt_fastaout_orphans_rev = optarg;
-          break;
-
-        case option_fastqout_orphans:
-          parameters.opt_fastqout_orphans = optarg;
-          break;
-
-        case option_fastqout_orphans_rev:
-          parameters.opt_fastqout_orphans_rev = optarg;
-          break;
-
-        case option_read_separators:
-          parameters.opt_read_separators = optarg;
-          break;
-
-        case option_fastq_truncqual:
-          parameters.opt_fastq_truncqual = args_getlong(optarg);
-          break;
-
-        case option_fastq_maxee:
-          parameters.opt_fastq_maxee = args_getdouble(optarg);
-          break;
-
-        case option_fastq_trunclen:
-          parameters.opt_fastq_trunclen = args_getlong(optarg);
-          break;
-
-        case option_fastq_minlen:
-          parameters.opt_fastq_minlen = args_getlong(optarg);
-          break;
-
-        case option_fastq_stripleft:
-          parameters.opt_fastq_stripleft = args_getlong(optarg);
-          break;
-
-        case option_fastq_maxee_rate:
-          parameters.opt_fastq_maxee_rate = args_getdouble(optarg);
-          break;
-
-        case option_fastq_maxns:
-          parameters.opt_fastq_maxns = args_getlong(optarg);
-          break;
-
-        case option_eeout:
-          parameters.opt_eeout = true;
-          break;
-
-        case option_fastq_ascii:
-          parameters.opt_fastq_ascii = args_getlong(optarg);
-          break;
-
-        case option_fastq_qmin:
-          parameters.opt_fastq_qmin = args_getlong(optarg);
-          break;
-
-        case option_fastq_qmax:
-          parameters.opt_fastq_qmax = args_getlong(optarg);
-          break;
-
-        case option_fastq_qmaxout:
-          parameters.opt_fastq_qmaxout = args_getlong(optarg);
-          break;
-
-        case option_fastq_stats:
-          parameters.opt_fastq_stats = optarg;
-          break;
-
-        case option_fastq_tail:
-          parameters.opt_fastq_tail = args_getlong(optarg);
-          break;
-
-        case option_fastx_revcomp:
-          parameters.opt_fastx_revcomp = optarg;
-          break;
-
-        case option_label_suffix:
-          parameters.opt_label_suffix = optarg;
-          break;
-
-        case option_h:
-          parameters.opt_help = true;
-          break;
-
-        case option_samheader:
-          parameters.opt_samheader = true;
-          break;
-
-        case option_sizeorder:
-          parameters.opt_sizeorder = true;
-          break;
-
-        case option_minwordmatches:
-          parameters.opt_minwordmatches = args_getlong(optarg);
-          if (parameters.opt_minwordmatches < 0)
-            {
-              fatal("The argument to --minwordmatches must not be negative");
-            }
-          break;
-
-        case option_v:
-          parameters.opt_version = true;
-          break;
-
-        case option_relabel_keep:
-          parameters.opt_relabel_keep = true;
-          break;
-
-        case option_search_exact:
-          parameters.opt_search_exact = optarg;
-          break;
-
-        case option_fastx_mask:
-          parameters.opt_fastx_mask = optarg;
-          break;
-
-        case option_min_unmasked_pct:
-          parameters.opt_min_unmasked_pct = args_getdouble(optarg);
-          break;
-
-        case option_max_unmasked_pct:
-          parameters.opt_max_unmasked_pct = args_getdouble(optarg);
-          break;
-
-        case option_fastq_convert:
-          parameters.opt_fastq_convert = optarg;
-          break;
-
-        case option_fastq_asciiout:
-          parameters.opt_fastq_asciiout = args_getlong(optarg);
-          break;
-
-        case option_fastq_qminout:
-          parameters.opt_fastq_qminout = args_getlong(optarg);
-          break;
-
-        case option_fastq_mergepairs:
-          parameters.opt_fastq_mergepairs = optarg;
-          break;
-
-        case option_fastq_eeout:
-          parameters.opt_fastq_eeout = true;
-          break;
-
-        case option_fastqout_notmerged_fwd:
-          parameters.opt_fastqout_notmerged_fwd = optarg;
-          break;
-
-        case option_fastqout_notmerged_rev:
-          parameters.opt_fastqout_notmerged_rev = optarg;
-          break;
-
-        case option_fastq_minovlen:
-          parameters.opt_fastq_minovlen = args_getlong(optarg);
-          break;
-
-        case option_fastq_minmergelen:
-          parameters.opt_fastq_minmergelen = args_getlong(optarg);
-          break;
-
-        case option_fastq_maxmergelen:
-          parameters.opt_fastq_maxmergelen = args_getlong(optarg);
-          break;
-
-        case option_fastq_nostagger:
-          parameters.opt_fastq_nostagger = true;
-          break;
-
-        case option_fastq_allowmergestagger:
-          parameters.opt_fastq_allowmergestagger = true;
-          break;
-
-        case option_fastq_maxdiffs:
-          parameters.opt_fastq_maxdiffs = args_getlong(optarg);
-          break;
-
-        case option_fastaout_notmerged_fwd:
-          parameters.opt_fastaout_notmerged_fwd = optarg;
-          break;
-
-        case option_fastaout_notmerged_rev:
-          parameters.opt_fastaout_notmerged_rev = optarg;
-          break;
-
-        case option_reverse:
-          parameters.opt_reverse = optarg;
-          break;
-
-        case option_eetabbedout:
-          parameters.opt_eetabbedout = optarg;
-          break;
-
-        case option_fasta_score:
-          parameters.opt_fasta_score = true;
-          break;
-
-        case option_fastq_eestats:
-          parameters.opt_fastq_eestats = optarg;
-          break;
-
-        case option_rereplicate:
-          parameters.opt_rereplicate = optarg;
-          break;
-
-        case option_xdrop_nw:
-          /* xdrop_nw ignored */
-          std::fprintf(stderr, "WARNING: Option --xdrop_nw is ignored\n");
-          break;
-
-        case option_minhsp:
-          /* minhsp ignored */
-          std::fprintf(stderr, "WARNING: Option --minhsp is ignored\n");
-          break;
-
-        case option_band:
-          /* band ignored */
-          std::fprintf(stderr, "WARNING: Option --band is ignored\n");
-          break;
-
-        case option_hspw:
-          /* hspw ignored */
-          std::fprintf(stderr, "WARNING: Option --hspw is ignored\n");
-          break;
-
-        case option_gzip_decompress:
-          parameters.opt_gzip_decompress = true;
-          break;
-
-        case option_bzip2_decompress:
-          parameters.opt_bzip2_decompress = true;
-          break;
-
-        case option_fastq_maxlen:
-          parameters.opt_fastq_maxlen = args_getlong(optarg);
-          break;
-
-        case option_fastq_truncee:
-          parameters.opt_fastq_truncee = args_getdouble(optarg);
-          break;
-
-        case option_fastx_filter:
-          parameters.opt_fastx_filter = optarg;
-          break;
-
-        case option_otutabout:
-          parameters.opt_otutabout = optarg;
-          break;
-
-        case option_mothur_shared_out:
-          parameters.opt_mothur_shared_out = optarg;
-          break;
-
-        case option_biomout:
-          parameters.opt_biomout = optarg;
-          break;
-
-        case option_fastq_trunclen_keep:
-          parameters.opt_fastq_trunclen_keep = args_getlong(optarg);
-          break;
-
-        case option_fastq_stripright:
-          parameters.opt_fastq_stripright = args_getlong(optarg);
-          break;
-
-        case option_no_progress:
-          parameters.opt_no_progress = true;
-          break;
-
-        case option_fastq_eestats2:
-          parameters.opt_fastq_eestats2 = optarg;
-          break;
-
-        case option_ee_cutoffs:
-          args_get_ee_cutoffs(optarg, parameters);
-          break;
-
-        case option_length_cutoffs:
-          args_get_length_cutoffs(optarg, parameters);
-          break;
-
-        case option_makeudb_usearch:
-          parameters.opt_makeudb_usearch = optarg;
-          break;
-
-        case option_udb2fasta:
-          parameters.opt_udb2fasta = optarg;
-          break;
-
-        case option_udbinfo:
-          parameters.opt_udbinfo = optarg;
-          break;
-
-        case option_udbstats:
-          parameters.opt_udbstats = optarg;
-          break;
-
-        case option_cluster_unoise:
-          parameters.opt_cluster_unoise = optarg;
-          break;
-
-        case option_unoise_alpha:
-          parameters.opt_unoise_alpha = args_getdouble(optarg);
-          break;
-
-        case option_uchime2_denovo:
-          parameters.opt_uchime2_denovo = optarg;
-          break;
-
-        case option_uchime3_denovo:
-          parameters.opt_uchime3_denovo = optarg;
-          break;
-
-        case option_sintax:
-          parameters.opt_sintax = optarg;
-          break;
-
-        case option_sintax_cutoff:
-          parameters.opt_sintax_cutoff = args_getdouble(optarg);
-          break;
-
-        case option_tabbedout:
-          parameters.opt_tabbedout = optarg;
-          break;
-
-        case option_fastq_maxdiffpct:
-          parameters.opt_fastq_maxdiffpct = args_getdouble(optarg);
-          break;
-
-        case option_fastq_join:
-          parameters.opt_fastq_join = optarg;
-          break;
-
-        case option_join_padgap:
-          parameters.opt_join_padgap = optarg;
-          break;
-
-        case option_join_padgapq:
-          parameters.opt_join_padgapq = optarg;
-          parameters.opt_join_padgapq_set_by_user = true;
-          break;
-
-        case option_sff_convert:
-          parameters.opt_sff_convert = optarg;
-          break;
-
-        case option_sff_clip:
-          parameters.opt_sff_clip = true;
-          break;
-
-        case option_fastaout_rev:
-          parameters.opt_fastaout_rev = optarg;
-          break;
-
-        case option_fastaout_discarded_rev:
-          parameters.opt_fastaout_discarded_rev = optarg;
-          break;
-
-        case option_fastqout_rev:
-          parameters.opt_fastqout_rev = optarg;
-          break;
-
-        case option_fastqout_discarded_rev:
-          parameters.opt_fastqout_discarded_rev = optarg;
-          break;
-
-        case option_xee:
-          parameters.opt_xee = true;
-          break;
-
-        case option_fastx_getseq:
-          parameters.opt_fastx_getseq = optarg;
-          break;
-
-        case option_fastx_getseqs:
-          parameters.opt_fastx_getseqs = optarg;
-          break;
-
-        case option_fastx_getsubseq:
-          parameters.opt_fastx_getsubseq = optarg;
-          break;
-
-        case option_label_substr_match:
-          parameters.opt_label_substr_match = true;
-          break;
-
-        case option_label:
-          parameters.opt_label = optarg;
-          break;
-
-        case option_subseq_start:
-          parameters.opt_subseq_start = args_getlong(optarg);
-          break;
-
-        case option_subseq_end:
-          parameters.opt_subseq_end = args_getlong(optarg);
-          break;
-
-        case option_notmatchedfq:
-          parameters.opt_notmatchedfq = optarg;
-          break;
-
-        case option_label_field:
-          parameters.opt_label_field = optarg;
-          break;
-
-        case option_label_word:
-          parameters.opt_label_word = optarg;
-          break;
-
-        case option_label_words:
-          parameters.opt_label_words = optarg;
-          break;
-
-        case option_labels:
-          parameters.opt_labels = optarg;
-          break;
-
-        case option_cut:
-          parameters.opt_cut = optarg;
-          break;
-
-        case option_cut_pattern:
-          parameters.opt_cut_pattern = optarg;
-          break;
-
-        case option_relabel_self:
-          parameters.opt_relabel_self = true;
-          break;
-
-        case option_derep_id:
-          parameters.opt_derep_id = optarg;
-          break;
-
-        case option_orient:
-          parameters.opt_orient = optarg;
-          break;
-
-        case option_fasta2fastq:
-          parameters.opt_fasta2fastq = optarg;
-          break;
-
-        case option_lcaout:
-          parameters.opt_lcaout = optarg;
-          break;
-
-        case option_lca_cutoff:
-          parameters.opt_lca_cutoff = args_getdouble(optarg);
-          break;
-
-        case option_fastx_uniques:
-          parameters.opt_fastx_uniques = optarg;
-          break;
-
-        case option_fastq_qout_max:
-          parameters.opt_fastq_qout_max = true;
-          break;
-
-        case option_sample:
-          /* truncate at first ';' or blank, per manpage: these
-             characters are header separators in fasta/fastq labels
-             and would break downstream parsing if left in. */
-          optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0';
-          parameters.opt_sample = optarg;
-          break;
-
-        case option_qsegout:
-          parameters.opt_qsegout = optarg;
-          break;
-
-        case option_tsegout:
-          parameters.opt_tsegout = optarg;
-          break;
-
-        case option_derep_smallmem:
-          parameters.opt_derep_smallmem = optarg;
-          break;
-
-        case option_lengthout:
-          parameters.opt_lengthout = true;
-          break;
-
-        case option_xlength:
-          parameters.opt_xlength = true;
-          break;
-
-        case option_chimeras_denovo:
-          parameters.opt_chimeras_denovo = optarg;
-          break;
-
-        case option_chimeras_length_min:
-          parameters.opt_chimeras_length_min = static_cast<int>(args_getlong(optarg));
-          break;
-
-        case option_chimeras_parts:
-          parameters.opt_chimeras_parts = static_cast<int>(args_getlong(optarg));
-          break;
-
-        case option_chimeras_parents_max:
-          parameters.opt_chimeras_parents_max = static_cast<int>(args_getlong(optarg));
-          break;
-
-        case option_chimeras_diff_pct:
-          parameters.opt_chimeras_diff_pct = args_getdouble(optarg);
-          break;
-
-        case option_sintax_random:
-          parameters.opt_sintax_random = true;
-          break;
-
-        case option_n_mismatch:
-          parameters.opt_n_mismatch = true;
-          break;
-
-        case option_fastq_minqual:
-          parameters.opt_fastq_minqual = args_getlong(optarg);
-          break;
-
-        case option_fastq_truncee_rate:
-          parameters.opt_fastq_truncee_rate = args_getdouble(optarg);
-          break;
-
-        case option_centroid_sizeout:
-          parameters.opt_centroid_sizeout = true;
-          break;
-
-        default:
-          fatal("Internal error in option parsing");
-        }
-    }
-
-  /* Terminate if ambiguous or illegal options have been detected */
-  if (val != -1)
-    {
-      std::exit(EXIT_FAILURE);
-    }
-
-  /* Terminate after reporting any extra non-option arguments */
-  if (optind < argc)
-    {
-      fatal("Unrecognized string on command line (%s)", argv[optind]);
-    }
-
 
   /*
     Below is a list of all the options that are valid for each command.
@@ -3973,6 +2831,1147 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
         option_threads,
         -1 }
       }};
+}  // end of anonymous namespace
+
+
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+{
+  parameters.progname = argv[0];
+
+  /* The option switch below parses into this Parameters (self-defaulting),
+     which is the single configuration source the run reads from. */
+
+  /* Library defaults to quiet; the CLI needs output. */
+  parameters.opt_quiet = false;
+  parameters.opt_no_progress = false;
+
+  opterr = 1;
+
+  auto const long_options = build_long_options();
+
+  std::vector<bool> options_selected(static_cast<std::size_t>(option_count));
+
+  int options_index = 0;
+  int val = 0;  // recognized long option: return 'val' if 'flag' is nullptr
+
+  while ((val = getopt_long_only(argc, argv, "", long_options.data(),
+                               &options_index)) == 0)
+    {
+      if (options_index < option_count)
+        {
+          options_selected[static_cast<size_t>(options_index)] = true;
+        }
+
+      switch (options_index)
+        {
+        case option_help:
+          parameters.opt_help = true;
+          break;
+
+        case option_version:
+          parameters.opt_version = true;
+          break;
+
+        case option_alnout:
+          parameters.opt_alnout = optarg;
+          break;
+
+        case option_usearch_global:
+          parameters.opt_usearch_global = optarg;
+          break;
+
+        case option_db:
+          parameters.opt_db = optarg;
+          break;
+
+        case option_id:
+          parameters.opt_id = args_getdouble(optarg);
+          break;
+
+        case option_maxaccepts:
+          parameters.opt_maxaccepts = args_getlong(optarg);
+          break;
+
+        case option_maxrejects:
+          parameters.opt_maxrejects = args_getlong(optarg);
+          break;
+
+        case option_wordlength:
+          parameters.opt_wordlength = args_getlong(optarg);
+          /* 0 is reserved as the "not set" sentinel (resolved later
+             to a command-specific default); reject an explicit 0 so
+             the user-facing range matches the manpage (3..15). */
+          if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
+            {
+              fatal("Argument to --wordlength must be in the range 3 to 15");
+            }
+          break;
+
+        case option_match:
+          parameters.opt_match = args_getlong(optarg);
+          break;
+
+        case option_mismatch:
+          parameters.opt_mismatch = args_getlong(optarg);
+          break;
+
+        case option_fulldp:
+          parameters.opt_fulldp = 1;
+          std::fprintf(stderr, "WARNING: Option --fulldp is ignored\n");
+          break;
+
+        case option_strand:
+          if (are_same_string(optarg, "plus"))
+            {
+              parameters.opt_strand = false;
+            }
+          else if (are_same_string(optarg, "both"))
+            {
+              parameters.opt_strand = true;
+            }
+          else
+            {
+              fatal("The argument to --strand must be plus or both");
+            }
+          break;
+
+        case option_threads:
+          parameters.opt_threads = static_cast<int64_t>(args_getdouble(optarg));
+          break;
+
+        case option_gapopen:
+          args_get_gap_penalty_string(optarg, true, parameters);
+          break;
+
+        case option_gapext:
+          args_get_gap_penalty_string(optarg, false, parameters);
+          break;
+
+        case option_rowlen:
+          parameters.opt_rowlen = args_getlong(optarg);
+          break;
+
+        case option_userfields:
+          if (parse_userfields_arg(optarg) == 0)
+            {
+              fatal("Unrecognized userfield argument");
+            }
+          break;
+
+        case option_userout:
+          parameters.opt_userout = optarg;
+          break;
+
+        case option_self:
+          parameters.opt_self = 1;
+          break;
+
+        case option_blast6out:
+          parameters.opt_blast6out = optarg;
+          break;
+
+        case option_uc:
+          parameters.opt_uc = optarg;
+          break;
+
+        case option_weak_id:
+          parameters.opt_weak_id = args_getdouble(optarg);
+          break;
+
+        case option_uc_allhits:
+          parameters.opt_uc_allhits = true;
+          break;
+
+        case option_notrunclabels:
+          parameters.opt_notrunclabels = true;
+          break;
+
+        case option_sortbysize:
+          parameters.opt_sortbysize = optarg;
+          break;
+
+        case option_output:
+          parameters.opt_output = optarg;
+          break;
+
+        case option_minsize:
+          parameters.opt_minsize = args_getlong(optarg);
+          if (parameters.opt_minsize <= 0)
+            {
+              fatal("The argument to --minsize must be at least 1");
+            }
+          break;
+
+        case option_maxsize:
+          parameters.opt_maxsize = args_getlong(optarg);
+          break;
+
+        case option_relabel:
+          parameters.opt_relabel = optarg;
+          break;
+
+        case option_sizeout:
+          parameters.opt_sizeout = true;
+          break;
+
+        case option_derep_fulllength:
+          parameters.opt_derep_fulllength = optarg;
+          break;
+
+        case option_minseqlength:
+          parameters.opt_minseqlength = args_getlong(optarg);
+          if (parameters.opt_minseqlength < 0)
+            {
+              fatal("The argument to --minseqlength must not be negative");
+            }
+          break;
+
+        case option_minuniquesize:
+          parameters.opt_minuniquesize = args_getlong(optarg);
+          break;
+
+        case option_topn:
+          parameters.opt_topn = args_getlong(optarg);
+          if (parameters.opt_topn == 0)
+            {
+              fatal("The argument to --topn must be greater than zero");
+            }
+          break;
+
+        case option_maxseqlength:
+          parameters.opt_maxseqlength = args_getlong(optarg);
+          break;
+
+        case option_sizein:
+          parameters.opt_sizein = true;
+          break;
+
+        case option_sortbylength:
+          parameters.opt_sortbylength = optarg;
+          break;
+
+        case option_matched:
+          parameters.opt_matched = optarg;
+          break;
+
+        case option_notmatched:
+          parameters.opt_notmatched = optarg;
+          break;
+
+        case option_dbmatched:
+          parameters.opt_dbmatched = optarg;
+          break;
+
+        case option_dbnotmatched:
+          parameters.opt_dbnotmatched = optarg;
+          break;
+
+        case option_fastapairs:
+          parameters.opt_fastapairs = optarg;
+          break;
+
+        case option_output_no_hits:
+          parameters.opt_output_no_hits = 1;
+          break;
+
+        case option_maxhits:
+          parameters.opt_maxhits = args_getlong(optarg);
+          break;
+
+        case option_top_hits_only:
+          parameters.opt_top_hits_only = 1;
+          break;
+
+        case option_fasta_width:
+          parameters.opt_fasta_width = args_getlong(optarg);
+          break;
+
+        case option_query_cov:
+          parameters.opt_query_cov = args_getdouble(optarg);
+          break;
+
+        case option_target_cov:
+          parameters.opt_target_cov = args_getdouble(optarg);
+          break;
+
+        case option_idprefix:
+          parameters.opt_idprefix = args_getlong(optarg);
+          break;
+
+        case option_idsuffix:
+          parameters.opt_idsuffix = args_getlong(optarg);
+          break;
+
+        case option_minqt:
+          parameters.opt_minqt = args_getdouble(optarg);
+          break;
+
+        case option_maxqt:
+          parameters.opt_maxqt = args_getdouble(optarg);
+          break;
+
+        case option_minsl:
+          parameters.opt_minsl = args_getdouble(optarg);
+          break;
+
+        case option_maxsl:
+          parameters.opt_maxsl = args_getdouble(optarg);
+          break;
+
+        case option_leftjust:
+          parameters.opt_leftjust = 1;
+          break;
+
+        case option_rightjust:
+          parameters.opt_rightjust = 1;
+          break;
+
+        case option_selfid:
+          parameters.opt_selfid = 1;
+          break;
+
+        case option_maxid:
+          parameters.opt_maxid = args_getdouble(optarg);
+          break;
+
+        case option_minsizeratio:
+          parameters.opt_minsizeratio = args_getdouble(optarg);
+          break;
+
+        case option_maxsizeratio:
+          parameters.opt_maxsizeratio = args_getdouble(optarg);
+          break;
+
+        case option_maxdiffs:
+          parameters.opt_maxdiffs = args_getlong(optarg);
+          break;
+
+        case option_maxsubs:
+          parameters.opt_maxsubs = args_getlong(optarg);
+          break;
+
+        case option_maxgaps:
+          parameters.opt_maxgaps = args_getlong(optarg);
+          break;
+
+        case option_mincols:
+          parameters.opt_mincols = args_getlong(optarg);
+          break;
+
+        case option_maxqsize:
+          parameters.opt_maxqsize = args_getlong(optarg);
+          break;
+
+        case option_mintsize:
+          parameters.opt_mintsize = args_getlong(optarg);
+          break;
+
+        case option_mid:
+          parameters.opt_mid = args_getdouble(optarg);
+          break;
+
+        case option_shuffle:
+          parameters.opt_shuffle = optarg;
+          break;
+
+        case option_randseed:
+          parameters.opt_randseed = args_getlong(optarg);
+          break;
+
+        case option_maskfasta:
+          parameters.opt_maskfasta = optarg;
+          break;
+
+        case option_hardmask:
+          parameters.opt_hardmask = true;
+          break;
+
+        case option_qmask:
+          if (are_same_string(optarg, "none"))
+            {
+              parameters.opt_qmask = MASK_NONE;
+            }
+          else if (are_same_string(optarg, "dust"))
+            {
+              parameters.opt_qmask = MASK_DUST;
+            }
+          else if (are_same_string(optarg, "soft"))
+            {
+              parameters.opt_qmask = MASK_SOFT;
+            }
+          else
+            {
+              parameters.opt_qmask = MASK_ERROR;
+            }
+          break;
+
+        case option_dbmask:
+          if (are_same_string(optarg, "none"))
+            {
+              parameters.opt_dbmask = MASK_NONE;
+            }
+          else if (are_same_string(optarg, "dust"))
+            {
+              parameters.opt_dbmask = MASK_DUST;
+            }
+          else if (are_same_string(optarg, "soft"))
+            {
+              parameters.opt_dbmask = MASK_SOFT;
+            }
+          else
+            {
+              parameters.opt_dbmask = MASK_ERROR;
+            }
+          break;
+
+        case option_cluster_smallmem:
+          parameters.opt_cluster_smallmem = optarg;
+          break;
+
+        case option_cluster_fast:
+          parameters.opt_cluster_fast = optarg;
+          break;
+
+        case option_centroids:
+          parameters.opt_centroids = optarg;
+          break;
+
+        case option_clusters:
+          parameters.opt_clusters = optarg;
+          break;
+
+        case option_consout:
+          parameters.opt_consout = optarg;
+          break;
+
+        case option_cons_truncate:
+          std::fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
+          parameters.opt_cons_truncate = 1;
+          break;
+
+        case option_msaout:
+          parameters.opt_msaout = optarg;
+          break;
+
+        case option_usersort:
+          parameters.opt_usersort = 1;
+          break;
+
+        case option_xn:
+          parameters.opt_xn = args_getdouble(optarg);
+          break;
+
+        case option_iddef:
+          parameters.opt_iddef = args_getlong(optarg);
+          break;
+
+        case option_slots:
+          std::fprintf(stderr, "WARNING: Option --slots is ignored\n");
+          parameters.opt_slots = static_cast<int>(args_getlong(optarg));
+          break;
+
+        case option_pattern:
+          std::fprintf(stderr, "WARNING: Option --pattern is ignored\n");
+          parameters.opt_pattern = optarg;
+          break;
+
+        case option_maxuniquesize:
+          parameters.opt_maxuniquesize = args_getlong(optarg);
+          break;
+
+        case option_abskew:
+          parameters.opt_abskew = args_getdouble(optarg);
+          break;
+
+        case option_chimeras:
+          parameters.opt_chimeras = optarg;
+          break;
+
+        case option_dn:
+          parameters.opt_dn = args_getdouble(optarg);
+          break;
+
+        case option_mindiffs:
+          parameters.opt_mindiffs = static_cast<int>(args_getlong(optarg));
+          break;
+
+        case option_mindiv:
+          parameters.opt_mindiv = args_getdouble(optarg);
+          break;
+
+        case option_minh:
+          parameters.opt_minh = args_getdouble(optarg);
+          break;
+
+        case option_nonchimeras:
+          parameters.opt_nonchimeras = optarg;
+          break;
+
+        case option_uchime_denovo:
+          parameters.opt_uchime_denovo = optarg;
+          break;
+
+        case option_uchime_ref:
+          parameters.opt_uchime_ref = optarg;
+          break;
+
+        case option_uchimealns:
+          parameters.opt_uchimealns = optarg;
+          break;
+
+        case option_uchimeout:
+          parameters.opt_uchimeout = optarg;
+          break;
+
+        case option_uchimeout5:
+          parameters.opt_uchimeout5 = 1;
+          break;
+
+        case option_alignwidth:
+          parameters.opt_alignwidth = static_cast<int>(args_getlong(optarg));
+          break;
+
+        case option_allpairs_global:
+          parameters.opt_allpairs_global = optarg;
+          break;
+
+        case option_acceptall:
+          parameters.opt_acceptall = 1;
+          break;
+
+        case option_cluster_size:
+          parameters.opt_cluster_size = optarg;
+          break;
+
+        case option_samout:
+          parameters.opt_samout = optarg;
+          break;
+
+        case option_log:
+          parameters.opt_log = optarg;
+          break;
+
+        case option_quiet:
+          parameters.opt_quiet = true;
+          break;
+
+        case option_fastx_subsample:
+          parameters.opt_fastx_subsample = optarg;
+          break;
+
+        case option_sample_pct:
+          parameters.opt_sample_pct = args_getdouble(optarg);
+          break;
+
+        case option_fastq_chars:
+          parameters.opt_fastq_chars = optarg;
+          break;
+
+        case option_profile:
+          parameters.opt_profile = optarg;
+          break;
+
+        case option_sample_size:
+          parameters.opt_sample_size = args_getlong(optarg);
+          break;
+
+        case option_fastaout:
+          parameters.opt_fastaout = optarg;
+          break;
+
+        case option_xsize:
+          parameters.opt_xsize = true;
+          break;
+
+        case option_clusterout_id:
+          parameters.opt_clusterout_id = true;
+          break;
+
+        case option_clusterout_sort:
+          parameters.opt_clusterout_sort = true;
+          break;
+
+        case option_borderline:
+          parameters.opt_borderline = optarg;
+          break;
+
+        case option_relabel_sha1:
+          parameters.opt_relabel_sha1 = true;
+          break;
+
+        case option_relabel_md5:
+          parameters.opt_relabel_md5 = true;
+          break;
+
+        case option_derep_prefix:
+          parameters.opt_derep_prefix = optarg;
+          break;
+
+        case option_fastq_filter:
+          parameters.opt_fastq_filter = optarg;
+          break;
+
+        case option_fastqout:
+          parameters.opt_fastqout = optarg;
+          break;
+
+        case option_fastaout_discarded:
+          parameters.opt_fastaout_discarded = optarg;
+          break;
+
+        case option_fastqout_discarded:
+          parameters.opt_fastqout_discarded = optarg;
+          break;
+
+        case option_fastx_syncpairs:
+          parameters.opt_fastx_syncpairs = optarg;
+          break;
+
+        case option_fastaout_orphans:
+          parameters.opt_fastaout_orphans = optarg;
+          break;
+
+        case option_fastaout_orphans_rev:
+          parameters.opt_fastaout_orphans_rev = optarg;
+          break;
+
+        case option_fastqout_orphans:
+          parameters.opt_fastqout_orphans = optarg;
+          break;
+
+        case option_fastqout_orphans_rev:
+          parameters.opt_fastqout_orphans_rev = optarg;
+          break;
+
+        case option_read_separators:
+          parameters.opt_read_separators = optarg;
+          break;
+
+        case option_fastq_truncqual:
+          parameters.opt_fastq_truncqual = args_getlong(optarg);
+          break;
+
+        case option_fastq_maxee:
+          parameters.opt_fastq_maxee = args_getdouble(optarg);
+          break;
+
+        case option_fastq_trunclen:
+          parameters.opt_fastq_trunclen = args_getlong(optarg);
+          break;
+
+        case option_fastq_minlen:
+          parameters.opt_fastq_minlen = args_getlong(optarg);
+          break;
+
+        case option_fastq_stripleft:
+          parameters.opt_fastq_stripleft = args_getlong(optarg);
+          break;
+
+        case option_fastq_maxee_rate:
+          parameters.opt_fastq_maxee_rate = args_getdouble(optarg);
+          break;
+
+        case option_fastq_maxns:
+          parameters.opt_fastq_maxns = args_getlong(optarg);
+          break;
+
+        case option_eeout:
+          parameters.opt_eeout = true;
+          break;
+
+        case option_fastq_ascii:
+          parameters.opt_fastq_ascii = args_getlong(optarg);
+          break;
+
+        case option_fastq_qmin:
+          parameters.opt_fastq_qmin = args_getlong(optarg);
+          break;
+
+        case option_fastq_qmax:
+          parameters.opt_fastq_qmax = args_getlong(optarg);
+          break;
+
+        case option_fastq_qmaxout:
+          parameters.opt_fastq_qmaxout = args_getlong(optarg);
+          break;
+
+        case option_fastq_stats:
+          parameters.opt_fastq_stats = optarg;
+          break;
+
+        case option_fastq_tail:
+          parameters.opt_fastq_tail = args_getlong(optarg);
+          break;
+
+        case option_fastx_revcomp:
+          parameters.opt_fastx_revcomp = optarg;
+          break;
+
+        case option_label_suffix:
+          parameters.opt_label_suffix = optarg;
+          break;
+
+        case option_h:
+          parameters.opt_help = true;
+          break;
+
+        case option_samheader:
+          parameters.opt_samheader = true;
+          break;
+
+        case option_sizeorder:
+          parameters.opt_sizeorder = true;
+          break;
+
+        case option_minwordmatches:
+          parameters.opt_minwordmatches = args_getlong(optarg);
+          if (parameters.opt_minwordmatches < 0)
+            {
+              fatal("The argument to --minwordmatches must not be negative");
+            }
+          break;
+
+        case option_v:
+          parameters.opt_version = true;
+          break;
+
+        case option_relabel_keep:
+          parameters.opt_relabel_keep = true;
+          break;
+
+        case option_search_exact:
+          parameters.opt_search_exact = optarg;
+          break;
+
+        case option_fastx_mask:
+          parameters.opt_fastx_mask = optarg;
+          break;
+
+        case option_min_unmasked_pct:
+          parameters.opt_min_unmasked_pct = args_getdouble(optarg);
+          break;
+
+        case option_max_unmasked_pct:
+          parameters.opt_max_unmasked_pct = args_getdouble(optarg);
+          break;
+
+        case option_fastq_convert:
+          parameters.opt_fastq_convert = optarg;
+          break;
+
+        case option_fastq_asciiout:
+          parameters.opt_fastq_asciiout = args_getlong(optarg);
+          break;
+
+        case option_fastq_qminout:
+          parameters.opt_fastq_qminout = args_getlong(optarg);
+          break;
+
+        case option_fastq_mergepairs:
+          parameters.opt_fastq_mergepairs = optarg;
+          break;
+
+        case option_fastq_eeout:
+          parameters.opt_fastq_eeout = true;
+          break;
+
+        case option_fastqout_notmerged_fwd:
+          parameters.opt_fastqout_notmerged_fwd = optarg;
+          break;
+
+        case option_fastqout_notmerged_rev:
+          parameters.opt_fastqout_notmerged_rev = optarg;
+          break;
+
+        case option_fastq_minovlen:
+          parameters.opt_fastq_minovlen = args_getlong(optarg);
+          break;
+
+        case option_fastq_minmergelen:
+          parameters.opt_fastq_minmergelen = args_getlong(optarg);
+          break;
+
+        case option_fastq_maxmergelen:
+          parameters.opt_fastq_maxmergelen = args_getlong(optarg);
+          break;
+
+        case option_fastq_nostagger:
+          parameters.opt_fastq_nostagger = true;
+          break;
+
+        case option_fastq_allowmergestagger:
+          parameters.opt_fastq_allowmergestagger = true;
+          break;
+
+        case option_fastq_maxdiffs:
+          parameters.opt_fastq_maxdiffs = args_getlong(optarg);
+          break;
+
+        case option_fastaout_notmerged_fwd:
+          parameters.opt_fastaout_notmerged_fwd = optarg;
+          break;
+
+        case option_fastaout_notmerged_rev:
+          parameters.opt_fastaout_notmerged_rev = optarg;
+          break;
+
+        case option_reverse:
+          parameters.opt_reverse = optarg;
+          break;
+
+        case option_eetabbedout:
+          parameters.opt_eetabbedout = optarg;
+          break;
+
+        case option_fasta_score:
+          parameters.opt_fasta_score = true;
+          break;
+
+        case option_fastq_eestats:
+          parameters.opt_fastq_eestats = optarg;
+          break;
+
+        case option_rereplicate:
+          parameters.opt_rereplicate = optarg;
+          break;
+
+        case option_xdrop_nw:
+          /* xdrop_nw ignored */
+          std::fprintf(stderr, "WARNING: Option --xdrop_nw is ignored\n");
+          break;
+
+        case option_minhsp:
+          /* minhsp ignored */
+          std::fprintf(stderr, "WARNING: Option --minhsp is ignored\n");
+          break;
+
+        case option_band:
+          /* band ignored */
+          std::fprintf(stderr, "WARNING: Option --band is ignored\n");
+          break;
+
+        case option_hspw:
+          /* hspw ignored */
+          std::fprintf(stderr, "WARNING: Option --hspw is ignored\n");
+          break;
+
+        case option_gzip_decompress:
+          parameters.opt_gzip_decompress = true;
+          break;
+
+        case option_bzip2_decompress:
+          parameters.opt_bzip2_decompress = true;
+          break;
+
+        case option_fastq_maxlen:
+          parameters.opt_fastq_maxlen = args_getlong(optarg);
+          break;
+
+        case option_fastq_truncee:
+          parameters.opt_fastq_truncee = args_getdouble(optarg);
+          break;
+
+        case option_fastx_filter:
+          parameters.opt_fastx_filter = optarg;
+          break;
+
+        case option_otutabout:
+          parameters.opt_otutabout = optarg;
+          break;
+
+        case option_mothur_shared_out:
+          parameters.opt_mothur_shared_out = optarg;
+          break;
+
+        case option_biomout:
+          parameters.opt_biomout = optarg;
+          break;
+
+        case option_fastq_trunclen_keep:
+          parameters.opt_fastq_trunclen_keep = args_getlong(optarg);
+          break;
+
+        case option_fastq_stripright:
+          parameters.opt_fastq_stripright = args_getlong(optarg);
+          break;
+
+        case option_no_progress:
+          parameters.opt_no_progress = true;
+          break;
+
+        case option_fastq_eestats2:
+          parameters.opt_fastq_eestats2 = optarg;
+          break;
+
+        case option_ee_cutoffs:
+          args_get_ee_cutoffs(optarg, parameters);
+          break;
+
+        case option_length_cutoffs:
+          args_get_length_cutoffs(optarg, parameters);
+          break;
+
+        case option_makeudb_usearch:
+          parameters.opt_makeudb_usearch = optarg;
+          break;
+
+        case option_udb2fasta:
+          parameters.opt_udb2fasta = optarg;
+          break;
+
+        case option_udbinfo:
+          parameters.opt_udbinfo = optarg;
+          break;
+
+        case option_udbstats:
+          parameters.opt_udbstats = optarg;
+          break;
+
+        case option_cluster_unoise:
+          parameters.opt_cluster_unoise = optarg;
+          break;
+
+        case option_unoise_alpha:
+          parameters.opt_unoise_alpha = args_getdouble(optarg);
+          break;
+
+        case option_uchime2_denovo:
+          parameters.opt_uchime2_denovo = optarg;
+          break;
+
+        case option_uchime3_denovo:
+          parameters.opt_uchime3_denovo = optarg;
+          break;
+
+        case option_sintax:
+          parameters.opt_sintax = optarg;
+          break;
+
+        case option_sintax_cutoff:
+          parameters.opt_sintax_cutoff = args_getdouble(optarg);
+          break;
+
+        case option_tabbedout:
+          parameters.opt_tabbedout = optarg;
+          break;
+
+        case option_fastq_maxdiffpct:
+          parameters.opt_fastq_maxdiffpct = args_getdouble(optarg);
+          break;
+
+        case option_fastq_join:
+          parameters.opt_fastq_join = optarg;
+          break;
+
+        case option_join_padgap:
+          parameters.opt_join_padgap = optarg;
+          break;
+
+        case option_join_padgapq:
+          parameters.opt_join_padgapq = optarg;
+          parameters.opt_join_padgapq_set_by_user = true;
+          break;
+
+        case option_sff_convert:
+          parameters.opt_sff_convert = optarg;
+          break;
+
+        case option_sff_clip:
+          parameters.opt_sff_clip = true;
+          break;
+
+        case option_fastaout_rev:
+          parameters.opt_fastaout_rev = optarg;
+          break;
+
+        case option_fastaout_discarded_rev:
+          parameters.opt_fastaout_discarded_rev = optarg;
+          break;
+
+        case option_fastqout_rev:
+          parameters.opt_fastqout_rev = optarg;
+          break;
+
+        case option_fastqout_discarded_rev:
+          parameters.opt_fastqout_discarded_rev = optarg;
+          break;
+
+        case option_xee:
+          parameters.opt_xee = true;
+          break;
+
+        case option_fastx_getseq:
+          parameters.opt_fastx_getseq = optarg;
+          break;
+
+        case option_fastx_getseqs:
+          parameters.opt_fastx_getseqs = optarg;
+          break;
+
+        case option_fastx_getsubseq:
+          parameters.opt_fastx_getsubseq = optarg;
+          break;
+
+        case option_label_substr_match:
+          parameters.opt_label_substr_match = true;
+          break;
+
+        case option_label:
+          parameters.opt_label = optarg;
+          break;
+
+        case option_subseq_start:
+          parameters.opt_subseq_start = args_getlong(optarg);
+          break;
+
+        case option_subseq_end:
+          parameters.opt_subseq_end = args_getlong(optarg);
+          break;
+
+        case option_notmatchedfq:
+          parameters.opt_notmatchedfq = optarg;
+          break;
+
+        case option_label_field:
+          parameters.opt_label_field = optarg;
+          break;
+
+        case option_label_word:
+          parameters.opt_label_word = optarg;
+          break;
+
+        case option_label_words:
+          parameters.opt_label_words = optarg;
+          break;
+
+        case option_labels:
+          parameters.opt_labels = optarg;
+          break;
+
+        case option_cut:
+          parameters.opt_cut = optarg;
+          break;
+
+        case option_cut_pattern:
+          parameters.opt_cut_pattern = optarg;
+          break;
+
+        case option_relabel_self:
+          parameters.opt_relabel_self = true;
+          break;
+
+        case option_derep_id:
+          parameters.opt_derep_id = optarg;
+          break;
+
+        case option_orient:
+          parameters.opt_orient = optarg;
+          break;
+
+        case option_fasta2fastq:
+          parameters.opt_fasta2fastq = optarg;
+          break;
+
+        case option_lcaout:
+          parameters.opt_lcaout = optarg;
+          break;
+
+        case option_lca_cutoff:
+          parameters.opt_lca_cutoff = args_getdouble(optarg);
+          break;
+
+        case option_fastx_uniques:
+          parameters.opt_fastx_uniques = optarg;
+          break;
+
+        case option_fastq_qout_max:
+          parameters.opt_fastq_qout_max = true;
+          break;
+
+        case option_sample:
+          /* truncate at first ';' or blank, per manpage: these
+             characters are header separators in fasta/fastq labels
+             and would break downstream parsing if left in. */
+          optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0';
+          parameters.opt_sample = optarg;
+          break;
+
+        case option_qsegout:
+          parameters.opt_qsegout = optarg;
+          break;
+
+        case option_tsegout:
+          parameters.opt_tsegout = optarg;
+          break;
+
+        case option_derep_smallmem:
+          parameters.opt_derep_smallmem = optarg;
+          break;
+
+        case option_lengthout:
+          parameters.opt_lengthout = true;
+          break;
+
+        case option_xlength:
+          parameters.opt_xlength = true;
+          break;
+
+        case option_chimeras_denovo:
+          parameters.opt_chimeras_denovo = optarg;
+          break;
+
+        case option_chimeras_length_min:
+          parameters.opt_chimeras_length_min = static_cast<int>(args_getlong(optarg));
+          break;
+
+        case option_chimeras_parts:
+          parameters.opt_chimeras_parts = static_cast<int>(args_getlong(optarg));
+          break;
+
+        case option_chimeras_parents_max:
+          parameters.opt_chimeras_parents_max = static_cast<int>(args_getlong(optarg));
+          break;
+
+        case option_chimeras_diff_pct:
+          parameters.opt_chimeras_diff_pct = args_getdouble(optarg);
+          break;
+
+        case option_sintax_random:
+          parameters.opt_sintax_random = true;
+          break;
+
+        case option_n_mismatch:
+          parameters.opt_n_mismatch = true;
+          break;
+
+        case option_fastq_minqual:
+          parameters.opt_fastq_minqual = args_getlong(optarg);
+          break;
+
+        case option_fastq_truncee_rate:
+          parameters.opt_fastq_truncee_rate = args_getdouble(optarg);
+          break;
+
+        case option_centroid_sizeout:
+          parameters.opt_centroid_sizeout = true;
+          break;
+
+        default:
+          fatal("Internal error in option parsing");
+        }
+    }
+
+  /* Terminate if ambiguous or illegal options have been detected */
+  if (val != -1)
+    {
+      std::exit(EXIT_FAILURE);
+    }
+
+  /* Terminate after reporting any extra non-option arguments */
+  if (optind < argc)
+    {
+      fatal("Unrecognized string on command line (%s)", argv[optind]);
+    }
 
   /* check that only one commmand is specified */
   int commands = 0;
