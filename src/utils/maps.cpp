@@ -59,6 +59,7 @@
 */
 
 #include "maps.hpp"
+#include <array>
 #include <cassert>
 #include <vector>
 
@@ -333,8 +334,8 @@ const std::vector<unsigned char> chrmap_normalize_vector =
   };
 
 
-const std::vector<unsigned char> chrmap_upcase_vector =
-  {
+constexpr std::array<unsigned char, 256> chrmap_upcase_vector =
+  {{
     /*
 
       Map from ascii to ascii
@@ -363,7 +364,7 @@ const std::vector<unsigned char> chrmap_upcase_vector =
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  };
+  }};
 
 
 }  // end of anonymous namespace
