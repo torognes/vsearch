@@ -151,8 +151,8 @@ namespace {
     }};
 
 
-  const std::vector<unsigned int> chrmap_2bit =
-    {
+  constexpr std::array<unsigned int, 256> chrmap_2bit =
+    {{
       /*
 
         Map from ascii to 2-bit nucleotide code
@@ -183,7 +183,7 @@ namespace {
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-    };
+    }};
 
 
   const std::vector<bool> chrmap_ambiguous_4bit = {
@@ -206,8 +206,8 @@ namespace {
   };
 
 
-  const std::vector<unsigned int> chrmap_mask_ambig =
-    {
+  constexpr std::array<unsigned int, 256> chrmap_mask_ambig =
+    {{
       /*
         Should character be masked and not used for search ?
         Mask everything but A, C, G, T and U.
@@ -233,11 +233,11 @@ namespace {
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
-    };
+    }};
 
 
-  const std::vector<unsigned int> chrmap_mask_lower =
-    {
+  constexpr std::array<unsigned int, 256> chrmap_mask_lower =
+    {{
       /*
 
         Should character be masked and not used for search ?
@@ -264,7 +264,7 @@ namespace {
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
-    };
+    }};
 
 
 constexpr std::array<unsigned char, 256> chrmap_no_change_vector = {{
