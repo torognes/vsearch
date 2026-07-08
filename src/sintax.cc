@@ -86,7 +86,6 @@
 #include "tax.h"
 #include "udb.h"
 #include "unique.h"
-#include "utils/cpu_features.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"

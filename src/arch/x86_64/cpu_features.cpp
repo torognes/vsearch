@@ -58,15 +58,17 @@
 
 */
 
+// x86-only translation unit: runtime SIMD detection via CPUID is an x86
+// concern (on ARM/POWER the ISA level is fixed at compile time). The build
+// compiles this file only under TARGET_X86_64, so no __x86_64__ guard is
+// needed here -- the Makefile owns the architecture selection.
+
 #include "cpu_features.hpp"
 #include "vsearch.h"  // struct Parameters
 #include <cstdint>  // int64_t
-#ifdef __x86_64__
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks
-#endif
 
 
-#ifdef __x86_64__
 namespace {
   struct cpuid_registers {
     unsigned int eax {0};
@@ -95,21 +97,10 @@ namespace {
     return xcr0_lo;
   }
 }  // anonymous namespace
-#endif
 
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
-#ifdef __aarch64__
-#ifdef __ARM_NEON
-  /* may check /proc/cpuinfo for asimd or neon */
-  parameters.neon_present = 1;
-#else
-#error ARM Neon not present
-#endif
-#elif __PPC__
-  parameters.altivec_present = 1;
-#elif __x86_64__
   // Feature masks (bit_MMX, bit_SSE, ...) come from <cpuid.h>. bit_OSXSAVE
   // is not defined by older <cpuid.h> versions (GCC 4.x), so spell it out.
   static constexpr unsigned int basic_leaf_mask = 0xffU;  // CPUID.0:EAX low byte
@@ -150,7 +141,4 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
           parameters.avx2_present = static_cast<int64_t>(avx2_supported and avx_os_enabled);
         }
     }
-#else
-    // simde
-#endif
 }

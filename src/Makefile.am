@@ -76,6 +76,7 @@ VSEARCHHEADERS=\
 align_simd.h \
 allpairs.h \
 arch.h \
+arch/x86_64/cpu_features.hpp \
 attributes.h \
 bitmap.h \
 chimera.h \
@@ -134,7 +135,6 @@ utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
-utils/cpu_features.hpp \
 utils/fatal.hpp \
 utils/kmer_hash_struct.hpp \
 utils/maps.hpp \
@@ -262,14 +262,23 @@ utils/maps.cpp \
 utils/check_output_filehandle.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
-utils/cpu_features.cpp \
 utils/open_file.cpp \
 utils/os_byteswap.cpp \
 utils/seqcmp.cpp \
 utils/number_of_strands.cpp \
 vsearch.cc
 
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)
+# Per-architecture sources. Runtime SIMD detection via CPUID only makes
+# sense on x86_64 (elsewhere the ISA level is fixed at compile time), so
+# cpu_features is compiled only there; its single caller in vsearch.cc is
+# guarded by #ifdef __x86_64__ to match.
+if TARGET_X86_64
+VSEARCH_ARCH_SOURCES = arch/x86_64/cpu_features.cpp
+else
+VSEARCH_ARCH_SOURCES =
+endif
+
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES)
 
 .DEFAULT_GOAL = ../bin/vsearch
 
@@ -277,7 +286,7 @@ __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES
 # for embedding into shared libraries (e.g., DuckDB extensions).
 libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN
 libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC -DVSEARCH_NO_MAIN
-libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES)
+libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES)
 
 # Merged static library — combines core PIC objects with SIMD cpu and cityhash PIC objects.
 # Build with: make libvsearch.a

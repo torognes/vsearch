@@ -93,7 +93,9 @@
 #include "udb.h"
 #include "userfields.h"
 #include "utils/compare_strings_nocase.hpp"
-#include "utils/cpu_features.hpp"
+#ifdef __x86_64__
+#include "arch/x86_64/cpu_features.hpp"
+#endif
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
@@ -1211,7 +1213,9 @@ auto main(int argc, char** argv) -> int
   getentirecommandline(argc, argv);
   parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
 
+#ifdef __x86_64__
   cpu_features_detect(parameters);
+#endif
 
   args_init(argc, argv, parameters);
 
