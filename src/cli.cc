@@ -4451,8 +4451,9 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 {
   parameters.progname = argv[0];
 
-  /* The option switch below parses into this Parameters (self-defaulting),
-     which is the single configuration source the run reads from. */
+  /* The option parser (parse_options) populates this Parameters
+     (self-defaulting), which is the single configuration source the run reads
+     from. */
 
   /* Library defaults to quiet; the CLI needs output. */
   parameters.opt_quiet = false;
