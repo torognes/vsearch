@@ -253,8 +253,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     fastx_uniques output options: --fastaout, --fastqout, --uc, --tabbedout
   */
 
-  show_rusage();
-
   auto * input_handle = fastx_open(input_filename, parameters);
 
   if (not fastx_is_empty(input_handle))
@@ -323,7 +321,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   uint64_t hash_mask = hashtablesize - 1;
   std::vector<struct bucket> hashtable(hashtablesize);
 
-  show_rusage();
+  // memory-intensive: the hash table has been allocated
 
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
   std::vector<unsigned int> nextseqtab;
@@ -348,7 +346,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       match_strand.resize(alloc_seqs);
     }
 
-  show_rusage();
+  // memory-intensive: per-sequence buffers have been allocated
 
   std::vector<char> seq_up(static_cast<std::size_t>(alloc_seqlen) + 1);
   std::vector<char> rc_seq_up(static_cast<std::size_t>(alloc_seqlen) + 1);
@@ -396,7 +394,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
             seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
             rc_seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
 
-            show_rusage();
+            // memory-intensive: sequence buffers grown to fit the longest sequence
           }
 
         if (extra_info and (sequencecount + 1 > alloc_seqs))
@@ -411,7 +409,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
             alloc_seqs = new_alloc_seqs;
 
-            show_rusage();
+            // memory-intensive: per-sequence buffers have been grown
           }
 
         if (clusters + 1 > alloc_clusters)
@@ -424,7 +422,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
             hashtablesize = 2 * alloc_clusters;
             hash_mask = hashtablesize - 1;
 
-            show_rusage();
+            // memory-intensive: the hash table has been resized (rehash)
           }
 
         auto const * seq = fastx_get_sequence(input_handle);
@@ -597,8 +595,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   }
   fastx_close(input_handle, parameters);
 
-  show_rusage();
-
   if (not parameters.opt_quiet)
     {
       if (sequencecount > 0)
@@ -679,14 +675,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
     }
 
-  show_rusage();
-
   {
     Progress const progress("Sorting", 1, parameters);
     std::qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
   }
-
-  show_rusage();
 
   auto const median = find_median_size(hashtable, clusters);
 
@@ -728,8 +720,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   /* count selected */
 
   auto const selected = count_selected(hashtable, parameters);
-
-  show_rusage();
 
   /* write output */
 
@@ -804,8 +794,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
       fclose_output(fp_fastqout);
     }
-
-  show_rusage();
 
   if (parameters.opt_uc != nullptr)
     {
@@ -888,8 +876,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     }
 
 
-  show_rusage();
-
   if (selected < clusters)
     {
       if (not parameters.opt_quiet)
@@ -911,8 +897,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
     }
 
-  show_rusage();
-
   /* Free all seqs and headers */
 
   for (auto const & bucket : hashtable) {
@@ -923,10 +907,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       xfree(bucket.qual);
     }
   }
-
-  show_rusage();
-
-  show_rusage();
 }
 
 

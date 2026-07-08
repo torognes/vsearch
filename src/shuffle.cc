@@ -121,15 +121,13 @@ auto shuffle(struct Parameters const & parameters) -> void {
   auto const output_handle = open_output_file(parameters.opt_output);
   check_mandatory_output_handle(parameters.opt_output, (not output_handle));
   db_read(parameters.opt_shuffle, 0, parameters);
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   auto deck = create_deck();
   shuffle_deck(deck, parameters);
-  show_rusage();
 
   truncate_deck(deck, parameters.opt_topn);
   output_shuffled_fasta(deck, output_handle.get(), parameters);
-  show_rusage();
 
   db_free();
 }

@@ -231,8 +231,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     output options: --fastaout
   */
 
-  show_rusage();
-
   auto * input_filename = parameters.opt_derep_smallmem;
   auto * h = fastx_open(input_filename, parameters);
 
@@ -269,7 +267,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       hashtable[j].size = 0;
     }
 
-  show_rusage();
+  // memory-intensive: the hash table has been allocated
 
   std::vector<char> seq_up(static_cast<size_t>(alloc_seqlen) + 1);
   std::vector<char> rc_seq_up(static_cast<size_t>(alloc_seqlen) + 1);
@@ -319,14 +317,14 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
             rc_seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
 
-            show_rusage();
+            // memory-intensive: sequence buffers grown to fit the longest sequence
           }
 
         if (100 * (clusters + 1) > 95 * hashtablesize)
           {
             // keep hash table fill rate at max 95% */
             rehash_smallmem();
-            show_rusage();
+            // memory-intensive: the hash table has been resized (rehash)
           }
 
         auto const * seq = fastx_get_sequence(h);
@@ -405,8 +403,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       }
   }
   fastx_close(h, parameters);
-
-  show_rusage();
 
   if (not parameters.opt_quiet)
     {
@@ -489,8 +485,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
 
 
-  show_rusage();
-
   if (clusters < 1)
     {
       if (not parameters.opt_quiet)
@@ -525,8 +519,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   clusters, average, median, maxsize);
         }
     }
-
-  show_rusage();
 
   /* second pass with output */
 
@@ -623,8 +615,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   fastx_close(h2, parameters);
   fclose_output(fp_fastaout);
 
-  show_rusage();
-
   if (selected < clusters)
     {
       if (not parameters.opt_quiet)
@@ -646,9 +636,5 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         }
     }
 
-  show_rusage();
-
   xfree(hashtable);
-
-  show_rusage();
 }

@@ -645,7 +645,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
     {
       udb_read(state.parameters.opt_db, true, true, state.parameters);
       results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
-      show_rusage();
+      // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
     }
   else
@@ -660,7 +660,7 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline,
         {
           hardmask_all();
         }
-      show_rusage();
+      // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
       dbindex_prepare(1, static_cast<int>(state.parameters.opt_dbmask), state.parameters);
       dbindex_addallsequences(static_cast<int>(state.parameters.opt_dbmask), state.parameters);
@@ -717,7 +717,6 @@ static auto search_done(struct search_cli_state_s & state) -> void
     }
   fclose_output(state.fp_alnout);
   fclose_output(state.fp_samout);
-  show_rusage();
 }
 
 

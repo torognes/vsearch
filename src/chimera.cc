@@ -2734,8 +2734,6 @@ auto chimera(struct Parameters const & parameters) -> void
   fclose_output(state.fp_uchimealns);
   fclose_output(state.fp_nonchimeras);
   fclose_output(state.fp_chimeras);
-
-  show_rusage();
 }
 
 

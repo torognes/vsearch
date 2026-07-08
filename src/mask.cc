@@ -290,7 +290,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
   check_mandatory_output_handle(parameters.opt_output, (not output_handle));
 
   db_read(parameters.opt_maskfasta, 0, parameters);
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   uint64_t const seqcount = db_getsequencecount();
 
@@ -302,7 +302,6 @@ auto maskfasta(struct Parameters const & parameters) -> void
     {
       hardmask_all();
     }
-  show_rusage();
 
   {
     Progress progress("Writing output", seqcount, parameters);
@@ -312,7 +311,6 @@ auto maskfasta(struct Parameters const & parameters) -> void
         progress.update(i);
       }
   }
-  show_rusage();
 
   db_free();
 }
@@ -331,7 +329,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
 
   db_read(parameters.opt_fastx_mask, 0, parameters);
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   if ((fp_fastqout != nullptr) && ! db_is_fastq())
     {
@@ -348,7 +346,6 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     {
       hardmask_all();
     }
-  show_rusage();
 
   auto kept = 0;
   auto discarded_less = 0;
@@ -459,7 +456,6 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       std::fprintf(fp_log, "%d sequences kept\n", kept);
     }
 
-  show_rusage();
   db_free();
 
   if (fp_fastaout != nullptr)

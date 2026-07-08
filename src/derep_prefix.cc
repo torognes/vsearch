@@ -180,7 +180,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   db_sortbylength_shortest_first(parameters);
 
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   int64_t const dbsequencecount = static_cast<int64_t>(db_getsequencecount());
 
@@ -348,8 +348,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       }
   }
 
-  show_rusage();
-
   {
     Progress const progress("Sorting", 1, parameters);
     std::qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
@@ -402,8 +400,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   clusters, average, median, maxsize);
         }
     }
-
-  show_rusage();
 
   /* count selected */
 
@@ -461,8 +457,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       fclose_output(fp_output);
     }
 
-  show_rusage();
-
   if (parameters.opt_uc != nullptr)
     {
       {
@@ -488,7 +482,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             progress.update(static_cast<uint64_t>(i));
           }
       }
-      show_rusage();
 
       {
         Progress progress("Writing uc file, second part", static_cast<uint64_t>(clusters), parameters);
@@ -501,7 +494,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           }
         fclose_output(fp_uc);
       }
-      show_rusage();
     }
 
   if (selected < clusters)

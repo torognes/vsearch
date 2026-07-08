@@ -389,7 +389,7 @@ auto subsample(struct Parameters const & parameters) -> void {
   check_output_files(ouput_files);
 
   db_read(parameters.opt_fastx_subsample, 0, parameters);
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   abort_if_fastq_out_of_fasta(ouput_files);
 

@@ -621,7 +621,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
       hardmask_all();
     }
 
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   seqcount = static_cast<int>(db_getsequencecount());
 
@@ -672,7 +672,6 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline,
   fclose_output(fp_userout);
   fclose_output(fp_alnout);
   fclose_output(fp_samout);
-  show_rusage();
 
   if (fp_userout != nullptr) {
     clean_up(); // free userfields allocation

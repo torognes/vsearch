@@ -78,7 +78,6 @@ auto xstrdup(char const * src) -> char *;
 auto xsprintf(char * * ret, char const * format, ...) -> int;
 auto hash_cityhash64(char const * sequence, uint64_t length) -> uint64_t;
 auto hash_cityhash128(char const * sequence, uint64_t length) -> uint128;
-auto show_rusage() -> void;
 
 auto random_init(struct Parameters const & parameters) -> void;
 

@@ -631,7 +631,7 @@ auto search_exact_prep(char const * cmdline, char const * progheader,
       hardmask_all();
     }
 
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   seqcount = static_cast<int>(db_getsequencecount());
 
@@ -671,8 +671,6 @@ auto search_exact_done() -> void
     }
   fclose_output(fp_alnout);
   fclose_output(fp_samout);
-
-  show_rusage();
 }
 
 

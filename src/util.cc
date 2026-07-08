@@ -122,27 +122,6 @@ auto hash_cityhash128(char const * sequence, uint64_t const length) -> uint128
 }
 
 
-auto show_rusage() -> void
-{
-#ifdef SHOW_RUSAGE
-  static constexpr auto a_megabyte = 1024.0 * 1024.0;
-  double user_time = 0.0;
-  double system_time = 0.0;
-
-  arch_get_user_system_time(&user_time, &system_time);
-
-  double const megabytes = arch_get_memused() / a_megabyte;
-
-  std::fprintf(stderr, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
-          user_time, system_time, megabytes);
-
-  if (fp_log != nullptr)
-    std::fprintf(fp_log, "Time: %.3fs (user) %.3fs (sys) Memory: %.0lfMB\n",
-            user_time, system_time, megabytes);
-#endif
-}
-
-
 // refactoring: create reverse_complement.hpp, progressive migration
 // write overloads for span?
 // assert(destination.size() > source.size());

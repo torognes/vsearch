@@ -402,8 +402,6 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
                   (discarded_unoise == 1 ? "sequence" : "sequences"));
         }
     }
-
-  show_rusage();
 }
 
 

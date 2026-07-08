@@ -271,7 +271,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & para
 
   dbindex_count = 0;
 
-  show_rusage();
+  // memory-intensive: the k-mer index has been allocated
 }
 
 

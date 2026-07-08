@@ -1142,7 +1142,7 @@ auto cluster(char const * dbname,
       hardmask_all();
     }
 
-  show_rusage();
+  // memory-intensive: the entire database is now held in memory
 
   int const seqcount = static_cast<int>(db_getsequencecount());
 
@@ -1537,7 +1537,6 @@ auto cluster(char const * dbname,
 
   dbindex_free();
   db_free();
-  show_rusage();
 }
 
 
