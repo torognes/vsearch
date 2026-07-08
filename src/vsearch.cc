@@ -120,7 +120,6 @@ constexpr auto max_line_length = std::size_t{80};
 
 /* Other variables */
 
-static std::array<char, max_line_length> prog_header {{}};
 static char * cmdline;
 
 std::FILE * fp_log = nullptr;
@@ -859,7 +858,7 @@ auto cmd_allpairs_global(struct Parameters const & parameters) -> void
       fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
     }
 
-  allpairs_global(parameters, cmdline, prog_header.data());
+  allpairs_global(parameters, cmdline, parameters.prog_header.c_str());
 }
 
 
@@ -888,7 +887,7 @@ auto cmd_usearch_global(struct Parameters const & parameters) -> void
       fatal("Identity between 0.0 and 1.0 must be specified with --id");
     }
 
-  usearch_global(parameters, cmdline, prog_header.data());
+  usearch_global(parameters, cmdline, parameters.prog_header.c_str());
 }
 
 
@@ -912,7 +911,7 @@ auto cmd_search_exact(struct Parameters const & parameters) -> void
       fatal("Database filename not specified with --db");
     }
 
-  search_exact(parameters, cmdline, prog_header.data());
+  search_exact(parameters, cmdline, parameters.prog_header.c_str());
 }
 
 
@@ -1001,19 +1000,19 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
 
   if (parameters.opt_cluster_fast != nullptr)
     {
-      cluster_fast(cmdline, prog_header.data(), parameters);
+      cluster_fast(cmdline, parameters.prog_header.c_str(), parameters);
     }
   else if (parameters.opt_cluster_smallmem != nullptr)
     {
-      cluster_smallmem(cmdline, prog_header.data(), parameters);
+      cluster_smallmem(cmdline, parameters.prog_header.c_str(), parameters);
     }
   else if (parameters.opt_cluster_size != nullptr)
     {
-      cluster_size(cmdline, prog_header.data(), parameters);
+      cluster_size(cmdline, parameters.prog_header.c_str(), parameters);
     }
   else if (parameters.opt_cluster_unoise != nullptr)
     {
-      cluster_unoise(cmdline, prog_header.data(), parameters);
+      cluster_unoise(cmdline, parameters.prog_header.c_str(), parameters);
     }
 }
 
@@ -1142,14 +1141,16 @@ auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
 }
 
 
-auto fill_prog_header() -> void
+auto fill_prog_header(struct Parameters & parameters) -> void
 {
   static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
   auto const * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
+  std::array<char, max_line_length> buffer {{}};
   static_cast<void>(std::snprintf(
-      prog_header.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
+      buffer.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
       PROG_ARCH, static_cast<double>(arch_get_memtotal()) / one_gigabyte,
       arch_get_cores()));
+  parameters.prog_header = buffer.data();
 }
 
 
@@ -1177,7 +1178,7 @@ auto getentirecommandline(int argc, char** argv) -> void
 
 auto show_header(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
-  std::fprintf(stderr, "%s\n", prog_header.data());
+  std::fprintf(stderr, "%s\n", parameters.prog_header.c_str());
   std::fprintf(stderr, "https://github.com/torognes/vsearch\n");
   std::fprintf(stderr, "\n");
 }
@@ -1395,8 +1396,7 @@ auto main(int argc, char** argv) -> int
 
   struct Parameters parameters;
 
-  fill_prog_header();
-  parameters.prog_header = prog_header.data();
+  fill_prog_header(parameters);
 
   getentirecommandline(argc, argv);
   parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
