@@ -61,10 +61,10 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/timestamp.hpp"  // iso8601_local_timestamp
 #include <algorithm>  // std::copy
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
-#include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strcspn, std::strspn
@@ -400,10 +400,7 @@ auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const &
   int64_t const rows = static_cast<int64_t>(otutable->otu_set.size());
   int64_t const columns = static_cast<int64_t>(otutable->sample_set.size());
 
-  static const time_t time_now = std::time(nullptr);
-  struct tm const * tm_now = localtime(& time_now);
-  std::array<char, 50> date {{}};
-  std::strftime(date.data(), 50, "%Y-%m-%dT%H:%M:%S", tm_now);
+  static std::string const date = iso8601_local_timestamp();
 
   std::fprintf(output_handle,
           "{\n"
@@ -418,7 +415,7 @@ auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const &
           "\t\"shape\": [%" PRId64 ",%" PRId64 "],\n",
           parameters.opt_biomout,
           PROG_NAME, PROG_VERSION,
-          date.data(),
+          date.c_str(),
           rows,
           columns);
 
