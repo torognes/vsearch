@@ -369,6 +369,21 @@ const std::vector<unsigned char> chrmap_upcase_vector =
   };
 
 
+auto chrmap_no_change() -> unsigned char const * {
+  return chrmap_no_change_vector.data();
+}
+
+
+auto chrmap_normalize() -> unsigned char const * {
+  return chrmap_normalize_vector.data();
+}
+
+
+auto chrmap_upcase() -> unsigned char const * {
+  return chrmap_upcase_vector.data();
+}
+
+
 auto map_uppercase(char const nucleotide) -> char {
   return static_cast<char>(chrmap_upcase_vector[to_uchar(nucleotide)]);
 }
