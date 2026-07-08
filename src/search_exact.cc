@@ -591,15 +591,14 @@ auto search_exact_thread_worker_run(struct Parameters const & parameters, struct
     }
 }
 
-auto search_exact_prep(char const * cmdline,
-                       struct Parameters const & parameters) -> void
+auto search_exact_prep(struct Parameters const & parameters) -> void
 {
   /* open output files */
 
   fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
   if (fp_alnout != nullptr)
     {
-      std::fprintf(fp_alnout, "%s\n", cmdline);
+      std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
@@ -620,7 +619,7 @@ auto search_exact_prep(char const * cmdline,
 
   db_read(parameters.opt_db, 0, parameters);
 
-  results_show_samheader(fp_samout, cmdline, parameters.opt_db, parameters);
+  results_show_samheader(fp_samout, parameters.opt_db, parameters);
 
   if (parameters.opt_dbmask == MASK_DUST)
     {
@@ -674,9 +673,9 @@ auto search_exact_done() -> void
 }
 
 
-auto search_exact(struct Parameters const & parameters, char const * cmdline) -> void
+auto search_exact(struct Parameters const & parameters) -> void
 {
-  search_exact_prep(cmdline, parameters);
+  search_exact_prep(parameters);
 
   otutable_init();
 

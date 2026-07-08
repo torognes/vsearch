@@ -612,14 +612,14 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
 }
 
 
-static auto search_prep(struct search_cli_state_s & state, char const * cmdline) -> void
+static auto search_prep(struct search_cli_state_s & state) -> void
 {
   /* open output files */
 
   state.fp_alnout = open_optional_output(state.parameters.opt_alnout, "alignment");
   if (state.fp_alnout != nullptr)
     {
-      std::fprintf(state.fp_alnout, "%s\n", cmdline);
+      std::fprintf(state.fp_alnout, "%s\n", state.parameters.command_line.c_str());
       std::fprintf(state.fp_alnout, "%s\n", state.parameters.prog_header.c_str());
     }
 
@@ -644,14 +644,14 @@ static auto search_prep(struct search_cli_state_s & state, char const * cmdline)
   if (is_udb)
     {
       udb_read(state.parameters.opt_db, true, true, state.parameters);
-      results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
+      results_show_samheader(state.fp_samout, state.parameters.opt_db, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
     }
   else
     {
       db_read(state.parameters.opt_db, 0, state.parameters);
-      results_show_samheader(state.fp_samout, cmdline, state.parameters.opt_db, state.parameters);
+      results_show_samheader(state.fp_samout, state.parameters.opt_db, state.parameters);
       if (state.parameters.opt_dbmask == MASK_DUST)
         {
           dust_all(state.parameters);
@@ -720,7 +720,7 @@ static auto search_done(struct search_cli_state_s & state) -> void
 }
 
 
-auto usearch_global(struct Parameters const & parameters, char const * cmdline) -> void
+auto usearch_global(struct Parameters const & parameters) -> void
 {
   /* Per-invocation state, owned here and threaded through the worker pool and
      the output helper (E4). Aliased by reference so the long body below reads
@@ -738,7 +738,7 @@ auto usearch_global(struct Parameters const & parameters, char const * cmdline) 
   auto & fp_dbmatched = state.fp_dbmatched;
   auto & fp_dbnotmatched = state.fp_dbnotmatched;
 
-  search_prep(state, cmdline);
+  search_prep(state);
 
   fp_dbmatched = open_optional_output(parameters.opt_dbmatched, "dbmatched");
   fp_dbnotmatched = open_optional_output(parameters.opt_dbnotmatched, "dbnotmatched");

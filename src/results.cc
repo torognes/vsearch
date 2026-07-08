@@ -908,7 +908,6 @@ auto build_sam_strings(char const * alignment,
 }
 
 auto results_show_samheader(std::FILE * output_handle,
-                            char const * cmdline,
                             char const * dbname,
                             struct Parameters const & parameters) -> void
 {
@@ -934,7 +933,7 @@ auto results_show_samheader(std::FILE * output_handle,
               "@PG\tID:%s\tVN:%s\tCL:%s\n",
               PROG_NAME,
               PROG_VERSION,
-              cmdline);
+              parameters.command_line.c_str());
     }
 }
 

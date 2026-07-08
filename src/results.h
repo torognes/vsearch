@@ -117,7 +117,6 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                               struct Parameters const & parameters) -> void;
 
 auto results_show_samheader(std::FILE * output_handle,
-                            char const * cmdline,
                             char const * dbname,
                             struct Parameters const & parameters) -> void;
 

@@ -1083,7 +1083,6 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
 
 auto cluster(char const * dbname,
-             char const * cmdline,
              struct Parameters const & parameters) -> void
 {
   cluster_cli_state_s state(parameters);
@@ -1110,7 +1109,7 @@ auto cluster(char const * dbname,
   fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
   if (fp_alnout != nullptr)
     {
-      std::fprintf(fp_alnout, "%s\n", cmdline);
+      std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
@@ -1130,7 +1129,7 @@ auto cluster(char const * dbname,
 
   otutable_init();
 
-  results_show_samheader(fp_samout, cmdline, dbname, parameters);
+  results_show_samheader(fp_samout, dbname, parameters);
 
   if (parameters.opt_qmask == MASK_DUST)
     {
@@ -1539,27 +1538,27 @@ auto cluster(char const * dbname,
 }
 
 
-auto cluster_fast(char const * cmdline, struct Parameters const & parameters) -> void
+auto cluster_fast(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_fast, cmdline, parameters);
+  cluster(parameters.opt_cluster_fast, parameters);
 }
 
 
-auto cluster_smallmem(char const * cmdline, struct Parameters const & parameters) -> void
+auto cluster_smallmem(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_smallmem, cmdline, parameters);
+  cluster(parameters.opt_cluster_smallmem, parameters);
 }
 
 
-auto cluster_size(char const * cmdline, struct Parameters const & parameters) -> void
+auto cluster_size(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_size, cmdline, parameters);
+  cluster(parameters.opt_cluster_size, parameters);
 }
 
 
-auto cluster_unoise(char const * cmdline, struct Parameters const & parameters) -> void
+auto cluster_unoise(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_unoise, cmdline, parameters);
+  cluster(parameters.opt_cluster_unoise, parameters);
 }
 
 

@@ -568,7 +568,7 @@ static auto allpairs_thread_worker_run(struct allpairs_state_s & state) -> void
 }
 
 
-auto allpairs_global(struct Parameters const & parameters, char const * cmdline) -> void
+auto allpairs_global(struct Parameters const & parameters) -> void
 {
   /* Per-invocation state, owned here and threaded through the worker pool (E4).
      Aliased by reference so the body below reads unchanged; the workers receive
@@ -610,7 +610,7 @@ auto allpairs_global(struct Parameters const & parameters, char const * cmdline)
 
   db_read(parameters.opt_allpairs_global, 0, parameters);
 
-  results_show_samheader(fp_samout, cmdline, parameters.opt_allpairs_global, parameters);
+  results_show_samheader(fp_samout, parameters.opt_allpairs_global, parameters);
 
   if (parameters.opt_qmask == MASK_DUST)
     {

@@ -60,7 +60,7 @@
 
 #pragma once
 
-auto usearch_global(struct Parameters const & parameters, char const * cmdline) -> void;
+auto usearch_global(struct Parameters const & parameters) -> void;
 
 /* === Library API for embedding global search === */
 

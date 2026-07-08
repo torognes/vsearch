@@ -58,4 +58,4 @@
 
 */
 
-void allpairs_global(struct Parameters const & parameters, char const * cmdline);
+void allpairs_global(struct Parameters const & parameters);
