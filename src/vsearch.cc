@@ -118,8 +118,6 @@
 
 /* Other variables */
 
-static char * cmdline;
-
 std::FILE * fp_log = nullptr;
 
 
@@ -1153,25 +1151,18 @@ auto fill_prog_header(struct Parameters & parameters) -> void
 }
 
 
-auto getentirecommandline(int argc, char** argv) -> void
+auto getentirecommandline(int argc, char** argv) -> std::string
 {
-  size_t len = 0;
-  for (int i = 0; i < argc; i++)
-    {
-      len += std::strlen(argv[i]);
-    }
-
-  cmdline = static_cast<char *>(xmalloc(len + static_cast<size_t>(argc)));
-  cmdline[0] = 0;
-
+  std::string command_line;
   for (int i = 0; i < argc; i++)
     {
       if (i > 0)
         {
-          std::strcat(cmdline, " ");
+          command_line += ' ';
         }
-      std::strcat(cmdline, argv[i]);
+      command_line += argv[i];
     }
+  return command_line;
 }
 
 
@@ -1397,8 +1388,7 @@ auto main(int argc, char** argv) -> int
 
   fill_prog_header(parameters);
 
-  getentirecommandline(argc, argv);
-  parameters.command_line = std::string{cmdline, std::strlen(cmdline)};
+  parameters.command_line = getentirecommandline(argc, argv);
 
 #ifdef __x86_64__
   cpu_features_detect(parameters);
@@ -1435,7 +1425,6 @@ auto main(int argc, char** argv) -> int
       fatal("Unable to write to standard output (disk full, quota exceeded, or broken pipe?)");
     }
 
-  xfree(cmdline);
   dynlibs_close();
 }
 #endif /* VSEARCH_NO_MAIN */
