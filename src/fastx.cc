@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "dynlibs.h"
 #include "utils/fatal.hpp"
+#include "utils/logfile.hpp"  // log_file::handle
 #include "utils/span.hpp"
 #include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
 #include <algorithm>  // std::find_first_of
@@ -176,10 +177,11 @@ auto warn(char const * const format,
   std::fprintf(stderr, format, symbol, symbol, line_number);
   std::fprintf(stderr, "\n");
 
-  if (fp_log != nullptr) {
-    std::fprintf(fp_log, "\nWARNING: ");
-    std::fprintf(fp_log, format, symbol, symbol, line_number);
-    std::fprintf(fp_log, "\n");
+  auto * const log = log_file::handle();
+  if (log != nullptr) {
+    std::fprintf(log, "\nWARNING: ");
+    std::fprintf(log, format, symbol, symbol, line_number);
+    std::fprintf(log, "\n");
   }
 }
 

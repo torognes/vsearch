@@ -68,12 +68,28 @@
 #include <cstdio>  // std::FILE, std::fprintf
 
 
+namespace
+{
+  /* Encapsulated owner of the --log handle for the Parameters-less reporters.
+     Published by the LogFile RAII object below and read through
+     log_file::handle(); nullptr whenever no --log file is open. */
+  std::FILE * log_handle = nullptr;
+}
+
+namespace log_file
+{
+  auto handle() noexcept -> std::FILE * { return log_handle; }
+  auto set_handle(std::FILE * const new_handle) noexcept -> void { log_handle = new_handle; }
+}
+
+
 LogFile::LogFile(struct Parameters & parameters)
 {
   if (parameters.opt_log == nullptr) { return; }
   handle = open_optional_output(parameters.opt_log, "log");
   fp_log = handle;
   parameters.fp_log = handle;
+  log_file::set_handle(handle);
   std::fprintf(handle, "%s\n", parameters.prog_header.c_str());
   std::fprintf(handle, "%s\n", parameters.command_line.c_str());
 
@@ -109,4 +125,5 @@ LogFile::~LogFile()
       std::fprintf(handle, "Max memory %.1lfGB\n", maxmem / mebibytes_per_gibibyte);
     }
   fclose_output(handle);
+  log_file::set_handle(nullptr);
 }

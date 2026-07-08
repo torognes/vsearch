@@ -64,6 +64,18 @@
 struct Parameters;
 
 
+/* Accessor for the optional --log file handle, used by the process-wide
+   error/warning reporters (fatal(), fastx.cc's warn()) that run with no
+   Parameters in scope. The handle is owned and published by the LogFile RAII
+   object below; handle() returns nullptr when no --log file is open. Code that
+   already holds a Parameters should read parameters.fp_log directly instead. */
+namespace log_file
+{
+  auto handle() noexcept -> std::FILE *;
+  auto set_handle(std::FILE * new_handle) noexcept -> void;
+}
+
+
 /* RAII owner of the optional --log file. When --log is given, the constructor
    opens the file, publishes it through the fp_log global and parameters.fp_log
    (so the rest of the program logs to it) and writes the program header, the

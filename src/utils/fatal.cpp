@@ -58,7 +58,8 @@
 
 */
 
-#include "vsearch.h"
+#include "fatal.hpp"  // fatal
+#include "logfile.hpp"  // log_file::handle
 #include <cstdint> // uint64_t
 #include <cstdio>  // std::fprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
@@ -69,9 +70,10 @@ auto fatal(char const * message) -> void {
   std::fprintf(stderr, "\n\n");
   std::fprintf(stderr, "Fatal error: %s\n", message);
 
-  if (fp_log != nullptr) {
-    std::fprintf(fp_log, "\n\n");
-    std::fprintf(fp_log, "Fatal error: %s\n", message);
+  auto * const log = log_file::handle();
+  if (log != nullptr) {
+    std::fprintf(log, "\n\n");
+    std::fprintf(log, "Fatal error: %s\n", message);
   }
 
   std::exit(EXIT_FAILURE);
@@ -85,10 +87,11 @@ auto fatal(char const * format,
   std::fprintf(stderr, format, message);
   std::fprintf(stderr, "\n");
 
-  if (fp_log != nullptr) {
-    std::fprintf(fp_log, "\n\nFatal error: ");
-    std::fprintf(fp_log, format, message);
-    std::fprintf(fp_log, "\n");
+  auto * const log = log_file::handle();
+  if (log != nullptr) {
+    std::fprintf(log, "\n\nFatal error: ");
+    std::fprintf(log, format, message);
+    std::fprintf(log, "\n");
   }
 
   std::exit(EXIT_FAILURE);
@@ -104,10 +107,11 @@ auto fatal(char const * format,
   std::fprintf(stderr, format, symbol, line_number);
   std::fprintf(stderr, "\n");
 
-  if (fp_log != nullptr) {
-    std::fprintf(fp_log, "\n\nFatal error: ");
-    std::fprintf(fp_log, format, symbol, line_number);
-    std::fprintf(fp_log, "\n");
+  auto * const log = log_file::handle();
+  if (log != nullptr) {
+    std::fprintf(log, "\n\nFatal error: ");
+    std::fprintf(log, format, symbol, line_number);
+    std::fprintf(log, "\n");
   }
 
   std::exit(EXIT_FAILURE);
