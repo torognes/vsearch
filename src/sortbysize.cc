@@ -166,7 +166,7 @@ namespace {
       static_cast<void>(std::fprintf(stderr, "Median abundance: %.0f\n", median));
     }
     if (parameters.opt_log != nullptr) {
-      static_cast<void>(std::fprintf(fp_log, "Median abundance: %.0f\n", median));
+      static_cast<void>(std::fprintf(parameters.fp_log, "Median abundance: %.0f\n", median));
     }
   }
 

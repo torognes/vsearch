@@ -483,30 +483,30 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(fp_log, "Forward oriented sequences: %d", matches_fwd);
+      std::fprintf(parameters.fp_log, "Forward oriented sequences: %d", matches_fwd);
       if (queries > 0)
         {
-          std::fprintf(fp_log, " (%.2f%%)", 100.0 * matches_fwd / queries);
+          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * matches_fwd / queries);
         }
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Reverse oriented sequences: %d", matches_rev);
+      std::fprintf(parameters.fp_log, "\n");
+      std::fprintf(parameters.fp_log, "Reverse oriented sequences: %d", matches_rev);
       if (queries > 0)
         {
-          std::fprintf(fp_log, " (%.2f%%)", 100.0 * matches_rev / queries);
+          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * matches_rev / queries);
         }
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "All oriented sequences:     %d", qmatches);
+      std::fprintf(parameters.fp_log, "\n");
+      std::fprintf(parameters.fp_log, "All oriented sequences:     %d", qmatches);
       if (queries > 0)
         {
-          std::fprintf(fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Not oriented sequences:     %d", notmatched);
+      std::fprintf(parameters.fp_log, "\n");
+      std::fprintf(parameters.fp_log, "Not oriented sequences:     %d", notmatched);
       if (queries > 0)
         {
-          std::fprintf(fp_log, " (%.2f%%)", 100.0 * notmatched / queries);
+          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * notmatched / queries);
         }
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Total number of sequences:  %d\n", queries);
+      std::fprintf(parameters.fp_log, "\n");
+      std::fprintf(parameters.fp_log, "Total number of sequences:  %d\n", queries);
     }
 }

@@ -778,12 +778,12 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(fp_log, "Classified %d of %d sequences", classified, queries);
+      std::fprintf(parameters.fp_log, "Classified %d of %d sequences", classified, queries);
       if (queries > 0)
         {
-          std::fprintf(fp_log, " (%.2f%%)", 100.0 * classified / queries);
+          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * classified / queries);
         }
-      std::fprintf(fp_log, "\n");
+      std::fprintf(parameters.fp_log, "\n");
     }
 
   /* clean up */

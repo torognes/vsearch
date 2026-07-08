@@ -169,7 +169,7 @@ namespace {
       }
     if (parameters.opt_log != nullptr)
       {
-        std::fprintf(fp_log, "Median length: %.0f\n", median);
+        std::fprintf(parameters.fp_log, "Median length: %.0f\n", median);
       }
   }
 

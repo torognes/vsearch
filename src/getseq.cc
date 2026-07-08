@@ -167,7 +167,7 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
+          std::fprintf(parameters.fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
     }
 }
@@ -544,17 +544,17 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(fp_log,
+      std::fprintf(parameters.fp_log,
               "%" PRId64 " of %" PRId64 " sequences extracted",
               kept,
               kept + discarded);
       if (kept + discarded > 0)
         {
-          std::fprintf(fp_log,
+          std::fprintf(parameters.fp_log,
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      std::fprintf(fp_log, "\n");
+      std::fprintf(parameters.fp_log, "\n");
     }
 
   if (parameters.opt_fastaout != nullptr)
