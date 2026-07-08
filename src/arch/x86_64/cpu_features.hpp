@@ -68,3 +68,5 @@ struct Parameters;
 
 
 auto cpu_features_detect(struct Parameters & parameters) -> void;
+
+auto cpu_features_test(struct Parameters const & parameters) -> void;

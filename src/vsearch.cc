@@ -1240,10 +1240,7 @@ auto main(int argc, char** argv) -> int
   dynlibs_open();
 
 #ifdef __x86_64__
-  if (parameters.sse2_present == 0)
-    {
-      fatal("Sorry, this program requires a cpu with SSE2.");
-    }
+  cpu_features_test(parameters);
 #endif
 
   if (parameters.opt_help)

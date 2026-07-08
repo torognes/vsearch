@@ -65,6 +65,7 @@
 
 #include "cpu_features.hpp"
 #include "vsearch.h"  // struct Parameters
+#include "utils/fatal.hpp"  // fatal
 #include <cstdint>  // int64_t
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks
 
@@ -140,5 +141,14 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
           bool const avx2_supported = (leaf7.ebx & bit_AVX2) != 0U;
           parameters.avx2_present = static_cast<int64_t>(avx2_supported and avx_os_enabled);
         }
+    }
+}
+
+
+auto cpu_features_test(struct Parameters const & parameters) -> void
+{
+  if (parameters.sse2_present == 0)
+    {
+      fatal("Sorry, this program requires a cpu with SSE2.");
     }
 }
