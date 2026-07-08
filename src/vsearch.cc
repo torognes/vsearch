@@ -97,12 +97,13 @@
 #include "arch/x86_64/cpu_features.hpp"
 #endif
 #include "utils/fatal.hpp"
+#include "utils/timestamp.hpp"  // iso8601_local_timestamp
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cerrno>  // errno, ERANGE
+#include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
-#include <ctime>  // std::strftime, std::localtime, std::time, std::time_t, std::tm, std::difftime
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::sscanf, std::fclose, std::snprintf, std::printf, std::strcat
 #include <cstdlib>  // std::exit, EXIT_FAILURE
@@ -1410,24 +1411,19 @@ public:
     std::fprintf(handle, "%s\n", prog_header.data());
     std::fprintf(handle, "%s\n", cmdline);
 
-    std::array<char, 26> time_string {{}};
-    start_time = std::time(nullptr);
-    struct tm const * tm_start = localtime(& start_time);
-    std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
-    std::fprintf(handle, "Started  %s\n", time_string.data());
+    start_time = std::chrono::steady_clock::now();
+    std::fprintf(handle, "Started  %s\n", iso8601_local_timestamp().c_str());
   }
 
   ~LogFile()
   {
     if (handle == nullptr) { return; }
-    std::time_t const finish_time = std::time(nullptr);
-    struct tm const * tm_finish = localtime(& finish_time);
-    std::array<char, 26> time_string {{}};
-    std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
+    auto const finish_time = std::chrono::steady_clock::now();
     std::fprintf(handle, "\n");
-    std::fprintf(handle, "Finished %s", time_string.data());
+    std::fprintf(handle, "Finished %s", iso8601_local_timestamp().c_str());
 
-    double const time_diff = std::difftime(finish_time, start_time);
+    double const time_diff =
+      std::chrono::duration<double>(finish_time - start_time).count();
     std::fprintf(handle, "\n");
     std::fprintf(handle, "Elapsed time %02.0lf:%02.0lf\n",
             std::floor(time_diff / 60.0),
@@ -1451,7 +1447,7 @@ public:
 
 private:
   std::FILE * handle = nullptr;
-  std::time_t start_time {};
+  std::chrono::steady_clock::time_point start_time {};
 };
 
 
