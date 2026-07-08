@@ -124,11 +124,6 @@ constexpr auto max_line_length = std::size_t{80};
 static std::array<char, max_line_length> prog_header {{}};
 static char * cmdline;
 
-#ifndef VSEARCH_NO_MAIN
-static time_t time_start;
-static time_t time_finish;
-#endif
-
 std::FILE * fp_log = nullptr;
 
 
@@ -1387,6 +1382,71 @@ auto dispatch_command(struct Parameters & parameters) -> void
 }
 
 
+/* RAII owner of the optional --log file. When --log is given, the constructor
+   opens the file, publishes it through the fp_log global and parameters.fp_log
+   (so the rest of the program logs to it) and writes the program header, the
+   command line and the "Started" timestamp; the destructor writes the
+   "Finished"/elapsed-time/max-memory footer and closes the file. Co-locating
+   open and close keeps the two halves of the log lifecycle together and emits
+   the footer on every exit path out of the enclosing scope. Without --log the
+   object owns no file and both halves are no-ops. */
+class LogFile
+{
+public:
+  explicit LogFile(struct Parameters & parameters)
+  {
+    if (parameters.opt_log == nullptr) { return; }
+    handle = open_optional_output(parameters.opt_log, "log");
+    fp_log = handle;
+    parameters.fp_log = handle;
+    std::fprintf(handle, "%s\n", prog_header.data());
+    std::fprintf(handle, "%s\n", cmdline);
+
+    std::array<char, 26> time_string {{}};
+    start_time = std::time(nullptr);
+    struct tm const * tm_start = localtime(& start_time);
+    std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
+    std::fprintf(handle, "Started  %s\n", time_string.data());
+  }
+
+  ~LogFile()
+  {
+    if (handle == nullptr) { return; }
+    std::time_t const finish_time = std::time(nullptr);
+    struct tm const * tm_finish = localtime(& finish_time);
+    std::array<char, 26> time_string {{}};
+    std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
+    std::fprintf(handle, "\n");
+    std::fprintf(handle, "Finished %s", time_string.data());
+
+    double const time_diff = std::difftime(finish_time, start_time);
+    std::fprintf(handle, "\n");
+    std::fprintf(handle, "Elapsed time %02.0lf:%02.0lf\n",
+            std::floor(time_diff / 60.0),
+            std::floor(time_diff - (60.0 * std::floor(time_diff / 60.0))));
+    double const maxmem = static_cast<double>(arch_get_memused()) / 1048576.0;
+    if (maxmem < 1024.0)
+      {
+        std::fprintf(handle, "Max memory %.1lfMB\n", maxmem);
+      }
+    else
+      {
+        std::fprintf(handle, "Max memory %.1lfGB\n", maxmem / 1024.0);
+      }
+    fclose_output(handle);
+  }
+
+  LogFile(LogFile const &) = delete;
+  LogFile(LogFile &&) = delete;
+  auto operator=(LogFile const &) -> LogFile & = delete;
+  auto operator=(LogFile &&) -> LogFile & = delete;
+
+private:
+  std::FILE * handle = nullptr;
+  std::time_t start_time {};
+};
+
+
 auto main(int argc, char** argv) -> int
 {
   std::set_new_handler(vsearch_new_handler);
@@ -1404,57 +1464,25 @@ auto main(int argc, char** argv) -> int
 
   args_init(argc, argv, parameters);
 
-  if (parameters.opt_log != nullptr)
-    {
-      fp_log = open_optional_output(parameters.opt_log, "log");
-      parameters.fp_log = fp_log;
-      std::fprintf(fp_log, "%s\n", prog_header.data());
-      std::fprintf(fp_log, "%s\n", cmdline);
+  /* The log file's Started banner and Finished/elapsed/max-memory footer are
+     written by the LogFile constructor and destructor; the explicit scope
+     makes the destructor (and hence the footer) run before the stdout flush
+     check below, matching the original ordering. */
+  {
+    LogFile const log_file(parameters);
 
-      std::array<char, 26> time_string {{}};
-      time_start = std::time(nullptr);
-      struct tm const * tm_start = localtime(& time_start);
-      std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_start);
-      std::fprintf(fp_log, "Started  %s\n", time_string.data());
-    }
+    random_init(parameters);
 
-  random_init(parameters);
+    show_header(parameters);
 
-  show_header(parameters);
-
-  dynlibs_open();
+    dynlibs_open();
 
 #ifdef __x86_64__
-  cpu_features_test(parameters);
+    cpu_features_test(parameters);
 #endif
 
-  dispatch_command(parameters);
-
-  if (parameters.opt_log != nullptr)
-    {
-      time_finish = std::time(nullptr);
-      struct tm const * tm_finish = localtime(& time_finish);
-      std::array<char, 26> time_string {{}};
-      std::strftime(time_string.data(), time_string.size(), "%Y-%m-%dT%H:%M:%S", tm_finish);
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Finished %s", time_string.data());
-
-      double const time_diff = std::difftime(time_finish, time_start);
-      std::fprintf(fp_log, "\n");
-      std::fprintf(fp_log, "Elapsed time %02.0lf:%02.0lf\n",
-              std::floor(time_diff / 60.0),
-              std::floor(time_diff - (60.0 * std::floor(time_diff / 60.0))));
-      double const maxmem = static_cast<double>(arch_get_memused()) / 1048576.0;
-      if (maxmem < 1024.0)
-        {
-          std::fprintf(fp_log, "Max memory %.1lfMB\n", maxmem);
-        }
-      else
-        {
-          std::fprintf(fp_log, "Max memory %.1lfGB\n", maxmem / 1024.0);
-        }
-      fclose_output(fp_log);
-    }
+    dispatch_command(parameters);
+  }
 
   /* Output written directly to stdout is not closed through fclose_output, so
      surface any deferred write error here (full disk, quota, or a broken pipe
