@@ -84,5 +84,3 @@ auto xftello(std::FILE * stream) -> uint64_t;
 
 auto xopen_read(const char * path) -> int;
 auto xopen_write(const char * path) -> int;
-
-auto xstrcasestr(const char * haystack, const char * needle) -> const char *;
