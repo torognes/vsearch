@@ -105,6 +105,7 @@ struct search_cli_state_s
      database size (search_prep); si->parameters points here so the shared
      searchcore reads the clamped values without a mutated global (E1). */
   struct Parameters effective_parameters;
+  struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
   struct searchinfo_s * si_plus = nullptr;
@@ -525,11 +526,12 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
 
 
 static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits,
-                               struct Parameters const & parameters) -> void
+                               struct Parameters const & parameters,
+                               struct Dbindex const & dbindex) -> void
 {
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  si->dbindex = &the_index;  /* searchcore reads the k-mer index through the si */
+  si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
@@ -588,10 +590,10 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* init per-thread search state before the workers start */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters);
+      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters, state.dbindex);
       if (si_minus != nullptr)
         {
-          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters);
+          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters, state.dbindex);
         }
     }
 
@@ -646,7 +648,7 @@ static auto search_prep(struct search_cli_state_s & state) -> void
 
   if (is_udb)
     {
-      udb_read(state.parameters.opt_db, true, true, the_index, state.parameters);
+      udb_read(state.parameters.opt_db, true, true, state.dbindex, state.parameters);
       results_show_samheader(state.fp_samout, state.parameters.opt_db, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
@@ -665,8 +667,8 @@ static auto search_prep(struct search_cli_state_s & state) -> void
         }
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
-      dbindex_prepare(1, static_cast<int>(state.parameters.opt_dbmask), state.parameters);
-      dbindex_addallsequences(static_cast<int>(state.parameters.opt_dbmask), state.parameters);
+      state.dbindex.prepare(1, static_cast<int>(state.parameters.opt_dbmask), state.parameters);
+      state.dbindex.add_all_sequences(static_cast<int>(state.parameters.opt_dbmask), state.parameters);
     }
 
   /* tophits = the maximum number of hits we need to store */
@@ -700,7 +702,7 @@ static auto search_done(struct search_cli_state_s & state) -> void
 {
   /* clean up, global */
 
-  dbindex_free();
+  state.dbindex.clear();
   db_free();
 
   /* fclose_output() is a no-op on a null handle, so the unopened outputs
@@ -973,13 +975,13 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
     }
 
   ss->si_plus = make_unique<searchinfo_s>();
-  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters);
+  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, the_index);
   ss->si_plus->strand = 0;
 
   if (parameters.opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
-      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters);
+      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters, the_index);
       ss->si_minus->strand = 1;
     }
 }
@@ -1294,10 +1296,10 @@ auto search_batch(struct Parameters const & parameters,
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters);
+      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters, the_index);
       if (ctx.batch_si_minus != nullptr)
         {
-          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters);
+          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters, the_index);
         }
     }
 
