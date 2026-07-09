@@ -529,6 +529,7 @@ static auto search_thread_init(struct searchinfo_s * si, int const seqcount, int
 {
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  si->dbindex = &the_index;  /* searchcore reads the k-mer index through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);

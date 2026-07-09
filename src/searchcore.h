@@ -160,6 +160,12 @@ struct searchinfo_s
      functions that take a searchinfo_s read parameters->opt_* through it. The
      pointee is the caller's canonical Parameters and must outlive the si. */
   struct Parameters const * parameters = nullptr;
+  /* the k-mer index this query is searched against, set by the per-thread init
+     at each call site beside parameters (dbindex migration). A pointer (default
+     null) so searchinfo_s stays default-constructible; the searchcore functions
+     that take a searchinfo_s read the index through it. The pointee is the
+     caller's Dbindex and must outlive the si. */
+  struct Dbindex const * dbindex = nullptr;
 };
 
 auto search_topscores(struct searchinfo_s * searchinfo) -> void;

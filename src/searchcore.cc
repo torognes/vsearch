@@ -273,7 +273,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   */
 
   /* count kmer hits in the database sequences */
-  unsigned int const indexed_count = dbindex_getcount();
+  unsigned int const indexed_count = searchinfo->dbindex->getcount();
 
   /* zero counts */
   std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
@@ -283,7 +283,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
       auto const kmer = searchinfo->kmersample[i];
-      auto * bitmap = dbindex_getbitmap(kmer);
+      auto * bitmap = searchinfo->dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
         {
@@ -304,8 +304,8 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
         }
       else
         {
-          auto const * list = dbindex_getmatchlist(kmer);
-          auto const count = dbindex_getmatchcount(kmer);
+          auto const * list = searchinfo->dbindex->getmatchlist(kmer);
+          auto const count = searchinfo->dbindex->getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
               /* Saturate at INT16_MAX (32767) rather than letting the
@@ -329,7 +329,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
       auto const count = searchinfo->kmers[i];
       if (count >= minmatches)
         {
-          auto const seqno = dbindex_getmapping(i);
+          auto const seqno = searchinfo->dbindex->getmapping(i);
           unsigned int const length = static_cast<unsigned int>(db_getsequencelen(seqno));
 
           elem_t novel;
@@ -846,7 +846,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
 
   /* extract unique kmer samples from query*/
-  unique_count(searchinfo->uh, static_cast<int>(the_index.wordlength),
+  unique_count(searchinfo->uh, static_cast<int>(searchinfo->dbindex->wordlength),
                searchinfo->qseqlen, searchinfo->qsequence,
                &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 

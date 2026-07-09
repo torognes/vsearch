@@ -182,6 +182,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   /* thread specific initialiation */
 
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  si->dbindex = &the_index;  /* searchcore reads the k-mer index through the si */
   si->qsize = 1;
   si->nw = nullptr;
   si->hit_count = 0;
@@ -594,7 +595,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           /* find the number of shared unique kmers */
           auto const shared
             = unique_count_shared(*si->uh,
-                                  static_cast<int>(the_index.wordlength),
+                                  static_cast<int>(si->dbindex->wordlength),
                                   static_cast<int>(sic->kmersamplecount),
                                   sic->kmersample);
 

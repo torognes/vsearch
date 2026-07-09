@@ -1871,6 +1871,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
 {
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  search_info->dbindex = &the_index;  /* searchcore reads the k-mer index through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
