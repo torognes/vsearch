@@ -846,7 +846,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
 
 
   /* extract unique kmer samples from query*/
-  unique_count(searchinfo->uh, static_cast<int>(dbindex_wordlength),
+  unique_count(searchinfo->uh, static_cast<int>(the_index.wordlength),
                searchinfo->qseqlen, searchinfo->qsequence,
                &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 

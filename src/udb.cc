@@ -404,31 +404,31 @@ auto udb_read(const char * filename,
       {
         std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
       }
-    dbindex_wordlength = udb_wordlength;
+    the_index.wordlength = udb_wordlength;
 
     /* word match counts */
 
-    kmerhashsize = 1U << (2 * udb_wordlength);
-    kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
-    kmerhash = static_cast<uint64_t *>(xmalloc(kmerhashsize * sizeof(uint64_t)));
-    kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(kmerhashsize * sizeof(struct bitmap_s **)));
+    the_index.hashsize = 1U << (2 * udb_wordlength);
+    the_index.kmercount = static_cast<unsigned int *>(xmalloc(the_index.hashsize * sizeof(unsigned int)));
+    the_index.kmerhash = static_cast<uint64_t *>(xmalloc(the_index.hashsize * sizeof(uint64_t)));
+    the_index.kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(the_index.hashsize * sizeof(struct bitmap_s **)));
 
-    std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s **));
+    std::memset(the_index.kmerbitmap, 0, the_index.hashsize * sizeof(struct bitmap_s **));
 
-    pos += largeread(fd_udb, kmercount, 4 * kmerhashsize, pos, progress_bar);
+    pos += largeread(fd_udb, the_index.kmercount, 4 * the_index.hashsize, pos, progress_bar);
 
-    kmerindexsize = 0;
-    for (uint64_t i = 0; i < kmerhashsize; i++)
+    the_index.indexsize = 0;
+    for (uint64_t i = 0; i < the_index.hashsize; i++)
       {
-        kmerhash[i] = kmerindexsize;
-        kmerindexsize = udb_checked_add(kmerindexsize, kmercount[i]);
+        the_index.kmerhash[i] = the_index.indexsize;
+        the_index.indexsize = udb_checked_add(the_index.indexsize, the_index.kmercount[i]);
       }
 
     /* The word-list section stores 4 bytes per index entry, so a file can
        hold at most filesize/4 entries; a larger total means the kmercount[]
        values do not match the on-disk section (padded/corrupt file). */
 
-    if (kmerindexsize > filesize / 4)
+    if (the_index.indexsize > filesize / 4)
       {
         fatal("Invalid UDB file");
       }
@@ -444,9 +444,9 @@ auto udb_read(const char * filename,
 
     /* sequence numbers for word matches */
 
-    kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * 4));
+    the_index.kmerindex = static_cast<unsigned int *>(xmalloc(the_index.indexsize * 4));
 
-    pos += largeread(fd_udb, kmerindex, 4 * kmerindexsize, pos, progress_bar);
+    pos += largeread(fd_udb, the_index.kmerindex, 4 * the_index.indexsize, pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
@@ -454,9 +454,9 @@ auto udb_read(const char * filename,
        value >= seqcount is therefore an out-of-bounds write or read, so
        reject it here rather than at use. */
 
-    for (uint64_t i = 0; i < kmerindexsize; i++)
+    for (uint64_t i = 0; i < the_index.indexsize; i++)
       {
-        if (kmerindex[i] >= seqcount)
+        if (the_index.kmerindex[i] >= seqcount)
           {
             fatal("Invalid UDB file");
           }
@@ -600,16 +600,16 @@ auto udb_read(const char * filename,
     {
       auto const bitmap_mincount = seqcount / 8;
       {
-        Progress progress("Creating bitmaps", kmerhashsize, parameters);
-        for (auto i = 0U; i < kmerhashsize; i++)
+        Progress progress("Creating bitmaps", the_index.hashsize, parameters);
+        for (auto i = 0U; i < the_index.hashsize; i++)
           {
-            if (kmercount[i] >= bitmap_mincount)
+            if (the_index.kmercount[i] >= bitmap_mincount)
               {
-                kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
-                bitmap_reset_all(kmerbitmap[i]);
-                for (auto j = 0U; j < kmercount[i]; j++)
+                the_index.kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
+                bitmap_reset_all(the_index.kmerbitmap[i]);
+                for (auto j = 0U; j < the_index.kmercount[i]; j++)
                   {
-                    bitmap_set(kmerbitmap[i], kmerindex[kmerhash[i]+j]);
+                    bitmap_set(the_index.kmerbitmap[i], the_index.kmerindex[the_index.kmerhash[i]+j]);
                   }
               }
             progress.update(i + 1);
@@ -642,7 +642,7 @@ auto udb_read(const char * filename,
 
   /* set database info */
 
-  dbindex_uh = unique_init();
+  the_index.uhandle = unique_init();
 
   db_setinfo(false,
              seqcount,
@@ -653,12 +653,12 @@ auto udb_read(const char * filename,
 
   /* make mapping from indexno to seqno */
 
-  dbindex_map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
-  dbindex_count = seqcount;
+  the_index.map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
+  the_index.count = seqcount;
 
   for (auto i = 0U; i < seqcount; i++)
     {
-      dbindex_map[i] = i;
+      the_index.map[i] = i;
     }
 
   /* done */
@@ -753,25 +753,25 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
   udb_read(parameters.opt_udbstats, false, false, parameters);
 
-  /* dbindex_wordlength below is the effective index width that udb_read() just
+  /* the_index.wordlength below is the effective index width that udb_read() just
      published from this UDB file's header (which may differ from the configured
      parameters.opt_wordlength); read it, not the config (E1). */
 
   /* analyze word counts */
 
-  std::vector<wordfreq_t> freqtable(kmerhashsize);
+  std::vector<wordfreq_t> freqtable(the_index.hashsize);
 
-  for (auto i = 0U; i < kmerhashsize; i++)
+  for (auto i = 0U; i < the_index.hashsize; i++)
     {
       freqtable[i].kmer = i;
-      freqtable[i].count = kmercount[i];
+      freqtable[i].count = the_index.kmercount[i];
     }
 
-  std::qsort(freqtable.data(), kmerhashsize, sizeof(wordfreq_t), wc_compare);
+  std::qsort(freqtable.data(), the_index.hashsize, sizeof(wordfreq_t), wc_compare);
 
-  auto const wcmax = freqtable[kmerhashsize-1].count;
-  auto const wcmedian = ( freqtable[(kmerhashsize / 2) - 1].count +
-                            freqtable[kmerhashsize / 2].count ) / 2;
+  auto const wcmax = freqtable[the_index.hashsize-1].count;
+  auto const wcmedian = ( freqtable[(the_index.hashsize / 2) - 1].count +
+                            freqtable[the_index.hashsize / 2].count ) / 2;
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   auto const nt = db_getnucleotidecount();
@@ -781,16 +781,16 @@ auto udb_stats(struct Parameters const & parameters) -> void
   if (parameters.opt_log != nullptr)
     {
       std::fprintf(parameters.fp_log, "      Alphabet  nt\n");
-      std::fprintf(parameters.fp_log, "    Word width  %u\n", dbindex_wordlength);
-      std::fprintf(parameters.fp_log, "     Word ones  %u\n", dbindex_wordlength);
+      std::fprintf(parameters.fp_log, "    Word width  %u\n", the_index.wordlength);
+      std::fprintf(parameters.fp_log, "     Word ones  %u\n", the_index.wordlength);
       std::fprintf(parameters.fp_log, "        Spaced  No\n");
       std::fprintf(parameters.fp_log, "        Hashed  No\n");
       std::fprintf(parameters.fp_log, "         Coded  No\n");
       std::fprintf(parameters.fp_log, "       Stepped  No\n");
       std::fprintf(parameters.fp_log,
               "         Slots  %u (%.1fk)\n",
-              kmerhashsize,
-              1.0 * kmerhashsize / 1000.0);
+              the_index.hashsize,
+              1.0 * the_index.hashsize / 1000.0);
       std::fprintf(parameters.fp_log, "       DBAccel  %u%%\n", udb_dbaccel);
       std::fprintf(parameters.fp_log, "\n");
 
@@ -798,11 +798,11 @@ auto udb_stats(struct Parameters const & parameters) -> void
               "%10" PRIu64 "  DB size (%.1fk)\n",
               nt,
               1.0 * static_cast<double>(nt) / 1000.0);
-      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Words\n", kmerindexsize);
+      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Words\n", the_index.indexsize);
       std::fprintf(parameters.fp_log, "%10u  Median size\n", wcmedian);
       std::fprintf(parameters.fp_log,
               "%10.1f  Mean size\n",
-              1.0 * static_cast<double>(kmerindexsize) / kmerhashsize);
+              1.0 * static_cast<double>(the_index.indexsize) / the_index.hashsize);
       std::fprintf(parameters.fp_log, "\n");
 
       std::fprintf(parameters.fp_log,
@@ -810,28 +810,28 @@ auto udb_stats(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log,
               "----------  ------------  ----------  ----------  ---\n");
 
-      for (auto i = 0U; i < kmerhashsize; i++)
+      for (auto i = 0U; i < the_index.hashsize; i++)
         {
           std::fprintf(parameters.fp_log,
                   "%10u  ",
-                  freqtable[kmerhashsize - 1 - i].kmer);
+                  freqtable[the_index.hashsize - 1 - i].kmer);
 
           std::fprintf(parameters.fp_log,
-                  "%.*s", std::max(12 - static_cast<int>(dbindex_wordlength), 0), "            ");
+                  "%.*s", std::max(12 - static_cast<int>(the_index.wordlength), 0), "            ");
 
-          fprint_kmer(parameters.fp_log, dbindex_wordlength, freqtable[kmerhashsize - 1 - i].kmer);
+          fprint_kmer(parameters.fp_log, the_index.wordlength, freqtable[the_index.hashsize - 1 - i].kmer);
 
           std::fprintf(parameters.fp_log,
                   "  %10u  %10u",
                   0U,
-                  freqtable[kmerhashsize - 1 - i].count);
+                  freqtable[the_index.hashsize - 1 - i].count);
 
           std::fprintf(parameters.fp_log, " ");
 
-          for (auto j = 0U; j < freqtable[kmerhashsize - 1 - i].count; j++)
+          for (auto j = 0U; j < freqtable[the_index.hashsize - 1 - i].count; j++)
             {
               std::fprintf(parameters.fp_log,
-                      " %u", kmerindex[kmerhash[freqtable[kmerhashsize - 1 - i].kmer] + j]);
+                      " %u", the_index.kmerindex[the_index.kmerhash[freqtable[the_index.hashsize - 1 - i].kmer] + j]);
 
               if (j == 7)
                 {
@@ -840,7 +840,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
             }
 
 
-          if (freqtable[kmerhashsize-1-i].count > 8)
+          if (freqtable[the_index.hashsize-1-i].count > 8)
             {
               std::fprintf(parameters.fp_log, "...");
             }
@@ -855,11 +855,11 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
       std::fprintf(parameters.fp_log, "\n\n");
 
-      std::fprintf(parameters.fp_log, "Word width  %u\n", dbindex_wordlength);
-      std::fprintf(parameters.fp_log, "Slots       %u\n", kmerhashsize);
-      std::fprintf(parameters.fp_log, "Words       %" PRIu64 "\n", kmerindexsize);
+      std::fprintf(parameters.fp_log, "Word width  %u\n", the_index.wordlength);
+      std::fprintf(parameters.fp_log, "Slots       %u\n", the_index.hashsize);
+      std::fprintf(parameters.fp_log, "Words       %" PRIu64 "\n", the_index.indexsize);
       std::fprintf(parameters.fp_log, "Max size    %u (", wcmax);
-      fprint_kmer(parameters.fp_log, dbindex_wordlength, freqtable[kmerhashsize - 1].kmer);
+      fprint_kmer(parameters.fp_log, the_index.wordlength, freqtable[the_index.hashsize - 1].kmer);
       std::fprintf(parameters.fp_log, ")\n\n");
 
       std::fprintf(parameters.fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
@@ -876,14 +876,14 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
           auto count = 0;
           auto size = 0U;
-          while ((x < kmerhashsize) and (freqtable[x].count <= size_hi))
+          while ((x < the_index.hashsize) and (freqtable[x].count <= size_hi))
             {
               count++;
               size += freqtable[x].count;
               x++;
             }
 
-          auto const pct = 100.0 * count / kmerhashsize;
+          auto const pct = 100.0 * count / the_index.hashsize;
           totpct += pct;
 
           if (size_lo < size_hi)
@@ -947,22 +947,22 @@ auto udb_stats(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log, "----------  ----------  ----------  ----------\n");
       std::fprintf(parameters.fp_log, "                      ");
 
-      if (kmerindexsize >= 10000)
+      if (the_index.indexsize >= 10000)
         {
-          std::fprintf(parameters.fp_log, "  %9.1fk", static_cast<double>(kmerindexsize) * 0.001);
+          std::fprintf(parameters.fp_log, "  %9.1fk", static_cast<double>(the_index.indexsize) * 0.001);
         }
       else
         {
-          std::fprintf(parameters.fp_log, "  %10.1f", static_cast<double>(kmerindexsize) * 1.0);
+          std::fprintf(parameters.fp_log, "  %10.1f", static_cast<double>(the_index.indexsize) * 1.0);
         }
 
-      if (kmerhashsize >= 10000)
+      if (the_index.hashsize >= 10000)
         {
-          std::fprintf(parameters.fp_log, "  %9.1fk", kmerhashsize * 0.001);
+          std::fprintf(parameters.fp_log, "  %9.1fk", the_index.hashsize * 0.001);
         }
       else
         {
-          std::fprintf(parameters.fp_log, "  %10.1f", kmerhashsize * 1.0);
+          std::fprintf(parameters.fp_log, "  %10.1f", the_index.hashsize * 1.0);
         }
 
       std::fprintf(parameters.fp_log, "\n\n");
@@ -970,7 +970,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log, "%10" PRIu64 "  Upper\n", nt);
       std::fprintf(parameters.fp_log, "%10u  Lower (%.1f%%)\n", 0U, 0.0);
       std::fprintf(parameters.fp_log, "%10" PRIu64 "  Total\n", nt);
-      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Indexed words\n", kmerindexsize);
+      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Indexed words\n", the_index.indexsize);
     }
 
   dbindex_free();
@@ -1021,7 +1021,7 @@ auto udb_make(struct Parameters const & parameters) -> void
   uint64_t wordmatches = 0;
   for (auto i = 0U; i < kmerhash_entries; i++)
     {
-      wordmatches += kmercount[i];
+      wordmatches += the_index.kmercount[i];
     }
 
   uint64_t pos = 0;
@@ -1055,7 +1055,7 @@ auto udb_make(struct Parameters const & parameters) -> void
     pos += largewrite(fd_output, buffer.data(), 50 * 4, 0, false, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
-    pos += largewrite(fd_output, kmercount, 4 * kmerhash_entries, pos, false, progress_bar);
+    pos += largewrite(fd_output, the_index.kmercount, 4 * kmerhash_entries, pos, false, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
@@ -1064,13 +1064,13 @@ auto udb_make(struct Parameters const & parameters) -> void
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
       {
-        if (kmerbitmap[i] != nullptr)
+        if (the_index.kmerbitmap[i] != nullptr)
           {
-            std::memset(buffer.data(), 0, 4 * kmercount[i]);
+            std::memset(buffer.data(), 0, 4 * the_index.kmercount[i]);
             auto elements = 0U;
             for (auto j = 0U; j < seqcount; j++)
               {
-                if (bitmap_get(kmerbitmap[i], j) != 0U)
+                if (bitmap_get(the_index.kmerbitmap[i], j) != 0U)
                   {
                     buffer[elements++] = j;
                   }
@@ -1079,11 +1079,11 @@ auto udb_make(struct Parameters const & parameters) -> void
           }
         else
           {
-            if (kmercount[i] > 0)
+            if (the_index.kmercount[i] > 0)
               {
                 pos += largewrite(fd_output,
-                                  kmerindex + kmerhash[i],
-                                  4 * kmercount[i],
+                                  the_index.kmerindex + the_index.kmerhash[i],
+                                  4 * the_index.kmercount[i],
                                   pos,
                                   false, progress_bar);
               }

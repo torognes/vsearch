@@ -66,27 +66,61 @@
 
 
 struct uhandle_s;
+struct Parameters;
 
-extern unsigned int * kmercount; /* number of matching seqnos for each kmer */
-extern uint64_t * kmerhash;  /* index into the list below for each kmer */
-extern unsigned int * kmerindex; /* the list of matching seqnos for kmers */
-extern struct bitmap_s * * kmerbitmap;
-extern unsigned int * dbindex_map;
-extern unsigned int dbindex_count;
-extern unsigned int kmerhashsize;
-extern uint64_t kmerindexsize;
-extern uhandle_s * dbindex_uh;
 
-/* effective word length of the built k-mer index (derived index state, not
-   config): set by dbindex_prepare (from parameters.opt_wordlength) for a FASTA
-   database, or by udb_read for a UDB database whose stored word length differs.
-   Read by everything that extracts query k-mers, so they match the index width
-   without consulting the (immutable) opt_wordlength config. */
-extern unsigned int dbindex_wordlength;
+/* The database k-mer index. Owns its buffers (RAII: released by clear() and the
+   destructor) and is non-copyable. The read API (the getX members) is const so
+   the search worker threads can query one shared index concurrently. Built
+   either by prepare() + add_all_sequences() from the in-memory FASTA database,
+   or by udb_read() straight from a UDB file. */
+struct Dbindex
+{
+  unsigned int * kmercount = nullptr; /* number of matching seqnos for each kmer */
+  uint64_t * kmerhash = nullptr;  /* index into the list below for each kmer */
+  unsigned int * kmerindex = nullptr; /* the list of matching seqnos for kmers */
+  struct bitmap_s * * kmerbitmap = nullptr;
+  unsigned int * map = nullptr;  /* mapping from index element number to seqno */
+  uhandle_s * uhandle = nullptr;  /* unique-kmer finder, used while building */
+  unsigned int count = 0;  /* number of sequences added to the index */
+  unsigned int hashsize = 0;  /* number of kmer slots, i.e. 4^wordlength */
+  uint64_t indexsize = 0;  /* total number of entries in kmerindex */
+
+  /* effective word length of the built k-mer index (derived index state, not
+     config): set by dbindex_prepare (from parameters.opt_wordlength) for a FASTA
+     database, or by udb_read for a UDB database whose stored word length differs.
+     Read by everything that extracts query k-mers, so they match the index width
+     without consulting the (immutable) opt_wordlength config. */
+  unsigned int wordlength = 0;
+
+  Dbindex() = default;
+  ~Dbindex();
+  Dbindex(Dbindex const &) = delete;
+  auto operator=(Dbindex const &) -> Dbindex & = delete;
+
+  auto prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
+  auto add_sequence(unsigned int seqno, int seqmask) -> void;
+  auto add_all_sequences(int seqmask, struct Parameters const & parameters) -> void;
+  auto clear() -> void;
+
+  auto getbitmap(unsigned int kmer) const -> unsigned char *;
+  auto getmatchcount(unsigned int kmer) const -> unsigned int;
+  auto getmatchlist(unsigned int kmer) const -> unsigned int *;
+  auto getmapping(unsigned int index) const -> unsigned int;
+  auto getcount() const -> unsigned int;
+};
+
+
+/* Transitional process-wide index instance. Being removed: each command is
+   migrating to own a local Dbindex and thread a reference to it, after which
+   this global and the dbindex_* free functions below disappear. */
+extern Dbindex the_index;
 
 
 auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
 
+/* Transitional free-function API forwarding to the_index; being removed as the
+   commands migrate to the Dbindex methods above. */
 auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
 
 auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void;

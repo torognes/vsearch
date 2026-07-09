@@ -94,11 +94,11 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
      width overrides the configured one). Query kmers must be extracted at this
      width to match the index; reading parameters.opt_wordlength here would use
      the wrong width against a UDB index (mismatch, out-of-bounds when wider). */
-  assert(dbindex_wordlength * 2 <= 32);
+  assert(the_index.wordlength * 2 <= 32);
   auto fwd = kmer;
   auto rev = 0U;
 
-  for (auto i = 0U; i < dbindex_wordlength; ++i)
+  for (auto i = 0U; i < the_index.wordlength; ++i)
     {
       // compute complement of the last two bits
       auto const complement_bits = (fwd & 3U) ^ 3U;
@@ -212,7 +212,7 @@ auto orient(struct Parameters const & parameters) -> void
         unsigned int const * kmer_list_fwd = nullptr;
 
         /* dbindex_wordlength: the effective index width (see rc_kmer) */
-        unique_count(uh_fwd, static_cast<int>(dbindex_wordlength), qseqlen, qseq_fwd,
+        unique_count(uh_fwd, static_cast<int>(the_index.wordlength), qseqlen, qseq_fwd,
                      & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
         /* count kmers matching on each strand */

@@ -70,23 +70,12 @@
 #include <iterator>  // std::next
 
 
-unsigned int * kmercount;
-uint64_t * kmerhash;
-unsigned int * kmerindex;
-struct bitmap_s * * kmerbitmap;
-unsigned int * dbindex_map;
-unsigned int kmerhashsize;
-uint64_t kmerindexsize;
-unsigned int dbindex_count;
-unsigned int dbindex_wordlength = 0;
-uhandle_s * dbindex_uh;
+Dbindex the_index;
 
 constexpr unsigned int bitmap_threshold = 8;
 
-static unsigned int bitmap_mincount;
 
-
-auto dbindex_getbitmap(unsigned int const kmer) -> unsigned char *
+auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char *
 {
   auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
   if (a_bitmap_s != nullptr)
@@ -97,27 +86,27 @@ auto dbindex_getbitmap(unsigned int const kmer) -> unsigned char *
 }
 
 
-auto dbindex_getmatchcount(unsigned int const kmer) -> unsigned int
+auto Dbindex::getmatchcount(unsigned int const kmer) const -> unsigned int
 {
   return *std::next(kmercount, kmer);
 }
 
 
-auto dbindex_getmatchlist(unsigned int const kmer) -> unsigned int *
+auto Dbindex::getmatchlist(unsigned int const kmer) const -> unsigned int *
 {
   return std::next(kmerindex, static_cast<std::iterator_traits<unsigned int *>::difference_type>(*std::next(kmerhash, kmer)));
 }
 
 
-auto dbindex_getmapping(unsigned int const index) -> unsigned int
+auto Dbindex::getmapping(unsigned int const index) const -> unsigned int
 {
-  return *std::next(dbindex_map, index);
+  return *std::next(map, index);
 }
 
 
-auto dbindex_getcount() -> unsigned int
+auto Dbindex::getcount() const -> unsigned int
 {
-  return dbindex_count;
+  return count;
 }
 
 
@@ -130,67 +119,67 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint
     }
 }
 
-auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
+auto Dbindex::add_sequence(unsigned int seqno, int seqmask) -> void
 {
 #if 0
-  std::printf("Adding seqno %d as index element no %d\n", seqno, dbindex_count);
+  std::printf("Adding seqno %d as index element no %d\n", seqno, count);
 #endif
 
   unsigned int uniquecount = 0;
   unsigned int const * uniquelist = nullptr;
-  unique_count(dbindex_uh, static_cast<int>(dbindex_wordlength),
+  unique_count(uhandle, static_cast<int>(wordlength),
                static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
                &uniquecount, &uniquelist, seqmask);
-  dbindex_map[dbindex_count] = seqno;
+  map[count] = seqno;
   for (auto i = 0U; i < uniquecount; i++)
     {
       auto const kmer = uniquelist[i];
       if (kmerbitmap[kmer] != nullptr)
         {
           ++kmercount[kmer];
-          bitmap_set(kmerbitmap[kmer], dbindex_count);
+          bitmap_set(kmerbitmap[kmer], count);
         }
       else
         {
-          kmerindex[kmerhash[kmer] + kmercount[kmer]] = dbindex_count;
+          kmerindex[kmerhash[kmer] + kmercount[kmer]] = count;
           ++kmercount[kmer];
         }
     }
-  ++dbindex_count;
+  ++count;
 }
 
 
-auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void
+auto Dbindex::add_all_sequences(int seqmask, struct Parameters const & parameters) -> void
 {
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   Progress progress("Creating k-mer index", seqcount, parameters);
   for (auto seqno = 0U; seqno < seqcount ; seqno++)
     {
-      dbindex_addsequence(seqno, seqmask);
+      add_sequence(seqno, seqmask);
       progress.update(seqno);
     }
 }
 
 
-auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void
+auto Dbindex::prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void
 {
   /* Release any state from a previous prepare first (mirrors db_init ->
-     db_free), so a second prepare without an intervening dbindex_free() does
-     not leak the earlier five buffers. dbindex_free() is a no-op on the
-     first call (all globals are null) (L2a). */
-  dbindex_free();
+     db_free), so a second prepare without an intervening clear() does
+     not leak the earlier five buffers. clear() is a no-op on the
+     first call (all members are null) (L2a). */
+  clear();
 
-  dbindex_uh = unique_init();
+  uhandle = unique_init();
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   /* this is the FASTA-database path; the effective index word length is the
-     configured one (a UDB database sets dbindex_wordlength in udb_read instead). */
-  dbindex_wordlength = static_cast<unsigned int>(parameters.opt_wordlength);
-  kmerhashsize = 1U << (2 * dbindex_wordlength);
+     configured one (a UDB database sets wordlength in udb_read instead). */
+  wordlength = static_cast<unsigned int>(parameters.opt_wordlength);
+  hashsize = 1U << (2 * wordlength);
 
   /* allocate memory for kmer count array */
-  kmercount = static_cast<unsigned int *>(xmalloc(kmerhashsize * sizeof(unsigned int)));
-  std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
+  kmercount = static_cast<unsigned int *>(xmalloc(hashsize * sizeof(unsigned int)));
+  std::memset(kmercount, 0, hashsize * sizeof(unsigned int));
 
   /* first scan, just count occurences */
   {
@@ -199,7 +188,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & para
       {
         unsigned int uniquecount = 0;
         unsigned int const * uniquelist = nullptr;
-        unique_count(dbindex_uh, static_cast<int>(dbindex_wordlength),
+        unique_count(uhandle, static_cast<int>(wordlength),
                      static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
                      &uniquecount, &uniquelist, seqmask);
         for (auto i = 0U; i < uniquecount; i++)
@@ -213,7 +202,7 @@ auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & para
 #if 0
   /* dump kmer counts */
   auto * f = fopen_output("kmercounts.txt");
-  for (auto kmer = 0U; kmer < kmerhashsize; kmer++)
+  for (auto kmer = 0U; kmer < hashsize; kmer++)
     {
       fprint_kmer(f, 8, kmer);
       std::fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
@@ -222,24 +211,17 @@ auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & para
 #endif
 
   /* determine minimum kmer count for bitmap usage */
-  if (use_bitmap != 0)
-    {
-      bitmap_mincount = seqcount / bitmap_threshold;
-    }
-  else
-    {
-      bitmap_mincount = seqcount + 1;
-    }
+  unsigned int const bitmap_mincount = (use_bitmap != 0) ? (seqcount / bitmap_threshold) : (seqcount + 1);
 
   /* allocate and zero bitmap pointers */
-  kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(kmerhashsize * sizeof(struct bitmap_s *)));
-  std::memset(kmerbitmap, 0, kmerhashsize * sizeof(struct bitmap_s *));
+  kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(hashsize * sizeof(struct bitmap_s *)));
+  std::memset(kmerbitmap, 0, hashsize * sizeof(struct bitmap_s *));
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
-  kmerhash = static_cast<uint64_t *>(xmalloc((kmerhashsize + 1) * sizeof(uint64_t)));
+  kmerhash = static_cast<uint64_t *>(xmalloc((hashsize + 1) * sizeof(uint64_t)));
   uint64_t sum = 0;
-  for (auto i = 0U; i < kmerhashsize; i++)
+  for (auto i = 0U; i < hashsize; i++)
     {
       kmerhash[i] = sum;
       if (kmercount[i] >= bitmap_mincount)
@@ -252,44 +234,44 @@ auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & para
           sum += kmercount[i];
         }
     }
-  kmerindexsize = sum;
-  kmerhash[kmerhashsize] = sum;
+  indexsize = sum;
+  kmerhash[hashsize] = sum;
 
 #if 0
   if (not parameters.opt_quiet)
-    std::fprintf(stderr, "Unique %u-mers: %u\n", dbindex_wordlength, kmerindexsize);
+    std::fprintf(stderr, "Unique %u-mers: %u\n", wordlength, indexsize);
 #endif
 
   /* reset counts */
-  std::memset(kmercount, 0, kmerhashsize * sizeof(unsigned int));
+  std::memset(kmercount, 0, hashsize * sizeof(unsigned int));
 
   /* allocate space for actual data */
-  kmerindex = static_cast<unsigned int *>(xmalloc(kmerindexsize * sizeof(unsigned int)));
+  kmerindex = static_cast<unsigned int *>(xmalloc(indexsize * sizeof(unsigned int)));
 
   /* allocate space for mapping from indexno to seqno */
-  dbindex_map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
+  map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
 
-  dbindex_count = 0;
+  count = 0;
 
   // memory-intensive: the k-mer index has been allocated
 }
 
 
-auto dbindex_free() -> void
+auto Dbindex::clear() -> void
 {
-  /* Free and null every owned global so the routine is idempotent (a second
+  /* Free and null every owned buffer so the routine is idempotent (a second
      call, or a call before any successful prepare, is a safe no-op) and a
-     subsequent dbindex_prepare() starts from a clean slate. xfree() fatals on
+     subsequent prepare() starts from a clean slate. xfree() fatals on
      a null pointer, so each free is guarded; the bitmap loop and unique handle
      are likewise guarded because they may not have been allocated yet (L2a). */
   if (kmerhash != nullptr) { xfree(kmerhash); kmerhash = nullptr; }
   if (kmerindex != nullptr) { xfree(kmerindex); kmerindex = nullptr; }
   if (kmercount != nullptr) { xfree(kmercount); kmercount = nullptr; }
-  if (dbindex_map != nullptr) { xfree(dbindex_map); dbindex_map = nullptr; }
+  if (map != nullptr) { xfree(map); map = nullptr; }
 
   if (kmerbitmap != nullptr)
     {
-      for (auto kmer = 0U; kmer < kmerhashsize; kmer++)
+      for (auto kmer = 0U; kmer < hashsize; kmer++)
         {
           if (kmerbitmap[kmer] != nullptr)
             {
@@ -300,12 +282,72 @@ auto dbindex_free() -> void
       kmerbitmap = nullptr;
     }
 
-  if (dbindex_uh != nullptr)
+  if (uhandle != nullptr)
     {
-      unique_exit(dbindex_uh);
-      dbindex_uh = nullptr;
+      unique_exit(uhandle);
+      uhandle = nullptr;
     }
 
-  kmerhashsize = 0;
-  kmerindexsize = 0;
+  hashsize = 0;
+  indexsize = 0;
+}
+
+
+Dbindex::~Dbindex()
+{
+  clear();
+}
+
+
+auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void
+{
+  the_index.prepare(use_bitmap, seqmask, parameters);
+}
+
+
+auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void
+{
+  the_index.add_all_sequences(seqmask, parameters);
+}
+
+
+auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
+{
+  the_index.add_sequence(seqno, seqmask);
+}
+
+
+auto dbindex_free() -> void
+{
+  the_index.clear();
+}
+
+
+auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
+{
+  return the_index.getbitmap(kmer);
+}
+
+
+auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int
+{
+  return the_index.getmatchcount(kmer);
+}
+
+
+auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *
+{
+  return the_index.getmatchlist(kmer);
+}
+
+
+auto dbindex_getmapping(unsigned int index) -> unsigned int
+{
+  return the_index.getmapping(index);
+}
+
+
+auto dbindex_getcount() -> unsigned int
+{
+  return the_index.getcount();
 }
