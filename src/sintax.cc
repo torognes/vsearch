@@ -425,8 +425,8 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
       auto kmersamplecount = 0U;
       unsigned int const * kmersample = nullptr;
 
-      /* find unique kmers at dbindex_wordlength, the effective index width (set
-         by dbindex_prepare for a FASTA db, or udb_read for a UDB db); reading
+      /* find unique kmers at dbindex.wordlength, the effective index width (set
+         by Dbindex::prepare for a FASTA db, or udb_read for a UDB db); reading
          parameters.opt_wordlength would use the wrong width against a UDB index. */
       unique_count(si->uh, static_cast<int>(si->dbindex->wordlength),
                    si->qseqlen, si->qsequence,

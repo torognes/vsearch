@@ -137,7 +137,7 @@ auto db_getlongestsequence() -> uint64_t;
 auto db_getshortestsequence() -> uint64_t;
 
 /* Note: the sorting functions below must be called after db_read,
-   but before dbindex_prepare */
+   but before Dbindex::prepare */
 
 auto db_sortbylength(struct Parameters const & parameters) -> void;
 auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> void;

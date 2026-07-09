@@ -87,7 +87,7 @@ struct Dbindex
   uint64_t indexsize = 0;  /* total number of entries in kmerindex */
 
   /* effective word length of the built k-mer index (derived index state, not
-     config): set by dbindex_prepare (from parameters.opt_wordlength) for a FASTA
+     config): set by prepare (from parameters.opt_wordlength) for a FASTA
      database, or by udb_read for a UDB database whose stored word length differs.
      Read by everything that extracts query k-mers, so they match the index width
      without consulting the (immutable) opt_wordlength config. */

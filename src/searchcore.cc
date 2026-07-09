@@ -834,7 +834,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void
   /* opt_maxaccepts/opt_maxrejects are read through searchinfo->parameters: each
      caller threads a copy carrying its adjustment (search/cluster the seqcount
      clamp, chimera the detection defaults), so no global is mutated (E1). Query
-     kmers are extracted at dbindex_wordlength, the effective index width. */
+     kmers are extracted at searchinfo->dbindex->wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
   search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);

@@ -87,10 +87,10 @@
 // 0b010101 -> 0b101010
 auto rc_kmer(unsigned int kmer, unsigned int wordlength) -> unsigned int
 {
-  /* reverse complement a kmer where k = dbindex_wordlength */
+  /* reverse complement a kmer where k = wordlength */
 
-  /* dbindex_wordlength is the effective index word length (set by
-     dbindex_prepare for a FASTA db, or by udb_read for a UDB db whose stored
+  /* wordlength is the effective index word length (Dbindex::wordlength, set by
+     Dbindex::prepare for a FASTA db, or by udb_read for a UDB db whose stored
      width overrides the configured one). Query kmers must be extracted at this
      width to match the index; reading parameters.opt_wordlength here would use
      the wrong width against a UDB index (mismatch, out-of-bounds when wider). */
@@ -214,7 +214,7 @@ auto orient(struct Parameters const & parameters) -> void
         unsigned int kmer_count_fwd = 0;
         unsigned int const * kmer_list_fwd = nullptr;
 
-        /* dbindex_wordlength: the effective index width (see rc_kmer) */
+        /* dbindex.wordlength: the effective index width (see rc_kmer) */
         unique_count(uh_fwd, static_cast<int>(dbindex.wordlength), qseqlen, qseq_fwd,
                      & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
