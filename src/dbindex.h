@@ -97,6 +97,8 @@ struct Dbindex
   ~Dbindex();
   Dbindex(Dbindex const &) = delete;
   auto operator=(Dbindex const &) -> Dbindex & = delete;
+  Dbindex(Dbindex &&) = delete;
+  auto operator=(Dbindex &&) -> Dbindex & = delete;
 
   auto prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
   auto add_sequence(unsigned int seqno, int seqmask) -> void;
