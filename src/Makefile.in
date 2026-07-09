@@ -170,7 +170,7 @@ am_libcityhash_pic_a_OBJECTS =  \
 libcityhash_pic_a_OBJECTS = $(am_libcityhash_pic_a_OBJECTS)
 libcpu_a_AR = $(AR) $(ARFLAGS)
 libcpu_a_LIBADD =
-am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
+am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
 	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
 	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
@@ -181,7 +181,7 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -196,7 +196,7 @@ am__objects_1 =
 libcpu_a_OBJECTS = $(am_libcpu_a_OBJECTS)
 libcpu_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_pic_a_LIBADD =
-am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
+am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
 	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
 	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
@@ -207,7 +207,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -222,7 +222,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 libcpu_pic_a_OBJECTS = $(am_libcpu_pic_a_OBJECTS)
 libcpu_sse2_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_a_LIBADD =
-am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
+am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
 	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
 	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
@@ -233,7 +233,7 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h arch.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -249,17 +249,17 @@ libcpu_sse2_a_OBJECTS = $(am_libcpu_sse2_a_OBJECTS)
 libcpu_sse2_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_pic_a_LIBADD =
 am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
-	arch.h arch/x86_64/cpu_features.hpp attributes.h bitmap.h \
-	chimera.h vendored/city.h cli.h cluster.h cpu.h cut.h db.h \
-	dbhash.h dbindex.h derep.h derep_prefix.h derep_smallmem.h \
-	dynlibs.h eestats.h fasta2fastq.h fasta.h fastq.h \
-	fastq_chars.h fastq_join.h fastq_mergepairs.h fastq_stats.h \
-	fastqops.h fastx.h fastx_syncpairs.h filter.h getseq.h \
-	kmerhash.h linmemalign.h mask.h vendored/md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h \
-	vendored/sha1.h shuffle.h sintax.h sortbylength.h sortbysize.h \
-	subsample.h tax.h udb.h unique.h userfields.h util.h \
+	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
+	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
+	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
+	eestats.h fasta2fastq.h fasta.h fastq.h fastq_chars.h \
+	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
+	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
+	linmemalign.h mask.h vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -275,17 +275,17 @@ libcpu_sse2_pic_a_OBJECTS = $(am_libcpu_sse2_pic_a_OBJECTS)
 libcpu_ssse3_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_a_LIBADD =
 am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
-	arch.h arch/x86_64/cpu_features.hpp attributes.h bitmap.h \
-	chimera.h vendored/city.h cli.h cluster.h cpu.h cut.h db.h \
-	dbhash.h dbindex.h derep.h derep_prefix.h derep_smallmem.h \
-	dynlibs.h eestats.h fasta2fastq.h fasta.h fastq.h \
-	fastq_chars.h fastq_join.h fastq_mergepairs.h fastq_stats.h \
-	fastqops.h fastx.h fastx_syncpairs.h filter.h getseq.h \
-	kmerhash.h linmemalign.h mask.h vendored/md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h \
-	vendored/sha1.h shuffle.h sintax.h sortbylength.h sortbysize.h \
-	subsample.h tax.h udb.h unique.h userfields.h util.h \
+	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
+	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
+	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
+	eestats.h fasta2fastq.h fasta.h fastq.h fastq_chars.h \
+	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
+	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
+	linmemalign.h mask.h vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -301,17 +301,17 @@ libcpu_ssse3_a_OBJECTS = $(am_libcpu_ssse3_a_OBJECTS)
 libcpu_ssse3_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_pic_a_LIBADD =
 am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
-	arch.h arch/x86_64/cpu_features.hpp attributes.h bitmap.h \
-	chimera.h vendored/city.h cli.h cluster.h cpu.h cut.h db.h \
-	dbhash.h dbindex.h derep.h derep_prefix.h derep_smallmem.h \
-	dynlibs.h eestats.h fasta2fastq.h fasta.h fastq.h \
-	fastq_chars.h fastq_join.h fastq_mergepairs.h fastq_stats.h \
-	fastqops.h fastx.h fastx_syncpairs.h filter.h getseq.h \
-	kmerhash.h linmemalign.h mask.h vendored/md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h \
-	vendored/sha1.h shuffle.h sintax.h sortbylength.h sortbysize.h \
-	subsample.h tax.h udb.h unique.h userfields.h util.h \
+	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
+	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
+	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
+	eestats.h fasta2fastq.h fasta.h fastq.h fastq_chars.h \
+	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
+	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
+	linmemalign.h mask.h vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -326,7 +326,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 libcpu_ssse3_pic_a_OBJECTS = $(am_libcpu_ssse3_pic_a_OBJECTS)
 libvsearch_core_a_AR = $(AR) $(ARFLAGS)
 libvsearch_core_a_LIBADD =
-am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h arch.h \
+am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h \
 	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
 	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
 	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
@@ -337,7 +337,7 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h arch.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	tax.h udb.h unique.h userfields.h util.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -346,12 +346,12 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h arch.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h \
-	align_simd.cc allpairs.cc arch.cc attributes.cc bitmap.cc \
-	chimera.cc cli.cc cluster.cc cut.cc db.cc dbhash.cc dbindex.cc \
-	derep.cc derep_prefix.cc derep_smallmem.cc dynlibs.cc \
-	eestats.cc fasta2fastq.cc fasta.cc fastq.cc fastq_chars.cc \
-	fastq_join.cc fastq_mergepairs.cc fastq_stats.cc fastqops.cc \
-	fastx.cc fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
+	align_simd.cc allpairs.cc attributes.cc bitmap.cc chimera.cc \
+	cli.cc cluster.cc cut.cc db.cc dbhash.cc dbindex.cc derep.cc \
+	derep_prefix.cc derep_smallmem.cc dynlibs.cc eestats.cc \
+	fasta2fastq.cc fasta.cc fastq.cc fastq_chars.cc fastq_join.cc \
+	fastq_mergepairs.cc fastq_stats.cc fastqops.cc fastx.cc \
+	fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
 	linmemalign.cc mask.cc vendored/md5.c minheap.cc msa.cc \
 	orient.cc otutable.cc rereplicate.cc results.cc search.cc \
 	searchcore.cc search_exact.cc sff_convert.cc vendored/sha1.c \
@@ -363,10 +363,10 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h arch.h \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
 	utils/logfile.cpp vsearch.cc arch/x86_64/cpu_features.cpp \
-	os/posix/dynlib_loader.cc os/windows/dynlib_loader.cc
+	os/posix/dynlib_loader.cc os/posix/system.cc \
+	os/windows/dynlib_loader.cc os/windows/system.cc
 am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	libvsearch_core_a-allpairs.$(OBJEXT) \
-	libvsearch_core_a-arch.$(OBJEXT) \
 	libvsearch_core_a-attributes.$(OBJEXT) \
 	libvsearch_core_a-bitmap.$(OBJEXT) \
 	libvsearch_core_a-chimera.$(OBJEXT) \
@@ -431,23 +431,25 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-logfile.$(OBJEXT) \
 	libvsearch_core_a-vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
-@TARGET_WIN_FALSE@am__objects_4 = os/posix/libvsearch_core_a-dynlib_loader.$(OBJEXT)
-@TARGET_WIN_TRUE@am__objects_4 = os/windows/libvsearch_core_a-dynlib_loader.$(OBJEXT)
+@TARGET_WIN_FALSE@am__objects_4 = os/posix/libvsearch_core_a-dynlib_loader.$(OBJEXT) \
+@TARGET_WIN_FALSE@	os/posix/libvsearch_core_a-system.$(OBJEXT)
+@TARGET_WIN_TRUE@am__objects_4 = os/windows/libvsearch_core_a-dynlib_loader.$(OBJEXT) \
+@TARGET_WIN_TRUE@	os/windows/libvsearch_core_a-system.$(OBJEXT)
 am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_3) $(am__objects_4)
 libvsearch_core_a_OBJECTS = $(am_libvsearch_core_a_OBJECTS)
 am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
-	arch.h arch/x86_64/cpu_features.hpp attributes.h bitmap.h \
-	chimera.h vendored/city.h cli.h cluster.h cpu.h cut.h db.h \
-	dbhash.h dbindex.h derep.h derep_prefix.h derep_smallmem.h \
-	dynlibs.h eestats.h fasta2fastq.h fasta.h fastq.h \
-	fastq_chars.h fastq_join.h fastq_mergepairs.h fastq_stats.h \
-	fastqops.h fastx.h fastx_syncpairs.h filter.h getseq.h \
-	kmerhash.h linmemalign.h mask.h vendored/md5.h minheap.h msa.h \
-	orient.h otutable.h rereplicate.h results.h search.h \
-	searchcore.h search_exact.h sff_convert.h showalign.h \
-	vendored/sha1.h shuffle.h sintax.h sortbylength.h sortbysize.h \
-	subsample.h tax.h udb.h unique.h userfields.h util.h \
+	arch/x86_64/cpu_features.hpp attributes.h bitmap.h chimera.h \
+	vendored/city.h cli.h cluster.h cpu.h cut.h db.h dbhash.h \
+	dbindex.h derep.h derep_prefix.h derep_smallmem.h dynlibs.h \
+	eestats.h fasta2fastq.h fasta.h fastq.h fastq_chars.h \
+	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
+	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
+	linmemalign.h mask.h vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h userfields.h util.h \
 	utils/check_output_filehandle.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
@@ -456,12 +458,12 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp vsearch.h vsearch_api.h xstring.h \
-	align_simd.cc allpairs.cc arch.cc attributes.cc bitmap.cc \
-	chimera.cc cli.cc cluster.cc cut.cc db.cc dbhash.cc dbindex.cc \
-	derep.cc derep_prefix.cc derep_smallmem.cc dynlibs.cc \
-	eestats.cc fasta2fastq.cc fasta.cc fastq.cc fastq_chars.cc \
-	fastq_join.cc fastq_mergepairs.cc fastq_stats.cc fastqops.cc \
-	fastx.cc fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
+	align_simd.cc allpairs.cc attributes.cc bitmap.cc chimera.cc \
+	cli.cc cluster.cc cut.cc db.cc dbhash.cc dbindex.cc derep.cc \
+	derep_prefix.cc derep_smallmem.cc dynlibs.cc eestats.cc \
+	fasta2fastq.cc fasta.cc fastq.cc fastq_chars.cc fastq_join.cc \
+	fastq_mergepairs.cc fastq_stats.cc fastqops.cc fastx.cc \
+	fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
 	linmemalign.cc mask.cc vendored/md5.c minheap.cc msa.cc \
 	orient.cc otutable.cc rereplicate.cc results.cc search.cc \
 	searchcore.cc search_exact.cc sff_convert.cc vendored/sha1.c \
@@ -473,8 +475,9 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
 	utils/logfile.cpp vsearch.cc arch/x86_64/cpu_features.cpp \
-	os/posix/dynlib_loader.cc os/windows/dynlib_loader.cc
-am__objects_5 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) arch.$(OBJEXT) \
+	os/posix/dynlib_loader.cc os/posix/system.cc \
+	os/windows/dynlib_loader.cc os/windows/system.cc
+am__objects_5 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) \
 	attributes.$(OBJEXT) bitmap.$(OBJEXT) chimera.$(OBJEXT) \
 	cli.$(OBJEXT) cluster.$(OBJEXT) cut.$(OBJEXT) db.$(OBJEXT) \
 	dbhash.$(OBJEXT) dbindex.$(OBJEXT) derep.$(OBJEXT) \
@@ -502,8 +505,10 @@ am__objects_5 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) arch.$(OBJEXT) \
 	vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_6 =  \
 @TARGET_X86_64_TRUE@	arch/x86_64/cpu_features.$(OBJEXT)
-@TARGET_WIN_FALSE@am__objects_7 = os/posix/dynlib_loader.$(OBJEXT)
-@TARGET_WIN_TRUE@am__objects_7 = os/windows/dynlib_loader.$(OBJEXT)
+@TARGET_WIN_FALSE@am__objects_7 = os/posix/dynlib_loader.$(OBJEXT) \
+@TARGET_WIN_FALSE@	os/posix/system.$(OBJEXT)
+@TARGET_WIN_TRUE@am__objects_7 = os/windows/dynlib_loader.$(OBJEXT) \
+@TARGET_WIN_TRUE@	os/windows/system.$(OBJEXT)
 am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
 	$(am__objects_5) $(am__objects_6) $(am__objects_7)
 __top_builddir__bin_vsearch_OBJECTS =  \
@@ -534,28 +539,26 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
-	./$(DEPDIR)/allpairs.Po ./$(DEPDIR)/arch.Po \
-	./$(DEPDIR)/attributes.Po ./$(DEPDIR)/bitmap.Po \
-	./$(DEPDIR)/chimera.Po ./$(DEPDIR)/cli.Po \
-	./$(DEPDIR)/cluster.Po ./$(DEPDIR)/cpu.Po ./$(DEPDIR)/cut.Po \
-	./$(DEPDIR)/db.Po ./$(DEPDIR)/dbhash.Po ./$(DEPDIR)/dbindex.Po \
-	./$(DEPDIR)/derep.Po ./$(DEPDIR)/derep_prefix.Po \
-	./$(DEPDIR)/derep_smallmem.Po ./$(DEPDIR)/dynlibs.Po \
-	./$(DEPDIR)/eestats.Po ./$(DEPDIR)/fasta.Po \
-	./$(DEPDIR)/fasta2fastq.Po ./$(DEPDIR)/fastq.Po \
-	./$(DEPDIR)/fastq_chars.Po ./$(DEPDIR)/fastq_join.Po \
-	./$(DEPDIR)/fastq_mergepairs.Po ./$(DEPDIR)/fastq_stats.Po \
-	./$(DEPDIR)/fastqops.Po ./$(DEPDIR)/fastx.Po \
-	./$(DEPDIR)/fastx_syncpairs.Po ./$(DEPDIR)/filter.Po \
-	./$(DEPDIR)/getseq.Po ./$(DEPDIR)/kmerhash.Po \
-	./$(DEPDIR)/libcpu_pic_a-cpu.Po \
+	./$(DEPDIR)/allpairs.Po ./$(DEPDIR)/attributes.Po \
+	./$(DEPDIR)/bitmap.Po ./$(DEPDIR)/chimera.Po \
+	./$(DEPDIR)/cli.Po ./$(DEPDIR)/cluster.Po ./$(DEPDIR)/cpu.Po \
+	./$(DEPDIR)/cut.Po ./$(DEPDIR)/db.Po ./$(DEPDIR)/dbhash.Po \
+	./$(DEPDIR)/dbindex.Po ./$(DEPDIR)/derep.Po \
+	./$(DEPDIR)/derep_prefix.Po ./$(DEPDIR)/derep_smallmem.Po \
+	./$(DEPDIR)/dynlibs.Po ./$(DEPDIR)/eestats.Po \
+	./$(DEPDIR)/fasta.Po ./$(DEPDIR)/fasta2fastq.Po \
+	./$(DEPDIR)/fastq.Po ./$(DEPDIR)/fastq_chars.Po \
+	./$(DEPDIR)/fastq_join.Po ./$(DEPDIR)/fastq_mergepairs.Po \
+	./$(DEPDIR)/fastq_stats.Po ./$(DEPDIR)/fastqops.Po \
+	./$(DEPDIR)/fastx.Po ./$(DEPDIR)/fastx_syncpairs.Po \
+	./$(DEPDIR)/filter.Po ./$(DEPDIR)/getseq.Po \
+	./$(DEPDIR)/kmerhash.Po ./$(DEPDIR)/libcpu_pic_a-cpu.Po \
 	./$(DEPDIR)/libcpu_sse2_a-cpu.Po \
 	./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po \
 	./$(DEPDIR)/libcpu_ssse3_a-cpu.Po \
 	./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po \
 	./$(DEPDIR)/libvsearch_core_a-align_simd.Po \
 	./$(DEPDIR)/libvsearch_core_a-allpairs.Po \
-	./$(DEPDIR)/libvsearch_core_a-arch.Po \
 	./$(DEPDIR)/libvsearch_core_a-attributes.Po \
 	./$(DEPDIR)/libvsearch_core_a-bitmap.Po \
 	./$(DEPDIR)/libvsearch_core_a-chimera.Po \
@@ -622,8 +625,12 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po \
 	os/posix/$(DEPDIR)/dynlib_loader.Po \
 	os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po \
+	os/posix/$(DEPDIR)/libvsearch_core_a-system.Po \
+	os/posix/$(DEPDIR)/system.Po \
 	os/windows/$(DEPDIR)/dynlib_loader.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po \
+	os/windows/$(DEPDIR)/libvsearch_core_a-system.Po \
+	os/windows/$(DEPDIR)/system.Po \
 	utils/$(DEPDIR)/check_output_filehandle.Po \
 	utils/$(DEPDIR)/cigar.Po \
 	utils/$(DEPDIR)/compare_strings_nocase.Po \
@@ -831,7 +838,6 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions $(am__append_7)
 VSEARCHHEADERS = \
 align_simd.h \
 allpairs.h \
-arch.h \
 arch/x86_64/cpu_features.hpp \
 attributes.h \
 bitmap.h \
@@ -882,6 +888,7 @@ sintax.h \
 sortbylength.h \
 sortbysize.h \
 subsample.h \
+system.h \
 tax.h \
 udb.h \
 unique.h \
@@ -949,7 +956,6 @@ libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
 VSEARCH_COMMON_SOURCES = \
 align_simd.cc \
 allpairs.cc \
-arch.cc \
 attributes.cc \
 bitmap.cc \
 chimera.cc \
@@ -1022,14 +1028,15 @@ vsearch.cc
 # cpu_features is compiled only there; its single caller in vsearch.cc is
 # guarded by #ifdef __x86_64__ to match.
 @TARGET_X86_64_TRUE@VSEARCH_ARCH_SOURCES = arch/x86_64/cpu_features.cpp
-@TARGET_WIN_FALSE@VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc
+@TARGET_WIN_FALSE@VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc os/posix/system.cc
 
-# Per-OS sources. The runtime shared-library loader (dynlib::open/symbol/close)
-# has one backend per OS family, selected here so the common code stays free of
-# platform #ifdefs: Windows uses LoadLibraryEx/GetProcAddress/FreeLibrary, every
-# other target uses the POSIX dlopen/dlsym/dlclose. TARGET_WIN is set by
-# configure when <windows.h> is available (native or mingw cross-build).
-@TARGET_WIN_TRUE@VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc
+# Per-OS sources. Host-OS-specific code lives in one backend per OS family,
+# selected here so the common code stays free of platform #ifdefs: the runtime
+# shared-library loader (dynlib::open/symbol/close) and the system_/x* helpers
+# (memory, cores, aligned alloc, file descriptors). Windows uses the Win32 API;
+# every other target uses the POSIX interfaces. TARGET_WIN is set by configure
+# when <windows.h> is available (native or mingw cross-build).
+@TARGET_WIN_TRUE@VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc os/windows/system.cc
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
 .DEFAULT_GOAL = ../bin/vsearch
 
@@ -1220,6 +1227,8 @@ os/posix/$(DEPDIR)/$(am__dirstamp):
 	@: > os/posix/$(DEPDIR)/$(am__dirstamp)
 os/posix/libvsearch_core_a-dynlib_loader.$(OBJEXT):  \
 	os/posix/$(am__dirstamp) os/posix/$(DEPDIR)/$(am__dirstamp)
+os/posix/libvsearch_core_a-system.$(OBJEXT): os/posix/$(am__dirstamp) \
+	os/posix/$(DEPDIR)/$(am__dirstamp)
 os/windows/$(am__dirstamp):
 	@$(MKDIR_P) os/windows
 	@: > os/windows/$(am__dirstamp)
@@ -1227,6 +1236,9 @@ os/windows/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) os/windows/$(DEPDIR)
 	@: > os/windows/$(DEPDIR)/$(am__dirstamp)
 os/windows/libvsearch_core_a-dynlib_loader.$(OBJEXT):  \
+	os/windows/$(am__dirstamp) \
+	os/windows/$(DEPDIR)/$(am__dirstamp)
+os/windows/libvsearch_core_a-system.$(OBJEXT):  \
 	os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 
@@ -1264,7 +1276,11 @@ arch/x86_64/cpu_features.$(OBJEXT): arch/x86_64/$(am__dirstamp) \
 	arch/x86_64/$(DEPDIR)/$(am__dirstamp)
 os/posix/dynlib_loader.$(OBJEXT): os/posix/$(am__dirstamp) \
 	os/posix/$(DEPDIR)/$(am__dirstamp)
+os/posix/system.$(OBJEXT): os/posix/$(am__dirstamp) \
+	os/posix/$(DEPDIR)/$(am__dirstamp)
 os/windows/dynlib_loader.$(OBJEXT): os/windows/$(am__dirstamp) \
+	os/windows/$(DEPDIR)/$(am__dirstamp)
+os/windows/system.$(OBJEXT): os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/bin/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/bin
@@ -1287,7 +1303,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/align_simd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allpairs.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/attributes.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bitmap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chimera.Po@am__quote@ # am--include-marker
@@ -1323,7 +1338,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-align_simd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-allpairs.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-arch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-attributes.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-bitmap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-chimera.Po@am__quote@ # am--include-marker
@@ -1403,8 +1417,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/posix/$(DEPDIR)/dynlib_loader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/posix/$(DEPDIR)/libvsearch_core_a-system.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/posix/$(DEPDIR)/system.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/dynlib_loader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-system.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/check_output_filehandle.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/cigar.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/compare_strings_nocase.Po@am__quote@ # am--include-marker
@@ -1625,20 +1643,6 @@ libvsearch_core_a-allpairs.obj: allpairs.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='allpairs.cc' object='libvsearch_core_a-allpairs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-allpairs.obj `if test -f 'allpairs.cc'; then $(CYGPATH_W) 'allpairs.cc'; else $(CYGPATH_W) '$(srcdir)/allpairs.cc'; fi`
-
-libvsearch_core_a-arch.o: arch.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-arch.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-arch.Tpo -c -o libvsearch_core_a-arch.o `test -f 'arch.cc' || echo '$(srcdir)/'`arch.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-arch.Tpo $(DEPDIR)/libvsearch_core_a-arch.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch.cc' object='libvsearch_core_a-arch.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-arch.o `test -f 'arch.cc' || echo '$(srcdir)/'`arch.cc
-
-libvsearch_core_a-arch.obj: arch.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-arch.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-arch.Tpo -c -o libvsearch_core_a-arch.obj `if test -f 'arch.cc'; then $(CYGPATH_W) 'arch.cc'; else $(CYGPATH_W) '$(srcdir)/arch.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-arch.Tpo $(DEPDIR)/libvsearch_core_a-arch.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch.cc' object='libvsearch_core_a-arch.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-arch.obj `if test -f 'arch.cc'; then $(CYGPATH_W) 'arch.cc'; else $(CYGPATH_W) '$(srcdir)/arch.cc'; fi`
 
 libvsearch_core_a-attributes.o: attributes.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-attributes.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-attributes.Tpo -c -o libvsearch_core_a-attributes.o `test -f 'attributes.cc' || echo '$(srcdir)/'`attributes.cc
@@ -2536,6 +2540,20 @@ os/posix/libvsearch_core_a-dynlib_loader.obj: os/posix/dynlib_loader.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/posix/libvsearch_core_a-dynlib_loader.obj `if test -f 'os/posix/dynlib_loader.cc'; then $(CYGPATH_W) 'os/posix/dynlib_loader.cc'; else $(CYGPATH_W) '$(srcdir)/os/posix/dynlib_loader.cc'; fi`
 
+os/posix/libvsearch_core_a-system.o: os/posix/system.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/posix/libvsearch_core_a-system.o -MD -MP -MF os/posix/$(DEPDIR)/libvsearch_core_a-system.Tpo -c -o os/posix/libvsearch_core_a-system.o `test -f 'os/posix/system.cc' || echo '$(srcdir)/'`os/posix/system.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/posix/$(DEPDIR)/libvsearch_core_a-system.Tpo os/posix/$(DEPDIR)/libvsearch_core_a-system.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/posix/system.cc' object='os/posix/libvsearch_core_a-system.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/posix/libvsearch_core_a-system.o `test -f 'os/posix/system.cc' || echo '$(srcdir)/'`os/posix/system.cc
+
+os/posix/libvsearch_core_a-system.obj: os/posix/system.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/posix/libvsearch_core_a-system.obj -MD -MP -MF os/posix/$(DEPDIR)/libvsearch_core_a-system.Tpo -c -o os/posix/libvsearch_core_a-system.obj `if test -f 'os/posix/system.cc'; then $(CYGPATH_W) 'os/posix/system.cc'; else $(CYGPATH_W) '$(srcdir)/os/posix/system.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/posix/$(DEPDIR)/libvsearch_core_a-system.Tpo os/posix/$(DEPDIR)/libvsearch_core_a-system.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/posix/system.cc' object='os/posix/libvsearch_core_a-system.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/posix/libvsearch_core_a-system.obj `if test -f 'os/posix/system.cc'; then $(CYGPATH_W) 'os/posix/system.cc'; else $(CYGPATH_W) '$(srcdir)/os/posix/system.cc'; fi`
+
 os/windows/libvsearch_core_a-dynlib_loader.o: os/windows/dynlib_loader.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/windows/libvsearch_core_a-dynlib_loader.o -MD -MP -MF os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Tpo -c -o os/windows/libvsearch_core_a-dynlib_loader.o `test -f 'os/windows/dynlib_loader.cc' || echo '$(srcdir)/'`os/windows/dynlib_loader.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Tpo os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
@@ -2549,6 +2567,20 @@ os/windows/libvsearch_core_a-dynlib_loader.obj: os/windows/dynlib_loader.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/windows/dynlib_loader.cc' object='os/windows/libvsearch_core_a-dynlib_loader.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-dynlib_loader.obj `if test -f 'os/windows/dynlib_loader.cc'; then $(CYGPATH_W) 'os/windows/dynlib_loader.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/dynlib_loader.cc'; fi`
+
+os/windows/libvsearch_core_a-system.o: os/windows/system.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/windows/libvsearch_core_a-system.o -MD -MP -MF os/windows/$(DEPDIR)/libvsearch_core_a-system.Tpo -c -o os/windows/libvsearch_core_a-system.o `test -f 'os/windows/system.cc' || echo '$(srcdir)/'`os/windows/system.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/windows/$(DEPDIR)/libvsearch_core_a-system.Tpo os/windows/$(DEPDIR)/libvsearch_core_a-system.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/windows/system.cc' object='os/windows/libvsearch_core_a-system.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-system.o `test -f 'os/windows/system.cc' || echo '$(srcdir)/'`os/windows/system.cc
+
+os/windows/libvsearch_core_a-system.obj: os/windows/system.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/windows/libvsearch_core_a-system.obj -MD -MP -MF os/windows/$(DEPDIR)/libvsearch_core_a-system.Tpo -c -o os/windows/libvsearch_core_a-system.obj `if test -f 'os/windows/system.cc'; then $(CYGPATH_W) 'os/windows/system.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/system.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/windows/$(DEPDIR)/libvsearch_core_a-system.Tpo os/windows/$(DEPDIR)/libvsearch_core_a-system.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/windows/system.cc' object='os/windows/libvsearch_core_a-system.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-system.obj `if test -f 'os/windows/system.cc'; then $(CYGPATH_W) 'os/windows/system.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/system.cc'; fi`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -2706,7 +2738,6 @@ clean-am: clean-binPROGRAMS clean-generic clean-local \
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/align_simd.Po
 	-rm -f ./$(DEPDIR)/allpairs.Po
-	-rm -f ./$(DEPDIR)/arch.Po
 	-rm -f ./$(DEPDIR)/attributes.Po
 	-rm -f ./$(DEPDIR)/bitmap.Po
 	-rm -f ./$(DEPDIR)/chimera.Po
@@ -2742,7 +2773,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-align_simd.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-allpairs.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-arch.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-attributes.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-bitmap.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-chimera.Po
@@ -2822,8 +2852,12 @@ distclean: distclean-am
 	-rm -f arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
 	-rm -f os/posix/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
+	-rm -f os/posix/$(DEPDIR)/libvsearch_core_a-system.Po
+	-rm -f os/posix/$(DEPDIR)/system.Po
 	-rm -f os/windows/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
+	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system.Po
+	-rm -f os/windows/$(DEPDIR)/system.Po
 	-rm -f utils/$(DEPDIR)/check_output_filehandle.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
@@ -2899,7 +2933,6 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/align_simd.Po
 	-rm -f ./$(DEPDIR)/allpairs.Po
-	-rm -f ./$(DEPDIR)/arch.Po
 	-rm -f ./$(DEPDIR)/attributes.Po
 	-rm -f ./$(DEPDIR)/bitmap.Po
 	-rm -f ./$(DEPDIR)/chimera.Po
@@ -2935,7 +2968,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-align_simd.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-allpairs.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-arch.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-attributes.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-bitmap.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-chimera.Po
@@ -3015,8 +3047,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
 	-rm -f os/posix/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
+	-rm -f os/posix/$(DEPDIR)/libvsearch_core_a-system.Po
+	-rm -f os/posix/$(DEPDIR)/system.Po
 	-rm -f os/windows/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
+	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system.Po
+	-rm -f os/windows/$(DEPDIR)/system.Po
 	-rm -f utils/$(DEPDIR)/check_output_filehandle.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po

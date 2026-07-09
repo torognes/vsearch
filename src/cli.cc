@@ -61,7 +61,7 @@
 #include "cli.h"
 #include "vsearch.h"
 #include "vsearch_api.h"
-#include "arch.h"  // arch_get_cores
+#include "system.h"  // system_get_cores
 #include "chimera.h"  // maxparents
 #include "mask.h"  // MASK_NONE, MASK_DUST, MASK_SOFT, MASK_ERROR
 #include "userfields.h"  // parse_userfields_arg
@@ -4089,7 +4089,7 @@ namespace {
       {
         if (parameters.opt_threads == 0)
           {
-            parameters.opt_threads = arch_get_cores();
+            parameters.opt_threads = system_get_cores();
           }
       }
     else

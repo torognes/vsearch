@@ -58,103 +58,50 @@
 
 */
 
-#include "vsearch.h"
-#include "utils/fatal.hpp"
+#include <windows.h>  // MEMORYSTATUSEX, GlobalMemoryStatusEx, SYSTEM_INFO, GetSystemInfo, GetCurrentProcess
+#include <psapi.h>  // PROCESS_MEMORY_COUNTERS, GetProcessMemoryInfo
 #include <algorithm>  // std::max
-#include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // uint64_t
-#include <cstdlib>  // std::realloc, std::free
+#include <cstdio>  // std::FILE, _ftelli64
+#include <fcntl.h>  // _O_RDONLY, _O_WRONLY, _O_CREAT, _O_TRUNC, _O_BINARY
+#include <io.h>  // _open, _lseeki64
+#include <malloc.h>  // _aligned_malloc, _aligned_realloc, _aligned_free
+#include <sys/stat.h>  // _fstat64, _stat64, _S_IREAD, _S_IWRITE
+// <sys/stat.h> must precede "system.h": it defines the "#define __stat64
+// _stat64" alias (via _mingw_stat64.h) that system.h's xstat_t = struct
+// __stat64 relies on, so that xstat_t resolves to the real struct _stat64
+// expected by _fstat64/_stat64 rather than a distinct forward-declared type.
+#include "system.h"
+#include "utils/fatal.hpp"
 
 
 constexpr auto vsearch_memalignment = 16;
 
 
-auto arch_get_memused() -> uint64_t
+auto system_get_memused() -> uint64_t
 {
-#ifdef _WIN32
-
   PROCESS_MEMORY_COUNTERS pmc;
   GetProcessMemoryInfo(GetCurrentProcess(),
                        &pmc,
                        sizeof(PROCESS_MEMORY_COUNTERS));
   return pmc.PeakWorkingSetSize;
-
-#else
-
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-
-# ifdef __APPLE__
-  /* Mac: ru_maxrss gives the size in bytes */
-  return r_usage.ru_maxrss;
-# else
-  /* Linux: ru_maxrss gives the size in kilobytes  */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
-# endif
-
-#endif
 }
 
 
-auto arch_get_memtotal() -> uint64_t
+auto system_get_memtotal() -> uint64_t
 {
-#ifdef _WIN32
-
   MEMORYSTATUSEX ms;
   ms.dwLength = sizeof(MEMORYSTATUSEX);
   GlobalMemoryStatusEx(&ms);
   return ms.ullTotalPhys;
-
-#elif defined(__APPLE__)
-
-  int mib [] = { CTL_HW, HW_MEMSIZE };
-  int64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-
-#elif defined(__FreeBSD__)
-
-  /* sysctlbyname("hw.physmem") writes a uint64_t directly, avoiding the
-     32-bit overflow of the older sysctl({CTL_HW, HW_PHYSMEM}) interface
-     on hosts with >= 4 GB */
-  uint64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-
-#elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-
-  int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
-  int64_t const pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) or (pagesize == -1))
-    {
-      fatal("Cannot determine amount of RAM");
-    }
-  return static_cast<uint64_t>(pagesize * phys_pages);
-
-#else
-
-  struct sysinfo si;
-  if (sysinfo(&si))
-    fatal("Cannot determine amount of RAM");
-  return si.totalram * si.mem_unit;
-
-#endif
 }
 
 
-auto arch_get_cores() -> long
+auto system_get_cores() -> long
 {
-#ifdef _WIN32
   SYSTEM_INFO si;
   GetSystemInfo(&si);
   return si.dwNumberOfProcessors;
-#else
-  return sysconf(_SC_NPROCESSORS_ONLN);
-#endif
 }
 
 
@@ -162,15 +109,7 @@ auto xmalloc(std::size_t size) -> void *
 {
   static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
-  void * ptr = nullptr;
-#ifdef _WIN32
-  ptr = _aligned_malloc(size, vsearch_memalignment);
-#else
-  if (posix_memalign(&ptr, vsearch_memalignment, size) != 0)
-    {
-      ptr = nullptr;
-    }
-#endif
+  void * ptr = _aligned_malloc(size, vsearch_memalignment);
   if (ptr == nullptr)
     {
       fatal("Unable to allocate enough memory.");
@@ -181,21 +120,18 @@ auto xmalloc(std::size_t size) -> void *
 
 auto xrealloc(void * ptr, std::size_t size) -> void *
 {
-  /* NOTE: unlike xmalloc (posix_memalign), the POSIX branch here uses plain
-     realloc, which only guarantees max_align_t alignment, not xmalloc's
-     vsearch_memalignment (16 bytes). Buffers that require 16-byte alignment
-     for aligned SIMD loads/stores (the align_simd.cc VECTOR_SHORT arrays) must
-     therefore be allocated with xmalloc and never grown through xrealloc. As
-     audited, no such buffer currently passes through xrealloc — every caller
-     resizes byte/scalar data (input buffers, sequence storage, query strings,
-     k-mer lists). If that ever changes, emulate an aligned realloc here. */
+  /* NOTE: _aligned_realloc preserves the vsearch_memalignment (16-byte)
+     alignment that _aligned_malloc gave the block, so this Windows branch,
+     unlike the POSIX xrealloc (plain realloc, only max_align_t), is safe for
+     the 16-byte-aligned SIMD buffers (the align_simd.cc VECTOR_SHORT arrays).
+     The portable contract nevertheless still holds: those buffers are
+     allocated with xmalloc and, as audited, never grown through xrealloc —
+     every caller resizes byte/scalar data (input buffers, sequence storage,
+     query strings, k-mer lists). Keep honouring it so the POSIX build, which
+     cannot rely on this, stays correct. */
   static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
-#ifdef _WIN32
   void * new_ptr = _aligned_realloc(ptr, size, vsearch_memalignment);
-#else
-  void * new_ptr = std::realloc(ptr, size);
-#endif
   if (new_ptr == nullptr)
     {
       fatal("Unable to reallocate enough memory.");
@@ -208,11 +144,7 @@ auto xfree(void * ptr) -> void
 {
   if (ptr != nullptr)
     {
-#ifdef _WIN32
       _aligned_free(ptr);
-#else
-      std::free(ptr);
-#endif
     }
   else
     {
@@ -223,66 +155,40 @@ auto xfree(void * ptr) -> void
 
 auto xfstat(int file_descriptor, xstat_t * buf) -> int
 {
-#ifdef _WIN32
   return _fstat64(file_descriptor, buf);
-#else
-  return fstat(file_descriptor, buf);  // return zero if success
-#endif
 }
 
 
 auto xstat(const char * path, xstat_t * buf) -> int
 {
-#ifdef _WIN32
   return _stat64(path, buf);
-#else
-  return stat(path, buf);
-#endif
 }
 
 
 auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 {
-#ifdef _WIN32
   return _lseeki64(file_descriptor, offset, whence);
-#else
-  return static_cast<uint64_t>(lseek(file_descriptor, static_cast<off_t>(offset), whence));  // libC or linuxism: replace with std::fseek()?
-#endif
 }
 
 
 // refactoring: only used in fastx.cc
 auto xftello(std::FILE * stream) -> uint64_t
 {
-#ifdef _WIN32
   return _ftelli64(stream);
-#else
-  return static_cast<uint64_t>(ftello(stream));
-#endif
 }
 
 
 // refactoring: only used in udb.cc
 auto xopen_read(const char * path) -> int
 {
-#ifdef _WIN32
   return _open(path, _O_RDONLY | _O_BINARY);
-#else
-  return open(path, O_RDONLY);
-#endif
 }
 
 
 // refactoring: only used in udb.cc
 auto xopen_write(const char * path) -> int
 {
-#ifdef _WIN32
   return _open(path,
                _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
                _S_IREAD | _S_IWRITE);
-#else
-  return open(path,
-              O_WRONLY | O_CREAT | O_TRUNC,
-              S_IRUSR | S_IWUSR);
-#endif
 }

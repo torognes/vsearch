@@ -193,7 +193,7 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
     }
   if (parameters.opt_threads == 0)
     {
-      parameters.opt_threads = arch_get_cores();
+      parameters.opt_threads = system_get_cores();
     }
 
   if (parameters.opt_maxrejects == -1)
@@ -1134,8 +1134,8 @@ auto fill_prog_header(struct Parameters & parameters) -> void
   std::array<char, max_line_length> buffer {{}};
   static_cast<void>(std::snprintf(
       buffer.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
-      PROG_ARCH, static_cast<double>(arch_get_memtotal()) / one_gigabyte,
-      arch_get_cores()));
+      PROG_ARCH, static_cast<double>(system_get_memtotal()) / one_gigabyte,
+      system_get_cores()));
   parameters.prog_header = buffer.data();
 }
 

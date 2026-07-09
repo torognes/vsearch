@@ -61,7 +61,7 @@
 #include "logfile.hpp"
 #include "vsearch.h"  // struct Parameters
 #include "util.h"  // open_optional_output, fclose_output
-#include "arch.h"  // arch_get_memused
+#include "system.h"  // system_get_memused
 #include "timestamp.hpp"  // iso8601_local_timestamp
 #include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cmath>  // std::floor
@@ -114,7 +114,7 @@ LogFile::~LogFile()
 
   constexpr auto bytes_per_mebibyte = 1024.0 * 1024.0;
   constexpr auto mebibytes_per_gibibyte = 1024.0;
-  double const maxmem = static_cast<double>(arch_get_memused()) / bytes_per_mebibyte;
+  double const maxmem = static_cast<double>(system_get_memused()) / bytes_per_mebibyte;
   if (maxmem < mebibytes_per_gibibyte)
     {
       std::fprintf(handle, "Max memory %.1lfMB\n", maxmem);

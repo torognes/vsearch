@@ -185,7 +185,7 @@
 #include "vendored/city.h"
 #include "vendored/sha1.h"
 
-#include "arch.h"  // TODO: rename to operating_systems.h
+#include "system.h"
 #include "util.h"
 #include "db.h"
 #include "searchcore.h"

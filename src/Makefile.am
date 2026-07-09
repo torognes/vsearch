@@ -75,7 +75,6 @@ export MACOSX_DEPLOYMENT_TARGET=10.9
 VSEARCHHEADERS=\
 align_simd.h \
 allpairs.h \
-arch.h \
 arch/x86_64/cpu_features.hpp \
 attributes.h \
 bitmap.h \
@@ -126,6 +125,7 @@ sintax.h \
 sortbylength.h \
 sortbysize.h \
 subsample.h \
+system.h \
 tax.h \
 udb.h \
 unique.h \
@@ -207,7 +207,6 @@ endif
 VSEARCH_COMMON_SOURCES = \
 align_simd.cc \
 allpairs.cc \
-arch.cc \
 attributes.cc \
 bitmap.cc \
 chimera.cc \
@@ -283,15 +282,16 @@ else
 VSEARCH_ARCH_SOURCES =
 endif
 
-# Per-OS sources. The runtime shared-library loader (dynlib::open/symbol/close)
-# has one backend per OS family, selected here so the common code stays free of
-# platform #ifdefs: Windows uses LoadLibraryEx/GetProcAddress/FreeLibrary, every
-# other target uses the POSIX dlopen/dlsym/dlclose. TARGET_WIN is set by
-# configure when <windows.h> is available (native or mingw cross-build).
+# Per-OS sources. Host-OS-specific code lives in one backend per OS family,
+# selected here so the common code stays free of platform #ifdefs: the runtime
+# shared-library loader (dynlib::open/symbol/close) and the system_/x* helpers
+# (memory, cores, aligned alloc, file descriptors). Windows uses the Win32 API;
+# every other target uses the POSIX interfaces. TARGET_WIN is set by configure
+# when <windows.h> is available (native or mingw cross-build).
 if TARGET_WIN
-VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc
+VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc os/windows/system.cc
 else
-VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc
+VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc os/posix/system.cc
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
