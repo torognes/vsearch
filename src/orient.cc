@@ -85,7 +85,7 @@
 // 0b011110 -> 0b010010
 // 0b101010 -> 0b010101
 // 0b010101 -> 0b101010
-auto rc_kmer(unsigned int kmer) -> unsigned int
+auto rc_kmer(unsigned int kmer, unsigned int wordlength) -> unsigned int
 {
   /* reverse complement a kmer where k = dbindex_wordlength */
 
@@ -94,11 +94,11 @@ auto rc_kmer(unsigned int kmer) -> unsigned int
      width overrides the configured one). Query kmers must be extracted at this
      width to match the index; reading parameters.opt_wordlength here would use
      the wrong width against a UDB index (mismatch, out-of-bounds when wider). */
-  assert(the_index.wordlength * 2 <= 32);
+  assert(wordlength * 2 <= 32);
   auto fwd = kmer;
   auto rev = 0U;
 
-  for (auto i = 0U; i < the_index.wordlength; ++i)
+  for (auto i = 0U; i < wordlength; ++i)
     {
       // compute complement of the last two bits
       auto const complement_bits = (fwd & 3U) ^ 3U;
@@ -159,13 +159,16 @@ auto orient(struct Parameters const & parameters) -> void
   fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
   fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
 
+  /* the k-mer index this run owns (RAII) */
+  Dbindex dbindex;
+
   /* check if it may be an UDB file */
 
   auto const is_udb = udb_detect_isudb(parameters.opt_db);
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true, the_index, parameters);
+      udb_read(parameters.opt_db, true, true, dbindex, parameters);
     }
   else
     {
@@ -182,8 +185,8 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all();
         }
-      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
+      dbindex.prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
+      dbindex.add_all_sequences(static_cast<int>(parameters.opt_dbmask), parameters);
     }
 
   uhandle_s * uh_fwd = unique_init();
@@ -212,7 +215,7 @@ auto orient(struct Parameters const & parameters) -> void
         unsigned int const * kmer_list_fwd = nullptr;
 
         /* dbindex_wordlength: the effective index width (see rc_kmer) */
-        unique_count(uh_fwd, static_cast<int>(the_index.wordlength), qseqlen, qseq_fwd,
+        unique_count(uh_fwd, static_cast<int>(dbindex.wordlength), qseqlen, qseq_fwd,
                      & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
 
         /* count kmers matching on each strand */
@@ -224,10 +227,10 @@ auto orient(struct Parameters const & parameters) -> void
         for (unsigned int i = 0; i < kmer_count_fwd; i++)
           {
             unsigned int const kmer_fwd = kmer_list_fwd[i];
-            unsigned int const kmer_rev = rc_kmer(kmer_fwd);
+            unsigned int const kmer_rev = rc_kmer(kmer_fwd, dbindex.wordlength);
 
-            unsigned int const hits_fwd = dbindex_getmatchcount(kmer_fwd);
-            unsigned int const hits_rev = dbindex_getmatchcount(kmer_rev);
+            unsigned int const hits_fwd = dbindex.getmatchcount(kmer_fwd);
+            unsigned int const hits_rev = dbindex.getmatchcount(kmer_rev);
 
             /* require 8 times as many matches on one stand than the other */
 
@@ -430,7 +433,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   unique_exit(uh_fwd);
 
-  dbindex_free();
+  dbindex.clear();
   db_free();
 
   if (parameters.opt_tabbedout != nullptr)
