@@ -165,7 +165,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true, parameters);
+      udb_read(parameters.opt_db, true, true, the_index, parameters);
     }
   else
     {

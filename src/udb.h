@@ -62,6 +62,7 @@ auto udb_detect_isudb(const char * filename) -> bool;
 auto udb_read(const char * filename,
               bool create_bitmaps,
               bool parse_abundances,
+              struct Dbindex & dbindex,
               struct Parameters const & parameters) -> void;
 auto udb_fasta(struct Parameters const & parameters) -> void;
 auto udb_info(struct Parameters const & parameters) -> void;

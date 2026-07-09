@@ -318,6 +318,7 @@ static auto udb_checked_add(uint64_t const lhs, uint64_t const rhs) -> uint64_t
 auto udb_read(const char * filename,
               bool create_bitmaps,
               bool parse_abundances,
+              struct Dbindex & dbindex,
               struct Parameters const & parameters) -> void
 {
   /* read UDB as indexed database */
@@ -404,31 +405,31 @@ auto udb_read(const char * filename,
       {
         std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
       }
-    the_index.wordlength = udb_wordlength;
+    dbindex.wordlength = udb_wordlength;
 
     /* word match counts */
 
-    the_index.hashsize = 1U << (2 * udb_wordlength);
-    the_index.kmercount = static_cast<unsigned int *>(xmalloc(the_index.hashsize * sizeof(unsigned int)));
-    the_index.kmerhash = static_cast<uint64_t *>(xmalloc(the_index.hashsize * sizeof(uint64_t)));
-    the_index.kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(the_index.hashsize * sizeof(struct bitmap_s **)));
+    dbindex.hashsize = 1U << (2 * udb_wordlength);
+    dbindex.kmercount = static_cast<unsigned int *>(xmalloc(dbindex.hashsize * sizeof(unsigned int)));
+    dbindex.kmerhash = static_cast<uint64_t *>(xmalloc(dbindex.hashsize * sizeof(uint64_t)));
+    dbindex.kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(dbindex.hashsize * sizeof(struct bitmap_s **)));
 
-    std::memset(the_index.kmerbitmap, 0, the_index.hashsize * sizeof(struct bitmap_s **));
+    std::memset(dbindex.kmerbitmap, 0, dbindex.hashsize * sizeof(struct bitmap_s **));
 
-    pos += largeread(fd_udb, the_index.kmercount, 4 * the_index.hashsize, pos, progress_bar);
+    pos += largeread(fd_udb, dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
 
-    the_index.indexsize = 0;
-    for (uint64_t i = 0; i < the_index.hashsize; i++)
+    dbindex.indexsize = 0;
+    for (uint64_t i = 0; i < dbindex.hashsize; i++)
       {
-        the_index.kmerhash[i] = the_index.indexsize;
-        the_index.indexsize = udb_checked_add(the_index.indexsize, the_index.kmercount[i]);
+        dbindex.kmerhash[i] = dbindex.indexsize;
+        dbindex.indexsize = udb_checked_add(dbindex.indexsize, dbindex.kmercount[i]);
       }
 
     /* The word-list section stores 4 bytes per index entry, so a file can
        hold at most filesize/4 entries; a larger total means the kmercount[]
        values do not match the on-disk section (padded/corrupt file). */
 
-    if (the_index.indexsize > filesize / 4)
+    if (dbindex.indexsize > filesize / 4)
       {
         fatal("Invalid UDB file");
       }
@@ -444,9 +445,9 @@ auto udb_read(const char * filename,
 
     /* sequence numbers for word matches */
 
-    the_index.kmerindex = static_cast<unsigned int *>(xmalloc(the_index.indexsize * 4));
+    dbindex.kmerindex = static_cast<unsigned int *>(xmalloc(dbindex.indexsize * 4));
 
-    pos += largeread(fd_udb, the_index.kmerindex, 4 * the_index.indexsize, pos, progress_bar);
+    pos += largeread(fd_udb, dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
@@ -454,9 +455,9 @@ auto udb_read(const char * filename,
        value >= seqcount is therefore an out-of-bounds write or read, so
        reject it here rather than at use. */
 
-    for (uint64_t i = 0; i < the_index.indexsize; i++)
+    for (uint64_t i = 0; i < dbindex.indexsize; i++)
       {
-        if (the_index.kmerindex[i] >= seqcount)
+        if (dbindex.kmerindex[i] >= seqcount)
           {
             fatal("Invalid UDB file");
           }
@@ -600,16 +601,16 @@ auto udb_read(const char * filename,
     {
       auto const bitmap_mincount = seqcount / 8;
       {
-        Progress progress("Creating bitmaps", the_index.hashsize, parameters);
-        for (auto i = 0U; i < the_index.hashsize; i++)
+        Progress progress("Creating bitmaps", dbindex.hashsize, parameters);
+        for (auto i = 0U; i < dbindex.hashsize; i++)
           {
-            if (the_index.kmercount[i] >= bitmap_mincount)
+            if (dbindex.kmercount[i] >= bitmap_mincount)
               {
-                the_index.kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
-                bitmap_reset_all(the_index.kmerbitmap[i]);
-                for (auto j = 0U; j < the_index.kmercount[i]; j++)
+                dbindex.kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
+                bitmap_reset_all(dbindex.kmerbitmap[i]);
+                for (auto j = 0U; j < dbindex.kmercount[i]; j++)
                   {
-                    bitmap_set(the_index.kmerbitmap[i], the_index.kmerindex[the_index.kmerhash[i]+j]);
+                    bitmap_set(dbindex.kmerbitmap[i], dbindex.kmerindex[dbindex.kmerhash[i]+j]);
                   }
               }
             progress.update(i + 1);
@@ -642,7 +643,7 @@ auto udb_read(const char * filename,
 
   /* set database info */
 
-  the_index.uhandle = unique_init();
+  dbindex.uhandle = unique_init();
 
   db_setinfo(false,
              seqcount,
@@ -653,12 +654,12 @@ auto udb_read(const char * filename,
 
   /* make mapping from indexno to seqno */
 
-  the_index.map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
-  the_index.count = seqcount;
+  dbindex.map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
+  dbindex.count = seqcount;
 
   for (auto i = 0U; i < seqcount; i++)
     {
-      the_index.map[i] = i;
+      dbindex.map[i] = i;
     }
 
   /* done */
@@ -725,7 +726,7 @@ auto udb_fasta(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udb2fasta, false, false, parameters);
+  udb_read(parameters.opt_udb2fasta, false, false, the_index, parameters);
 
   /* dump fasta */
 
@@ -751,7 +752,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udbstats, false, false, parameters);
+  udb_read(parameters.opt_udbstats, false, false, the_index, parameters);
 
   /* the_index.wordlength below is the effective index width that udb_read() just
      published from this UDB file's header (which may differ from the configured
