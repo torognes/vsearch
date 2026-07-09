@@ -135,6 +135,7 @@ utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
+utils/dynlib_loader.hpp \
 utils/fatal.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
@@ -282,7 +283,18 @@ else
 VSEARCH_ARCH_SOURCES =
 endif
 
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES)
+# Per-OS sources. The runtime shared-library loader (dynlib::open/symbol/close)
+# has one backend per OS family, selected here so the common code stays free of
+# platform #ifdefs: Windows uses LoadLibraryEx/GetProcAddress/FreeLibrary, every
+# other target uses the POSIX dlopen/dlsym/dlclose. TARGET_WIN is set by
+# configure when <windows.h> is available (native or mingw cross-build).
+if TARGET_WIN
+VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc
+else
+VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc
+endif
+
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
 
 .DEFAULT_GOAL = ../bin/vsearch
 
@@ -290,7 +302,7 @@ __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES
 # for embedding into shared libraries (e.g., DuckDB extensions).
 libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN
 libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC -DVSEARCH_NO_MAIN
-libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES)
+libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
 
 # Merged static library — combines core PIC objects with SIMD cpu and cityhash PIC objects.
 # Build with: make libvsearch.a
