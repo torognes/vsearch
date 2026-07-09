@@ -59,9 +59,9 @@
 */
 
 #include "vsearch.h"
-#include <algorithm>  // std::count
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::strcmp, std::strchr, std::strlen
+#include <vector>  // std::vector::clear, push_back
 
 
 // refactoring: C++11 std::array does not allow conversion from litteral string to char *
@@ -113,36 +113,19 @@ static const char * userfields_names[] =
     nullptr
   };
 
-int * userfields_requested = nullptr;
-int userfields_requested_count = 0;
-
-
-auto parse_userfields_arg(char const * arg) -> int
+auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> bool
 {
   // Parses the userfields option argument, e.g. query+target+id+alnlen+mism
-  // and returns 1 if it is ok or 0 if not.
+  // and returns true if it is ok or false if not.
   static constexpr auto separator = '+';
   char const * ptr = arg;
   char const * end_of_string = ptr + std::strlen(ptr); // pointer to end of string
 
-  /* Release any array left by a previous --userfields (a repeated option on
-     the CLI, or a second library session): the global is not reset elsewhere,
-     so re-parsing without this would leak the earlier allocation (L2c). */
-  if (userfields_requested != nullptr)
-    {
-      xfree(userfields_requested);
-      userfields_requested = nullptr;
-    }
-
-  userfields_requested_count = static_cast<int>(std::count(ptr, end_of_string, separator) + 1);
-
-  userfields_requested = static_cast<int *>(xmalloc(sizeof(int) * static_cast<uint64_t>(userfields_requested_count)));
-
-  ptr = arg;  // reset to the start of the string
+  /* Discard any fields left by a previous --userfields (a repeated option on
+     the CLI, or a second library session using the same Parameters). */
+  parameters.opt_userfields.clear();
 
   char const * next_separator = nullptr;
-
-  auto nth_field = 0;
 
   while (true)
     {
@@ -158,7 +141,7 @@ auto parse_userfields_arg(char const * arg) -> int
         {  // empty token (e.g. "a++b", "+a", "a+") -> bad argument. Previously
            // rejected only incidentally by the name-lookup falling through; the
            // explicit check makes the intent clear (L2c).
-          return 0;
+          return false;
         }
 
       char const ** valid_userfield = userfields_names;
@@ -174,18 +157,17 @@ auto parse_userfields_arg(char const * arg) -> int
 
       if (*valid_userfield == nullptr)
         {    // reached end of list -> unrecognized field
-          return 0; // bad argument
+          return false; // bad argument
         }
 
       auto const nth_valid_userfield = static_cast<int>(valid_userfield - userfields_names);
-      userfields_requested[nth_field] = nth_valid_userfield;
-      ++nth_field;
+      parameters.opt_userfields.push_back(nth_valid_userfield);
 
       ptr = next_separator;
 
       if (ptr == end_of_string)
         {  // reached end of argument
-          return 1;
+          return true;
         }
 
       ++ptr;

@@ -234,7 +234,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       state.parameters);
             }
 
           if (state.fp_blast6out != nullptr)
@@ -267,7 +268,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       state.parameters);
             }
 
           if (state.fp_blast6out != nullptr)
@@ -672,8 +674,4 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   fclose_output(fp_userout);
   fclose_output(fp_alnout);
   fclose_output(fp_samout);
-
-  if (fp_userout != nullptr) {
-    clean_up(); // free userfields allocation
-  }
 }

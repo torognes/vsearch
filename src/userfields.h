@@ -58,7 +58,4 @@
 
 */
 
-extern int * userfields_requested;
-extern int userfields_requested_count;
-
-auto parse_userfields_arg(char const * arg) -> int;
+auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> bool;

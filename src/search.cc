@@ -253,7 +253,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       state.parameters);
             }
 
           if (state.fp_blast6out != nullptr)
@@ -293,7 +294,8 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       state.parameters);
             }
 
           if (state.fp_blast6out != nullptr)
@@ -710,11 +712,7 @@ static auto search_done(struct search_cli_state_s & state) -> void
   fclose_output(state.fp_tsegout);
   fclose_output(state.fp_uc);
   fclose_output(state.fp_blast6out);
-  if (state.fp_userout != nullptr)
-    {
-      fclose_output(state.fp_userout);
-      clean_up(); // free userfields allocation
-    }
+  fclose_output(state.fp_userout);
   fclose_output(state.fp_alnout);
   fclose_output(state.fp_samout);
 }

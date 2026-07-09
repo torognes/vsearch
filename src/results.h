@@ -95,7 +95,8 @@ auto results_show_userout_one(std::FILE * output_handle,
                               char const * query_head,
                               char const * qsequence,
                               int64_t qseqlen,
-                              char const * qsequence_rc) -> void;
+                              char const * qsequence_rc,
+                              struct Parameters const & parameters) -> void;
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const * hits,
@@ -127,5 +128,3 @@ auto results_show_samout(std::FILE * output_handle,
                          char const * qsequence,
                          char const * qsequence_rc,
                          struct Parameters const & parameters) -> void;
-
-auto clean_up() -> void;

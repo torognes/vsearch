@@ -289,7 +289,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       parameters);
             }
 
           if (fp_blast6out != nullptr)
@@ -329,7 +330,8 @@ auto search_exact_output_results(std::vector<struct hit> const & hits,
                                        query_head,
                                        qsequence,
                                        qseqlen,
-                                       qsequence_rc);
+                                       qsequence_rc,
+                                       parameters);
             }
 
           if (fp_blast6out != nullptr)
@@ -663,11 +665,7 @@ auto search_exact_done() -> void
   fclose_output(fp_tsegout);
   fclose_output(fp_uc);
   fclose_output(fp_blast6out);
-  if (fp_userout != nullptr)
-    {
-      fclose_output(fp_userout);
-      clean_up(); // free userfields allocation
-    }
+  fclose_output(fp_userout);
   fclose_output(fp_alnout);
   fclose_output(fp_samout);
 }

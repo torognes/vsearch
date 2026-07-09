@@ -450,7 +450,8 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_userout != nullptr)
     {
       results_show_userout_one(state.fp_userout, best, query_head,
-                               qsequence, qseqlen, qsequence_rc);
+                               qsequence, qseqlen, qsequence_rc,
+                               state.parameters);
     }
 
   if (state.fp_blast6out != nullptr)
@@ -518,7 +519,8 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       if (state.fp_userout != nullptr)
         {
           results_show_userout_one(state.fp_userout, nullptr, query_head,
-                                   qsequence, qseqlen, qsequence_rc);
+                                   qsequence, qseqlen, qsequence_rc,
+                                   state.parameters);
         }
 
       if (state.fp_blast6out != nullptr)
@@ -1523,11 +1525,7 @@ auto cluster(char const * dbname,
   fclose_output(fp_qsegout);
   fclose_output(fp_tsegout);
   fclose_output(fp_blast6out);
-  if (fp_userout != nullptr)
-    {
-      fclose_output(fp_userout);
-      clean_up(); // free userfields allocation
-    }
+  fclose_output(fp_userout);
   fclose_output(fp_alnout);
   fclose_output(fp_samout);
   fclose_output(fp_uc);

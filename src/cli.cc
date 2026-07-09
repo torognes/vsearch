@@ -2943,7 +2943,7 @@ namespace {
             break;
 
           case option_userfields:
-            if (parse_userfields_arg(optarg) == 0)
+            if (not parse_userfields_arg(optarg, parameters))
               {
                 fatal("Unrecognized userfield argument");
               }

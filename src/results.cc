@@ -62,7 +62,6 @@
 #include "attributes.h"
 #include "showalign.h"
 #include "tax.h"
-#include "userfields.h"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
@@ -324,7 +323,8 @@ auto results_show_uc_one(std::FILE * output_handle,
 auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits,
                               char const * query_head,
                               char const * qsequence, int64_t const qseqlen,
-                              char const * qsequence_rc) -> void
+                              char const * qsequence_rc,
+                              struct Parameters const & parameters) -> void
 {
 
   /*
@@ -332,7 +332,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
     qlo, qhi, tlo, thi and raw are given more meaningful values here
   */
 
-  for (auto c = 0; c < userfields_requested_count; ++c)
+  auto const & userfields_requested = parameters.opt_userfields;
+
+  for (std::size_t c = 0; c < userfields_requested.size(); ++c)
     {
       if (c != 0)
         {
@@ -1054,12 +1056,4 @@ auto results_show_samout(std::FILE * output_handle,
               md.c_str(),
               "UU");
     }
-}
-
-
-auto clean_up() -> void {
-  if (userfields_requested != nullptr) {
-    xfree(userfields_requested);
-  }
-  userfields_requested = nullptr;
 }
