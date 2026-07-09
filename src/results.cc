@@ -524,7 +524,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         default:
           /* userfields_requested only ever holds validated indices (0..42),
              so this is unreachable today. It guards against a userfields_names
-             entry being added or reordered in userfields.cc without a matching
+             entry being added or reordered in utils/userfields.cpp without a matching
              case here — the positional coupling would otherwise print nothing
              silently (E2). */
           fatal("Internal error: unknown userfield index in results_show_userout_one");

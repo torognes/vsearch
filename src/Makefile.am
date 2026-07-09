@@ -129,7 +129,6 @@ system.h \
 tax.h \
 udb.h \
 unique.h \
-userfields.h \
 util.h \
 utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
@@ -149,6 +148,7 @@ utils/span.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
+utils/userfields.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -257,7 +257,6 @@ subsample.cc \
 tax.cc \
 udb.cc \
 unique.cc \
-userfields.cc \
 util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
@@ -270,6 +269,7 @@ utils/seqcmp.cpp \
 utils/number_of_strands.cpp \
 utils/timestamp.cpp \
 utils/logfile.cpp \
+utils/userfields.cpp \
 vsearch.cc
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes

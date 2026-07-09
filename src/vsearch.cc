@@ -91,7 +91,6 @@
 #include "sortbysize.h"
 #include "subsample.h"
 #include "udb.h"
-#include "userfields.h"
 #include "utils/compare_strings_nocase.hpp"
 #ifdef __x86_64__
 #include "arch/x86_64/cpu_features.hpp"

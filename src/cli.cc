@@ -64,7 +64,7 @@
 #include "system.h"  // system_get_cores
 #include "chimera.h"  // maxparents
 #include "mask.h"  // MASK_NONE, MASK_DUST, MASK_SOFT, MASK_ERROR
-#include "userfields.h"  // parse_userfields_arg
+#include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal
 #include <algorithm>  // std::count
