@@ -6,7 +6,12 @@ playbook as `userfields: replace globals with a Parameters member`
 (`a8391422`) and, most closely, `dynlibs: replace globals with a RAII
 DynamicLibraries class` (`4c6a8231`).
 
-**Status:** proposal, awaiting human review before implementation.
+**Status:** implemented on branch `tmp_20260709102359` (commits `3a6838bf` …
+`35fa6d75`), awaiting human review and merge into `dev`. The RAII-class approach
+(§5 Option B) and full removal of the transitional singleton (§8 Q1) were chosen.
+Verified: full `run_all_tests.sh` and `scripts/orient.sh` (0 FAIL), api_examples
+`make test` (30 PASS, release build), all three cross-compiles, and per-command
+A/B byte-identical output. See §8 for how the open questions were resolved.
 
 ---
 
@@ -260,15 +265,21 @@ much smaller diff.)
 
 ---
 
-## 8. Open questions for human review
+## 8. Open questions — resolved
 
-- **Q1 — API shape.** RAII class with member functions (Option B,
-  recommended) vs. free functions taking an explicit `Dbindex &` (Option A)?
-  This decides the shape of the public library API and how steps 4-11 read.
-- **Q2 — scope of this branch.** Land the whole sequence here, or split the
-  library-example migration (step 11) into its own follow-up, as the `fp_log`
-  work was split into per-area commits?
-- **Q3 — comment edits.** Steps 8/11 touch explanatory comments in
-  `cluster.h`, `dbindex.h`, and `vsearch_api.h` that describe the *global*
-  lifecycle. `CLAUDE.md` requires asking before modifying comments — flagging
-  now so the review can pre-approve the wording.
+- **Q1 — API shape.** *Resolved: Option B (RAII class with member functions),
+  and full removal of the transitional singleton.* The library session/batch
+  entries (`search_session_init`, `search_batch`, `cluster_session_init`,
+  `chimera_detect_init`/`_thread_init`/`_batch`) take the caller's `Dbindex`
+  (const&, except cluster's which is mutable — the session adds centroids
+  incrementally); `the_index` and the `dbindex_*` free functions are gone.
+- **Q2 — scope of this branch.** *Resolved: landed as one sequence here* — the
+  library-example migration + `LIBRARY_API.md` ride in the same branch
+  (commit `61bec09f`), immediately before the singleton removal (`a7704301`).
+- **Q3 — comment edits.** *Resolved: symbol references updated, explanations
+  preserved.* Comments in `dbindex.{h,cc}`, `cluster.h`, `search.h`,
+  `chimera.h`, `orient.cc`, `sintax.cc`, `searchcore.cc`, `db.h`,
+  `vsearch_api.h` and `LIBRARY_API.md` that named the renamed/removed symbols
+  were updated to the current `Dbindex::prepare` / `dbindex.wordlength` etc.
+  (commits `61bec09f`, `a7704301`, `35fa6d75`); purely conceptual prose was
+  left verbatim. **Still wants a human eye on the exact wording.**
