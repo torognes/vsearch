@@ -225,6 +225,7 @@ struct chimera_cli_state_s
      chimera_threads_run sizes the pool from opt_threads here, so chimera() no
      longer mutates the opt_* globals (E1 trap-writer). */
   struct Parameters detection_parameters;
+  struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   std::mutex mutex_output;  /* serializes all CLI output + stats updates */
   std::FILE * fp_uchimealns = nullptr;
   std::FILE * fp_uchimeout = nullptr;
@@ -1867,11 +1868,12 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
 
 
 static auto query_init(struct searchinfo_s * search_info, int const tophits,
-                       struct Parameters const & parameters) -> void
+                       struct Parameters const & parameters,
+                       struct Dbindex const & dbindex) -> void
 {
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  search_info->dbindex = &the_index;  /* searchcore reads the k-mer index through the si */
+  search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
@@ -1938,13 +1940,14 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 
 
 auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
-                         struct Parameters const & parameters) -> void
+                         struct Parameters const & parameters,
+                         struct Dbindex const & dbindex) -> void
 {
   ci->parameters = &parameters;  /* detection core reads config through ci (E1) */
 
   for (int i = 0; i < maxparts; ++i)
     {
-      query_init(&ci->si[static_cast<size_t>(i)], tophits, parameters);
+      query_init(&ci->si[static_cast<size_t>(i)], tophits, parameters, dbindex);
     }
 
   ci->s = search16_init(static_cast<CELL>(parameters.opt_match),
@@ -2156,7 +2159,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
      Computed here rather than read from a shared file-static (E4). */
   int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
                                        state.detection_parameters.opt_maxrejects);
-  chimera_thread_init(ci, tophits, state.detection_parameters);
+  chimera_thread_init(ci, tophits, state.detection_parameters, state.dbindex);
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
@@ -2343,7 +2346,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           /* uchime_denovo: add non-chimeras to db */
           if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
             {
-              dbindex_addsequence(state.seqno, static_cast<int>(state.parameters.opt_qmask));
+              state.dbindex.add_sequence(state.seqno, static_cast<int>(state.parameters.opt_qmask));
             }
         }
 
@@ -2460,7 +2463,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (is_udb)
         {
-          udb_read(parameters.opt_db, true, true, the_index, parameters);
+          udb_read(parameters.opt_db, true, true, state.dbindex, parameters);
         }
       else
         {
@@ -2473,8 +2476,8 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               hardmask_all();
             }
-          dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-          dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
+          state.dbindex.prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
+          state.dbindex.add_all_sequences(static_cast<int>(parameters.opt_dbmask), parameters);
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
@@ -2522,7 +2525,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       db_sortbyabundance(parameters);
-      dbindex_prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
+      state.dbindex.prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
       progress_total = db_getnucleotidecount();
     }
 
@@ -2727,7 +2730,7 @@ auto chimera(struct Parameters const & parameters) -> void
       fasta_close(state.query_fasta_h, parameters);
     }
 
-  dbindex_free();
+  state.dbindex.clear();
   db_free();
 
   fclose_output(state.fp_borderline);
@@ -2822,7 +2825,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
   int const tophits = static_cast<int>(ci->detection_parameters.opt_maxaccepts +
                                        ci->detection_parameters.opt_maxrejects);
 
-  chimera_thread_init(ci, tophits, ci->detection_parameters);
+  chimera_thread_init(ci, tophits, ci->detection_parameters, the_index);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
