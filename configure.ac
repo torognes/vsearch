@@ -112,6 +112,10 @@ case $target in
      *-apple-*) target_apple="yes" ;;
 esac
 
+case $target in
+     *freebsd*) target_freebsd="yes" ;;
+esac
+
 AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
 
 AM_CONDITIONAL(HAVE_PS2PDF, test "x${have_ps2pdf}" = "xyes")
@@ -120,6 +124,7 @@ AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
 AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")
 AM_CONDITIONAL(TARGET_APPLE, test "x${target_apple}" = "xyes")
+AM_CONDITIONAL(TARGET_FREEBSD, test "x${target_freebsd}" = "xyes")
 AM_CONDITIONAL(TARGET_X86_64_SIMD, test "x${target_x86_64}" = "xyes" -a "x${target_apple}" != "xyes")
 AM_PROG_CC_C_O
 

@@ -285,13 +285,26 @@ endif
 # Per-OS sources. Host-OS-specific code lives in one backend per OS family,
 # selected here so the common code stays free of platform #ifdefs: the runtime
 # shared-library loader (dynlib::open/symbol/close) and the system_/x* helpers
-# (memory, cores, aligned alloc, file descriptors). Windows uses the Win32 API;
-# every other target uses the POSIX interfaces. TARGET_WIN is set by configure
-# when <windows.h> is available (native or mingw cross-build).
+# (cores, aligned alloc, file descriptors). Windows uses the Win32 API; every
+# other target uses the POSIX interfaces. TARGET_WIN is set by configure when
+# <windows.h> is available (native or mingw cross-build).
+#
+# The physical-memory queries (system_get_memused/memtotal) differ per OS and
+# get their own os/<os>/system_memory.cc backend, picked below; os/linux is the
+# default and also serves as the generic-Unix fallback.
 if TARGET_WIN
-VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc os/windows/system.cc
+VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc os/windows/system.cc os/windows/system_memory.cc
 else
 VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc os/posix/system.cc
+if TARGET_APPLE
+VSEARCH_OS_SOURCES += os/macos/system_memory.cc
+else
+if TARGET_FREEBSD
+VSEARCH_OS_SOURCES += os/freebsd/system_memory.cc
+else
+VSEARCH_OS_SOURCES += os/linux/system_memory.cc
+endif
+endif
 endif
 
 __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)

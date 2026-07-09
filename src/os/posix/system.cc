@@ -61,84 +61,19 @@
 #include "system.h"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::max
-#include <cstdint>  // int64_t, uint64_t
+#include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdlib>  // posix_memalign, std::realloc, std::free
 #include <fcntl.h>  // open, O_RDONLY, O_WRONLY, O_CREAT, O_TRUNC
-#include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
 #include <sys/stat.h>  // fstat, stat, struct stat, S_IRUSR, S_IWUSR
-#include <unistd.h>  // sysconf, _SC_*, lseek, off_t
+#include <unistd.h>  // sysconf, _SC_NPROCESSORS_ONLN, lseek, off_t
 
-/* total physical RAM is queried through different interfaces depending on
-   the Unix flavour; include the matching header (mirrors the per-OS choice
-   made in vsearch.h). <unistd.h> above must precede this test because it
-   defines the _SC_PHYS_PAGES macro. */
-#if defined(__APPLE__) || defined(__FreeBSD__)
-#include <sys/sysctl.h>  // sysctl / sysctlbyname
-#elif ! (defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE))
-#include <sys/sysinfo.h>  // sysinfo
-#endif
+/* system_get_memused()/system_get_memtotal() are genuinely per-OS and live in
+   the os/<os>/system_memory.cc backends (mirrors swarm); everything below is
+   uniform POSIX. */
 
 
 constexpr auto vsearch_memalignment = 16;
-
-
-auto system_get_memused() -> uint64_t
-{
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-
-#ifdef __APPLE__
-  /* Mac: ru_maxrss gives the size in bytes */
-  return r_usage.ru_maxrss;
-#else
-  /* Linux: ru_maxrss gives the size in kilobytes  */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
-#endif
-}
-
-
-auto system_get_memtotal() -> uint64_t
-{
-#if defined(__APPLE__)
-
-  int mib [] = { CTL_HW, HW_MEMSIZE };
-  int64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if(sysctl(mib, 2, &ram, &length, NULL, 0) == -1)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-
-#elif defined(__FreeBSD__)
-
-  /* sysctlbyname("hw.physmem") writes a uint64_t directly, avoiding the
-     32-bit overflow of the older sysctl({CTL_HW, HW_PHYSMEM}) interface
-     on hosts with >= 4 GB */
-  uint64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-
-#elif defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-
-  int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
-  int64_t const pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) or (pagesize == -1))
-    {
-      fatal("Cannot determine amount of RAM");
-    }
-  return static_cast<uint64_t>(pagesize * phys_pages);
-
-#else
-
-  struct sysinfo si;
-  if (sysinfo(&si))
-    fatal("Cannot determine amount of RAM");
-  return si.totalram * si.mem_unit;
-
-#endif
-}
 
 
 auto system_get_cores() -> long

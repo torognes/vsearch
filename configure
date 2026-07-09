@@ -660,6 +660,8 @@ CFLAGS
 CC
 TARGET_X86_64_SIMD_FALSE
 TARGET_X86_64_SIMD_TRUE
+TARGET_FREEBSD_FALSE
+TARGET_FREEBSD_TRUE
 TARGET_APPLE_FALSE
 TARGET_APPLE_TRUE
 TARGET_X86_64_FALSE
@@ -5164,6 +5166,10 @@ case $target in
      *-apple-*) target_apple="yes" ;;
 esac
 
+case $target in
+     *freebsd*) target_freebsd="yes" ;;
+esac
+
        for ac_header in windows.h
 do :
   ac_fn_cxx_check_header_compile "$LINENO" "windows.h" "ac_cv_header_windows_h" "$ac_includes_default"
@@ -5237,6 +5243,14 @@ fi
 else
   TARGET_APPLE_TRUE='#'
   TARGET_APPLE_FALSE=
+fi
+
+ if test "x${target_freebsd}" = "xyes"; then
+  TARGET_FREEBSD_TRUE=
+  TARGET_FREEBSD_FALSE='#'
+else
+  TARGET_FREEBSD_TRUE='#'
+  TARGET_FREEBSD_FALSE=
 fi
 
  if test "x${target_x86_64}" = "xyes" -a "x${target_apple}" != "xyes"; then
@@ -6357,6 +6371,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${TARGET_APPLE_TRUE}" && test -z "${TARGET_APPLE_FALSE}"; then
   as_fn_error $? "conditional \"TARGET_APPLE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${TARGET_FREEBSD_TRUE}" && test -z "${TARGET_FREEBSD_FALSE}"; then
+  as_fn_error $? "conditional \"TARGET_FREEBSD\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${TARGET_X86_64_SIMD_TRUE}" && test -z "${TARGET_X86_64_SIMD_FALSE}"; then

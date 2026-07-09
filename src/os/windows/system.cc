@@ -58,8 +58,7 @@
 
 */
 
-#include <windows.h>  // MEMORYSTATUSEX, GlobalMemoryStatusEx, SYSTEM_INFO, GetSystemInfo, GetCurrentProcess
-#include <psapi.h>  // PROCESS_MEMORY_COUNTERS, GetProcessMemoryInfo
+#include <windows.h>  // SYSTEM_INFO, GetSystemInfo
 #include <algorithm>  // std::max
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, _ftelli64
@@ -74,27 +73,12 @@
 #include "system.h"
 #include "utils/fatal.hpp"
 
+/* system_get_memused()/system_get_memtotal() are genuinely per-OS and live in
+   the os/<os>/system_memory.cc backends (mirrors swarm); everything below is
+   Win32-specific but not memory-related. */
+
 
 constexpr auto vsearch_memalignment = 16;
-
-
-auto system_get_memused() -> uint64_t
-{
-  PROCESS_MEMORY_COUNTERS pmc;
-  GetProcessMemoryInfo(GetCurrentProcess(),
-                       &pmc,
-                       sizeof(PROCESS_MEMORY_COUNTERS));
-  return pmc.PeakWorkingSetSize;
-}
-
-
-auto system_get_memtotal() -> uint64_t
-{
-  MEMORYSTATUSEX ms;
-  ms.dwLength = sizeof(MEMORYSTATUSEX);
-  GlobalMemoryStatusEx(&ms);
-  return ms.ullTotalPhys;
-}
 
 
 auto system_get_cores() -> long
