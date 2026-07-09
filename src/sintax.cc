@@ -112,6 +112,7 @@ struct sintax_state_s
   /* the run configuration, threaded through the helpers instead of the
      opt_* globals (E1/F3); set once at construction, read-only thereafter */
   struct Parameters const & parameters;
+  struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;
   int tophits = 0;   /* the maximum number of hits to keep */
@@ -305,7 +306,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   */
 
   /* count kmer hits in the database sequences */
-  unsigned int const indexed_count = dbindex_getcount();
+  unsigned int const indexed_count = searchinfo->dbindex->getcount();
 
   /* zero counts */
   std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
@@ -313,7 +314,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
       unsigned int const kmer = searchinfo->kmersample[i];
-      auto * bitmap = dbindex_getbitmap(kmer);
+      auto * bitmap = searchinfo->dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
         {
@@ -334,8 +335,8 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
         }
       else
         {
-          auto const * list = dbindex_getmatchlist(kmer);
-          auto const count = dbindex_getmatchcount(kmer);
+          auto const * list = searchinfo->dbindex->getmatchlist(kmer);
+          auto const count = searchinfo->dbindex->getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
               searchinfo->kmers[list[j]]++;
@@ -353,7 +354,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   for (auto i = 0U; i < indexed_count; i++)
     {
       count_t const count = searchinfo->kmers[i];
-      auto const seqno = dbindex_getmapping(i);
+      auto const seqno = searchinfo->dbindex->getmapping(i);
       unsigned int const length = static_cast<unsigned int>(db_getsequencelen(seqno));
 
       if (count > best.count)
@@ -427,7 +428,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
       /* find unique kmers at dbindex_wordlength, the effective index width (set
          by dbindex_prepare for a FASTA db, or udb_read for a UDB db); reading
          parameters.opt_wordlength would use the wrong width against a UDB index. */
-      unique_count(si->uh, static_cast<int>(the_index.wordlength),
+      unique_count(si->uh, static_cast<int>(si->dbindex->wordlength),
                    si->qseqlen, si->qsequence,
                    &kmersamplecount, &kmersample, MASK_NONE);
 
@@ -604,6 +605,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
 {
   /* thread specific initialiation */
   si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
+  si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(state.tophits);
@@ -711,7 +713,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true, the_index, parameters);
+      udb_read(parameters.opt_db, true, true, state.dbindex, parameters);
     }
   else
     {
@@ -722,8 +724,8 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! is_udb)
     {
-      dbindex_prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-      dbindex_addallsequences(static_cast<int>(parameters.opt_dbmask), parameters);
+      state.dbindex.prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
+      state.dbindex.add_all_sequences(static_cast<int>(parameters.opt_dbmask), parameters);
     }
 
   /* prepare reading of queries */
@@ -797,6 +799,6 @@ auto sintax(struct Parameters const & parameters) -> void
   fastx_close(query_fastx_h, parameters);
   fclose_output(fp_tabbedout);
 
-  dbindex_free();
+  state.dbindex.clear();
   db_free();
 }
