@@ -70,8 +70,6 @@
 #include <iterator>  // std::next
 
 
-Dbindex the_index;
-
 constexpr unsigned int bitmap_threshold = 8;
 
 
@@ -296,58 +294,4 @@ auto Dbindex::clear() -> void
 Dbindex::~Dbindex()
 {
   clear();
-}
-
-
-auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void
-{
-  the_index.prepare(use_bitmap, seqmask, parameters);
-}
-
-
-auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void
-{
-  the_index.add_all_sequences(seqmask, parameters);
-}
-
-
-auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void
-{
-  the_index.add_sequence(seqno, seqmask);
-}
-
-
-auto dbindex_free() -> void
-{
-  the_index.clear();
-}
-
-
-auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *
-{
-  return the_index.getbitmap(kmer);
-}
-
-
-auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int
-{
-  return the_index.getmatchcount(kmer);
-}
-
-
-auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *
-{
-  return the_index.getmatchlist(kmer);
-}
-
-
-auto dbindex_getmapping(unsigned int index) -> unsigned int
-{
-  return the_index.getmapping(index);
-}
-
-
-auto dbindex_getcount() -> unsigned int
-{
-  return the_index.getcount();
 }

@@ -111,30 +111,4 @@ struct Dbindex
 };
 
 
-/* Transitional process-wide index instance. Being removed: each command is
-   migrating to own a local Dbindex and thread a reference to it, after which
-   this global and the dbindex_* free functions below disappear. */
-extern Dbindex the_index;
-
-
 auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
-
-/* Transitional free-function API forwarding to the_index; being removed as the
-   commands migrate to the Dbindex methods above. */
-auto dbindex_prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
-
-auto dbindex_addallsequences(int seqmask, struct Parameters const & parameters) -> void;
-
-auto dbindex_addsequence(unsigned int seqno, int seqmask) -> void;
-
-auto dbindex_free() -> void;
-
-auto dbindex_getbitmap(unsigned int kmer) -> unsigned char *;
-
-auto dbindex_getmatchcount(unsigned int kmer) -> unsigned int;
-
-auto dbindex_getmatchlist(unsigned int kmer) -> unsigned int *;
-
-auto dbindex_getmapping(unsigned int index) -> unsigned int;
-
-auto dbindex_getcount() -> unsigned int;

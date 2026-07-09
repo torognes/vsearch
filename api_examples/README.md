@@ -91,8 +91,8 @@ hardmask parameter. Self-validating (no ground-truth comparison).
 Database query and indexing surface: `db_read()` for FASTA and FASTQ, all
 statistical accessors (`db_getnucleotidecount()`, `db_getlongestsequence()`,
 etc.), quality retrieval, the three `db_sortby*()` ordering contracts, and the
-incremental `dbindex_addsequence()` primitive checked against
-`dbindex_addallsequences()`. Self-validating.
+incremental `dbindex.add_sequence()` primitive checked against
+`dbindex.add_all_sequences()`. Self-validating.
 
 ## Test data
 
