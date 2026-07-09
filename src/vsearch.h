@@ -219,6 +219,8 @@ std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset o
 std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
 std::string const default_sequence_padding = "NNNNNNNN";
 
+class DynamicLibraries;  // owned by main(), referenced through parameters.dyn_libs
+
 struct Parameters {
   std::string prog_header {};
   std::string command_line {};
@@ -312,6 +314,7 @@ struct Parameters {
   char * opt_usearch_global = nullptr;
   char * progname = nullptr;  // refactoring: unused?
   std::FILE * fp_log = nullptr;
+  DynamicLibraries const * dyn_libs = nullptr;
   double opt_fastq_truncee_rate = dbl_max;
   double opt_max_unmasked_pct = 100.0;
   double opt_min_unmasked_pct = 0;

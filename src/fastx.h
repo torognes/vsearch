@@ -84,6 +84,8 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void;
 
 enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
+class DynamicLibraries;  // set from parameters.dyn_libs in fastx_open()
+
 struct fastx_s
 {
   bool is_pipe = false;
@@ -91,6 +93,10 @@ struct fastx_s
   bool is_empty = false;
 
   std::FILE * fp = nullptr;
+
+  /* runtime-loaded compression libraries, borrowed (non-owning) from the
+     DynamicLibraries instance in main(); nullptr in library-only builds */
+  DynamicLibraries const * libraries = nullptr;
 
 #ifdef HAVE_ZLIB_H
   gzFile fp_gz = nullptr;

@@ -76,12 +76,6 @@ const std::string gz_libname = "libz.so.6";
 # else
 const std::string gz_libname = "libz.so.1";
 # endif
-void * gz_lib;
-
-gzFile ZEXPORT (*gzdopen_p) OF((int, const char *));
-int ZEXPORT (*gzclose_p) OF((gzFile));
-int ZEXPORT (*gzread_p) OF((gzFile, void *, unsigned));
-
 #endif
 
 #ifdef HAVE_BZLIB_H
@@ -94,16 +88,10 @@ const std::string bz2_libname = "libbz2.so.4";
 # else
 const std::string bz2_libname = "libbz2.so.1";
 # endif
-void * bz2_lib;
-
-BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
-void (*BZ2_bzReadClose_p)(int*, BZFILE*);
-int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
-
 #endif
 
 
-auto dynlibs_open() -> void
+DynamicLibraries::DynamicLibraries() noexcept
 {
 #ifdef HAVE_ZLIB_H
   gz_lib = dynlib::open(gz_libname.data());
@@ -141,14 +129,13 @@ auto dynlibs_open() -> void
 }
 
 
-auto dynlibs_close() -> void
+DynamicLibraries::~DynamicLibraries()
 {
 #ifdef HAVE_ZLIB_H
   if (gz_lib != nullptr)
     {
       dynlib::close(gz_lib);
     }
-  gz_lib = nullptr;
 #endif
 
 #ifdef HAVE_BZLIB_H
@@ -156,6 +143,23 @@ auto dynlibs_close() -> void
     {
       dynlib::close(bz2_lib);
     }
-  bz2_lib = nullptr;
 #endif
 }
+
+
+#ifdef HAVE_ZLIB_H
+auto DynamicLibraries::gzip_version() const noexcept -> char const *
+{
+  auto * const version_fn = reinterpret_cast<char const * (*)()>(
+    dynlib::symbol(gz_lib, "zlibVersion"));
+  return version_fn();
+}
+
+
+auto DynamicLibraries::gzip_compile_flags() const noexcept -> unsigned long
+{
+  auto * const flags_fn = reinterpret_cast<unsigned long (*)()>(
+    dynlib::symbol(gz_lib, "zlibCompileFlags"));
+  return flags_fn();
+}
+#endif

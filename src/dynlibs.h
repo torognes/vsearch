@@ -60,23 +60,63 @@
 
 #pragma once
 
+/*
+  DynamicLibraries loads the optional compression libraries (zlib, bzip2)
+  at runtime and resolves the handful of symbols vsearch needs. The
+  constructor opens the libraries and the destructor closes them (RAII),
+  so a single instance owned by main() replaces the former file-scope
+  globals and the manual dynlibs_open()/dynlibs_close() pair. The thin
+  accessors forward to the resolved function pointers; keeping them in the
+  header lets the compiler inline the calls in the read hot loop. The
+  gzFile/BZFILE types come from zlib.h/bzlib.h, included (under the same
+  HAVE_* guards) by vsearch.h before this header.
+*/
+
+class DynamicLibraries
+{
+public:
+  DynamicLibraries() noexcept;
+  ~DynamicLibraries();
+
+  // owns OS library handles: neither copyable nor movable
+  DynamicLibraries(DynamicLibraries const &) = delete;
+  auto operator=(DynamicLibraries const &) -> DynamicLibraries & = delete;
+  DynamicLibraries(DynamicLibraries &&) = delete;
+  auto operator=(DynamicLibraries &&) -> DynamicLibraries & = delete;
+
 #ifdef HAVE_ZLIB_H
-extern void * gz_lib;
-extern gzFile (*gzdopen_p)(int, const char *);
-extern int (*gzclose_p)(gzFile);
-extern int (*gzread_p)(gzFile, void*, unsigned);
-extern int (*gzgetc_p)(gzFile);
-extern int (*gzrewind_p)(gzFile);
-extern int (*gzungetc_p)(int, gzFile);
-extern const char * (*gzerror_p)(gzFile, int*);
+  auto gzip_available() const noexcept -> bool { return gz_lib != nullptr; }
+  auto gzdopen(int file_descriptor, char const * mode) const noexcept -> gzFile
+  { return gzdopen_p(file_descriptor, mode); }
+  auto gzclose(gzFile file) const noexcept -> int { return gzclose_p(file); }
+  auto gzread(gzFile file, void * buffer, unsigned length) const noexcept -> int
+  { return gzread_p(file, buffer, length); }
+  auto gzip_version() const noexcept -> char const *;
+  auto gzip_compile_flags() const noexcept -> unsigned long;
 #endif
 
 #ifdef HAVE_BZLIB_H
-extern void * bz2_lib;
-extern BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
-extern void (*BZ2_bzReadClose_p)(int*, BZFILE*);
-extern int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
+  auto bzip2_available() const noexcept -> bool { return bz2_lib != nullptr; }
+  auto bz_read_open(int * bzerror, FILE * file, int verbosity, int use_small,
+                    void * unused, int unused_length) const noexcept -> BZFILE *
+  { return BZ2_bzReadOpen_p(bzerror, file, verbosity, use_small, unused, unused_length); }
+  auto bz_read_close(int * bzerror, BZFILE * file) const noexcept -> void
+  { BZ2_bzReadClose_p(bzerror, file); }
+  auto bz_read(int * bzerror, BZFILE * file, void * buffer, int length) const noexcept -> int
+  { return BZ2_bzRead_p(bzerror, file, buffer, length); }
 #endif
 
-auto dynlibs_open() -> void;
-auto dynlibs_close() -> void;
+private:
+#ifdef HAVE_ZLIB_H
+  void * gz_lib = nullptr;
+  gzFile ZEXPORT (*gzdopen_p) OF((int, char const *)) = nullptr;
+  int ZEXPORT (*gzclose_p) OF((gzFile)) = nullptr;
+  int ZEXPORT (*gzread_p) OF((gzFile, void *, unsigned)) = nullptr;
+#endif
+#ifdef HAVE_BZLIB_H
+  void * bz2_lib = nullptr;
+  BZFILE * (*BZ2_bzReadOpen_p)(int *, FILE *, int, int, void *, int) = nullptr;
+  void (*BZ2_bzReadClose_p)(int *, BZFILE *) = nullptr;
+  int (*BZ2_bzRead_p)(int *, BZFILE *, void *, int) = nullptr;
+#endif
+};

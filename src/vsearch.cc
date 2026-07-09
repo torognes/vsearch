@@ -69,7 +69,6 @@
 #include "derep_prefix.h"
 #include "derep_smallmem.h"
 #include "dynlibs.h"
-#include "utils/dynlib_loader.hpp"
 #include "eestats.h"
 #include "fasta2fastq.h"
 #include "fastq_chars.h"
@@ -273,17 +272,12 @@ auto cmd_version(struct Parameters const & parameters) -> void
 
 #ifdef HAVE_ZLIB_H
   std::printf("Compiled with support for gzip-compressed files,");
-  if (gz_lib != nullptr)
+  if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->gzip_available())
     {
       std::printf(" and the library is loaded.\n");
 
-      char * (*zlibVersion_p)();
-      zlibVersion_p = reinterpret_cast<char * (*)()>(dynlib::symbol(gz_lib, "zlibVersion"));
-      char const * gz_version = (*zlibVersion_p)();
-
-      long unsigned int (*zlibCompileFlags_p)();
-      zlibCompileFlags_p = reinterpret_cast<long unsigned int (*)()>(dynlib::symbol(gz_lib, "zlibCompileFlags"));
-      long unsigned int const flags = (*zlibCompileFlags_p)();
+      char const * const gz_version = parameters.dyn_libs->gzip_version();
+      unsigned long const flags = parameters.dyn_libs->gzip_compile_flags();
 
       std::printf("zlib version %s, compile flags %lx", gz_version, flags);
       static constexpr auto check_10th_bit = 1024U; // 0x0400
@@ -303,7 +297,7 @@ auto cmd_version(struct Parameters const & parameters) -> void
 
 #ifdef HAVE_BZLIB_H
   std::printf("Compiled with support for bzip2-compressed files,");
-  if (bz2_lib != nullptr)
+  if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->bzip2_available())
     {
       std::printf(" and the library is loaded.\n");
     }
@@ -1402,7 +1396,11 @@ auto main(int argc, char** argv) -> int
 
     show_header(parameters);
 
-    dynlibs_open();
+    /* RAII: loads the optional compression libraries here and closes them
+       when this scope ends (replaces the former dynlibs_open/close pair,
+       whose close ran outside this block). */
+    DynamicLibraries const dynamic_libraries;
+    parameters.dyn_libs = &dynamic_libraries;
 
 #ifdef __x86_64__
     cpu_features_test(parameters);
@@ -1419,7 +1417,5 @@ auto main(int argc, char** argv) -> int
     {
       fatal("Unable to write to standard output (disk full, quota exceeded, or broken pipe?)");
     }
-
-  dynlibs_close();
 }
 #endif /* VSEARCH_NO_MAIN */

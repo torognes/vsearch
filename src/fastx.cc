@@ -273,6 +273,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   auto * input_handle = new fastx_s;
 
   input_handle->fp = nullptr;
+  input_handle->libraries = parameters.dyn_libs;
 
 #ifdef HAVE_ZLIB_H
   input_handle->fp_gz = nullptr;
@@ -388,11 +389,11 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
 #ifdef HAVE_ZLIB_H
-      if (gz_lib == nullptr)
+      if ((input_handle->libraries == nullptr) or not input_handle->libraries->gzip_available())
         {
           fatal("Files compressed with gzip are not supported");
         }
-      input_handle->fp_gz = (*gzdopen_p)(fileno(input_handle->fp), "rb");
+      input_handle->fp_gz = input_handle->libraries->gzdopen(fileno(input_handle->fp), "rb");
       if (input_handle->fp_gz == nullptr)
         { // dup?
           fatal("Unable to open gzip compressed file (%s)", filename);
@@ -406,11 +407,11 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
 #ifdef HAVE_BZLIB_H
-      if (bz2_lib == nullptr)
+      if ((input_handle->libraries == nullptr) or not input_handle->libraries->bzip2_available())
         {
           fatal("Files compressed with bzip2 are not supported");
         }
-      input_handle->fp_bz = (*BZ2_bzReadOpen_p)(& bzError, input_handle->fp,
+      input_handle->fp_bz = input_handle->libraries->bz_read_open(& bzError, input_handle->fp,
                                      BZ_VERBOSE_0, BZ_MORE_MEM,
                                      nullptr, 0);
       if (input_handle->fp_bz == nullptr)
@@ -465,14 +466,14 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
             case Format::gzip:
 #ifdef HAVE_ZLIB_H
-              (*gzclose_p)(input_handle->fp_gz);
+              input_handle->libraries->gzclose(input_handle->fp_gz);
               input_handle->fp_gz = nullptr;
               break;
 #endif
 
             case Format::bzip:
 #ifdef HAVE_BZLIB_H
-              (*BZ2_bzReadClose_p)(&bzError, input_handle->fp_bz);
+              input_handle->libraries->bz_read_close(&bzError, input_handle->fp_bz);
               input_handle->fp_bz = nullptr;
               break;
 #endif
@@ -580,14 +581,14 @@ auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters
 
     case Format::gzip:
 #ifdef HAVE_ZLIB_H
-      (*gzclose_p)(input_handle->fp_gz);
+      input_handle->libraries->gzclose(input_handle->fp_gz);
       input_handle->fp_gz = nullptr;
       break;
 #endif
 
     case Format::bzip:
 #ifdef HAVE_BZLIB_H
-      (*BZ2_bzReadClose_p)(&bz_error, input_handle->fp_bz);
+      input_handle->libraries->bz_read_close(&bz_error, input_handle->fp_bz);
       input_handle->fp_bz = nullptr;
       break;
 #endif
@@ -653,7 +654,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 
     case Format::gzip:
 #ifdef HAVE_ZLIB_H
-      bytes_read = (*gzread_p)(input_handle->fp_gz,
+      bytes_read = input_handle->libraries->gzread(input_handle->fp_gz,
                                input_handle->file_buffer.data
                                + input_handle->file_buffer.position,
                                static_cast<unsigned int>(space));
@@ -666,7 +667,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 
     case Format::bzip:
 #ifdef HAVE_BZLIB_H
-      bytes_read = (*BZ2_bzRead_p)(& bzError,
+      bytes_read = input_handle->libraries->bz_read(& bzError,
                                    input_handle->fp_bz,
                                    input_handle->file_buffer.data
                                    + input_handle->file_buffer.position,
