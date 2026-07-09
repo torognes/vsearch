@@ -60,41 +60,23 @@
 
 #include "vsearch.h"
 #include "dynlibs.h"
+#include "utils/dynlib_loader.hpp"
 #include "utils/fatal.hpp"
 #include <cstdio>  // std::FILE
 #include <string>
-
-#ifdef _WIN32
-/*
-  A bare DLL name passed to LoadLibrary is resolved through the Windows DLL
-  search order, which can include the current working directory — so running
-  vsearch from a directory an attacker can write to lets a planted
-  zlib1.dll / libbz2.dll be loaded (DLL planting). LoadLibraryEx with
-  LOAD_LIBRARY_SEARCH_DEFAULT_DIRS restricts the search to the application
-  directory, any AddDllDirectory dirs, and System32 — never the current
-  directory. The flag is defined on Windows 8+ (and Vista/7 with KB2533623);
-  define it here in case the build SDK headers predate it.
-*/
-# ifndef LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
-#  define LOAD_LIBRARY_SEARCH_DEFAULT_DIRS 0x00001000
-# endif
-#endif
 
 
 #ifdef HAVE_ZLIB_H
 # ifdef _WIN32
 const std::string gz_libname = "zlib1.dll";
-HMODULE gz_lib;
-# else
-#  ifdef __APPLE__
+# elif defined(__APPLE__)
 const std::string gz_libname = "libz.dylib";
-#  elif defined(__FreeBSD__)
+# elif defined(__FreeBSD__)
 const std::string gz_libname = "libz.so.6";
-#  else
+# else
 const std::string gz_libname = "libz.so.1";
-#  endif
-void * gz_lib;
 # endif
+void * gz_lib;
 
 gzFile ZEXPORT (*gzdopen_p) OF((int, const char *));
 int ZEXPORT (*gzclose_p) OF((gzFile));
@@ -105,17 +87,14 @@ int ZEXPORT (*gzread_p) OF((gzFile, void *, unsigned));
 #ifdef HAVE_BZLIB_H
 # ifdef _WIN32
 const std::string bz2_libname = "libbz2.dll";
-HMODULE bz2_lib;
-# else
-#  ifdef __APPLE__
+# elif defined(__APPLE__)
 const std::string bz2_libname = "libbz2.dylib";
-#  elif defined(__FreeBSD__)
+# elif defined(__FreeBSD__)
 const std::string bz2_libname = "libbz2.so.4";
-#  else
+# else
 const std::string bz2_libname = "libbz2.so.1";
-#  endif
-void * bz2_lib;
 # endif
+void * bz2_lib;
 
 BZFILE* (*BZ2_bzReadOpen_p)(int*, FILE*, int, int, void*, int);
 void (*BZ2_bzReadClose_p)(int*, BZFILE*);
@@ -127,20 +106,15 @@ int (*BZ2_bzRead_p)(int*, BZFILE*, void*, int);
 auto dynlibs_open() -> void
 {
 #ifdef HAVE_ZLIB_H
-#ifdef _WIN32
-  gz_lib = LoadLibraryExA(gz_libname.data(), nullptr,
-                          LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-#else
-  gz_lib = dlopen(gz_libname.data(), RTLD_LAZY);
-#endif
+  gz_lib = dynlib::open(gz_libname.data());
   if (gz_lib != nullptr)
     {
       gzdopen_p = reinterpret_cast<gzFile (*)(int, const char*)>(
-        arch_dlsym(gz_lib, "gzdopen"));
+        dynlib::symbol(gz_lib, "gzdopen"));
       gzclose_p = reinterpret_cast<int (*)(gzFile)>(
-        arch_dlsym(gz_lib, "gzclose"));
+        dynlib::symbol(gz_lib, "gzclose"));
       gzread_p = reinterpret_cast<int (*)(gzFile, void*, unsigned)>(
-        arch_dlsym(gz_lib, "gzread"));
+        dynlib::symbol(gz_lib, "gzread"));
       if (not ((gzdopen_p != nullptr) && (gzclose_p != nullptr) && (gzread_p != nullptr)))
         {
           fatal("Invalid compression library (zlib)");
@@ -149,20 +123,15 @@ auto dynlibs_open() -> void
 #endif
 
 #ifdef HAVE_BZLIB_H
-#ifdef _WIN32
-  bz2_lib = LoadLibraryExA(bz2_libname.data(), nullptr,
-                           LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
-#else
-  bz2_lib = dlopen(bz2_libname.data(), RTLD_LAZY);
-#endif
+  bz2_lib = dynlib::open(bz2_libname.data());
   if (bz2_lib != nullptr)
     {
       BZ2_bzReadOpen_p = reinterpret_cast<BZFILE* (*)(int*, FILE*, int, int, void*, int)>(
-        arch_dlsym(bz2_lib, "BZ2_bzReadOpen"));
+        dynlib::symbol(bz2_lib, "BZ2_bzReadOpen"));
       BZ2_bzReadClose_p = reinterpret_cast<void (*)(int*, BZFILE*)>(
-        arch_dlsym(bz2_lib, "BZ2_bzReadClose"));
+        dynlib::symbol(bz2_lib, "BZ2_bzReadClose"));
       BZ2_bzRead_p = reinterpret_cast<int (*)(int*, BZFILE*, void*, int)>(
-        arch_dlsym(bz2_lib, "BZ2_bzRead"));
+        dynlib::symbol(bz2_lib, "BZ2_bzRead"));
       if (not ((BZ2_bzReadOpen_p != nullptr) && (BZ2_bzReadClose_p != nullptr) && (BZ2_bzRead_p != nullptr)))
         {
           fatal("Invalid compression library (bz2)");
@@ -177,11 +146,7 @@ auto dynlibs_close() -> void
 #ifdef HAVE_ZLIB_H
   if (gz_lib != nullptr)
     {
-#ifdef _WIN32
-      FreeLibrary(gz_lib);
-#else
-      dlclose(gz_lib);
-#endif
+      dynlib::close(gz_lib);
     }
   gz_lib = nullptr;
 #endif
@@ -189,11 +154,7 @@ auto dynlibs_close() -> void
 #ifdef HAVE_BZLIB_H
   if (bz2_lib != nullptr)
     {
-#ifdef _WIN32
-      FreeLibrary(bz2_lib);
-#else
-      dlclose(bz2_lib);
-#endif
+      dynlib::close(bz2_lib);
     }
   bz2_lib = nullptr;
 #endif

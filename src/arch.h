@@ -86,10 +86,3 @@ auto xopen_read(const char * path) -> int;
 auto xopen_write(const char * path) -> int;
 
 auto xstrcasestr(const char * haystack, const char * needle) -> const char *;
-
-using void_func_ptr = void (*)();
-#ifdef _WIN32
-auto arch_dlsym(HMODULE handle, const char * symbol) -> void_func_ptr;
-#else
-auto arch_dlsym(void * handle, const char * symbol) -> void_func_ptr;
-#endif

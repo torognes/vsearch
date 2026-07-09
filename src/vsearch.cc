@@ -69,6 +69,7 @@
 #include "derep_prefix.h"
 #include "derep_smallmem.h"
 #include "dynlibs.h"
+#include "utils/dynlib_loader.hpp"
 #include "eestats.h"
 #include "fasta2fastq.h"
 #include "fastq_chars.h"
@@ -277,11 +278,11 @@ auto cmd_version(struct Parameters const & parameters) -> void
       std::printf(" and the library is loaded.\n");
 
       char * (*zlibVersion_p)();
-      zlibVersion_p = reinterpret_cast<char * (*)()>(arch_dlsym(gz_lib, "zlibVersion"));
+      zlibVersion_p = reinterpret_cast<char * (*)()>(dynlib::symbol(gz_lib, "zlibVersion"));
       char const * gz_version = (*zlibVersion_p)();
 
       long unsigned int (*zlibCompileFlags_p)();
-      zlibCompileFlags_p = reinterpret_cast<long unsigned int (*)()>(arch_dlsym(gz_lib, "zlibCompileFlags"));
+      zlibCompileFlags_p = reinterpret_cast<long unsigned int (*)()>(dynlib::symbol(gz_lib, "zlibCompileFlags"));
       long unsigned int const flags = (*zlibCompileFlags_p)();
 
       std::printf("zlib version %s, compile flags %lx", gz_version, flags);

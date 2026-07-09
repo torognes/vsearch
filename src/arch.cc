@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "dynlibs.h"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::max
 #include <cstdio>  // std::FILE, std::size_t
@@ -287,16 +286,3 @@ auto xopen_write(const char * path) -> int
               S_IRUSR | S_IWUSR);
 #endif
 }
-
-
-#ifdef _WIN32
-auto arch_dlsym(HMODULE handle, const char * symbol) -> void_func_ptr
-{
-  return reinterpret_cast<void_func_ptr>(GetProcAddress(handle, symbol));
-}
-#else
-auto arch_dlsym(void * handle, const char * symbol) -> void_func_ptr
-{
-  return reinterpret_cast<void_func_ptr>(dlsym(handle, symbol));
-}
-#endif
