@@ -939,6 +939,9 @@ struct search_session_s {
      path instead of the opt_* globals (E1 shared-infra phase); a pointer so the
      session stays default-constructible. */
   struct Parameters const * parameters = nullptr;
+  /* the k-mer index this session searches, supplied by the caller at
+     search_session_init and installed on the si's; must outlive the session. */
+  struct Dbindex const * dbindex = nullptr;
 };
 
 
@@ -958,12 +961,14 @@ auto search_session_free(struct search_session_s * ss) -> void
 }
 
 
-auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters) -> void
+auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters,
+                         struct Dbindex const & dbindex) -> void
 {
   /* Initialize search session for library use.
      Mirrors cluster_session_init: stores seqcount/tophits in the session,
      allocates si_plus (always) and si_minus (when searching both strands). */
   ss->parameters = &parameters;
+  ss->dbindex = &dbindex;
   ss->seqcount = static_cast<int>(db_getsequencecount());
   /* The library path does not clamp to the database size (only the CLI
      search_prep does), so the sizing uses the configured values from
@@ -975,13 +980,13 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
     }
 
   ss->si_plus = make_unique<searchinfo_s>();
-  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, the_index);
+  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex);
   ss->si_plus->strand = 0;
 
   if (parameters.opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
-      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters, the_index);
+      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex);
       ss->si_minus->strand = 1;
     }
 }
@@ -1248,6 +1253,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
 
 auto search_batch(struct Parameters const & parameters,
+                  struct Dbindex const & dbindex,
                   const char ** query_seqs,
                   const char ** query_heads,
                   const int * query_lens,
@@ -1296,10 +1302,10 @@ auto search_batch(struct Parameters const & parameters,
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters, the_index);
+      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters, dbindex);
       if (ctx.batch_si_minus != nullptr)
         {
-          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters, the_index);
+          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters, dbindex);
         }
     }
 

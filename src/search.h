@@ -96,7 +96,8 @@ auto search_session_free(struct search_session_s * ss) -> void;
    database loaded and indexed. The session stores a reference to parameters,
    which must outlive the session. One active session at a time per process.
    Do NOT share a session across threads. */
-auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters) -> void;
+auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters,
+                         struct Dbindex const & dbindex) -> void;
 
 /* Search for a single query against the global database.
    Searches both strands when opt_strand is true.
@@ -133,6 +134,7 @@ auto search_session_cleanup(struct search_session_s * ss) -> void;
    result_counts: caller-allocated array of query_count elements.
    Each query gets up to max_results_per_query hits, ordered by identity. */
 auto search_batch(struct Parameters const & parameters,
+                  struct Dbindex const & dbindex,
                   const char ** query_seqs,
                   const char ** query_heads,
                   const int * query_lens,

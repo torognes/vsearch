@@ -73,11 +73,12 @@ static int run_chimera_tsv() {
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all(parameters);
-    dbindex_prepare(1, parameters.opt_dbmask, parameters);
-    dbindex_addallsequences(parameters.opt_dbmask, parameters);
+    Dbindex dbindex;
+    dbindex.prepare(1, parameters.opt_dbmask, parameters);
+    dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
 
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci, parameters);
+    chimera_detect_init(ci, parameters, dbindex);
 
     std::vector<std::string> query_labels, query_seqs;
     read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -117,7 +118,7 @@ static int run_chimera_tsv() {
 
     chimera_detect_cleanup(ci);
     chimera_info_free(ci);
-    dbindex_free();
+    dbindex.clear();
     db_free();
     vsearch_session_end();
 
@@ -145,8 +146,9 @@ static int run_batch_tests()
              nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
   dust_all(parameters);
-  dbindex_prepare(1, parameters.opt_dbmask, parameters);
-  dbindex_addallsequences(parameters.opt_dbmask, parameters);
+  Dbindex dbindex;
+  dbindex.prepare(1, parameters.opt_dbmask, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
 
   std::vector<std::string> query_labels, query_seqs;
   read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -156,7 +158,7 @@ static int run_batch_tests()
   std::vector<struct chimera_result_s> seq_results(nq);
   {
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci, parameters);
+    chimera_detect_init(ci, parameters, dbindex);
 
     for (int i = 0; i < nq; i++)
       {
@@ -186,7 +188,7 @@ static int run_batch_tests()
     }
 
   std::vector<struct chimera_result_s> batch_results(nq);
-  chimera_detect_batch(parameters,
+  chimera_detect_batch(parameters, dbindex,
                        q_seqs.data(), q_heads.data(), q_lens.data(),
                        q_sizes.data(), nq, batch_results.data());
 
@@ -224,7 +226,7 @@ static int run_batch_tests()
                    "(%d queries, %ld threads)\n", nq, (long) parameters.opt_threads);
     }
 
-  dbindex_free();
+  dbindex.clear();
   db_free();
   vsearch_session_end();
 

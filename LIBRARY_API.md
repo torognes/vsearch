@@ -276,9 +276,10 @@ db_read("sequences.fasta", 0, parameters);  // 0 = do not upcase
 After loading sequences, apply masking and build the k-mer index:
 
 ```cpp
-dust_all();                                    // DUST low-complexity masking
-dbindex_prepare(1, opt_dbmask, parameters);    // allocate index (1 = use bitmap)
-dbindex_addallsequences(opt_dbmask);           // index all sequences
+dust_all();                                       // DUST low-complexity masking
+Dbindex dbindex;                                  // the k-mer index (owns its buffers, RAII)
+dbindex.prepare(1, opt_dbmask, parameters);       // allocate index (1 = use bitmap)
+dbindex.add_all_sequences(opt_dbmask, parameters);// index all sequences
 ```
 
 ### Sorting
@@ -294,7 +295,8 @@ db_sortbyabundance();            // for cluster_size
 ### Cleanup
 
 ```cpp
-dbindex_free();
+// the Dbindex frees its buffers automatically when it goes out of scope (RAII);
+// call clear() explicitly only to release it early or to reuse it for another build.
 db_free();
 ```
 
@@ -326,10 +328,11 @@ db_free();
 
 | Function | Description |
 |----------|-------------|
-| `dbindex_prepare(bitmap, mask, parameters)` | Allocate k-mer index. `bitmap=1` enables bitmap mode (required for clustering). |
-| `dbindex_addallsequences(mask)` | Index all loaded sequences. |
-| `dbindex_addsequence(seqno, mask)` | Index a single sequence (for incremental indexing). |
-| `dbindex_free()` | Free k-mer index memory. |
+| `Dbindex dbindex;` | The k-mer index, an owned object (RAII, non-copyable). Pass it by reference to the session/batch entry points below. |
+| `dbindex.prepare(bitmap, mask, parameters)` | Allocate k-mer index. `bitmap=1` enables bitmap mode (required for clustering). |
+| `dbindex.add_all_sequences(mask, parameters)` | Index all loaded sequences. |
+| `dbindex.add_sequence(seqno, mask)` | Index a single sequence (for incremental indexing). |
+| `dbindex.clear()` | Free k-mer index memory (also done automatically by the destructor). |
 
 ---
 
@@ -345,7 +348,7 @@ Needleman-Wunsch alignment.
 
 ```cpp
 struct chimera_info_s * ci = chimera_info_alloc();
-chimera_detect_init(ci, parameters);   // session + per-thread init
+chimera_detect_init(ci, parameters, dbindex);   // session + per-thread init
 
 struct chimera_result_s result;
 chimera_detect_single(ci, query_seq, query_head,
@@ -363,9 +366,9 @@ chimera_session_init(parameters);
 
 // Per-thread init: one handle per thread
 struct chimera_info_s * ci1 = chimera_info_alloc();
-chimera_detect_thread_init(ci1, parameters);
+chimera_detect_thread_init(ci1, parameters, dbindex);
 struct chimera_info_s * ci2 = chimera_info_alloc();
-chimera_detect_thread_init(ci2, parameters);
+chimera_detect_thread_init(ci2, parameters, dbindex);
 
 // Detection: thread-safe with separate handles
 // thread 1: chimera_detect_single(ci1, ...)
@@ -419,7 +422,7 @@ classifications and output. In this mode:
 
 - Process queries in decreasing abundance order
 - After classifying a query as non-chimeric, add it to the reference
-  database with `db_add()` and index it with `dbindex_addsequence()`
+  database with `db_add()` and index it with `dbindex.add_sequence()`
 - The `query_abundance` parameter to `chimera_detect_single()` controls
   abundance skew filtering
 
@@ -445,10 +448,10 @@ De novo mode is inherently sequential (single-threaded).
 | `chimera_info_free(ci)` | Free per-thread state. Does NOT call cleanup. Null-safe. |
 | `chimera_session_init(parameters)` | Session-level init hook. Currently a no-op — detection config is built per-thread in `chimera_detect_thread_init` — but kept as a stable API symbol; call once after DB indexed. |
 | `chimera_session_cleanup()` | Session-level teardown: destroy mutexes. Call after all per-thread cleanup. |
-| `chimera_detect_thread_init(ci, parameters)` | Per-thread init: allocate SIMD aligners, k-mer finders. |
+| `chimera_detect_thread_init(ci, parameters, dbindex)` | Per-thread init: allocate SIMD aligners, k-mer finders; searches `dbindex`. |
 | `chimera_detect_thread_cleanup(ci)` | Per-thread teardown: free resources. |
 | `chimera_detect_single(ci, seq, head, len, abund, result)` | Detect chimera for one query. Returns 0 on success. |
-| `chimera_detect_init(ci, parameters)` | Convenience: `session_init` + `thread_init`. Single-threaded only. |
+| `chimera_detect_init(ci, parameters, dbindex)` | Convenience: `session_init` + `thread_init`. Single-threaded only. |
 | `chimera_detect_cleanup(ci)` | Convenience: `thread_cleanup` + `session_cleanup`. Single-threaded only. |
 
 ---
@@ -470,7 +473,7 @@ parameters.opt_strand = true;       // optional: search both strands
 
 // Allocate and initialize the session
 struct search_session_s * ss = search_session_alloc();
-search_session_init(ss, parameters);  // call after DB indexed
+search_session_init(ss, parameters, dbindex);  // call after DB indexed
 
 // Search queries
 struct search_result_s results[10];
@@ -494,7 +497,7 @@ search_session_free(ss);
 For bulk workloads, `search_batch()` parallelizes across `opt_threads`:
 
 ```cpp
-search_batch(parameters, q_seqs, q_heads, q_lens, q_sizes, query_count,
+search_batch(parameters, dbindex, q_seqs, q_heads, q_lens, q_sizes, query_count,
              results, max_results_per_query, result_counts);
 ```
 
@@ -536,10 +539,10 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 |----------|-------------|
 | `search_session_alloc()` | Allocate opaque session state. |
 | `search_session_free(ss)` | Free session state. Null-safe (cleanup is implicit). |
-| `search_session_init(ss, parameters)` | Initialize session. Call after DB indexed. Respects `opt_strand`. |
+| `search_session_init(ss, parameters, dbindex)` | Initialize session. Call after DB indexed. Respects `opt_strand`. Stores a reference to `dbindex`, which must outlive the session. |
 | `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand` is true). One session per process; do not share across threads. |
 | `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
-| `search_batch(parameters, seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search. Internally uses `opt_threads`. |
+| `search_batch(parameters, dbindex, seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search of `dbindex`. Internally uses `opt_threads`. |
 
 ---
 
@@ -556,13 +559,14 @@ assigned to an existing cluster or becomes a new centroid.
 db_sortbylength();          // for cluster_fast behavior
 // or: db_sortbyabundance() for cluster_size behavior
 
-// Prepare index — do NOT call dbindex_addallsequences().
+// Prepare index — do NOT call dbindex.add_all_sequences().
 // Centroids are indexed incrementally during clustering.
-dbindex_prepare(1, opt_qmask, parameters);
+Dbindex dbindex;
+dbindex.prepare(1, opt_qmask, parameters);
 
 // Allocate and initialize session
 struct cluster_session_s * cs = cluster_session_alloc();
-cluster_session_init(cs, parameters);
+cluster_session_init(cs, parameters, dbindex);
 
 // Assign sequences sequentially (0, 1, 2, ...)
 struct cluster_result_s result;
@@ -603,7 +607,7 @@ cluster_session_free(cs);
 |----------|-------------|
 | `cluster_session_alloc()` | Allocate opaque session state. |
 | `cluster_session_free(cs)` | Free session state. Null-safe. |
-| `cluster_session_init(cs, parameters)` | Initialize session. DB must be sorted; `dbindex_prepare()` called but NOT `dbindex_addallsequences`. |
+| `cluster_session_init(cs, parameters, dbindex)` | Initialize session. DB must be sorted; `dbindex.prepare()` called but NOT `add_all_sequences`. Stores a reference to `dbindex` (mutated as centroids are added); it must outlive the session. |
 | `cluster_assign_single(cs, seqno, result)` | Assign one sequence. Must be called in seqno order (0, 1, 2, ...). |
 | `cluster_session_cleanup(cs)` | Free session resources. |
 
@@ -946,7 +950,7 @@ previous allocation. No action is required from the caller.
 | Configuring `Parameters` (`parameters.opt_* = ...`) | Single-threaded. |
 | `vsearch_session_begin()` | Single-threaded. Acquires session mutex. |
 | Database loading (`db_init`, `db_add`, `dust_all`) | Single-threaded. |
-| Index building (`dbindex_prepare`, `dbindex_addallsequences`) | Single-threaded. |
+| Index building (`dbindex.prepare`, `dbindex.add_all_sequences`) | Single-threaded. |
 | Session init (`chimera_session_init`, etc.) | Single-threaded. |
 | Per-thread init (`chimera_detect_thread_init`, etc.) | Safe for different instances. |
 | Computation (`chimera_detect_single`, `search_session_single`, etc.) | Thread-safe with per-thread state. |
@@ -1035,7 +1039,7 @@ cleanup.
 | `example_dust.cc` | DUST masking | Standalone per-sequence, no init needed |
 | `example_reinit.cc` | Re-initialization | Multi-session, multi-handle, gap penalty regression |
 | `example_lifecycle.cc` | API memory/error contracts | Free null-safety, `merge_result_free` idempotency, `mergepairs_single` -1 return, result reuse |
-| `example_dbinfo.cc` | Database query/indexing surface | `db_read`, statistical accessors, quality, sort ordering, incremental `dbindex_addsequence` |
+| `example_dbinfo.cc` | Database query/indexing surface | `db_read`, statistical accessors, quality, sort ordering, incremental `dbindex.add_sequence` |
 
 ### Building examples
 
@@ -1067,12 +1071,13 @@ int main() {
     const char * s = "ACGTACGTACGTACGTACGT";
     db_add(false, h, s, nullptr, strlen(h), strlen(s), 1);
     dust_all();
-    dbindex_prepare(1, opt_dbmask, parameters);
-    dbindex_addallsequences(opt_dbmask);
+    Dbindex dbindex;
+    dbindex.prepare(1, opt_dbmask, parameters);
+    dbindex.add_all_sequences(opt_dbmask, parameters);
 
     // Search
     struct search_session_s * ss = search_session_alloc();
-    search_session_init(ss, parameters);
+    search_session_init(ss, parameters, dbindex);
 
     const char * qh = "query1";
     const char * qs = "ACGTACGTACGTACGTACGT";
@@ -1088,7 +1093,7 @@ int main() {
     // Cleanup
     search_session_cleanup(ss);
     search_session_free(ss);
-    dbindex_free();
+    dbindex.clear();  // (also freed automatically at scope exit)
     db_free();
     vsearch_session_end();
 }

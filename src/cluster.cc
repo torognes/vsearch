@@ -1580,6 +1580,10 @@ struct cluster_session_s {
      path instead of the opt_* globals (E1 shared-infra phase); a pointer so the
      session stays default-constructible. */
   struct Parameters const * parameters = nullptr;
+  /* the k-mer index this session clusters into, supplied by the caller at
+     cluster_session_init; centroids are added to it incrementally (mutable), so
+     it must outlive the session. */
+  struct Dbindex * dbindex = nullptr;
 };
 
 
@@ -1598,21 +1602,24 @@ auto cluster_session_free(struct cluster_session_s * cs) -> void
 }
 
 
-auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters) -> void
+auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters,
+                          struct Dbindex & dbindex) -> void
 {
   /* Initialize clustering session for library use.
      Reads configuration from the passed parameters (same one given to
      vsearch_session_begin); assumes the database is already set up
-     (sequences loaded, masked, and dbindex_prepare called with
-     bitmap=1 but WITHOUT dbindex_addallsequences — centroids are
-     indexed incrementally as they are discovered). The session stores a
-     reference to parameters, which must outlive the session.
+     (sequences loaded, masked, and dbindex.prepare called with
+     bitmap=1 but WITHOUT add_all_sequences — centroids are indexed
+     incrementally as they are discovered, into the passed dbindex). The
+     session stores references to parameters and dbindex, which must
+     outlive the session.
 
      The database must be pre-sorted:
      - by length (descending) for cluster_fast behavior
      - by abundance (descending) for cluster_size behavior */
 
   cs->parameters = &parameters;
+  cs->dbindex = &dbindex;
 
   /* Set search parameters matching the CLI cluster path.
      seqcount must be set BEFORE cluster_query_init (it sizes the kmers buffer).
@@ -1629,13 +1636,13 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
     }
 
   cs->si = make_unique<searchinfo_s>();
-  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, parameters, the_index);
+  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, parameters, *cs->dbindex);
   cs->si->strand = 0;
 
   if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, parameters, the_index);
+      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, parameters, *cs->dbindex);
       cs->si_minus->strand = 1;
     }
 
@@ -1711,7 +1718,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                     db_getheader(static_cast<uint64_t>(seqno)));
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
-      dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(parameters.opt_qmask));
+      cs->dbindex->add_sequence(static_cast<unsigned int>(seqno), static_cast<int>(parameters.opt_qmask));
       ++cs->cluster_count;
     }
 
@@ -1759,7 +1766,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      joins the workers and cluster_query_exit()s them. The local si_plus/
      si_minus aliases let the loop below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(parameters.opt_threads), cs->seqcount,
-                           cs->tophits, parameters.opt_strand, parameters, the_index);
+                           cs->tophits, parameters.opt_strand, parameters, *cs->dbindex);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -1869,7 +1876,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                             db_getheader(static_cast<uint64_t>(myseqno)));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
-              dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(parameters.opt_qmask));
+              cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), static_cast<int>(parameters.opt_qmask));
               ++cs->cluster_count;
             }
 

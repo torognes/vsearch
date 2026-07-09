@@ -2812,7 +2812,8 @@ auto chimera_session_cleanup() -> void
 }
 
 
-auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters) -> void
+auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters,
+                                struct Dbindex const & dbindex) -> void
 {
   /* Per-thread initialization: SIMD aligners, k-mer finders, working
      buffers. Safe to call concurrently for different ci instances.
@@ -2825,7 +2826,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
   int const tophits = static_cast<int>(ci->detection_parameters.opt_maxaccepts +
                                        ci->detection_parameters.opt_maxrejects);
 
-  chimera_thread_init(ci, tophits, ci->detection_parameters, the_index);
+  chimera_thread_init(ci, tophits, ci->detection_parameters, dbindex);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
@@ -2837,14 +2838,15 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
 }
 
 
-auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters) -> void
+auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters,
+                         struct Dbindex const & dbindex) -> void
 {
   /* Convenience wrapper: session init + per-thread init in one call.
      Use for single-threaded detection (one chimera_info_s per session).
      For multi-threaded detection, call chimera_session_init() once then
      chimera_detect_thread_init() per thread. */
   chimera_session_init(parameters);
-  chimera_detect_thread_init(ci, parameters);
+  chimera_detect_thread_init(ci, parameters, dbindex);
 }
 
 auto chimera_detect_single(struct chimera_info_s * ci,
@@ -3005,6 +3007,7 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 
 
 auto chimera_detect_batch(struct Parameters const & parameters,
+                          struct Dbindex const & dbindex,
                           const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,
@@ -3039,7 +3042,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
   for (int t = 0; t < nthreads; t++)
     {
       ctx.ci_array[t] = chimera_info_alloc();
-      chimera_detect_thread_init(ctx.ci_array[t], parameters);
+      chimera_detect_thread_init(ctx.ci_array[t], parameters, dbindex);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */

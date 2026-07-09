@@ -385,10 +385,11 @@ static int test_sort_contracts()
 /* Run one query against the currently-indexed database and return the sorted
    list of "target:%.2f id" hit descriptors, so two index builds can be compared. */
 static std::vector<std::string> search_hits(struct Parameters const & parameters,
+                                            struct Dbindex const & dbindex,
                                             char const * query)
 {
   struct search_session_s * const session = search_session_alloc();
-  search_session_init(session, parameters);
+  search_session_init(session, parameters, dbindex);
 
   struct search_result_s results[16];
   int count = 0;
@@ -467,19 +468,20 @@ static int test_incremental_indexing()
 
   /* (a) batch indexing */
   load_db();
-  dbindex_prepare(1, parameters.opt_dbmask, parameters);
-  dbindex_addallsequences(parameters.opt_dbmask, parameters);
-  std::vector<std::string> const hits_batch = search_hits(parameters, query);
-  dbindex_free();
+  Dbindex dbindex;
+  dbindex.prepare(1, parameters.opt_dbmask, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+  std::vector<std::string> const hits_batch = search_hits(parameters, dbindex, query);
+  dbindex.clear();
 
   /* (b) incremental indexing: one dbindex_addsequence() per sequence */
-  dbindex_prepare(1, parameters.opt_dbmask, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, parameters);
   for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
     {
-      dbindex_addsequence(static_cast<unsigned int>(seqno), parameters.opt_dbmask);
+      dbindex.add_sequence(static_cast<unsigned int>(seqno), parameters.opt_dbmask);
     }
-  std::vector<std::string> const hits_incremental = search_hits(parameters, query);
-  dbindex_free();
+  std::vector<std::string> const hits_incremental = search_hits(parameters, dbindex, query);
+  dbindex.clear();
 
   db_free();
   vsearch_session_end();

@@ -88,14 +88,15 @@ auto cluster_session_free(struct cluster_session_s * cs) -> void;
 /* Initialize a clustering session.
    Requires: parameters configured (same one passed to vsearch_session_begin,
    including opt_id for the identity threshold), database loaded, masked, and
-   dbindex_prepare() called with bitmap=1. The session stores a reference to
-   parameters, which must outlive the session.
-   Do NOT call dbindex_addallsequences — centroids are indexed
-   incrementally as they are discovered.
+   dbindex.prepare() called with bitmap=1. The session stores references to
+   parameters and dbindex, which must outlive the session.
+   Do NOT call dbindex.add_all_sequences() — centroids are indexed
+   incrementally into dbindex as they are discovered.
 
    Database must be pre-sorted by length (cluster_fast) or
    abundance (cluster_size) before loading. */
-auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters) -> void;
+auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters,
+                          struct Dbindex & dbindex) -> void;
 
 /* Assign a single database sequence to a cluster.
    Must be called sequentially (seqno 0, 1, 2, ...).

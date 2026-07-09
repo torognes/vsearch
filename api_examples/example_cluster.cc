@@ -63,10 +63,11 @@ static int run_cluster_uc() {
     }
     dust_all(parameters);
     db_sortbylength(parameters);
-    dbindex_prepare(1, parameters.opt_qmask, parameters);
+    Dbindex dbindex;
+    dbindex.prepare(1, parameters.opt_qmask, parameters);
 
     struct cluster_session_s * cs = cluster_session_alloc();
-    cluster_session_init(cs, parameters);
+    cluster_session_init(cs, parameters, dbindex);
 
     int seqcount = static_cast<int>(db_getsequencecount());
     std::vector<struct cluster_result_s> results(seqcount);
@@ -111,7 +112,7 @@ static int run_cluster_uc() {
 
     cluster_session_cleanup(cs);
     cluster_session_free(cs);
-    dbindex_free();
+    dbindex.clear();
     db_free();
     vsearch_session_end();
 
@@ -147,9 +148,10 @@ static int run_batch_tests()
   int const sc = static_cast<int>(db_getsequencecount());
 
   /* Sequential: use cluster_assign_single one at a time */
-  dbindex_prepare(1, parameters.opt_qmask, parameters);
+  Dbindex dbindex;
+  dbindex.prepare(1, parameters.opt_qmask, parameters);
   struct cluster_session_s * cs_seq = cluster_session_alloc();
-  cluster_session_init(cs_seq, parameters);
+  cluster_session_init(cs_seq, parameters, dbindex);
 
   std::vector<struct cluster_result_s> seq_results(sc);
   for (int i = 0; i < sc; i++)
@@ -159,19 +161,19 @@ static int run_batch_tests()
 
   cluster_session_cleanup(cs_seq);
   cluster_session_free(cs_seq);
-  dbindex_free();
+  dbindex.clear();
 
   /* Batch: use cluster_assign_batch for all at once */
-  dbindex_prepare(1, parameters.opt_qmask, parameters);
+  dbindex.prepare(1, parameters.opt_qmask, parameters);
   struct cluster_session_s * cs_batch = cluster_session_alloc();
-  cluster_session_init(cs_batch, parameters);
+  cluster_session_init(cs_batch, parameters, dbindex);
 
   std::vector<struct cluster_result_s> batch_results(sc);
   cluster_assign_batch(cs_batch, 0, sc, batch_results.data());
 
   cluster_session_cleanup(cs_batch);
   cluster_session_free(cs_batch);
-  dbindex_free();
+  dbindex.clear();
 
   /* Compare results */
   for (int i = 0; i < sc; i++)

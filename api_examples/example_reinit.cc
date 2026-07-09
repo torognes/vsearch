@@ -91,12 +91,13 @@ static session_results run_session(
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all(parameters);
-    dbindex_prepare(1, parameters.opt_dbmask, parameters);
-    dbindex_addallsequences(parameters.opt_dbmask, parameters);
+    Dbindex dbindex;
+    dbindex.prepare(1, parameters.opt_dbmask, parameters);
+    dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
 
     /* Detect chimeras */
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci, parameters);
+    chimera_detect_init(ci, parameters, dbindex);
 
     for (size_t i = 0; i < query_labels.size(); i++) {
         struct chimera_result_s result;
@@ -113,7 +114,7 @@ static session_results run_session(
     /* Cleanup */
     chimera_detect_cleanup(ci);
     chimera_info_free(ci);
-    dbindex_free();
+    dbindex.clear();
     db_free();
     vsearch_session_end();
 
@@ -221,17 +222,18 @@ int main() {
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
     dust_all(parameters);
-    dbindex_prepare(1, parameters.opt_dbmask, parameters);
-    dbindex_addallsequences(parameters.opt_dbmask, parameters);
+    Dbindex dbindex;
+    dbindex.prepare(1, parameters.opt_dbmask, parameters);
+    dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
 
     /* Session init once, then two per-thread handles */
     chimera_session_init(parameters);
 
     struct chimera_info_s * ci1 = chimera_info_alloc();
-    chimera_detect_thread_init(ci1, parameters);
+    chimera_detect_thread_init(ci1, parameters, dbindex);
 
     struct chimera_info_s * ci2 = chimera_info_alloc();
-    chimera_detect_thread_init(ci2, parameters);
+    chimera_detect_thread_init(ci2, parameters, dbindex);
 
     /* Run same queries through both handles and compare with session 1 */
     for (size_t i = 0; i < query_labels.size(); i++) {
@@ -271,7 +273,7 @@ int main() {
     chimera_info_free(ci2);
     chimera_session_cleanup();
 
-    dbindex_free();
+    dbindex.clear();
     db_free();
     vsearch_session_end();
 

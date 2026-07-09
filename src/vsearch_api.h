@@ -71,17 +71,19 @@
  *   4. db_init()                     — reset database state
  *   5. db_add() ...                  — load sequences
  *   6. dust_all()                    — apply DUST masking
- *   7. dbindex_prepare() +           — build k-mer index
- *      dbindex_addallsequences()
+ *   7. Dbindex dbindex;              — build k-mer index (an owned object,
+ *      dbindex.prepare() +             passed by reference to step 8/9)
+ *      dbindex.add_all_sequences()
  *   8. Per-subsystem session setup   — e.g., chimera_session_init(),
- *                                      search_session_init(), etc.
+ *                                      search_session_init(ss, params, dbindex), etc.
  *   9. Per-thread working state      — e.g., chimera_info_alloc() +
  *                                      chimera_detect_thread_init()
  *                                      (repeat for each thread)
  *  10. Per-query calls               — e.g., chimera_detect_single(),
  *                                      search_session_single()
  *  11. Per-thread teardown + per-subsystem cleanup (reverse of 8-9)
- *  12. dbindex_free() + db_free()    — release database
+ *  12. db_free()                     — release database (the Dbindex frees
+ *                                      itself when it goes out of scope)
  *  13. vsearch_session_end()         — release session lock
  *
  * === Thread safety ===
@@ -183,7 +185,7 @@ auto vsearch_api_version_string() -> const char *;
 auto vsearch_session_begin(struct Parameters & parameters) -> void;
 
 /* Release the session mutex acquired by vsearch_session_begin().
-   Call after all cleanup (dbindex_free, db_free, etc.) is complete.
+   Call after all cleanup (Dbindex destroyed, db_free, etc.) is complete.
    Omitting this call will cause the next vsearch_session_begin() to
    fail with a fatal diagnostic (the session lock is still held). */
 auto vsearch_session_end() -> void;
