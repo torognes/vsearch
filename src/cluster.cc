@@ -119,6 +119,7 @@ struct cluster_cli_state_s
      searchcore and evaluate_extra_hits read the clamped values without a
      mutated global (E1). */
   struct Parameters effective_parameters;
+  struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   clusterinfo_t * clusterinfo = nullptr;
   int clusters = 0;
   int count_matched = 0;
@@ -176,13 +177,14 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Parameters const
 
 
 auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits,
-                        struct Parameters const & parameters) -> void
+                        struct Parameters const & parameters,
+                        struct Dbindex const & dbindex) -> void
 {
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
 
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  si->dbindex = &the_index;  /* searchcore reads the k-mer index through the si */
+  si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   si->qsize = 1;
   si->nw = nullptr;
   si->hit_count = 0;
@@ -253,6 +255,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
 struct cluster_work_pool_s
 {
   struct Parameters const & parameters;  // run config, read by the workers (E1)
+  struct Dbindex const & dbindex;       // k-mer index the workers search
   std::vector<searchinfo_s> si_plus;    // one entry per thread
   std::vector<searchinfo_s> si_minus;   // empty unless searching both strands
   std::vector<thread_work_s> thread_work;
@@ -260,20 +263,22 @@ struct cluster_work_pool_s
 
   cluster_work_pool_s(int const nthreads, int const seqcount,
                       int const tophits, bool const need_minus,
-                      struct Parameters const & params)
+                      struct Parameters const & params,
+                      struct Dbindex const & index)
     : parameters(params),
+      dbindex(index),
       si_plus(static_cast<std::size_t>(nthreads)),
       si_minus(need_minus ? static_cast<std::size_t>(nthreads) : std::size_t{0}),
       thread_work(static_cast<std::size_t>(nthreads))
   {
     for (auto & si : si_plus)
       {
-        cluster_query_init(&si, seqcount, tophits, parameters);
+        cluster_query_init(&si, seqcount, tophits, parameters, dbindex);
         si.strand = 0;
       }
     for (auto & si : si_minus)
       {
-        cluster_query_init(&si, seqcount, tophits, parameters);
+        cluster_query_init(&si, seqcount, tophits, parameters, dbindex);
         si.strand = 1;
       }
     runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
@@ -848,7 +853,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
   /* Own worker pool + per-thread search state (E4); see cluster_work_pool_s.
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
-                           state.parameters.opt_strand, state.effective_parameters);
+                           state.parameters.opt_strand, state.effective_parameters, state.dbindex);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
@@ -969,7 +974,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               state.clusterinfo[myseqno].strand = 0;
 
               /* add current sequence to database */
-              dbindex_addsequence(static_cast<unsigned int>(myseqno), static_cast<int>(state.parameters.opt_qmask));
+              state.dbindex.add_sequence(static_cast<unsigned int>(myseqno), static_cast<int>(state.parameters.opt_qmask));
 
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
@@ -999,10 +1004,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.data(), seqcount, tophits, state.effective_parameters);
+  cluster_query_init(si_p.data(), seqcount, tophits, state.effective_parameters, state.dbindex);
   if (state.parameters.opt_strand)
     {
-      cluster_query_init(si_m.data(), seqcount, tophits, state.effective_parameters);
+      cluster_query_init(si_m.data(), seqcount, tophits, state.effective_parameters, state.dbindex);
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -1062,7 +1067,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.clusterinfo[seqno].clusterno = state.clusters;
           state.clusterinfo[seqno].cigar = nullptr;
           state.clusterinfo[seqno].strand = 0;
-          dbindex_addsequence(static_cast<unsigned int>(seqno), static_cast<int>(state.parameters.opt_qmask));
+          state.dbindex.add_sequence(static_cast<unsigned int>(seqno), static_cast<int>(state.parameters.opt_qmask));
           cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head,
                                      si_p[0].qseqlen,
@@ -1156,7 +1161,7 @@ auto cluster(char const * dbname,
       db_sortbyabundance(parameters);
     }
 
-  dbindex_prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
+  state.dbindex.prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
 
   /* tophits = the maximum number of hits we need to store */
 
@@ -1532,7 +1537,7 @@ auto cluster(char const * dbname,
   fclose_output(fp_uc);
   fclose_output(fp_centroids);
 
-  dbindex_free();
+  state.dbindex.clear();
   db_free();
 }
 
@@ -1624,13 +1629,13 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
     }
 
   cs->si = make_unique<searchinfo_s>();
-  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, parameters);
+  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, parameters, the_index);
   cs->si->strand = 0;
 
   if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, parameters);
+      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, parameters, the_index);
       cs->si_minus->strand = 1;
     }
 
@@ -1754,7 +1759,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      joins the workers and cluster_query_exit()s them. The local si_plus/
      si_minus aliases let the loop below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(parameters.opt_threads), cs->seqcount,
-                           cs->tophits, parameters.opt_strand, parameters);
+                           cs->tophits, parameters.opt_strand, parameters, the_index);
   searchinfo_s * const si_plus = pool.si_plus.data();
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
