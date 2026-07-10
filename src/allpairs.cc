@@ -64,6 +64,7 @@
 #include "linmemalign.h"
 #include "mask.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min, std::max
@@ -583,22 +584,32 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
+  OutputFileHandle alnout_handle = open_optional_output_file(parameters.opt_alnout, OutputOption{"--alnout"});
+  fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
-  fp_samout = open_optional_output(parameters.opt_samout, "SAM");
-  fp_userout = open_optional_output(parameters.opt_userout, "user-defined");
-  fp_blast6out = open_optional_output(parameters.opt_blast6out, "blast6-like");
-  fp_uc = open_optional_output(parameters.opt_uc, "uc");
-  fp_fastapairs = open_optional_output(parameters.opt_fastapairs, "fastapairs");
-  fp_qsegout = open_optional_output(parameters.opt_qsegout, "qsegout");
-  fp_tsegout = open_optional_output(parameters.opt_tsegout, "tsegout");
-  fp_matched = open_optional_output(parameters.opt_matched, "matched");
-  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
+  OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
+  fp_samout = samout_handle.get();
+  OutputFileHandle userout_handle = open_optional_output_file(parameters.opt_userout, OutputOption{"--userout"});
+  fp_userout = userout_handle.get();
+  OutputFileHandle blast6out_handle = open_optional_output_file(parameters.opt_blast6out, OutputOption{"--blast6out"});
+  fp_blast6out = blast6out_handle.get();
+  OutputFileHandle uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
+  fp_uc = uc_handle.get();
+  OutputFileHandle fastapairs_handle = open_optional_output_file(parameters.opt_fastapairs, OutputOption{"--fastapairs"});
+  fp_fastapairs = fastapairs_handle.get();
+  OutputFileHandle qsegout_handle = open_optional_output_file(parameters.opt_qsegout, OutputOption{"--qsegout"});
+  fp_qsegout = qsegout_handle.get();
+  OutputFileHandle tsegout_handle = open_optional_output_file(parameters.opt_tsegout, OutputOption{"--tsegout"});
+  fp_tsegout = tsegout_handle.get();
+  OutputFileHandle matched_handle = open_optional_output_file(parameters.opt_matched, OutputOption{"--matched"});
+  fp_matched = matched_handle.get();
+  OutputFileHandle notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
+  fp_notmatched = notmatched_handle.get();
 
   db_read(parameters.opt_allpairs_global, 0, parameters);
 
@@ -652,16 +663,16 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   /* clean up, global */
   db_free();
-  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+  /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard. */
-  fclose_output(fp_matched);
-  fclose_output(fp_notmatched);
-  fclose_output(fp_fastapairs);
-  fclose_output(fp_qsegout);
-  fclose_output(fp_tsegout);
-  fclose_output(fp_uc);
-  fclose_output(fp_blast6out);
-  fclose_output(fp_userout);
-  fclose_output(fp_alnout);
-  fclose_output(fp_samout);
+  matched_handle.reset();
+  notmatched_handle.reset();
+  fastapairs_handle.reset();
+  qsegout_handle.reset();
+  tsegout_handle.reset();
+  uc_handle.reset();
+  blast6out_handle.reset();
+  userout_handle.reset();
+  alnout_handle.reset();
+  samout_handle.reset();
 }
