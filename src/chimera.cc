@@ -72,6 +72,7 @@
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
@@ -2411,20 +2412,27 @@ auto chimera(struct Parameters const & parameters) -> void
      eval_parents/eval_parents_long via chimera_process_query (E6). */
   struct chimera_cli_state_s state(parameters);
 
-  state.fp_chimeras = open_optional_output(parameters.opt_chimeras, "chimeras");
-  state.fp_nonchimeras = open_optional_output(parameters.opt_nonchimeras, "nonchimeras");
-  state.fp_borderline = open_optional_output(parameters.opt_borderline, "borderline");
+  OutputFileHandle chimeras_handle = open_optional_output_file(parameters.opt_chimeras, OutputOption{"--chimeras"});
+  state.fp_chimeras = chimeras_handle.get();
+  OutputFileHandle nonchimeras_handle = open_optional_output_file(parameters.opt_nonchimeras, OutputOption{"--nonchimeras"});
+  state.fp_nonchimeras = nonchimeras_handle.get();
+  OutputFileHandle borderline_handle = open_optional_output_file(parameters.opt_borderline, OutputOption{"--borderline"});
+  state.fp_borderline = borderline_handle.get();
 
+  OutputFileHandle uchimealns_handle;
+  OutputFileHandle uchimeout_handle;
   if (parameters.opt_chimeras_denovo != nullptr)
     {
-      state.fp_uchimealns = open_optional_output(parameters.opt_alnout, "alignment");
-      state.fp_uchimeout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
+      uchimealns_handle = open_optional_output_file(parameters.opt_alnout, OutputOption{"--alnout"});
+      uchimeout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
     }
   else
     {
-      state.fp_uchimealns = open_optional_output(parameters.opt_uchimealns, "uchimealns");
-      state.fp_uchimeout = open_optional_output(parameters.opt_uchimeout, "uchimeout");
+      uchimealns_handle = open_optional_output_file(parameters.opt_uchimealns, OutputOption{"--uchimealns"});
+      uchimeout_handle = open_optional_output_file(parameters.opt_uchimeout, OutputOption{"--uchimeout"});
     }
+  state.fp_uchimealns = uchimealns_handle.get();
+  state.fp_uchimeout = uchimeout_handle.get();
 
 
   /* Build the detection configuration (maxaccepts/maxrejects/id/weak_id, and in
@@ -2737,11 +2745,11 @@ auto chimera(struct Parameters const & parameters) -> void
   state.dbindex.clear();
   db_free();
 
-  fclose_output(state.fp_borderline);
-  fclose_output(state.fp_uchimeout);
-  fclose_output(state.fp_uchimealns);
-  fclose_output(state.fp_nonchimeras);
-  fclose_output(state.fp_chimeras);
+  borderline_handle.reset();
+  uchimeout_handle.reset();
+  uchimealns_handle.reset();
+  nonchimeras_handle.reset();
+  chimeras_handle.reset();
 }
 
 
