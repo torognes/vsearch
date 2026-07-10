@@ -66,6 +66,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
@@ -115,6 +116,10 @@ auto orient(struct Parameters const & parameters) -> void
 {
   fastx_handle query_h = nullptr;
   // refactoring: use struct, like in subsample
+  OutputFileHandle fastaout_handle;
+  OutputFileHandle fastqout_handle;
+  OutputFileHandle tabbedout_handle;
+  OutputFileHandle notmatched_handle;
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_tabbedout = nullptr;
@@ -144,7 +149,8 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
+  fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  fp_fastaout = fastaout_handle.get();
 
   if (parameters.opt_fastqout != nullptr)
     {
@@ -153,11 +159,14 @@ auto orient(struct Parameters const & parameters) -> void
           fatal("Cannot write FASTQ output with FASTA input");
         }
 
-      fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+      fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+      fp_fastqout = fastqout_handle.get();
     }
 
-  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
-  fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
+  notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
+  fp_notmatched = notmatched_handle.get();
+  tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
+  fp_tabbedout = tabbedout_handle.get();
 
   /* the k-mer index this run owns (RAII) */
   Dbindex dbindex;
@@ -438,19 +447,19 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (parameters.opt_tabbedout != nullptr)
     {
-      fclose_output(fp_tabbedout);
+      tabbedout_handle.reset();
     }
   if (parameters.opt_notmatched != nullptr)
     {
-      fclose_output(fp_notmatched);
+      notmatched_handle.reset();
     }
   if (parameters.opt_fastqout != nullptr)
     {
-      fclose_output(fp_fastqout);
+      fastqout_handle.reset();
     }
   if (parameters.opt_fastaout != nullptr)
     {
-      fclose_output(fp_fastaout);
+      fastaout_handle.reset();
     }
 
   fasta_close(query_h, parameters);
