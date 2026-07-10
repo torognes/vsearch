@@ -65,6 +65,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
+#include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min
@@ -617,29 +618,8 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
 {
   struct Parameters const & parameters = state.parameters;
 
-  /* open output files */
-
-  state.fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
-  if (state.fp_alnout != nullptr)
-    {
-      std::fprintf(state.fp_alnout, "%s\n", parameters.command_line.c_str());
-      std::fprintf(state.fp_alnout, "%s\n", parameters.prog_header.c_str());
-    }
-
-  state.fp_samout = open_optional_output(parameters.opt_samout, "SAM");
-  state.fp_userout = open_optional_output(parameters.opt_userout, "user-defined");
-  state.fp_blast6out = open_optional_output(parameters.opt_blast6out, "blast6-like");
-  state.fp_uc = open_optional_output(parameters.opt_uc, "uc");
-  state.fp_fastapairs = open_optional_output(parameters.opt_fastapairs, "fastapairs");
-  state.fp_qsegout = open_optional_output(parameters.opt_qsegout, "qsegout");
-  state.fp_tsegout = open_optional_output(parameters.opt_tsegout, "tsegout");
-  state.fp_matched = open_optional_output(parameters.opt_matched, "matched");
-  state.fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
-  state.fp_dbmatched = open_optional_output(parameters.opt_dbmatched, "dbmatched");
-  state.fp_dbnotmatched = open_optional_output(parameters.opt_dbnotmatched, "dbnotmatched");
-  state.fp_otutabout = open_optional_output(parameters.opt_otutabout, "OTU table (text format)");
-  state.fp_mothur_shared_out = open_optional_output(parameters.opt_mothur_shared_out, "OTU table (mothur format)");
-  state.fp_biomout = open_optional_output(parameters.opt_biomout, "OTU table (biom 1.0 format)");
+  /* the output files were opened by the caller (search_exact), which owns
+     the RAII handles for the duration of the run */
 
   db_read(parameters.opt_db, 0, parameters);
 
@@ -668,34 +648,58 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   dbhash_add_all(parameters);
 }
 
-auto search_exact_done(struct search_exact_state_s & state) -> void
+auto search_exact_done(struct search_exact_state_s const & state) -> void
 {
-  /* clean up, global */
+  /* clean up, global; the output files are closed by search_exact() through
+     the RAII handles it owns */
   dbhash_close();
 
   db_free();
   xfree(state.dbmatched);
-
-  /* fclose_output() is a no-op on a null handle, so unopened outputs need
-     no guard; only userout carries extra teardown. */
-  fclose_output(state.fp_dbmatched);
-  fclose_output(state.fp_dbnotmatched);
-  fclose_output(state.fp_matched);
-  fclose_output(state.fp_notmatched);
-  fclose_output(state.fp_fastapairs);
-  fclose_output(state.fp_qsegout);
-  fclose_output(state.fp_tsegout);
-  fclose_output(state.fp_uc);
-  fclose_output(state.fp_blast6out);
-  fclose_output(state.fp_userout);
-  fclose_output(state.fp_alnout);
-  fclose_output(state.fp_samout);
 }
 
 
 auto search_exact(struct Parameters const & parameters) -> void
 {
   search_exact_state_s state(parameters);
+
+  /* open output files; the handles are owned here so they outlive the worker
+     pool, which reads the non-owning state.fp_* under the output lock */
+  OutputFileHandle alnout_handle = open_optional_output_file(parameters.opt_alnout, OutputOption{"--alnout"});
+  state.fp_alnout = alnout_handle.get();
+  if (state.fp_alnout != nullptr)
+    {
+      std::fprintf(state.fp_alnout, "%s\n", parameters.command_line.c_str());
+      std::fprintf(state.fp_alnout, "%s\n", parameters.prog_header.c_str());
+    }
+  OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
+  state.fp_samout = samout_handle.get();
+  OutputFileHandle userout_handle = open_optional_output_file(parameters.opt_userout, OutputOption{"--userout"});
+  state.fp_userout = userout_handle.get();
+  OutputFileHandle blast6out_handle = open_optional_output_file(parameters.opt_blast6out, OutputOption{"--blast6out"});
+  state.fp_blast6out = blast6out_handle.get();
+  OutputFileHandle uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
+  state.fp_uc = uc_handle.get();
+  OutputFileHandle fastapairs_handle = open_optional_output_file(parameters.opt_fastapairs, OutputOption{"--fastapairs"});
+  state.fp_fastapairs = fastapairs_handle.get();
+  OutputFileHandle qsegout_handle = open_optional_output_file(parameters.opt_qsegout, OutputOption{"--qsegout"});
+  state.fp_qsegout = qsegout_handle.get();
+  OutputFileHandle tsegout_handle = open_optional_output_file(parameters.opt_tsegout, OutputOption{"--tsegout"});
+  state.fp_tsegout = tsegout_handle.get();
+  OutputFileHandle matched_handle = open_optional_output_file(parameters.opt_matched, OutputOption{"--matched"});
+  state.fp_matched = matched_handle.get();
+  OutputFileHandle notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
+  state.fp_notmatched = notmatched_handle.get();
+  OutputFileHandle dbmatched_handle = open_optional_output_file(parameters.opt_dbmatched, OutputOption{"--dbmatched"});
+  state.fp_dbmatched = dbmatched_handle.get();
+  OutputFileHandle dbnotmatched_handle = open_optional_output_file(parameters.opt_dbnotmatched, OutputOption{"--dbnotmatched"});
+  state.fp_dbnotmatched = dbnotmatched_handle.get();
+  OutputFileHandle otutabout_handle = open_optional_output_file(parameters.opt_otutabout, OutputOption{"--otutabout"});
+  state.fp_otutabout = otutabout_handle.get();
+  OutputFileHandle mothur_shared_out_handle = open_optional_output_file(parameters.opt_mothur_shared_out, OutputOption{"--mothur_shared_out"});
+  state.fp_mothur_shared_out = mothur_shared_out_handle.get();
+  OutputFileHandle biomout_handle = open_optional_output_file(parameters.opt_biomout, OutputOption{"--biomout"});
+  state.fp_biomout = biomout_handle.get();
 
   search_exact_prep(state);
 
@@ -802,19 +806,19 @@ auto search_exact(struct Parameters const & parameters) -> void
   if (state.fp_biomout != nullptr)
     {
       otutable_print_biomout(state.fp_biomout, parameters);
-      fclose_output(state.fp_biomout);
+      biomout_handle.reset();
     }
 
   if (state.fp_otutabout != nullptr)
     {
       otutable_print_otutabout(state.fp_otutabout, parameters);
-      fclose_output(state.fp_otutabout);
+      otutabout_handle.reset();
     }
 
   if (state.fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(state.fp_mothur_shared_out, parameters);
-      fclose_output(state.fp_mothur_shared_out);
+      mothur_shared_out_handle.reset();
     }
 
   otutable_done();
@@ -868,4 +872,20 @@ auto search_exact(struct Parameters const & parameters) -> void
     }
 
   search_exact_done(state);
+
+  /* reset() is a no-op on an empty handle, so unopened outputs need no guard.
+     The fixed order matches the legacy fclose sequence: RAII scope-exit would
+     reverse it and flip the flush order for outputs that share stdout. */
+  dbmatched_handle.reset();
+  dbnotmatched_handle.reset();
+  matched_handle.reset();
+  notmatched_handle.reset();
+  fastapairs_handle.reset();
+  qsegout_handle.reset();
+  tsegout_handle.reset();
+  uc_handle.reset();
+  blast6out_handle.reset();
+  userout_handle.reset();
+  alnout_handle.reset();
+  samout_handle.reset();
 }
