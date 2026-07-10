@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/os_byteswap.hpp"
@@ -189,11 +190,13 @@ auto check_sff_input(char const * filename, bool const filehandle_is_empty) -> v
 }
 
 
-auto open_fastq_output(char const * filename) -> std::FILE * {
+auto open_fastq_output(char const * filename) -> OutputFileHandle {
   if (filename == nullptr) {
     fatal("No output file for sff_convert specified with --fastqout.");
   }
-  return open_optional_output(filename, "fastqout");
+  auto output_handle = open_output_file(filename);
+  check_optional_output_handle(filename, (not output_handle));
+  return output_handle;
 }
 
 
@@ -449,7 +452,8 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   auto fp_sff = open_input_file(parameters.opt_sff_convert);
   check_sff_input(parameters.opt_sff_convert, (not fp_sff));
-  auto * fp_fastqout = open_fastq_output(parameters.opt_fastqout);
+  auto const output_handle = open_fastq_output(parameters.opt_fastqout);
+  std::FILE * const fp_fastqout = output_handle.get();
 
 
   /* read and check header */
@@ -674,8 +678,6 @@ auto sff_convert(struct Parameters const & parameters) -> void
   /* ignore the rest of file */
 
   check_for_additional_tail_data(fp_sff.get(), parameters);  // rename to warn_if_additional_tail_data()?
-
-  fclose_output(fp_fastqout);
 
   if (not parameters.opt_quiet) {
     write_report(stderr, sff_header, sff_stats, index_kind.data());
