@@ -184,8 +184,7 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -211,8 +210,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -238,8 +236,7 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -265,8 +262,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -292,8 +288,7 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -319,8 +314,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -346,8 +340,7 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -367,8 +360,7 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h \
 	searchcore.cc search_exact.cc sff_convert.cc vendored/sha1.c \
 	showalign.cc shuffle.cc sintax.cc sortbylength.cc \
 	sortbysize.cc subsample.cc tax.cc udb.cc unique.cc util.cc \
-	utils/fatal.cpp utils/maps.cpp \
-	utils/check_output_filehandle.cpp utils/cigar.cpp \
+	utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
 	utils/compare_strings_nocase.cpp utils/open_file.cpp \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
@@ -432,7 +424,6 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	libvsearch_core_a-util.$(OBJEXT) \
 	utils/libvsearch_core_a-fatal.$(OBJEXT) \
 	utils/libvsearch_core_a-maps.$(OBJEXT) \
-	utils/libvsearch_core_a-check_output_filehandle.$(OBJEXT) \
 	utils/libvsearch_core_a-cigar.$(OBJEXT) \
 	utils/libvsearch_core_a-compare_strings_nocase.$(OBJEXT) \
 	utils/libvsearch_core_a-open_file.$(OBJEXT) \
@@ -470,8 +461,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	otutable.h rereplicate.h results.h search.h searchcore.h \
 	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
 	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
-	system.h tax.h udb.h unique.h util.h \
-	utils/check_output_filehandle.hpp utils/cigar.hpp \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
@@ -491,8 +481,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	searchcore.cc search_exact.cc sff_convert.cc vendored/sha1.c \
 	showalign.cc shuffle.cc sintax.cc sortbylength.cc \
 	sortbysize.cc subsample.cc tax.cc udb.cc unique.cc util.cc \
-	utils/fatal.cpp utils/maps.cpp \
-	utils/check_output_filehandle.cpp utils/cigar.cpp \
+	utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
 	utils/compare_strings_nocase.cpp utils/open_file.cpp \
 	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
@@ -521,8 +510,8 @@ am__objects_8 = align_simd.$(OBJEXT) allpairs.$(OBJEXT) \
 	sintax.$(OBJEXT) sortbylength.$(OBJEXT) sortbysize.$(OBJEXT) \
 	subsample.$(OBJEXT) tax.$(OBJEXT) udb.$(OBJEXT) \
 	unique.$(OBJEXT) util.$(OBJEXT) utils/fatal.$(OBJEXT) \
-	utils/maps.$(OBJEXT) utils/check_output_filehandle.$(OBJEXT) \
-	utils/cigar.$(OBJEXT) utils/compare_strings_nocase.$(OBJEXT) \
+	utils/maps.$(OBJEXT) utils/cigar.$(OBJEXT) \
+	utils/compare_strings_nocase.$(OBJEXT) \
 	utils/open_file.$(OBJEXT) utils/os_byteswap.$(OBJEXT) \
 	utils/seqcmp.$(OBJEXT) utils/number_of_strands.$(OBJEXT) \
 	utils/timestamp.$(OBJEXT) utils/logfile.$(OBJEXT) \
@@ -668,12 +657,9 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-system.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
 	os/windows/$(DEPDIR)/system.Po \
-	os/windows/$(DEPDIR)/system_memory.Po \
-	utils/$(DEPDIR)/check_output_filehandle.Po \
-	utils/$(DEPDIR)/cigar.Po \
+	os/windows/$(DEPDIR)/system_memory.Po utils/$(DEPDIR)/cigar.Po \
 	utils/$(DEPDIR)/compare_strings_nocase.Po \
 	utils/$(DEPDIR)/fatal.Po \
-	utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-cigar.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-fatal.Po \
@@ -933,7 +919,6 @@ tax.h \
 udb.h \
 unique.h \
 util.h \
-utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
@@ -1050,7 +1035,6 @@ unique.cc \
 util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
-utils/check_output_filehandle.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
@@ -1242,8 +1226,6 @@ utils/libvsearch_core_a-fatal.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-maps.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
-utils/libvsearch_core_a-check_output_filehandle.$(OBJEXT):  \
-	utils/$(am__dirstamp) utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-cigar.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-compare_strings_nocase.$(OBJEXT):  \
@@ -1333,8 +1315,6 @@ vendored/sha1.$(OBJEXT): vendored/$(am__dirstamp) \
 utils/fatal.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/maps.$(OBJEXT): utils/$(am__dirstamp) \
-	utils/$(DEPDIR)/$(am__dirstamp)
-utils/check_output_filehandle.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/cigar.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
@@ -1522,11 +1502,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system_memory.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/check_output_filehandle.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/cigar.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/compare_strings_nocase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/fatal.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-cigar.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-fatal.Po@am__quote@ # am--include-marker
@@ -2459,20 +2437,6 @@ utils/libvsearch_core_a-maps.obj: utils/maps.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-maps.obj `if test -f 'utils/maps.cpp'; then $(CYGPATH_W) 'utils/maps.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/maps.cpp'; fi`
 
-utils/libvsearch_core_a-check_output_filehandle.o: utils/check_output_filehandle.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-check_output_filehandle.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Tpo -c -o utils/libvsearch_core_a-check_output_filehandle.o `test -f 'utils/check_output_filehandle.cpp' || echo '$(srcdir)/'`utils/check_output_filehandle.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Tpo utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/check_output_filehandle.cpp' object='utils/libvsearch_core_a-check_output_filehandle.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-check_output_filehandle.o `test -f 'utils/check_output_filehandle.cpp' || echo '$(srcdir)/'`utils/check_output_filehandle.cpp
-
-utils/libvsearch_core_a-check_output_filehandle.obj: utils/check_output_filehandle.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-check_output_filehandle.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Tpo -c -o utils/libvsearch_core_a-check_output_filehandle.obj `if test -f 'utils/check_output_filehandle.cpp'; then $(CYGPATH_W) 'utils/check_output_filehandle.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/check_output_filehandle.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Tpo utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/check_output_filehandle.cpp' object='utils/libvsearch_core_a-check_output_filehandle.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-check_output_filehandle.obj `if test -f 'utils/check_output_filehandle.cpp'; then $(CYGPATH_W) 'utils/check_output_filehandle.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/check_output_filehandle.cpp'; fi`
-
 utils/libvsearch_core_a-cigar.o: utils/cigar.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-cigar.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-cigar.Tpo -c -o utils/libvsearch_core_a-cigar.o `test -f 'utils/cigar.cpp' || echo '$(srcdir)/'`utils/cigar.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-cigar.Tpo utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
@@ -3027,11 +2991,9 @@ distclean: distclean-am
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po
 	-rm -f os/windows/$(DEPDIR)/system.Po
 	-rm -f os/windows/$(DEPDIR)/system_memory.Po
-	-rm -f utils/$(DEPDIR)/check_output_filehandle.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/fatal.Po
-	-rm -f utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
@@ -3230,11 +3192,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po
 	-rm -f os/windows/$(DEPDIR)/system.Po
 	-rm -f os/windows/$(DEPDIR)/system_memory.Po
-	-rm -f utils/$(DEPDIR)/check_output_filehandle.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/fatal.Po
-	-rm -f utils/$(DEPDIR)/libvsearch_core_a-check_output_filehandle.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po

@@ -130,7 +130,6 @@ tax.h \
 udb.h \
 unique.h \
 util.h \
-utils/check_output_filehandle.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/compare_strings_nocase.hpp \
@@ -261,7 +260,6 @@ unique.cc \
 util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
-utils/check_output_filehandle.cpp \
 utils/cigar.cpp \
 utils/compare_strings_nocase.cpp \
 utils/open_file.cpp \
