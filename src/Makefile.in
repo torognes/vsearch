@@ -192,8 +192,8 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h
 am__objects_1 =
 @TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -219,8 +219,8 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
 @TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -246,8 +246,8 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -273,8 +273,8 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -300,8 +300,8 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -327,8 +327,8 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -354,8 +354,8 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h align_simd.cc allpairs.cc \
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h align_simd.cc allpairs.cc \
 	attributes.cc bitmap.cc chimera.cc cli.cc cluster.cc cut.cc \
 	db.cc dbhash.cc dbindex.cc derep.cc derep_prefix.cc \
 	derep_smallmem.cc dynlibs.cc eestats.cc fasta2fastq.cc \
@@ -478,8 +478,8 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp vsearch.h \
-	vsearch_api.h xstring.h align_simd.cc allpairs.cc \
+	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	vsearch.h vsearch_api.h xstring.h align_simd.cc allpairs.cc \
 	attributes.cc bitmap.cc chimera.cc cli.cc cluster.cc cut.cc \
 	db.cc dbhash.cc dbindex.cc derep.cc derep_prefix.cc \
 	derep_smallmem.cc dynlibs.cc eestats.cc fasta2fastq.cc \
@@ -952,6 +952,7 @@ utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
+utils/worker_loop.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h

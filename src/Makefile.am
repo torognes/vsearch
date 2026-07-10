@@ -149,6 +149,7 @@ utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
+utils/worker_loop.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
