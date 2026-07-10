@@ -91,6 +91,7 @@
 #include "utils/number_of_strands.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/threads.hpp"
+#include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
@@ -519,85 +520,83 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
   struct searchinfo_s * const si_plus = state.si_plus;
   struct searchinfo_s * const si_minus = state.si_minus;
 
-  while (true)
-    {
-      std::unique_lock<std::mutex> input_lock(mutex_input);
+  uint64_t progress = 0;
 
-      if (fastx_next(query_fastx_h,
-                     not state.parameters.opt_notrunclabels,
-                     chrmap_no_change()))
-        {
-          auto const * qhead = fastx_get_header(query_fastx_h);
-          int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
-          auto const * qseq = fastx_get_sequence(query_fastx_h);
-          int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_fastx_h));
-          int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
-          int64_t const qsize = fastx_get_abundance(query_fastx_h);
+  auto const has_work_to_claim = [&]() -> bool {
+    if (not fastx_next(query_fastx_h,
+                       not state.parameters.opt_notrunclabels,
+                       chrmap_no_change()))
+      {
+        /* End of input, or a deferred parse error was recorded (CC3):
+           fastx_next() returns false in both cases, so the worker stops
+           here cooperatively. The error, if any, is reported by sintax()
+           from the main thread after the pool joins. */
+        return false;
+      }
 
-          for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
-            {
-              struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
+    auto const * qhead = fastx_get_header(query_fastx_h);
+    int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
+    auto const * qseq = fastx_get_sequence(query_fastx_h);
+    int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_fastx_h));
+    int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
+    int64_t const qsize = fastx_get_abundance(query_fastx_h);
 
-              si->query_head_len = query_head_len;
-              si->qseqlen = qseqlen;
-              si->query_no = query_no;
-              si->qsize = qsize;
-              si->strand = s;
+    for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
+      {
+        struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
-              /* allocate more memory for header and sequence, if necessary */
+        si->query_head_len = query_head_len;
+        si->qseqlen = qseqlen;
+        si->query_no = query_no;
+        si->qsize = qsize;
+        si->strand = s;
 
-              if (si->query_head_len + 1 > si->query_head_alloc)
-                {
-                  si->query_head_alloc = si->query_head_len + buffer_headroom;
-                  si->query_head = static_cast<char *>(
-                    xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
-                }
+        /* allocate more memory for header and sequence, if necessary */
 
-              if (si->qseqlen + 1 > si->seq_alloc)
-                {
-                  si->seq_alloc = si->qseqlen + buffer_headroom;
-                  si->qsequence = static_cast<char *>(
-                    xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
-                }
-            }
+        if (si->query_head_len + 1 > si->query_head_alloc)
+          {
+            si->query_head_alloc = si->query_head_len + buffer_headroom;
+            si->query_head = static_cast<char *>(
+              xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
+          }
 
-          /* plus strand: copy header and sequence */
-          std::strcpy(si_plus[t].query_head, qhead);
-          std::strcpy(si_plus[t].qsequence, qseq);
+        if (si->qseqlen + 1 > si->seq_alloc)
+          {
+            si->seq_alloc = si->qseqlen + buffer_headroom;
+            si->qsequence = static_cast<char *>(
+              xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
+          }
+      }
 
-          /* get progress as amount of input file read */
-          auto const progress = fastx_get_position(query_fastx_h);
+    /* plus strand: copy header and sequence */
+    std::strcpy(si_plus[t].query_head, qhead);
+    std::strcpy(si_plus[t].qsequence, qseq);
 
-          /* let other threads read input */
-          input_lock.unlock();
+    /* get progress as amount of input file read */
+    progress = fastx_get_position(query_fastx_h);
+    return true;
+  };
 
-          /* minus strand: copy header and reverse complementary sequence */
-          if (state.parameters.opt_strand)
-            {
-              std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
-              reverse_complement(si_minus[t].qsequence,
-                                 si_plus[t].qsequence,
-                                 si_plus[t].qseqlen);
-            }
+  auto const process_query = [&]() {
+    /* minus strand: copy header and reverse complementary sequence */
+    if (state.parameters.opt_strand)
+      {
+        std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
+        reverse_complement(si_minus[t].qsequence,
+                           si_plus[t].qsequence,
+                           si_plus[t].qseqlen);
+      }
 
-          sintax_query(state, t);
+    sintax_query(state, t);
 
-          /* lock mutex for update of global data and output */
-          std::lock_guard<std::mutex> const output_lock(mutex_output);
+    /* lock mutex for update of global data and output */
+    std::lock_guard<std::mutex> const output_lock(mutex_output);
 
-          /* show progress */
-          state.progress->update(progress);
-        }
-      else
-        {
-          /* End of input, or a deferred parse error was recorded (CC3):
-             fastx_next() returns false in both cases, so the worker stops
-             here cooperatively. The error, if any, is reported by sintax()
-             from the main thread after the pool joins.
-             input_lock released by RAII when leaving the loop body. */
-          break;
-        }
-    }
+    /* show progress */
+    state.progress->update(progress);
+  };
+
+  run_worker_loop(mutex_input, has_work_to_claim, process_query);
 }
 
 
