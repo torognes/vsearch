@@ -65,6 +65,7 @@
 #include "mask.h"
 #include "utils/fatal.hpp"
 #include "utils/threads.hpp"
+#include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
@@ -367,193 +368,182 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
   std::vector<char *> pcigar(maxhits);
   std::vector<struct hit> finalhits(maxhits);
 
-  auto cont = true;
+  int query_no = 0;
 
-  while (cont)
-    {
-      std::unique_lock<std::mutex> input_lock(state.mutex_input);
+  auto const has_work_to_claim = [&]() -> bool {
+    query_no = state.queries;
+    if (query_no >= state.seqcount) { return false; }
+    ++state.queries;
+    return true;
+  };
 
-      int const query_no = state.queries;
+  auto const process_query = [&]() {
+    /* init search info */
+    auto const query_no_u = static_cast<uint64_t>(query_no);
+    searchinfo.query_no = query_no;
+    searchinfo.qsize = static_cast<int64_t>(db_getabundance(query_no_u));
+    searchinfo.query_head_len = static_cast<int>(db_getheaderlen(query_no_u));
+    searchinfo.query_head = db_getheader(query_no_u);
+    searchinfo.qseqlen = static_cast<int>(db_getsequencelen(query_no_u));
+    searchinfo.qsequence = db_getsequence(query_no_u);
+    searchinfo.rejects = 0;
+    searchinfo.accepts = 0;
+    searchinfo.hit_count = 0;
 
-      if (query_no < state.seqcount)
-        {
-          ++state.queries;
+    for (int target = searchinfo.query_no + 1; target < state.seqcount; target++)
+      {
+        if ((state.parameters.opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
+          {
+            pseqnos[static_cast<std::size_t>(searchinfo.hit_count)] = static_cast<unsigned int>(target);
+            ++searchinfo.hit_count;
+          }
+      }
 
-          /* let other threads read input */
-          input_lock.unlock();
+    if (searchinfo.hit_count != 0)
+      {
+        /* perform alignments */
 
-          /* init search info */
-          auto const query_no_u = static_cast<uint64_t>(query_no);
-          searchinfo.query_no = query_no;
-          searchinfo.qsize = static_cast<int64_t>(db_getabundance(query_no_u));
-          searchinfo.query_head_len = static_cast<int>(db_getheaderlen(query_no_u));
-          searchinfo.query_head = db_getheader(query_no_u);
-          searchinfo.qseqlen = static_cast<int>(db_getsequencelen(query_no_u));
-          searchinfo.qsequence = db_getsequence(query_no_u);
-          searchinfo.rejects = 0;
-          searchinfo.accepts = 0;
-          searchinfo.hit_count = 0;
+        search16_qprep(searchinfo.s, searchinfo.qsequence, searchinfo.qseqlen);
 
-          for (int target = searchinfo.query_no + 1; target < state.seqcount; target++)
-            {
-              if ((state.parameters.opt_acceptall != 0) or search_acceptable_unaligned(searchinfo, target))
-                {
-                  pseqnos[static_cast<std::size_t>(searchinfo.hit_count)] = static_cast<unsigned int>(target);
-                  ++searchinfo.hit_count;
-                }
-            }
+        search16(searchinfo.s,
+                 static_cast<unsigned int>(searchinfo.hit_count),
+                 pseqnos.data(),
+                 pscores.data(),
+                 paligned.data(),
+                 pmatches.data(),
+                 pmismatches.data(),
+                 pgaps.data(),
+                 pcigar.data());
 
-          if (searchinfo.hit_count != 0)
-            {
-              /* perform alignments */
+        /* convert to hit structure */
+        for (std::size_t h = 0; h < static_cast<std::size_t>(searchinfo.hit_count); h++)
+          {
+            struct hit * hit = &searchinfo.hits_v[h];
 
-              search16_qprep(searchinfo.s, searchinfo.qsequence, searchinfo.qseqlen);
+            unsigned int const target = pseqnos[h];
+            int64_t nwscore = pscores[h];
 
-              search16(searchinfo.s,
-                       static_cast<unsigned int>(searchinfo.hit_count),
-                       pseqnos.data(),
-                       pscores.data(),
-                       paligned.data(),
-                       pmatches.data(),
-                       pmismatches.data(),
-                       pgaps.data(),
-                       pcigar.data());
+            char * nwcigar {nullptr};
+            int64_t nwalignmentlength {0};
+            int64_t nwmatches {0};
+            int64_t nwmismatches {0};
+            int64_t nwgaps {0};
 
-              /* convert to hit structure */
-              for (std::size_t h = 0; h < static_cast<std::size_t>(searchinfo.hit_count); h++)
-                {
-                  struct hit * hit = &searchinfo.hits_v[h];
+            if (nwscore == std::numeric_limits<short>::max())
+              {
+                /* In case the SIMD aligner cannot align,
+                   perform a new alignment with the
+                   linear memory aligner */
 
-                  unsigned int const target = pseqnos[h];
-                  int64_t nwscore = pscores[h];
+                char * tseq = db_getsequence(target);
+                int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(target));
 
-                  char * nwcigar {nullptr};
-                  int64_t nwalignmentlength {0};
-                  int64_t nwmatches {0};
-                  int64_t nwmismatches {0};
-                  int64_t nwgaps {0};
+                if (pcigar[h] != nullptr)
+                  {
+                    xfree(pcigar[h]);
+                  }
 
-                  if (nwscore == std::numeric_limits<short>::max())
-                    {
-                      /* In case the SIMD aligner cannot align,
-                         perform a new alignment with the
-                         linear memory aligner */
+                nwcigar = xstrdup(lma.align(searchinfo.qsequence,
+                                            tseq,
+                                            searchinfo.qseqlen,
+                                            tseqlen));
+                lma.alignstats(nwcigar,
+                               searchinfo.qsequence,
+                               tseq,
+                               & nwscore,
+                               & nwalignmentlength,
+                               & nwmatches,
+                               & nwmismatches,
+                               & nwgaps);
+              }
+            else
+              {
+                nwcigar = pcigar[h];
+                nwalignmentlength = paligned[h];
+                nwmatches = pmatches[h];
+                nwmismatches = pmismatches[h];
+                nwgaps = pgaps[h];
+              }
 
-                      char * tseq = db_getsequence(target);
-                      int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(target));
+            hit->target = static_cast<int>(target);
+            hit->strand = 0;
+            hit->count = 0;
 
-                      if (pcigar[h] != nullptr)
-                        {
-                          xfree(pcigar[h]);
-                        }
+            hit->accepted = false;
+            hit->rejected = false;
+            hit->aligned = true;
+            hit->weak = false;
 
-                      nwcigar = xstrdup(lma.align(searchinfo.qsequence,
-                                                  tseq,
-                                                  searchinfo.qseqlen,
-                                                  tseqlen));
-                      lma.alignstats(nwcigar,
-                                     searchinfo.qsequence,
-                                     tseq,
-                                     & nwscore,
-                                     & nwalignmentlength,
-                                     & nwmatches,
-                                     & nwmismatches,
-                                     & nwgaps);
-                    }
-                  else
-                    {
-                      nwcigar = pcigar[h];
-                      nwalignmentlength = paligned[h];
-                      nwmatches = pmatches[h];
-                      nwmismatches = pmismatches[h];
-                      nwgaps = pgaps[h];
-                    }
+            hit->nwscore = static_cast<int>(nwscore);
+            hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
+            hit->nwgaps = static_cast<int>(nwgaps);
+            hit->nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
+            hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
+            hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
+              static_cast<double>(nwalignmentlength);
+            hit->nwalignment = nwcigar;
+            hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
+            hit->mismatches = hit->nwdiff - hit->nwindels;
 
-                  hit->target = static_cast<int>(target);
-                  hit->strand = 0;
-                  hit->count = 0;
+            auto const dseqlen = static_cast<int>(db_getsequencelen(target));
+            hit->shortest = std::min(searchinfo.qseqlen, dseqlen);
+            hit->longest = std::max(searchinfo.qseqlen, dseqlen);
 
-                  hit->accepted = false;
-                  hit->rejected = false;
-                  hit->aligned = true;
-                  hit->weak = false;
+            /* trim alignment, compute numbers excluding terminal gaps */
+            align_trim(hit, state.parameters);
 
-                  hit->nwscore = static_cast<int>(nwscore);
-                  hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
-                  hit->nwgaps = static_cast<int>(nwgaps);
-                  hit->nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
-                  hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
-                  hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
-                    static_cast<double>(nwalignmentlength);
-                  hit->nwalignment = nwcigar;
-                  hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
-                  hit->mismatches = hit->nwdiff - hit->nwindels;
+            /* test accept/reject criteria after alignment */
+            if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
+              {
+                finalhits[static_cast<std::size_t>(searchinfo.accepts)] = *hit;
+                ++searchinfo.accepts;
+              }
+          }
 
-                  auto const dseqlen = static_cast<int>(db_getsequencelen(target));
-                  hit->shortest = std::min(searchinfo.qseqlen, dseqlen);
-                  hit->longest = std::max(searchinfo.qseqlen, dseqlen);
+        /* sort hits (skip when empty: qsort requires a non-null
+           pointer even for zero elements) */
+        if (searchinfo.accepts > 0)
+          {
+            std::qsort(finalhits.data(), static_cast<std::size_t>(searchinfo.accepts),
+                  sizeof(struct hit), allpairs_hit_compare);
+          }
+      }
 
-                  /* trim alignment, compute numbers excluding terminal gaps */
-                  align_trim(hit, state.parameters);
+    /* lock mutex for update of global data and output */
+    std::unique_lock<std::mutex> output_lock(state.mutex_output);
 
-                  /* test accept/reject criteria after alignment */
-                  if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
-                    {
-                      finalhits[static_cast<std::size_t>(searchinfo.accepts)] = *hit;
-                      ++searchinfo.accepts;
-                    }
-                }
+    /* output results */
+    allpairs_output_results(state,
+                            searchinfo.accepts,
+                            finalhits.data(),
+                            searchinfo.query_head,
+                            searchinfo.qseqlen,
+                            searchinfo.qsequence,
+                            nullptr);
 
-              /* sort hits (skip when empty: qsort requires a non-null
-                 pointer even for zero elements) */
-              if (searchinfo.accepts > 0)
-                {
-                  std::qsort(finalhits.data(), static_cast<std::size_t>(searchinfo.accepts),
-                        sizeof(struct hit), allpairs_hit_compare);
-                }
-            }
+    /* update stats */
+    if (searchinfo.accepts != 0)
+      {
+        ++state.qmatches;
+      }
 
-          /* lock mutex for update of global data and output */
-          std::unique_lock<std::mutex> output_lock(state.mutex_output);
+    /* show progress */
+    state.progress += state.seqcount - query_no - 1;
+    state.progress_bar->update(static_cast<uint64_t>(state.progress));
 
-          /* output results */
-          allpairs_output_results(state,
-                                  searchinfo.accepts,
-                                  finalhits.data(),
-                                  searchinfo.query_head,
-                                  searchinfo.qseqlen,
-                                  searchinfo.qsequence,
-                                  nullptr);
+    output_lock.unlock();
 
-          /* update stats */
-          if (searchinfo.accepts != 0)
-            {
-              ++state.qmatches;
-            }
+    /* free memory for alignment strings */
+    for (std::size_t i = 0; i < static_cast<std::size_t>(searchinfo.hit_count); i++)
+      {
+        if (searchinfo.hits_v[i].aligned)
+          {
+            xfree(searchinfo.hits_v[i].nwalignment);
+          }
+      }
+  };
 
-          /* show progress */
-          state.progress += state.seqcount - query_no - 1;
-          state.progress_bar->update(static_cast<uint64_t>(state.progress));
-
-          output_lock.unlock();
-
-          /* free memory for alignment strings */
-          for (std::size_t i = 0; i < static_cast<std::size_t>(searchinfo.hit_count); i++)
-            {
-              if (searchinfo.hits_v[i].aligned)
-                {
-                  xfree(searchinfo.hits_v[i].nwalignment);
-                }
-            }
-        }
-      else
-        {
-          /* let other threads read input */
-          input_lock.unlock();
-
-          cont = false;
-        }
-    }
+  run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
 
   search16_exit(searchinfo.s);
 }
