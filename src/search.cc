@@ -74,6 +74,7 @@
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
+#include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t, int64_t
@@ -456,72 +457,74 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> 
   auto const query_fastx_h = state.query_fastx_h;
   struct searchinfo_s * const si_plus = state.si_plus;
 
-  while (true)
-    {
-      std::unique_lock<std::mutex> input_lock(state.mutex_input);
+  int query_head_len = 0;
+  int qseqlen = 0;
+  int query_no = 0;
+  int64_t qsize = 0;
+  uint64_t progress = 0;
 
-      if (fastx_next(query_fastx_h,
-                     (not state.parameters.opt_notrunclabels),
-                     chrmap_no_change()))
-        {
-          char const * qhead = fastx_get_header(query_fastx_h);
-          int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
-          char const * qseq = fastx_get_sequence(query_fastx_h);
-          int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_fastx_h));
-          int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
-          int64_t const qsize = fastx_get_abundance(query_fastx_h);
+  auto const has_work_to_claim = [&]() -> bool {
+    if (not fastx_next(query_fastx_h,
+                       (not state.parameters.opt_notrunclabels),
+                       chrmap_no_change()))
+      {
+        return false;
+      }
 
-          populate_si(si_plus + t,
-                      qhead,
-                      query_head_len,
-                      qseq,
-                      qseqlen,
-                      query_no,
-                      qsize,
-                      0);
+    char const * qhead = fastx_get_header(query_fastx_h);
+    query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
+    char const * qseq = fastx_get_sequence(query_fastx_h);
+    qseqlen = static_cast<int>(fastx_get_sequence_length(query_fastx_h));
+    query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
+    qsize = fastx_get_abundance(query_fastx_h);
 
-          /* get progress as amount of input file read */
-          uint64_t const progress = fastx_get_position(query_fastx_h);
+    populate_si(si_plus + t,
+                qhead,
+                query_head_len,
+                qseq,
+                qseqlen,
+                query_no,
+                qsize,
+                0);
 
-          /* let other threads read input */
-          input_lock.unlock();
+    /* get progress as amount of input file read */
+    progress = fastx_get_position(query_fastx_h);
+    return true;
+  };
 
-          if (state.parameters.opt_strand)
-            {
-              populate_si(state.si_minus + t,
-                          si_plus[t].query_head,
-                          query_head_len,
-                          si_plus[t].qsequence,
-                          qseqlen,
-                          query_no,
-                          qsize,
-                          1);
-            }
+  auto const process_query = [&]() {
+    if (state.parameters.opt_strand)
+      {
+        populate_si(state.si_minus + t,
+                    si_plus[t].query_head,
+                    query_head_len,
+                    si_plus[t].qsequence,
+                    qseqlen,
+                    query_no,
+                    qsize,
+                    1);
+      }
 
-          int const match = search_query(state, t);
+    int const match = search_query(state, t);
 
-          /* lock mutex for update of global data and output */
-          std::lock_guard<std::mutex> const output_lock(state.mutex_output);
+    /* lock mutex for update of global data and output */
+    std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
-          /* update stats */
-          ++state.queries;
-          state.queries_abundance += static_cast<uint64_t>(qsize);
+    /* update stats */
+    ++state.queries;
+    state.queries_abundance += static_cast<uint64_t>(qsize);
 
-          if (match != 0)
-            {
-              ++state.qmatches;
-              state.qmatches_abundance += static_cast<uint64_t>(qsize);
-            }
+    if (match != 0)
+      {
+        ++state.qmatches;
+        state.qmatches_abundance += static_cast<uint64_t>(qsize);
+      }
 
-          /* show progress */
-          state.progress->update(progress);
-        }
-      else
-        {
-          /* input_lock released by RAII when leaving the loop body */
-          break;
-        }
-    }
+    /* show progress */
+    state.progress->update(progress);
+  };
+
+  run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
 }
 
 
@@ -1143,112 +1146,109 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     (ctx.batch_si_minus != nullptr) ? ctx.batch_si_minus + tid : nullptr;
   struct Parameters const & parameters = *ctx.parameters;
 
-  while (true)
-    {
-      /* grab next query */
-      int qi {0};
+  /* grab next query */
+  int qi {0};
+
+  auto const has_work_to_claim = [&]() -> bool {
+    qi = ctx.next_query++;
+    return qi < ctx.query_count;
+  };
+
+  auto const process_query = [&]() {
+    char const * qseq = ctx.query_seqs[qi];
+    char const * qhead = ctx.query_heads[qi];
+    int const qlen = ctx.query_lens[qi];
+    int64_t const qsize = ctx.query_sizes[qi];
+    int const head_len = static_cast<int>(std::strlen(qhead));
+
+    populate_si(my_si_plus,
+                qhead,
+                head_len,
+                qseq,
+                qlen,
+                qi,
+                qsize,
+                0);
+
+    if (my_si_minus != nullptr)
       {
-        std::lock_guard<std::mutex> const lock(ctx.mutex);
-        qi = ctx.next_query++;
+        populate_si(my_si_minus,
+                    qhead,
+                    head_len,
+                    qseq,
+                    qlen,
+                    qi,
+                    qsize,
+                    1);
       }
 
-      if (qi >= ctx.query_count)
-        {
-          break;
-        }
+    /* Mask and search each strand independently */
+    for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+      {
+        struct searchinfo_s * strand_si =
+          (s != 0) ? my_si_minus : my_si_plus;
 
-      char const * qseq = ctx.query_seqs[qi];
-      char const * qhead = ctx.query_heads[qi];
-      int const qlen = ctx.query_lens[qi];
-      int64_t const qsize = ctx.query_sizes[qi];
-      int const head_len = static_cast<int>(std::strlen(qhead));
+        if (parameters.opt_qmask == MASK_DUST)
+          {
+            dust(strand_si->qsequence, strand_si->qseqlen, parameters);
+          }
+        else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
+          {
+            hardmask(strand_si->qsequence, strand_si->qseqlen);
+          }
 
-      populate_si(my_si_plus,
-                  qhead,
-                  head_len,
-                  qseq,
-                  qlen,
-                  qi,
-                  qsize,
-                  0);
+        search_onequery(strand_si, static_cast<int>(parameters.opt_qmask));
+      }
 
-      if (my_si_minus != nullptr)
-        {
-          populate_si(my_si_minus,
-                      qhead,
-                      head_len,
-                      qseq,
-                      qlen,
-                      qi,
-                      qsize,
-                      1);
-        }
+    /* Merge hits from both strands */
+    std::vector<struct hit> hits;
+    search_joinhits(my_si_plus,
+                    parameters.opt_strand ? my_si_minus : nullptr,
+                    hits);
 
-      /* Mask and search each strand independently */
-      for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
-        {
-          struct searchinfo_s * strand_si =
-            (s != 0) ? my_si_minus : my_si_plus;
+    /* Populate results for this query */
+    struct search_result_s * qresults =
+      ctx.results + qi * ctx.max_results_per_query;
+    int count = 0;
+    for (auto const & h : hits)
+      {
+        if (count >= ctx.max_results_per_query)
+          {
+            break;
+          }
+        auto & r = qresults[count];
+        r.target = h.target;
+        r.id = h.id;
+        r.matches = h.matches;
+        r.mismatches = h.mismatches;
+        r.gaps = h.nwgaps;
+        r.alignment_length = h.nwalignmentlength;
+        r.query_length = qlen;
+        r.target_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(h.target)));
+        r.accepted = h.accepted;
+        r.strand = h.strand;
+        ++count;
+      }
+    ctx.result_counts[qi] = count;
 
-          if (parameters.opt_qmask == MASK_DUST)
-            {
-              dust(strand_si->qsequence, strand_si->qseqlen, parameters);
-            }
-          else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
-            {
-              hardmask(strand_si->qsequence, strand_si->qseqlen);
-            }
+    /* Free alignment strings from si->hits directly */
+    for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+      {
+        struct searchinfo_s * strand_si =
+          (s != 0) ? my_si_minus : my_si_plus;
+        for (int i = 0; i < strand_si->hit_count; ++i)
+          {
+            if (strand_si->hits[i].aligned &&
+                strand_si->hits[i].nwalignment != nullptr)
+              {
+                xfree(strand_si->hits[i].nwalignment);
+                strand_si->hits[i].nwalignment = nullptr;
+              }
+          }
+      }
+  };
 
-          search_onequery(strand_si, static_cast<int>(parameters.opt_qmask));
-        }
-
-      /* Merge hits from both strands */
-      std::vector<struct hit> hits;
-      search_joinhits(my_si_plus,
-                      parameters.opt_strand ? my_si_minus : nullptr,
-                      hits);
-
-      /* Populate results for this query */
-      struct search_result_s * qresults =
-        ctx.results + qi * ctx.max_results_per_query;
-      int count = 0;
-      for (auto const & h : hits)
-        {
-          if (count >= ctx.max_results_per_query)
-            {
-              break;
-            }
-          auto & r = qresults[count];
-          r.target = h.target;
-          r.id = h.id;
-          r.matches = h.matches;
-          r.mismatches = h.mismatches;
-          r.gaps = h.nwgaps;
-          r.alignment_length = h.nwalignmentlength;
-          r.query_length = qlen;
-          r.target_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(h.target)));
-          r.accepted = h.accepted;
-          r.strand = h.strand;
-          ++count;
-        }
-      ctx.result_counts[qi] = count;
-
-      /* Free alignment strings from si->hits directly */
-      for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
-        {
-          struct searchinfo_s * strand_si =
-            (s != 0) ? my_si_minus : my_si_plus;
-          for (int i = 0; i < strand_si->hit_count; ++i)
-            {
-              if (strand_si->hits[i].aligned &&
-                  strand_si->hits[i].nwalignment != nullptr)
-                {
-                  xfree(strand_si->hits[i].nwalignment);
-                  strand_si->hits[i].nwalignment = nullptr;
-                }
-            }
-        }
-    }
+  run_worker_loop(ctx.mutex, has_work_to_claim, process_query);
 }
 
 
