@@ -90,12 +90,12 @@ struct search_exact_state_s
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;
 
-  /* global constants/data, no need for synchronization */
+  /* set once before the worker pool runs, then read-only: no synchronization needed */
   int tophits = 0; /* the maximum number of hits to keep */
   int seqcount = 0; /* number of database sequences */
   fastx_handle query_fastx_h = nullptr;
 
-  /* global data protected by mutex */
+  /* accessed by the worker threads; access serialized by the mutexes */
   std::mutex mutex_input;
   std::mutex mutex_output;
   int qmatches = 0;
