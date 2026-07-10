@@ -347,6 +347,33 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   path (OS closes the fd, stdio buffer is lost). This matches current behavior
   and the legacy path; note it but do not try to fix it here.
 
+### 6a. Execution progress (branch `tmp_20260710155615`)
+
+* **Single-stream — DONE.** sintax, eestats, derep_smallmem, sff_convert,
+  derep_prefix, dbindex (the last is `#if 0` debug code, compile-checked by
+  temporarily enabling it).
+* **Partials — DONE.** cut, subsample, fastx_syncpairs (local `open_output_file`
+  shadow renamed to `open_output`, §3.3 resolved), fastq_join. Struct-held
+  handles became `OutputFileHandle` members; each command's `close_*` helper was
+  kept but converted to reset the handles **in the original fixed order** (RAII
+  scope-exit runs in reverse, which would flip flush order for streams sharing
+  stdout); the structs are now move-only.
+* **Multi-stream — DONE.** filter, fastqops, derep, orient, getseq. `vsearch.cc`
+  needed **no change** — its only `fclose_output` mention is an explanatory
+  comment in `main()`; it opens no output files. Raw-`std::FILE *`-local files
+  used one of two shapes: (a) *direct* — make `fp_*` an `OutputFileHandle` and
+  `.get()` at the write sites (filter, since its writes guard on `opt_* !=
+  nullptr`, avoiding 16 alias variables); (b) *alias* — keep the raw `fp_*` and
+  add owning handles beside them, used where opens are conditional/separated and
+  write guards are best left untouched (orient, derep, fastqops). Both preserve
+  close order via `handle.reset()` at each original `fclose_output` point.
+* **Verification.** Every command A/B byte-identical vs the pre-pivot baseline
+  (named + `-` stdout, and both-to-stdout ordering where two outputs can share
+  stdout); full `vsearch-tests` green (9648/0) after the pivot and after the
+  partials; `orient.sh` (disabled by default) 150/0.
+* **Remaining:** the **large** group (fastq_mergepairs, chimera, allpairs,
+  search_exact, search) and **cluster** (wording-sensitive tests), then Phase 4.
+
 ## 7. Phase 4 — input streams, then delete the legacy trio
 
 * Route local-lifetime input `fopen` through `open_input_file` (`getseq` is the
@@ -356,7 +383,9 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   the ownership proves invasive.
 * Once no callers remain, **delete** `fopen_output` / `open_optional_output` /
   `fclose_output` from `util.cc`/`util.h` and `fopen_input` from `fastx.cc`.
-  This is the commit that banks the value.
+  This is the commit that banks the value. Also reword the `vsearch.cc` `main()`
+  comment that currently says stdout "is not closed through `fclose_output`" —
+  after deletion the checked close lives in `CheckedCloseOutputHandle`.
 
 ## 8. Phase 5 — final verification
 
