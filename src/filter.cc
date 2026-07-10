@@ -62,6 +62,7 @@
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::signbit
@@ -304,27 +305,27 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
         }
     }
 
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout = nullptr;
-  std::FILE * fp_fastaout_discarded = nullptr;
-  std::FILE * fp_fastqout_discarded = nullptr;
+  OutputFileHandle fp_fastaout;
+  OutputFileHandle fp_fastqout;
+  OutputFileHandle fp_fastaout_discarded;
+  OutputFileHandle fp_fastqout_discarded;
 
-  std::FILE * fp_fastaout_rev = nullptr;
-  std::FILE * fp_fastqout_rev = nullptr;
-  std::FILE * fp_fastaout_discarded_rev = nullptr;
-  std::FILE * fp_fastqout_discarded_rev = nullptr;
+  OutputFileHandle fp_fastaout_rev;
+  OutputFileHandle fp_fastqout_rev;
+  OutputFileHandle fp_fastaout_discarded_rev;
+  OutputFileHandle fp_fastqout_discarded_rev;
 
-  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
-  fp_fastaout_discarded = open_optional_output(parameters.opt_fastaout_discarded, "fastaout_discarded");
-  fp_fastqout_discarded = open_optional_output(parameters.opt_fastqout_discarded, "fastqout_discarded");
+  fp_fastaout = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  fp_fastqout = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  fp_fastaout_discarded = open_optional_output_file(parameters.opt_fastaout_discarded, OutputOption{"--fastaout_discarded"});
+  fp_fastqout_discarded = open_optional_output_file(parameters.opt_fastqout_discarded, OutputOption{"--fastqout_discarded"});
 
   if (reverse_handle != nullptr)
     {
-      fp_fastaout_rev = open_optional_output(parameters.opt_fastaout_rev, "fastaout_rev");
-      fp_fastqout_rev = open_optional_output(parameters.opt_fastqout_rev, "fastqout_rev");
-      fp_fastaout_discarded_rev = open_optional_output(parameters.opt_fastaout_discarded_rev, "fastaout_discarded_rev");
-      fp_fastqout_discarded_rev = open_optional_output(parameters.opt_fastqout_discarded_rev, "fastqout_discarded_rev");
+      fp_fastaout_rev = open_optional_output_file(parameters.opt_fastaout_rev, OutputOption{"--fastaout_rev"});
+      fp_fastqout_rev = open_optional_output_file(parameters.opt_fastqout_rev, OutputOption{"--fastqout_rev"});
+      fp_fastaout_discarded_rev = open_optional_output_file(parameters.opt_fastaout_discarded_rev, OutputOption{"--fastaout_discarded_rev"});
+      fp_fastqout_discarded_rev = open_optional_output_file(parameters.opt_fastqout_discarded_rev, OutputOption{"--fastqout_discarded_rev"});
     }
 
   int64_t kept = 0;
@@ -358,7 +359,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
             if (parameters.opt_fastaout_discarded != nullptr)
               {
-                fasta_print_general(fp_fastaout_discarded,
+                fasta_print_general(fp_fastaout_discarded.get(),
                                     nullptr,
                                     fastx_get_sequence(forward_handle) + res1.start,
                                     res1.length,
@@ -377,7 +378,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
             if (parameters.opt_fastqout_discarded != nullptr)
               {
-                fastq_print_general(fp_fastqout_discarded,
+                fastq_print_general(fp_fastqout_discarded.get(),
                                     fastx_get_sequence(forward_handle) + res1.start,
                                     res1.length,
                                     fastx_get_header(forward_handle),
@@ -393,7 +394,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               {
                 if (parameters.opt_fastaout_discarded_rev != nullptr)
                   {
-                    fasta_print_general(fp_fastaout_discarded_rev,
+                    fasta_print_general(fp_fastaout_discarded_rev.get(),
                                         nullptr,
                                         fastx_get_sequence(reverse_handle) + res2.start,
                                         res2.length,
@@ -412,7 +413,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
                 if (parameters.opt_fastqout_discarded_rev != nullptr)
                   {
-                    fastq_print_general(fp_fastqout_discarded_rev,
+                    fastq_print_general(fp_fastqout_discarded_rev.get(),
                                         fastx_get_sequence(reverse_handle) + res2.start,
                                         res2.length,
                                         fastx_get_header(reverse_handle),
@@ -438,7 +439,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
             if (parameters.opt_fastaout != nullptr)
               {
-                fasta_print_general(fp_fastaout,
+                fasta_print_general(fp_fastaout.get(),
                                     nullptr,
                                     fastx_get_sequence(forward_handle) + res1.start,
                                     res1.length,
@@ -457,7 +458,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
             if (parameters.opt_fastqout != nullptr)
               {
-                fastq_print_general(fp_fastqout,
+                fastq_print_general(fp_fastqout.get(),
                                     fastx_get_sequence(forward_handle) + res1.start,
                                     res1.length,
                                     fastx_get_header(forward_handle),
@@ -473,7 +474,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               {
                 if (parameters.opt_fastaout_rev != nullptr)
                   {
-                    fasta_print_general(fp_fastaout_rev,
+                    fasta_print_general(fp_fastaout_rev.get(),
                                         nullptr,
                                         fastx_get_sequence(reverse_handle) + res2.start,
                                         res2.length,
@@ -492,7 +493,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
                 if (parameters.opt_fastqout_rev != nullptr)
                   {
-                    fastq_print_general(fp_fastqout_rev,
+                    fastq_print_general(fp_fastqout_rev.get(),
                                         fastx_get_sequence(reverse_handle) + res2.start,
                                         res2.length,
                                         fastx_get_header(reverse_handle),
@@ -537,22 +538,22 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
     {
       if (parameters.opt_fastaout_rev != nullptr)
         {
-          fclose_output(fp_fastaout_rev);
+          fp_fastaout_rev.reset();
         }
 
       if (parameters.opt_fastqout_rev != nullptr)
         {
-          fclose_output(fp_fastqout_rev);
+          fp_fastqout_rev.reset();
         }
 
       if (parameters.opt_fastaout_discarded_rev != nullptr)
         {
-          fclose_output(fp_fastaout_discarded_rev);
+          fp_fastaout_discarded_rev.reset();
         }
 
       if (parameters.opt_fastqout_discarded_rev != nullptr)
         {
-          fclose_output(fp_fastqout_discarded_rev);
+          fp_fastqout_discarded_rev.reset();
         }
 
       fastx_close(reverse_handle, parameters);
@@ -560,22 +561,22 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
   if (parameters.opt_fastaout != nullptr)
     {
-      fclose_output(fp_fastaout);
+      fp_fastaout.reset();
     }
 
   if (parameters.opt_fastqout != nullptr)
     {
-      fclose_output(fp_fastqout);
+      fp_fastqout.reset();
     }
 
   if (parameters.opt_fastaout_discarded != nullptr)
     {
-      fclose_output(fp_fastaout_discarded);
+      fp_fastaout_discarded.reset();
     }
 
   if (parameters.opt_fastqout_discarded != nullptr)
     {
-      fclose_output(fp_fastqout_discarded);
+      fp_fastqout_discarded.reset();
     }
 
   fastx_close(forward_handle, parameters);
