@@ -371,8 +371,37 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   (named + `-` stdout, and both-to-stdout ordering where two outputs can share
   stdout); full `vsearch-tests` green (9648/0) after the pivot and after the
   partials; `orient.sh` (disabled by default) 150/0.
-* **Remaining:** the **large** group (fastq_mergepairs, chimera, allpairs,
-  search_exact, search) and **cluster** (wording-sensitive tests), then Phase 4.
+* **Large — PARTLY DONE (3 of 5).** allpairs, chimera, fastq_mergepairs
+  migrated. These are the state-struct-with-worker-pool commands: the driver
+  owns the state (a local), the workers read its `FILE *` members under the
+  output lock, so the migration keeps those members non-owning and adds an
+  owning `OutputFileHandle` per output (declared inline at each open, or in the
+  struct for the mode-branched pairs), `state.fp_* = handle.get()`, reset in the
+  original close order. A/B byte-identical at `--threads 1` (allpairs alnout
+  compared minus its command-line echo); uchime_denovo + chimeras_denovo both
+  branches; mergepairs merged+notmerged. One follow-up: fastq_mergepairs had a
+  pre-existing benign dangling `state.progress` (a Progress in a tight braced
+  scope) that the added RAII locals made cppcheck's lifetime analysis reach;
+  fixed by nulling the member inside the scope.
+* **Large — DEFERRED (2 of 5), needs a dedicated pass:**
+  * **search_exact** — its output handles are file-static globals shared across
+    `search_exact_prep` / body / `search_exact_done`. A static `OutputFileHandle`
+    would run its checked close during static destruction on a `fatal()`/`exit()`
+    path (re-entrant `exit()` — unsafe). Safe RAII needs the owners function-local
+    in `search_exact()` threaded through prep/done, i.e. essentially the
+    globals→state-struct migration (a separate Band-7 task). Do that first, then
+    this becomes the allpairs pattern.
+  * **search** — `search_cli_state_s` is a CLI-only driver local (good), but the
+    opening lives in `search_prep` (which also does db_read/index/tophits, so it
+    can't move to the driver), and there are ~40 `state.fp_*` reads across the
+    hot, library-coexisting search/results core. The clean migration makes the
+    struct's `fp_*` into `OutputFileHandle` and adds `.get()` at those ~40 sites
+    (the struct is already non-copyable via its `Parameters const &` member, so
+    move-only handles are fine); the OTU outputs (otutabout/mothur/biom) are
+    closed early in the body and become `reset()` there. Worth a focused pass
+    with A/B on both the CLI and the library `search_batch` path (api_examples).
+* **Remaining:** search_exact, search (above), then **cluster**
+  (wording-sensitive tests), then Phase 4.
 
 ## 7. Phase 4 — input streams, then delete the legacy trio
 
