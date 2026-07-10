@@ -62,6 +62,7 @@
 #include "bitmap.h"
 #include "dbindex.h"
 #include "unique.h"
+#include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <array>
 #include <cstdint>  // uint64_t
@@ -199,13 +200,12 @@ auto Dbindex::prepare(int use_bitmap, int seqmask, struct Parameters const & par
 
 #if 0
   /* dump kmer counts */
-  auto * f = fopen_output("kmercounts.txt");
+  auto const kmercounts_handle = open_output_file("kmercounts.txt");
   for (auto kmer = 0U; kmer < hashsize; kmer++)
     {
-      fprint_kmer(f, 8, kmer);
-      std::fprintf(f, "\t%d\t%d\n", kmer, kmercount[kmer]);
+      fprint_kmer(kmercounts_handle.get(), 8, kmer);
+      std::fprintf(kmercounts_handle.get(), "\t%d\t%d\n", kmer, kmercount[kmer]);
     }
-  fclose_output(f);
 #endif
 
   /* determine minimum kmer count for bitmap usage */
