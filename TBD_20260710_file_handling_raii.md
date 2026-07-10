@@ -383,14 +383,26 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   pre-existing benign dangling `state.progress` (a Progress in a tight braced
   scope) that the added RAII locals made cppcheck's lifetime analysis reach;
   fixed by nulling the member inside the scope.
-* **Large — DEFERRED (2 of 5), needs a dedicated pass:**
-  * **search_exact** — its output handles are file-static globals shared across
-    `search_exact_prep` / body / `search_exact_done`. A static `OutputFileHandle`
-    would run its checked close during static destruction on a `fatal()`/`exit()`
-    path (re-entrant `exit()` — unsafe). Safe RAII needs the owners function-local
-    in `search_exact()` threaded through prep/done, i.e. essentially the
-    globals→state-struct migration (a separate Band-7 task). Do that first, then
-    this becomes the allpairs pattern.
+* **search_exact — DONE** (branch `tmp_20260710225651`). This one hinged on
+  Band 7: its outputs were file-static globals shared across `search_exact_prep`
+  / body / `search_exact_done`, and a static `OutputFileHandle` would run its
+  checked close during static destruction on a `fatal()`/`exit()` path
+  (re-entrant `exit()` — unsafe). So the E4 globals→state-struct migration was
+  done first (`03514e12`: the ~22 file-statics folded into a per-invocation
+  `search_exact_state_s` — the last E4 command file; see Band 7 §5e), then the
+  RAII migration became the allpairs pattern (`217ca61b`): the 15 outputs open
+  through `open_optional_output_file`, owned by `OutputFileHandle` locals in
+  `search_exact()` (they outlive the worker pool that reads the non-owning
+  `state.fp_*` under the output lock), `state.fp_* = handle.get()`, `reset()` in
+  the original close order — the 3 OTU outputs mid-body where they close early,
+  the other 12 after `search_exact_done`. The opens moved from `search_exact_prep`
+  up into the driver (a handle scoped to prep would close before the workers run).
+  A/B byte-identical across all 16 outputs at `--threads 1` for `--strand plus`
+  and `--strand both`; `search_exact.sh` 140/0; full suite 9648/0. No
+  wording-sensitive test (`search_exact.sh` checks only the non-zero exit on a
+  failed open, stderr discarded), so the failure message could adopt the shared
+  option-named form.
+* **Large — DEFERRED (1 of 5), needs a dedicated pass:**
   * **search** — `search_cli_state_s` is a CLI-only driver local (good), but the
     opening lives in `search_prep` (which also does db_read/index/tophits, so it
     can't move to the driver), and there are ~40 `state.fp_*` reads across the
@@ -400,6 +412,8 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
     move-only handles are fine); the OTU outputs (otutabout/mothur/biom) are
     closed early in the body and become `reset()` there. Worth a focused pass
     with A/B on both the CLI and the library `search_batch` path (api_examples).
+    Unlike search_exact, this is **not** Band-7-blocked — its E4 state struct
+    already exists.
 * **cluster — DONE.** The largest output command (three groups, all migrated
   within `cluster()`): the 14 state-struct members the workers read (driver-owns,
   inline handles); the block-local `--msaout`/`--consout`/`--profile` MSA
@@ -411,7 +425,7 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   assertions were updated in sync (in the vsearch-tests repo). A/B byte-identical
   at `--threads 1` (biomout minus its embedded output-path `id`); `cluster_fast.sh`
   185/0.
-* **Remaining:** search_exact, search (deferred, see above), then Phase 4.
+* **Remaining:** search (deferred, see above), then Phase 4.
 
 ## 7. Phase 4 — input streams, then delete the legacy trio
 
