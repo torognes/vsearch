@@ -86,9 +86,11 @@
 #include "tax.h"
 #include "udb.h"
 #include "unique.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
+#include "utils/open_file.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
@@ -682,7 +684,6 @@ auto sintax(struct Parameters const & parameters) -> void
   auto & tophits = state.tophits;
   auto & seqcount = state.seqcount;
   auto & query_fastx_h = state.query_fastx_h;
-  auto & fp_tabbedout = state.fp_tabbedout;
   int & queries = state.queries;
   int & classified = state.classified;
 
@@ -697,14 +698,13 @@ auto sintax(struct Parameters const & parameters) -> void
       fatal("No database file specified with --db");
     }
 
-  if (parameters.opt_tabbedout != nullptr)
-    {
-      fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
-    }
-  else
+  if (parameters.opt_tabbedout == nullptr)
     {
       fatal("No output file specified with --tabbedout");
     }
+  auto const output_handle = open_output_file(parameters.opt_tabbedout);
+  check_optional_output_handle(parameters.opt_tabbedout, (not output_handle));
+  state.fp_tabbedout = output_handle.get();
 
   /* check if db may be an UDB file */
 
@@ -796,7 +796,6 @@ auto sintax(struct Parameters const & parameters) -> void
     }
 
   fastx_close(query_fastx_h, parameters);
-  fclose_output(fp_tabbedout);
 
   state.dbindex.clear();
   db_free();
