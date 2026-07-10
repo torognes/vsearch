@@ -62,10 +62,10 @@
 #include "fasta.h"  // fasta_print_general
 #include "fastq.h"  // fastq_print_general
 #include "fastx.h"  // fastx_handle
-#include "util.h"  // progress_init, progress_update, progress_done, fopen_output
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // chrmap_no_change()
+#include "utils/open_file.hpp"
 #include <cinttypes>  // macros PRIu64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
@@ -84,7 +84,7 @@ namespace {
 
   struct output_file {
     char * name = nullptr;
-    std::FILE * handle = nullptr;
+    OutputFileHandle handle;
   };
 
   // a destination for a category of reads (synced or orphaned), which may
@@ -138,36 +138,35 @@ namespace {
   }
 
 
-  auto open_output_file(char * name, char const * description) -> output_file {
+  auto open_output(char * name, char const * option) -> output_file {
     output_file outfile;
     outfile.name = name;
-    outfile.handle = open_optional_output(name, description);
+    outfile.handle = open_optional_output_file(name, OutputOption{option});
     return outfile;
   }
 
 
   auto open_output_files(struct Parameters const & parameters) -> output_files {
     output_files outfiles;
-    outfiles.synced_fwd.fasta = open_output_file(parameters.opt_fastaout, "fastaout");
-    outfiles.synced_fwd.fastq = open_output_file(parameters.opt_fastqout, "fastqout");
-    outfiles.synced_rev.fasta = open_output_file(parameters.opt_fastaout_rev, "fastaout_rev");
-    outfiles.synced_rev.fastq = open_output_file(parameters.opt_fastqout_rev, "fastqout_rev");
-    outfiles.orphans_fwd.fasta = open_output_file(parameters.opt_fastaout_orphans, "fastaout_orphans");
-    outfiles.orphans_fwd.fastq = open_output_file(parameters.opt_fastqout_orphans, "fastqout_orphans");
-    outfiles.orphans_rev.fasta = open_output_file(parameters.opt_fastaout_orphans_rev, "fastaout_orphans_rev");
-    outfiles.orphans_rev.fastq = open_output_file(parameters.opt_fastqout_orphans_rev, "fastqout_orphans_rev");
+    outfiles.synced_fwd.fasta = open_output(parameters.opt_fastaout, "--fastaout");
+    outfiles.synced_fwd.fastq = open_output(parameters.opt_fastqout, "--fastqout");
+    outfiles.synced_rev.fasta = open_output(parameters.opt_fastaout_rev, "--fastaout_rev");
+    outfiles.synced_rev.fastq = open_output(parameters.opt_fastqout_rev, "--fastqout_rev");
+    outfiles.orphans_fwd.fasta = open_output(parameters.opt_fastaout_orphans, "--fastaout_orphans");
+    outfiles.orphans_fwd.fastq = open_output(parameters.opt_fastqout_orphans, "--fastqout_orphans");
+    outfiles.orphans_rev.fasta = open_output(parameters.opt_fastaout_orphans_rev, "--fastaout_orphans_rev");
+    outfiles.orphans_rev.fastq = open_output(parameters.opt_fastqout_orphans_rev, "--fastqout_orphans_rev");
     return outfiles;
   }
 
 
-  auto close_output_files(output_files const & outfiles) -> void {
-    for (auto const * pair : {& outfiles.synced_fwd, & outfiles.synced_rev,
-                              & outfiles.orphans_fwd, & outfiles.orphans_rev}) {
-      for (auto * handle : {pair->fasta.handle, pair->fastq.handle}) {
-        if (handle != nullptr) {
-          static_cast<void>(fclose_output(handle));
-        }
-      }
+  auto close_output_files(output_files & outfiles) -> void {
+    /* reset in this fixed order (scope-exit destruction runs in reverse) so
+       that any streams sharing stdout flush as they did before RAII */
+    for (auto * pair : {& outfiles.synced_fwd, & outfiles.synced_rev,
+                        & outfiles.orphans_fwd, & outfiles.orphans_rev}) {
+      pair->fasta.handle.reset();
+      pair->fastq.handle.reset();
     }
   }
 
@@ -219,7 +218,7 @@ namespace {
     auto const length = static_cast<int>(record.sequence.length());
     auto const header_length = static_cast<int>(record.header.length());
     if (destination.fastq.handle != nullptr) {
-      fastq_print_general(destination.fastq.handle,
+      fastq_print_general(destination.fastq.handle.get(),
                           record.sequence.c_str(),
                           length,
                           record.header.c_str(),
@@ -231,7 +230,7 @@ namespace {
                           parameters);
     }
     if (destination.fasta.handle != nullptr) {
-      fasta_print_general(destination.fasta.handle,
+      fasta_print_general(destination.fasta.handle.get(),
                           nullptr,
                           record.sequence.c_str(),
                           length,
@@ -318,7 +317,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  auto const outfiles = open_output_files(parameters);
+  auto outfiles = open_output_files(parameters);
 
   std::string const separators =
     (parameters.opt_read_separators != nullptr) ?
