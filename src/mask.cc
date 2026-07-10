@@ -66,6 +66,7 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"
+#include "utils/worker_loop.hpp"
 #include <array>
 #include <cctype>  // std::toupper, std::isupper
 #include <cstdint>  // int64_t, uint64_t
@@ -215,25 +216,22 @@ struct dust_state_s
 static auto dust_all_worker(struct dust_state_s & state, uint64_t nth_thread) -> void
 {
   (void) nth_thread; // not used, but required by the ThreadRunner signature
-  while (true)
-    {
-      std::unique_lock<std::mutex> lock(state.mutex);
-      const auto seqno = state.nextseq;
-      if (seqno < state.seqcount)
-        {
-          ++state.nextseq;
-          state.progress->update(seqno);
-          lock.unlock();
-          dust(db_getsequence(seqno),
-               static_cast<int>(db_getsequencelen(seqno)),
-               *state.parameters);
-        }
-      else
-        {
-          /* lock released by RAII when leaving the loop body */
-          break;
-        }
-    }
+  uint64_t seqno = 0;
+
+  auto const has_work_to_claim = [&]() -> bool {
+    if (state.nextseq >= state.seqcount) { return false; }
+    seqno = state.nextseq++;
+    state.progress->update(seqno);
+    return true;
+  };
+
+  auto const process_sequence = [&]() {
+    dust(db_getsequence(seqno),
+         static_cast<int>(db_getsequencelen(seqno)),
+         *state.parameters);
+  };
+
+  run_worker_loop(state.mutex, has_work_to_claim, process_sequence);
 }
 
 
