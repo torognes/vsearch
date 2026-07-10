@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::max, std::transform
@@ -165,16 +166,15 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
 
 auto derep_prefix(struct Parameters const & parameters) -> void
 {
-  std::FILE * fp_output = nullptr;
-  std::FILE * fp_uc = nullptr;
-
   if (parameters.opt_strand)
     {
       fatal("Option '--strand both' not supported with --derep_prefix");
     }
 
-  fp_output = open_optional_output(parameters.opt_output, "output");
-  fp_uc = open_optional_output(parameters.opt_uc, "uc");
+  auto output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
+  std::FILE * const fp_output = output_handle.get();
+  auto uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
+  std::FILE * const fp_uc = uc_handle.get();
 
   db_read(parameters.opt_derep_prefix, 0, parameters);
 
@@ -454,7 +454,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           }
       }
 
-      fclose_output(fp_output);
+      output_handle.reset();
     }
 
   if (parameters.opt_uc != nullptr)
@@ -492,7 +492,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                     i, bp.size, db_getheader(bp.seqno_first));
             progress.update(static_cast<uint64_t>(i));
           }
-        fclose_output(fp_uc);
+        uc_handle.reset();
       }
     }
 
