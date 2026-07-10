@@ -65,6 +65,7 @@
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
@@ -1758,13 +1759,20 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* open output files */
 
-  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
-  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-  fp_fastqout_notmerged_fwd = open_optional_output(parameters.opt_fastqout_notmerged_fwd, "fastqout_notmerged_fwd");
-  fp_fastqout_notmerged_rev = open_optional_output(parameters.opt_fastqout_notmerged_rev, "fastqout_notmerged_rev");
-  fp_fastaout_notmerged_fwd = open_optional_output(parameters.opt_fastaout_notmerged_fwd, "fastaout_notmerged_fwd");
-  fp_fastaout_notmerged_rev = open_optional_output(parameters.opt_fastaout_notmerged_rev, "fastaout_notmerged_rev");
-  fp_eetabbedout = open_optional_output(parameters.opt_eetabbedout, "eetabbedout");
+  OutputFileHandle fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  fp_fastqout = fastqout_handle.get();
+  OutputFileHandle fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  fp_fastaout = fastaout_handle.get();
+  OutputFileHandle fastqout_notmerged_fwd_handle = open_optional_output_file(parameters.opt_fastqout_notmerged_fwd, OutputOption{"--fastqout_notmerged_fwd"});
+  fp_fastqout_notmerged_fwd = fastqout_notmerged_fwd_handle.get();
+  OutputFileHandle fastqout_notmerged_rev_handle = open_optional_output_file(parameters.opt_fastqout_notmerged_rev, OutputOption{"--fastqout_notmerged_rev"});
+  fp_fastqout_notmerged_rev = fastqout_notmerged_rev_handle.get();
+  OutputFileHandle fastaout_notmerged_fwd_handle = open_optional_output_file(parameters.opt_fastaout_notmerged_fwd, OutputOption{"--fastaout_notmerged_fwd"});
+  fp_fastaout_notmerged_fwd = fastaout_notmerged_fwd_handle.get();
+  OutputFileHandle fastaout_notmerged_rev_handle = open_optional_output_file(parameters.opt_fastaout_notmerged_rev, OutputOption{"--fastaout_notmerged_rev"});
+  fp_fastaout_notmerged_rev = fastaout_notmerged_rev_handle.get();
+  OutputFileHandle eetabbedout_handle = open_optional_output_file(parameters.opt_eetabbedout, OutputOption{"--eetabbedout"});
+  fp_eetabbedout = eetabbedout_handle.get();
 
   /* precompute merged quality values */
 
@@ -1797,15 +1805,15 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+  /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard. */
-  fclose_output(fp_eetabbedout);
-  fclose_output(fp_fastaout_notmerged_rev);
-  fclose_output(fp_fastaout_notmerged_fwd);
-  fclose_output(fp_fastqout_notmerged_rev);
-  fclose_output(fp_fastqout_notmerged_fwd);
-  fclose_output(fp_fastaout);
-  fclose_output(fp_fastqout);
+  eetabbedout_handle.reset();
+  fastaout_notmerged_rev_handle.reset();
+  fastaout_notmerged_fwd_handle.reset();
+  fastqout_notmerged_rev_handle.reset();
+  fastqout_notmerged_fwd_handle.reset();
+  fastaout_handle.reset();
+  fastqout_handle.reset();
 
   fastq_close(fastq_rev, parameters);
   fastq_rev = nullptr;
