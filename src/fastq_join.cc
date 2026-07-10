@@ -61,10 +61,10 @@
 #include "vsearch.h"
 #include "fastq.h"  // fastq_open, fastq_get_sequence, fastq_get_quality
 #include "fastx.h"  // fastx_handle
-#include "util.h"  // progress_done
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t
@@ -87,7 +87,7 @@ namespace {
 
   struct output_file {
     char * name = nullptr;
-    std::FILE * handle = nullptr;
+    OutputFileHandle handle;
   };
 
   struct output_files {
@@ -129,36 +129,17 @@ namespace {
     struct output_files outfiles;
     outfiles.fasta.name = parameters.opt_fastaout;
     outfiles.fastq.name = parameters.opt_fastqout;
-    if (outfiles.fasta.name != nullptr) {
-      outfiles.fasta.handle = fopen_output(outfiles.fasta.name);
-    }
-    if (outfiles.fastq.name != nullptr) {
-      outfiles.fastq.handle = fopen_output(outfiles.fastq.name);
-    }
+    outfiles.fasta.handle = open_optional_output_file(outfiles.fasta.name, OutputOption{"--fastaout"});
+    outfiles.fastq.handle = open_optional_output_file(outfiles.fastq.name, OutputOption{"--fastqout"});
     return outfiles;
   }
 
 
-  auto check_output_files(struct output_files const & outfiles) -> void {
-    if (outfiles.fasta.name != nullptr) {
-      if (outfiles.fasta.handle == nullptr) {
-        fatal("Unable to open fastaout file for writing (%s)", outfiles.fasta.name);
-      }
-    }
-    if (outfiles.fastq.name != nullptr) {
-      if (outfiles.fastq.handle == nullptr) {
-        fatal("Unable to open fastqout file for writing (%s)", outfiles.fastq.name);
-      }
-    }
-  }
-
-
-  auto close_output_files(struct output_files const & outfiles) -> void {
-    for (auto * fp_outputfile : {outfiles.fasta.handle, outfiles.fastq.handle}) {
-      if (fp_outputfile != nullptr) {
-        static_cast<void>(fclose_output(fp_outputfile));
-      }
-    }
+  auto close_output_files(struct output_files & outfiles) -> void {
+    /* reset in this fixed order (scope-exit destruction runs in reverse) so
+       that outputs sharing stdout flush as they did before RAII */
+    outfiles.fasta.handle.reset();
+    outfiles.fastq.handle.reset();
   }
 
 
@@ -211,8 +192,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   auto const infiles = open_input_files(parameters);
   // check_input_files(infiles)? already done by the function fastq_open()
-  auto const outfiles = open_output_files(parameters);
-  check_output_files(outfiles);
+  auto outfiles = open_output_files(parameters);
 
   /* main */
 
@@ -286,7 +266,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
         if (parameters.opt_fastqout != nullptr)
           {
-            fastq_print_general(outfiles.fastq.handle,
+            fastq_print_general(outfiles.fastq.handle.get(),
                                 final_sequence.c_str(),
                                 static_cast<int>(needed),
                                 fastq_get_header(infiles.forward.handle),
@@ -300,7 +280,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
         if (parameters.opt_fastaout != nullptr)
           {
-            fasta_print_general(outfiles.fasta.handle,
+            fasta_print_general(outfiles.fasta.handle.get(),
                                 nullptr,
                                 final_sequence.c_str(),
                                 static_cast<int>(needed),
