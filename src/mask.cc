@@ -213,9 +213,8 @@ struct dust_state_s
 };
 
 
-static auto dust_all_worker(struct dust_state_s & state, uint64_t nth_thread) -> void
+static auto dust_all_worker(struct dust_state_s & state) -> void
 {
-  (void) nth_thread; // not used, but required by the ThreadRunner signature
   uint64_t seqno = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
@@ -244,8 +243,8 @@ auto dust_all(struct Parameters const & parameters) -> void
   state.progress = &progress;
 
   ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
-                            [&state](uint64_t const nth_thread)
-                            { dust_all_worker(state, nth_thread); });
+                            [&state](uint64_t /*nth_thread*/)
+                            { dust_all_worker(state); });
   threadrunner.run();
 }
 
