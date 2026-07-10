@@ -86,7 +86,6 @@
 #include "tax.h"
 #include "udb.h"
 #include "unique.h"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
@@ -698,12 +697,7 @@ auto sintax(struct Parameters const & parameters) -> void
       fatal("No database file specified with --db");
     }
 
-  if (parameters.opt_tabbedout == nullptr)
-    {
-      fatal("No output file specified with --tabbedout");
-    }
-  auto const output_handle = open_output_file(parameters.opt_tabbedout);
-  check_optional_output_handle(parameters.opt_tabbedout, (not output_handle));
+  auto const output_handle = open_mandatory_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
   state.fp_tabbedout = output_handle.get();
 
   /* check if db may be an UDB file */

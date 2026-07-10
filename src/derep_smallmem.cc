@@ -61,7 +61,6 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "vendored/city.h"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -241,12 +240,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       fatal("The derep_smallmem command does not support input from a pipe.");
     }
 
-  if (parameters.opt_fastaout == nullptr)
-    {
-      fatal("Output file for dereplication must be specified with --fastaout");
-    }
-  auto const output_handle = open_output_file(parameters.opt_fastaout);
-  check_optional_output_handle(parameters.opt_fastaout, (not output_handle));
+  auto const output_handle = open_mandatory_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
   std::FILE * const fp_fastaout = output_handle.get();
 
   auto const filesize = fastx_get_size(h);
