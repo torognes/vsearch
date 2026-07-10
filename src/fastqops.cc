@@ -62,6 +62,7 @@
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -96,11 +97,10 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   auto const filesize = fastx_get_size(input_handle);
 
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout = nullptr;
-
-  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+  auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  std::FILE * const fp_fastaout = fastaout_handle.get();
+  std::FILE * const fp_fastqout = fastqout_handle.get();
 
   auto count = 0;
 
@@ -182,12 +182,12 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastaout != nullptr)
     {
-      fclose_output(fp_fastaout);
+      fastaout_handle.reset();
     }
 
   if (parameters.opt_fastqout != nullptr)
     {
-      fclose_output(fp_fastqout);
+      fastqout_handle.reset();
     }
 
   fastx_close(input_handle, parameters);
@@ -204,7 +204,8 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   auto const filesize = fastq_get_size(input_handle);
 
-  std::FILE * fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  std::FILE * const fp_fastqout = fastqout_handle.get();
 
 
   std::vector<char> normalized_quality;
@@ -288,6 +289,6 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   }
 
 
-  fclose_output(fp_fastqout);
+  fastqout_handle.reset();
   fastq_close(input_handle, parameters);
 }
