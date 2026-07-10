@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::count, std::for_each, std::equal
 #include <cassert>
@@ -88,7 +89,7 @@ namespace {
 
   struct a_file {
     char * name = nullptr;
-    std::FILE * handle = nullptr;
+    OutputFileHandle handle;
   };
 
   struct a_strand {
@@ -154,7 +155,7 @@ namespace {
 
         if ((frag_length > 0) and (fastaout.cut.forward.name != nullptr))
           {
-            fasta_print_general(fastaout.cut.forward.handle,
+            fasta_print_general(fastaout.cut.forward.handle.get(),
                                 nullptr,
                                 std::next(seq, frag_start),
                                 frag_length,
@@ -173,7 +174,7 @@ namespace {
 
         if ((rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
           {
-            fasta_print_general(fastaout.cut.reverse.handle,
+            fasta_print_general(fastaout.cut.reverse.handle.get(),
                                 nullptr,
                                 &rc_buffer[static_cast<std::size_t>(rc_start)],
                                 rc_length,
@@ -203,7 +204,7 @@ namespace {
 
     if ((local_matches > 0) and (frag_length > 0) and (fastaout.cut.forward.name != nullptr))
       {
-        fasta_print_general(fastaout.cut.forward.handle,
+        fasta_print_general(fastaout.cut.forward.handle.get(),
                             nullptr,
                             std::next(seq, frag_start),
                             frag_length,
@@ -222,7 +223,7 @@ namespace {
 
     if ((local_matches > 0) and (rc_length > 0) and (fastaout.cut.reverse.name != nullptr))
       {
-        fasta_print_general(fastaout.cut.reverse.handle,
+        fasta_print_general(fastaout.cut.reverse.handle.get(),
                             nullptr,
                             &rc_buffer[static_cast<std::size_t>(rc_start)],
                             rc_length,
@@ -246,7 +247,7 @@ namespace {
 
     if ((local_matches == 0) and (fastaout.discarded.forward.name != nullptr))
       {
-        fasta_print_general(fastaout.discarded.forward.handle,
+        fasta_print_general(fastaout.discarded.forward.handle.get(),
                             nullptr,
                             seq,
                             seq_length,
@@ -265,7 +266,7 @@ namespace {
 
     if ((local_matches == 0) and (fastaout.discarded.reverse.name != nullptr))
       {
-        fasta_print_general(fastaout.discarded.reverse.handle,
+        fasta_print_general(fastaout.discarded.reverse.handle.get(),
                             nullptr,
                             rc_buffer.data(),
                             seq_length,
@@ -302,43 +303,11 @@ namespace {
     fastaout.discarded.forward.name = parameters.opt_fastaout_discarded;
     fastaout.cut.reverse.name = parameters.opt_fastaout_rev;
     fastaout.discarded.reverse.name = parameters.opt_fastaout_discarded_rev;
-    if (fastaout.cut.forward.name != nullptr) {
-      fastaout.cut.forward.handle = fopen_output(fastaout.cut.forward.name);
-    }
-    if (fastaout.discarded.forward.name != nullptr) {
-      fastaout.discarded.forward.handle = fopen_output(fastaout.discarded.forward.name);
-    }
-    if (fastaout.cut.reverse.name != nullptr) {
-      fastaout.cut.reverse.handle = fopen_output(fastaout.cut.reverse.name);
-    }
-    if (fastaout.discarded.reverse.name != nullptr) {
-      fastaout.discarded.reverse.handle = fopen_output(fastaout.discarded.reverse.name);
-    }
+    fastaout.cut.forward.handle = open_optional_output_file(fastaout.cut.forward.name, OutputOption{"--fastaout"});
+    fastaout.discarded.forward.handle = open_optional_output_file(fastaout.discarded.forward.name, OutputOption{"--fastaout_discarded"});
+    fastaout.cut.reverse.handle = open_optional_output_file(fastaout.cut.reverse.name, OutputOption{"--fastaout_rev"});
+    fastaout.discarded.reverse.handle = open_optional_output_file(fastaout.discarded.reverse.name, OutputOption{"--fastaout_discarded_rev"});
     return fastaout;
-  }
-
-
-  auto check_output_files(struct file_purpose const & fastaout) -> void {
-    if (fastaout.cut.forward.name != nullptr) {
-      if (fastaout.cut.forward.handle == nullptr) {
-        fatal("Unable to open fastaout file for writing (%s)", fastaout.cut.forward.name);
-      }
-    }
-    if (fastaout.discarded.forward.name != nullptr) {
-      if (fastaout.discarded.forward.handle == nullptr) {
-        fatal("Unable to open fastaout_discarded file for writing (%s)", fastaout.discarded.forward.name);
-      }
-    }
-    if (fastaout.cut.reverse.name != nullptr) {
-      if (fastaout.cut.reverse.handle == nullptr) {
-        fatal("Unable to open fastaout_rev file for writing (%s)", fastaout.cut.reverse.name);
-      }
-    }
-    if (fastaout.discarded.reverse.name != nullptr) {
-      if (fastaout.discarded.reverse.handle == nullptr) {
-        fatal("Unable to open fastaout_discarded_rev file for writing (%s)", fastaout.discarded.reverse.name);
-      }
-    }
   }
 
 
@@ -441,14 +410,14 @@ namespace {
   }
 
 
-  auto close_output_files(struct file_purpose const & fastaout) -> void {
-    for (auto * fp_outputfile : {
-        fastaout.cut.forward.handle, fastaout.discarded.forward.handle,
-        fastaout.cut.reverse.handle, fastaout.discarded.reverse.handle}) {
-      if (fp_outputfile != nullptr) {
-        static_cast<void>(fclose_output(fp_outputfile));
-      }
-    }
+  auto close_output_files(struct file_purpose & fastaout) -> void {
+    /* reset in this fixed order (scope-exit destruction would run in the
+       reverse order) so that any streams sharing stdout flush in the same
+       order as the pre-RAII code */
+    fastaout.cut.forward.handle.reset();
+    fastaout.discarded.forward.handle.reset();
+    fastaout.cut.reverse.handle.reset();
+    fastaout.discarded.reverse.handle.reset();
   }
 }  // end of anonymous namespace
 
@@ -459,8 +428,7 @@ auto cut(struct Parameters const & parameters) -> void {
   auto * input_handle = fasta_open(parameters.opt_cut, parameters);
   assert(input_handle != nullptr);  // verified by fasta_open()
 
-  auto const fastaout = open_output_files(parameters);
-  check_output_files(fastaout);
+  auto fastaout = open_output_files(parameters);
 
   auto const raw_pattern = parameters.opt_cut_pattern;
 
