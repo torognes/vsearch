@@ -401,15 +401,14 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   uint64_t const filesize = fastx_get_size(h1);
 
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout = nullptr;
-  std::FILE * fp_notmatched = nullptr;
-  std::FILE * fp_notmatchedfq = nullptr;
-
-  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
-  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
-  fp_notmatchedfq = open_optional_output(parameters.opt_notmatchedfq, "notmatchedfq");
+  auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  auto notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
+  auto notmatchedfq_handle = open_optional_output_file(parameters.opt_notmatchedfq, OutputOption{"--notmatchedfq"});
+  std::FILE * const fp_fastaout = fastaout_handle.get();
+  std::FILE * const fp_fastqout = fastqout_handle.get();
+  std::FILE * const fp_notmatched = notmatched_handle.get();
+  std::FILE * const fp_notmatchedfq = notmatchedfq_handle.get();
 
   int64_t kept = 0;
   int64_t discarded = 0;
@@ -559,22 +558,22 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   if (parameters.opt_fastaout != nullptr)
     {
-      fclose_output(fp_fastaout);
+      fastaout_handle.reset();
     }
 
   if (parameters.opt_fastqout != nullptr)
     {
-      fclose_output(fp_fastqout);
+      fastqout_handle.reset();
     }
 
   if (parameters.opt_notmatched != nullptr)
     {
-      fclose_output(fp_notmatched);
+      notmatched_handle.reset();
     }
 
   if (parameters.opt_notmatchedfq != nullptr)
     {
-      fclose_output(fp_notmatchedfq);
+      notmatchedfq_handle.reset();
     }
 
   fastx_close(h1, parameters);
