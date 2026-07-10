@@ -61,7 +61,6 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "mask.h"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -283,8 +282,7 @@ auto dust_single(char * seq, int len, bool use_hardmask) -> void
 
 auto maskfasta(struct Parameters const & parameters) -> void
 {
-  auto const output_handle = open_output_file(parameters.opt_output);
-  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
+  auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
 
   db_read(parameters.opt_maskfasta, 0, parameters);
   // memory-intensive: the entire database is now held in memory

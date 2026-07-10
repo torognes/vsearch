@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
@@ -241,8 +240,7 @@ namespace {
 
 auto sortbysize(struct Parameters const & parameters) -> void
 {
-  auto const output_handle = open_output_file(parameters.opt_output);
-  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
+  auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
   db_read(parameters.opt_sortbysize, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 

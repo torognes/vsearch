@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.h"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -76,8 +75,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   auto * fp_input = fasta_open(parameters.opt_fasta2fastq, parameters);
   assert(fp_input != nullptr);  // check performed in fasta_open(fastx_open())
 
-  auto const output_handle = open_output_file(parameters.opt_fastqout);
-  check_mandatory_fastq_output_handle(parameters.opt_fastqout, (not output_handle));
+  auto const output_handle = open_mandatory_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
   assert(parameters.opt_fastqout != nullptr);  // check performed above
 
   static constexpr auto initial_length = 1024U;

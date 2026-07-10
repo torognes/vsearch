@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -77,8 +76,7 @@ namespace {
 
 auto rereplicate(struct Parameters const & parameters) -> void
 {
-  auto const output_handle = open_output_file(parameters.opt_output);
-  check_mandatory_output_handle(parameters.opt_output, (not output_handle));
+  auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
   auto * input_handle = fasta_open(parameters.opt_rereplicate, parameters);
   auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
 
