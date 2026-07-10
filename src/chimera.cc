@@ -74,6 +74,7 @@
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
+#include "utils/worker_loop.hpp"
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>
@@ -2167,210 +2168,213 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
   LinearMemoryAligner lma(scoring);
 
-  while (true)
-    {
-      /* get next sequence */
+  uint64_t query_position = 0;
 
-      std::unique_lock<std::mutex> input_lock(mutex_input);
+  auto const has_work_to_claim = [&]() -> bool {
+    /* get next sequence */
 
-      /* Query-file progress position. Read here, under input_lock, into a
-         worker-local: fasta_get_position() reads the shared query handle,
-         which another worker advances in fasta_next() under the same lock.
-         Reading it later under mutex_output (as before) raced that writer. */
-      uint64_t query_position = 0;
+    /* Query-file progress position. Read here, under input_lock, into a
+       worker-local: fasta_get_position() reads the shared query handle,
+       which another worker advances in fasta_next() under the same lock.
+       Reading it later under mutex_output (as before) raced that writer. */
+    query_position = 0;
 
-      if (state.parameters.opt_uchime_ref != nullptr)
-        {
-          if (fasta_next(state.query_fasta_h, (not state.parameters.opt_notrunclabels),
-                         chrmap_no_change()))
-            {
-              ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
-              ci->query_len = static_cast<int>(fasta_get_sequence_length(state.query_fasta_h));
-              ci->query_no = static_cast<int>(fasta_get_seqno(state.query_fasta_h));
-              ci->query_size = fasta_get_abundance(state.query_fasta_h);
+    if (state.parameters.opt_uchime_ref != nullptr)
+      {
+        if (fasta_next(state.query_fasta_h, (not state.parameters.opt_notrunclabels),
+                       chrmap_no_change()))
+          {
+            ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
+            ci->query_len = static_cast<int>(fasta_get_sequence_length(state.query_fasta_h));
+            ci->query_no = static_cast<int>(fasta_get_seqno(state.query_fasta_h));
+            ci->query_size = fasta_get_abundance(state.query_fasta_h);
 
-              /* if necessary expand memory for arrays based on query length */
-              realloc_arrays(ci);
+            /* if necessary expand memory for arrays based on query length */
+            realloc_arrays(ci);
 
-              /* copy the data locally (query seq, head) */
-              std::strcpy(ci->query_head.data(), fasta_get_header(state.query_fasta_h));
-              std::strcpy(ci->query_seq.data(), fasta_get_sequence(state.query_fasta_h));
-              query_position = fasta_get_position(state.query_fasta_h);
-            }
-          else
-            {
-              break; /* end while loop; input_lock released by RAII */
-            }
-        }
-      else
-        {
-          if (state.seqno < db_getsequencecount())
-            {
-              ci->query_no = static_cast<int>(state.seqno);
-              ci->query_head_len = static_cast<int>(db_getheaderlen(state.seqno));
-              ci->query_len = static_cast<int>(db_getsequencelen(state.seqno));
-              ci->query_size = static_cast<int64_t>(db_getabundance(state.seqno));
+            /* copy the data locally (query seq, head) */
+            std::strcpy(ci->query_head.data(), fasta_get_header(state.query_fasta_h));
+            std::strcpy(ci->query_seq.data(), fasta_get_sequence(state.query_fasta_h));
+            query_position = fasta_get_position(state.query_fasta_h);
+          }
+        else
+          {
+            return false;
+          }
+      }
+    else
+      {
+        if (state.seqno < db_getsequencecount())
+          {
+            ci->query_no = static_cast<int>(state.seqno);
+            ci->query_head_len = static_cast<int>(db_getheaderlen(state.seqno));
+            ci->query_len = static_cast<int>(db_getsequencelen(state.seqno));
+            ci->query_size = static_cast<int64_t>(db_getabundance(state.seqno));
 
-              /* if necessary expand memory for arrays based on query length */
-              realloc_arrays(ci);
+            /* if necessary expand memory for arrays based on query length */
+            realloc_arrays(ci);
 
-              std::strcpy(ci->query_head.data(), db_getheader(state.seqno));
-              std::strcpy(ci->query_seq.data(), db_getsequence(state.seqno));
-            }
-          else
-            {
-              break; /* end while loop; input_lock released by RAII */
-            }
-        }
+            std::strcpy(ci->query_head.data(), db_getheader(state.seqno));
+            std::strcpy(ci->query_seq.data(), db_getsequence(state.seqno));
+          }
+        else
+          {
+            return false;
+          }
+      }
 
-      input_lock.unlock();
+    return true;
+  };
 
-      auto const status = chimera_process_query(ci, allhits_list, lma, &state);
+  auto const process_query = [&]() {
+    auto const status = chimera_process_query(ci, allhits_list, lma, &state);
 
-      /* output results */
+    /* output results */
 
-      std::lock_guard<std::mutex> const output_lock(state.mutex_output);
+    std::lock_guard<std::mutex> const output_lock(state.mutex_output);
 
-      ++state.total_count;
-      state.total_abundance += ci->query_size;
+    ++state.total_count;
+    state.total_abundance += ci->query_size;
 
-      if (status == Status::chimeric)
-        {
-          ++state.chimera_count;
-          state.chimera_abundance += ci->query_size;
+    if (status == Status::chimeric)
+      {
+        ++state.chimera_count;
+        state.chimera_abundance += ci->query_size;
 
-          if (state.parameters.opt_chimeras != nullptr)
-            {
-              fasta_print_general(state.fp_chimeras,
-                                  nullptr,
-                                  ci->query_seq.data(),
-                                  ci->query_len,
-                                  ci->query_head.data(),
-                                  ci->query_head_len,
-                                  static_cast<uint64_t>(ci->query_size),
-                                  state.chimera_count,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  state.parameters.opt_fasta_score ?
-                                  ( (state.parameters.opt_uchime_ref != nullptr) ?
-                                    "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                  ci->best_h,
-                                  0,
-                                  state.parameters);
+        if (state.parameters.opt_chimeras != nullptr)
+          {
+            fasta_print_general(state.fp_chimeras,
+                                nullptr,
+                                ci->query_seq.data(),
+                                ci->query_len,
+                                ci->query_head.data(),
+                                ci->query_head_len,
+                                static_cast<uint64_t>(ci->query_size),
+                                state.chimera_count,
+                                -1.0,
+                                -1,
+                                -1,
+                                state.parameters.opt_fasta_score ?
+                                ( (state.parameters.opt_uchime_ref != nullptr) ?
+                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
+                                ci->best_h,
+                                0,
+                                state.parameters);
 
-            }
-        }
+          }
+      }
 
-      if (status == Status::suspicious)
-        {
-          ++state.borderline_count;
-          state.borderline_abundance += ci->query_size;
+    if (status == Status::suspicious)
+      {
+        ++state.borderline_count;
+        state.borderline_abundance += ci->query_size;
 
-          if (state.parameters.opt_borderline != nullptr)
-            {
-              fasta_print_general(state.fp_borderline,
-                                  nullptr,
-                                  ci->query_seq.data(),
-                                  ci->query_len,
-                                  ci->query_head.data(),
-                                  ci->query_head_len,
-                                  static_cast<uint64_t>(ci->query_size),
-                                  state.borderline_count,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  state.parameters.opt_fasta_score ?
-                                  ( (state.parameters.opt_uchime_ref != nullptr) ?
-                                    "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                  ci->best_h,
-                                  0,
-                                  state.parameters);
+        if (state.parameters.opt_borderline != nullptr)
+          {
+            fasta_print_general(state.fp_borderline,
+                                nullptr,
+                                ci->query_seq.data(),
+                                ci->query_len,
+                                ci->query_head.data(),
+                                ci->query_head_len,
+                                static_cast<uint64_t>(ci->query_size),
+                                state.borderline_count,
+                                -1.0,
+                                -1,
+                                -1,
+                                state.parameters.opt_fasta_score ?
+                                ( (state.parameters.opt_uchime_ref != nullptr) ?
+                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
+                                ci->best_h,
+                                0,
+                                state.parameters);
 
-            }
-        }
+          }
+      }
 
-      if (status < Status::suspicious)
-        {
-          ++state.nonchimera_count;
-          state.nonchimera_abundance += ci->query_size;
+    if (status < Status::suspicious)
+      {
+        ++state.nonchimera_count;
+        state.nonchimera_abundance += ci->query_size;
 
-          /* output no parents, no chimeras */
-          if ((status < Status::low_score) and (state.parameters.opt_uchimeout != nullptr))
-            {
-              std::fprintf(state.fp_uchimeout, "%.4f\t", ci->best_h);
+        /* output no parents, no chimeras */
+        if ((status < Status::low_score) and (state.parameters.opt_uchimeout != nullptr))
+          {
+            std::fprintf(state.fp_uchimeout, "%.4f\t", ci->best_h);
 
-              header_fprint_strip(state.fp_uchimeout,
-                                  ci->query_head.data(),
-                                  ci->query_head_len,
-                                  state.parameters.opt_xsize,
-                                  state.parameters.opt_xee,
-                                  state.parameters.opt_xlength);
+            header_fprint_strip(state.fp_uchimeout,
+                                ci->query_head.data(),
+                                ci->query_head_len,
+                                state.parameters.opt_xsize,
+                                state.parameters.opt_xee,
+                                state.parameters.opt_xlength);
 
-              if (state.parameters.opt_uchimeout5 != 0)
-                {
-                  std::fprintf(state.fp_uchimeout,
-                          "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
-                }
-              else
-                {
-                  std::fprintf(state.fp_uchimeout,
-                          "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
-                }
-            }
+            if (state.parameters.opt_uchimeout5 != 0)
+              {
+                std::fprintf(state.fp_uchimeout,
+                        "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
+              }
+            else
+              {
+                std::fprintf(state.fp_uchimeout,
+                        "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
+              }
+          }
 
-          if (state.parameters.opt_nonchimeras != nullptr)
-            {
-              fasta_print_general(state.fp_nonchimeras,
-                                  nullptr,
-                                  ci->query_seq.data(),
-                                  ci->query_len,
-                                  ci->query_head.data(),
-                                  ci->query_head_len,
-                                  static_cast<uint64_t>(ci->query_size),
-                                  state.nonchimera_count,
-                                  -1.0,
-                                  -1,
-                                  -1,
-                                  state.parameters.opt_fasta_score ?
-                                  ( (state.parameters.opt_uchime_ref != nullptr) ?
-                                    "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                  ci->best_h,
-                                  0,
-                                  state.parameters);
-            }
-        }
+        if (state.parameters.opt_nonchimeras != nullptr)
+          {
+            fasta_print_general(state.fp_nonchimeras,
+                                nullptr,
+                                ci->query_seq.data(),
+                                ci->query_len,
+                                ci->query_head.data(),
+                                ci->query_head_len,
+                                static_cast<uint64_t>(ci->query_size),
+                                state.nonchimera_count,
+                                -1.0,
+                                -1,
+                                -1,
+                                state.parameters.opt_fasta_score ?
+                                ( (state.parameters.opt_uchime_ref != nullptr) ?
+                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
+                                ci->best_h,
+                                0,
+                                state.parameters);
+          }
+      }
 
-      if (status < Status::suspicious)
-        {
-          /* uchime_denovo: add non-chimeras to db */
-          if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
-            {
-              state.dbindex.add_sequence(state.seqno, static_cast<int>(state.parameters.opt_qmask));
-            }
-        }
+    if (status < Status::suspicious)
+      {
+        /* uchime_denovo: add non-chimeras to db */
+        if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
+          {
+            state.dbindex.add_sequence(state.seqno, static_cast<int>(state.parameters.opt_qmask));
+          }
+      }
 
-      for (auto i = 0; i < ci->cand_count; ++i)
-        {
-          if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
-            {
-              xfree(ci->nwcigar[static_cast<size_t>(i)]);
-            }
-        }
+    for (auto i = 0; i < ci->cand_count; ++i)
+      {
+        if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
+          {
+            xfree(ci->nwcigar[static_cast<size_t>(i)]);
+          }
+      }
 
-      if (state.parameters.opt_uchime_ref != nullptr)
-        {
-          state.progress = query_position;
-        }
-      else
-        {
-          state.progress += db_getsequencelen(state.seqno);
-        }
+    if (state.parameters.opt_uchime_ref != nullptr)
+      {
+        state.progress = query_position;
+      }
+    else
+      {
+        state.progress += db_getsequencelen(state.seqno);
+      }
 
-      state.progress_bar->update(state.progress);
+    state.progress_bar->update(state.progress);
 
-      ++state.seqno;
-    }
+    ++state.seqno;
+  };
+
+  run_worker_loop(mutex_input, has_work_to_claim, process_query);
 
   chimera_thread_exit(ci);
 
@@ -2983,26 +2987,23 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 {
   struct chimera_info_s * ci = ctx.ci_array[tid];
 
-  while (true)
-    {
-      int qi {0};
-      {
-        std::lock_guard<std::mutex> const lock(ctx.mutex);
-        qi = ctx.next_query++;
-      }
+  int qi {0};
 
-      if (qi >= ctx.query_count)
-        {
-          break;
-        }
+  auto const has_work_to_claim = [&]() -> bool {
+    qi = ctx.next_query++;
+    return qi < ctx.query_count;
+  };
 
-      chimera_detect_single(ci,
-                            ctx.query_seqs[qi],
-                            ctx.query_heads[qi],
-                            ctx.query_lens[qi],
-                            ctx.query_sizes[qi],
-                            &ctx.results[qi]);
-    }
+  auto const process_query = [&]() {
+    chimera_detect_single(ci,
+                          ctx.query_seqs[qi],
+                          ctx.query_heads[qi],
+                          ctx.query_lens[qi],
+                          ctx.query_sizes[qi],
+                          &ctx.results[qi]);
+  };
+
+  run_worker_loop(ctx.mutex, has_work_to_claim, process_query);
 }
 
 
