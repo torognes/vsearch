@@ -60,8 +60,10 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
@@ -141,7 +143,9 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   uint64_t const filesize = fastq_get_size(h);
 
-  std::FILE * fp_output = open_optional_output(parameters.opt_output, "output");
+  auto const output_handle = open_output_file(parameters.opt_output);
+  check_optional_output_handle(parameters.opt_output, (not output_handle));
+  std::FILE * const fp_output = output_handle.get();
 
 
   uint64_t seq_count = 0;
@@ -396,8 +400,6 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
               min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
     }
 
-  fclose_output(fp_output);
-
   fastq_close(h, parameters);
 }
 
@@ -417,7 +419,9 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   uint64_t const filesize = fastq_get_size(h);
 
-  std::FILE * fp_output = open_optional_output(parameters.opt_output, "output");
+  auto const output_handle = open_output_file(parameters.opt_output);
+  check_optional_output_handle(parameters.opt_output, (not output_handle));
+  std::FILE * const fp_output = output_handle.get();
 
 
   uint64_t seq_count = 0;
@@ -576,8 +580,6 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
           std::fprintf(parameters.fp_log, "\n");
         }
     }
-
-  fclose_output(fp_output);
 
   fastq_close(h, parameters);
 }
