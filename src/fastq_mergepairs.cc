@@ -1789,6 +1789,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
       {
         pair_all(state);
       }
+    state.progress = nullptr;  // clear before the Progress it points to is destroyed
   }
 
   if (fastq_next(fastq_rev, true, chrmap_upcase()))
