@@ -400,8 +400,18 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
     move-only handles are fine); the OTU outputs (otutabout/mothur/biom) are
     closed early in the body and become `reset()` there. Worth a focused pass
     with A/B on both the CLI and the library `search_batch` path (api_examples).
-* **Remaining:** search_exact, search (above), then **cluster**
-  (wording-sensitive tests), then Phase 4.
+* **cluster — DONE.** The largest output command (three groups, all migrated
+  within `cluster()`): the 14 state-struct members the workers read (driver-owns,
+  inline handles); the block-local `--msaout`/`--consout`/`--profile` MSA
+  outputs; and `fp_clusters`, the per-cluster files whose names are built from
+  the `--clusters` prefix — opened in a loop via the low-level `open_output_file`
+  so its custom "Unable to open clusters file for writing (%s)" message (with the
+  generated name) is preserved. The `--msaout`/`--consout`/`--profile` failure
+  messages now use the shared option-named form; `cluster_fast.sh`'s three grep
+  assertions were updated in sync (in the vsearch-tests repo). A/B byte-identical
+  at `--threads 1` (biomout minus its embedded output-path `id`); `cluster_fast.sh`
+  185/0.
+* **Remaining:** search_exact, search (deferred, see above), then Phase 4.
 
 ## 7. Phase 4 — input streams, then delete the legacy trio
 
