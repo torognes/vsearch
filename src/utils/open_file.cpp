@@ -83,20 +83,9 @@ namespace {
   };
 
 
-  // Safely wrapping fopen()
-  auto open_file(char const * filename,
-                 ModeString const & mode) -> FileHandle {
+  auto is_dash(char const * filename) -> bool {
     assert(filename != nullptr);
-    assert(mode.mode != nullptr);
-    return FileHandle{std::fopen(filename, mode.mode)};
-  }
-
-
-  auto open_file_descriptor(int const file_descriptor,
-                            ModeString const & mode) -> FileHandle {
-    assert(file_descriptor >= 0);
-    assert(mode.mode != nullptr);
-    return FileHandle{fdopen(file_descriptor, mode.mode)};
+    return std::strcmp(filename, "-") == 0;
   }
 
 
@@ -114,28 +103,39 @@ namespace {
     fatal("cannot duplicate input or output stream.");
   }
 
+
+  // Open a stdio stream and return a raw FILE * for the caller to wrap in the
+  // matching RAII handle. A filename of '-' is served by a duplicate of the
+  // given standard stream (STDIN_FILENO for input, STDOUT_FILENO for output).
+  auto open_stream(char const * filename,
+                   ModeString const & mode,
+                   int const standard_fileno) -> std::FILE * {
+    assert(filename != nullptr);
+    assert(mode.mode != nullptr);
+    if (is_dash(filename)) {
+      auto const file_descriptor = dup(standard_fileno);
+      check_file_descriptor(file_descriptor);
+      return fdopen(file_descriptor, mode.mode);
+    }
+    return std::fopen(filename, mode.mode);
+  }
+
 }  // end of anonymous namespace
 
 
 // read_file, file to read, open_input_file, open_istream
 auto open_input_file(char const * filename) -> FileHandle {
   if (filename == nullptr) {
-    std::FILE * empty = nullptr;
-    return FileHandle{empty};
+    return FileHandle{nullptr};
   }
   auto const mode = ModeString{"rb"};  // r: reading, b: non-UNIX environments
   /* open the input stream given by filename, but if name is '-' then
      use a duplicate of stdin (fd = STDIN_FILENO = 0) */
-  if (std::strcmp(filename, "-") == 0) {
-    auto const file_descriptor = dup(STDIN_FILENO);
-    check_file_descriptor(file_descriptor);
-    return open_file_descriptor(file_descriptor, mode);
-  }
-  return open_file(filename, mode);
+  return FileHandle{open_stream(filename, mode, STDIN_FILENO)};
 }
 
 
-auto CheckedCloseOutputHandle::operator()(std::FILE * file_handle) -> void {
+auto CheckedCloseOutputHandle::operator()(std::FILE * file_handle) noexcept -> void {
   if (file_handle == nullptr) {
     return;
   }
@@ -160,10 +160,5 @@ auto open_output_file(char const * filename) -> OutputFileHandle {
   auto const mode = ModeString{"wb"};  // w: writing, b: binary (no \n->\r\n on non-UNIX), matches input "rb"
   /* open the output stream given by filename, but if name is '-' then
      use a duplicate of stdout (fd = STDOUT_FILENO = 1) */
-  if (std::strcmp(filename, "-") == 0) {
-    auto const file_descriptor = dup(STDOUT_FILENO);
-    check_file_descriptor(file_descriptor);
-    return OutputFileHandle{open_file_descriptor(file_descriptor, mode).release()};
-  }
-  return OutputFileHandle{open_file(filename, mode).release()};
+  return OutputFileHandle{open_stream(filename, mode, STDOUT_FILENO)};
 }

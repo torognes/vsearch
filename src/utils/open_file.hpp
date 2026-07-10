@@ -74,7 +74,7 @@
 
 // prefer a deleter struct with an operator() to call std::fclose
 struct CloseFileHandle {
-  auto operator()(std::FILE * file_handle) -> void {
+  auto operator()(std::FILE * file_handle) noexcept -> void {
     static_cast<void>(std::fclose(file_handle));
   }
 };
@@ -87,12 +87,18 @@ using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 // silently truncated output file. Input streams keep the plain CloseFileHandle
 // above (a stale read-error flag must not turn into a write failure).
 struct CheckedCloseOutputHandle {
-  auto operator()(std::FILE * file_handle) -> void;  // defined in open_file.cpp
+  auto operator()(std::FILE * file_handle) noexcept -> void;  // defined in open_file.cpp
 };
 
 using OutputFileHandle = std::unique_ptr<std::FILE, CheckedCloseOutputHandle>;
 
 
+/* Open a named input stream in binary read mode. A null filename yields an
+   empty handle; "-" reads a duplicate of stdin. On failure the handle is empty
+   (the caller checks it). */
 auto open_input_file(char const * filename) -> FileHandle;
 
+/* Open a named output stream in binary write mode. A null filename yields an
+   empty handle; "-" writes a duplicate of stdout. On failure the handle is
+   empty; validate with the check_*_output_handle helpers. */
 auto open_output_file(char const * filename) -> OutputFileHandle;
