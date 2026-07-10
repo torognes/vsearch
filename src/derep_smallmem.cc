@@ -61,8 +61,10 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "vendored/city.h"
+#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 // #include "util.h"  // hash_cityhash128
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -239,15 +241,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       fatal("The derep_smallmem command does not support input from a pipe.");
     }
 
-  std::FILE * fp_fastaout = nullptr;
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-    }
-  else
+  if (parameters.opt_fastaout == nullptr)
     {
       fatal("Output file for dereplication must be specified with --fastaout");
     }
+  auto const output_handle = open_output_file(parameters.opt_fastaout);
+  check_optional_output_handle(parameters.opt_fastaout, (not output_handle));
+  std::FILE * const fp_fastaout = output_handle.get();
 
   auto const filesize = fastx_get_size(h);
 
@@ -613,7 +613,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       }
   }
   fastx_close(h2, parameters);
-  fclose_output(fp_fastaout);
 
   if (selected < clusters)
     {
