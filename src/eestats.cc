@@ -60,7 +60,6 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "utils/check_output_filehandle.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -143,8 +142,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   uint64_t const filesize = fastq_get_size(h);
 
-  auto const output_handle = open_output_file(parameters.opt_output);
-  check_optional_output_handle(parameters.opt_output, (not output_handle));
+  auto const output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
   std::FILE * const fp_output = output_handle.get();
 
 
@@ -419,8 +417,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   uint64_t const filesize = fastq_get_size(h);
 
-  auto const output_handle = open_output_file(parameters.opt_output);
-  check_optional_output_handle(parameters.opt_output, (not output_handle));
+  auto const output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
   std::FILE * const fp_output = output_handle.get();
 
 
