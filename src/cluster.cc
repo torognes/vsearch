@@ -73,6 +73,7 @@
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
+#include "utils/open_file.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
@@ -1111,27 +1112,41 @@ auto cluster(char const * dbname,
   auto & fp_qsegout = state.fp_qsegout;
   auto & fp_tsegout = state.fp_tsegout;
 
-  fp_centroids = open_optional_output(parameters.opt_centroids, "centroids");
-  fp_uc = open_optional_output(parameters.opt_uc, "uc");
+  OutputFileHandle centroids_handle = open_optional_output_file(parameters.opt_centroids, OutputOption{"--centroids"});
+  fp_centroids = centroids_handle.get();
+  OutputFileHandle uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
+  fp_uc = uc_handle.get();
 
-  fp_alnout = open_optional_output(parameters.opt_alnout, "alignment");
+  OutputFileHandle alnout_handle = open_optional_output_file(parameters.opt_alnout, OutputOption{"--alnout"});
+  fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
       std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
       std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
     }
 
-  fp_samout = open_optional_output(parameters.opt_samout, "SAM");
-  fp_userout = open_optional_output(parameters.opt_userout, "user-defined");
-  fp_blast6out = open_optional_output(parameters.opt_blast6out, "blast6-like");
-  fp_fastapairs = open_optional_output(parameters.opt_fastapairs, "fastapairs");
-  fp_qsegout = open_optional_output(parameters.opt_qsegout, "qsegout");
-  fp_tsegout = open_optional_output(parameters.opt_tsegout, "tsegout");
-  fp_matched = open_optional_output(parameters.opt_matched, "matched");
-  fp_notmatched = open_optional_output(parameters.opt_notmatched, "notmatched");
-  fp_otutabout = open_optional_output(parameters.opt_otutabout, "OTU table (text format)");
-  fp_mothur_shared_out = open_optional_output(parameters.opt_mothur_shared_out, "OTU table (mothur format)");
-  fp_biomout = open_optional_output(parameters.opt_biomout, "OTU table (biom 1.0 format)");
+  OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
+  fp_samout = samout_handle.get();
+  OutputFileHandle userout_handle = open_optional_output_file(parameters.opt_userout, OutputOption{"--userout"});
+  fp_userout = userout_handle.get();
+  OutputFileHandle blast6out_handle = open_optional_output_file(parameters.opt_blast6out, OutputOption{"--blast6out"});
+  fp_blast6out = blast6out_handle.get();
+  OutputFileHandle fastapairs_handle = open_optional_output_file(parameters.opt_fastapairs, OutputOption{"--fastapairs"});
+  fp_fastapairs = fastapairs_handle.get();
+  OutputFileHandle qsegout_handle = open_optional_output_file(parameters.opt_qsegout, OutputOption{"--qsegout"});
+  fp_qsegout = qsegout_handle.get();
+  OutputFileHandle tsegout_handle = open_optional_output_file(parameters.opt_tsegout, OutputOption{"--tsegout"});
+  fp_tsegout = tsegout_handle.get();
+  OutputFileHandle matched_handle = open_optional_output_file(parameters.opt_matched, OutputOption{"--matched"});
+  fp_matched = matched_handle.get();
+  OutputFileHandle notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
+  fp_notmatched = notmatched_handle.get();
+  OutputFileHandle otutabout_handle = open_optional_output_file(parameters.opt_otutabout, OutputOption{"--otutabout"});
+  fp_otutabout = otutabout_handle.get();
+  OutputFileHandle mothur_shared_out_handle = open_optional_output_file(parameters.opt_mothur_shared_out, OutputOption{"--mothur_shared_out"});
+  fp_mothur_shared_out = mothur_shared_out_handle.get();
+  OutputFileHandle biomout_handle = open_optional_output_file(parameters.opt_biomout, OutputOption{"--biomout"});
+  fp_biomout = biomout_handle.get();
 
   db_read(dbname, 0, parameters);
 
@@ -1274,7 +1289,7 @@ auto cluster(char const * dbname,
 
 
   /* allocate memory for full file name of the clusters files */
-  std::FILE * fp_clusters = nullptr;
+  OutputFileHandle fp_clusters;
   static constexpr auto space_for_cluster_id = 25;  // up to 25 digits
   std::vector<char> fn_clusters;
   if (parameters.opt_clusters != nullptr) {
@@ -1334,7 +1349,7 @@ auto cluster(char const * dbname,
                 /* close previous (except for first time) and open new file */
                 if (lastcluster != -1)
                   {
-                    fclose_output(fp_clusters);
+                    fp_clusters.reset();
                   }
 
                 ordinal = 0;
@@ -1343,8 +1358,8 @@ auto cluster(char const * dbname,
                          "%s%d",
                          parameters.opt_clusters,
                          clusterno);
-                fp_clusters = fopen_output(fn_clusters.data());
-                if (fp_clusters == nullptr)
+                fp_clusters = open_output_file(fn_clusters.data());
+                if (not fp_clusters)
                   {
                     fatal("Unable to open clusters file for writing (%s)", fn_clusters.data());
                   }
@@ -1358,7 +1373,7 @@ auto cluster(char const * dbname,
         if (parameters.opt_clusters != nullptr)
           {
             ++ordinal;
-            fasta_print_db_relabel(fp_clusters, static_cast<uint64_t>(seqno), ordinal, parameters);
+            fasta_print_db_relabel(fp_clusters.get(), static_cast<uint64_t>(seqno), ordinal, parameters);
           }
 
         progress.update(static_cast<uint64_t>(i));
@@ -1369,7 +1384,7 @@ auto cluster(char const * dbname,
         /* performed with the last sequence */
         if (parameters.opt_clusters != nullptr)
           {
-            fclose_output(fp_clusters);
+            fp_clusters.reset();
           }
       }
   }
@@ -1427,13 +1442,12 @@ auto cluster(char const * dbname,
       int msa_target_count = 0;
       std::vector<struct msa_target_s> msa_target_list_v(static_cast<std::size_t>(size_max));
 
-      std::FILE * fp_msaout = nullptr;
-      std::FILE * fp_consout = nullptr;
-      std::FILE * fp_profile = nullptr;
-
-      fp_msaout = open_optional_output(parameters.opt_msaout, "msaout");
-      fp_consout = open_optional_output(parameters.opt_consout, "consout");
-      fp_profile = open_optional_output(parameters.opt_profile, "profile");
+      auto msaout_handle = open_optional_output_file(parameters.opt_msaout, OutputOption{"--msaout"});
+      auto consout_handle = open_optional_output_file(parameters.opt_consout, OutputOption{"--consout"});
+      auto profile_handle = open_optional_output_file(parameters.opt_profile, OutputOption{"--profile"});
+      std::FILE * const fp_msaout = msaout_handle.get();
+      std::FILE * const fp_consout = consout_handle.get();
+      std::FILE * const fp_profile = profile_handle.get();
 
       lastcluster = -1;
 
@@ -1484,9 +1498,9 @@ auto cluster(char const * dbname,
       }
 
 
-      fclose_output(fp_profile);
-      fclose_output(fp_msaout);
-      fclose_output(fp_consout);
+      profile_handle.reset();
+      msaout_handle.reset();
+      consout_handle.reset();
     }
 
   // cluster_abundance not used below that point
@@ -1506,36 +1520,36 @@ auto cluster(char const * dbname,
   if (fp_biomout != nullptr)
     {
       otutable_print_biomout(fp_biomout, parameters);
-      fclose_output(fp_biomout);
+      biomout_handle.reset();
     }
 
   if (fp_otutabout != nullptr)
     {
       otutable_print_otutabout(fp_otutabout, parameters);
-      fclose_output(fp_otutabout);
+      otutabout_handle.reset();
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
       otutable_print_mothur_shared_out(fp_mothur_shared_out, parameters);
-      fclose_output(fp_mothur_shared_out);
+      mothur_shared_out_handle.reset();
     }
 
   otutable_done();
 
-  /* fclose_output() is a no-op on a null handle, so unopened outputs need
+  /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard; only userout carries extra teardown. */
-  fclose_output(fp_matched);
-  fclose_output(fp_notmatched);
-  fclose_output(fp_fastapairs);
-  fclose_output(fp_qsegout);
-  fclose_output(fp_tsegout);
-  fclose_output(fp_blast6out);
-  fclose_output(fp_userout);
-  fclose_output(fp_alnout);
-  fclose_output(fp_samout);
-  fclose_output(fp_uc);
-  fclose_output(fp_centroids);
+  matched_handle.reset();
+  notmatched_handle.reset();
+  fastapairs_handle.reset();
+  qsegout_handle.reset();
+  tsegout_handle.reset();
+  blast6out_handle.reset();
+  userout_handle.reset();
+  alnout_handle.reset();
+  samout_handle.reset();
+  uc_handle.reset();
+  centroids_handle.reset();
 
   state.dbindex.clear();
   db_free();
