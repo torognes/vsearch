@@ -275,21 +275,56 @@ pre-change binary, exercising both the named-file and `"-"` (stdin/stdout)
 paths; mingw cross-compile clean (the `"wb"` binary mode is the reason this
 layer exists).
 
-## 5. Phase 2 — helper parity (small)
+## 5. Phase 2 — merge open + check into the openers (API pivot, 2026-07-10)
 
-No description-carrying validator is needed (§3.2). One optional ergonomic
-add: overloads that pair open + check so call sites stay one line, e.g.
-`open_checked_output(filename, requirement)`. Deferred unless the two-line
-`open_output_file(...)` + `check_*` idiom proves noisy during Phase 3. The
-`(filename, bool)` validator API is kept deliberately decoupled from the
-`unique_ptr` types (its header pulls in nothing).
+Superseding the original two-step design (`open_output_file` +
+`check_*_output_handle`): an old maintainer note proposed folding filehandle
+creation and validation into one call parameterized by the option name. Adopted
+after review — it deletes the duplicated mandatory validators (which differed
+only by the hardcoded `--output`/`--fastqout` string), removes the awkward
+`(not handle)` bool argument, and fixes the real wart hit in the first Phase 3
+commits: commands whose option is neither `--output` nor `--fastqout` (sintax
+`--tabbedout`, derep_smallmem `--fastaout`) had no fitting mandatory validator.
+
+**Decisions (all recommended options taken):**
+* **Timing** — pivot now, before the bulk of Phase 3, so the ~20 remaining files
+  are migrated once and the ~10 already-migrated files get one mechanical update.
+* **Messages** — option-named and standardized. Null: `output file must be
+  specified with <option>`. Open failure: `unable to open output file for
+  <option> (<filename>)`. Replaces the bespoke null messages (sintax,
+  derep_smallmem, sff_convert) and updates the few wording-asserting tests
+  (`cluster_fast`, `fastx_getseqs`) in the same commits.
+* **Option type** — wrapped in `struct OutputOption { char const * name; }` so it
+  cannot be transposed with the `char const *` filename (mirrors `ModeString`,
+  satisfies CLAUDE.md's "avoid easily swappable parameters").
+* **`check_output_filehandle.{hpp,cpp}`** — deleted once absorbed.
+
+**New API (in `open_file.{hpp,cpp}`, added 2026-07-10):**
+```cpp
+struct OutputOption { explicit constexpr OutputOption(char const *) noexcept; char const * name; };
+auto open_mandatory_output_file(char const * filename, OutputOption option) -> OutputFileHandle;
+auto open_optional_output_file (char const * filename, OutputOption option) -> OutputFileHandle;
+```
+`open_output_file` stays as the low-level primitive both wrappers call; the
+single-arg `fatal` is used for the two-substitution failure message (built as a
+`std::string`, since `fatal` is not variadic — only `fatal(msg)` and
+`fatal(fmt, one-string)` exist), which is also `%`-safe.
+
+**Sequencing:** (C1) add the openers ✅ → (C2) retrofit already-migrated
+mandatory callers (sortbysize, sortbylength, rereplicate, shuffle, mask,
+fasta2fastq) → (C3) retrofit Phase-3 mandatory callers (sintax, derep_smallmem,
+sff_convert; drop their bespoke guards) → (C4) retrofit eestats (keeps its
+explicit pre-input null-guard for fail-fast ordering, uses
+`open_optional_output_file` for the open) → (C5) delete `check_output_filehandle`
++ update `Makefile.am`. Then resume Phase 3 on the new API.
 
 ## 6. Phase 3 — migrate output streams (one command per commit)
 
-Per file: `fopen_output`/`open_optional_output` → `open_output_file` +
-`check_*`; store handles as `OutputFileHandle` (in the command's file structs
-where they outlive a single scope); delete the matching `fclose_output`; update
-any test asserting the old wording **in the same commit** (§3.2).
+Per file: `fopen_output`/`open_optional_output` → `open_mandatory_output_file` /
+`open_optional_output_file` (§5); store handles as `OutputFileHandle` (in the
+command's file structs where they outlive a single scope); delete the matching
+`fclose_output`; update any test asserting the old wording **in the same
+commit** (§3.2).
 
 Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
 

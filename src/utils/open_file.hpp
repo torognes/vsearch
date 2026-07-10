@@ -93,12 +93,34 @@ struct CheckedCloseOutputHandle {
 using OutputFileHandle = std::unique_ptr<std::FILE, CheckedCloseOutputHandle>;
 
 
+// A command-line option name (for example "--output"), wrapped in its own type
+// so it cannot be transposed with the filename argument of the output openers
+// (both would otherwise be char const *).
+struct OutputOption {
+  explicit constexpr OutputOption(char const * str) noexcept
+    : name(str) {
+  }
+  char const * name;
+};
+
+
 /* Open a named input stream in binary read mode. A null filename yields an
    empty handle; "-" reads a duplicate of stdin. On failure the handle is empty
    (the caller checks it). */
 auto open_input_file(char const * filename) -> FileHandle;
 
-/* Open a named output stream in binary write mode. A null filename yields an
-   empty handle; "-" writes a duplicate of stdout. On failure the handle is
-   empty; validate with the check_*_output_handle helpers. */
+/* Low-level named output opener in binary write mode: a null filename yields an
+   empty handle, "-" writes a duplicate of stdout, and an open failure yields an
+   empty handle. Prefer the mandatory/optional wrappers below, which also report
+   the error; this primitive is used where the caller does its own checking. */
 auto open_output_file(char const * filename) -> OutputFileHandle;
+
+/* Open a mandatory named output stream (binary write mode). Fatal if the option
+   was not given (filename == nullptr), naming <option>, or if the file cannot
+   be opened. "-" writes a duplicate of stdout. */
+auto open_mandatory_output_file(char const * filename, OutputOption option) -> OutputFileHandle;
+
+/* Open an optional named output stream (binary write mode). A null filename
+   (option not given) yields an empty handle; a named file that cannot be opened
+   is fatal, naming <option>. "-" writes a duplicate of stdout. */
+auto open_optional_output_file(char const * filename, OutputOption option) -> OutputFileHandle;

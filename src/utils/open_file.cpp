@@ -65,6 +65,7 @@
 #include <cerrno>  // errno
 #include <cstdio>  // std::fopen, fdopen
 #include <cstring>  // std::strcmp
+#include <string>  // std::string (building the open-failure message)
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -120,6 +121,17 @@ namespace {
     return std::fopen(filename, mode.mode);
   }
 
+
+  // Both output openers report an open failure the same way; only the
+  // null-filename policy differs between them.
+  auto fatal_output_open_failed(char const * filename,
+                                OutputOption const option) -> void {
+    assert(filename != nullptr);
+    std::string const message = std::string("unable to open output file for ")
+      + option.name + " (" + filename + ")";
+    fatal(message.c_str());
+  }
+
 }  // end of anonymous namespace
 
 
@@ -161,4 +173,30 @@ auto open_output_file(char const * filename) -> OutputFileHandle {
   /* open the output stream given by filename, but if name is '-' then
      use a duplicate of stdout (fd = STDOUT_FILENO = 1) */
   return OutputFileHandle{open_stream(filename, mode, STDOUT_FILENO)};
+}
+
+
+auto open_mandatory_output_file(char const * filename,
+                                OutputOption const option) -> OutputFileHandle {
+  if (filename == nullptr) {
+    fatal("output file must be specified with %s", option.name);
+  }
+  auto output_handle = open_output_file(filename);
+  if (not output_handle) {
+    fatal_output_open_failed(filename, option);
+  }
+  return output_handle;
+}
+
+
+auto open_optional_output_file(char const * filename,
+                               OutputOption const option) -> OutputFileHandle {
+  if (filename == nullptr) {
+    return OutputFileHandle{nullptr};
+  }
+  auto output_handle = open_output_file(filename);
+  if (not output_handle) {
+    fatal_output_open_failed(filename, option);
+  }
+  return output_handle;
 }
