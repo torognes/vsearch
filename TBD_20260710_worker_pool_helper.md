@@ -1,8 +1,28 @@
 # Design doc — unify the per-worker self-scheduling loop
 
-**Status:** proposal, for human review. No code written yet.
+**Status:** IMPLEMENTED (branch `tmp_20260710155615`).
 **Date:** 2026-07-10
 **Origin:** the note *"extend usage of thread pool"*.
+
+## Implementation summary
+
+`run_worker_loop()` was added in `src/utils/worker_loop.hpp` and all 8
+pull-loop sites were converted, one command per commit: mask, allpairs,
+search (CLI + batch), chimera (CLI + batch), search_exact, sintax. Per
+review decisions: the two lambdas are **named** (`has_work_to_claim` +
+a command-specific `process_sequence` / `process_query`), the batch API
+sites were included, and the scaffolding comments (the RAII-unlock notes
+and the `/* let other threads read input */` markers) were removed since
+the helper's header documents the lock discipline. The `cluster` static
+slicing and the `fastq_mergepairs` pipeline were left out of scope as
+planned.
+
+**Verification:** full debug build + release build clean (no new
+warnings); `cppcheck` on all six files shows only pre-existing findings;
+the 6 CLI-path sites are byte-identical to the `dev` baseline at
+`--threads 1` (sintax with a fixed `--randseed`); the 2 batch sites pass
+the api_examples "batch X matches sequential" checks; the full
+vsearch-tests suite is green (9648 PASS, 0 FAIL).
 
 ---
 
