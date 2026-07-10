@@ -63,6 +63,7 @@
 #include "derep.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
 #include <algorithm>  // std::count_if, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -276,6 +277,10 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
         }
     }
 
+  OutputFileHandle fastaout_handle;
+  OutputFileHandle fastqout_handle;
+  OutputFileHandle uc_handle;
+  OutputFileHandle tabbedout_handle;
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_uc = nullptr;
@@ -296,16 +301,21 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
   if (parameters.opt_fastx_uniques != nullptr)
     {
-      fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-      fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
-      fp_tabbedout = open_optional_output(parameters.opt_tabbedout, "tabbedout");
+      fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+      fp_fastaout = fastaout_handle.get();
+      fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+      fp_fastqout = fastqout_handle.get();
+      tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
+      fp_tabbedout = tabbedout_handle.get();
     }
   else
     {
-      fp_fastaout = open_optional_output(parameters.opt_output, "output");
+      fastaout_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
+      fp_fastaout = fastaout_handle.get();
     }
 
-  fp_uc = open_optional_output(parameters.opt_uc, "uc");
+  uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
+  fp_uc = uc_handle.get();
 
   auto const filesize = fastx_get_size(input_handle);
 
@@ -757,7 +767,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           }
       }
 
-      fclose_output(fp_fastaout);
+      fastaout_handle.reset();
     }
 
   if (parameters.opt_fastqout != nullptr)
@@ -792,7 +802,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
           }
       }
 
-      fclose_output(fp_fastqout);
+      fastqout_handle.reset();
     }
 
   if (parameters.opt_uc != nullptr)
@@ -831,7 +841,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
                     i, cluster.size, cluster.header);
             progress.update(i);
           }
-        fclose_output(fp_uc);
+        uc_handle.reset();
       }
     }
 
@@ -871,7 +881,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
 
             progress.update(i);
           }
-        fclose_output(fp_tabbedout);
+        tabbedout_handle.reset();
       }
     }
 
