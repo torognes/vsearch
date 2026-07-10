@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::count_if
 #include <cassert>
@@ -81,7 +82,7 @@ constexpr uint64_t contiguous_mantissa = 9007199254740992;  // 9 x 10^15 reads
 
 struct a_file {
   char * name = nullptr;
-  std::FILE * handle = nullptr;
+  OutputFileHandle handle;
 };
 
 
@@ -140,18 +141,10 @@ struct file_types {
 
 
 auto open_output_files(struct file_types & ouput_files) -> void {
-  if (ouput_files.fasta.kept.name != nullptr) {
-    ouput_files.fasta.kept.handle = fopen_output(ouput_files.fasta.kept.name);
-  }
-  if (ouput_files.fasta.lost.name != nullptr) {
-    ouput_files.fasta.lost.handle = fopen_output(ouput_files.fasta.lost.name);
-  }
-  if (ouput_files.fastq.kept.name != nullptr) {
-    ouput_files.fastq.kept.handle = fopen_output(ouput_files.fastq.kept.name);
-  }
-  if (ouput_files.fastq.lost.name != nullptr) {
-    ouput_files.fastq.lost.handle = fopen_output(ouput_files.fastq.lost.name);
-  }
+  ouput_files.fasta.kept.handle = open_optional_output_file(ouput_files.fasta.kept.name, OutputOption{"--fastaout"});
+  ouput_files.fasta.lost.handle = open_optional_output_file(ouput_files.fasta.lost.name, OutputOption{"--fastaout_discarded"});
+  ouput_files.fastq.kept.handle = open_optional_output_file(ouput_files.fastq.kept.name, OutputOption{"--fastqout"});
+  ouput_files.fastq.lost.handle = open_optional_output_file(ouput_files.fastq.lost.name, OutputOption{"--fastqout_discarded"});
 }
 
 
@@ -161,30 +154,6 @@ auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files) -> void 
   auto const input_is_fasta = not db_is_fastq();
   if (input_is_fasta and output_is_fastq) {
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
-  }
-}
-
-
-auto check_output_files(struct file_types const & ouput_files) -> void {
-  if (ouput_files.fasta.kept.name != nullptr) {
-    if (ouput_files.fasta.kept.handle == nullptr) {
-      fatal("Unable to open fastaout file for writing (%s)", ouput_files.fasta.kept.name);
-    }
-  }
-  if (ouput_files.fasta.lost.name != nullptr) {
-    if (ouput_files.fasta.lost.handle == nullptr) {
-      fatal("Unable to open fastaout_discarded file for writing (%s)", ouput_files.fasta.lost.name);
-    }
-  }
-  if (ouput_files.fastq.kept.name != nullptr) {
-    if (ouput_files.fastq.kept.handle == nullptr) {
-      fatal("Unable to open fastqout file for writing (%s)", ouput_files.fastq.kept.name);
-    }
-  }
-  if (ouput_files.fastq.lost.name != nullptr) {
-    if (ouput_files.fastq.lost.handle == nullptr) {
-      fatal("Unable to open fastqout_discarded file for writing (%s)", ouput_files.fastq.lost.name);
-    }
   }
 }
 
@@ -318,7 +287,7 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
         continue;
       }
       ++amplicons_printed;
-      fasta_print_general(fasta_file.handle,
+      fasta_print_general(fasta_file.handle.get(),
                           nullptr,
                           db_getsequence(counter),
                           static_cast<int>(db_getsequencelen(counter)),
@@ -352,7 +321,7 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
         continue;
       }
       ++amplicons_printed;
-      fastq_print_general(fastq_file.handle,
+      fastq_print_general(fastq_file.handle.get(),
                           db_getsequence(counter),
                           static_cast<int>(db_getsequencelen(counter)),
                           db_getheader(counter),
@@ -368,14 +337,13 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
 }
 
 
-auto close_output_files(struct file_types const & ouput_files) -> void {
-  for (auto * fp_outputfile : {
-           ouput_files.fasta.kept.handle, ouput_files.fastq.kept.handle,
-           ouput_files.fasta.lost.handle, ouput_files.fastq.lost.handle}) {
-    if (fp_outputfile != nullptr) {
-      static_cast<void>(fclose_output(fp_outputfile));
-    }
-  }
+auto close_output_files(struct file_types & ouput_files) -> void {
+  /* reset in this fixed order (scope-exit destruction runs in reverse) so
+     that any streams sharing stdout flush as they did before RAII */
+  ouput_files.fasta.kept.handle.reset();
+  ouput_files.fastq.kept.handle.reset();
+  ouput_files.fasta.lost.handle.reset();
+  ouput_files.fastq.lost.handle.reset();
 }
 
 
@@ -386,7 +354,6 @@ auto subsample(struct Parameters const & parameters) -> void {
   ouput_files.fastq.kept.name = parameters.opt_fastqout;
   ouput_files.fastq.lost.name = parameters.opt_fastqout_discarded;
   open_output_files(ouput_files);
-  check_output_files(ouput_files);
 
   db_read(parameters.opt_fastx_subsample, 0, parameters);
   // memory-intensive: the entire database is now held in memory
