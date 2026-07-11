@@ -476,6 +476,10 @@ auto fasta_print(std::FILE * output_handle, char const * header,
 
 inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
 {
+  /* profile/consensus output (see msa.cc) has no centroid sequence and
+     passes seq == nullptr; passing a null pointer to "%s" is undefined
+     behaviour even when len is zero, so emit an empty label instead. */
+  if (seq == nullptr) { return; }
   /* normalize first? */
   std::fprintf(output_handle, "%.*s", len, seq);
 }

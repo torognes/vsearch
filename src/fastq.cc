@@ -688,6 +688,10 @@ auto fastq_get_abundance_and_presence(struct fastx_s const * input_handle) -> in
 
 inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
 {
+  /* no FASTQ caller passes a null seq today, but guard defensively to
+     mirror the fasta.cc twin: passing a null pointer to "%s" is undefined
+     behaviour even when len is zero, so emit an empty label instead. */
+  if (seq == nullptr) { return; }
   /* normalize first? */
   std::fprintf(output_handle, "%.*s", len, seq);
 }
