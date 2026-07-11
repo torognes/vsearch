@@ -4280,6 +4280,32 @@ namespace {
         fatal("Specify either --gzip_decompress or --bzip2_decompress, not both");
       }
 
+    /* --db and the query both map "-" to a duplicate of standard input, so
+       giving "-" to both makes the two readers race over the same stream and
+       silently return no hits. Reject that ambiguous spelling; feed one of
+       them through an explicit stream path (/dev/stdin, a named pipe, or a
+       process substitution) instead. --db is valid only for the five search
+       commands below, and only the active one's query field is set, so at
+       most one branch is non-null. */
+    {
+      auto const reads_stdin = [](char const * name) -> bool {
+        return (name != nullptr) and (std::strcmp(name, "-") == 0);
+      };
+      char const * const query =
+        (parameters.opt_usearch_global != nullptr) ? parameters.opt_usearch_global :
+        (parameters.opt_search_exact   != nullptr) ? parameters.opt_search_exact   :
+        (parameters.opt_sintax         != nullptr) ? parameters.opt_sintax         :
+        (parameters.opt_orient         != nullptr) ? parameters.opt_orient         :
+        (parameters.opt_uchime_ref     != nullptr) ? parameters.opt_uchime_ref     :
+        nullptr;
+      if (reads_stdin(parameters.opt_db) and reads_stdin(query))
+        {
+          fatal("Cannot read both the query and the database from standard "
+                "input; give one of them an explicit path such as /dev/stdin, "
+                "a named pipe, or a process substitution");
+        }
+    }
+
     if ((parameters.opt_sintax_cutoff < 0.0) or (parameters.opt_sintax_cutoff > 1.0))
       {
         fatal("The argument to sintax_cutoff must be in the range 0.0 to 1.0");
