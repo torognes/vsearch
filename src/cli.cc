@@ -208,6 +208,7 @@ namespace {
       {
         int skip = 0;
         int pen = 0;
+        bool is_infinite = false;
 
         if (std::sscanf(cursor, "%d%n", &pen, &skip) == 1)
           {
@@ -224,6 +225,7 @@ namespace {
         else if (*cursor == '*')
           {
             pen = max_penality;
+            is_infinite = true;
             ++cursor;
           }
         else
@@ -313,6 +315,7 @@ namespace {
                 if (set_I != 0)
                   {
                     parameters.opt_gap_open_query_interior = pen;
+                    parameters.opt_gap_open_query_interior_infinite = is_infinite;
                   }
                 if (set_R != 0)
                   {
@@ -328,6 +331,7 @@ namespace {
                 if (set_I != 0)
                   {
                     parameters.opt_gap_open_target_interior = pen;
+                    parameters.opt_gap_open_target_interior_infinite = is_infinite;
                   }
                 if (set_R != 0)
                   {

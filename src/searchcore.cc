@@ -627,6 +627,11 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       (hit->mismatches <= parameters.opt_maxsubs) and
       /* maxgaps */
       (hit->internal_gaps <= parameters.opt_maxgaps) and
+      /* interior gap-open '*': an infinite interior gap-open penalty forbids
+         interior gaps outright, so reject any alignment that opened one */
+      (((not parameters.opt_gap_open_query_interior_infinite) and
+        (not parameters.opt_gap_open_target_interior_infinite)) or
+       (hit->internal_gaps == 0)) and
       /* mincols */
       (hit->internal_alignmentlength >= parameters.opt_mincols) and
       /* leftjust */

@@ -459,6 +459,10 @@ struct Parameters {
   int       opt_gap_open_target_interior     = 20;
   int       opt_gap_open_target_left         = 2;
   int       opt_gap_open_target_right        = 2;
+  /* '*' (infinite) interior gap-open sentinels: the numeric penalty above is
+     kept for scoring, these forbid the interior gap outright at accept time */
+  bool      opt_gap_open_query_interior_infinite  = false;
+  bool      opt_gap_open_target_interior_infinite = false;
   int       opt_length_cutoffs_increment     = 50;
   int       opt_length_cutoffs_longest       = std::numeric_limits<int>::max();
   int       opt_length_cutoffs_shortest      = 50;
