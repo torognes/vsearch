@@ -313,15 +313,12 @@ auto maskfasta(struct Parameters const & parameters) -> void
 
 auto fastx_mask(struct Parameters const & parameters) -> void
 {
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout = nullptr;
-
   if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
     fatal("Specify output files for masking with --fastaout and/or --fastqout");
   }
 
-  fp_fastaout = open_optional_output(parameters.opt_fastaout, "fastaout");
-  fp_fastqout = open_optional_output(parameters.opt_fastqout, "fastqout");
+  auto fp_fastaout = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+  auto fp_fastqout = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
 
   db_read(parameters.opt_fastx_mask, 0, parameters);
   // memory-intensive: the entire database is now held in memory
@@ -392,7 +389,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
             if (parameters.opt_fastaout != nullptr)
               {
-                fasta_print_general(fp_fastaout,
+                fasta_print_general(fp_fastaout.get(),
                                     nullptr,
                                     seq,
                                     len,
@@ -408,7 +405,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
             if (parameters.opt_fastqout != nullptr)
               {
-                fastq_print_general(fp_fastqout,
+                fastq_print_general(fp_fastqout.get(),
                                     seq,
                                     len,
                                     db_getheader(i),
@@ -453,12 +450,9 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   db_free();
 
-  if (fp_fastaout != nullptr)
-    {
-      fclose_output(fp_fastaout);
-    }
-  if (fp_fastqout != nullptr)
-    {
-      fclose_output(fp_fastqout);
-    }
+  /* reset() in the original fclose order (fastaout before fastqout); a no-op on
+     an unopened handle, and scope-exit would reverse the flush order for the
+     degenerate case of both outputs sharing stdout. */
+  fp_fastaout.reset();
+  fp_fastqout.reset();
 }
