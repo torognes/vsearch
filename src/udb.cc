@@ -129,7 +129,7 @@ auto wc_compare(const void * a, const void * b) -> int
 }
 
 
-auto largeread(std::istream & input, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
+auto largeread(std::istream & input, void * buf, uint64_t nbyte, uint64_t offset, Progress & progress_bar) -> uint64_t
 {
   /* read the file in blocks and update progress */
 
@@ -150,7 +150,7 @@ auto largeread(std::istream & input, void * buf, uint64_t nbyte, uint64_t offset
 }
 
 
-auto largewrite(std::ostream & output, void const * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
+auto largewrite(std::ostream & output, void const * buf, uint64_t nbyte, uint64_t offset, Progress & progress_bar) -> uint64_t
 {
   /* call write multiple times and update progress */
 
