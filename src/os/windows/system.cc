@@ -62,10 +62,9 @@
 #include <algorithm>  // std::max
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, _ftelli64
-#include <fcntl.h>  // _O_RDONLY, _O_WRONLY, _O_CREAT, _O_TRUNC, _O_BINARY
-#include <io.h>  // _open, _lseeki64, _close
+#include <io.h>  // _lseeki64
 #include <malloc.h>  // _aligned_malloc, _aligned_realloc, _aligned_free
-#include <sys/stat.h>  // _fstat64, _stat64, _S_IREAD, _S_IWRITE
+#include <sys/stat.h>  // _fstat64, _stat64
 // <sys/stat.h> must precede "system.h": it defines the "#define __stat64
 // _stat64" alias (via _mingw_stat64.h) that system.h's xstat_t = struct
 // __stat64 relies on, so that xstat_t resolves to the real struct _stat64
@@ -159,27 +158,4 @@ auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 auto xftello(std::FILE * stream) -> uint64_t
 {
   return _ftelli64(stream);
-}
-
-
-// refactoring: only used in udb.cc
-auto xopen_read(const char * path) -> int
-{
-  return _open(path, _O_RDONLY | _O_BINARY);
-}
-
-
-// refactoring: only used in udb.cc
-auto xopen_write(const char * path) -> int
-{
-  return _open(path,
-               _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
-               _S_IREAD | _S_IWRITE);
-}
-
-
-// refactoring: only used in udb.cc (via FileDescriptor)
-auto xclose(int file_descriptor) -> int
-{
-  return _close(file_descriptor);
 }
