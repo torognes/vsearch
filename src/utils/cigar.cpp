@@ -145,7 +145,7 @@ auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<
   std::vector<std::pair<Operation, long long>> parsed_cigar;
 
   auto * position = cigar_string.begin();
-  auto * cigar_end = cigar_string.end();
+  auto const * cigar_end = cigar_string.end();
 
   while (position < cigar_end)
     {

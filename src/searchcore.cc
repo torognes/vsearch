@@ -361,7 +361,7 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
 
   /* left trim alignment */
 
-  auto * p = hit->nwalignment;
+  auto const * p = hit->nwalignment;
   auto op = '\0';
   int64_t run = 0;
   if (*p != 0)
@@ -386,7 +386,7 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
 
   /* right trim alignment */
 
-  auto * e = hit->nwalignment + std::strlen(hit->nwalignment);
+  auto const * e = hit->nwalignment + std::strlen(hit->nwalignment);
   if (e > hit->nwalignment)
     {
       p = e - 1;
