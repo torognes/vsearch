@@ -75,7 +75,9 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memset, std::memmove
+#include <fstream>  // std::ofstream
 #include <limits>
+#include <ostream>  // std::ostream
 #include <vector>
 
 
@@ -153,7 +155,7 @@ auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset,
 }
 
 
-auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
+auto largewrite(std::ostream & output, void const * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
 {
   /* call write multiple times and update progress */
 
@@ -161,8 +163,8 @@ auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const byteswritten = static_cast<uint64_t>(write(file_descriptor, (static_cast<char *>(buf)) + i, rem));
-      if (byteswritten != rem)
+      output.write((static_cast<char const *>(buf)) + i, static_cast<std::streamsize>(rem));
+      if (not output)
         {
           fatal("Unable to write to UDB file");
         }
@@ -965,8 +967,8 @@ auto udb_make(struct Parameters const & parameters) -> void
     fatal("UDB output file must be specified with --output");
   }
 
-  FileDescriptor fd_output{xopen_write(parameters.opt_output)};
-  if (fd_output.get() == 0)
+  std::ofstream out_stream(parameters.opt_output, std::ios::binary | std::ios::trunc);
+  if (not out_stream)
     {
       fatal("Unable to open output file for writing (%s)", parameters.opt_output);
     }
@@ -1031,14 +1033,14 @@ auto udb_make(struct Parameters const & parameters) -> void
   buffer[49] = 0x55444266; /* fBDU UDBf */
   {
     Progress progress_bar("Writing UDB file", progress_all, parameters);
-    pos += largewrite(fd_output.get(), buffer.data(), 50 * 4, 0, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), 50 * 4, 0, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
-    pos += largewrite(fd_output.get(), dbindex.kmercount, 4 * kmerhash_entries, pos, progress_bar);
+    pos += largewrite(out_stream, dbindex.kmercount, 4 * kmerhash_entries, pos, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
-    pos += largewrite(fd_output.get(), buffer.data(), 1 * 4, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), 1 * 4, pos, progress_bar);
 
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
@@ -1054,13 +1056,13 @@ auto udb_make(struct Parameters const & parameters) -> void
                     buffer[elements++] = j;
                   }
               }
-            pos += largewrite(fd_output.get(), buffer.data(), 4 * elements, pos, progress_bar);
+            pos += largewrite(out_stream, buffer.data(), 4 * elements, pos, progress_bar);
           }
         else
           {
             if (dbindex.kmercount[i] > 0)
               {
-                pos += largewrite(fd_output.get(),
+                pos += largewrite(out_stream,
                                   dbindex.kmerindex + dbindex.kmerhash[i],
                                   4 * dbindex.kmercount[i],
                                   pos,
@@ -1083,7 +1085,7 @@ auto udb_make(struct Parameters const & parameters) -> void
     buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
     /* 0x005e0db4 */
     buffer[7] = 0x005e0db4;
-    pos += largewrite(fd_output.get(), buffer.data(), 4 * 8, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), 4 * 8, pos, progress_bar);
 
     /* indices to headers (uint32_t) */
     auto sum = 0U;
@@ -1092,13 +1094,13 @@ auto udb_make(struct Parameters const & parameters) -> void
         buffer[i] = sum;
         sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
       }
-    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), 4 * seqcount, pos, progress_bar);
 
     /* headers (ascii, zero terminated, not padded) */
     for (auto i = 0U; i < seqcount; i++)
       {
         unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
-        pos += largewrite(fd_output.get(), db_getheader(i), len + 1, pos, progress_bar);
+        pos += largewrite(out_stream, db_getheader(i), len + 1, pos, progress_bar);
       }
 
     /* sequence lengths (uint32_t) */
@@ -1106,16 +1108,17 @@ auto udb_make(struct Parameters const & parameters) -> void
       {
         buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
       }
-    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), 4 * seqcount, pos, progress_bar);
 
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)
       {
         unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
-        pos += largewrite(fd_output.get(), db_getsequence(i), len, pos, progress_bar);
+        pos += largewrite(out_stream, db_getsequence(i), len, pos, progress_bar);
       }
 
-    if (xclose(fd_output.release()) != 0)
+    out_stream.close();
+    if (not out_stream)
       {
         fatal("Unable to close UDB file");
       }
