@@ -371,8 +371,8 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   (named + `-` stdout, and both-to-stdout ordering where two outputs can share
   stdout); full `vsearch-tests` green (9648/0) after the pivot and after the
   partials; `orient.sh` (disabled by default) 150/0.
-* **Large — PARTLY DONE (3 of 5).** allpairs, chimera, fastq_mergepairs
-  migrated. These are the state-struct-with-worker-pool commands: the driver
+* **Large — allpairs, chimera, fastq_mergepairs (first 3 of 5).** These are the
+  driver-owns-state-with-worker-pool commands: the driver
   owns the state (a local), the workers read its `FILE *` members under the
   output lock, so the migration keeps those members non-owning and adds an
   owning `OutputFileHandle` per output (declared inline at each open, or in the
@@ -402,18 +402,26 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   wording-sensitive test (`search_exact.sh` checks only the non-zero exit on a
   failed open, stderr discarded), so the failure message could adopt the shared
   option-named form.
-* **Large — DEFERRED (1 of 5), needs a dedicated pass:**
-  * **search** — `search_cli_state_s` is a CLI-only driver local (good), but the
-    opening lives in `search_prep` (which also does db_read/index/tophits, so it
-    can't move to the driver), and there are ~40 `state.fp_*` reads across the
-    hot, library-coexisting search/results core. The clean migration makes the
-    struct's `fp_*` into `OutputFileHandle` and adds `.get()` at those ~40 sites
-    (the struct is already non-copyable via its `Parameters const &` member, so
-    move-only handles are fine); the OTU outputs (otutabout/mothur/biom) are
-    closed early in the body and become `reset()` there. Worth a focused pass
-    with A/B on both the CLI and the library `search_batch` path (api_examples).
-    Unlike search_exact, this is **not** Band-7-blocked — its E4 state struct
-    already exists.
+* **search — DONE** (branch `tmp_20260710225651`, commit `26a4a2ca`). Because
+  the opens live in `search_prep` (which also does db_read/index/tophits, so
+  they can't move up to the driver as they did for allpairs/search_exact), this
+  used the *direct* pattern: the `search_cli_state_s` `fp_*` members became
+  `OutputFileHandle` and the ~30 read sites in `search_output_results` (plus the
+  two samheader calls and the alnout header writes) took `.get()`. The struct is
+  a non-movable driver local (it has `std::mutex` members), so move-only handles
+  are fine; `usearch_global` owns it across the worker pool, which reads the raw
+  `FILE *` via `.get()` under `mutex_output`. Closes became `reset()` at the
+  original `fclose_output` points — the three OTU outputs mid-body, the two
+  db-match outputs after the db loop, the other eleven in `search_done` — all in
+  the legacy fixed order (a struct destructor would reverse it). The per-option
+  failure messages adopted the shared option-named form (no test greps them).
+  Verified: A/B byte-identical across all sixteen outputs at `--threads 1` for
+  `--strand plus` and `--strand both` (alnout minus its command-line echo,
+  biomout minus its embedded output-path `id`); `usearch_global.sh`,
+  `search_exact.sh`, `vsearch.sh` 0 FAIL; full suite green. **Not**
+  Band-7-blocked (its E4 state struct already existed). The library
+  `search_batch` path uses a separate `search_session_s` with no output
+  members, so it was untouched.
 * **cluster — DONE.** The largest output command (three groups, all migrated
   within `cluster()`): the 14 state-struct members the workers read (driver-owns,
   inline handles); the block-local `--msaout`/`--consout`/`--profile` MSA
@@ -425,7 +433,9 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   assertions were updated in sync (in the vsearch-tests repo). A/B byte-identical
   at `--threads 1` (biomout minus its embedded output-path `id`); `cluster_fast.sh`
   185/0.
-* **Remaining:** search (deferred, see above), then Phase 4.
+* **Large — ALL DONE (5 of 5).** allpairs, chimera, fastq_mergepairs,
+  search_exact, search.
+* **Remaining:** Phase 4 (input streams, then delete the legacy trio).
 
 ## 7. Phase 4 — input streams, then delete the legacy trio
 
