@@ -66,9 +66,9 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdarg>  // va_list
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::vsnprintf, std::fopen
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::vsnprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::strlen, std::strcmp, std::strcpy, std::strchr
+#include <cstring>  // std::strlen, std::strcpy, std::strchr
 #include <iterator>  // std::next
 #include <random>  // std::random_device
 #include <string>  // std::string
@@ -306,65 +306,4 @@ auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int cons
   std::vector<char> hex_digest(len_hex_dig_md5);
   get_hex_seq_digest_md5(hex_digest.data(), seq, seqlen);
   std::fprintf(output_handle, "%s", hex_digest.data());
-}
-
-
-auto fopen_output(char const * filename) -> std::FILE *
-{
-  /* Open in binary mode ("wb"), matching the "rb" used for input: on
-     Windows/MinGW a text-mode stream translates every '\n' to "\r\n", which
-     corrupts the FASTA/FASTQ/tabular byte streams vsearch writes (they already
-     contain explicit '\n'). "b" is a no-op on POSIX. */
-  /* open the output stream given by filename, but use stdout if name is - */
-  if (std::strcmp(filename, "-") == 0)
-    {
-      auto const file_descriptor = dup(STDOUT_FILENO);
-      if (file_descriptor < 0)
-        {
-          return nullptr;
-        }
-      return fdopen(file_descriptor, "wb");
-    }
-  return std::fopen(filename, "wb");
-}
-
-
-auto open_optional_output(char const * filename, char const * description) -> std::FILE *
-{
-  if (filename == nullptr)
-    {
-      return nullptr;
-    }
-  std::FILE * const stream = fopen_output(filename);
-  if (stream == nullptr)
-    {
-      /* Build the whole message and pass it to the single-argument fatal(),
-         which prints it via "%s"; this keeps a filename containing '%' from
-         being interpreted as a format string. */
-      std::string const message = std::string("Unable to open ") + description +
-        " file for writing (" + filename + ")";
-      fatal(message.c_str());
-    }
-  return stream;
-}
-
-
-auto fclose_output(std::FILE * stream) -> void
-{
-  if (stream == nullptr)
-    {
-      return;
-    }
-  /* A write error (full disk, quota, broken pipe) is often deferred by stdio
-     until the buffer is flushed, so check fflush and the stream error flag
-     before closing; fclose itself also flushes and can report the same error.
-     Either way, fail loudly rather than leave a silently truncated output. */
-  if ((std::fflush(stream) != 0) or (std::ferror(stream) != 0))
-    {
-      fatal("Unable to write to output file (disk full, quota exceeded, or broken pipe?)");
-    }
-  if (std::fclose(stream) != 0)
-    {
-      fatal("Unable to close output file (disk full or quota exceeded?)");
-    }
 }

@@ -1408,7 +1408,8 @@ auto main(int argc, char** argv) -> int
     dispatch_command(parameters);
   }
 
-  /* Output written directly to stdout is not closed through fclose_output, so
+  /* Output written directly to stdout is not closed through an OutputFileHandle
+     (whose CheckedCloseOutputHandle deleter surfaces deferred write errors), so
      surface any deferred write error here (full disk, quota, or a broken pipe
      such as `vsearch ... | head`) rather than exiting 0 with truncated output
      (I1). */
