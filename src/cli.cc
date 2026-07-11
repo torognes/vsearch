@@ -162,6 +162,20 @@ namespace {
   }
 
 
+  /* The SIMD aligner (search16, align_simd.cc) represents alignment scores in
+     signed 16-bit cells (CELL == signed short). --match and --mismatch are
+     stored verbatim in the score matrix, so they must fit a CELL. Gap penalties
+     feed the block-seed value -(open + CDEPTH * ext) (CDEPTH == 4 in
+     align_simd.cc) through a non-saturating narrowing cast, so bounding each
+     penalty by SHRT_MAX / (1 + CDEPTH) keeps open + CDEPTH * ext within CELL
+     range for any open/ext combination. Values outside these ranges would wrap
+     silently and corrupt alignments, so they are rejected at parse time. The
+     '*' (infinite) gap penalty is a documented sentinel and is left untouched
+     here; its handling in the SIMD path is addressed separately. */
+  static constexpr auto max_alignment_score = int64_t{32767};  // SHRT_MAX
+  static constexpr auto max_gap_penalty = int64_t{32767 / (1 + 4)};  // SHRT_MAX / (1 + CDEPTH)
+
+
   auto args_get_gap_penalty_string(char * arg, bool const is_open, struct Parameters & parameters) -> void
   {
     /* See http://www.drive5.com/usearch/manual/aln_params.html
@@ -198,6 +212,14 @@ namespace {
         if (std::sscanf(cursor, "%d%n", &pen, &skip) == 1)
           {
             cursor += skip;
+            if ((pen < 0) or (pen > max_gap_penalty))
+              {
+                std::string const message =
+                  "A finite gap penalty must be in the range 0 to "
+                  + std::to_string(max_gap_penalty)
+                  + "; use '*' to declare an infinite penalty";
+                fatal(message.c_str());
+              }
           }
         else if (*cursor == '*')
           {
@@ -4175,6 +4197,18 @@ namespace {
       fatal("The argument to --mismatch must be negative");
 
   #endif
+
+    if ((parameters.opt_match > max_alignment_score) or
+        (parameters.opt_match < -max_alignment_score))
+      {
+        fatal("The argument to --match must be in the range -32767 to 32767");
+      }
+
+    if ((parameters.opt_mismatch > max_alignment_score) or
+        (parameters.opt_mismatch < -max_alignment_score))
+      {
+        fatal("The argument to --mismatch must be in the range -32767 to 32767");
+      }
 
 
     if (parameters.opt_alignwidth < 0)
