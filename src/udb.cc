@@ -253,6 +253,22 @@ auto udb_info(struct Parameters const & parameters) -> void
       fatal("Invalid UDB file");
     }
 
+  /* Reject an inflated sequence count, mirroring the guard in udb_read():
+     the per-sequence header-index and length tables each store 4 bytes
+     per sequence, so a file cannot describe more than filesize/4 of them.
+     buffer[13] is the one file-derived field --udbinfo reports; without
+     this check a corrupt UDB that every other reader rejects would print
+     a garbage count and still exit 0. The size is taken from the open
+     stream; a non-seekable input (which udb_read refuses outright) yields
+     no size and skips the check. */
+
+  in_stream.seekg(0, std::ios::end);
+  std::streamoff const end_pos = in_stream.tellg();
+  if ((end_pos >= 0) and (buffer[13] > static_cast<uint64_t>(end_pos) / 4))
+    {
+      fatal("Invalid UDB file");
+    }
+
   if (not parameters.opt_quiet)
     {
       std::fprintf(stderr, "           Seqs  %u\n", buffer[13]);
