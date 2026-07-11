@@ -62,14 +62,15 @@
 #include "dynlibs.h"
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // log_file::handle
+#include "utils/open_file.hpp"  // open_input_file
 #include "utils/span.hpp"
-#include <unistd.h>  // dup, STDIN_FILENO, STDOUT_FILENO
+#include <unistd.h>  // dup, STDOUT_FILENO
 #include <algorithm>  // std::find_first_of
 #include <array>
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fopen, std::size_t, std::fread, std::fileno
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::memcpy, std::memcmp, std::strcmp
 #include <iterator> // std::distance
@@ -251,22 +252,6 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 }
 
 
-auto fopen_input(const char * filename) -> std::FILE *
-{
-  /* open the input stream given by filename, but use stdin if name is - */
-  if (std::strcmp(filename, "-") == 0)
-    {
-      auto const file_descriptor = dup(STDIN_FILENO);
-      if (file_descriptor < 0)
-        {
-          return nullptr;
-        }
-      return fdopen(file_descriptor, "rb");
-    }
-  return std::fopen(filename, "rb");
-}
-
-
 auto fastx_open(char const * filename, struct Parameters const & parameters) -> fastx_handle
 {
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
@@ -284,7 +269,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   int bzError = 0;
 #endif
 
-  input_handle->fp = fopen_input(filename);
+  input_handle->fp = open_input_file(filename).release();
   if (input_handle->fp == nullptr)
     {
       fatal("Unable to open file for reading (%s)", filename);
@@ -378,7 +363,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
       /* rewind was not enough */
 
       std::fclose(input_handle->fp);
-      input_handle->fp = fopen_input(filename);
+      input_handle->fp = open_input_file(filename).release();
       if (input_handle->fp == nullptr)
         {
           fatal("Unable to open file for reading (%s)", filename);
