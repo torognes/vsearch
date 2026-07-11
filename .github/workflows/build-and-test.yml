@@ -189,7 +189,14 @@ jobs:
 
   freebsd-x86_64:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # A single step (vmactions) must fit VM boot + pkg install + build + the
+    # test suite (capped at suite_timeout = 720 s below) + the post-run rsync
+    # copyback that brings test.log back to the host. vmactions only copies the
+    # workspace back if the "run" script returns cleanly (index.js runs copyback
+    # *after* the run step, so a job-timeout kill skips it) -- when this budget
+    # is too tight the step is killed mid-run/mid-copyback and the test.log
+    # artifact is never produced. 40 min leaves headroom for the copyback.
+    timeout-minutes: 40
 
     steps:
     - name: Checkout
