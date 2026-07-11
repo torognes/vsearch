@@ -58,6 +58,7 @@
 
 */
 
+#include "open_file.hpp"  // OutputFileHandle
 #include <chrono>  // std::chrono::steady_clock
 #include <cstdio>  // std::FILE
 
@@ -97,6 +98,6 @@ public:
   auto operator=(LogFile &&) -> LogFile & = delete;
 
 private:
-  std::FILE * handle = nullptr;
+  OutputFileHandle handle;
   std::chrono::steady_clock::time_point start_time {};
 };

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include <cstdio>  // std::FILE, std:fclose, std::fopen
 #include <memory>  // std::unique_ptr
 

@@ -60,7 +60,7 @@
 
 #include "logfile.hpp"
 #include "vsearch.h"  // struct Parameters
-#include "util.h"  // open_optional_output, fclose_output
+#include "open_file.hpp"  // open_optional_output_file, OutputOption
 #include "system.h"  // system_get_memused
 #include "timestamp.hpp"  // iso8601_local_timestamp
 #include <chrono>  // std::chrono::steady_clock, std::chrono::duration
@@ -86,14 +86,14 @@ namespace log_file
 LogFile::LogFile(struct Parameters & parameters)
 {
   if (parameters.opt_log == nullptr) { return; }
-  handle = open_optional_output(parameters.opt_log, "log");
-  parameters.fp_log = handle;
-  log_file::set_handle(handle);
-  std::fprintf(handle, "%s\n", parameters.prog_header.c_str());
-  std::fprintf(handle, "%s\n", parameters.command_line.c_str());
+  handle = open_optional_output_file(parameters.opt_log, OutputOption{"--log"});
+  parameters.fp_log = handle.get();
+  log_file::set_handle(handle.get());
+  std::fprintf(handle.get(), "%s\n", parameters.prog_header.c_str());
+  std::fprintf(handle.get(), "%s\n", parameters.command_line.c_str());
 
   start_time = std::chrono::steady_clock::now();
-  std::fprintf(handle, "Started  %s\n", iso8601_local_timestamp().c_str());
+  std::fprintf(handle.get(), "Started  %s\n", iso8601_local_timestamp().c_str());
 }
 
 
@@ -101,14 +101,14 @@ LogFile::~LogFile()
 {
   if (handle == nullptr) { return; }
   auto const finish_time = std::chrono::steady_clock::now();
-  std::fprintf(handle, "\n");
-  std::fprintf(handle, "Finished %s", iso8601_local_timestamp().c_str());
+  std::fprintf(handle.get(), "\n");
+  std::fprintf(handle.get(), "Finished %s", iso8601_local_timestamp().c_str());
 
   constexpr auto seconds_per_minute = 60.0;
   double const time_diff =
     std::chrono::duration<double>(finish_time - start_time).count();
-  std::fprintf(handle, "\n");
-  std::fprintf(handle, "Elapsed time %02.0lf:%02.0lf\n",
+  std::fprintf(handle.get(), "\n");
+  std::fprintf(handle.get(), "Elapsed time %02.0lf:%02.0lf\n",
           std::floor(time_diff / seconds_per_minute),
           std::floor(time_diff - (seconds_per_minute * std::floor(time_diff / seconds_per_minute))));
 
@@ -117,12 +117,12 @@ LogFile::~LogFile()
   double const maxmem = static_cast<double>(system_get_memused()) / bytes_per_mebibyte;
   if (maxmem < mebibytes_per_gibibyte)
     {
-      std::fprintf(handle, "Max memory %.1lfMB\n", maxmem);
+      std::fprintf(handle.get(), "Max memory %.1lfMB\n", maxmem);
     }
   else
     {
-      std::fprintf(handle, "Max memory %.1lfGB\n", maxmem / mebibytes_per_gibibyte);
+      std::fprintf(handle.get(), "Max memory %.1lfGB\n", maxmem / mebibytes_per_gibibyte);
     }
-  fclose_output(handle);
+  handle.reset();
   log_file::set_handle(nullptr);
 }
