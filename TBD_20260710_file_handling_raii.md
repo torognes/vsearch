@@ -1,7 +1,8 @@
 # Design doc — finish the RAII file-handling layer
 
-**Status:** PROPOSED (branch `tmp_20260710155615`).
-**Date:** 2026-07-10
+**Status:** DONE — all phases complete (Phases 1–3 on `tmp_20260710155615`;
+Phase 3 tail + Phases 4–5 on `tmp_20260710225651`, commits `26a4a2ca`..`c0eb6136`).
+**Date:** 2026-07-10 (completed 2026-07-11)
 **Origin:** the in-progress refactoring visible in `src/utils/open_file.{hpp,cpp}`.
 
 ---
@@ -435,26 +436,57 @@ Order — smallest/lowest-risk first, wording-sensitive `cluster` last:
   185/0.
 * **Large — ALL DONE (5 of 5).** allpairs, chimera, fastq_mergepairs,
   search_exact, search.
-* **Remaining:** Phase 4 (input streams, then delete the legacy trio).
+* **fastx_mask — DONE** (commit `72641621`). An overlooked partial: §6 item 2
+  listed it but the partials pass omitted it. Its two optional outputs
+  (`fp_fastaout`/`fp_fastqout`) moved to `open_optional_output_file`
+  (direct pattern, single-threaded); the combined pre-open null-guard stays,
+  `.reset()` in the original close order. This removed the last CLI caller of
+  the legacy `open_optional_output`.
 
-## 7. Phase 4 — input streams, then delete the legacy trio
+## 7. Phase 4 — input streams, then delete the legacy trio — DONE
 
-* Route local-lifetime input `fopen` through `open_input_file` (`getseq` is the
-  template). For `fastx_open`, the `fp` lives inside `fastx_s` alongside gz/bz
-  handles closed in `fastx_close`; at minimum adopt `open_input_file` for the
-  `"-"`/`dup`/errno handling, or leave it as a documented boundary if converting
-  the ownership proves invasive.
-* Once no callers remain, **delete** `fopen_output` / `open_optional_output` /
-  `fclose_output` from `util.cc`/`util.h` and `fopen_input` from `fastx.cc`.
-  This is the commit that banks the value. Also reword the `vsearch.cc` `main()`
-  comment that currently says stdout "is not closed through `fclose_output`" —
-  after deletion the checked close lives in `CheckedCloseOutputHandle`.
+* **udb_fasta — DONE** (commit `a6b7c505`). The §3.1/§7 contradiction was
+  resolved (developer picked "migrate udb_fasta, then delete trio"): the one
+  `fopen_output` in `udb.cc` was in `udb_fasta` (`--udb2fasta`), a plain FASTA
+  `--output` write structurally identical to `maskfasta`, **not** part of the
+  mmap machinery §3.1 protects. Migrated to `open_mandatory_output_file`; the
+  `xopen_read`/`xopen_write` + mmap path (udb.cc:195/245/350/996) stays as the
+  documented out-of-scope boundary.
+* **logfile — DONE** (commit `76968093`). `LogFile::handle` (the `--log` owner,
+  already non-copyable/non-movable) became an `OutputFileHandle`; opens via
+  `open_optional_output_file`, publishes `.get()` to `parameters.fp_log` /
+  `log_file::set_handle()`, closes with `reset()`. `open_file.hpp` gained a
+  `#pragma once` (logfile.hpp includes it for the member, so a TU including it
+  both ways would otherwise redefine its structs).
+* **Trio deleted — DONE** (commit `a2e5c0d8`). With every caller migrated,
+  `fopen_output` / `open_optional_output` / `fclose_output` are gone from
+  `util.cc`/`util.h`; the `vsearch.cc` `main()` comment now points at
+  `CheckedCloseOutputHandle` instead of `fclose_output`; orphaned
+  `std::fopen`/`std::fclose`/`std::strcmp` dropped from two include comments.
+* **fastx_open input + fopen_input deleted — DONE** (commit `c0eb6136`).
+  `fastx_open`'s two opens route through `open_input_file(filename).release()`
+  (the cheap fallback — `fp` stays a raw `fastx_s` member closed by plain
+  `std::fclose`, no struct restructuring); the `"-"`/dup/errno handling
+  centralizes (the intended §2 win). `fopen_input` — the last legacy opener —
+  is deleted. Input open-failure messages stay caller-side (the §9 default).
 
-## 8. Phase 5 — final verification
+## 8. Phase 5 — final verification — DONE
 
-`cppcheck` every modified file; debug build; **mingw cross-compile**; run
-`vsearch-tests` and grep `FAIL` (expect the updated-wording tests to pass). No
-perf runs — open/close is not a hot loop.
+* `cppcheck` on every modified file: no new findings (only pre-existing,
+  unrelated ones — util.cc `xstrdup` false positive, fastx.cc `warn()` format,
+  udb.cc variableScope, util.h oppositeExpression).
+* **mingw cross-compile clean** (`--host=x86_64-w64-mingw32`, built in an
+  isolated `git archive` copy to avoid disturbing the shared tree):
+  `bin/vsearch.exe` builds with no errors/warnings in any changed file — the
+  `"wb"`/`"rb"` binary-mode reason this layer exists is verified on Windows.
+* `vsearch-tests` grep `FAIL`: green (0 FAIL) after the search, fastx_mask,
+  trio-deletion, and fastx-input commits.
+* No perf runs — open/close is not a hot loop.
+
+**The RAII file-handling layer is complete: one canonical mechanism
+(`open_*_output_file` / `OutputFileHandle` for outputs, `open_input_file` /
+`FileHandle` for inputs), all three legacy output functions and the legacy input
+opener deleted, the udb mmap path the only remaining raw-fd boundary.**
 
 ## 9. Risks & open questions
 
