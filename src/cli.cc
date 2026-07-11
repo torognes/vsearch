@@ -3990,8 +3990,6 @@ namespace {
       }
 
     /* check that only valid options are specified */
-    int invalid_options = 0;
-
     if (commands == 0)
       {
         /* check if any options are specified */
@@ -4010,6 +4008,7 @@ namespace {
       }
     else
       {
+        int invalid_options = 0;
         for (int i = 0; i < option_count; i++)
           {
             if (options_selected[static_cast<size_t>(i)])
