@@ -153,22 +153,13 @@ auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset,
 }
 
 
-auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, bool seek, struct Progress & progress_bar) -> uint64_t
+auto largewrite(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
 {
   /* call write multiple times and update progress */
 
   auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      if (seek)
-      {
-        auto const res = xlseek(file_descriptor, offset + i, SEEK_SET);
-        if (res != offset + i)
-          {
-            fatal("Unable to seek in UDB file or invalid UDB file");
-          }
-      }
-
       auto const rem = std::min(blocksize, nbyte - i);
       uint64_t const byteswritten = static_cast<uint64_t>(write(file_descriptor, (static_cast<char *>(buf)) + i, rem));
       if (byteswritten != rem)
@@ -1040,14 +1031,14 @@ auto udb_make(struct Parameters const & parameters) -> void
   buffer[49] = 0x55444266; /* fBDU UDBf */
   {
     Progress progress_bar("Writing UDB file", progress_all, parameters);
-    pos += largewrite(fd_output.get(), buffer.data(), 50 * 4, 0, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 50 * 4, 0, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
-    pos += largewrite(fd_output.get(), dbindex.kmercount, 4 * kmerhash_entries, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), dbindex.kmercount, 4 * kmerhash_entries, pos, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
-    pos += largewrite(fd_output.get(), buffer.data(), 1 * 4, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 1 * 4, pos, progress_bar);
 
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
@@ -1063,7 +1054,7 @@ auto udb_make(struct Parameters const & parameters) -> void
                     buffer[elements++] = j;
                   }
               }
-            pos += largewrite(fd_output.get(), buffer.data(), 4 * elements, pos, false, progress_bar);
+            pos += largewrite(fd_output.get(), buffer.data(), 4 * elements, pos, progress_bar);
           }
         else
           {
@@ -1073,7 +1064,7 @@ auto udb_make(struct Parameters const & parameters) -> void
                                   dbindex.kmerindex + dbindex.kmerhash[i],
                                   4 * dbindex.kmercount[i],
                                   pos,
-                                  false, progress_bar);
+                                  progress_bar);
               }
           }
       }
@@ -1092,7 +1083,7 @@ auto udb_make(struct Parameters const & parameters) -> void
     buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
     /* 0x005e0db4 */
     buffer[7] = 0x005e0db4;
-    pos += largewrite(fd_output.get(), buffer.data(), 4 * 8, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 4 * 8, pos, progress_bar);
 
     /* indices to headers (uint32_t) */
     auto sum = 0U;
@@ -1101,13 +1092,13 @@ auto udb_make(struct Parameters const & parameters) -> void
         buffer[i] = sum;
         sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
       }
-    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, progress_bar);
 
     /* headers (ascii, zero terminated, not padded) */
     for (auto i = 0U; i < seqcount; i++)
       {
         unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
-        pos += largewrite(fd_output.get(), db_getheader(i), len + 1, pos, false, progress_bar);
+        pos += largewrite(fd_output.get(), db_getheader(i), len + 1, pos, progress_bar);
       }
 
     /* sequence lengths (uint32_t) */
@@ -1115,13 +1106,13 @@ auto udb_make(struct Parameters const & parameters) -> void
       {
         buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
       }
-    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, progress_bar);
 
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)
       {
         unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
-        pos += largewrite(fd_output.get(), db_getsequence(i), len, pos, false, progress_bar);
+        pos += largewrite(fd_output.get(), db_getsequence(i), len, pos, progress_bar);
       }
 
     if (xclose(fd_output.release()) != 0)
