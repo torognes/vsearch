@@ -186,15 +186,23 @@ auto udb_detect_isudb(const char * filename) -> bool
      or a character device such as FreeBSD's /dev/stdin and the /dev/fd/N
      entries created by shell process substitution) cannot be a UDB file,
      and reading its magic number would consume bytes the subsequent
-     reader could not recover. Stat the path and bail out for anything
-     that is not a regular file, so no input is consumed. (The stat is on
-     the path, not an open descriptor, because std::ifstream exposes no
-     descriptor to fstat; the previous fstat-on-descriptor additionally
-     rejected a FreeBSD /dev/stdin handed in as the UDB, an unsupported
-     way to supply one.) */
+     reader could not recover. Stat the open descriptor, not the path: on
+     FreeBSD stat() of the path misreports such streams (/dev/stdin is a
+     character device there, not a pipe), whereas fstat() on the opened
+     descriptor reports the underlying pipe. open()+close() without a
+     read() does not consume pipe data, so bailing out for anything that
+     is not a regular file leaves the stream intact for the reader.
+     open_input_file() also maps "-" to a duplicate of stdin (matching the
+     reader), whereas stat() of the literal path "-" would fail. */
+
+  auto const input = open_input_file(filename);
+  if (not input)
+    {
+      fatal("Unable to open input file for reading (%s)", filename);
+    }
 
   xstat_t fs;
-  if (xstat(filename, & fs) != 0)
+  if (xfstat(fileno(input.get()), & fs) != 0)
     {
       fatal("Unable to get status for input file (%s)", filename);
     }
@@ -204,16 +212,10 @@ auto udb_detect_isudb(const char * filename) -> bool
       return false;
     }
 
-  std::ifstream in_stream(filename, std::ios::binary);
-  if (not in_stream)
-    {
-      fatal("Unable to open input file for reading (%s)", filename);
-    }
-
   unsigned int magic = 0;
-  in_stream.read(static_cast<char *>(static_cast<void *>(& magic)), static_cast<std::streamsize>(expected_n_bytes));
+  auto const bytesread = std::fread(& magic, 1, static_cast<std::size_t>(expected_n_bytes), input.get());
 
-  if ((static_cast<uint64_t>(in_stream.gcount()) == expected_n_bytes) and (magic == udb_file_signature))
+  if ((static_cast<uint64_t>(bytesread) == expected_n_bytes) and (magic == udb_file_signature))
     {
       return true;
     }
