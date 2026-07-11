@@ -131,7 +131,7 @@ auto wc_compare(const void * a, const void * b) -> int
 
 auto largeread(std::istream & input, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
 {
-  /* call pread multiple times and update progress */
+  /* read the file in blocks and update progress */
 
   auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
