@@ -193,8 +193,8 @@ auto udb_detect_isudb(const char * filename) -> bool
   constexpr static uint32_t udb_file_signature {0x55444246}; // 'FBDU UDBF'
   constexpr static uint64_t expected_n_bytes {sizeof(uint32_t)};
 
-  int const file_descriptor = xopen_read(filename);
-  if (file_descriptor < 0)
+  FileDescriptor const file_descriptor{xopen_read(filename)};
+  if (file_descriptor.get() < 0)
     {
       fatal("Unable to open input file for reading (%s)", filename);
     }
@@ -210,21 +210,18 @@ auto udb_detect_isudb(const char * filename) -> bool
      consuming any input. */
 
   xstat_t fs;
-  if (xfstat(file_descriptor, & fs) != 0)
+  if (xfstat(file_descriptor.get(), & fs) != 0)
     {
-      close(file_descriptor);
       fatal("Unable to get status for input file (%s)", filename);
     }
 
   if (not S_ISREG(fs.st_mode))
     {
-      close(file_descriptor);
       return false;
     }
 
   unsigned int magic = 0;
-  uint64_t const bytesread = static_cast<uint64_t>(read(file_descriptor, & magic, expected_n_bytes));
-  close(file_descriptor);
+  uint64_t const bytesread = static_cast<uint64_t>(read(file_descriptor.get(), & magic, expected_n_bytes));
 
   if ((bytesread == expected_n_bytes) and (magic == udb_file_signature))
     {
@@ -241,15 +238,13 @@ auto udb_info(struct Parameters const & parameters) -> void
 
   std::array<unsigned int, 50> buffer {{}};
 
-  int fd_udbinfo = 0;
-
-  fd_udbinfo = xopen_read(parameters.opt_udbinfo);
-  if (fd_udbinfo == 0)
+  FileDescriptor const fd_udbinfo{xopen_read(parameters.opt_udbinfo)};
+  if (fd_udbinfo.get() == 0)
     {
       fatal("Unable to open UDB file for reading");
     }
 
-  uint64_t const bytesread = static_cast<uint64_t>(read(fd_udbinfo, buffer.data(), 4 * 50));
+  uint64_t const bytesread = static_cast<uint64_t>(read(fd_udbinfo.get(), buffer.data(), 4 * 50));
   if (bytesread != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");
@@ -293,8 +288,6 @@ auto udb_info(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log, "         DBstep  %u\n", buffer[5]);
       std::fprintf(parameters.fp_log, "        DBAccel  %u%%\n", buffer[6]);
     }
-
-  close(fd_udbinfo);
 }
 
 
@@ -346,10 +339,8 @@ auto udb_read(const char * filename,
 
   /* open UDB file */
 
-  auto fd_udb = 0;
-
-  fd_udb = xopen_read(filename);
-  if (fd_udb == 0)
+  FileDescriptor fd_udb{xopen_read(filename)};
+  if (fd_udb.get() == 0)
     {
       fatal("Unable to open UDB file for reading");
     }
@@ -371,7 +362,7 @@ auto udb_read(const char * filename,
   auto longest = 0U;
   {
     Progress progress_bar(prompt, filesize, parameters);
-    pos += largeread(fd_udb, buffer.data(), 4 * 50, pos, progress_bar);
+    pos += largeread(fd_udb.get(), buffer.data(), 4 * 50, pos, progress_bar);
 
     if ((buffer[0]  != 0x55444246) or
         (buffer[2] != 32) or
@@ -417,7 +408,7 @@ auto udb_read(const char * filename,
 
     std::memset(dbindex.kmerbitmap, 0, dbindex.hashsize * sizeof(struct bitmap_s **));
 
-    pos += largeread(fd_udb, dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
+    pos += largeread(fd_udb.get(), dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
 
     dbindex.indexsize = 0;
     for (uint64_t i = 0; i < dbindex.hashsize; i++)
@@ -437,7 +428,7 @@ auto udb_read(const char * filename,
 
     /* signature */
 
-    pos += largeread(fd_udb, buffer.data(), 4, pos, progress_bar);
+    pos += largeread(fd_udb.get(), buffer.data(), 4, pos, progress_bar);
 
     if (buffer[0] != 0x55444233)
       {
@@ -448,7 +439,7 @@ auto udb_read(const char * filename,
 
     dbindex.kmerindex = static_cast<unsigned int *>(xmalloc(dbindex.indexsize * 4));
 
-    pos += largeread(fd_udb, dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
+    pos += largeread(fd_udb.get(), dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
@@ -466,7 +457,7 @@ auto udb_read(const char * filename,
 
     /* new header */
 
-    pos += largeread(fd_udb, buffer.data(), 4 * 8, pos, progress_bar);
+    pos += largeread(fd_udb.get(), buffer.data(), 4 * 8, pos, progress_bar);
 
     if ((buffer[0] != 0x55444234) or
         (buffer[1] != 0x005e0db3) or
@@ -485,7 +476,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> header_index(seqcount + 1);
 
-    pos += largeread(fd_udb, header_index.data(), 4 * seqcount, pos, progress_bar);
+    pos += largeread(fd_udb.get(), header_index.data(), 4 * seqcount, pos, progress_bar);
 
     header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
 
@@ -518,7 +509,7 @@ auto udb_read(const char * filename,
 
     datap = static_cast<char *>(xmalloc(udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount)));
 
-    pos += largeread(fd_udb, datap, udb_headerchars, pos, progress_bar);
+    pos += largeread(fd_udb.get(), datap, udb_headerchars, pos, progress_bar);
 
     for (auto i = 0U; i < seqcount; i++)
       {
@@ -529,7 +520,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> sequence_lengths(seqcount);
 
-    pos += largeread(fd_udb, sequence_lengths.data(), 4 * seqcount, pos, progress_bar);
+    pos += largeread(fd_udb.get(), sequence_lengths.data(), 4 * seqcount, pos, progress_bar);
 
     uint64_t sum = 0;
 
@@ -565,7 +556,7 @@ auto udb_read(const char * filename,
 
     /* sequences */
 
-    pos += largeread(fd_udb, datap + udb_headerchars, nucleotides, pos, progress_bar);
+    pos += largeread(fd_udb.get(), datap + udb_headerchars, nucleotides, pos, progress_bar);
 
     if (pos != filesize)
       {
@@ -574,7 +565,7 @@ auto udb_read(const char * filename,
 
     /* close UDB file */
 
-    close(fd_udb);
+    fd_udb.reset();
   }
 
   xfree(prompt);
@@ -983,10 +974,8 @@ auto udb_make(struct Parameters const & parameters) -> void
     fatal("UDB output file must be specified with --output");
   }
 
-  auto fd_output = 0;
-
-  fd_output = xopen_write(parameters.opt_output);
-  if (fd_output == 0)
+  FileDescriptor fd_output{xopen_write(parameters.opt_output)};
+  if (fd_output.get() == 0)
     {
       fatal("Unable to open output file for writing (%s)", parameters.opt_output);
     }
@@ -1051,14 +1040,14 @@ auto udb_make(struct Parameters const & parameters) -> void
   buffer[49] = 0x55444266; /* fBDU UDBf */
   {
     Progress progress_bar("Writing UDB file", progress_all, parameters);
-    pos += largewrite(fd_output, buffer.data(), 50 * 4, 0, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 50 * 4, 0, false, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
-    pos += largewrite(fd_output, dbindex.kmercount, 4 * kmerhash_entries, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), dbindex.kmercount, 4 * kmerhash_entries, pos, false, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
-    pos += largewrite(fd_output, buffer.data(), 1 * 4, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 1 * 4, pos, false, progress_bar);
 
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
@@ -1074,13 +1063,13 @@ auto udb_make(struct Parameters const & parameters) -> void
                     buffer[elements++] = j;
                   }
               }
-            pos += largewrite(fd_output, buffer.data(), 4 * elements, pos, false, progress_bar);
+            pos += largewrite(fd_output.get(), buffer.data(), 4 * elements, pos, false, progress_bar);
           }
         else
           {
             if (dbindex.kmercount[i] > 0)
               {
-                pos += largewrite(fd_output,
+                pos += largewrite(fd_output.get(),
                                   dbindex.kmerindex + dbindex.kmerhash[i],
                                   4 * dbindex.kmercount[i],
                                   pos,
@@ -1103,7 +1092,7 @@ auto udb_make(struct Parameters const & parameters) -> void
     buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
     /* 0x005e0db4 */
     buffer[7] = 0x005e0db4;
-    pos += largewrite(fd_output, buffer.data(), 4 * 8, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 4 * 8, pos, false, progress_bar);
 
     /* indices to headers (uint32_t) */
     auto sum = 0U;
@@ -1112,13 +1101,13 @@ auto udb_make(struct Parameters const & parameters) -> void
         buffer[i] = sum;
         sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
       }
-    pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, false, progress_bar);
 
     /* headers (ascii, zero terminated, not padded) */
     for (auto i = 0U; i < seqcount; i++)
       {
         unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
-        pos += largewrite(fd_output, db_getheader(i), len + 1, pos, false, progress_bar);
+        pos += largewrite(fd_output.get(), db_getheader(i), len + 1, pos, false, progress_bar);
       }
 
     /* sequence lengths (uint32_t) */
@@ -1126,16 +1115,16 @@ auto udb_make(struct Parameters const & parameters) -> void
       {
         buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
       }
-    pos += largewrite(fd_output, buffer.data(), 4 * seqcount, pos, false, progress_bar);
+    pos += largewrite(fd_output.get(), buffer.data(), 4 * seqcount, pos, false, progress_bar);
 
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)
       {
         unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
-        pos += largewrite(fd_output, db_getsequence(i), len, pos, false, progress_bar);
+        pos += largewrite(fd_output.get(), db_getsequence(i), len, pos, false, progress_bar);
       }
 
-    if (close(fd_output) != 0)
+    if (xclose(fd_output.release()) != 0)
       {
         fatal("Unable to close UDB file");
       }

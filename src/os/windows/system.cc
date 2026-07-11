@@ -63,7 +63,7 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, _ftelli64
 #include <fcntl.h>  // _O_RDONLY, _O_WRONLY, _O_CREAT, _O_TRUNC, _O_BINARY
-#include <io.h>  // _open, _lseeki64
+#include <io.h>  // _open, _lseeki64, _close
 #include <malloc.h>  // _aligned_malloc, _aligned_realloc, _aligned_free
 #include <sys/stat.h>  // _fstat64, _stat64, _S_IREAD, _S_IWRITE
 // <sys/stat.h> must precede "system.h": it defines the "#define __stat64
@@ -175,4 +175,11 @@ auto xopen_write(const char * path) -> int
   return _open(path,
                _O_WRONLY | _O_CREAT | _O_TRUNC | _O_BINARY,
                _S_IREAD | _S_IWRITE);
+}
+
+
+// refactoring: only used in udb.cc (via FileDescriptor)
+auto xclose(int file_descriptor) -> int
+{
+  return _close(file_descriptor);
 }

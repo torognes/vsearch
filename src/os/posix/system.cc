@@ -66,7 +66,7 @@
 #include <cstdlib>  // posix_memalign, std::realloc, std::free
 #include <fcntl.h>  // open, O_RDONLY, O_WRONLY, O_CREAT, O_TRUNC
 #include <sys/stat.h>  // fstat, stat, struct stat, S_IRUSR, S_IWUSR
-#include <unistd.h>  // sysconf, _SC_NPROCESSORS_ONLN, lseek, off_t
+#include <unistd.h>  // sysconf, _SC_NPROCESSORS_ONLN, lseek, off_t, close
 
 /* system_get_memused()/system_get_memtotal() are genuinely per-OS and live in
    the os/<os>/system_memory.cc backends (mirrors swarm); everything below is
@@ -171,4 +171,11 @@ auto xopen_write(const char * path) -> int
   return open(path,
               O_WRONLY | O_CREAT | O_TRUNC,
               S_IRUSR | S_IWUSR);
+}
+
+
+// refactoring: only used in udb.cc (via FileDescriptor)
+auto xclose(int file_descriptor) -> int
+{
+  return close(file_descriptor);
 }
