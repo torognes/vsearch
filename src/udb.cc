@@ -228,9 +228,29 @@ auto udb_info(struct Parameters const & parameters) -> void
 {
   /* Read UDB header and show basic info */
 
+  char const * const filename = parameters.opt_udbinfo;
+
+  /* Reject a pipe up front, matching udb_read(): --udbinfo needs the file
+     size to validate the sequence count below and cannot obtain it from a
+     stream, so a UDB must be a seekable file path rather than a pipe. */
+
+  xstat_t fs;
+  if (xstat(filename, & fs) != 0)
+    {
+      fatal("Unable to get status for input file (%s)", filename);
+    }
+
+  auto const is_pipe = S_ISFIFO(fs.st_mode);
+  if (is_pipe)
+    {
+      fatal("Cannot read UDB file from a pipe");
+    }
+
+  uint64_t const filesize = static_cast<uint64_t>(fs.st_size);
+
   std::array<unsigned int, 50> buffer {{}};
 
-  std::ifstream in_stream(parameters.opt_udbinfo, std::ios::binary);
+  std::ifstream in_stream(filename, std::ios::binary);
   if (not in_stream)
     {
       fatal("Unable to open UDB file for reading");
@@ -258,13 +278,9 @@ auto udb_info(struct Parameters const & parameters) -> void
      per sequence, so a file cannot describe more than filesize/4 of them.
      buffer[13] is the one file-derived field --udbinfo reports; without
      this check a corrupt UDB that every other reader rejects would print
-     a garbage count and still exit 0. The size is taken from the open
-     stream; a non-seekable input (which udb_read refuses outright) yields
-     no size and skips the check. */
+     a garbage count and still exit 0. */
 
-  in_stream.seekg(0, std::ios::end);
-  std::streamoff const end_pos = in_stream.tellg();
-  if ((end_pos >= 0) and (buffer[13] > static_cast<uint64_t>(end_pos) / 4))
+  if (buffer[13] > filesize / 4)
     {
       fatal("Invalid UDB file");
     }

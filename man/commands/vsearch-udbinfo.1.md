@@ -29,7 +29,10 @@ of the UDB file format.
 
 `--udbinfo` *udbfile*
 : Read and inspect the UDB database *udbfile*. This option is
-  mandatory.
+  mandatory. As UDB files cannot be read from pipes, *udbfile* must be a
+  seekable file path (see
+  [`vsearch-udb(5)`](../formats/vsearch-udb.5.md)); a pipe is rejected
+  with an error.
 
 
 ## secondary options
