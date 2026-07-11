@@ -120,6 +120,9 @@ values they want to modify.
 The string is scanned from left to right, accepted symbols are
 `0123456789/LIREQT*`, and later values override previous values.
 
+Each finite penalty must be an integer between 0 and 6553. To declare a
+larger, gap-forbidding penalty, use the infinite value `*` (see above).
+
 Please note that vsearch, in contrast to usearch, only allows integer
 gap penalties. Because the lowest gap penalties are 0.5 by default in
 usearch, all default scores and gap penalties in vsearch have been
