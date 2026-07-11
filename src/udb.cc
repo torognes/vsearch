@@ -93,8 +93,6 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
               "udb.cc assumes a little-endian host");
 #endif
 
-static unsigned int udb_dbaccel = 0;
-
 struct wordfreq
 {
   unsigned int kmer;
@@ -401,7 +399,7 @@ auto udb_read(const char * filename,
 
     udb_wordlength = buffer[4];
     seqcount = buffer[13];
-    udb_dbaccel = buffer[6];
+    dbindex.dbaccel = buffer[6];
 
     /* The per-sequence header-index and length tables each store 4 bytes
        per sequence, so a file cannot describe more than filesize/4
@@ -803,7 +801,7 @@ auto udb_stats(struct Parameters const & parameters) -> void
               "         Slots  %u (%.1fk)\n",
               dbindex.hashsize,
               1.0 * dbindex.hashsize / 1000.0);
-      std::fprintf(parameters.fp_log, "       DBAccel  %u%%\n", udb_dbaccel);
+      std::fprintf(parameters.fp_log, "       DBAccel  %u%%\n", dbindex.dbaccel);
       std::fprintf(parameters.fp_log, "\n");
 
       std::fprintf(parameters.fp_log,
