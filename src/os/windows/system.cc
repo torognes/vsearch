@@ -60,6 +60,7 @@
 
 #include <windows.h>  // SYSTEM_INFO, GetSystemInfo
 #include <algorithm>  // std::max
+#include <cassert>  // assert
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, _ftelli64
 #include <io.h>  // _lseeki64
@@ -150,12 +151,16 @@ auto xstat(const char * path, xstat_t * buf) -> int
 
 auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 {
-  return _lseeki64(file_descriptor, offset, whence);
+  __int64 const position = _lseeki64(file_descriptor, offset, whence);
+  assert(position != -1);  // unchecked: -1 would widen to a huge uint64_t
+  return position;
 }
 
 
 // refactoring: only used in fastx.cc
 auto xftello(std::FILE * stream) -> uint64_t
 {
-  return _ftelli64(stream);
+  __int64 const position = _ftelli64(stream);
+  assert(position != -1);  // unchecked: -1 would widen to a huge uint64_t
+  return position;
 }

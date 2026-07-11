@@ -61,6 +61,7 @@
 #include "system.h"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::max
+#include <cassert>  // assert
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdlib>  // posix_memalign, std::realloc, std::free
@@ -146,12 +147,17 @@ auto xstat(const char * path, xstat_t * buf) -> int
 
 auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
 {
-  return static_cast<uint64_t>(lseek(file_descriptor, static_cast<off_t>(offset), whence));  // libC or linuxism: replace with std::fseek()?
+  // libC or linuxism: replace with std::fseek()?
+  off_t const position = lseek(file_descriptor, static_cast<off_t>(offset), whence);
+  assert(position != static_cast<off_t>(-1));  // unchecked: -1 would widen to a huge uint64_t
+  return static_cast<uint64_t>(position);
 }
 
 
 // refactoring: only used in fastx.cc
 auto xftello(std::FILE * stream) -> uint64_t
 {
-  return static_cast<uint64_t>(ftello(stream));
+  off_t const position = ftello(stream);
+  assert(position != static_cast<off_t>(-1));  // unchecked: -1 would widen to a huge uint64_t
+  return static_cast<uint64_t>(position);
 }
