@@ -200,20 +200,20 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
 
   si->uh = unique_init();
   si->m = minheap_init(tophits);
-  si->s = search16_init(static_cast<CELL>(parameters.opt_match),
-                        static_cast<CELL>(parameters.opt_mismatch),
-                        static_cast<CELL>(parameters.opt_gap_open_query_left),
-                        static_cast<CELL>(parameters.opt_gap_open_target_left),
-                        static_cast<CELL>(parameters.opt_gap_open_query_interior),
-                        static_cast<CELL>(parameters.opt_gap_open_target_interior),
-                        static_cast<CELL>(parameters.opt_gap_open_query_right),
-                        static_cast<CELL>(parameters.opt_gap_open_target_right),
-                        static_cast<CELL>(parameters.opt_gap_extension_query_left),
-                        static_cast<CELL>(parameters.opt_gap_extension_target_left),
-                        static_cast<CELL>(parameters.opt_gap_extension_query_interior),
-                        static_cast<CELL>(parameters.opt_gap_extension_target_interior),
-                        static_cast<CELL>(parameters.opt_gap_extension_query_right),
-                        static_cast<CELL>(parameters.opt_gap_extension_target_right),
+  si->s = search16_init(parameters.opt_match,
+                        parameters.opt_mismatch,
+                        parameters.opt_gap_open_query_left,
+                        parameters.opt_gap_open_target_left,
+                        parameters.opt_gap_open_query_interior,
+                        parameters.opt_gap_open_target_interior,
+                        parameters.opt_gap_open_query_right,
+                        parameters.opt_gap_open_target_right,
+                        parameters.opt_gap_extension_query_left,
+                        parameters.opt_gap_extension_target_left,
+                        parameters.opt_gap_extension_query_interior,
+                        parameters.opt_gap_extension_target_interior,
+                        parameters.opt_gap_extension_query_right,
+                        parameters.opt_gap_extension_target_right,
                         parameters.opt_n_mismatch);
 }
 

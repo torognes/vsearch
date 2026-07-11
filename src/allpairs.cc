@@ -335,20 +335,20 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
 
-  searchinfo.s = search16_init(static_cast<CELL>(state.parameters.opt_match),
-                        static_cast<CELL>(state.parameters.opt_mismatch),
-                        static_cast<CELL>(state.parameters.opt_gap_open_query_left),
-                        static_cast<CELL>(state.parameters.opt_gap_open_target_left),
-                        static_cast<CELL>(state.parameters.opt_gap_open_query_interior),
-                        static_cast<CELL>(state.parameters.opt_gap_open_target_interior),
-                        static_cast<CELL>(state.parameters.opt_gap_open_query_right),
-                        static_cast<CELL>(state.parameters.opt_gap_open_target_right),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_query_left),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_target_left),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_query_interior),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_target_interior),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_query_right),
-                        static_cast<CELL>(state.parameters.opt_gap_extension_target_right),
+  searchinfo.s = search16_init(state.parameters.opt_match,
+                        state.parameters.opt_mismatch,
+                        state.parameters.opt_gap_open_query_left,
+                        state.parameters.opt_gap_open_target_left,
+                        state.parameters.opt_gap_open_query_interior,
+                        state.parameters.opt_gap_open_target_interior,
+                        state.parameters.opt_gap_open_query_right,
+                        state.parameters.opt_gap_open_target_right,
+                        state.parameters.opt_gap_extension_query_left,
+                        state.parameters.opt_gap_extension_target_left,
+                        state.parameters.opt_gap_extension_query_interior,
+                        state.parameters.opt_gap_extension_target_interior,
+                        state.parameters.opt_gap_extension_query_right,
+                        state.parameters.opt_gap_extension_target_right,
                         state.parameters.opt_n_mismatch);
 
 

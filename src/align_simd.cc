@@ -438,6 +438,7 @@ struct s16info_s
   CELL penalty_gap_extension_query_right = 0;
   CELL penalty_gap_extension_target_right = 0;
   bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
+  bool force_scalar_fallback = false;  // a score/penalty exceeded the 16-bit cell range: defer every pair to the scalar aligner
 };
 
 
@@ -1243,20 +1244,54 @@ auto backtrack16(s16info_s * s,
 }
 
 
-auto search16_init(CELL score_match,
-                   CELL score_mismatch,
-                   CELL penalty_gap_open_query_left,
-                   CELL penalty_gap_open_target_left,
-                   CELL penalty_gap_open_query_interior,
-                   CELL penalty_gap_open_target_interior,
-                   CELL penalty_gap_open_query_right,
-                   CELL penalty_gap_open_target_right,
-                   CELL penalty_gap_extension_query_left,
-                   CELL penalty_gap_extension_target_left,
-                   CELL penalty_gap_extension_query_interior,
-                   CELL penalty_gap_extension_target_interior,
-                   CELL penalty_gap_extension_query_right,
-                   CELL penalty_gap_extension_target_right,
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Largest magnitudes the 16-bit cell (CELL) representation can hold. Match
+     and mismatch scores are stored verbatim in the score matrix, so they must
+     fit a CELL. Gap penalties additionally feed the block-seed value
+     -(open + CDEPTH * extension) through a non-saturating narrowing cast, so
+     each is bounded by SHRT_MAX / (1 + CDEPTH) to keep that sum in range. */
+  constexpr auto score_cell_limit = int64_t{std::numeric_limits<CELL>::max()};
+  constexpr auto penalty_cell_limit = int64_t{std::numeric_limits<CELL>::max() / (1 + CDEPTH)};
+
+  /* Convert a user score/penalty to a CELL. A value whose magnitude exceeds
+     'limit' cannot be represented faithfully (e.g. the '*' infinite gap
+     penalty, INT_MAX); clamp it so the setup arithmetic stays defined and tell
+     the caller to defer the whole batch to the scalar (linear-memory) aligner,
+     which uses 64-bit arithmetic and honours the value exactly. */
+  auto clamp_to_cell(int64_t const value, int64_t const limit, bool & needs_fallback) -> CELL
+  {
+    if (value > limit)
+      {
+        needs_fallback = true;
+        return static_cast<CELL>(limit);
+      }
+    if (value < -limit)
+      {
+        needs_fallback = true;
+        return static_cast<CELL>(-limit);
+      }
+    return static_cast<CELL>(value);
+  }
+
+}  // end of anonymous namespace
+
+
+auto search16_init(int64_t score_match,
+                   int64_t score_mismatch,
+                   int64_t penalty_gap_open_query_left,
+                   int64_t penalty_gap_open_target_left,
+                   int64_t penalty_gap_open_query_interior,
+                   int64_t penalty_gap_open_target_interior,
+                   int64_t penalty_gap_open_query_right,
+                   int64_t penalty_gap_open_target_right,
+                   int64_t penalty_gap_extension_query_left,
+                   int64_t penalty_gap_extension_target_left,
+                   int64_t penalty_gap_extension_query_interior,
+                   int64_t penalty_gap_extension_target_interior,
+                   int64_t penalty_gap_extension_query_right,
+                   int64_t penalty_gap_extension_target_right,
                    bool score_n_mismatch) -> struct s16info_s *
 {
   /* prepare alloc of qtable, dprofile, hearray, dir */
@@ -1276,6 +1311,10 @@ auto search16_init(CELL score_match,
   s->cigarend = nullptr;
   s->cigaralloc = 0;
 
+  bool needs_fallback = false;
+  CELL const match = clamp_to_cell(score_match, score_cell_limit, needs_fallback);
+  CELL const mismatch = clamp_to_cell(score_mismatch, score_cell_limit, needs_fallback);
+
   for (auto i = 0U; i < matrix_size; ++i)
     {
       for (auto j = 0U; j < matrix_size; ++j)
@@ -1283,7 +1322,7 @@ auto search16_init(CELL score_match,
           CELL value = 0;
           if (score_n_mismatch and ((i == 15U) or (j == 15U)))
             {
-              value = score_mismatch;
+              value = mismatch;
             }
           else if (is_ambiguous_4bit(static_cast<unsigned char>(i)) or is_ambiguous_4bit(static_cast<unsigned char>(j)))
             {
@@ -1291,11 +1330,11 @@ auto search16_init(CELL score_match,
             }
           else if (i == j)
             {
-              value = score_match;
+              value = match;
             }
           else
             {
-              value = score_mismatch;
+              value = mismatch;
             }
           (reinterpret_cast<CELL *>(s->matrix.data()))[(matrix_size * i) + j] = value;
         }
@@ -1303,32 +1342,34 @@ auto search16_init(CELL score_match,
 
 
   s->penalty_gap_open_query_left =
-    penalty_gap_open_query_left;
+    clamp_to_cell(penalty_gap_open_query_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_query_interior =
-    penalty_gap_open_query_interior;
+    clamp_to_cell(penalty_gap_open_query_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_query_right =
-    penalty_gap_open_query_right;
+    clamp_to_cell(penalty_gap_open_query_right, penalty_cell_limit, needs_fallback);
 
   s->penalty_gap_open_target_left =
-    penalty_gap_open_target_left;
+    clamp_to_cell(penalty_gap_open_target_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_target_interior =
-    penalty_gap_open_target_interior;
+    clamp_to_cell(penalty_gap_open_target_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_open_target_right =
-    penalty_gap_open_target_right;
+    clamp_to_cell(penalty_gap_open_target_right, penalty_cell_limit, needs_fallback);
 
   s->penalty_gap_extension_query_left =
-    penalty_gap_extension_query_left;
+    clamp_to_cell(penalty_gap_extension_query_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_query_interior =
-    penalty_gap_extension_query_interior;
+    clamp_to_cell(penalty_gap_extension_query_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_query_right =
-    penalty_gap_extension_query_right;
+    clamp_to_cell(penalty_gap_extension_query_right, penalty_cell_limit, needs_fallback);
 
   s->penalty_gap_extension_target_left =
-    penalty_gap_extension_target_left;
+    clamp_to_cell(penalty_gap_extension_target_left, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_target_interior =
-    penalty_gap_extension_target_interior;
+    clamp_to_cell(penalty_gap_extension_target_interior, penalty_cell_limit, needs_fallback);
   s->penalty_gap_extension_target_right =
-    penalty_gap_extension_target_right;
+    clamp_to_cell(penalty_gap_extension_target_right, penalty_cell_limit, needs_fallback);
+
+  s->force_scalar_fallback = needs_fallback;
 
   return s;
 }
@@ -1416,6 +1457,24 @@ auto search16(s16info_s * s,
   CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile);
   CELL * hearray = reinterpret_cast<CELL *>(s->hearray);
   uint64_t const qlen = static_cast<uint64_t>(s->qlen);
+
+  if (s->force_scalar_fallback)
+    {
+      /* A score or penalty did not fit the 16-bit cells (e.g. the '*'
+         infinite gap penalty). Report every pair as unrepresentable via the
+         SHRT_MAX sentinel so the caller re-aligns it with the exact scalar
+         (linear-memory) aligner, exactly as the size guard does. */
+      for (auto cand_id = 0U; cand_id < sequences; cand_id++)
+        {
+          pscores[cand_id] = std::numeric_limits<short>::max();
+          paligned[cand_id] = 0;
+          pmatches[cand_id] = 0;
+          pmismatches[cand_id] = 0;
+          pgaps[cand_id] = 0;
+          pcigar[cand_id] = xstrdup("");
+        }
+      return;
+    }
 
   if (qlen == 0)
     {

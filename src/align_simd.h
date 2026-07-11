@@ -60,26 +60,32 @@
 
 #pragma once
 
+#include <cstdint>  // int64_t
+
 using CELL = signed short;
 using WORD = unsigned short;
 using BYTE = unsigned char;
 struct s16info_s;
 
 
-auto search16_init(CELL score_match,
-                   CELL score_mismatch,
-                   CELL penalty_gap_open_query_left,
-                   CELL penalty_gap_open_target_left,
-                   CELL penalty_gap_open_query_interior,
-                   CELL penalty_gap_open_target_interior,
-                   CELL penalty_gap_open_query_right,
-                   CELL penalty_gap_open_target_right,
-                   CELL penalty_gap_extension_query_left,
-                   CELL penalty_gap_extension_target_left,
-                   CELL penalty_gap_extension_query_interior,
-                   CELL penalty_gap_extension_target_interior,
-                   CELL penalty_gap_extension_query_right,
-                   CELL penalty_gap_extension_target_right,
+// The score/penalty parameters are int64_t rather than CELL: search16_init
+// converts them to the aligner's 16-bit cells itself, and a value that does
+// not fit (e.g. the '*' infinite gap penalty) makes search16 defer every pair
+// to the scalar (linear-memory) aligner instead of wrapping silently.
+auto search16_init(int64_t score_match,
+                   int64_t score_mismatch,
+                   int64_t penalty_gap_open_query_left,
+                   int64_t penalty_gap_open_target_left,
+                   int64_t penalty_gap_open_query_interior,
+                   int64_t penalty_gap_open_target_interior,
+                   int64_t penalty_gap_open_query_right,
+                   int64_t penalty_gap_open_target_right,
+                   int64_t penalty_gap_extension_query_left,
+                   int64_t penalty_gap_extension_target_left,
+                   int64_t penalty_gap_extension_query_interior,
+                   int64_t penalty_gap_extension_target_interior,
+                   int64_t penalty_gap_extension_query_right,
+                   int64_t penalty_gap_extension_target_right,
                    bool score_n_mismatch) -> struct s16info_s *;
 
 
