@@ -102,12 +102,19 @@ symbol, then the penalty applies to all gap openings. For example:
   openings, internal or terminal, in both query and target sequences.
 
 
-To forbid gap-opening, an infinite penalty value can be declared with
-the symbol `*`.
+To forbid a gap opening, an infinite penalty value can be declared with
+the symbol `*`: a gap opening whose penalty is infinite is never
+allowed. Like a numerical penalty, `*` applies to the selected sequence
+(Q or T) and location (L, I, R or E); a bare `*` forbids every gap
+opening (internal and terminal, in both sequences).
 
 `--gapopen` *\*I/2E*
 : Set the gap opening penalties to an infinite value for internal gap
   openings, in both query and target sequences.
+
+`--gapopen` *\*LQ*
+: Forbid the opening of left end-gaps in the query sequence; all other
+  gap opening penalties keep their default values.
 
 
 To use vsearch as a semi-global aligner, a null-penalty can be applied
@@ -139,6 +146,17 @@ openings.
 : Set the six gap extending penalties using a penalty of 2 for
   extending internal gaps and a penalty of 1 for extending terminal
   gaps, in both query and target sequences. This is the default.
+
+
+An infinite extension penalty declared with `*` forbids extending a gap
+of that class beyond a single position: gaps longer than one are not
+allowed, while a gap of length one is still permitted. As with gap
+openings, `*` applies to the selected sequence (Q or T) and location (L,
+I, R or E).
+
+`--gapext` *\*I*
+: Forbid internal gaps longer than one position, in both query and
+  target sequences.
 
 
 ## Identity definitions

@@ -235,6 +235,22 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
       parameters.opt_gap_open_target_right -= parameters.opt_gap_extension_target_right;
       parameters.gap_penalties_adjusted = true;
     }
+
+  /* Fold the twelve '*' gap-penalty sentinels into one flag so the accept path
+     can skip the cigar scan on the common finite-penalty runs. Idempotent. */
+  parameters.opt_gap_penalty_has_infinite =
+    parameters.opt_gap_open_query_left_infinite or
+    parameters.opt_gap_open_query_interior_infinite or
+    parameters.opt_gap_open_query_right_infinite or
+    parameters.opt_gap_open_target_left_infinite or
+    parameters.opt_gap_open_target_interior_infinite or
+    parameters.opt_gap_open_target_right_infinite or
+    parameters.opt_gap_extension_query_left_infinite or
+    parameters.opt_gap_extension_query_interior_infinite or
+    parameters.opt_gap_extension_query_right_infinite or
+    parameters.opt_gap_extension_target_left_infinite or
+    parameters.opt_gap_extension_target_interior_infinite or
+    parameters.opt_gap_extension_target_right_infinite;
 }
 
 

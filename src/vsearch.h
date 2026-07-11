@@ -459,10 +459,25 @@ struct Parameters {
   int       opt_gap_open_target_interior     = 20;
   int       opt_gap_open_target_left         = 2;
   int       opt_gap_open_target_right        = 2;
-  /* '*' (infinite) interior gap-open sentinels: the numeric penalty above is
-     kept for scoring, these forbid the interior gap outright at accept time */
-  bool      opt_gap_open_query_interior_infinite  = false;
-  bool      opt_gap_open_target_interior_infinite = false;
+  /* '*' (infinite) gap-penalty sentinels, recorded at parse time. The numeric
+     penalties above are kept for scoring; these enforce the hard forbid at
+     accept time: an infinite gap-open forbids that gap class outright, an
+     infinite gap-extension forbids gaps of that class longer than one.
+     opt_gap_penalty_has_infinite is the OR of the twelve, computed in
+     vsearch_apply_defaults_fixups so the hot accept path can skip the scan. */
+  bool      opt_gap_open_query_left_infinite          = false;
+  bool      opt_gap_open_query_interior_infinite      = false;
+  bool      opt_gap_open_query_right_infinite         = false;
+  bool      opt_gap_open_target_left_infinite         = false;
+  bool      opt_gap_open_target_interior_infinite     = false;
+  bool      opt_gap_open_target_right_infinite        = false;
+  bool      opt_gap_extension_query_left_infinite     = false;
+  bool      opt_gap_extension_query_interior_infinite = false;
+  bool      opt_gap_extension_query_right_infinite    = false;
+  bool      opt_gap_extension_target_left_infinite    = false;
+  bool      opt_gap_extension_target_interior_infinite = false;
+  bool      opt_gap_extension_target_right_infinite   = false;
+  bool      opt_gap_penalty_has_infinite              = false;
   int       opt_length_cutoffs_increment     = 50;
   int       opt_length_cutoffs_longest       = std::numeric_limits<int>::max();
   int       opt_length_cutoffs_shortest      = 50;

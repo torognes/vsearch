@@ -304,6 +304,9 @@ namespace {
             set_T = 1;
           }
 
+        /* Each assignment also records whether the penalty is the '*'
+           sentinel, so a later finite token in the same string (e.g. '*I/20I')
+           clears it -- last token wins, matching the numeric penalty. */
         if (is_open)
           {
             if (set_Q != 0)
@@ -311,6 +314,7 @@ namespace {
                 if (set_L != 0)
                   {
                     parameters.opt_gap_open_query_left = pen;
+                    parameters.opt_gap_open_query_left_infinite = is_infinite;
                   }
                 if (set_I != 0)
                   {
@@ -320,6 +324,7 @@ namespace {
                 if (set_R != 0)
                   {
                     parameters.opt_gap_open_query_right = pen;
+                    parameters.opt_gap_open_query_right_infinite = is_infinite;
                   }
               }
             if (set_T != 0)
@@ -327,6 +332,7 @@ namespace {
                 if (set_L != 0)
                   {
                     parameters.opt_gap_open_target_left = pen;
+                    parameters.opt_gap_open_target_left_infinite = is_infinite;
                   }
                 if (set_I != 0)
                   {
@@ -336,6 +342,7 @@ namespace {
                 if (set_R != 0)
                   {
                     parameters.opt_gap_open_target_right = pen;
+                    parameters.opt_gap_open_target_right_infinite = is_infinite;
                   }
               }
           }
@@ -346,14 +353,17 @@ namespace {
                 if (set_L != 0)
                   {
                     parameters.opt_gap_extension_query_left = pen;
+                    parameters.opt_gap_extension_query_left_infinite = is_infinite;
                   }
                 if (set_I != 0)
                   {
                     parameters.opt_gap_extension_query_interior = pen;
+                    parameters.opt_gap_extension_query_interior_infinite = is_infinite;
                   }
                 if (set_R != 0)
                   {
                     parameters.opt_gap_extension_query_right = pen;
+                    parameters.opt_gap_extension_query_right_infinite = is_infinite;
                   }
               }
             if (set_T != 0)
@@ -361,14 +371,17 @@ namespace {
                 if (set_L != 0)
                   {
                     parameters.opt_gap_extension_target_left = pen;
+                    parameters.opt_gap_extension_target_left_infinite = is_infinite;
                   }
                 if (set_I != 0)
                   {
                     parameters.opt_gap_extension_target_interior = pen;
+                    parameters.opt_gap_extension_target_interior_infinite = is_infinite;
                   }
                 if (set_R != 0)
                   {
                     parameters.opt_gap_extension_target_right = pen;
+                    parameters.opt_gap_extension_target_right_infinite = is_infinite;
                   }
               }
           }

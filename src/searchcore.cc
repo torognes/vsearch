@@ -614,6 +614,58 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
 }
 
 
+namespace {
+  /* Does the alignment use a gap of a class whose '*' (infinite) sentinel is
+     set? An infinite gap-open penalty forbids that class outright; an infinite
+     gap-extension penalty forbids gaps of that class longer than one. The gap
+     classification mirrors LinearMemoryAligner::alignstats: an 'I' cigar op is
+     a query gap, a 'D' op a target gap; the first cigar op is a left-terminal
+     gap, the last is right-terminal, any other is interior. Callers guard this
+     with parameters.opt_gap_penalty_has_infinite to skip the scan on the common
+     finite-penalty path. */
+  auto alignment_uses_forbidden_gap(char const * cigar,
+                                    struct Parameters const & parameters) -> bool
+  {
+    if (cigar == nullptr) { return false; }
+    auto const * cursor = cigar;
+    bool first_op = true;
+    while (*cursor != '\0')
+      {
+        int64_t run = 1;
+        int scanned = 0;
+        std::sscanf(cursor, "%" PRId64 "%n", &run, &scanned);
+        cursor += scanned;
+        char const operation = *cursor;
+        ++cursor;
+        if ((operation == 'I') or (operation == 'D'))
+          {
+            bool const is_query = (operation == 'I');
+            bool const is_left = first_op;
+            bool const is_right = (*cursor == '\0');
+            bool const open_infinite = is_query
+              ? (is_left  ? parameters.opt_gap_open_query_left_infinite
+                 : is_right ? parameters.opt_gap_open_query_right_infinite
+                 : parameters.opt_gap_open_query_interior_infinite)
+              : (is_left  ? parameters.opt_gap_open_target_left_infinite
+                 : is_right ? parameters.opt_gap_open_target_right_infinite
+                 : parameters.opt_gap_open_target_interior_infinite);
+            bool const extension_infinite = is_query
+              ? (is_left  ? parameters.opt_gap_extension_query_left_infinite
+                 : is_right ? parameters.opt_gap_extension_query_right_infinite
+                 : parameters.opt_gap_extension_query_interior_infinite)
+              : (is_left  ? parameters.opt_gap_extension_target_left_infinite
+                 : is_right ? parameters.opt_gap_extension_target_right_infinite
+                 : parameters.opt_gap_extension_target_interior_infinite);
+            if (open_infinite) { return true; }
+            if (extension_infinite and (run > 1)) { return true; }
+          }
+        first_op = false;
+      }
+    return false;
+  }
+}  // anonymous namespace
+
+
 auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
                                struct hit * hit) -> bool
 {
@@ -627,11 +679,10 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       (hit->mismatches <= parameters.opt_maxsubs) and
       /* maxgaps */
       (hit->internal_gaps <= parameters.opt_maxgaps) and
-      /* interior gap-open '*': an infinite interior gap-open penalty forbids
-         interior gaps outright, so reject any alignment that opened one */
-      (((not parameters.opt_gap_open_query_interior_infinite) and
-        (not parameters.opt_gap_open_target_interior_infinite)) or
-       (hit->internal_gaps == 0)) and
+      /* '*' infinite gap penalties forbid a whole gap class (open) or gaps
+         longer than one (extension); reject an alignment that used one */
+      ((not parameters.opt_gap_penalty_has_infinite) or
+       (not alignment_uses_forbidden_gap(hit->nwalignment, parameters))) and
       /* mincols */
       (hit->internal_alignmentlength >= parameters.opt_mincols) and
       /* leftjust */
