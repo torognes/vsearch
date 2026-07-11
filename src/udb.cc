@@ -66,6 +66,7 @@
 #include "mask.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
+#include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -714,17 +715,9 @@ auto udb_fasta(struct Parameters const & parameters) -> void
 {
   Dbindex dbindex;  /* the k-mer index this run owns (RAII) */
 
-  if (parameters.opt_output == nullptr) {
-    fatal("FASTA output file must be specified with --output");
-  }
-
   /* open FASTA file for writing */
 
-  auto * fp_output = fopen_output(parameters.opt_output);
-  if (fp_output == nullptr)
-    {
-      fatal("Unable to open output file for writing (%s)", parameters.opt_output);
-    }
+  auto const fp_output = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
 
   /* read UDB file */
 
@@ -737,11 +730,10 @@ auto udb_fasta(struct Parameters const & parameters) -> void
     Progress progress("Writing FASTA file", seqcount, parameters);
     for (std::size_t i = 0; i < seqcount; i++)
       {
-        fasta_print_db_relabel(fp_output, i, i + 1, parameters);
+        fasta_print_db_relabel(fp_output.get(), i, i + 1, parameters);
         progress.update(i + 1);
       }
   }
-  fclose_output(fp_output);
 
   dbindex.clear();
   db_free();
