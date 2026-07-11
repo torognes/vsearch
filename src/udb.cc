@@ -75,7 +75,8 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::memset, std::memmove
-#include <fstream>  // std::ofstream
+#include <fstream>  // std::ifstream, std::ofstream
+#include <istream>  // std::istream
 #include <limits>
 #include <ostream>  // std::ostream
 #include <vector>
@@ -128,22 +129,16 @@ auto wc_compare(const void * a, const void * b) -> int
 }
 
 
-auto largeread(int file_descriptor, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
+auto largeread(std::istream & input, void * buf, uint64_t nbyte, uint64_t offset, struct Progress & progress_bar) -> uint64_t
 {
   /* call pread multiple times and update progress */
 
   auto progress = offset;
   for (uint64_t i = 0; i < nbyte; i += blocksize)
     {
-      auto const res = xlseek(file_descriptor, offset + i, SEEK_SET);
-      if (res != offset + i)
-        {
-          fatal("Unable to seek in UDB file or invalid UDB file");
-        }
-
       auto const rem = std::min(blocksize, nbyte - i);
-      uint64_t const bytesread = static_cast<uint64_t>(read(file_descriptor, (static_cast<char *>(buf)) + i, rem));
-      if (bytesread != rem)
+      input.read((static_cast<char *>(buf)) + i, static_cast<std::streamsize>(rem));
+      if (static_cast<uint64_t>(input.gcount()) != rem)
         {
           fatal("Unable to read from UDB file or invalid UDB file");
         }
@@ -186,24 +181,20 @@ auto udb_detect_isudb(const char * filename) -> bool
   constexpr static uint32_t udb_file_signature {0x55444246}; // 'FBDU UDBF'
   constexpr static uint64_t expected_n_bytes {sizeof(uint32_t)};
 
-  FileDescriptor const file_descriptor{xopen_read(filename)};
-  if (file_descriptor.get() < 0)
-    {
-      fatal("Unable to open input file for reading (%s)", filename);
-    }
-
   /* Only a regular file can be probed here and then reopened from the
      start by the actual reader. A non-rewindable stream (a named pipe,
      or a character device such as FreeBSD's /dev/stdin and the /dev/fd/N
      entries created by shell process substitution) cannot be a UDB file,
      and reading its magic number would consume bytes the subsequent
-     reader could not recover. Stat the open descriptor rather than the
-     path: on FreeBSD /dev/stdin is a character device that stat() of the
-     path does not report as a pipe. For such streams, bail out without
-     consuming any input. */
+     reader could not recover. Stat the path and bail out for anything
+     that is not a regular file, so no input is consumed. (The stat is on
+     the path, not an open descriptor, because std::ifstream exposes no
+     descriptor to fstat; the previous fstat-on-descriptor additionally
+     rejected a FreeBSD /dev/stdin handed in as the UDB, an unsupported
+     way to supply one.) */
 
   xstat_t fs;
-  if (xfstat(file_descriptor.get(), & fs) != 0)
+  if (xstat(filename, & fs) != 0)
     {
       fatal("Unable to get status for input file (%s)", filename);
     }
@@ -213,10 +204,16 @@ auto udb_detect_isudb(const char * filename) -> bool
       return false;
     }
 
-  unsigned int magic = 0;
-  uint64_t const bytesread = static_cast<uint64_t>(read(file_descriptor.get(), & magic, expected_n_bytes));
+  std::ifstream in_stream(filename, std::ios::binary);
+  if (not in_stream)
+    {
+      fatal("Unable to open input file for reading (%s)", filename);
+    }
 
-  if ((bytesread == expected_n_bytes) and (magic == udb_file_signature))
+  unsigned int magic = 0;
+  in_stream.read(static_cast<char *>(static_cast<void *>(& magic)), static_cast<std::streamsize>(expected_n_bytes));
+
+  if ((static_cast<uint64_t>(in_stream.gcount()) == expected_n_bytes) and (magic == udb_file_signature))
     {
       return true;
     }
@@ -231,14 +228,14 @@ auto udb_info(struct Parameters const & parameters) -> void
 
   std::array<unsigned int, 50> buffer {{}};
 
-  FileDescriptor const fd_udbinfo{xopen_read(parameters.opt_udbinfo)};
-  if (fd_udbinfo.get() == 0)
+  std::ifstream in_stream(parameters.opt_udbinfo, std::ios::binary);
+  if (not in_stream)
     {
       fatal("Unable to open UDB file for reading");
     }
 
-  uint64_t const bytesread = static_cast<uint64_t>(read(fd_udbinfo.get(), buffer.data(), 4 * 50));
-  if (bytesread != 4 * 50)
+  in_stream.read(static_cast<char *>(static_cast<void *>(buffer.data())), 4 * 50);
+  if (static_cast<uint64_t>(in_stream.gcount()) != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");
     }
@@ -332,8 +329,8 @@ auto udb_read(const char * filename,
 
   /* open UDB file */
 
-  FileDescriptor fd_udb{xopen_read(filename)};
-  if (fd_udb.get() == 0)
+  std::ifstream in_stream(filename, std::ios::binary);
+  if (not in_stream)
     {
       fatal("Unable to open UDB file for reading");
     }
@@ -355,7 +352,7 @@ auto udb_read(const char * filename,
   auto longest = 0U;
   {
     Progress progress_bar(prompt, filesize, parameters);
-    pos += largeread(fd_udb.get(), buffer.data(), 4 * 50, pos, progress_bar);
+    pos += largeread(in_stream, buffer.data(), 4 * 50, pos, progress_bar);
 
     if ((buffer[0]  != 0x55444246) or
         (buffer[2] != 32) or
@@ -401,7 +398,7 @@ auto udb_read(const char * filename,
 
     std::memset(dbindex.kmerbitmap, 0, dbindex.hashsize * sizeof(struct bitmap_s **));
 
-    pos += largeread(fd_udb.get(), dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
+    pos += largeread(in_stream, dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
 
     dbindex.indexsize = 0;
     for (uint64_t i = 0; i < dbindex.hashsize; i++)
@@ -421,7 +418,7 @@ auto udb_read(const char * filename,
 
     /* signature */
 
-    pos += largeread(fd_udb.get(), buffer.data(), 4, pos, progress_bar);
+    pos += largeread(in_stream, buffer.data(), 4, pos, progress_bar);
 
     if (buffer[0] != 0x55444233)
       {
@@ -432,7 +429,7 @@ auto udb_read(const char * filename,
 
     dbindex.kmerindex = static_cast<unsigned int *>(xmalloc(dbindex.indexsize * 4));
 
-    pos += largeread(fd_udb.get(), dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
+    pos += largeread(in_stream, dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
@@ -450,7 +447,7 @@ auto udb_read(const char * filename,
 
     /* new header */
 
-    pos += largeread(fd_udb.get(), buffer.data(), 4 * 8, pos, progress_bar);
+    pos += largeread(in_stream, buffer.data(), 4 * 8, pos, progress_bar);
 
     if ((buffer[0] != 0x55444234) or
         (buffer[1] != 0x005e0db3) or
@@ -469,7 +466,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> header_index(seqcount + 1);
 
-    pos += largeread(fd_udb.get(), header_index.data(), 4 * seqcount, pos, progress_bar);
+    pos += largeread(in_stream, header_index.data(), 4 * seqcount, pos, progress_bar);
 
     header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
 
@@ -502,7 +499,7 @@ auto udb_read(const char * filename,
 
     datap = static_cast<char *>(xmalloc(udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount)));
 
-    pos += largeread(fd_udb.get(), datap, udb_headerchars, pos, progress_bar);
+    pos += largeread(in_stream, datap, udb_headerchars, pos, progress_bar);
 
     for (auto i = 0U; i < seqcount; i++)
       {
@@ -513,7 +510,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> sequence_lengths(seqcount);
 
-    pos += largeread(fd_udb.get(), sequence_lengths.data(), 4 * seqcount, pos, progress_bar);
+    pos += largeread(in_stream, sequence_lengths.data(), 4 * seqcount, pos, progress_bar);
 
     uint64_t sum = 0;
 
@@ -549,7 +546,7 @@ auto udb_read(const char * filename,
 
     /* sequences */
 
-    pos += largeread(fd_udb.get(), datap + udb_headerchars, nucleotides, pos, progress_bar);
+    pos += largeread(in_stream, datap + udb_headerchars, nucleotides, pos, progress_bar);
 
     if (pos != filesize)
       {
@@ -558,7 +555,7 @@ auto udb_read(const char * filename,
 
     /* close UDB file */
 
-    fd_udb.reset();
+    in_stream.close();
   }
 
   xfree(prompt);
