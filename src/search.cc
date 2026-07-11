@@ -73,6 +73,7 @@
 #include "utils/make_unique.hpp"
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
+#include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min
@@ -119,22 +120,27 @@ struct search_cli_state_s
   int queries = 0;
   uint64_t queries_abundance = 0;
   uint64_t * dbmatched = nullptr;
-  FILE * fp_samout = nullptr;
-  FILE * fp_alnout = nullptr;
-  FILE * fp_userout = nullptr;
-  FILE * fp_blast6out = nullptr;
-  FILE * fp_uc = nullptr;
-  FILE * fp_fastapairs = nullptr;
-  FILE * fp_matched = nullptr;
-  FILE * fp_notmatched = nullptr;
-  FILE * fp_dbmatched = nullptr;
-  FILE * fp_dbnotmatched = nullptr;
-  FILE * fp_otutabout = nullptr;
-  FILE * fp_mothur_shared_out = nullptr;
-  FILE * fp_biomout = nullptr;
-  FILE * fp_lcaout = nullptr;
-  FILE * fp_qsegout = nullptr;
-  FILE * fp_tsegout = nullptr;
+  /* RAII output handles; the workers read the raw FILE * via .get() under
+     mutex_output. Closed explicitly with reset() in a fixed order (see
+     search_done and the OTU/db blocks in usearch_global) so streams sharing
+     stdout flush in the legacy order rather than the reverse order a struct
+     destructor would use. */
+  OutputFileHandle fp_samout;
+  OutputFileHandle fp_alnout;
+  OutputFileHandle fp_userout;
+  OutputFileHandle fp_blast6out;
+  OutputFileHandle fp_uc;
+  OutputFileHandle fp_fastapairs;
+  OutputFileHandle fp_matched;
+  OutputFileHandle fp_notmatched;
+  OutputFileHandle fp_dbmatched;
+  OutputFileHandle fp_dbnotmatched;
+  OutputFileHandle fp_otutabout;
+  OutputFileHandle fp_mothur_shared_out;
+  OutputFileHandle fp_biomout;
+  OutputFileHandle fp_lcaout;
+  OutputFileHandle fp_qsegout;
+  OutputFileHandle fp_tsegout;
   int count_matched = 0;
   int count_notmatched = 0;
   Progress * progress = nullptr;  /* the owner's progress bar; worker updates it under mutex_output */
@@ -158,7 +164,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
   if (state.fp_alnout != nullptr)
     {
-      results_show_alnout(state.fp_alnout,
+      results_show_alnout(state.fp_alnout.get(),
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
@@ -169,7 +175,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
   if (state.fp_lcaout != nullptr)
     {
-      results_show_lcaout(state.fp_lcaout,
+      results_show_lcaout(state.fp_lcaout.get(),
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
@@ -178,7 +184,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
   if (state.fp_samout != nullptr)
     {
-      results_show_samout(state.fp_samout,
+      results_show_samout(state.fp_samout.get(),
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
@@ -209,7 +215,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_fastapairs != nullptr)
             {
-              results_show_fastapairs_one(state.fp_fastapairs,
+              results_show_fastapairs_one(state.fp_fastapairs.get(),
                                           hp,
                                           query_head,
                                           qsequence,
@@ -219,7 +225,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_qsegout != nullptr)
             {
-              results_show_qsegout_one(state.fp_qsegout,
+              results_show_qsegout_one(state.fp_qsegout.get(),
                                        hp,
                                        query_head,
                                        qsequence,
@@ -230,7 +236,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_tsegout != nullptr)
             {
-              results_show_tsegout_one(state.fp_tsegout,
+              results_show_tsegout_one(state.fp_tsegout.get(),
                                        hp,
                                        state.parameters);
             }
@@ -239,7 +245,7 @@ static auto search_output_results(struct search_cli_state_s & state,
             {
               if ((t==0) || (state.parameters.opt_uc_allhits))
                 {
-                  results_show_uc_one(state.fp_uc,
+                  results_show_uc_one(state.fp_uc.get(),
                                       hp,
                                       query_head,
                                       qseqlen,
@@ -250,7 +256,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_userout != nullptr)
             {
-              results_show_userout_one(state.fp_userout,
+              results_show_userout_one(state.fp_userout.get(),
                                        hp,
                                        query_head,
                                        qsequence,
@@ -261,7 +267,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_blast6out != nullptr)
             {
-              results_show_blast6out_one(state.fp_blast6out,
+              results_show_blast6out_one(state.fp_blast6out.get(),
                                          hp,
                                          query_head,
                                          qseqlen);
@@ -279,7 +285,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
       if (state.fp_uc != nullptr)
         {
-          results_show_uc_one(state.fp_uc,
+          results_show_uc_one(state.fp_uc.get(),
                               nullptr,
                               query_head,
                               qseqlen,
@@ -291,7 +297,7 @@ static auto search_output_results(struct search_cli_state_s & state,
         {
           if (state.fp_userout != nullptr)
             {
-              results_show_userout_one(state.fp_userout,
+              results_show_userout_one(state.fp_userout.get(),
                                        nullptr,
                                        query_head,
                                        qsequence,
@@ -302,7 +308,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_blast6out != nullptr)
             {
-              results_show_blast6out_one(state.fp_blast6out,
+              results_show_blast6out_one(state.fp_blast6out.get(),
                                          nullptr,
                                          query_head,
                                          qseqlen);
@@ -315,7 +321,7 @@ static auto search_output_results(struct search_cli_state_s & state,
       state.count_matched++;
       if (state.parameters.opt_matched != nullptr)
         {
-          fasta_print_general(state.fp_matched,
+          fasta_print_general(state.fp_matched.get(),
                               nullptr,
                               qsequence,
                               qseqlen,
@@ -334,7 +340,7 @@ static auto search_output_results(struct search_cli_state_s & state,
       state.count_notmatched++;
       if (state.parameters.opt_notmatched != nullptr)
         {
-          fasta_print_general(state.fp_notmatched,
+          fasta_print_general(state.fp_notmatched.get(),
                               nullptr,
                               qsequence,
                               qseqlen,
@@ -624,26 +630,26 @@ static auto search_prep(struct search_cli_state_s & state) -> void
 {
   /* open output files */
 
-  state.fp_alnout = open_optional_output(state.parameters.opt_alnout, "alignment");
+  state.fp_alnout = open_optional_output_file(state.parameters.opt_alnout, OutputOption{"--alnout"});
   if (state.fp_alnout != nullptr)
     {
-      std::fprintf(state.fp_alnout, "%s\n", state.parameters.command_line.c_str());
-      std::fprintf(state.fp_alnout, "%s\n", state.parameters.prog_header.c_str());
+      std::fprintf(state.fp_alnout.get(), "%s\n", state.parameters.command_line.c_str());
+      std::fprintf(state.fp_alnout.get(), "%s\n", state.parameters.prog_header.c_str());
     }
 
-  state.fp_lcaout = open_optional_output(state.parameters.opt_lcaout, "lca");
-  state.fp_samout = open_optional_output(state.parameters.opt_samout, "SAM");
-  state.fp_userout = open_optional_output(state.parameters.opt_userout, "user-defined");
-  state.fp_blast6out = open_optional_output(state.parameters.opt_blast6out, "blast6-like");
-  state.fp_uc = open_optional_output(state.parameters.opt_uc, "uc");
-  state.fp_fastapairs = open_optional_output(state.parameters.opt_fastapairs, "fastapairs");
-  state.fp_qsegout = open_optional_output(state.parameters.opt_qsegout, "qsegout");
-  state.fp_tsegout = open_optional_output(state.parameters.opt_tsegout, "tsegout");
-  state.fp_matched = open_optional_output(state.parameters.opt_matched, "matched");
-  state.fp_notmatched = open_optional_output(state.parameters.opt_notmatched, "notmatched");
-  state.fp_otutabout = open_optional_output(state.parameters.opt_otutabout, "OTU table (text format)");
-  state.fp_mothur_shared_out = open_optional_output(state.parameters.opt_mothur_shared_out, "OTU table (mothur format)");
-  state.fp_biomout = open_optional_output(state.parameters.opt_biomout, "OTU table (biom 1.0 format)");
+  state.fp_lcaout = open_optional_output_file(state.parameters.opt_lcaout, OutputOption{"--lcaout"});
+  state.fp_samout = open_optional_output_file(state.parameters.opt_samout, OutputOption{"--samout"});
+  state.fp_userout = open_optional_output_file(state.parameters.opt_userout, OutputOption{"--userout"});
+  state.fp_blast6out = open_optional_output_file(state.parameters.opt_blast6out, OutputOption{"--blast6out"});
+  state.fp_uc = open_optional_output_file(state.parameters.opt_uc, OutputOption{"--uc"});
+  state.fp_fastapairs = open_optional_output_file(state.parameters.opt_fastapairs, OutputOption{"--fastapairs"});
+  state.fp_qsegout = open_optional_output_file(state.parameters.opt_qsegout, OutputOption{"--qsegout"});
+  state.fp_tsegout = open_optional_output_file(state.parameters.opt_tsegout, OutputOption{"--tsegout"});
+  state.fp_matched = open_optional_output_file(state.parameters.opt_matched, OutputOption{"--matched"});
+  state.fp_notmatched = open_optional_output_file(state.parameters.opt_notmatched, OutputOption{"--notmatched"});
+  state.fp_otutabout = open_optional_output_file(state.parameters.opt_otutabout, OutputOption{"--otutabout"});
+  state.fp_mothur_shared_out = open_optional_output_file(state.parameters.opt_mothur_shared_out, OutputOption{"--mothur_shared_out"});
+  state.fp_biomout = open_optional_output_file(state.parameters.opt_biomout, OutputOption{"--biomout"});
 
   /* check if it may be an UDB file */
 
@@ -652,14 +658,14 @@ static auto search_prep(struct search_cli_state_s & state) -> void
   if (is_udb)
     {
       udb_read(state.parameters.opt_db, true, true, state.dbindex, state.parameters);
-      results_show_samheader(state.fp_samout, state.parameters.opt_db, state.parameters);
+      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
     }
   else
     {
       db_read(state.parameters.opt_db, 0, state.parameters);
-      results_show_samheader(state.fp_samout, state.parameters.opt_db, state.parameters);
+      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.parameters);
       if (state.parameters.opt_dbmask == MASK_DUST)
         {
           dust_all(state.parameters);
@@ -708,19 +714,20 @@ static auto search_done(struct search_cli_state_s & state) -> void
   state.dbindex.clear();
   db_free();
 
-  /* fclose_output() is a no-op on a null handle, so the unopened outputs
-     need no guard; only userout carries extra teardown. */
-  fclose_output(state.fp_lcaout);
-  fclose_output(state.fp_matched);
-  fclose_output(state.fp_notmatched);
-  fclose_output(state.fp_fastapairs);
-  fclose_output(state.fp_qsegout);
-  fclose_output(state.fp_tsegout);
-  fclose_output(state.fp_uc);
-  fclose_output(state.fp_blast6out);
-  fclose_output(state.fp_userout);
-  fclose_output(state.fp_alnout);
-  fclose_output(state.fp_samout);
+  /* reset() is a no-op on an empty handle, so unopened outputs need no guard.
+     The fixed order matches the legacy fclose sequence: RAII scope-exit would
+     reverse it and flip the flush order for outputs that share stdout. */
+  state.fp_lcaout.reset();
+  state.fp_matched.reset();
+  state.fp_notmatched.reset();
+  state.fp_fastapairs.reset();
+  state.fp_qsegout.reset();
+  state.fp_tsegout.reset();
+  state.fp_uc.reset();
+  state.fp_blast6out.reset();
+  state.fp_userout.reset();
+  state.fp_alnout.reset();
+  state.fp_samout.reset();
 }
 
 
@@ -744,8 +751,8 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
   search_prep(state);
 
-  fp_dbmatched = open_optional_output(parameters.opt_dbmatched, "dbmatched");
-  fp_dbnotmatched = open_optional_output(parameters.opt_dbnotmatched, "dbnotmatched");
+  fp_dbmatched = open_optional_output_file(parameters.opt_dbmatched, OutputOption{"--dbmatched"});
+  fp_dbnotmatched = open_optional_output_file(parameters.opt_dbnotmatched, OutputOption{"--dbnotmatched"});
 
   dbmatched = static_cast<uint64_t *>(xmalloc(static_cast<size_t>(seqcount) * sizeof(uint64_t)));
   std::memset(dbmatched, 0, static_cast<size_t>(seqcount) * sizeof(uint64_t));
@@ -855,20 +862,20 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
   if (parameters.opt_biomout != nullptr)
     {
-      otutable_print_biomout(state.fp_biomout, state.parameters);
-      fclose_output(state.fp_biomout);
+      otutable_print_biomout(state.fp_biomout.get(), state.parameters);
+      state.fp_biomout.reset();
     }
 
   if (parameters.opt_otutabout != nullptr)
     {
-      otutable_print_otutabout(state.fp_otutabout, state.parameters);
-      fclose_output(state.fp_otutabout);
+      otutable_print_otutabout(state.fp_otutabout.get(), state.parameters);
+      state.fp_otutabout.reset();
     }
 
   if (parameters.opt_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(state.fp_mothur_shared_out, state.parameters);
-      fclose_output(state.fp_mothur_shared_out);
+      otutable_print_mothur_shared_out(state.fp_mothur_shared_out.get(), state.parameters);
+      state.fp_mothur_shared_out.reset();
     }
 
   otutable_done();
@@ -885,7 +892,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
               count_dbmatched++;
               if (parameters.opt_dbmatched != nullptr)
                 {
-                  fasta_print_general(fp_dbmatched,
+                  fasta_print_general(fp_dbmatched.get(),
                                       nullptr,
                                       db_getsequence(static_cast<uint64_t>(i)),
                                       static_cast<int>(db_getsequencelen(static_cast<uint64_t>(i))),
@@ -904,7 +911,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
               count_dbnotmatched++;
               if (parameters.opt_dbnotmatched != nullptr)
                 {
-                  fasta_print_general(fp_dbnotmatched,
+                  fasta_print_general(fp_dbnotmatched.get(),
                                       nullptr,
                                       db_getsequence(static_cast<uint64_t>(i)),
                                       static_cast<int>(db_getsequencelen(static_cast<uint64_t>(i))),
@@ -923,8 +930,8 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
   xfree(dbmatched);
 
-  fclose_output(fp_dbmatched);
-  fclose_output(fp_dbnotmatched);
+  fp_dbmatched.reset();
+  fp_dbnotmatched.reset();
 
   search_done(state);
 }
