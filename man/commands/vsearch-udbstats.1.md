@@ -28,7 +28,10 @@ of the UDB file format.
 ## mandatory options
 
 `--udbstats` *udbfile*
-: Read the UDB database *udbfile* and report word statistics.
+: Read the UDB database *udbfile* and report word statistics. As UDB
+  files cannot be read from pipes, *udbfile* must be a seekable file path
+  (see [`vsearch-udb(5)`](../formats/vsearch-udb.5.md)); a pipe is
+  rejected with an error.
 
 
 ## secondary options
