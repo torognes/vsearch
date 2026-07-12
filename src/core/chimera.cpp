@@ -2408,54 +2408,6 @@ static auto chimera_detection_parameters(struct Parameters const & parameters) -
 
 auto chimera(struct Parameters const & parameters) -> void
 {
-  /* CLI argument validation (moved verbatim from the former cmd_chimera in
-     vsearch.cc; a later step relocates it to cli.cc alongside the other
-     chimera option checks). */
-  if ((parameters.opt_chimeras == nullptr)  and (parameters.opt_nonchimeras == nullptr) and
-      (parameters.opt_uchimeout == nullptr) and (parameters.opt_uchimealns == nullptr) and
-      (parameters.opt_tabbedout == nullptr) and (parameters.opt_alnout == nullptr))
-    {
-      fatal("No output files specified");
-    }
-
-  if ((parameters.opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
-    {
-      fatal("Database filename not specified with --db");
-    }
-
-  if (parameters.opt_abskew < 1.0)
-    {
-      fatal("Argument to --abskew must be >= 1.0");
-    }
-
-  if (parameters.opt_xn <= 1.0)
-    {
-      fatal("Argument to --xn must be > 1");
-    }
-
-  if (parameters.opt_dn <= 0.0)
-    {
-      fatal("Argument to --dn must be > 0");
-    }
-
-  if ((parameters.opt_uchime2_denovo == nullptr) and (parameters.opt_uchime3_denovo == nullptr))
-    {
-      if (parameters.opt_mindiffs <= 0)
-        {
-          fatal("Argument to --mindiffs must be > 0");
-        }
-
-      if (parameters.opt_mindiv <= 0.0)
-        {
-          fatal("Argument to --mindiv must be > 0");
-        }
-
-      if (parameters.opt_minh <= 0.0)
-        {
-          fatal("Argument to --minh must be > 0");
-        }
-    }
-
   /* Per-invocation CLI state, owned here and threaded through the worker pool
      (E4). It also holds the detection-core output handles/mutex, injected into
      eval_parents/eval_parents_long via chimera_process_query (E6). */

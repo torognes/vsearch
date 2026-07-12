@@ -4520,6 +4520,70 @@ namespace {
       parameters.opt_notrunclabels = true;
       }
   }
+
+
+  /* Validate the chimera-detection options. Relocated verbatim from the former
+     cmd_chimera(); runs only when a chimera command is active and after
+     apply_command_defaults() has resolved opt_abskew's command-specific default,
+     so it sees exactly the configuration the command dispatch used to. */
+  auto validate_chimera_options(struct Parameters const & parameters) -> void
+  {
+    bool const is_chimera_command =
+      (parameters.opt_uchime_denovo != nullptr) or
+      (parameters.opt_uchime_ref != nullptr) or
+      (parameters.opt_uchime2_denovo != nullptr) or
+      (parameters.opt_uchime3_denovo != nullptr) or
+      (parameters.opt_chimeras_denovo != nullptr);
+    if (not is_chimera_command)
+      {
+        return;
+      }
+
+    if ((parameters.opt_chimeras == nullptr)  and (parameters.opt_nonchimeras == nullptr) and
+        (parameters.opt_uchimeout == nullptr) and (parameters.opt_uchimealns == nullptr) and
+        (parameters.opt_tabbedout == nullptr) and (parameters.opt_alnout == nullptr))
+      {
+        fatal("No output files specified");
+      }
+
+    if ((parameters.opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
+      {
+        fatal("Database filename not specified with --db");
+      }
+
+    if (parameters.opt_abskew < 1.0)
+      {
+        fatal("Argument to --abskew must be >= 1.0");
+      }
+
+    if (parameters.opt_xn <= 1.0)
+      {
+        fatal("Argument to --xn must be > 1");
+      }
+
+    if (parameters.opt_dn <= 0.0)
+      {
+        fatal("Argument to --dn must be > 0");
+      }
+
+    if ((parameters.opt_uchime2_denovo == nullptr) and (parameters.opt_uchime3_denovo == nullptr))
+      {
+        if (parameters.opt_mindiffs <= 0)
+          {
+            fatal("Argument to --mindiffs must be > 0");
+          }
+
+        if (parameters.opt_mindiv <= 0.0)
+          {
+            fatal("Argument to --mindiv must be > 0");
+          }
+
+        if (parameters.opt_minh <= 0.0)
+          {
+            fatal("Argument to --minh must be > 0");
+          }
+      }
+  }
 }  // end of anonymous namespace
 
 
@@ -4548,6 +4612,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   validate_option_values(options_selected, parameters);
 
   apply_command_defaults(options_selected, parameters);
+
+  validate_chimera_options(parameters);
 
   // refactoring: C++17 <filesystem> std::filesystem::is_regular_file
   // check if stderr is referring to a terminal
