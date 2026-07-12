@@ -91,8 +91,6 @@ constexpr auto chunk_factor = 2; /* chunks per thread */
 /* scores in bits */
 
 constexpr auto k                          = 5;
-static int merge_mindiagcount             = 4;
-static double merge_minscore              = 16.0;
 constexpr auto merge_dropmax         = 16.0;
 constexpr auto merge_mismatchmax     = -4.0;
 
@@ -200,9 +198,9 @@ struct chunk_s
    reentrant and removes the shared mutable state (E4). The library API
    (mergepairs_single) runs a single pair through the shared merge core
    (process) and writes into a caller-owned merge_result_s, so it uses none of
-   this struct; only the per-run config (merge_mindiagcount/merge_minscore),
-   the quality lookup tables and the cooperative-abort atomics remain shared,
-   as they are read by that shared core. */
+   this struct. The merge-acceptance thresholds are derived inside optimize()
+   from the threaded Parameters; only the quality lookup tables and the
+   cooperative-abort atomics remain shared file-static state read by that core. */
 struct mergepairs_cli_state_s
 {
   /* the run configuration, threaded through the CLI-path helpers instead of the
@@ -831,6 +829,16 @@ auto optimize(merge_data_t & a_read_pair,
               struct kh_handle_s & kmerhash,
               struct Parameters const & parameters) -> int64_t
 {
+  /* Merge-acceptance thresholds, relaxed for short overlaps. Derived here from
+     the run's opt_fastq_minovlen (threaded via parameters; clamped to >= 5 by
+     both the CLI and library entry points) instead of from file-static globals
+     the caller sets. Values match the former merge_mindiagcount/merge_minscore
+     globals: defaults 4 / 16.0, relaxed when opt_fastq_minovlen < 9. */
+  int const merge_mindiagcount = (parameters.opt_fastq_minovlen < 9)
+      ? static_cast<int>(parameters.opt_fastq_minovlen - 4) : 4;
+  double const merge_minscore = (parameters.opt_fastq_minovlen < 9)
+      ? 1.6 * static_cast<double>(parameters.opt_fastq_minovlen) : 16.0;
+
   /* ungapped alignment in each diagonal */
 
   int64_t const i1 = 1;
@@ -1744,13 +1752,9 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
       fatal("Overlap specified with --fastq_minovlen must be at least 5");
     }
 
-  /* relax default parameters in case of short overlaps */
-
-  if (parameters.opt_fastq_minovlen < 9)
-    {
-      merge_mindiagcount = static_cast<int>(parameters.opt_fastq_minovlen - 4);
-      merge_minscore = 1.6 * static_cast<double>(parameters.opt_fastq_minovlen);
-    }
+  /* The short-overlap relaxation of the merge-acceptance thresholds is derived
+     inside optimize() from parameters.opt_fastq_minovlen (threaded through the
+     worker pool), so nothing to set here. */
 
   /* open input files */
 
@@ -1828,24 +1832,11 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
 auto mergepairs_init(struct Parameters const & parameters) -> void
 {
-  /* Relax default parameters for short overlaps, matching the CLI path.
-     Without this, short-overlap merges that work via the CLI would silently
-     fail via the API. The merge core requires a minimum overlap of 5; a
-     library caller may pass a smaller value, so derive the tunables from a
-     clamped local copy rather than mutating the shared config global (E1).
-     optimize() sees the same clamp because mergepairs_single threads a
-     Parameters copy clamped the same way. */
-  struct Parameters clamped = parameters;
-  if (clamped.opt_fastq_minovlen < 5)
-    {
-      clamped.opt_fastq_minovlen = 5;
-    }
-  if (clamped.opt_fastq_minovlen < 9)
-    {
-      merge_mindiagcount = static_cast<int>(clamped.opt_fastq_minovlen - 4);
-      merge_minscore = 1.6 * static_cast<double>(clamped.opt_fastq_minovlen);
-    }
-
+  /* The short-overlap relaxation of the merge-acceptance thresholds is now
+     derived inside optimize() from opt_fastq_minovlen. mergepairs_single()
+     threads a Parameters copy clamped to the >= 5 minimum the merge core
+     requires, so optimize() sees the relaxed thresholds for short overlaps
+     with no tunables to set here (matching the CLI path). */
   precompute_qual(parameters);
 }
 
