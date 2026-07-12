@@ -304,6 +304,23 @@ inline auto request_merge_abort(MergeAbortReason const reason, int const value) 
 }
 
 
+/* Poll the cooperative-abort flag. The default relaxed order matches the
+   worker-loop hint checks; callers that need to synchronise with the recorded
+   error (e.g. the post-join check in pair_all) pass a stronger order. */
+inline auto merge_aborted(std::memory_order const order = std::memory_order_relaxed) -> bool
+{
+  return merge_abort.load(order);
+}
+
+
+/* Clear the cooperative-abort state before a run. */
+inline auto merge_abort_reset() -> void
+{
+  merge_abort.store(false);
+  merge_error_claimed.store(false);
+}
+
+
 /* Report the recorded worker error and terminate. Must be called from the
    main thread only, after all workers have joined. */
 auto report_merge_abort(struct Parameters const & parameters) -> void
@@ -1327,7 +1344,7 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
       lock.unlock();
       for (auto i = 0; i < state.chunks[static_cast<std::size_t>(chunk_current)].size; i++)
         {
-          if (merge_abort.load(std::memory_order_relaxed))
+          if (merge_aborted())
             {
               break;
             }
@@ -1357,7 +1374,7 @@ auto pair_worker(struct mergepairs_cli_state_s & state,
          finished_all is set under the lock so the wait predicates below
          (which test it) release, and notify_all wakes any sleepers. The
          error is reported from the main thread in pair_all() after join. */
-      if (merge_abort.load(std::memory_order_relaxed))
+      if (merge_aborted())
         {
           state.finished_all = true;
           cond_chunks.notify_all();
@@ -1486,8 +1503,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
 
   /* reset the cooperative-abort state (file statics persist across
      library-API sessions) */
-  merge_abort.store(false);
-  merge_error_claimed.store(false);
+  merge_abort_reset();
 
   state.chunks.resize(static_cast<std::size_t>(state.chunk_count));
 
@@ -1514,7 +1530,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      report it and exit now, single-threaded, so the message reliably
      reaches stderr and the --log file and no stdio teardown races a live
      worker thread */
-  if (merge_abort.load())
+  if (merge_aborted(std::memory_order_seq_cst))
     {
       report_merge_abort(state.parameters);
     }
