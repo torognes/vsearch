@@ -58,5 +58,8 @@
 
 */
 
-auto fastq_eestats(struct Parameters const & parameters) -> void;
-auto fastq_eestats2(struct Parameters const & parameters) -> void;
+/* Shared engine behind the fastx_getseq, fastx_getseqs and
+   fastx_getsubseq commands. filename is the primary input file; the
+   selection criteria (labels, subsequence range, ...) are read from
+   the parameters. */
+auto getseq(struct Parameters const & parameters, char const * filename) -> void;

@@ -58,6 +58,7 @@
 
 */
 
+#include "core/filter.hpp"
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
@@ -255,8 +256,19 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
 }
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  // defined further below, in the anonymous namespace
+  auto check_parameters(struct Parameters const & parameters) -> void;
+
+}  // end of anonymous namespace
+
+
 auto filter(bool const fastq_only, char const * filename, struct Parameters const & parameters) -> void
 {
+  check_parameters(parameters);
+
   static constexpr auto dbl_max_local = std::numeric_limits<double>::max();  // refactoring: redundant?
   static constexpr auto long_min = std::numeric_limits<long>::min();
 
@@ -658,17 +670,3 @@ namespace {
   }
 
 }  // end of anonymous namespace
-
-
-auto fastq_filter(struct Parameters const & parameters) -> void
-{
-  check_parameters(parameters);
-  filter(true, parameters.opt_fastq_filter, parameters);
-}
-
-
-auto fastx_filter(struct Parameters const & parameters) -> void
-{
-  check_parameters(parameters);
-  filter(false, parameters.opt_fastx_filter, parameters);
-}

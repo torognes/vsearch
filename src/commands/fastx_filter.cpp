@@ -58,5 +58,12 @@
 
 */
 
-auto fastq_filter(struct Parameters const & parameters) -> void;
-auto fastx_filter(struct Parameters const & parameters) -> void;
+#include "commands/fastx_filter.hpp"
+#include "core/filter.hpp"
+#include "vsearch.h"
+
+
+auto fastx_filter(struct Parameters const & parameters) -> void
+{
+  filter(false, parameters.opt_fastx_filter, parameters);
+}

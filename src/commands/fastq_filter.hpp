@@ -58,6 +58,4 @@
 
 */
 
-auto fastx_getseq(struct Parameters const & parameters) -> void;
-auto fastx_getseqs(struct Parameters const & parameters) -> void;
-auto fastx_getsubseq(struct Parameters const & parameters) -> void;
+auto fastq_filter(struct Parameters const & parameters) -> void;

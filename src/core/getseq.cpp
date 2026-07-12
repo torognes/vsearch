@@ -61,6 +61,7 @@
 /* Implement fastx_getseq, fastx_getseqs and fastx_getsubseq as described here:
    https://drive5.com/usearch/manual/cmd_fastx_getseqs.html                  */
 
+#include "core/getseq.hpp"
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "utils/compare_strings_nocase.hpp"
@@ -577,22 +578,4 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
     }
 
   fastx_close(h1, parameters);
-}
-
-
-auto fastx_getseq(struct Parameters const & parameters) -> void
-{
-  getseq(parameters, parameters.opt_fastx_getseq);
-}
-
-
-auto fastx_getseqs(struct Parameters const & parameters) -> void
-{
-  getseq(parameters, parameters.opt_fastx_getseqs);
-}
-
-
-auto fastx_getsubseq(struct Parameters const & parameters) -> void
-{
-  getseq(parameters, parameters.opt_fastx_getsubseq);
 }
