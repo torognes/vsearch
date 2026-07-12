@@ -60,11 +60,13 @@
 
 #pragma once
 
-// refactoring: enum struct Masking: int { error, none, dust, soft };
-constexpr auto MASK_ERROR = -1;
-constexpr auto MASK_NONE = 0;
-constexpr auto MASK_DUST = 1;
-constexpr auto MASK_SOFT = 2;
+enum struct Masking : int { error = -1, none = 0, dust = 1, soft = 2 };
+
+// transitional aliases: removed once every call site uses Masking directly
+constexpr auto MASK_ERROR = static_cast<int>(Masking::error);
+constexpr auto MASK_NONE = static_cast<int>(Masking::none);
+constexpr auto MASK_DUST = static_cast<int>(Masking::dust);
+constexpr auto MASK_SOFT = static_cast<int>(Masking::soft);
 
 
 auto maskfasta(struct Parameters const & parameters) -> void;
