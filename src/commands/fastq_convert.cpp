@@ -1,0 +1,171 @@
+/*
+
+  VSEARCH: a versatile open source tool for metagenomics
+
+  Copyright (C) 2014-2026, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
+
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
+
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+#include "commands/fastq_convert.hpp"
+#include "vsearch.h"
+#include "utils/progress.hpp"
+#include "utils/fatal.hpp"
+#include "utils/maps.hpp"
+#include "utils/open_file.hpp"
+#include <algorithm>  // std::max, std::min
+#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <vector>
+
+
+auto fastq_convert(struct Parameters const & parameters) -> void
+{
+  if (parameters.opt_fastqout == nullptr) {
+    fatal("No output file specified with --fastqout");
+  }
+
+  auto * input_handle = fastq_open(parameters.opt_fastq_convert, parameters);
+
+  auto const filesize = fastq_get_size(input_handle);
+
+  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+  std::FILE * const fp_fastqout = fastqout_handle.get();
+
+
+  std::vector<char> normalized_quality;
+  auto n_entries = 1;
+  static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
+  {
+    Progress progress("Reading FASTQ file", filesize, parameters);
+    while (fastq_next(input_handle, false, chrmap_no_change()))
+      {
+        /* header */
+
+        auto const * header = fastq_get_header(input_handle);
+        auto const abundance = fastq_get_abundance(input_handle);
+
+        /* sequence */
+
+        auto const length = fastq_get_sequence_length(input_handle);
+        auto const * sequence = fastq_get_sequence(input_handle);
+
+        /* convert quality values */
+
+        // refactoring: std::copy(quality, normalized_quality);
+        // - subspan(0, end - 1)
+        // - substract parameters.opt_fastq_ascii
+        // - clamp qminout < x < qmaxout
+        // - add parameters.opt_fastq_asciiout
+        // - clamp 33 < x < 126
+        normalized_quality.resize(length + 1);
+        auto const * quality = fastq_get_quality(input_handle);
+        for (uint64_t i = 0; i < length; i++)
+          {
+            int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
+            if (q < parameters.opt_fastq_qmin)
+              {
+                std::fprintf(stderr,
+                        "\nFASTQ quality score (%d) below minimum (%" PRId64
+                        ") in entry no %" PRIu64
+                        " starting on line %" PRIu64 "\n",
+                        q,
+                        parameters.opt_fastq_qmin,
+                        fastq_get_seqno(input_handle) + 1,
+                        fastq_get_lineno(input_handle));
+                fatal("FASTQ quality score too low");
+              }
+            if (q > parameters.opt_fastq_qmax)
+              {
+                std::fprintf(stderr,
+                        "\nFASTQ quality score (%d) above maximum (%" PRId64
+                        ") in entry no %" PRIu64
+                        " starting on line %" PRIu64 "\n",
+                        q,
+                        parameters.opt_fastq_qmax,
+                        fastq_get_seqno(input_handle) + 1,
+                        fastq_get_lineno(input_handle));
+                fatal("FASTQ quality score too high");
+              }
+            q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));
+            q = static_cast<int>(std::min<int64_t>(q, parameters.opt_fastq_qmaxout));
+            q += static_cast<int>(parameters.opt_fastq_asciiout);
+            q = std::max(q, 33);
+            q = std::min(q, 126);
+            normalized_quality[i] = static_cast<char>(q);
+          }
+
+        int const hlen = static_cast<int>(fastq_get_header_length(input_handle));
+        fastq_print_general(fp_fastqout,
+                            sequence,
+                            static_cast<int>(length),
+                            header,
+                            hlen,
+                            normalized_quality.data(),
+                            static_cast<uint64_t>(abundance),
+                            n_entries,
+                            default_expected_error,
+                            parameters);  // refactoring: prefer function overload?
+
+        ++n_entries;
+        normalized_quality.clear();
+        progress.update(fastq_get_position(input_handle));
+      }
+  }
+
+
+  fastqout_handle.reset();
+  fastq_close(input_handle, parameters);
+}
