@@ -188,7 +188,7 @@
 #include "system.h"
 #include "util.h"
 #include "db.h"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "searchcore.h"
 #include "results.h"
 #include "cpu.h"

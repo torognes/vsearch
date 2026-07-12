@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "vendored/city.h"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min
 #include <cstdint> // uint64_t

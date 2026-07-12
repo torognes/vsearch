@@ -61,7 +61,7 @@
 #pragma once
 
 #include "linmemalign.h"
-#include "core/mask.h"  // Masking
+#include "core/mask.hpp"  // Masking
 #include <array>
 #include <vector>
 

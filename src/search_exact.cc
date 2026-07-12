@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "otutable.h"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

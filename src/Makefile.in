@@ -181,14 +181,15 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -207,14 +208,15 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -233,14 +235,15 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -259,14 +262,15 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -285,14 +289,15 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -311,14 +316,15 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -337,14 +343,15 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -356,7 +363,7 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h allpairs.h \
 	fastq_mergepairs.cc fastq_stats.cc fastqops.cc fastx.cc \
 	fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
 	linmemalign.cc commands/fastx_mask.cpp commands/maskfasta.cpp \
-	core/mask.cc vendored/md5.c minheap.cc msa.cc orient.cc \
+	core/mask.cpp vendored/md5.c minheap.cc msa.cc orient.cc \
 	otutable.cc rereplicate.cc results.cc search.cc searchcore.cc \
 	search_exact.cc sff_convert.cc vendored/sha1.c showalign.cc \
 	shuffle.cc sintax.cc sortbylength.cc sortbysize.cc \
@@ -461,14 +468,15 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	fastq_join.h fastq_mergepairs.h fastq_stats.h fastqops.h \
 	fastx.h fastx_syncpairs.h filter.h getseq.h kmerhash.h \
 	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.h vendored/md5.h minheap.h msa.h orient.h otutable.h \
-	rereplicate.h results.h search.h searchcore.h search_exact.h \
-	sff_convert.h showalign.h vendored/sha1.h shuffle.h sintax.h \
-	sortbylength.h sortbysize.h subsample.h system.h tax.h udb.h \
-	unique.h util.h utils/cigar.hpp utils/cigar_operations.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/fatal.hpp utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/maps.hpp utils/number_of_strands.hpp utils/open_file.hpp \
+	core/mask.hpp vendored/md5.h minheap.h msa.h orient.h \
+	otutable.h rereplicate.h results.h search.h searchcore.h \
+	search_exact.h sff_convert.h showalign.h vendored/sha1.h \
+	shuffle.h sintax.h sortbylength.h sortbysize.h subsample.h \
+	system.h tax.h udb.h unique.h util.h utils/cigar.hpp \
+	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	utils/dynlib_loader.hpp utils/fatal.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
+	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
@@ -480,7 +488,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h allpairs.h \
 	fastq_mergepairs.cc fastq_stats.cc fastqops.cc fastx.cc \
 	fastx_syncpairs.cc filter.cc getseq.cc kmerhash.cc \
 	linmemalign.cc commands/fastx_mask.cpp commands/maskfasta.cpp \
-	core/mask.cc vendored/md5.c minheap.cc msa.cc orient.cc \
+	core/mask.cpp vendored/md5.c minheap.cc msa.cc orient.cc \
 	otutable.cc rereplicate.cc results.cc search.cc searchcore.cc \
 	search_exact.cc sff_convert.cc vendored/sha1.c showalign.cc \
 	shuffle.cc sintax.cc sortbylength.cc sortbysize.cc \
@@ -907,7 +915,7 @@ kmerhash.h \
 linmemalign.h \
 commands/fastx_mask.hpp \
 commands/maskfasta.hpp \
-core/mask.h \
+core/mask.hpp \
 vendored/md5.h \
 minheap.h \
 msa.h \
@@ -1024,7 +1032,7 @@ kmerhash.cc \
 linmemalign.cc \
 commands/fastx_mask.cpp \
 commands/maskfasta.cpp \
-core/mask.cc \
+core/mask.cpp \
 vendored/md5.c \
 minheap.cc \
 msa.cc \
@@ -2187,19 +2195,19 @@ commands/libvsearch_core_a-maskfasta.obj: commands/maskfasta.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-maskfasta.obj `if test -f 'commands/maskfasta.cpp'; then $(CYGPATH_W) 'commands/maskfasta.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/maskfasta.cpp'; fi`
 
-core/libvsearch_core_a-mask.o: core/mask.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-mask.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-mask.Tpo -c -o core/libvsearch_core_a-mask.o `test -f 'core/mask.cc' || echo '$(srcdir)/'`core/mask.cc
+core/libvsearch_core_a-mask.o: core/mask.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-mask.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-mask.Tpo -c -o core/libvsearch_core_a-mask.o `test -f 'core/mask.cpp' || echo '$(srcdir)/'`core/mask.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-mask.Tpo core/$(DEPDIR)/libvsearch_core_a-mask.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/mask.cc' object='core/libvsearch_core_a-mask.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/mask.cpp' object='core/libvsearch_core_a-mask.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-mask.o `test -f 'core/mask.cc' || echo '$(srcdir)/'`core/mask.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-mask.o `test -f 'core/mask.cpp' || echo '$(srcdir)/'`core/mask.cpp
 
-core/libvsearch_core_a-mask.obj: core/mask.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-mask.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-mask.Tpo -c -o core/libvsearch_core_a-mask.obj `if test -f 'core/mask.cc'; then $(CYGPATH_W) 'core/mask.cc'; else $(CYGPATH_W) '$(srcdir)/core/mask.cc'; fi`
+core/libvsearch_core_a-mask.obj: core/mask.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-mask.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-mask.Tpo -c -o core/libvsearch_core_a-mask.obj `if test -f 'core/mask.cpp'; then $(CYGPATH_W) 'core/mask.cpp'; else $(CYGPATH_W) '$(srcdir)/core/mask.cpp'; fi`
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-mask.Tpo core/$(DEPDIR)/libvsearch_core_a-mask.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/mask.cc' object='core/libvsearch_core_a-mask.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/mask.cpp' object='core/libvsearch_core_a-mask.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-mask.obj `if test -f 'core/mask.cc'; then $(CYGPATH_W) 'core/mask.cc'; else $(CYGPATH_W) '$(srcdir)/core/mask.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-mask.obj `if test -f 'core/mask.cpp'; then $(CYGPATH_W) 'core/mask.cpp'; else $(CYGPATH_W) '$(srcdir)/core/mask.cpp'; fi`
 
 libvsearch_core_a-minheap.o: minheap.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-minheap.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-minheap.Tpo -c -o libvsearch_core_a-minheap.o `test -f 'minheap.cc' || echo '$(srcdir)/'`minheap.cc

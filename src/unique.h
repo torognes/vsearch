@@ -60,7 +60,7 @@
 
 #pragma once
 
-#include "core/mask.h"  // Masking
+#include "core/mask.hpp"  // Masking
 
 struct bucket_s;
 struct uhandle_s;

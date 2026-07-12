@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "commands/fastx_mask.hpp"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"

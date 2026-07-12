@@ -108,7 +108,7 @@ kmerhash.h \
 linmemalign.h \
 commands/fastx_mask.hpp \
 commands/maskfasta.hpp \
-core/mask.h \
+core/mask.hpp \
 vendored/md5.h \
 minheap.h \
 msa.h \
@@ -239,7 +239,7 @@ kmerhash.cc \
 linmemalign.cc \
 commands/fastx_mask.cpp \
 commands/maskfasta.cpp \
-core/mask.cc \
+core/mask.cpp \
 vendored/md5.c \
 minheap.cc \
 msa.cc \

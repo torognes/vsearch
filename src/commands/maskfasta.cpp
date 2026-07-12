@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "commands/maskfasta.hpp"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <cstdint>  // uint64_t

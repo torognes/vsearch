@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "dbindex.h"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "udb.h"
 #include "unique.h"
 #include "utils/fatal.hpp"

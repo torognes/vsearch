@@ -158,7 +158,7 @@
 #include "dbindex.h"
 #include "derep.h"
 #include "fastq_mergepairs.h"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "search.h"
 
 /* === API version queries === */

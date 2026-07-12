@@ -65,7 +65,7 @@
 #include "chimera.h"
 #include "dbindex.h"
 #include "linmemalign.h"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "minheap.h"
 #include "udb.h"
 #include "unique.h"

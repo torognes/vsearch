@@ -66,7 +66,7 @@
 #include "attributes.h"
 #include "dbindex.h"
 #include "linmemalign.h"
-#include "core/mask.h"
+#include "core/mask.hpp"
 #include "minheap.h"
 #include "msa.h"
 #include "otutable.h"

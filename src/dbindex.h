@@ -61,7 +61,7 @@
 #pragma once
 
 #include "bitmap.h"
-#include "core/mask.h"  // Masking
+#include "core/mask.hpp"  // Masking
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 
