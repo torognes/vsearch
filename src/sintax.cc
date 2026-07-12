@@ -432,7 +432,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
          parameters.opt_wordlength would use the wrong width against a UDB index. */
       unique_count(si->uh, static_cast<int>(si->dbindex->wordlength),
                    si->qseqlen, si->qsequence,
-                   &kmersamplecount, &kmersample, MASK_NONE);
+                   &kmersamplecount, &kmersample, Masking::none);
 
       /* perform 100 bootstraps */
 
@@ -717,8 +717,8 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! is_udb)
     {
-      state.dbindex.prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-      state.dbindex.add_all_sequences(static_cast<int>(parameters.opt_dbmask), parameters);
+      state.dbindex.prepare(1, parameters.opt_dbmask, parameters);
+      state.dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
     }
 
   /* prepare reading of queries */

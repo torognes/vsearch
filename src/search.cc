@@ -384,7 +384,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
         }
 
       /* perform search */
-      search_onequery(si, static_cast<int>(state.parameters.opt_qmask));
+      search_onequery(si, state.parameters.opt_qmask);
     }
 
   std::vector<struct hit> hits;
@@ -676,8 +676,8 @@ static auto search_prep(struct search_cli_state_s & state) -> void
         }
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
-      state.dbindex.prepare(1, static_cast<int>(state.parameters.opt_dbmask), state.parameters);
-      state.dbindex.add_all_sequences(static_cast<int>(state.parameters.opt_dbmask), state.parameters);
+      state.dbindex.prepare(1, state.parameters.opt_dbmask, state.parameters);
+      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.parameters);
     }
 
   /* tophits = the maximum number of hits we need to store */
@@ -1051,7 +1051,7 @@ auto search_session_single(struct search_session_s * ss,
           hardmask(strand_si->qsequence, strand_si->qseqlen);
         }
 
-      search_onequery(strand_si, static_cast<int>(parameters.opt_qmask));
+      search_onequery(strand_si, parameters.opt_qmask);
     }
 
   /* Merge hits from both strands */
@@ -1204,7 +1204,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
             hardmask(strand_si->qsequence, strand_si->qseqlen);
           }
 
-        search_onequery(strand_si, static_cast<int>(parameters.opt_qmask));
+        search_onequery(strand_si, parameters.opt_qmask);
       }
 
     /* Merge hits from both strands */

@@ -2004,7 +2004,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       std::vector<struct hit> hits;
       for (auto i = 0; i < ci->parts; ++i)
         {
-          search_onequery(&ci->si[static_cast<size_t>(i)], static_cast<int>(parameters.opt_qmask));
+          search_onequery(&ci->si[static_cast<size_t>(i)], parameters.opt_qmask);
           search_joinhits(&ci->si[static_cast<size_t>(i)], nullptr, hits);
           for (auto & hit : hits) {
             if (hit.accepted and allhits_count < maxcandidates)
@@ -2349,7 +2349,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         /* uchime_denovo: add non-chimeras to db */
         if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
           {
-            state.dbindex.add_sequence(state.seqno, static_cast<int>(state.parameters.opt_qmask));
+            state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask);
           }
       }
 
@@ -2488,8 +2488,8 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               hardmask_all();
             }
-          state.dbindex.prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-          state.dbindex.add_all_sequences(static_cast<int>(parameters.opt_dbmask), parameters);
+          state.dbindex.prepare(1, parameters.opt_dbmask, parameters);
+          state.dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
@@ -2537,7 +2537,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       db_sortbyabundance(parameters);
-      state.dbindex.prepare(1, static_cast<int>(parameters.opt_qmask), parameters);
+      state.dbindex.prepare(1, parameters.opt_qmask, parameters);
       progress_total = db_getnucleotidecount();
     }
 

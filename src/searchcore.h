@@ -61,6 +61,7 @@
 #pragma once
 
 #include "linmemalign.h"
+#include "mask.h"  // Masking
 #include <array>
 #include <vector>
 
@@ -170,7 +171,7 @@ struct searchinfo_s
 
 auto search_topscores(struct searchinfo_s * searchinfo) -> void;
 
-auto search_onequery(struct searchinfo_s * searchinfo, int seqmask) -> void;
+auto search_onequery(struct searchinfo_s * searchinfo, Masking seqmask) -> void;
 
 auto search_findbest2_byid(struct searchinfo_s const * si_p,
                            struct searchinfo_s const * si_m) -> struct hit *;

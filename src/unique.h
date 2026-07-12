@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include "mask.h"  // Masking
+
 struct bucket_s;
 struct uhandle_s;
 
@@ -73,7 +75,7 @@ auto unique_count(struct uhandle_s * unique_handle,
                   char const * seq,
                   unsigned int * listlen,
                   unsigned int const * * list,
-                  int seqmask) -> void;
+                  Masking seqmask) -> void;
 
 auto unique_count_shared(struct uhandle_s const & unique_handle,
                          int wordlength,

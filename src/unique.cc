@@ -158,7 +158,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
                          char const * seq,
                          unsigned int * listlen,
                          unsigned int const * * list,
-                         int const seqmask) -> void
+                         Masking const seqmask) -> void
 {
   /* if necessary, reallocate list of unique kmers */
 
@@ -195,7 +195,7 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  std::function<unsigned int(char)> const maskmap = (seqmask != MASK_NONE) ?
+  std::function<unsigned int(char)> const maskmap = (seqmask != Masking::none) ?
     map_mask_lower : map_mask_ambig;
 
   while (s < e1)
@@ -246,7 +246,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
                        char const * seq,
                        unsigned int * listlen,
                        unsigned int const * * list,
-                       int const seqmask) -> void
+                       Masking const seqmask) -> void
 {
   /* if necessary, reallocate hash table and list of unique kmers */
 
@@ -283,7 +283,7 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  std::function<unsigned int(char)> const maskmap = (seqmask != MASK_NONE) ?
+  std::function<unsigned int(char)> const maskmap = (seqmask != Masking::none) ?
     map_mask_lower : map_mask_ambig;
 
   while (s < e1)
@@ -340,7 +340,7 @@ auto unique_count(struct uhandle_s * unique_handle,
                   char const * seq,
                   unsigned int * listlen,
                   unsigned int const * * list,
-                  int const seqmask) -> void
+                  Masking const seqmask) -> void
 {
   if (wordlength < 10)
     {

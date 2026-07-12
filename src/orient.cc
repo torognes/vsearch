@@ -194,8 +194,8 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all();
         }
-      dbindex.prepare(1, static_cast<int>(parameters.opt_dbmask), parameters);
-      dbindex.add_all_sequences(static_cast<int>(parameters.opt_dbmask), parameters);
+      dbindex.prepare(1, parameters.opt_dbmask, parameters);
+      dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
     }
 
   uhandle_s * uh_fwd = unique_init();
@@ -225,7 +225,7 @@ auto orient(struct Parameters const & parameters) -> void
 
         /* dbindex.wordlength: the effective index width (see rc_kmer) */
         unique_count(uh_fwd, static_cast<int>(dbindex.wordlength), qseqlen, qseq_fwd,
-                     & kmer_count_fwd, & kmer_list_fwd, static_cast<int>(parameters.opt_qmask));
+                     & kmer_count_fwd, & kmer_list_fwd, parameters.opt_qmask);
 
         /* count kmers matching on each strand */
 

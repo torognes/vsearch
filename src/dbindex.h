@@ -61,6 +61,7 @@
 #pragma once
 
 #include "bitmap.h"
+#include "mask.h"  // Masking
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 
@@ -105,9 +106,9 @@ struct Dbindex
   Dbindex(Dbindex &&) = delete;
   auto operator=(Dbindex &&) -> Dbindex & = delete;
 
-  auto prepare(int use_bitmap, int seqmask, struct Parameters const & parameters) -> void;
-  auto add_sequence(unsigned int seqno, int seqmask) -> void;
-  auto add_all_sequences(int seqmask, struct Parameters const & parameters) -> void;
+  auto prepare(int use_bitmap, Masking seqmask, struct Parameters const & parameters) -> void;
+  auto add_sequence(unsigned int seqno, Masking seqmask) -> void;
+  auto add_all_sequences(Masking seqmask, struct Parameters const & parameters) -> void;
   auto clear() -> void;
 
   auto getbitmap(unsigned int kmer) const -> unsigned char *;
