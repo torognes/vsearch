@@ -173,16 +173,17 @@ am_libcityhash_pic_a_OBJECTS =  \
 libcityhash_pic_a_OBJECTS = $(am_libcityhash_pic_a_OBJECTS)
 libcpu_a_AR = $(AR) $(ARFLAGS)
 libcpu_a_LIBADD =
-am__libcpu_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
+	core/align_simd.hpp commands/allpairs_global.hpp \
+	arch/x86_64/cpu_features.hpp core/attributes.hpp \
+	core/bitmap.hpp core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
@@ -219,23 +220,30 @@ am__libcpu_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h \
+	arch/ppc64le/increment_counters.cpp \
+	arch/aarch64/increment_counters.cpp
 am__objects_1 =
-@TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
-@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = arch/simde/increment_counters.$(OBJEXT) \
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_TRUE@@TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = arch/ppc64le/increment_counters.$(OBJEXT) \
+@TARGET_AARCH64_FALSE@@TARGET_PPC_TRUE@@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_AARCH64_TRUE@@TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = arch/aarch64/increment_counters.$(OBJEXT) \
+@TARGET_AARCH64_TRUE@@TARGET_X86_64_FALSE@	$(am__objects_1)
 libcpu_a_OBJECTS = $(am_libcpu_a_OBJECTS)
 libcpu_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_pic_a_LIBADD =
-am__libcpu_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
+	core/align_simd.hpp commands/allpairs_global.hpp \
+	arch/x86_64/cpu_features.hpp core/attributes.hpp \
+	core/bitmap.hpp core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
@@ -272,14 +280,20 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
-@TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
-@TARGET_X86_64_FALSE@	$(am__objects_1)
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h \
+	arch/ppc64le/increment_counters.cpp \
+	arch/aarch64/increment_counters.cpp
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS = arch/simde/libcpu_pic_a-increment_counters.$(OBJEXT) \
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_TRUE@@TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS = arch/ppc64le/libcpu_pic_a-increment_counters.$(OBJEXT) \
+@TARGET_AARCH64_FALSE@@TARGET_PPC_TRUE@@TARGET_X86_64_FALSE@	$(am__objects_1)
+@TARGET_AARCH64_TRUE@@TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS = arch/aarch64/libcpu_pic_a-increment_counters.$(OBJEXT) \
+@TARGET_AARCH64_TRUE@@TARGET_X86_64_FALSE@	$(am__objects_1)
 libcpu_pic_a_OBJECTS = $(am_libcpu_pic_a_OBJECTS)
 libcpu_sse2_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_a_LIBADD =
-am__libcpu_sse2_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
+am__libcpu_sse2_a_SOURCES_DIST =  \
+	arch/x86_64/SSE2/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
@@ -288,24 +302,25 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
-	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
+	core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -326,13 +341,13 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_sse2_a_OBJECTS = $(am_libcpu_sse2_a_OBJECTS)
 libcpu_sse2_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_pic_a_LIBADD =
-am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
+am__libcpu_sse2_pic_a_SOURCES_DIST =  \
+	arch/x86_64/SSE2/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
@@ -341,24 +356,25 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
-	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
+	core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -379,13 +395,13 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_sse2_pic_a_OBJECTS = $(am_libcpu_sse2_pic_a_OBJECTS)
 libcpu_ssse3_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_a_LIBADD =
-am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
+am__libcpu_ssse3_a_SOURCES_DIST =  \
+	arch/x86_64/SSSE3/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
@@ -394,24 +410,25 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
-	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
+	core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -432,13 +449,13 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_ssse3_a_OBJECTS = $(am_libcpu_ssse3_a_OBJECTS)
 libcpu_ssse3_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_pic_a_LIBADD =
-am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
+am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
+	arch/x86_64/SSSE3/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
@@ -447,24 +464,25 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
-	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
+	core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -485,8 +503,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h xstring.h
-@TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
-@TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
+@TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_ssse3_pic_a_OBJECTS = $(am_libcpu_ssse3_pic_a_OBJECTS)
 libvsearch_core_a_AR = $(AR) $(ARFLAGS)
@@ -500,24 +517,25 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
-	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
+	core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -701,24 +719,25 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
-	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
+	core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -879,18 +898,24 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
-	./$(DEPDIR)/dynlibs.Po ./$(DEPDIR)/libcpu_pic_a-cpu.Po \
-	./$(DEPDIR)/libcpu_sse2_a-cpu.Po \
-	./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po \
-	./$(DEPDIR)/libcpu_ssse3_a-cpu.Po \
-	./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po \
+am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/dynlibs.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-dynlibs.Po \
 	./$(DEPDIR)/libvsearch_core_a-util.Po \
 	./$(DEPDIR)/libvsearch_core_a-vsearch.Po ./$(DEPDIR)/util.Po \
-	./$(DEPDIR)/vsearch.Po arch/x86_64/$(DEPDIR)/cpu_features.Po \
+	./$(DEPDIR)/vsearch.Po \
+	arch/aarch64/$(DEPDIR)/increment_counters.Po \
+	arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
+	arch/ppc64le/$(DEPDIR)/increment_counters.Po \
+	arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
+	arch/simde/$(DEPDIR)/increment_counters.Po \
+	arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
+	arch/x86_64/$(DEPDIR)/cpu_features.Po \
 	arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po \
+	arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Po \
+	arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Po \
+	arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Po \
+	arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Po \
 	commands/$(DEPDIR)/allpairs_global.Po \
 	commands/$(DEPDIR)/chimeras_denovo.Po \
 	commands/$(DEPDIR)/cluster_fast.Po \
@@ -1268,7 +1293,7 @@ commands/cluster_fast.hpp \
 commands/cluster_smallmem.hpp \
 commands/cluster_size.hpp \
 commands/cluster_unoise.hpp \
-cpu.h \
+arch/increment_counters.hpp \
 commands/cut.hpp \
 core/db.hpp \
 core/dbhash.hpp \
@@ -1363,19 +1388,30 @@ vsearch.h \
 vsearch_api.h \
 xstring.h
 
-@TARGET_X86_64_TRUE@libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+
+# The two x86 ISA levels are separate single-ISA sources (no -DSSSE3 toggle):
+# the build compiles each with just its -m flag, and cpu_features_detect()
+# picks between the resulting _sse2 / _ssse3 variants at runtime.
+@TARGET_X86_64_TRUE@libcpu_sse2_a_SOURCES = arch/x86_64/SSE2/increment_counters.cpp $(VSEARCHHEADERS)
 @TARGET_X86_64_TRUE@libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-@TARGET_X86_64_TRUE@libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_TRUE@libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
+@TARGET_X86_64_TRUE@libcpu_ssse3_a_SOURCES = arch/x86_64/SSSE3/increment_counters.cpp $(VSEARCHHEADERS)
+@TARGET_X86_64_TRUE@libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3
 # PIC variants for static library embedding
-@TARGET_X86_64_TRUE@libcpu_sse2_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_X86_64_TRUE@libcpu_sse2_pic_a_SOURCES = arch/x86_64/SSE2/increment_counters.cpp $(VSEARCHHEADERS)
 @TARGET_X86_64_TRUE@libcpu_sse2_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2 -fPIC
-@TARGET_X86_64_TRUE@libcpu_ssse3_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_TRUE@libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3 -fPIC
+@TARGET_X86_64_TRUE@libcpu_ssse3_pic_a_SOURCES = arch/x86_64/SSSE3/increment_counters.cpp $(VSEARCHHEADERS)
+@TARGET_X86_64_TRUE@libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -fPIC
 @TARGET_X86_64_FALSE@noinst_LIBRARIES = libcpu.a libcpu_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 @TARGET_X86_64_TRUE@noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcpu_sse2_pic.a libcpu_ssse3_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
-@TARGET_X86_64_FALSE@libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-@TARGET_X86_64_FALSE@libcpu_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@libcpu_a_SOURCES = arch/simde/increment_counters.cpp $(VSEARCHHEADERS)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_TRUE@@TARGET_X86_64_FALSE@libcpu_a_SOURCES = arch/ppc64le/increment_counters.cpp $(VSEARCHHEADERS)
+# One backend per non-x86 ISA, selected here (no per-target preprocessor
+# branching in the source): NEON on aarch64, AltiVec on ppc64le, and the
+# SIMDE portable fallback (x86 SSE intrinsics translated by SIMDE) elsewhere.
+@TARGET_AARCH64_TRUE@@TARGET_X86_64_FALSE@libcpu_a_SOURCES = arch/aarch64/increment_counters.cpp $(VSEARCHHEADERS)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@libcpu_pic_a_SOURCES = arch/simde/increment_counters.cpp $(VSEARCHHEADERS)
+@TARGET_AARCH64_FALSE@@TARGET_PPC_TRUE@@TARGET_X86_64_FALSE@libcpu_pic_a_SOURCES = arch/ppc64le/increment_counters.cpp $(VSEARCHHEADERS)
+@TARGET_AARCH64_TRUE@@TARGET_X86_64_FALSE@libcpu_pic_a_SOURCES = arch/aarch64/increment_counters.cpp $(VSEARCHHEADERS)
 @TARGET_X86_64_FALSE@libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
 libcityhash_a_SOURCES = vendored/city.cc vendored/city.h
 libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
@@ -1398,8 +1434,9 @@ libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
 @TARGET_WIN_TRUE@VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
 
 # Common source files shared between the executable and the static library.
-# cpu.cc and city.cc are excluded — they need per-target SIMD/warning flags
-# and are built as separate sub-libraries (libcpu_*, libcityhash_*).
+# The per-arch increment_counters backends (arch/**/increment_counters.cpp)
+# and city.cc are excluded — they need per-target SIMD/warning flags and are
+# built as separate sub-libraries (libcpu_*, libcityhash_*).
 VSEARCH_COMMON_SOURCES = \
 core/align_simd.cpp \
 commands/allpairs_global.cpp \
@@ -1633,31 +1670,90 @@ libcityhash_pic.a: $(libcityhash_pic_a_OBJECTS) $(libcityhash_pic_a_DEPENDENCIES
 	$(AM_V_at)-rm -f libcityhash_pic.a
 	$(AM_V_AR)$(libcityhash_pic_a_AR) libcityhash_pic.a $(libcityhash_pic_a_OBJECTS) $(libcityhash_pic_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcityhash_pic.a
+arch/simde/$(am__dirstamp):
+	@$(MKDIR_P) arch/simde
+	@: > arch/simde/$(am__dirstamp)
+arch/simde/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arch/simde/$(DEPDIR)
+	@: > arch/simde/$(DEPDIR)/$(am__dirstamp)
+arch/simde/increment_counters.$(OBJEXT): arch/simde/$(am__dirstamp) \
+	arch/simde/$(DEPDIR)/$(am__dirstamp)
+arch/ppc64le/$(am__dirstamp):
+	@$(MKDIR_P) arch/ppc64le
+	@: > arch/ppc64le/$(am__dirstamp)
+arch/ppc64le/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arch/ppc64le/$(DEPDIR)
+	@: > arch/ppc64le/$(DEPDIR)/$(am__dirstamp)
+arch/ppc64le/increment_counters.$(OBJEXT):  \
+	arch/ppc64le/$(am__dirstamp) \
+	arch/ppc64le/$(DEPDIR)/$(am__dirstamp)
+arch/aarch64/$(am__dirstamp):
+	@$(MKDIR_P) arch/aarch64
+	@: > arch/aarch64/$(am__dirstamp)
+arch/aarch64/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arch/aarch64/$(DEPDIR)
+	@: > arch/aarch64/$(DEPDIR)/$(am__dirstamp)
+arch/aarch64/increment_counters.$(OBJEXT):  \
+	arch/aarch64/$(am__dirstamp) \
+	arch/aarch64/$(DEPDIR)/$(am__dirstamp)
 
 libcpu.a: $(libcpu_a_OBJECTS) $(libcpu_a_DEPENDENCIES) $(EXTRA_libcpu_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcpu.a
 	$(AM_V_AR)$(libcpu_a_AR) libcpu.a $(libcpu_a_OBJECTS) $(libcpu_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcpu.a
+arch/simde/libcpu_pic_a-increment_counters.$(OBJEXT):  \
+	arch/simde/$(am__dirstamp) \
+	arch/simde/$(DEPDIR)/$(am__dirstamp)
+arch/ppc64le/libcpu_pic_a-increment_counters.$(OBJEXT):  \
+	arch/ppc64le/$(am__dirstamp) \
+	arch/ppc64le/$(DEPDIR)/$(am__dirstamp)
+arch/aarch64/libcpu_pic_a-increment_counters.$(OBJEXT):  \
+	arch/aarch64/$(am__dirstamp) \
+	arch/aarch64/$(DEPDIR)/$(am__dirstamp)
 
 libcpu_pic.a: $(libcpu_pic_a_OBJECTS) $(libcpu_pic_a_DEPENDENCIES) $(EXTRA_libcpu_pic_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcpu_pic.a
 	$(AM_V_AR)$(libcpu_pic_a_AR) libcpu_pic.a $(libcpu_pic_a_OBJECTS) $(libcpu_pic_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcpu_pic.a
+arch/x86_64/SSE2/$(am__dirstamp):
+	@$(MKDIR_P) arch/x86_64/SSE2
+	@: > arch/x86_64/SSE2/$(am__dirstamp)
+arch/x86_64/SSE2/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arch/x86_64/SSE2/$(DEPDIR)
+	@: > arch/x86_64/SSE2/$(DEPDIR)/$(am__dirstamp)
+arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.$(OBJEXT):  \
+	arch/x86_64/SSE2/$(am__dirstamp) \
+	arch/x86_64/SSE2/$(DEPDIR)/$(am__dirstamp)
 
 libcpu_sse2.a: $(libcpu_sse2_a_OBJECTS) $(libcpu_sse2_a_DEPENDENCIES) $(EXTRA_libcpu_sse2_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcpu_sse2.a
 	$(AM_V_AR)$(libcpu_sse2_a_AR) libcpu_sse2.a $(libcpu_sse2_a_OBJECTS) $(libcpu_sse2_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcpu_sse2.a
+arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.$(OBJEXT):  \
+	arch/x86_64/SSE2/$(am__dirstamp) \
+	arch/x86_64/SSE2/$(DEPDIR)/$(am__dirstamp)
 
 libcpu_sse2_pic.a: $(libcpu_sse2_pic_a_OBJECTS) $(libcpu_sse2_pic_a_DEPENDENCIES) $(EXTRA_libcpu_sse2_pic_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcpu_sse2_pic.a
 	$(AM_V_AR)$(libcpu_sse2_pic_a_AR) libcpu_sse2_pic.a $(libcpu_sse2_pic_a_OBJECTS) $(libcpu_sse2_pic_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcpu_sse2_pic.a
+arch/x86_64/SSSE3/$(am__dirstamp):
+	@$(MKDIR_P) arch/x86_64/SSSE3
+	@: > arch/x86_64/SSSE3/$(am__dirstamp)
+arch/x86_64/SSSE3/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arch/x86_64/SSSE3/$(DEPDIR)
+	@: > arch/x86_64/SSSE3/$(DEPDIR)/$(am__dirstamp)
+arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.$(OBJEXT):  \
+	arch/x86_64/SSSE3/$(am__dirstamp) \
+	arch/x86_64/SSSE3/$(DEPDIR)/$(am__dirstamp)
 
 libcpu_ssse3.a: $(libcpu_ssse3_a_OBJECTS) $(libcpu_ssse3_a_DEPENDENCIES) $(EXTRA_libcpu_ssse3_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcpu_ssse3.a
 	$(AM_V_AR)$(libcpu_ssse3_a_AR) libcpu_ssse3.a $(libcpu_ssse3_a_OBJECTS) $(libcpu_ssse3_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libcpu_ssse3.a
+arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.$(OBJEXT):  \
+	arch/x86_64/SSSE3/$(am__dirstamp) \
+	arch/x86_64/SSSE3/$(DEPDIR)/$(am__dirstamp)
 
 libcpu_ssse3_pic.a: $(libcpu_ssse3_pic_a_OBJECTS) $(libcpu_ssse3_pic_a_DEPENDENCIES) $(EXTRA_libcpu_ssse3_pic_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libcpu_ssse3_pic.a
@@ -2136,7 +2232,12 @@ $(top_builddir)/bin/vsearch$(EXEEXT): $(__top_builddir__bin_vsearch_OBJECTS) $(_
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f arch/aarch64/*.$(OBJEXT)
+	-rm -f arch/ppc64le/*.$(OBJEXT)
+	-rm -f arch/simde/*.$(OBJEXT)
 	-rm -f arch/x86_64/*.$(OBJEXT)
+	-rm -f arch/x86_64/SSE2/*.$(OBJEXT)
+	-rm -f arch/x86_64/SSSE3/*.$(OBJEXT)
 	-rm -f commands/*.$(OBJEXT)
 	-rm -f core/*.$(OBJEXT)
 	-rm -f os/freebsd/*.$(OBJEXT)
@@ -2151,21 +2252,25 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cli.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlibs.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_pic_a-cpu.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_sse2_a-cpu.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_ssse3_a-cpu.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-dynlibs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/ppc64le/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/simde/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/$(DEPDIR)/cpu_features.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/allpairs_global.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/chimeras_denovo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/cluster_fast.Po@am__quote@ # am--include-marker
@@ -2461,75 +2566,103 @@ vendored/libcityhash_pic_a-city.obj: vendored/city.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcityhash_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o vendored/libcityhash_pic_a-city.obj `if test -f 'vendored/city.cc'; then $(CYGPATH_W) 'vendored/city.cc'; else $(CYGPATH_W) '$(srcdir)/vendored/city.cc'; fi`
 
-libcpu_pic_a-cpu.o: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_pic_a-cpu.o -MD -MP -MF $(DEPDIR)/libcpu_pic_a-cpu.Tpo -c -o libcpu_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_pic_a-cpu.Tpo $(DEPDIR)/libcpu_pic_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_pic_a-cpu.o' libtool=no @AMDEPBACKSLASH@
+arch/simde/libcpu_pic_a-increment_counters.o: arch/simde/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/simde/libcpu_pic_a-increment_counters.o -MD -MP -MF arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo -c -o arch/simde/libcpu_pic_a-increment_counters.o `test -f 'arch/simde/increment_counters.cpp' || echo '$(srcdir)/'`arch/simde/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/simde/increment_counters.cpp' object='arch/simde/libcpu_pic_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/simde/libcpu_pic_a-increment_counters.o `test -f 'arch/simde/increment_counters.cpp' || echo '$(srcdir)/'`arch/simde/increment_counters.cpp
 
-libcpu_pic_a-cpu.obj: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_pic_a-cpu.obj -MD -MP -MF $(DEPDIR)/libcpu_pic_a-cpu.Tpo -c -o libcpu_pic_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_pic_a-cpu.Tpo $(DEPDIR)/libcpu_pic_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_pic_a-cpu.obj' libtool=no @AMDEPBACKSLASH@
+arch/simde/libcpu_pic_a-increment_counters.obj: arch/simde/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/simde/libcpu_pic_a-increment_counters.obj -MD -MP -MF arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo -c -o arch/simde/libcpu_pic_a-increment_counters.obj `if test -f 'arch/simde/increment_counters.cpp'; then $(CYGPATH_W) 'arch/simde/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/simde/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/simde/increment_counters.cpp' object='arch/simde/libcpu_pic_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_pic_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/simde/libcpu_pic_a-increment_counters.obj `if test -f 'arch/simde/increment_counters.cpp'; then $(CYGPATH_W) 'arch/simde/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/simde/increment_counters.cpp'; fi`
 
-libcpu_sse2_a-cpu.o: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_sse2_a-cpu.o -MD -MP -MF $(DEPDIR)/libcpu_sse2_a-cpu.Tpo -c -o libcpu_sse2_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_sse2_a-cpu.Tpo $(DEPDIR)/libcpu_sse2_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_sse2_a-cpu.o' libtool=no @AMDEPBACKSLASH@
+arch/ppc64le/libcpu_pic_a-increment_counters.o: arch/ppc64le/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/ppc64le/libcpu_pic_a-increment_counters.o -MD -MP -MF arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo -c -o arch/ppc64le/libcpu_pic_a-increment_counters.o `test -f 'arch/ppc64le/increment_counters.cpp' || echo '$(srcdir)/'`arch/ppc64le/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/ppc64le/increment_counters.cpp' object='arch/ppc64le/libcpu_pic_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_sse2_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/ppc64le/libcpu_pic_a-increment_counters.o `test -f 'arch/ppc64le/increment_counters.cpp' || echo '$(srcdir)/'`arch/ppc64le/increment_counters.cpp
 
-libcpu_sse2_a-cpu.obj: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_sse2_a-cpu.obj -MD -MP -MF $(DEPDIR)/libcpu_sse2_a-cpu.Tpo -c -o libcpu_sse2_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_sse2_a-cpu.Tpo $(DEPDIR)/libcpu_sse2_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_sse2_a-cpu.obj' libtool=no @AMDEPBACKSLASH@
+arch/ppc64le/libcpu_pic_a-increment_counters.obj: arch/ppc64le/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/ppc64le/libcpu_pic_a-increment_counters.obj -MD -MP -MF arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo -c -o arch/ppc64le/libcpu_pic_a-increment_counters.obj `if test -f 'arch/ppc64le/increment_counters.cpp'; then $(CYGPATH_W) 'arch/ppc64le/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/ppc64le/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/ppc64le/increment_counters.cpp' object='arch/ppc64le/libcpu_pic_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_sse2_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/ppc64le/libcpu_pic_a-increment_counters.obj `if test -f 'arch/ppc64le/increment_counters.cpp'; then $(CYGPATH_W) 'arch/ppc64le/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/ppc64le/increment_counters.cpp'; fi`
 
-libcpu_sse2_pic_a-cpu.o: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_sse2_pic_a-cpu.o -MD -MP -MF $(DEPDIR)/libcpu_sse2_pic_a-cpu.Tpo -c -o libcpu_sse2_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_sse2_pic_a-cpu.Tpo $(DEPDIR)/libcpu_sse2_pic_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_sse2_pic_a-cpu.o' libtool=no @AMDEPBACKSLASH@
+arch/aarch64/libcpu_pic_a-increment_counters.o: arch/aarch64/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/aarch64/libcpu_pic_a-increment_counters.o -MD -MP -MF arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo -c -o arch/aarch64/libcpu_pic_a-increment_counters.o `test -f 'arch/aarch64/increment_counters.cpp' || echo '$(srcdir)/'`arch/aarch64/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/aarch64/increment_counters.cpp' object='arch/aarch64/libcpu_pic_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_sse2_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/aarch64/libcpu_pic_a-increment_counters.o `test -f 'arch/aarch64/increment_counters.cpp' || echo '$(srcdir)/'`arch/aarch64/increment_counters.cpp
 
-libcpu_sse2_pic_a-cpu.obj: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_sse2_pic_a-cpu.obj -MD -MP -MF $(DEPDIR)/libcpu_sse2_pic_a-cpu.Tpo -c -o libcpu_sse2_pic_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_sse2_pic_a-cpu.Tpo $(DEPDIR)/libcpu_sse2_pic_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_sse2_pic_a-cpu.obj' libtool=no @AMDEPBACKSLASH@
+arch/aarch64/libcpu_pic_a-increment_counters.obj: arch/aarch64/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/aarch64/libcpu_pic_a-increment_counters.obj -MD -MP -MF arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo -c -o arch/aarch64/libcpu_pic_a-increment_counters.obj `if test -f 'arch/aarch64/increment_counters.cpp'; then $(CYGPATH_W) 'arch/aarch64/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/aarch64/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Tpo arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/aarch64/increment_counters.cpp' object='arch/aarch64/libcpu_pic_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_sse2_pic_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/aarch64/libcpu_pic_a-increment_counters.obj `if test -f 'arch/aarch64/increment_counters.cpp'; then $(CYGPATH_W) 'arch/aarch64/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/aarch64/increment_counters.cpp'; fi`
 
-libcpu_ssse3_a-cpu.o: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_ssse3_a-cpu.o -MD -MP -MF $(DEPDIR)/libcpu_ssse3_a-cpu.Tpo -c -o libcpu_ssse3_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_ssse3_a-cpu.Tpo $(DEPDIR)/libcpu_ssse3_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_ssse3_a-cpu.o' libtool=no @AMDEPBACKSLASH@
+arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.o: arch/x86_64/SSE2/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.o -MD -MP -MF arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Tpo -c -o arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.o `test -f 'arch/x86_64/SSE2/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSE2/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Tpo arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSE2/increment_counters.cpp' object='arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_ssse3_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.o `test -f 'arch/x86_64/SSE2/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSE2/increment_counters.cpp
 
-libcpu_ssse3_a-cpu.obj: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_ssse3_a-cpu.obj -MD -MP -MF $(DEPDIR)/libcpu_ssse3_a-cpu.Tpo -c -o libcpu_ssse3_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_ssse3_a-cpu.Tpo $(DEPDIR)/libcpu_ssse3_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_ssse3_a-cpu.obj' libtool=no @AMDEPBACKSLASH@
+arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.obj: arch/x86_64/SSE2/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.obj -MD -MP -MF arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Tpo -c -o arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.obj `if test -f 'arch/x86_64/SSE2/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSE2/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSE2/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Tpo arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSE2/increment_counters.cpp' object='arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_ssse3_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.obj `if test -f 'arch/x86_64/SSE2/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSE2/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSE2/increment_counters.cpp'; fi`
 
-libcpu_ssse3_pic_a-cpu.o: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_ssse3_pic_a-cpu.o -MD -MP -MF $(DEPDIR)/libcpu_ssse3_pic_a-cpu.Tpo -c -o libcpu_ssse3_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_ssse3_pic_a-cpu.Tpo $(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_ssse3_pic_a-cpu.o' libtool=no @AMDEPBACKSLASH@
+arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.o: arch/x86_64/SSE2/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.o -MD -MP -MF arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Tpo -c -o arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.o `test -f 'arch/x86_64/SSE2/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSE2/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Tpo arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSE2/increment_counters.cpp' object='arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_ssse3_pic_a-cpu.o `test -f 'cpu.cc' || echo '$(srcdir)/'`cpu.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.o `test -f 'arch/x86_64/SSE2/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSE2/increment_counters.cpp
 
-libcpu_ssse3_pic_a-cpu.obj: cpu.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -MT libcpu_ssse3_pic_a-cpu.obj -MD -MP -MF $(DEPDIR)/libcpu_ssse3_pic_a-cpu.Tpo -c -o libcpu_ssse3_pic_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libcpu_ssse3_pic_a-cpu.Tpo $(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cpu.cc' object='libcpu_ssse3_pic_a-cpu.obj' libtool=no @AMDEPBACKSLASH@
+arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.obj: arch/x86_64/SSE2/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.obj -MD -MP -MF arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Tpo -c -o arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.obj `if test -f 'arch/x86_64/SSE2/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSE2/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSE2/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Tpo arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSE2/increment_counters.cpp' object='arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o libcpu_ssse3_pic_a-cpu.obj `if test -f 'cpu.cc'; then $(CYGPATH_W) 'cpu.cc'; else $(CYGPATH_W) '$(srcdir)/cpu.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_sse2_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.obj `if test -f 'arch/x86_64/SSE2/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSE2/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSE2/increment_counters.cpp'; fi`
+
+arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.o: arch/x86_64/SSSE3/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.o -MD -MP -MF arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Tpo -c -o arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.o `test -f 'arch/x86_64/SSSE3/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSSE3/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Tpo arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSSE3/increment_counters.cpp' object='arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.o `test -f 'arch/x86_64/SSSE3/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSSE3/increment_counters.cpp
+
+arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.obj: arch/x86_64/SSSE3/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.obj -MD -MP -MF arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Tpo -c -o arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.obj `if test -f 'arch/x86_64/SSSE3/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSSE3/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSSE3/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Tpo arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSSE3/increment_counters.cpp' object='arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.obj `if test -f 'arch/x86_64/SSSE3/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSSE3/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSSE3/increment_counters.cpp'; fi`
+
+arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.o: arch/x86_64/SSSE3/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.o -MD -MP -MF arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Tpo -c -o arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.o `test -f 'arch/x86_64/SSSE3/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSSE3/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Tpo arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSSE3/increment_counters.cpp' object='arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.o `test -f 'arch/x86_64/SSSE3/increment_counters.cpp' || echo '$(srcdir)/'`arch/x86_64/SSSE3/increment_counters.cpp
+
+arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.obj: arch/x86_64/SSSE3/increment_counters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.obj -MD -MP -MF arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Tpo -c -o arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.obj `if test -f 'arch/x86_64/SSSE3/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSSE3/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSSE3/increment_counters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Tpo arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/x86_64/SSSE3/increment_counters.cpp' object='arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libcpu_ssse3_pic_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.obj `if test -f 'arch/x86_64/SSSE3/increment_counters.cpp'; then $(CYGPATH_W) 'arch/x86_64/SSSE3/increment_counters.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/x86_64/SSSE3/increment_counters.cpp'; fi`
 
 core/libvsearch_core_a-align_simd.o: core/align_simd.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-align_simd.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-align_simd.Tpo -c -o core/libvsearch_core_a-align_simd.o `test -f 'core/align_simd.cpp' || echo '$(srcdir)/'`core/align_simd.cpp
@@ -4092,8 +4225,18 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f arch/aarch64/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arch/aarch64/$(am__dirstamp)
+	-rm -f arch/ppc64le/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arch/ppc64le/$(am__dirstamp)
+	-rm -f arch/simde/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arch/simde/$(am__dirstamp)
 	-rm -f arch/x86_64/$(DEPDIR)/$(am__dirstamp)
 	-rm -f arch/x86_64/$(am__dirstamp)
+	-rm -f arch/x86_64/SSE2/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arch/x86_64/SSE2/$(am__dirstamp)
+	-rm -f arch/x86_64/SSSE3/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arch/x86_64/SSSE3/$(am__dirstamp)
 	-rm -f commands/$(DEPDIR)/$(am__dirstamp)
 	-rm -f commands/$(am__dirstamp)
 	-rm -f core/$(DEPDIR)/$(am__dirstamp)
@@ -4124,21 +4267,25 @@ clean-am: clean-binPROGRAMS clean-generic clean-local \
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/cli.Po
-	-rm -f ./$(DEPDIR)/cpu.Po
 	-rm -f ./$(DEPDIR)/dynlibs.Po
-	-rm -f ./$(DEPDIR)/libcpu_pic_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_sse2_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_ssse3_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dynlibs.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-util.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
 	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
+	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
+	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+	-rm -f arch/ppc64le/$(DEPDIR)/increment_counters.Po
+	-rm -f arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+	-rm -f arch/simde/$(DEPDIR)/increment_counters.Po
+	-rm -f arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
 	-rm -f arch/x86_64/$(DEPDIR)/cpu_features.Po
 	-rm -f arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
+	-rm -f arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Po
+	-rm -f arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Po
+	-rm -f arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Po
+	-rm -f arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Po
 	-rm -f commands/$(DEPDIR)/allpairs_global.Po
 	-rm -f commands/$(DEPDIR)/chimeras_denovo.Po
 	-rm -f commands/$(DEPDIR)/cluster_fast.Po
@@ -4385,21 +4532,25 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/cli.Po
-	-rm -f ./$(DEPDIR)/cpu.Po
 	-rm -f ./$(DEPDIR)/dynlibs.Po
-	-rm -f ./$(DEPDIR)/libcpu_pic_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_sse2_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_ssse3_a-cpu.Po
-	-rm -f ./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dynlibs.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-util.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
 	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
+	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
+	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+	-rm -f arch/ppc64le/$(DEPDIR)/increment_counters.Po
+	-rm -f arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+	-rm -f arch/simde/$(DEPDIR)/increment_counters.Po
+	-rm -f arch/simde/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
 	-rm -f arch/x86_64/$(DEPDIR)/cpu_features.Po
 	-rm -f arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
+	-rm -f arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_a-increment_counters.Po
+	-rm -f arch/x86_64/SSE2/$(DEPDIR)/libcpu_sse2_pic_a-increment_counters.Po
+	-rm -f arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_a-increment_counters.Po
+	-rm -f arch/x86_64/SSSE3/$(DEPDIR)/libcpu_ssse3_pic_a-increment_counters.Po
 	-rm -f commands/$(DEPDIR)/allpairs_global.Po
 	-rm -f commands/$(DEPDIR)/chimeras_denovo.Po
 	-rm -f commands/$(DEPDIR)/cluster_fast.Po

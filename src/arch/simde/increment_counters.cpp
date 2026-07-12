@@ -1,0 +1,119 @@
+/*
+
+  VSEARCH: a versatile open source tool for metagenomics
+
+  Copyright (C) 2014-2026, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  All rights reserved.
+
+  Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
+  Department of Informatics, University of Oslo,
+  PO Box 1080 Blindern, NO-0316 Oslo, Norway
+
+  This software is dual-licensed and available under a choice
+  of one of two licenses, either under the terms of the GNU
+  General Public License version 3 or the BSD 2-Clause License.
+
+
+  GNU General Public License version 3
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+  The BSD 2-Clause License
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+#include "arch/increment_counters.hpp"
+#include "vsearch.h"
+#include <cstdint>  // int32_t
+
+
+// SIMDE backend: portable fallback for targets without a native SIMD
+// backend (e.g. RISC-V, MIPS). vsearch.h pulls in SIMDE with native aliases,
+// so the x86 SSE intrinsics below compile everywhere. Single plain-named
+// variant (no runtime SSE2/SSSE3 dispatch off x86).
+void increment_counters_from_bitmap(count_t * counters,
+                                    unsigned char * bitmap,
+                                    unsigned int totalbits)
+{
+  /*
+    Increment selected elements in an array of 16 bit counters.
+    The counters to increment are indicated by 1's in the bitmap.
+
+    We read 16 bytes from the bitmap, but use only two bytes (16 bits).
+    Convert these 16 bits into 16 bytes with either 0x00 or 0xFF.
+    Extend these to 16 words (32 bytes) with either 0x0000 or 0xFFFF.
+    Use these values to increment 16 words in an array by subtraction.
+
+    See article below for some hints:
+    http://stackoverflow.com/questions/21622212/
+    how-to-perform-the-inverse-of-mm256-movemask-epi8-vpmovmskb
+
+    The efficient PSHUFB instruction (_mm_shuffle_epi8) is an SSSE3
+    instruction; arch/x86_64/SSE2/ provides a slower SSE2-only variant.
+  */
+
+  // 0xffffffff -> 1111'1111'1111'1111'1111'1111'1111'1111 (32 bits)
+  static constexpr auto all_ones = static_cast<int32_t>(0xffffffffU);
+  // 0x7fbfdfef -> 0111'1111'1011'1111'1101'1111'1110'1111 (32 bits)
+  static constexpr auto mask1 = static_cast<int32_t>(0x7fbfdfefU);
+  // 0xf7fbfdfe -> 1111'0111'1111'1011'1111'1101'1111'1110 (32 bits)
+  static constexpr auto mask2 = static_cast<int32_t>(0xf7fbfdfeU);
+
+  const auto c1 = _mm_set_epi32(0x01010101, 0x01010101, 0x00000000, 0x00000000);
+  const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
+  const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
+
+  auto * p = reinterpret_cast<unsigned short *>(bitmap);
+  auto * q = reinterpret_cast<__m128i *>(counters);
+  const auto r = (totalbits + 15) / 16;
+
+  for (auto j = 0U; j < r; j++)
+    {
+      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i *>(p++));
+      const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
+      const auto xmm2 = _mm_or_si128(xmm1, c2);
+      const auto xmm3 = _mm_cmpeq_epi8(xmm2, c3);
+      const auto xmm4 = _mm_unpacklo_epi8(xmm3, xmm3);
+      const auto xmm5 = _mm_unpackhi_epi8(xmm3, xmm3);
+      *q = _mm_subs_epi16(*q, xmm4);
+      ++q;
+      *q = _mm_subs_epi16(*q, xmm5);
+      ++q;
+    }
+}

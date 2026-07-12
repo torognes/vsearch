@@ -93,7 +93,7 @@ commands/cluster_fast.hpp \
 commands/cluster_smallmem.hpp \
 commands/cluster_size.hpp \
 commands/cluster_unoise.hpp \
-cpu.h \
+arch/increment_counters.hpp \
 commands/cut.hpp \
 core/db.hpp \
 core/dbhash.hpp \
@@ -189,19 +189,35 @@ vsearch_api.h \
 xstring.h
 
 if TARGET_X86_64
-libcpu_sse2_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+# The two x86 ISA levels are separate single-ISA sources (no -DSSSE3 toggle):
+# the build compiles each with just its -m flag, and cpu_features_detect()
+# picks between the resulting _sse2 / _ssse3 variants at runtime.
+libcpu_sse2_a_SOURCES = arch/x86_64/SSE2/increment_counters.cpp $(VSEARCHHEADERS)
 libcpu_sse2_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2
-libcpu_ssse3_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3
+libcpu_ssse3_a_SOURCES = arch/x86_64/SSSE3/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_ssse3_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3
 # PIC variants for static library embedding
-libcpu_sse2_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+libcpu_sse2_pic_a_SOURCES = arch/x86_64/SSE2/increment_counters.cpp $(VSEARCHHEADERS)
 libcpu_sse2_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -msse2 -fPIC
-libcpu_ssse3_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -DSSSE3 -fPIC
+libcpu_ssse3_pic_a_SOURCES = arch/x86_64/SSSE3/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_ssse3_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -mssse3 -fPIC
 noinst_LIBRARIES = libcpu_sse2.a libcpu_ssse3.a libcpu_sse2_pic.a libcpu_ssse3_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 else
-libcpu_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
-libcpu_pic_a_SOURCES = cpu.cc $(VSEARCHHEADERS)
+# One backend per non-x86 ISA, selected here (no per-target preprocessor
+# branching in the source): NEON on aarch64, AltiVec on ppc64le, and the
+# SIMDE portable fallback (x86 SSE intrinsics translated by SIMDE) elsewhere.
+if TARGET_AARCH64
+libcpu_a_SOURCES = arch/aarch64/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_pic_a_SOURCES = arch/aarch64/increment_counters.cpp $(VSEARCHHEADERS)
+else
+if TARGET_PPC
+libcpu_a_SOURCES = arch/ppc64le/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_pic_a_SOURCES = arch/ppc64le/increment_counters.cpp $(VSEARCHHEADERS)
+else
+libcpu_a_SOURCES = arch/simde/increment_counters.cpp $(VSEARCHHEADERS)
+libcpu_pic_a_SOURCES = arch/simde/increment_counters.cpp $(VSEARCHHEADERS)
+endif
+endif
 libcpu_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC
 noinst_LIBRARIES = libcpu.a libcpu_pic.a libcityhash.a libcityhash_pic.a libvsearch_core.a
 endif
@@ -237,8 +253,9 @@ endif
 endif
 
 # Common source files shared between the executable and the static library.
-# cpu.cc and city.cc are excluded — they need per-target SIMD/warning flags
-# and are built as separate sub-libraries (libcpu_*, libcityhash_*).
+# The per-arch increment_counters backends (arch/**/increment_counters.cpp)
+# and city.cc are excluded — they need per-target SIMD/warning flags and are
+# built as separate sub-libraries (libcpu_*, libcityhash_*).
 VSEARCH_COMMON_SOURCES = \
 core/align_simd.cpp \
 commands/allpairs_global.cpp \

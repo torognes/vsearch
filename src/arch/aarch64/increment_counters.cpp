@@ -58,20 +58,54 @@
 
 */
 
-#pragma once
+#include "arch/increment_counters.hpp"
+#include "vsearch.h"
 
-using count_t = unsigned short;
 
-
-#ifdef __x86_64__
-auto increment_counters_from_bitmap_sse2(count_t * counters,
-                                         unsigned char * bitmap,
-                                         unsigned int totalbits) -> void;
-auto increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char * bitmap,
-                                          unsigned int totalbits) -> void;
-#else
-auto increment_counters_from_bitmap(count_t * counters,
+// aarch64 backend: NEON intrinsics (arm_neon.h, via vsearch.h). Single
+// plain-named variant (no runtime dispatch off x86).
+void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char * bitmap,
-                                    unsigned int totalbits) -> void;
-#endif
+                                    unsigned int totalbits)
+{
+  const uint8x16_t c1 =
+    { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
+      0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
+
+  unsigned short * p = reinterpret_cast<unsigned short *>(bitmap);
+  int16x8_t * q = reinterpret_cast<int16x8_t *>(counters);
+  const auto r = (totalbits + 15) / 16;
+
+  for (auto j = 0U; j < r; j++)
+    {
+      // load and duplicate short
+      uint16x8_t r0 = vdupq_n_u16(*p);
+      ++p;
+
+      // cast to bytes
+      uint8x16_t r1 = vreinterpretq_u8_u16(r0);
+
+      // bit test with mask giving 0x00 or 0xff
+      uint8x16_t r2 = vtstq_u8(r1, c1);
+
+      // transpose to duplicate even bytes
+      uint8x16_t r3 = vtrn1q_u8(r2, r2);
+
+      // transpose to duplicate odd bytes
+      uint8x16_t r4 = vtrn2q_u8(r2, r2);
+
+      // cast to signed 0x0000 or 0xffff
+      int16x8_t r5 = vreinterpretq_s16_u8(r3);
+
+      // cast to signed 0x0000 or 0xffff
+      int16x8_t r6 = vreinterpretq_s16_u8(r4);
+
+      // subtract signed 0 or -1 (i.e add 0 or 1) with saturation to counter
+      *q = vqsubq_s16(*q, r5);
+      ++q;
+
+      // subtract signed 0 or 1 (i.e. add 0 or 1) with saturation to counter
+      *q = vqsubq_s16(*q, r6);
+      ++q;
+    }
+}

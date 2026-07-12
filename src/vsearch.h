@@ -191,7 +191,7 @@
 #include "core/mask.hpp"
 #include "core/searchcore.hpp"
 #include "core/results.hpp"
-#include "cpu.h"
+#include "arch/increment_counters.hpp"
 #include "core/fastx.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
