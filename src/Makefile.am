@@ -105,6 +105,7 @@ commands/fastx_subsample.hpp \
 commands/fastx_syncpairs.hpp \
 filter.h \
 getseq.h \
+commands/help.hpp \
 kmerhash.h \
 linmemalign.h \
 commands/fastx_mask.hpp \
@@ -157,6 +158,7 @@ utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
 utils/worker_loop.hpp \
+commands/version.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -242,6 +244,7 @@ commands/fastx_subsample.cpp \
 commands/fastx_syncpairs.cpp \
 filter.cc \
 getseq.cc \
+commands/help.cpp \
 kmerhash.cc \
 linmemalign.cc \
 commands/fastx_mask.cpp \
@@ -284,6 +287,7 @@ utils/number_of_strands.cpp \
 utils/timestamp.cpp \
 utils/logfile.cpp \
 utils/userfields.cpp \
+commands/version.cpp \
 vsearch.cc
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes

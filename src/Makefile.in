@@ -182,12 +182,12 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -200,7 +200,7 @@ am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h
 am__objects_1 =
 @TARGET_X86_64_FALSE@am_libcpu_a_OBJECTS = cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -216,12 +216,12 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -234,7 +234,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS =  \
 @TARGET_X86_64_FALSE@	libcpu_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	$(am__objects_1)
@@ -250,12 +250,12 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -268,7 +268,7 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -284,12 +284,12 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -302,7 +302,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_sse2_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -318,12 +318,12 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -336,7 +336,7 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -352,12 +352,12 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -370,7 +370,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS =  \
 @TARGET_X86_64_TRUE@	libcpu_ssse3_pic_a-cpu.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -386,12 +386,12 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -404,36 +404,37 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h align_simd.cc \
-	commands/allpairs_global.cpp attributes.cc bitmap.cc \
-	chimera.cc cli.cc cluster.cc commands/cut.cpp db.cc dbhash.cc \
-	dbindex.cc derep.cc commands/derep_prefix.cpp \
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h \
+	align_simd.cc commands/allpairs_global.cpp attributes.cc \
+	bitmap.cc chimera.cc cli.cc cluster.cc commands/cut.cpp db.cc \
+	dbhash.cc dbindex.cc derep.cc commands/derep_prefix.cpp \
 	commands/derep_smallmem.cpp dynlibs.cc eestats.cc \
 	commands/fasta2fastq.cpp fasta.cc fastq.cc \
 	commands/fastq_chars.cpp commands/fastq_join.cpp \
 	commands/fastq_mergepairs.cpp commands/fastq_stats.cpp \
 	fastqops.cc fastx.cc commands/fastx_subsample.cpp \
-	commands/fastx_syncpairs.cpp filter.cc getseq.cc kmerhash.cc \
-	linmemalign.cc commands/fastx_mask.cpp commands/maskfasta.cpp \
-	core/mask.cpp vendored/md5.c minheap.cc msa.cc \
-	commands/orient.cpp otutable.cc commands/rereplicate.cpp \
-	results.cc commands/usearch_global.cpp core/search.cpp \
-	searchcore.cc commands/search_exact.cpp \
-	commands/sff_convert.cpp vendored/sha1.c showalign.cc \
-	commands/shuffle.cpp commands/sintax.cpp \
-	commands/sortbylength.cpp commands/sortbysize.cpp tax.cc \
-	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
-	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
-	unique.cc util.cc utils/fatal.cpp utils/maps.cpp \
-	utils/cigar.cpp utils/compare_strings_nocase.cpp \
-	utils/open_file.cpp utils/os_byteswap.cpp utils/seqcmp.cpp \
+	commands/fastx_syncpairs.cpp filter.cc getseq.cc \
+	commands/help.cpp kmerhash.cc linmemalign.cc \
+	commands/fastx_mask.cpp commands/maskfasta.cpp core/mask.cpp \
+	vendored/md5.c minheap.cc msa.cc commands/orient.cpp \
+	otutable.cc commands/rereplicate.cpp results.cc \
+	commands/usearch_global.cpp core/search.cpp searchcore.cc \
+	commands/search_exact.cpp commands/sff_convert.cpp \
+	vendored/sha1.c showalign.cc commands/shuffle.cpp \
+	commands/sintax.cpp commands/sortbylength.cpp \
+	commands/sortbysize.cpp tax.cc commands/makeudb_usearch.cpp \
+	commands/udb2fasta.cpp commands/udbinfo.cpp \
+	commands/udbstats.cpp core/udb.cpp unique.cc util.cc \
+	utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
+	utils/compare_strings_nocase.cpp utils/open_file.cpp \
+	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
-	utils/logfile.cpp utils/userfields.cpp vsearch.cc \
-	arch/x86_64/cpu_features.cpp os/posix/dynlib_loader.cc \
-	os/posix/system.cc os/macos/system_memory.cc \
-	os/freebsd/system_memory.cc os/linux/system_memory.cc \
-	os/windows/dynlib_loader.cc os/windows/system.cc \
-	os/windows/system_memory.cc
+	utils/logfile.cpp utils/userfields.cpp commands/version.cpp \
+	vsearch.cc arch/x86_64/cpu_features.cpp \
+	os/posix/dynlib_loader.cc os/posix/system.cc \
+	os/macos/system_memory.cc os/freebsd/system_memory.cc \
+	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
+	os/windows/system.cc os/windows/system_memory.cc
 am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-allpairs_global.$(OBJEXT) \
 	libvsearch_core_a-attributes.$(OBJEXT) \
@@ -463,6 +464,7 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-fastx_syncpairs.$(OBJEXT) \
 	libvsearch_core_a-filter.$(OBJEXT) \
 	libvsearch_core_a-getseq.$(OBJEXT) \
+	commands/libvsearch_core_a-help.$(OBJEXT) \
 	libvsearch_core_a-kmerhash.$(OBJEXT) \
 	libvsearch_core_a-linmemalign.$(OBJEXT) \
 	commands/libvsearch_core_a-fastx_mask.$(OBJEXT) \
@@ -505,6 +507,7 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-timestamp.$(OBJEXT) \
 	utils/libvsearch_core_a-logfile.$(OBJEXT) \
 	utils/libvsearch_core_a-userfields.$(OBJEXT) \
+	commands/libvsearch_core_a-version.$(OBJEXT) \
 	libvsearch_core_a-vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
 @TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_4 = os/macos/libvsearch_core_a-system_memory.$(OBJEXT)
@@ -531,12 +534,12 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h \
 	commands/fastq_chars.hpp commands/fastq_join.hpp \
 	commands/fastq_mergepairs.hpp commands/fastq_stats.hpp \
 	fastqops.h fastx.h commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp filter.h getseq.h kmerhash.h \
-	linmemalign.h commands/fastx_mask.hpp commands/maskfasta.hpp \
-	core/mask.hpp vendored/md5.h minheap.h msa.h \
-	commands/orient.hpp otutable.h commands/rereplicate.hpp \
-	results.h commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	commands/fastx_syncpairs.hpp filter.h getseq.h \
+	commands/help.hpp kmerhash.h linmemalign.h \
+	commands/fastx_mask.hpp commands/maskfasta.hpp core/mask.hpp \
+	vendored/md5.h minheap.h msa.h commands/orient.hpp otutable.h \
+	commands/rereplicate.hpp results.h commands/usearch_global.hpp \
+	core/search.hpp core/search_internal.hpp searchcore.h \
 	commands/search_exact.hpp commands/sff_convert.hpp showalign.h \
 	vendored/sha1.h commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp system.h \
@@ -549,36 +552,37 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h \
 	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
 	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
-	vsearch.h vsearch_api.h xstring.h align_simd.cc \
-	commands/allpairs_global.cpp attributes.cc bitmap.cc \
-	chimera.cc cli.cc cluster.cc commands/cut.cpp db.cc dbhash.cc \
-	dbindex.cc derep.cc commands/derep_prefix.cpp \
+	commands/version.hpp vsearch.h vsearch_api.h xstring.h \
+	align_simd.cc commands/allpairs_global.cpp attributes.cc \
+	bitmap.cc chimera.cc cli.cc cluster.cc commands/cut.cpp db.cc \
+	dbhash.cc dbindex.cc derep.cc commands/derep_prefix.cpp \
 	commands/derep_smallmem.cpp dynlibs.cc eestats.cc \
 	commands/fasta2fastq.cpp fasta.cc fastq.cc \
 	commands/fastq_chars.cpp commands/fastq_join.cpp \
 	commands/fastq_mergepairs.cpp commands/fastq_stats.cpp \
 	fastqops.cc fastx.cc commands/fastx_subsample.cpp \
-	commands/fastx_syncpairs.cpp filter.cc getseq.cc kmerhash.cc \
-	linmemalign.cc commands/fastx_mask.cpp commands/maskfasta.cpp \
-	core/mask.cpp vendored/md5.c minheap.cc msa.cc \
-	commands/orient.cpp otutable.cc commands/rereplicate.cpp \
-	results.cc commands/usearch_global.cpp core/search.cpp \
-	searchcore.cc commands/search_exact.cpp \
-	commands/sff_convert.cpp vendored/sha1.c showalign.cc \
-	commands/shuffle.cpp commands/sintax.cpp \
-	commands/sortbylength.cpp commands/sortbysize.cpp tax.cc \
-	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
-	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
-	unique.cc util.cc utils/fatal.cpp utils/maps.cpp \
-	utils/cigar.cpp utils/compare_strings_nocase.cpp \
-	utils/open_file.cpp utils/os_byteswap.cpp utils/seqcmp.cpp \
+	commands/fastx_syncpairs.cpp filter.cc getseq.cc \
+	commands/help.cpp kmerhash.cc linmemalign.cc \
+	commands/fastx_mask.cpp commands/maskfasta.cpp core/mask.cpp \
+	vendored/md5.c minheap.cc msa.cc commands/orient.cpp \
+	otutable.cc commands/rereplicate.cpp results.cc \
+	commands/usearch_global.cpp core/search.cpp searchcore.cc \
+	commands/search_exact.cpp commands/sff_convert.cpp \
+	vendored/sha1.c showalign.cc commands/shuffle.cpp \
+	commands/sintax.cpp commands/sortbylength.cpp \
+	commands/sortbysize.cpp tax.cc commands/makeudb_usearch.cpp \
+	commands/udb2fasta.cpp commands/udbinfo.cpp \
+	commands/udbstats.cpp core/udb.cpp unique.cc util.cc \
+	utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
+	utils/compare_strings_nocase.cpp utils/open_file.cpp \
+	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
-	utils/logfile.cpp utils/userfields.cpp vsearch.cc \
-	arch/x86_64/cpu_features.cpp os/posix/dynlib_loader.cc \
-	os/posix/system.cc os/macos/system_memory.cc \
-	os/freebsd/system_memory.cc os/linux/system_memory.cc \
-	os/windows/dynlib_loader.cc os/windows/system.cc \
-	os/windows/system_memory.cc
+	utils/logfile.cpp utils/userfields.cpp commands/version.cpp \
+	vsearch.cc arch/x86_64/cpu_features.cpp \
+	os/posix/dynlib_loader.cc os/posix/system.cc \
+	os/macos/system_memory.cc os/freebsd/system_memory.cc \
+	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
+	os/windows/system.cc os/windows/system_memory.cc
 am__objects_8 = align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) attributes.$(OBJEXT) \
 	bitmap.$(OBJEXT) chimera.$(OBJEXT) cli.$(OBJEXT) \
@@ -593,10 +597,11 @@ am__objects_8 = align_simd.$(OBJEXT) \
 	commands/fastq_stats.$(OBJEXT) fastqops.$(OBJEXT) \
 	fastx.$(OBJEXT) commands/fastx_subsample.$(OBJEXT) \
 	commands/fastx_syncpairs.$(OBJEXT) filter.$(OBJEXT) \
-	getseq.$(OBJEXT) kmerhash.$(OBJEXT) linmemalign.$(OBJEXT) \
-	commands/fastx_mask.$(OBJEXT) commands/maskfasta.$(OBJEXT) \
-	core/mask.$(OBJEXT) vendored/md5.$(OBJEXT) minheap.$(OBJEXT) \
-	msa.$(OBJEXT) commands/orient.$(OBJEXT) otutable.$(OBJEXT) \
+	getseq.$(OBJEXT) commands/help.$(OBJEXT) kmerhash.$(OBJEXT) \
+	linmemalign.$(OBJEXT) commands/fastx_mask.$(OBJEXT) \
+	commands/maskfasta.$(OBJEXT) core/mask.$(OBJEXT) \
+	vendored/md5.$(OBJEXT) minheap.$(OBJEXT) msa.$(OBJEXT) \
+	commands/orient.$(OBJEXT) otutable.$(OBJEXT) \
 	commands/rereplicate.$(OBJEXT) results.$(OBJEXT) \
 	commands/usearch_global.$(OBJEXT) core/search.$(OBJEXT) \
 	searchcore.$(OBJEXT) commands/search_exact.$(OBJEXT) \
@@ -613,7 +618,8 @@ am__objects_8 = align_simd.$(OBJEXT) \
 	utils/open_file.$(OBJEXT) utils/os_byteswap.$(OBJEXT) \
 	utils/seqcmp.$(OBJEXT) utils/number_of_strands.$(OBJEXT) \
 	utils/timestamp.$(OBJEXT) utils/logfile.$(OBJEXT) \
-	utils/userfields.$(OBJEXT) vsearch.$(OBJEXT)
+	utils/userfields.$(OBJEXT) commands/version.$(OBJEXT) \
+	vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_9 =  \
 @TARGET_X86_64_TRUE@	arch/x86_64/cpu_features.$(OBJEXT)
 @TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_10 = os/macos/system_memory.$(OBJEXT)
@@ -719,6 +725,7 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/fastx_mask.Po \
 	commands/$(DEPDIR)/fastx_subsample.Po \
 	commands/$(DEPDIR)/fastx_syncpairs.Po \
+	commands/$(DEPDIR)/help.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-cut.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-derep_prefix.Po \
@@ -731,6 +738,7 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-fastx_mask.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-fastx_subsample.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-fastx_syncpairs.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-help.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-makeudb_usearch.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-orient.Po \
@@ -745,6 +753,7 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-version.Po \
 	commands/$(DEPDIR)/makeudb_usearch.Po \
 	commands/$(DEPDIR)/maskfasta.Po commands/$(DEPDIR)/orient.Po \
 	commands/$(DEPDIR)/rereplicate.Po \
@@ -756,6 +765,7 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/udb2fasta.Po commands/$(DEPDIR)/udbinfo.Po \
 	commands/$(DEPDIR)/udbstats.Po \
 	commands/$(DEPDIR)/usearch_global.Po \
+	commands/$(DEPDIR)/version.Po \
 	core/$(DEPDIR)/libvsearch_core_a-mask.Po \
 	core/$(DEPDIR)/libvsearch_core_a-search.Po \
 	core/$(DEPDIR)/libvsearch_core_a-udb.Po core/$(DEPDIR)/mask.Po \
@@ -1012,6 +1022,7 @@ commands/fastx_subsample.hpp \
 commands/fastx_syncpairs.hpp \
 filter.h \
 getseq.h \
+commands/help.hpp \
 kmerhash.h \
 linmemalign.h \
 commands/fastx_mask.hpp \
@@ -1064,6 +1075,7 @@ utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
 utils/worker_loop.hpp \
+commands/version.hpp \
 vsearch.h \
 vsearch_api.h \
 xstring.h
@@ -1135,6 +1147,7 @@ commands/fastx_subsample.cpp \
 commands/fastx_syncpairs.cpp \
 filter.cc \
 getseq.cc \
+commands/help.cpp \
 kmerhash.cc \
 linmemalign.cc \
 commands/fastx_mask.cpp \
@@ -1177,6 +1190,7 @@ utils/number_of_strands.cpp \
 utils/timestamp.cpp \
 utils/logfile.cpp \
 utils/userfields.cpp \
+commands/version.cpp \
 vsearch.cc
 
 @TARGET_X86_64_FALSE@VSEARCH_ARCH_SOURCES = 
@@ -1373,6 +1387,8 @@ commands/libvsearch_core_a-fastx_subsample.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-fastx_syncpairs.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-help.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-fastx_mask.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-maskfasta.$(OBJEXT):  \
@@ -1447,6 +1463,8 @@ utils/libvsearch_core_a-logfile.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-userfields.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-version.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/$(am__dirstamp):
 	@$(MKDIR_P) arch/x86_64
 	@: > arch/x86_64/$(am__dirstamp)
@@ -1533,6 +1551,8 @@ commands/fastx_subsample.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 commands/fastx_syncpairs.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
+commands/help.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
 commands/fastx_mask.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 commands/maskfasta.$(OBJEXT): commands/$(am__dirstamp) \
@@ -1595,6 +1615,8 @@ utils/logfile.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/userfields.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
+commands/version.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/cpu_features.$(OBJEXT): arch/x86_64/$(am__dirstamp) \
 	arch/x86_64/$(DEPDIR)/$(am__dirstamp)
 os/posix/dynlib_loader.$(OBJEXT): os/posix/$(am__dirstamp) \
@@ -1717,6 +1739,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/fastx_mask.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/fastx_subsample.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/fastx_syncpairs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/help.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-cut.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-derep_prefix.Po@am__quote@ # am--include-marker
@@ -1729,6 +1752,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-fastx_mask.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-fastx_subsample.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-fastx_syncpairs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-help.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-makeudb_usearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-orient.Po@am__quote@ # am--include-marker
@@ -1743,6 +1767,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-version.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/makeudb_usearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/maskfasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/orient.Po@am__quote@ # am--include-marker
@@ -1757,6 +1782,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/udbinfo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/udbstats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/usearch_global.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/version.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-mask.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-search.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-udb.Po@am__quote@ # am--include-marker
@@ -2378,6 +2404,20 @@ libvsearch_core_a-getseq.obj: getseq.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-getseq.obj `if test -f 'getseq.cc'; then $(CYGPATH_W) 'getseq.cc'; else $(CYGPATH_W) '$(srcdir)/getseq.cc'; fi`
 
+commands/libvsearch_core_a-help.o: commands/help.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-help.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-help.Tpo -c -o commands/libvsearch_core_a-help.o `test -f 'commands/help.cpp' || echo '$(srcdir)/'`commands/help.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-help.Tpo commands/$(DEPDIR)/libvsearch_core_a-help.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/help.cpp' object='commands/libvsearch_core_a-help.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-help.o `test -f 'commands/help.cpp' || echo '$(srcdir)/'`commands/help.cpp
+
+commands/libvsearch_core_a-help.obj: commands/help.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-help.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-help.Tpo -c -o commands/libvsearch_core_a-help.obj `if test -f 'commands/help.cpp'; then $(CYGPATH_W) 'commands/help.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/help.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-help.Tpo commands/$(DEPDIR)/libvsearch_core_a-help.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/help.cpp' object='commands/libvsearch_core_a-help.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-help.obj `if test -f 'commands/help.cpp'; then $(CYGPATH_W) 'commands/help.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/help.cpp'; fi`
+
 libvsearch_core_a-kmerhash.o: kmerhash.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-kmerhash.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-kmerhash.Tpo -c -o libvsearch_core_a-kmerhash.o `test -f 'kmerhash.cc' || echo '$(srcdir)/'`kmerhash.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-kmerhash.Tpo $(DEPDIR)/libvsearch_core_a-kmerhash.Po
@@ -2938,6 +2978,20 @@ utils/libvsearch_core_a-userfields.obj: utils/userfields.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-userfields.obj `if test -f 'utils/userfields.cpp'; then $(CYGPATH_W) 'utils/userfields.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/userfields.cpp'; fi`
 
+commands/libvsearch_core_a-version.o: commands/version.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-version.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-version.Tpo -c -o commands/libvsearch_core_a-version.o `test -f 'commands/version.cpp' || echo '$(srcdir)/'`commands/version.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-version.Tpo commands/$(DEPDIR)/libvsearch_core_a-version.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/version.cpp' object='commands/libvsearch_core_a-version.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-version.o `test -f 'commands/version.cpp' || echo '$(srcdir)/'`commands/version.cpp
+
+commands/libvsearch_core_a-version.obj: commands/version.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-version.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-version.Tpo -c -o commands/libvsearch_core_a-version.obj `if test -f 'commands/version.cpp'; then $(CYGPATH_W) 'commands/version.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/version.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-version.Tpo commands/$(DEPDIR)/libvsearch_core_a-version.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/version.cpp' object='commands/libvsearch_core_a-version.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-version.obj `if test -f 'commands/version.cpp'; then $(CYGPATH_W) 'commands/version.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/version.cpp'; fi`
+
 libvsearch_core_a-vsearch.o: vsearch.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-vsearch.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-vsearch.Tpo -c -o libvsearch_core_a-vsearch.o `test -f 'vsearch.cc' || echo '$(srcdir)/'`vsearch.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-vsearch.Tpo $(DEPDIR)/libvsearch_core_a-vsearch.Po
@@ -3322,6 +3376,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/fastx_mask.Po
 	-rm -f commands/$(DEPDIR)/fastx_subsample.Po
 	-rm -f commands/$(DEPDIR)/fastx_syncpairs.Po
+	-rm -f commands/$(DEPDIR)/help.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cut.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-derep_prefix.Po
@@ -3334,6 +3389,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-fastx_mask.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-fastx_subsample.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-fastx_syncpairs.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-help.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-makeudb_usearch.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-orient.Po
@@ -3348,6 +3404,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-version.Po
 	-rm -f commands/$(DEPDIR)/makeudb_usearch.Po
 	-rm -f commands/$(DEPDIR)/maskfasta.Po
 	-rm -f commands/$(DEPDIR)/orient.Po
@@ -3362,6 +3419,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/udbinfo.Po
 	-rm -f commands/$(DEPDIR)/udbstats.Po
 	-rm -f commands/$(DEPDIR)/usearch_global.Po
+	-rm -f commands/$(DEPDIR)/version.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-mask.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-search.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-udb.Po
@@ -3537,6 +3595,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/fastx_mask.Po
 	-rm -f commands/$(DEPDIR)/fastx_subsample.Po
 	-rm -f commands/$(DEPDIR)/fastx_syncpairs.Po
+	-rm -f commands/$(DEPDIR)/help.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cut.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-derep_prefix.Po
@@ -3549,6 +3608,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-fastx_mask.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-fastx_subsample.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-fastx_syncpairs.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-help.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-makeudb_usearch.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-orient.Po
@@ -3563,6 +3623,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-version.Po
 	-rm -f commands/$(DEPDIR)/makeudb_usearch.Po
 	-rm -f commands/$(DEPDIR)/maskfasta.Po
 	-rm -f commands/$(DEPDIR)/orient.Po
@@ -3577,6 +3638,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/udbinfo.Po
 	-rm -f commands/$(DEPDIR)/udbstats.Po
 	-rm -f commands/$(DEPDIR)/usearch_global.Po
+	-rm -f commands/$(DEPDIR)/version.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-mask.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-search.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-udb.Po
