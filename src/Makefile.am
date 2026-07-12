@@ -74,7 +74,7 @@ export MACOSX_DEPLOYMENT_TARGET=10.9
 
 VSEARCHHEADERS=\
 align_simd.h \
-allpairs.h \
+allpairs_global.h \
 arch/x86_64/cpu_features.hpp \
 attributes.h \
 bitmap.h \
@@ -101,6 +101,7 @@ fastq_mergepairs.h \
 fastq_stats.h \
 fastqops.h \
 fastx.h \
+fastx_subsample.h \
 fastx_syncpairs.h \
 filter.h \
 getseq.h \
@@ -126,7 +127,6 @@ shuffle.h \
 sintax.h \
 sortbylength.h \
 sortbysize.h \
-subsample.h \
 system.h \
 tax.h \
 commands/makeudb_usearch.hpp \
@@ -212,7 +212,7 @@ endif
 # and are built as separate sub-libraries (libcpu_*, libcityhash_*).
 VSEARCH_COMMON_SOURCES = \
 align_simd.cc \
-allpairs.cc \
+allpairs_global.cc \
 attributes.cc \
 bitmap.cc \
 chimera.cc \
@@ -236,6 +236,7 @@ fastq_mergepairs.cc \
 fastq_stats.cc \
 fastqops.cc \
 fastx.cc \
+fastx_subsample.cc \
 fastx_syncpairs.cc \
 filter.cc \
 getseq.cc \
@@ -261,7 +262,6 @@ shuffle.cc \
 sintax.cc \
 sortbylength.cc \
 sortbysize.cc \
-subsample.cc \
 tax.cc \
 commands/makeudb_usearch.cpp \
 commands/udb2fasta.cpp \
