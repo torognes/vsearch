@@ -95,9 +95,9 @@ commands/cluster_size.hpp \
 commands/cluster_unoise.hpp \
 cpu.h \
 commands/cut.hpp \
-db.h \
+core/db.hpp \
 core/dbhash.hpp \
-dbindex.h \
+core/dbindex.hpp \
 core/derep.hpp \
 core/derep_internal.hpp \
 commands/derep_fulllength.hpp \
@@ -146,7 +146,7 @@ core/results.hpp \
 commands/usearch_global.hpp \
 core/search.hpp \
 core/search_internal.hpp \
-searchcore.h \
+core/searchcore.hpp \
 commands/search_exact.hpp \
 commands/sff_convert.hpp \
 core/showalign.hpp \
@@ -257,9 +257,9 @@ commands/cluster_smallmem.cpp \
 commands/cluster_size.cpp \
 commands/cluster_unoise.cpp \
 commands/cut.cpp \
-db.cc \
+core/db.cpp \
 core/dbhash.cpp \
-dbindex.cc \
+core/dbindex.cpp \
 core/derep.cpp \
 commands/derep_fulllength.cpp \
 commands/derep_id.cpp \
@@ -305,7 +305,7 @@ commands/rereplicate.cpp \
 core/results.cpp \
 commands/usearch_global.cpp \
 core/search.cpp \
-searchcore.cc \
+core/searchcore.cpp \
 commands/search_exact.cpp \
 commands/sff_convert.cpp \
 vendored/sha1.c \

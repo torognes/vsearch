@@ -62,7 +62,7 @@
 #include "utils/progress.hpp"
 #include "core/attributes.hpp"
 #include "core/bitmap.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "core/unique.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"

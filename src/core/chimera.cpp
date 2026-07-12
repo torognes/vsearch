@@ -64,7 +64,7 @@
 #include "core/attributes.hpp"
 #include "core/chimera.hpp"
 #include "core/chimera_internal.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "core/linmemalign.hpp"
 #include "core/mask.hpp"
 #include "core/minheap.hpp"

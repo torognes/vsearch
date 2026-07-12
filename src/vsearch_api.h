@@ -154,8 +154,8 @@
    part of the public ABI. */
 #include "core/chimera.hpp"
 #include "core/cluster.hpp"
-#include "db.h"
-#include "dbindex.h"
+#include "core/db.hpp"
+#include "core/dbindex.hpp"
 #include "core/derep.hpp"
 #include "core/mergepairs.hpp"
 #include "core/mask.hpp"

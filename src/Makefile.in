@@ -182,8 +182,8 @@ am__libcpu_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -204,7 +204,7 @@ am__libcpu_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -235,8 +235,8 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -257,7 +257,7 @@ am__libcpu_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -288,8 +288,8 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -310,7 +310,7 @@ am__libcpu_sse2_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -341,8 +341,8 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -363,7 +363,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -394,8 +394,8 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -416,7 +416,7 @@ am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -447,8 +447,8 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -469,7 +469,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -500,8 +500,8 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -522,7 +522,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -545,7 +545,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/chimeras_denovo.cpp cli.cc core/cluster.cpp \
 	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
 	commands/cluster_size.cpp commands/cluster_unoise.cpp \
-	commands/cut.cpp db.cc core/dbhash.cpp dbindex.cc \
+	commands/cut.cpp core/db.cpp core/dbhash.cpp core/dbindex.cpp \
 	core/derep.cpp commands/derep_fulllength.cpp \
 	commands/derep_id.cpp commands/fastx_uniques.cpp \
 	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
@@ -564,11 +564,11 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/maskfasta.cpp core/mask.cpp vendored/md5.c \
 	core/minheap.cpp core/msa.cpp commands/orient.cpp \
 	core/otutable.cpp commands/rereplicate.cpp core/results.cpp \
-	commands/usearch_global.cpp core/search.cpp searchcore.cc \
-	commands/search_exact.cpp commands/sff_convert.cpp \
-	vendored/sha1.c core/showalign.cpp commands/shuffle.cpp \
-	commands/sintax.cpp commands/sortbylength.cpp \
-	commands/sortbysize.cpp core/tax.cpp \
+	commands/usearch_global.cpp core/search.cpp \
+	core/searchcore.cpp commands/search_exact.cpp \
+	commands/sff_convert.cpp vendored/sha1.c core/showalign.cpp \
+	commands/shuffle.cpp commands/sintax.cpp \
+	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
 	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
 	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
 	core/unique.cpp util.cc utils/fatal.cpp utils/maps.cpp \
@@ -598,9 +598,9 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_size.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_unoise.$(OBJEXT) \
 	commands/libvsearch_core_a-cut.$(OBJEXT) \
-	libvsearch_core_a-db.$(OBJEXT) \
+	core/libvsearch_core_a-db.$(OBJEXT) \
 	core/libvsearch_core_a-dbhash.$(OBJEXT) \
-	libvsearch_core_a-dbindex.$(OBJEXT) \
+	core/libvsearch_core_a-dbindex.$(OBJEXT) \
 	core/libvsearch_core_a-derep.$(OBJEXT) \
 	commands/libvsearch_core_a-derep_fulllength.$(OBJEXT) \
 	commands/libvsearch_core_a-derep_id.$(OBJEXT) \
@@ -646,7 +646,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	core/libvsearch_core_a-results.$(OBJEXT) \
 	commands/libvsearch_core_a-usearch_global.$(OBJEXT) \
 	core/libvsearch_core_a-search.$(OBJEXT) \
-	libvsearch_core_a-searchcore.$(OBJEXT) \
+	core/libvsearch_core_a-searchcore.$(OBJEXT) \
 	commands/libvsearch_core_a-search_exact.$(OBJEXT) \
 	commands/libvsearch_core_a-sff_convert.$(OBJEXT) \
 	vendored/libvsearch_core_a-sha1.$(OBJEXT) \
@@ -701,8 +701,8 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	vendored/city.h cli.h core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
-	core/dbhash.hpp dbindex.h core/derep.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp core/db.hpp \
+	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
 	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
@@ -723,7 +723,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
 	commands/usearch_global.hpp core/search.hpp \
-	core/search_internal.hpp searchcore.h \
+	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
@@ -746,7 +746,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/chimeras_denovo.cpp cli.cc core/cluster.cpp \
 	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
 	commands/cluster_size.cpp commands/cluster_unoise.cpp \
-	commands/cut.cpp db.cc core/dbhash.cpp dbindex.cc \
+	commands/cut.cpp core/db.cpp core/dbhash.cpp core/dbindex.cpp \
 	core/derep.cpp commands/derep_fulllength.cpp \
 	commands/derep_id.cpp commands/fastx_uniques.cpp \
 	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
@@ -765,11 +765,11 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/maskfasta.cpp core/mask.cpp vendored/md5.c \
 	core/minheap.cpp core/msa.cpp commands/orient.cpp \
 	core/otutable.cpp commands/rereplicate.cpp core/results.cpp \
-	commands/usearch_global.cpp core/search.cpp searchcore.cc \
-	commands/search_exact.cpp commands/sff_convert.cpp \
-	vendored/sha1.c core/showalign.cpp commands/shuffle.cpp \
-	commands/sintax.cpp commands/sortbylength.cpp \
-	commands/sortbysize.cpp core/tax.cpp \
+	commands/usearch_global.cpp core/search.cpp \
+	core/searchcore.cpp commands/search_exact.cpp \
+	commands/sff_convert.cpp vendored/sha1.c core/showalign.cpp \
+	commands/shuffle.cpp commands/sintax.cpp \
+	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
 	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
 	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
 	core/unique.cpp util.cc utils/fatal.cpp utils/maps.cpp \
@@ -794,7 +794,7 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/cluster_smallmem.$(OBJEXT) \
 	commands/cluster_size.$(OBJEXT) \
 	commands/cluster_unoise.$(OBJEXT) commands/cut.$(OBJEXT) \
-	db.$(OBJEXT) core/dbhash.$(OBJEXT) dbindex.$(OBJEXT) \
+	core/db.$(OBJEXT) core/dbhash.$(OBJEXT) core/dbindex.$(OBJEXT) \
 	core/derep.$(OBJEXT) commands/derep_fulllength.$(OBJEXT) \
 	commands/derep_id.$(OBJEXT) commands/fastx_uniques.$(OBJEXT) \
 	commands/derep_prefix.$(OBJEXT) \
@@ -821,7 +821,7 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	core/msa.$(OBJEXT) commands/orient.$(OBJEXT) \
 	core/otutable.$(OBJEXT) commands/rereplicate.$(OBJEXT) \
 	core/results.$(OBJEXT) commands/usearch_global.$(OBJEXT) \
-	core/search.$(OBJEXT) searchcore.$(OBJEXT) \
+	core/search.$(OBJEXT) core/searchcore.$(OBJEXT) \
 	commands/search_exact.$(OBJEXT) commands/sff_convert.$(OBJEXT) \
 	vendored/sha1.$(OBJEXT) core/showalign.$(OBJEXT) \
 	commands/shuffle.$(OBJEXT) commands/sintax.$(OBJEXT) \
@@ -880,20 +880,15 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
-	./$(DEPDIR)/db.Po ./$(DEPDIR)/dbindex.Po \
 	./$(DEPDIR)/dynlibs.Po ./$(DEPDIR)/libcpu_pic_a-cpu.Po \
 	./$(DEPDIR)/libcpu_sse2_a-cpu.Po \
 	./$(DEPDIR)/libcpu_sse2_pic_a-cpu.Po \
 	./$(DEPDIR)/libcpu_ssse3_a-cpu.Po \
 	./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
-	./$(DEPDIR)/libvsearch_core_a-db.Po \
-	./$(DEPDIR)/libvsearch_core_a-dbindex.Po \
 	./$(DEPDIR)/libvsearch_core_a-dynlibs.Po \
-	./$(DEPDIR)/libvsearch_core_a-searchcore.Po \
 	./$(DEPDIR)/libvsearch_core_a-util.Po \
-	./$(DEPDIR)/libvsearch_core_a-vsearch.Po \
-	./$(DEPDIR)/searchcore.Po ./$(DEPDIR)/util.Po \
+	./$(DEPDIR)/libvsearch_core_a-vsearch.Po ./$(DEPDIR)/util.Po \
 	./$(DEPDIR)/vsearch.Po arch/x86_64/$(DEPDIR)/cpu_features.Po \
 	arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po \
 	commands/$(DEPDIR)/allpairs_global.Po \
@@ -991,7 +986,8 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
 	commands/$(DEPDIR)/version.Po core/$(DEPDIR)/align_simd.Po \
 	core/$(DEPDIR)/attributes.Po core/$(DEPDIR)/bitmap.Po \
 	core/$(DEPDIR)/chimera.Po core/$(DEPDIR)/cluster.Po \
-	core/$(DEPDIR)/dbhash.Po core/$(DEPDIR)/derep.Po \
+	core/$(DEPDIR)/db.Po core/$(DEPDIR)/dbhash.Po \
+	core/$(DEPDIR)/dbindex.Po core/$(DEPDIR)/derep.Po \
 	core/$(DEPDIR)/eestats.Po core/$(DEPDIR)/fasta.Po \
 	core/$(DEPDIR)/fastq.Po core/$(DEPDIR)/fastx.Po \
 	core/$(DEPDIR)/filter.Po core/$(DEPDIR)/getseq.Po \
@@ -1001,7 +997,9 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
 	core/$(DEPDIR)/libvsearch_core_a-bitmap.Po \
 	core/$(DEPDIR)/libvsearch_core_a-chimera.Po \
 	core/$(DEPDIR)/libvsearch_core_a-cluster.Po \
+	core/$(DEPDIR)/libvsearch_core_a-db.Po \
 	core/$(DEPDIR)/libvsearch_core_a-dbhash.Po \
+	core/$(DEPDIR)/libvsearch_core_a-dbindex.Po \
 	core/$(DEPDIR)/libvsearch_core_a-derep.Po \
 	core/$(DEPDIR)/libvsearch_core_a-eestats.Po \
 	core/$(DEPDIR)/libvsearch_core_a-fasta.Po \
@@ -1018,6 +1016,7 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
 	core/$(DEPDIR)/libvsearch_core_a-otutable.Po \
 	core/$(DEPDIR)/libvsearch_core_a-results.Po \
 	core/$(DEPDIR)/libvsearch_core_a-search.Po \
+	core/$(DEPDIR)/libvsearch_core_a-searchcore.Po \
 	core/$(DEPDIR)/libvsearch_core_a-showalign.Po \
 	core/$(DEPDIR)/libvsearch_core_a-tax.Po \
 	core/$(DEPDIR)/libvsearch_core_a-udb.Po \
@@ -1026,8 +1025,9 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
 	core/$(DEPDIR)/mergepairs.Po core/$(DEPDIR)/minheap.Po \
 	core/$(DEPDIR)/msa.Po core/$(DEPDIR)/otutable.Po \
 	core/$(DEPDIR)/results.Po core/$(DEPDIR)/search.Po \
-	core/$(DEPDIR)/showalign.Po core/$(DEPDIR)/tax.Po \
-	core/$(DEPDIR)/udb.Po core/$(DEPDIR)/unique.Po \
+	core/$(DEPDIR)/searchcore.Po core/$(DEPDIR)/showalign.Po \
+	core/$(DEPDIR)/tax.Po core/$(DEPDIR)/udb.Po \
+	core/$(DEPDIR)/unique.Po \
 	os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
 	os/freebsd/$(DEPDIR)/system_memory.Po \
 	os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
@@ -1270,9 +1270,9 @@ commands/cluster_size.hpp \
 commands/cluster_unoise.hpp \
 cpu.h \
 commands/cut.hpp \
-db.h \
+core/db.hpp \
 core/dbhash.hpp \
-dbindex.h \
+core/dbindex.hpp \
 core/derep.hpp \
 core/derep_internal.hpp \
 commands/derep_fulllength.hpp \
@@ -1321,7 +1321,7 @@ core/results.hpp \
 commands/usearch_global.hpp \
 core/search.hpp \
 core/search_internal.hpp \
-searchcore.h \
+core/searchcore.hpp \
 commands/search_exact.hpp \
 commands/sff_convert.hpp \
 core/showalign.hpp \
@@ -1418,9 +1418,9 @@ commands/cluster_smallmem.cpp \
 commands/cluster_size.cpp \
 commands/cluster_unoise.cpp \
 commands/cut.cpp \
-db.cc \
+core/db.cpp \
 core/dbhash.cpp \
-dbindex.cc \
+core/dbindex.cpp \
 core/derep.cpp \
 commands/derep_fulllength.cpp \
 commands/derep_id.cpp \
@@ -1466,7 +1466,7 @@ commands/rereplicate.cpp \
 core/results.cpp \
 commands/usearch_global.cpp \
 core/search.cpp \
-searchcore.cc \
+core/searchcore.cpp \
 commands/search_exact.cpp \
 commands/sff_convert.cpp \
 vendored/sha1.c \
@@ -1707,7 +1707,11 @@ commands/libvsearch_core_a-cluster_unoise.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-cut.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
+core/libvsearch_core_a-db.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-dbhash.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+core/libvsearch_core_a-dbindex.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-derep.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
@@ -1796,6 +1800,8 @@ core/libvsearch_core_a-results.$(OBJEXT): core/$(am__dirstamp) \
 commands/libvsearch_core_a-usearch_global.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-search.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+core/libvsearch_core_a-searchcore.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-search_exact.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
@@ -1953,7 +1959,10 @@ commands/cluster_unoise.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 commands/cut.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
+core/db.$(OBJEXT): core/$(am__dirstamp) core/$(DEPDIR)/$(am__dirstamp)
 core/dbhash.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+core/dbindex.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 core/derep.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
@@ -2042,6 +2051,8 @@ core/results.$(OBJEXT): core/$(am__dirstamp) \
 commands/usearch_global.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 core/search.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+core/searchcore.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 commands/search_exact.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
@@ -2141,8 +2152,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpu.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/db.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbindex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlibs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_pic_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_sse2_a-cpu.Po@am__quote@ # am--include-marker
@@ -2150,13 +2159,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_ssse3_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-db.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-dbindex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-dynlibs.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-searchcore.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/searchcore.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/$(DEPDIR)/cpu_features.Po@am__quote@ # am--include-marker
@@ -2264,7 +2269,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/bitmap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/chimera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/cluster.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/db.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/dbhash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/dbindex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/derep.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/eestats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/fasta.Po@am__quote@ # am--include-marker
@@ -2278,7 +2285,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-bitmap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-chimera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-cluster.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-db.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-dbhash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-dbindex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-derep.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-eestats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-fasta.Po@am__quote@ # am--include-marker
@@ -2295,6 +2304,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-otutable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-results.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-search.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-searchcore.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-showalign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-tax.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-udb.Po@am__quote@ # am--include-marker
@@ -2307,6 +2317,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/otutable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/results.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/search.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/searchcore.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/showalign.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/tax.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/udb.Po@am__quote@ # am--include-marker
@@ -2758,19 +2769,19 @@ commands/libvsearch_core_a-cut.obj: commands/cut.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-cut.obj `if test -f 'commands/cut.cpp'; then $(CYGPATH_W) 'commands/cut.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/cut.cpp'; fi`
 
-libvsearch_core_a-db.o: db.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-db.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-db.Tpo -c -o libvsearch_core_a-db.o `test -f 'db.cc' || echo '$(srcdir)/'`db.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-db.Tpo $(DEPDIR)/libvsearch_core_a-db.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='db.cc' object='libvsearch_core_a-db.o' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-db.o: core/db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-db.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-db.Tpo -c -o core/libvsearch_core_a-db.o `test -f 'core/db.cpp' || echo '$(srcdir)/'`core/db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-db.Tpo core/$(DEPDIR)/libvsearch_core_a-db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/db.cpp' object='core/libvsearch_core_a-db.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-db.o `test -f 'db.cc' || echo '$(srcdir)/'`db.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-db.o `test -f 'core/db.cpp' || echo '$(srcdir)/'`core/db.cpp
 
-libvsearch_core_a-db.obj: db.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-db.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-db.Tpo -c -o libvsearch_core_a-db.obj `if test -f 'db.cc'; then $(CYGPATH_W) 'db.cc'; else $(CYGPATH_W) '$(srcdir)/db.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-db.Tpo $(DEPDIR)/libvsearch_core_a-db.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='db.cc' object='libvsearch_core_a-db.obj' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-db.obj: core/db.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-db.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-db.Tpo -c -o core/libvsearch_core_a-db.obj `if test -f 'core/db.cpp'; then $(CYGPATH_W) 'core/db.cpp'; else $(CYGPATH_W) '$(srcdir)/core/db.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-db.Tpo core/$(DEPDIR)/libvsearch_core_a-db.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/db.cpp' object='core/libvsearch_core_a-db.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-db.obj `if test -f 'db.cc'; then $(CYGPATH_W) 'db.cc'; else $(CYGPATH_W) '$(srcdir)/db.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-db.obj `if test -f 'core/db.cpp'; then $(CYGPATH_W) 'core/db.cpp'; else $(CYGPATH_W) '$(srcdir)/core/db.cpp'; fi`
 
 core/libvsearch_core_a-dbhash.o: core/dbhash.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-dbhash.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-dbhash.Tpo -c -o core/libvsearch_core_a-dbhash.o `test -f 'core/dbhash.cpp' || echo '$(srcdir)/'`core/dbhash.cpp
@@ -2786,19 +2797,19 @@ core/libvsearch_core_a-dbhash.obj: core/dbhash.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-dbhash.obj `if test -f 'core/dbhash.cpp'; then $(CYGPATH_W) 'core/dbhash.cpp'; else $(CYGPATH_W) '$(srcdir)/core/dbhash.cpp'; fi`
 
-libvsearch_core_a-dbindex.o: dbindex.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-dbindex.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-dbindex.Tpo -c -o libvsearch_core_a-dbindex.o `test -f 'dbindex.cc' || echo '$(srcdir)/'`dbindex.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-dbindex.Tpo $(DEPDIR)/libvsearch_core_a-dbindex.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='dbindex.cc' object='libvsearch_core_a-dbindex.o' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-dbindex.o: core/dbindex.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-dbindex.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-dbindex.Tpo -c -o core/libvsearch_core_a-dbindex.o `test -f 'core/dbindex.cpp' || echo '$(srcdir)/'`core/dbindex.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-dbindex.Tpo core/$(DEPDIR)/libvsearch_core_a-dbindex.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/dbindex.cpp' object='core/libvsearch_core_a-dbindex.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-dbindex.o `test -f 'dbindex.cc' || echo '$(srcdir)/'`dbindex.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-dbindex.o `test -f 'core/dbindex.cpp' || echo '$(srcdir)/'`core/dbindex.cpp
 
-libvsearch_core_a-dbindex.obj: dbindex.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-dbindex.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-dbindex.Tpo -c -o libvsearch_core_a-dbindex.obj `if test -f 'dbindex.cc'; then $(CYGPATH_W) 'dbindex.cc'; else $(CYGPATH_W) '$(srcdir)/dbindex.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-dbindex.Tpo $(DEPDIR)/libvsearch_core_a-dbindex.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='dbindex.cc' object='libvsearch_core_a-dbindex.obj' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-dbindex.obj: core/dbindex.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-dbindex.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-dbindex.Tpo -c -o core/libvsearch_core_a-dbindex.obj `if test -f 'core/dbindex.cpp'; then $(CYGPATH_W) 'core/dbindex.cpp'; else $(CYGPATH_W) '$(srcdir)/core/dbindex.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-dbindex.Tpo core/$(DEPDIR)/libvsearch_core_a-dbindex.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/dbindex.cpp' object='core/libvsearch_core_a-dbindex.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-dbindex.obj `if test -f 'dbindex.cc'; then $(CYGPATH_W) 'dbindex.cc'; else $(CYGPATH_W) '$(srcdir)/dbindex.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-dbindex.obj `if test -f 'core/dbindex.cpp'; then $(CYGPATH_W) 'core/dbindex.cpp'; else $(CYGPATH_W) '$(srcdir)/core/dbindex.cpp'; fi`
 
 core/libvsearch_core_a-derep.o: core/derep.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-derep.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-derep.Tpo -c -o core/libvsearch_core_a-derep.o `test -f 'core/derep.cpp' || echo '$(srcdir)/'`core/derep.cpp
@@ -3416,19 +3427,19 @@ core/libvsearch_core_a-search.obj: core/search.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-search.obj `if test -f 'core/search.cpp'; then $(CYGPATH_W) 'core/search.cpp'; else $(CYGPATH_W) '$(srcdir)/core/search.cpp'; fi`
 
-libvsearch_core_a-searchcore.o: searchcore.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-searchcore.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-searchcore.Tpo -c -o libvsearch_core_a-searchcore.o `test -f 'searchcore.cc' || echo '$(srcdir)/'`searchcore.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-searchcore.Tpo $(DEPDIR)/libvsearch_core_a-searchcore.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='searchcore.cc' object='libvsearch_core_a-searchcore.o' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-searchcore.o: core/searchcore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-searchcore.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-searchcore.Tpo -c -o core/libvsearch_core_a-searchcore.o `test -f 'core/searchcore.cpp' || echo '$(srcdir)/'`core/searchcore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-searchcore.Tpo core/$(DEPDIR)/libvsearch_core_a-searchcore.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/searchcore.cpp' object='core/libvsearch_core_a-searchcore.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-searchcore.o `test -f 'searchcore.cc' || echo '$(srcdir)/'`searchcore.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-searchcore.o `test -f 'core/searchcore.cpp' || echo '$(srcdir)/'`core/searchcore.cpp
 
-libvsearch_core_a-searchcore.obj: searchcore.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-searchcore.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-searchcore.Tpo -c -o libvsearch_core_a-searchcore.obj `if test -f 'searchcore.cc'; then $(CYGPATH_W) 'searchcore.cc'; else $(CYGPATH_W) '$(srcdir)/searchcore.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-searchcore.Tpo $(DEPDIR)/libvsearch_core_a-searchcore.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='searchcore.cc' object='libvsearch_core_a-searchcore.obj' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-searchcore.obj: core/searchcore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-searchcore.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-searchcore.Tpo -c -o core/libvsearch_core_a-searchcore.obj `if test -f 'core/searchcore.cpp'; then $(CYGPATH_W) 'core/searchcore.cpp'; else $(CYGPATH_W) '$(srcdir)/core/searchcore.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-searchcore.Tpo core/$(DEPDIR)/libvsearch_core_a-searchcore.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/searchcore.cpp' object='core/libvsearch_core_a-searchcore.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-searchcore.obj `if test -f 'searchcore.cc'; then $(CYGPATH_W) 'searchcore.cc'; else $(CYGPATH_W) '$(srcdir)/searchcore.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-searchcore.obj `if test -f 'core/searchcore.cpp'; then $(CYGPATH_W) 'core/searchcore.cpp'; else $(CYGPATH_W) '$(srcdir)/core/searchcore.cpp'; fi`
 
 commands/libvsearch_core_a-search_exact.o: commands/search_exact.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-search_exact.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-search_exact.Tpo -c -o commands/libvsearch_core_a-search_exact.o `test -f 'commands/search_exact.cpp' || echo '$(srcdir)/'`commands/search_exact.cpp
@@ -4114,8 +4125,6 @@ clean-am: clean-binPROGRAMS clean-generic clean-local \
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/cpu.Po
-	-rm -f ./$(DEPDIR)/db.Po
-	-rm -f ./$(DEPDIR)/dbindex.Po
 	-rm -f ./$(DEPDIR)/dynlibs.Po
 	-rm -f ./$(DEPDIR)/libcpu_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_sse2_a-cpu.Po
@@ -4123,13 +4132,9 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libcpu_ssse3_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-db.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-dbindex.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dynlibs.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-searchcore.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-util.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
-	-rm -f ./$(DEPDIR)/searchcore.Po
 	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
 	-rm -f arch/x86_64/$(DEPDIR)/cpu_features.Po
@@ -4237,7 +4242,9 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/bitmap.Po
 	-rm -f core/$(DEPDIR)/chimera.Po
 	-rm -f core/$(DEPDIR)/cluster.Po
+	-rm -f core/$(DEPDIR)/db.Po
 	-rm -f core/$(DEPDIR)/dbhash.Po
+	-rm -f core/$(DEPDIR)/dbindex.Po
 	-rm -f core/$(DEPDIR)/derep.Po
 	-rm -f core/$(DEPDIR)/eestats.Po
 	-rm -f core/$(DEPDIR)/fasta.Po
@@ -4251,7 +4258,9 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-bitmap.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-chimera.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-cluster.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-db.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbhash.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbindex.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-eestats.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-fasta.Po
@@ -4268,6 +4277,7 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-otutable.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-results.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-search.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-searchcore.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-showalign.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-tax.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-udb.Po
@@ -4280,6 +4290,7 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/otutable.Po
 	-rm -f core/$(DEPDIR)/results.Po
 	-rm -f core/$(DEPDIR)/search.Po
+	-rm -f core/$(DEPDIR)/searchcore.Po
 	-rm -f core/$(DEPDIR)/showalign.Po
 	-rm -f core/$(DEPDIR)/tax.Po
 	-rm -f core/$(DEPDIR)/udb.Po
@@ -4375,8 +4386,6 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/cpu.Po
-	-rm -f ./$(DEPDIR)/db.Po
-	-rm -f ./$(DEPDIR)/dbindex.Po
 	-rm -f ./$(DEPDIR)/dynlibs.Po
 	-rm -f ./$(DEPDIR)/libcpu_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_sse2_a-cpu.Po
@@ -4384,13 +4393,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libcpu_ssse3_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libcpu_ssse3_pic_a-cpu.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-db.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-dbindex.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dynlibs.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-searchcore.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-util.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
-	-rm -f ./$(DEPDIR)/searchcore.Po
 	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
 	-rm -f arch/x86_64/$(DEPDIR)/cpu_features.Po
@@ -4498,7 +4503,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/bitmap.Po
 	-rm -f core/$(DEPDIR)/chimera.Po
 	-rm -f core/$(DEPDIR)/cluster.Po
+	-rm -f core/$(DEPDIR)/db.Po
 	-rm -f core/$(DEPDIR)/dbhash.Po
+	-rm -f core/$(DEPDIR)/dbindex.Po
 	-rm -f core/$(DEPDIR)/derep.Po
 	-rm -f core/$(DEPDIR)/eestats.Po
 	-rm -f core/$(DEPDIR)/fasta.Po
@@ -4512,7 +4519,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-bitmap.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-chimera.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-cluster.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-db.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbhash.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbindex.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-eestats.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-fasta.Po
@@ -4529,6 +4538,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-otutable.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-results.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-search.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-searchcore.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-showalign.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-tax.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-udb.Po
@@ -4541,6 +4551,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/otutable.Po
 	-rm -f core/$(DEPDIR)/results.Po
 	-rm -f core/$(DEPDIR)/search.Po
+	-rm -f core/$(DEPDIR)/searchcore.Po
 	-rm -f core/$(DEPDIR)/showalign.Po
 	-rm -f core/$(DEPDIR)/tax.Po
 	-rm -f core/$(DEPDIR)/udb.Po

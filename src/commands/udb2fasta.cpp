@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "commands/udb2fasta.hpp"
 #include "core/udb.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <cstddef>  // std::size_t

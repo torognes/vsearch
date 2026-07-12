@@ -80,7 +80,7 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "core/bitmap.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "core/mask.hpp"
 #include "core/minheap.hpp"
 #include "core/tax.hpp"

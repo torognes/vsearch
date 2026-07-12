@@ -62,7 +62,7 @@
 #include "commands/makeudb_usearch.hpp"
 #include "core/mask.hpp"
 #include "core/bitmap.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "utils/fatal.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::max

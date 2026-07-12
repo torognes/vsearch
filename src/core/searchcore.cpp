@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "core/align_simd.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "core/linmemalign.hpp"
 #include "core/minheap.hpp"
 #include "core/otutable.hpp"

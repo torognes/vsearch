@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "core/bitmap.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include "core/unique.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"

@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "commands/udbstats.hpp"
 #include "core/udb.hpp"
-#include "dbindex.h"
+#include "core/dbindex.hpp"
 #include <algorithm>  // std::max, std::min
 #include <cinttypes>  // macro PRIu64
 #include <cmath>  // std::lround
