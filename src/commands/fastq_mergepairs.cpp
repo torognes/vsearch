@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "fastq_mergepairs.h"
+#include "commands/fastq_mergepairs.hpp"
 #include "kmerhash.h"
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"

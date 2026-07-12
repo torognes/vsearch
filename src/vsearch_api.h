@@ -157,7 +157,7 @@
 #include "db.h"
 #include "dbindex.h"
 #include "derep.h"
-#include "fastq_mergepairs.h"
+#include "commands/fastq_mergepairs.hpp"
 #include "core/mask.hpp"
 #include "core/search.hpp"
 
