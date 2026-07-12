@@ -61,4 +61,4 @@
 
 #pragma once
 
-auto udb_fasta(struct Parameters const & parameters) -> void;
+auto udb2fasta(struct Parameters const & parameters) -> void;

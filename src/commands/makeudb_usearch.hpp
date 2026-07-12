@@ -61,4 +61,4 @@
 
 #pragma once
 
-auto udb_make(struct Parameters const & parameters) -> void;
+auto makeudb_usearch(struct Parameters const & parameters) -> void;

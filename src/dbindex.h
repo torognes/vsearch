@@ -96,7 +96,7 @@ struct Dbindex
 
   /* DBAccel percentage stored in a UDB header (buffer[6]): index metadata
      carried for reporting only, never consulted during search. Set by udb_read
-     from the file, reported by udb_stats; stays 0 for a FASTA-built index. */
+     from the file, reported by udbstats; stays 0 for a FASTA-built index. */
   unsigned int dbaccel = 0;
 
   Dbindex() = default;

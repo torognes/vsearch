@@ -61,4 +61,4 @@
 
 #pragma once
 
-auto udb_info(struct Parameters const & parameters) -> void;
+auto udbinfo(struct Parameters const & parameters) -> void;

@@ -110,7 +110,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto udb_stats(struct Parameters const & parameters) -> void
+auto udbstats(struct Parameters const & parameters) -> void
 {
   /* show word statistics for an UDB file */
 

@@ -67,7 +67,7 @@
 #include <cstddef>  // std::size_t
 
 
-auto udb_fasta(struct Parameters const & parameters) -> void
+auto udb2fasta(struct Parameters const & parameters) -> void
 {
   Dbindex dbindex;  /* the k-mer index this run owns (RAII) */
 

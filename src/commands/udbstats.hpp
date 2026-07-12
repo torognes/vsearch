@@ -61,4 +61,4 @@
 
 #pragma once
 
-auto udb_stats(struct Parameters const & parameters) -> void;
+auto udbstats(struct Parameters const & parameters) -> void;

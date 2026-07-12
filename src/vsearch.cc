@@ -1331,19 +1331,19 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_makeudb_usearch != nullptr)
     {
-      udb_make(parameters);
+      makeudb_usearch(parameters);
     }
   else if (parameters.opt_udb2fasta != nullptr)
     {
-      udb_fasta(parameters);
+      udb2fasta(parameters);
     }
   else if (parameters.opt_udbinfo != nullptr)
     {
-      udb_info(parameters);
+      udbinfo(parameters);
     }
   else if (parameters.opt_udbstats != nullptr)
     {
-      udb_stats(parameters);
+      udbstats(parameters);
     }
   else if (parameters.opt_sintax != nullptr)
     {

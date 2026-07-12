@@ -102,7 +102,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto udb_make(struct Parameters const & parameters) -> void
+auto makeudb_usearch(struct Parameters const & parameters) -> void
 {
   Dbindex dbindex;  /* the k-mer index this run owns (RAII) */
 
