@@ -81,7 +81,12 @@ bitmap.h \
 chimera.h \
 vendored/city.h \
 cli.h \
-cluster.h \
+core/cluster.hpp \
+core/cluster_internal.hpp \
+commands/cluster_fast.hpp \
+commands/cluster_smallmem.hpp \
+commands/cluster_size.hpp \
+commands/cluster_unoise.hpp \
 cpu.h \
 commands/cut.hpp \
 db.h \
@@ -235,7 +240,11 @@ attributes.cc \
 bitmap.cc \
 chimera.cc \
 cli.cc \
-cluster.cc \
+core/cluster.cpp \
+commands/cluster_fast.cpp \
+commands/cluster_smallmem.cpp \
+commands/cluster_size.cpp \
+commands/cluster_unoise.cpp \
 commands/cut.cpp \
 db.cc \
 dbhash.cc \

@@ -60,11 +60,6 @@
 
 #pragma once
 
-auto cluster_smallmem(struct Parameters const & parameters) -> void;
-auto cluster_fast(struct Parameters const & parameters) -> void;
-auto cluster_size(struct Parameters const & parameters) -> void;
-auto cluster_unoise(struct Parameters const & parameters) -> void;
-
 /* === Library API for embedding clustering === */
 
 /* Result of assigning a single sequence to a cluster. */

@@ -153,7 +153,7 @@
    that are implementation details of the search subsystem and not
    part of the public ABI. */
 #include "chimera.h"
-#include "cluster.h"
+#include "core/cluster.hpp"
 #include "db.h"
 #include "dbindex.h"
 #include "core/derep.hpp"

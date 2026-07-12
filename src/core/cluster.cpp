@@ -61,7 +61,8 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "align_simd.h"
-#include "cluster.h"
+#include "core/cluster.hpp"
+#include "core/cluster_internal.hpp"
 #include "searchcore.h"
 #include "attributes.h"
 #include "dbindex.h"
@@ -1553,30 +1554,6 @@ auto cluster(char const * dbname,
 
   state.dbindex.clear();
   db_free();
-}
-
-
-auto cluster_fast(struct Parameters const & parameters) -> void
-{
-  cluster(parameters.opt_cluster_fast, parameters);
-}
-
-
-auto cluster_smallmem(struct Parameters const & parameters) -> void
-{
-  cluster(parameters.opt_cluster_smallmem, parameters);
-}
-
-
-auto cluster_size(struct Parameters const & parameters) -> void
-{
-  cluster(parameters.opt_cluster_size, parameters);
-}
-
-
-auto cluster_unoise(struct Parameters const & parameters) -> void
-{
-  cluster(parameters.opt_cluster_unoise, parameters);
 }
 
 
