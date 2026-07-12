@@ -60,7 +60,8 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "derep.h"
+#include "core/derep.hpp"
+#include "core/derep_internal.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -242,12 +243,6 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
   // same ordinal value (impossible)
   return 0;  // unreachable
 }
-
-
-// Selects which of the three dereplication commands the shared engine
-// runs as. Previously inferred implicitly from which option pointer was
-// non-null (opt_fastx_uniques) plus a use_header bool.
-enum struct Derep_mode { fulllength, id, uniques };
 
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
@@ -927,24 +922,6 @@ auto derep(struct Parameters const & parameters, char * input_filename, Derep_mo
       xfree(bucket.qual);
     }
   }
-}
-
-
-auto derep_fulllength(struct Parameters const & parameters) -> void
-{
-  derep(parameters, parameters.opt_derep_fulllength, Derep_mode::fulllength);
-}
-
-
-auto derep_id(struct Parameters const & parameters) -> void
-{
-  derep(parameters, parameters.opt_derep_id, Derep_mode::id);
-}
-
-
-auto fastx_uniques(struct Parameters const & parameters) -> void
-{
-  derep(parameters, parameters.opt_fastx_uniques, Derep_mode::uniques);
 }
 
 

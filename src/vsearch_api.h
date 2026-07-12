@@ -156,7 +156,7 @@
 #include "cluster.h"
 #include "db.h"
 #include "dbindex.h"
-#include "derep.h"
+#include "core/derep.hpp"
 #include "core/mergepairs.hpp"
 #include "core/mask.hpp"
 #include "core/search.hpp"

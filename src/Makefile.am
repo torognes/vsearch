@@ -87,7 +87,11 @@ commands/cut.hpp \
 db.h \
 dbhash.h \
 dbindex.h \
-derep.h \
+core/derep.hpp \
+core/derep_internal.hpp \
+commands/derep_fulllength.hpp \
+commands/derep_id.hpp \
+commands/fastx_uniques.hpp \
 commands/derep_prefix.hpp \
 commands/derep_smallmem.hpp \
 dynlibs.h \
@@ -236,7 +240,10 @@ commands/cut.cpp \
 db.cc \
 dbhash.cc \
 dbindex.cc \
-derep.cc \
+core/derep.cpp \
+commands/derep_fulllength.cpp \
+commands/derep_id.cpp \
+commands/fastx_uniques.cpp \
 commands/derep_prefix.cpp \
 commands/derep_smallmem.cpp \
 dynlibs.cc \
