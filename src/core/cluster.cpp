@@ -77,6 +77,9 @@
 #include "utils/open_file.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
+#include "utils/reverse_complement.hpp"
+#include "utils/sequence_digest.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

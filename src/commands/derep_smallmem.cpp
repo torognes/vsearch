@@ -65,6 +65,9 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 // #include "util.h"  // hash_cityhash128
+#include "utils/cityhash.hpp"
+#include "utils/reverse_complement.hpp"
+#include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t

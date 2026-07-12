@@ -62,6 +62,7 @@
 #include "core/align_simd.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macro PRId64

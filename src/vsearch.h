@@ -186,7 +186,6 @@
 #include "vendored/sha1.h"
 
 #include "system.h"
-#include "util.h"
 #include "core/db.hpp"
 #include "core/mask.hpp"
 #include "core/searchcore.hpp"

@@ -68,6 +68,9 @@
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include "utils/reverse_complement.hpp"
+#include "utils/string_alloc.hpp"
+#include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t

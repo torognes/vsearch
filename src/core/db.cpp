@@ -62,6 +62,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t

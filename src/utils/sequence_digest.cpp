@@ -58,149 +58,24 @@
 
 */
 
-#include "vsearch.h"
-#include "vendored/city.h"
-#include "vendored/md5.h"
-#include "utils/fatal.hpp"
-#include "utils/maps.hpp"
-#include <cinttypes>  // macros PRIu64 and PRId64
-#include <cstdarg>  // va_list
-#include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::vsnprintf
-#include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::strlen, std::strcpy, std::strchr
-#include <iterator>  // std::next
-#include <random>  // std::random_device
-#include <string>  // std::string
-#include <vector>
+#include "sequence_digest.hpp"
+#include "fatal.hpp"  // fatal
+#include "string_normalize.hpp"  // string_normalize
+#include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
+#include "vendored/sha1.h"  // SHA1_CTX, SHA1_Init, SHA1_Update, SHA1_Final
+#include <array>  // std::array
+#include <cstddef>  // std::size_t
+#include <cstdio>  // std::FILE, std::fprintf
+#include <iterator>  // std::advance
+#include <vector>  // std::vector
 
 
-auto xstrdup(char const * src) -> char *
-{
-  auto const len = std::strlen(src);
-  auto * dest = static_cast<char *>(xmalloc(len + 1));
-  return std::strcpy(dest, src);
-}
+namespace {
 
-
-auto xsprintf(char * * ret, char const * format, ...) -> int
-{
-  // refactoring: build string with std::string?
-  // refactoring: C variadic function, replace with template variadic function?
-  // Only used with one or two extra arguments, it could be a simple overload
-  std::va_list args;
-  va_start(args, format);
-  auto len = std::vsnprintf(nullptr, 0, format, args);
-  va_end(args);
-  if (len < 0)
-    {
-      fatal("Error with vsnprintf in xsprintf");
-    }
-  auto * buffer = static_cast<char *>(xmalloc(static_cast<size_t>(len) + 1));
-  if (buffer == nullptr)
-    {
-      fatal("Out of memory");
-    }
-  va_start(args, format);
-  len = std::vsnprintf(buffer, static_cast<size_t>(len) + 1, format, args);
-  va_end(args);
-  *ret = buffer;
-  return len;
-}
-
-
-auto hash_cityhash64(char const * sequence, uint64_t const length) -> uint64_t
-{
-  return CityHash64(sequence, length);
-}
-
-
-auto hash_cityhash128(char const * sequence, uint64_t const length) -> uint128
-{
-  return CityHash128(sequence, length);
-}
-
-
-// refactoring: create reverse_complement.hpp, progressive migration
-// write overloads for span?
-// assert(destination.size() > source.size());
-// std::reverse_copy(source.begin(), source.end(), destination.begin());
-// auto complement = [](char nucleotide) -> char { ... };
-// std::transform(destination.begin(), destination.end(), destination.begin(), complement)
-// destination[length] = '\0';
-auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> void
-{
-  /* Write the reverse complementary sequence to rc_seq.
-     The memory for rc_seq must be long enough for the rc_seq of the sequence
-     (identical to the length of seq + 1). */
-
-  for (auto i = 0LL; i < len; ++i) {
-    auto const nucleotide = *std::next(seq, len - 1 - i);
-    auto const complement_char = map_complement(nucleotide);
-    *std::next(rc_seq, i) = complement_char;
-  }
-  *std::next(rc_seq, len) = '\0';
-}
-
-
-static uint64_t base_seed = 0;
-
-
-auto SplitMix64::operator()() -> uint64_t
-{
-  uint64_t z = (state_ += 0x9E3779B97F4A7C15ULL);
-  z = (z ^ (z >> 30U)) * 0xBF58476D1CE4E5B9ULL;
-  z = (z ^ (z >> 27U)) * 0x94D049BB133111EBULL;
-  return z ^ (z >> 31U);
-}
-
-
-auto random_base_seed() -> uint64_t
-{
-  return base_seed;
-}
-
-
-auto random_substream_seed(uint64_t const base, uint64_t const index) -> uint64_t
-{
-  /* one SplitMix64 hashing step so adjacent indices give well-separated
-     streams (SplitMix64 is the recommended mixer for seeding generators) */
-  SplitMix64 mixer(base ^ (index * 0x9E3779B97F4A7C15ULL));
-  return mixer();
-}
-
-
-auto random_init(struct Parameters const & parameters) -> void
-{
-  /* 64-bit base seed for the reproducible RNG (SplitMix64/mt19937_64).
-     opt_randseed is used in full when non-zero (no 32-bit truncation);
-     otherwise a non-deterministic value is taken from the OS. */
-  if (parameters.opt_randseed != 0)
-    {
-      base_seed = static_cast<uint64_t>(parameters.opt_randseed);
-    }
-  else
-    {
-      std::random_device device;
-      base_seed = (static_cast<uint64_t>(device()) << 32U) ^ device();
-    }
-}
-
-
-auto string_normalize(char * normalized, char const * raw_seq, unsigned int const len) -> void
-{
-  /* convert string to upper case and replace U by T */
-  auto const * normalize_map = chrmap_normalize();
-  for (auto i = 0U; i < len; ++i)
-    {
-      auto const unsigned_char = static_cast<unsigned char>(*raw_seq);
-      auto const normalized_char = normalize_map[unsigned_char];
-      *normalized = static_cast<char>(normalized_char);
-      std::advance(normalized, 1);
-      std::advance(raw_seq, 1);
-    }
-  *normalized = '\0';
-}
+constexpr auto drop_lower_nibble = 4U;
+constexpr auto mask_upper_nibble = 15U;
+constexpr std::array<char, 16> hexdigits =
+  {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}};
 
 
 auto SHA1(unsigned char const * data, unsigned long const len, unsigned char * digest) -> void
@@ -228,10 +103,8 @@ auto MD5(void * data, unsigned long const len, unsigned char * digest) -> void
   MD5_Final(digest, &a_context);
 }
 
+}  // namespace
 
-constexpr auto drop_lower_nibble = 4U;
-constexpr auto mask_upper_nibble = 15U;
-const std::vector<char> hexdigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
 auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> void
 {

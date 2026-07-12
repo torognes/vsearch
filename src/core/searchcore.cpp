@@ -67,6 +67,7 @@
 #include "core/unique.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::count_if, std::min, std::max
 #include <array>
 #include <cassert>

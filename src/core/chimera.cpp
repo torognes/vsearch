@@ -77,6 +77,7 @@
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>

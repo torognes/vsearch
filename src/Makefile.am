@@ -163,9 +163,9 @@ commands/udbinfo.hpp \
 commands/udbstats.hpp \
 core/udb.hpp \
 core/unique.hpp \
-util.h \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
+utils/cityhash.hpp \
 utils/compare_strings_nocase.hpp \
 utils/dynlib_loader.hpp \
 utils/fatal.hpp \
@@ -176,8 +176,13 @@ utils/number_of_strands.hpp \
 utils/open_file.hpp \
 utils/os_byteswap.hpp \
 utils/progress.hpp \
+utils/random.hpp \
+utils/reverse_complement.hpp \
 utils/seqcmp.hpp \
+utils/sequence_digest.hpp \
 utils/span.hpp \
+utils/string_alloc.hpp \
+utils/string_normalize.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
@@ -337,7 +342,6 @@ commands/udbinfo.cpp \
 commands/udbstats.cpp \
 core/udb.cpp \
 core/unique.cpp \
-util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
 utils/cigar.cpp \
@@ -349,6 +353,12 @@ utils/number_of_strands.cpp \
 utils/timestamp.cpp \
 utils/logfile.cpp \
 utils/userfields.cpp \
+utils/cityhash.cpp \
+utils/random.cpp \
+utils/reverse_complement.cpp \
+utils/sequence_digest.cpp \
+utils/string_alloc.cpp \
+utils/string_normalize.cpp \
 commands/version.cpp \
 vsearch.cc
 

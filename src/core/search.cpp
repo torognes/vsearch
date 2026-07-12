@@ -71,6 +71,7 @@
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include "utils/reverse_complement.hpp"
 #include <cstdint>  // uint64_t, int64_t
 #include <cstring>  // std::strlen, std::strcpy
 #include <memory>  // std::unique_ptr

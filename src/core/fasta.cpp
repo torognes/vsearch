@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "core/attributes.hpp"
 #include "utils/fatal.hpp"
+#include "utils/sequence_digest.hpp"
 #include <algorithm>  // std::min
 #include <array>
 #include <cassert>  // assert

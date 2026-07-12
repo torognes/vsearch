@@ -62,6 +62,7 @@
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
+#include "utils/random.hpp"
 #include <algorithm>  // std::count_if
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64

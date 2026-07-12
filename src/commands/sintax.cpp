@@ -93,6 +93,8 @@
 #include "utils/taxonomic_fields.h"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include "utils/random.hpp"
+#include "utils/reverse_complement.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t

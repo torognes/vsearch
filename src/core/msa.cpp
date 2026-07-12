@@ -62,6 +62,7 @@
 #include "core/msa.hpp"
 #include "utils/cigar.hpp"
 #include "utils/span.hpp"
+#include "utils/reverse_complement.hpp"
 #include <array>
 #include <algorithm>  // std::max()
 #include <cassert>

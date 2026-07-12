@@ -67,6 +67,7 @@
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t

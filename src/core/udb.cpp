@@ -66,6 +66,7 @@
 #include "core/unique.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
+#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

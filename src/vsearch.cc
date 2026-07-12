@@ -118,6 +118,7 @@
 #endif
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
+#include "utils/random.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cerrno>  // errno, ERANGE

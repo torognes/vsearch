@@ -63,6 +63,7 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
+#include "utils/reverse_complement.hpp"
 #include <algorithm>  // std::count, std::for_each, std::equal
 #include <cassert>
 #include <cinttypes>  // macros PRId64

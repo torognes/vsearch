@@ -63,9 +63,11 @@
 #include "core/showalign.hpp"
 #include "core/tax.hpp"
 #include "utils/cigar.hpp"
+#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include "utils/taxonomic_fields.h"
+#include "utils/sequence_digest.hpp"
 #include <algorithm>  // std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

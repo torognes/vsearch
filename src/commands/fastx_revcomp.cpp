@@ -64,6 +64,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/reverse_complement.hpp"
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fclose, std::size_t
 #include <vector>

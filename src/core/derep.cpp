@@ -66,6 +66,10 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
+#include "utils/cityhash.hpp"
+#include "utils/reverse_complement.hpp"
+#include "utils/string_alloc.hpp"
+#include "utils/string_normalize.hpp"
 #include <algorithm>  // std::count_if, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow

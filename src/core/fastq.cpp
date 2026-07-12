@@ -61,6 +61,8 @@
 #include "vsearch.h"
 #include "core/attributes.hpp"
 #include "utils/fatal.hpp"
+#include "utils/sequence_digest.hpp"
+#include "utils/string_alloc.hpp"
 #include <array>
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64

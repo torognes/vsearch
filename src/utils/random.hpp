@@ -60,24 +60,12 @@
 
 #pragma once
 
-#include <cstdint> // uint64_t
-#include <cstdio>  // std::FILE, std::size_t
 #include <cstddef> // std::size_t
+#include <cstdint> // uint64_t
 #include <limits>  // std::numeric_limits
-#include <random>  // std::mt19937_64
 #include <utility> // std::swap
-#include "utils/fatal.hpp" // fatal() (used by the templates below)
+#include "fatal.hpp" // fatal() (used by the templates below)
 
-
-constexpr auto md5_digest_length = 16;
-constexpr auto sha1_digest_length = 20;
-constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
-constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
-
-auto xstrdup(char const * src) -> char *;
-auto xsprintf(char * * ret, char const * format, ...) -> int;
-auto hash_cityhash64(char const * sequence, uint64_t length) -> uint64_t;
-auto hash_cityhash128(char const * sequence, uint64_t length) -> uint128;
 
 auto random_init(struct Parameters const & parameters) -> void;
 
@@ -160,13 +148,3 @@ auto random_shuffle(T * data, std::size_t count, URBG & generator) -> void
       std::swap(data[i - 1], data[j]);
     }
 }
-
-auto string_normalize(char * normalized, char const * raw_seq, unsigned int len) -> void;
-
-auto reverse_complement(char * rc_seq, char const * seq, int64_t len) -> void;
-
-auto get_hex_seq_digest_sha1(char * hex, char const * seq, int seqlen) -> void;
-auto get_hex_seq_digest_md5(char * hex, char const * seq, int seqlen) -> void;
-
-auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int seqlen) -> void;

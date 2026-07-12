@@ -212,14 +212,17 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	arch/ppc64le/increment_counters.cpp \
 	arch/aarch64/increment_counters.cpp
@@ -272,14 +275,17 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	arch/ppc64le/increment_counters.cpp \
 	arch/aarch64/increment_counters.cpp
@@ -332,14 +338,17 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -386,14 +395,17 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -440,14 +452,17 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -494,14 +509,17 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -547,14 +565,17 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	core/align_simd.cpp commands/allpairs_global.cpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
@@ -589,16 +610,19 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
 	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
 	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
-	core/unique.cpp util.cc utils/fatal.cpp utils/maps.cpp \
-	utils/cigar.cpp utils/compare_strings_nocase.cpp \
-	utils/open_file.cpp utils/os_byteswap.cpp utils/seqcmp.cpp \
+	core/unique.cpp utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
+	utils/compare_strings_nocase.cpp utils/open_file.cpp \
+	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
-	utils/logfile.cpp utils/userfields.cpp commands/version.cpp \
-	vsearch.cc arch/x86_64/cpu_features.cpp \
-	os/posix/dynlib_loader.cc os/posix/system.cc \
-	os/macos/system_memory.cc os/freebsd/system_memory.cc \
-	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
-	os/windows/system.cc os/windows/system_memory.cc
+	utils/logfile.cpp utils/userfields.cpp utils/cityhash.cpp \
+	utils/random.cpp utils/reverse_complement.cpp \
+	utils/sequence_digest.cpp utils/string_alloc.cpp \
+	utils/string_normalize.cpp commands/version.cpp vsearch.cc \
+	arch/x86_64/cpu_features.cpp os/posix/dynlib_loader.cc \
+	os/posix/system.cc os/macos/system_memory.cc \
+	os/freebsd/system_memory.cc os/linux/system_memory.cc \
+	os/windows/dynlib_loader.cc os/windows/system.cc \
+	os/windows/system_memory.cc
 am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-allpairs_global.$(OBJEXT) \
 	core/libvsearch_core_a-attributes.$(OBJEXT) \
@@ -680,7 +704,6 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-udbstats.$(OBJEXT) \
 	core/libvsearch_core_a-udb.$(OBJEXT) \
 	core/libvsearch_core_a-unique.$(OBJEXT) \
-	libvsearch_core_a-util.$(OBJEXT) \
 	utils/libvsearch_core_a-fatal.$(OBJEXT) \
 	utils/libvsearch_core_a-maps.$(OBJEXT) \
 	utils/libvsearch_core_a-cigar.$(OBJEXT) \
@@ -692,6 +715,12 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-timestamp.$(OBJEXT) \
 	utils/libvsearch_core_a-logfile.$(OBJEXT) \
 	utils/libvsearch_core_a-userfields.$(OBJEXT) \
+	utils/libvsearch_core_a-cityhash.$(OBJEXT) \
+	utils/libvsearch_core_a-random.$(OBJEXT) \
+	utils/libvsearch_core_a-reverse_complement.$(OBJEXT) \
+	utils/libvsearch_core_a-sequence_digest.$(OBJEXT) \
+	utils/libvsearch_core_a-string_alloc.$(OBJEXT) \
+	utils/libvsearch_core_a-string_normalize.$(OBJEXT) \
 	commands/libvsearch_core_a-version.$(OBJEXT) \
 	libvsearch_core_a-vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
@@ -749,14 +778,17 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/sortbysize.hpp system.h core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
-	core/unique.hpp util.h utils/cigar.hpp \
-	utils/cigar_operations.hpp utils/compare_strings_nocase.hpp \
+	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
+	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/seqcmp.hpp \
-	utils/span.hpp utils/taxonomic_fields.h utils/threads.hpp \
-	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
+	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/sequence_digest.hpp utils/span.hpp \
+	utils/string_alloc.hpp utils/string_normalize.hpp \
+	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
+	utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	core/align_simd.cpp commands/allpairs_global.cpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
@@ -791,16 +823,19 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
 	commands/makeudb_usearch.cpp commands/udb2fasta.cpp \
 	commands/udbinfo.cpp commands/udbstats.cpp core/udb.cpp \
-	core/unique.cpp util.cc utils/fatal.cpp utils/maps.cpp \
-	utils/cigar.cpp utils/compare_strings_nocase.cpp \
-	utils/open_file.cpp utils/os_byteswap.cpp utils/seqcmp.cpp \
+	core/unique.cpp utils/fatal.cpp utils/maps.cpp utils/cigar.cpp \
+	utils/compare_strings_nocase.cpp utils/open_file.cpp \
+	utils/os_byteswap.cpp utils/seqcmp.cpp \
 	utils/number_of_strands.cpp utils/timestamp.cpp \
-	utils/logfile.cpp utils/userfields.cpp commands/version.cpp \
-	vsearch.cc arch/x86_64/cpu_features.cpp \
-	os/posix/dynlib_loader.cc os/posix/system.cc \
-	os/macos/system_memory.cc os/freebsd/system_memory.cc \
-	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
-	os/windows/system.cc os/windows/system_memory.cc
+	utils/logfile.cpp utils/userfields.cpp utils/cityhash.cpp \
+	utils/random.cpp utils/reverse_complement.cpp \
+	utils/sequence_digest.cpp utils/string_alloc.cpp \
+	utils/string_normalize.cpp commands/version.cpp vsearch.cc \
+	arch/x86_64/cpu_features.cpp os/posix/dynlib_loader.cc \
+	os/posix/system.cc os/macos/system_memory.cc \
+	os/freebsd/system_memory.cc os/linux/system_memory.cc \
+	os/windows/dynlib_loader.cc os/windows/system.cc \
+	os/windows/system_memory.cc
 am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) core/attributes.$(OBJEXT) \
 	core/bitmap.$(OBJEXT) core/chimera.$(OBJEXT) \
@@ -848,13 +883,16 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	core/tax.$(OBJEXT) commands/makeudb_usearch.$(OBJEXT) \
 	commands/udb2fasta.$(OBJEXT) commands/udbinfo.$(OBJEXT) \
 	commands/udbstats.$(OBJEXT) core/udb.$(OBJEXT) \
-	core/unique.$(OBJEXT) util.$(OBJEXT) utils/fatal.$(OBJEXT) \
+	core/unique.$(OBJEXT) utils/fatal.$(OBJEXT) \
 	utils/maps.$(OBJEXT) utils/cigar.$(OBJEXT) \
 	utils/compare_strings_nocase.$(OBJEXT) \
 	utils/open_file.$(OBJEXT) utils/os_byteswap.$(OBJEXT) \
 	utils/seqcmp.$(OBJEXT) utils/number_of_strands.$(OBJEXT) \
 	utils/timestamp.$(OBJEXT) utils/logfile.$(OBJEXT) \
-	utils/userfields.$(OBJEXT) commands/version.$(OBJEXT) \
+	utils/userfields.$(OBJEXT) utils/cityhash.$(OBJEXT) \
+	utils/random.$(OBJEXT) utils/reverse_complement.$(OBJEXT) \
+	utils/sequence_digest.$(OBJEXT) utils/string_alloc.$(OBJEXT) \
+	utils/string_normalize.$(OBJEXT) commands/version.$(OBJEXT) \
 	vsearch.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_9 =  \
 @TARGET_X86_64_TRUE@	arch/x86_64/cpu_features.$(OBJEXT)
@@ -901,8 +939,7 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/dynlibs.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-dynlibs.Po \
-	./$(DEPDIR)/libvsearch_core_a-util.Po \
-	./$(DEPDIR)/libvsearch_core_a-vsearch.Po ./$(DEPDIR)/util.Po \
+	./$(DEPDIR)/libvsearch_core_a-vsearch.Po \
 	./$(DEPDIR)/vsearch.Po \
 	arch/aarch64/$(DEPDIR)/increment_counters.Po \
 	arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
@@ -1069,9 +1106,11 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/dynlibs.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
 	os/windows/$(DEPDIR)/system.Po \
 	os/windows/$(DEPDIR)/system_memory.Po utils/$(DEPDIR)/cigar.Po \
+	utils/$(DEPDIR)/cityhash.Po \
 	utils/$(DEPDIR)/compare_strings_nocase.Po \
 	utils/$(DEPDIR)/fatal.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-cigar.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-fatal.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-logfile.Po \
@@ -1079,14 +1118,23 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po ./$(DEPDIR)/dynlibs.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-open_file.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-random.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-userfields.Po \
 	utils/$(DEPDIR)/logfile.Po utils/$(DEPDIR)/maps.Po \
 	utils/$(DEPDIR)/number_of_strands.Po \
 	utils/$(DEPDIR)/open_file.Po utils/$(DEPDIR)/os_byteswap.Po \
-	utils/$(DEPDIR)/seqcmp.Po utils/$(DEPDIR)/timestamp.Po \
-	utils/$(DEPDIR)/userfields.Po \
+	utils/$(DEPDIR)/random.Po \
+	utils/$(DEPDIR)/reverse_complement.Po \
+	utils/$(DEPDIR)/seqcmp.Po utils/$(DEPDIR)/sequence_digest.Po \
+	utils/$(DEPDIR)/string_alloc.Po \
+	utils/$(DEPDIR)/string_normalize.Po \
+	utils/$(DEPDIR)/timestamp.Po utils/$(DEPDIR)/userfields.Po \
 	vendored/$(DEPDIR)/libcityhash_a-city.Po \
 	vendored/$(DEPDIR)/libcityhash_pic_a-city.Po \
 	vendored/$(DEPDIR)/libvsearch_core_a-md5.Po \
@@ -1363,9 +1411,9 @@ commands/udbinfo.hpp \
 commands/udbstats.hpp \
 core/udb.hpp \
 core/unique.hpp \
-util.h \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
+utils/cityhash.hpp \
 utils/compare_strings_nocase.hpp \
 utils/dynlib_loader.hpp \
 utils/fatal.hpp \
@@ -1376,8 +1424,13 @@ utils/number_of_strands.hpp \
 utils/open_file.hpp \
 utils/os_byteswap.hpp \
 utils/progress.hpp \
+utils/random.hpp \
+utils/reverse_complement.hpp \
 utils/seqcmp.hpp \
+utils/sequence_digest.hpp \
 utils/span.hpp \
+utils/string_alloc.hpp \
+utils/string_normalize.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
@@ -1518,7 +1571,6 @@ commands/udbinfo.cpp \
 commands/udbstats.cpp \
 core/udb.cpp \
 core/unique.cpp \
-util.cc \
 utils/fatal.cpp \
 utils/maps.cpp \
 utils/cigar.cpp \
@@ -1530,6 +1582,12 @@ utils/number_of_strands.cpp \
 utils/timestamp.cpp \
 utils/logfile.cpp \
 utils/userfields.cpp \
+utils/cityhash.cpp \
+utils/random.cpp \
+utils/reverse_complement.cpp \
+utils/sequence_digest.cpp \
+utils/string_alloc.cpp \
+utils/string_normalize.cpp \
 commands/version.cpp \
 vsearch.cc
 
@@ -1956,6 +2014,18 @@ utils/libvsearch_core_a-logfile.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-userfields.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-cityhash.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-random.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-reverse_complement.$(OBJEXT):  \
+	utils/$(am__dirstamp) utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-sequence_digest.$(OBJEXT):  \
+	utils/$(am__dirstamp) utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-string_alloc.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-string_normalize.$(OBJEXT):  \
+	utils/$(am__dirstamp) utils/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-version.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/$(am__dirstamp):
@@ -2201,6 +2271,18 @@ utils/logfile.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 utils/userfields.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
+utils/cityhash.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/random.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/reverse_complement.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/sequence_digest.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/string_alloc.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
+utils/string_normalize.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
 commands/version.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/cpu_features.$(OBJEXT): arch/x86_64/$(am__dirstamp) \
@@ -2254,9 +2336,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynlibs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-dynlibs.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/util.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
@@ -2443,9 +2523,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system_memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/cigar.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/cityhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/compare_strings_nocase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/fatal.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-cigar.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-fatal.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-logfile.Po@am__quote@ # am--include-marker
@@ -2453,7 +2535,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-random.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-userfields.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/logfile.Po@am__quote@ # am--include-marker
@@ -2461,7 +2548,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/number_of_strands.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/open_file.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/os_byteswap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/random.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/reverse_complement.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/seqcmp.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/sequence_digest.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/string_alloc.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/string_normalize.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/timestamp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/userfields.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@vendored/$(DEPDIR)/libcityhash_a-city.Po@am__quote@ # am--include-marker
@@ -3769,20 +3861,6 @@ core/libvsearch_core_a-unique.obj: core/unique.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-unique.obj `if test -f 'core/unique.cpp'; then $(CYGPATH_W) 'core/unique.cpp'; else $(CYGPATH_W) '$(srcdir)/core/unique.cpp'; fi`
 
-libvsearch_core_a-util.o: util.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-util.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-util.Tpo -c -o libvsearch_core_a-util.o `test -f 'util.cc' || echo '$(srcdir)/'`util.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-util.Tpo $(DEPDIR)/libvsearch_core_a-util.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='util.cc' object='libvsearch_core_a-util.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-util.o `test -f 'util.cc' || echo '$(srcdir)/'`util.cc
-
-libvsearch_core_a-util.obj: util.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-util.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-util.Tpo -c -o libvsearch_core_a-util.obj `if test -f 'util.cc'; then $(CYGPATH_W) 'util.cc'; else $(CYGPATH_W) '$(srcdir)/util.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-util.Tpo $(DEPDIR)/libvsearch_core_a-util.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='util.cc' object='libvsearch_core_a-util.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-util.obj `if test -f 'util.cc'; then $(CYGPATH_W) 'util.cc'; else $(CYGPATH_W) '$(srcdir)/util.cc'; fi`
-
 utils/libvsearch_core_a-fatal.o: utils/fatal.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-fatal.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-fatal.Tpo -c -o utils/libvsearch_core_a-fatal.o `test -f 'utils/fatal.cpp' || echo '$(srcdir)/'`utils/fatal.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-fatal.Tpo utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
@@ -3936,6 +4014,90 @@ utils/libvsearch_core_a-userfields.obj: utils/userfields.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/userfields.cpp' object='utils/libvsearch_core_a-userfields.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-userfields.obj `if test -f 'utils/userfields.cpp'; then $(CYGPATH_W) 'utils/userfields.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/userfields.cpp'; fi`
+
+utils/libvsearch_core_a-cityhash.o: utils/cityhash.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-cityhash.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-cityhash.Tpo -c -o utils/libvsearch_core_a-cityhash.o `test -f 'utils/cityhash.cpp' || echo '$(srcdir)/'`utils/cityhash.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-cityhash.Tpo utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/cityhash.cpp' object='utils/libvsearch_core_a-cityhash.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-cityhash.o `test -f 'utils/cityhash.cpp' || echo '$(srcdir)/'`utils/cityhash.cpp
+
+utils/libvsearch_core_a-cityhash.obj: utils/cityhash.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-cityhash.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-cityhash.Tpo -c -o utils/libvsearch_core_a-cityhash.obj `if test -f 'utils/cityhash.cpp'; then $(CYGPATH_W) 'utils/cityhash.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/cityhash.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-cityhash.Tpo utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/cityhash.cpp' object='utils/libvsearch_core_a-cityhash.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-cityhash.obj `if test -f 'utils/cityhash.cpp'; then $(CYGPATH_W) 'utils/cityhash.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/cityhash.cpp'; fi`
+
+utils/libvsearch_core_a-random.o: utils/random.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-random.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-random.Tpo -c -o utils/libvsearch_core_a-random.o `test -f 'utils/random.cpp' || echo '$(srcdir)/'`utils/random.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-random.Tpo utils/$(DEPDIR)/libvsearch_core_a-random.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/random.cpp' object='utils/libvsearch_core_a-random.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-random.o `test -f 'utils/random.cpp' || echo '$(srcdir)/'`utils/random.cpp
+
+utils/libvsearch_core_a-random.obj: utils/random.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-random.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-random.Tpo -c -o utils/libvsearch_core_a-random.obj `if test -f 'utils/random.cpp'; then $(CYGPATH_W) 'utils/random.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/random.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-random.Tpo utils/$(DEPDIR)/libvsearch_core_a-random.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/random.cpp' object='utils/libvsearch_core_a-random.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-random.obj `if test -f 'utils/random.cpp'; then $(CYGPATH_W) 'utils/random.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/random.cpp'; fi`
+
+utils/libvsearch_core_a-reverse_complement.o: utils/reverse_complement.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-reverse_complement.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Tpo -c -o utils/libvsearch_core_a-reverse_complement.o `test -f 'utils/reverse_complement.cpp' || echo '$(srcdir)/'`utils/reverse_complement.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Tpo utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/reverse_complement.cpp' object='utils/libvsearch_core_a-reverse_complement.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-reverse_complement.o `test -f 'utils/reverse_complement.cpp' || echo '$(srcdir)/'`utils/reverse_complement.cpp
+
+utils/libvsearch_core_a-reverse_complement.obj: utils/reverse_complement.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-reverse_complement.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Tpo -c -o utils/libvsearch_core_a-reverse_complement.obj `if test -f 'utils/reverse_complement.cpp'; then $(CYGPATH_W) 'utils/reverse_complement.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/reverse_complement.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Tpo utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/reverse_complement.cpp' object='utils/libvsearch_core_a-reverse_complement.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-reverse_complement.obj `if test -f 'utils/reverse_complement.cpp'; then $(CYGPATH_W) 'utils/reverse_complement.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/reverse_complement.cpp'; fi`
+
+utils/libvsearch_core_a-sequence_digest.o: utils/sequence_digest.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-sequence_digest.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Tpo -c -o utils/libvsearch_core_a-sequence_digest.o `test -f 'utils/sequence_digest.cpp' || echo '$(srcdir)/'`utils/sequence_digest.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Tpo utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/sequence_digest.cpp' object='utils/libvsearch_core_a-sequence_digest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-sequence_digest.o `test -f 'utils/sequence_digest.cpp' || echo '$(srcdir)/'`utils/sequence_digest.cpp
+
+utils/libvsearch_core_a-sequence_digest.obj: utils/sequence_digest.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-sequence_digest.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Tpo -c -o utils/libvsearch_core_a-sequence_digest.obj `if test -f 'utils/sequence_digest.cpp'; then $(CYGPATH_W) 'utils/sequence_digest.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/sequence_digest.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Tpo utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/sequence_digest.cpp' object='utils/libvsearch_core_a-sequence_digest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-sequence_digest.obj `if test -f 'utils/sequence_digest.cpp'; then $(CYGPATH_W) 'utils/sequence_digest.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/sequence_digest.cpp'; fi`
+
+utils/libvsearch_core_a-string_alloc.o: utils/string_alloc.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-string_alloc.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Tpo -c -o utils/libvsearch_core_a-string_alloc.o `test -f 'utils/string_alloc.cpp' || echo '$(srcdir)/'`utils/string_alloc.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Tpo utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/string_alloc.cpp' object='utils/libvsearch_core_a-string_alloc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-string_alloc.o `test -f 'utils/string_alloc.cpp' || echo '$(srcdir)/'`utils/string_alloc.cpp
+
+utils/libvsearch_core_a-string_alloc.obj: utils/string_alloc.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-string_alloc.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Tpo -c -o utils/libvsearch_core_a-string_alloc.obj `if test -f 'utils/string_alloc.cpp'; then $(CYGPATH_W) 'utils/string_alloc.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/string_alloc.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Tpo utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/string_alloc.cpp' object='utils/libvsearch_core_a-string_alloc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-string_alloc.obj `if test -f 'utils/string_alloc.cpp'; then $(CYGPATH_W) 'utils/string_alloc.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/string_alloc.cpp'; fi`
+
+utils/libvsearch_core_a-string_normalize.o: utils/string_normalize.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-string_normalize.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Tpo -c -o utils/libvsearch_core_a-string_normalize.o `test -f 'utils/string_normalize.cpp' || echo '$(srcdir)/'`utils/string_normalize.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Tpo utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/string_normalize.cpp' object='utils/libvsearch_core_a-string_normalize.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-string_normalize.o `test -f 'utils/string_normalize.cpp' || echo '$(srcdir)/'`utils/string_normalize.cpp
+
+utils/libvsearch_core_a-string_normalize.obj: utils/string_normalize.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-string_normalize.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Tpo -c -o utils/libvsearch_core_a-string_normalize.obj `if test -f 'utils/string_normalize.cpp'; then $(CYGPATH_W) 'utils/string_normalize.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/string_normalize.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Tpo utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/string_normalize.cpp' object='utils/libvsearch_core_a-string_normalize.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-string_normalize.obj `if test -f 'utils/string_normalize.cpp'; then $(CYGPATH_W) 'utils/string_normalize.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/string_normalize.cpp'; fi`
 
 commands/libvsearch_core_a-version.o: commands/version.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-version.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-version.Tpo -c -o commands/libvsearch_core_a-version.o `test -f 'commands/version.cpp' || echo '$(srcdir)/'`commands/version.cpp
@@ -4269,9 +4431,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/dynlibs.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dynlibs.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-util.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
-	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
@@ -4458,9 +4618,11 @@ distclean: distclean-am
 	-rm -f os/windows/$(DEPDIR)/system.Po
 	-rm -f os/windows/$(DEPDIR)/system_memory.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
+	-rm -f utils/$(DEPDIR)/cityhash.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/fatal.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-logfile.Po
@@ -4468,7 +4630,12 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-random.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-userfields.Po
 	-rm -f utils/$(DEPDIR)/logfile.Po
@@ -4476,7 +4643,12 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
+	-rm -f utils/$(DEPDIR)/random.Po
+	-rm -f utils/$(DEPDIR)/reverse_complement.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
+	-rm -f utils/$(DEPDIR)/sequence_digest.Po
+	-rm -f utils/$(DEPDIR)/string_alloc.Po
+	-rm -f utils/$(DEPDIR)/string_normalize.Po
 	-rm -f utils/$(DEPDIR)/timestamp.Po
 	-rm -f utils/$(DEPDIR)/userfields.Po
 	-rm -f vendored/$(DEPDIR)/libcityhash_a-city.Po
@@ -4534,9 +4706,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/dynlibs.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dynlibs.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-util.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
-	-rm -f ./$(DEPDIR)/util.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
@@ -4723,9 +4893,11 @@ maintainer-clean: maintainer-clean-am
 	-rm -f os/windows/$(DEPDIR)/system.Po
 	-rm -f os/windows/$(DEPDIR)/system_memory.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
+	-rm -f utils/$(DEPDIR)/cityhash.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/fatal.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-logfile.Po
@@ -4733,7 +4905,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-open_file.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-os_byteswap.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-random.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-reverse_complement.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-seqcmp.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-sequence_digest.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-string_alloc.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-string_normalize.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-timestamp.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-userfields.Po
 	-rm -f utils/$(DEPDIR)/logfile.Po
@@ -4741,7 +4918,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/number_of_strands.Po
 	-rm -f utils/$(DEPDIR)/open_file.Po
 	-rm -f utils/$(DEPDIR)/os_byteswap.Po
+	-rm -f utils/$(DEPDIR)/random.Po
+	-rm -f utils/$(DEPDIR)/reverse_complement.Po
 	-rm -f utils/$(DEPDIR)/seqcmp.Po
+	-rm -f utils/$(DEPDIR)/sequence_digest.Po
+	-rm -f utils/$(DEPDIR)/string_alloc.Po
+	-rm -f utils/$(DEPDIR)/string_normalize.Po
 	-rm -f utils/$(DEPDIR)/timestamp.Po
 	-rm -f utils/$(DEPDIR)/userfields.Po
 	-rm -f vendored/$(DEPDIR)/libcityhash_a-city.Po
