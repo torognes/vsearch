@@ -152,7 +152,7 @@
    internal types (searchinfo_s, struct hit, minwordmatches_defaults)
    that are implementation details of the search subsystem and not
    part of the public ABI. */
-#include "chimera.h"
+#include "core/chimera.hpp"
 #include "core/cluster.hpp"
 #include "db.h"
 #include "dbindex.h"

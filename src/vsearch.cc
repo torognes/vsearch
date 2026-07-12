@@ -61,7 +61,12 @@
 #include "vsearch.h"
 #include "vsearch_api.h"
 #include "commands/allpairs_global.hpp"
-#include "chimera.h"
+#include "core/chimera.hpp"  // maxparents
+#include "commands/uchime_denovo.hpp"
+#include "commands/uchime2_denovo.hpp"
+#include "commands/uchime3_denovo.hpp"
+#include "commands/uchime_ref.hpp"
+#include "commands/chimeras_denovo.hpp"
 #include "cli.h"
 #include "commands/cluster_fast.hpp"
 #include "commands/cluster_smallmem.hpp"

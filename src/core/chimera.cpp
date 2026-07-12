@@ -62,7 +62,8 @@
 #include "utils/progress.hpp"
 #include "align_simd.h"
 #include "attributes.h"
-#include "chimera.h"
+#include "core/chimera.hpp"
+#include "core/chimera_internal.hpp"
 #include "dbindex.h"
 #include "linmemalign.h"
 #include "core/mask.hpp"
@@ -2798,39 +2799,6 @@ auto chimera(struct Parameters const & parameters) -> void
   uchimealns_handle.reset();
   nonchimeras_handle.reset();
   chimeras_handle.reset();
-}
-
-
-/* The five CLI chimera-detection commands. They all run the single chimera()
-   engine, which selects its behaviour (reference vs de novo, and the algorithm
-   variant) from the parameters. */
-auto uchime_denovo(struct Parameters const & parameters) -> void
-{
-  chimera(parameters);
-}
-
-
-auto uchime2_denovo(struct Parameters const & parameters) -> void
-{
-  chimera(parameters);
-}
-
-
-auto uchime3_denovo(struct Parameters const & parameters) -> void
-{
-  chimera(parameters);
-}
-
-
-auto uchime_ref(struct Parameters const & parameters) -> void
-{
-  chimera(parameters);
-}
-
-
-auto chimeras_denovo(struct Parameters const & parameters) -> void
-{
-  chimera(parameters);
 }
 
 

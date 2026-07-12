@@ -175,17 +175,20 @@ libcpu_a_AR = $(AR) $(ARFLAGS)
 libcpu_a_LIBADD =
 am__libcpu_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -220,17 +223,20 @@ libcpu_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_pic_a_LIBADD =
 am__libcpu_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -265,17 +271,20 @@ libcpu_sse2_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_a_LIBADD =
 am__libcpu_sse2_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -310,17 +319,20 @@ libcpu_sse2_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_pic_a_LIBADD =
 am__libcpu_sse2_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -355,17 +367,20 @@ libcpu_ssse3_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_a_LIBADD =
 am__libcpu_ssse3_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -400,17 +415,20 @@ libcpu_ssse3_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_pic_a_LIBADD =
 am__libcpu_ssse3_pic_a_SOURCES_DIST = cpu.cc align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -445,17 +463,20 @@ libvsearch_core_a_AR = $(AR) $(ARFLAGS)
 libvsearch_core_a_LIBADD =
 am__libvsearch_core_a_SOURCES_DIST = align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -483,15 +504,18 @@ am__libvsearch_core_a_SOURCES_DIST = align_simd.h \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h xstring.h \
 	align_simd.cc commands/allpairs_global.cpp attributes.cc \
-	bitmap.cc chimera.cc cli.cc core/cluster.cpp \
-	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
-	commands/cluster_size.cpp commands/cluster_unoise.cpp \
-	commands/cut.cpp db.cc dbhash.cc dbindex.cc core/derep.cpp \
-	commands/derep_fulllength.cpp commands/derep_id.cpp \
-	commands/fastx_uniques.cpp commands/derep_prefix.cpp \
-	commands/derep_smallmem.cpp dynlibs.cc \
-	commands/fastq_eestats.cpp commands/fastq_eestats2.cpp \
-	core/eestats.cpp commands/fasta2fastq.cpp fasta.cc fastq.cc \
+	bitmap.cc core/chimera.cpp commands/uchime_denovo.cpp \
+	commands/uchime2_denovo.cpp commands/uchime3_denovo.cpp \
+	commands/uchime_ref.cpp commands/chimeras_denovo.cpp cli.cc \
+	core/cluster.cpp commands/cluster_fast.cpp \
+	commands/cluster_smallmem.cpp commands/cluster_size.cpp \
+	commands/cluster_unoise.cpp commands/cut.cpp db.cc dbhash.cc \
+	dbindex.cc core/derep.cpp commands/derep_fulllength.cpp \
+	commands/derep_id.cpp commands/fastx_uniques.cpp \
+	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
+	dynlibs.cc commands/fastq_eestats.cpp \
+	commands/fastq_eestats2.cpp core/eestats.cpp \
+	commands/fasta2fastq.cpp fasta.cc fastq.cc \
 	commands/fastq_chars.cpp commands/fastq_convert.cpp \
 	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
 	core/mergepairs.cpp commands/fastq_stats.cpp fastx.cc \
@@ -525,7 +549,12 @@ am__objects_2 = libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-allpairs_global.$(OBJEXT) \
 	libvsearch_core_a-attributes.$(OBJEXT) \
 	libvsearch_core_a-bitmap.$(OBJEXT) \
-	libvsearch_core_a-chimera.$(OBJEXT) \
+	core/libvsearch_core_a-chimera.$(OBJEXT) \
+	commands/libvsearch_core_a-uchime_denovo.$(OBJEXT) \
+	commands/libvsearch_core_a-uchime2_denovo.$(OBJEXT) \
+	commands/libvsearch_core_a-uchime3_denovo.$(OBJEXT) \
+	commands/libvsearch_core_a-uchime_ref.$(OBJEXT) \
+	commands/libvsearch_core_a-chimeras_denovo.$(OBJEXT) \
 	libvsearch_core_a-cli.$(OBJEXT) \
 	core/libvsearch_core_a-cluster.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_fast.$(OBJEXT) \
@@ -629,17 +658,20 @@ am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
 libvsearch_core_a_OBJECTS = $(am_libvsearch_core_a_OBJECTS)
 am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	attributes.h bitmap.h chimera.h vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp cpu.h \
-	commands/cut.hpp db.h dbhash.h dbindex.h core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	dynlibs.h commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp fasta.h fastq.h \
+	attributes.h bitmap.h core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp cpu.h commands/cut.hpp db.h \
+	dbhash.h dbindex.h core/derep.hpp core/derep_internal.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp dynlibs.h \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp fasta.h fastq.h \
 	commands/fastq_chars.hpp commands/fastq_convert.hpp \
 	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
@@ -667,15 +699,18 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h \
 	utils/timestamp.hpp utils/userfields.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h xstring.h \
 	align_simd.cc commands/allpairs_global.cpp attributes.cc \
-	bitmap.cc chimera.cc cli.cc core/cluster.cpp \
-	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
-	commands/cluster_size.cpp commands/cluster_unoise.cpp \
-	commands/cut.cpp db.cc dbhash.cc dbindex.cc core/derep.cpp \
-	commands/derep_fulllength.cpp commands/derep_id.cpp \
-	commands/fastx_uniques.cpp commands/derep_prefix.cpp \
-	commands/derep_smallmem.cpp dynlibs.cc \
-	commands/fastq_eestats.cpp commands/fastq_eestats2.cpp \
-	core/eestats.cpp commands/fasta2fastq.cpp fasta.cc fastq.cc \
+	bitmap.cc core/chimera.cpp commands/uchime_denovo.cpp \
+	commands/uchime2_denovo.cpp commands/uchime3_denovo.cpp \
+	commands/uchime_ref.cpp commands/chimeras_denovo.cpp cli.cc \
+	core/cluster.cpp commands/cluster_fast.cpp \
+	commands/cluster_smallmem.cpp commands/cluster_size.cpp \
+	commands/cluster_unoise.cpp commands/cut.cpp db.cc dbhash.cc \
+	dbindex.cc core/derep.cpp commands/derep_fulllength.cpp \
+	commands/derep_id.cpp commands/fastx_uniques.cpp \
+	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
+	dynlibs.cc commands/fastq_eestats.cpp \
+	commands/fastq_eestats2.cpp core/eestats.cpp \
+	commands/fasta2fastq.cpp fasta.cc fastq.cc \
 	commands/fastq_chars.cpp commands/fastq_convert.cpp \
 	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
 	core/mergepairs.cpp commands/fastq_stats.cpp fastx.cc \
@@ -707,7 +742,12 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = align_simd.h \
 	os/windows/system.cc os/windows/system_memory.cc
 am__objects_8 = align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) attributes.$(OBJEXT) \
-	bitmap.$(OBJEXT) chimera.$(OBJEXT) cli.$(OBJEXT) \
+	bitmap.$(OBJEXT) core/chimera.$(OBJEXT) \
+	commands/uchime_denovo.$(OBJEXT) \
+	commands/uchime2_denovo.$(OBJEXT) \
+	commands/uchime3_denovo.$(OBJEXT) \
+	commands/uchime_ref.$(OBJEXT) \
+	commands/chimeras_denovo.$(OBJEXT) cli.$(OBJEXT) \
 	core/cluster.$(OBJEXT) commands/cluster_fast.$(OBJEXT) \
 	commands/cluster_smallmem.$(OBJEXT) \
 	commands/cluster_size.$(OBJEXT) \
@@ -799,8 +839,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/attributes.Po ./$(DEPDIR)/bitmap.Po \
-	./$(DEPDIR)/chimera.Po ./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po \
-	./$(DEPDIR)/db.Po ./$(DEPDIR)/dbhash.Po ./$(DEPDIR)/dbindex.Po \
+	./$(DEPDIR)/cli.Po ./$(DEPDIR)/cpu.Po ./$(DEPDIR)/db.Po \
+	./$(DEPDIR)/dbhash.Po ./$(DEPDIR)/dbindex.Po \
 	./$(DEPDIR)/dynlibs.Po ./$(DEPDIR)/fasta.Po \
 	./$(DEPDIR)/fastq.Po ./$(DEPDIR)/fastx.Po \
 	./$(DEPDIR)/kmerhash.Po ./$(DEPDIR)/libcpu_pic_a-cpu.Po \
@@ -811,7 +851,6 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/libvsearch_core_a-align_simd.Po \
 	./$(DEPDIR)/libvsearch_core_a-attributes.Po \
 	./$(DEPDIR)/libvsearch_core_a-bitmap.Po \
-	./$(DEPDIR)/libvsearch_core_a-chimera.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-db.Po \
 	./$(DEPDIR)/libvsearch_core_a-dbhash.Po \
@@ -840,6 +879,7 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	./$(DEPDIR)/vsearch.Po arch/x86_64/$(DEPDIR)/cpu_features.Po \
 	arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po \
 	commands/$(DEPDIR)/allpairs_global.Po \
+	commands/$(DEPDIR)/chimeras_denovo.Po \
 	commands/$(DEPDIR)/cluster_fast.Po \
 	commands/$(DEPDIR)/cluster_size.Po \
 	commands/$(DEPDIR)/cluster_smallmem.Po \
@@ -867,6 +907,7 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/fastx_syncpairs.Po \
 	commands/$(DEPDIR)/fastx_uniques.Po commands/$(DEPDIR)/help.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-cluster_fast.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-cluster_size.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-cluster_smallmem.Po \
@@ -905,6 +946,10 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-sintax.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-sortbylength.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-sortbysize.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-udb2fasta.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po \
@@ -918,12 +963,18 @@ am__depfiles_remade = ./$(DEPDIR)/align_simd.Po \
 	commands/$(DEPDIR)/shuffle.Po commands/$(DEPDIR)/sintax.Po \
 	commands/$(DEPDIR)/sortbylength.Po \
 	commands/$(DEPDIR)/sortbysize.Po \
+	commands/$(DEPDIR)/uchime2_denovo.Po \
+	commands/$(DEPDIR)/uchime3_denovo.Po \
+	commands/$(DEPDIR)/uchime_denovo.Po \
+	commands/$(DEPDIR)/uchime_ref.Po \
 	commands/$(DEPDIR)/udb2fasta.Po commands/$(DEPDIR)/udbinfo.Po \
 	commands/$(DEPDIR)/udbstats.Po \
 	commands/$(DEPDIR)/usearch_global.Po \
-	commands/$(DEPDIR)/version.Po core/$(DEPDIR)/cluster.Po \
-	core/$(DEPDIR)/derep.Po core/$(DEPDIR)/eestats.Po \
-	core/$(DEPDIR)/filter.Po core/$(DEPDIR)/getseq.Po \
+	commands/$(DEPDIR)/version.Po core/$(DEPDIR)/chimera.Po \
+	core/$(DEPDIR)/cluster.Po core/$(DEPDIR)/derep.Po \
+	core/$(DEPDIR)/eestats.Po core/$(DEPDIR)/filter.Po \
+	core/$(DEPDIR)/getseq.Po \
+	core/$(DEPDIR)/libvsearch_core_a-chimera.Po \
 	core/$(DEPDIR)/libvsearch_core_a-cluster.Po \
 	core/$(DEPDIR)/libvsearch_core_a-derep.Po \
 	core/$(DEPDIR)/libvsearch_core_a-eestats.Po \
@@ -1160,7 +1211,13 @@ commands/allpairs_global.hpp \
 arch/x86_64/cpu_features.hpp \
 attributes.h \
 bitmap.h \
-chimera.h \
+core/chimera.hpp \
+core/chimera_internal.hpp \
+commands/uchime_denovo.hpp \
+commands/uchime2_denovo.hpp \
+commands/uchime3_denovo.hpp \
+commands/uchime_ref.hpp \
+commands/chimeras_denovo.hpp \
 vendored/city.h \
 cli.h \
 core/cluster.hpp \
@@ -1306,7 +1363,12 @@ align_simd.cc \
 commands/allpairs_global.cpp \
 attributes.cc \
 bitmap.cc \
-chimera.cc \
+core/chimera.cpp \
+commands/uchime_denovo.cpp \
+commands/uchime2_denovo.cpp \
+commands/uchime3_denovo.cpp \
+commands/uchime_ref.cpp \
+commands/chimeras_denovo.cpp \
 cli.cc \
 core/cluster.cpp \
 commands/cluster_fast.cpp \
@@ -1573,6 +1635,18 @@ core/$(am__dirstamp):
 core/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) core/$(DEPDIR)
 	@: > core/$(DEPDIR)/$(am__dirstamp)
+core/libvsearch_core_a-chimera.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-uchime_denovo.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-uchime2_denovo.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-uchime3_denovo.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-uchime_ref.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-chimeras_denovo.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-cluster.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-cluster_fast.$(OBJEXT):  \
@@ -1775,6 +1849,18 @@ libvsearch_core.a: $(libvsearch_core_a_OBJECTS) $(libvsearch_core_a_DEPENDENCIES
 	$(AM_V_at)$(RANLIB) libvsearch_core.a
 commands/allpairs_global.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
+core/chimera.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+commands/uchime_denovo.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
+commands/uchime2_denovo.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
+commands/uchime3_denovo.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
+commands/uchime_ref.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
+commands/chimeras_denovo.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
 core/cluster.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 commands/cluster_fast.$(OBJEXT): commands/$(am__dirstamp) \
@@ -1950,7 +2036,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/align_simd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/attributes.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bitmap.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chimera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/db.Po@am__quote@ # am--include-marker
@@ -1969,7 +2054,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-align_simd.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-attributes.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-bitmap.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-chimera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-db.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-dbhash.Po@am__quote@ # am--include-marker
@@ -2004,6 +2088,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/$(DEPDIR)/cpu_features.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/allpairs_global.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/chimeras_denovo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/cluster_fast.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/cluster_size.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/cluster_smallmem.Po@am__quote@ # am--include-marker
@@ -2033,6 +2118,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/fastx_uniques.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/help.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-cluster_fast.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-cluster_size.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-cluster_smallmem.Po@am__quote@ # am--include-marker
@@ -2071,6 +2157,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-sintax.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-sortbylength.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-sortbysize.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-udb2fasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po@am__quote@ # am--include-marker
@@ -2086,16 +2176,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/sintax.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/sortbylength.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/sortbysize.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/uchime2_denovo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/uchime3_denovo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/uchime_denovo.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/uchime_ref.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/udb2fasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/udbinfo.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/udbstats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/usearch_global.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/version.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/chimera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/cluster.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/derep.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/eestats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/filter.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/getseq.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-chimera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-cluster.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-derep.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-eestats.Po@am__quote@ # am--include-marker
@@ -2374,19 +2470,89 @@ libvsearch_core_a-bitmap.obj: bitmap.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-bitmap.obj `if test -f 'bitmap.cc'; then $(CYGPATH_W) 'bitmap.cc'; else $(CYGPATH_W) '$(srcdir)/bitmap.cc'; fi`
 
-libvsearch_core_a-chimera.o: chimera.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-chimera.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-chimera.Tpo -c -o libvsearch_core_a-chimera.o `test -f 'chimera.cc' || echo '$(srcdir)/'`chimera.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-chimera.Tpo $(DEPDIR)/libvsearch_core_a-chimera.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='chimera.cc' object='libvsearch_core_a-chimera.o' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-chimera.o: core/chimera.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-chimera.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-chimera.Tpo -c -o core/libvsearch_core_a-chimera.o `test -f 'core/chimera.cpp' || echo '$(srcdir)/'`core/chimera.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-chimera.Tpo core/$(DEPDIR)/libvsearch_core_a-chimera.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/chimera.cpp' object='core/libvsearch_core_a-chimera.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-chimera.o `test -f 'chimera.cc' || echo '$(srcdir)/'`chimera.cc
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-chimera.o `test -f 'core/chimera.cpp' || echo '$(srcdir)/'`core/chimera.cpp
 
-libvsearch_core_a-chimera.obj: chimera.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-chimera.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-chimera.Tpo -c -o libvsearch_core_a-chimera.obj `if test -f 'chimera.cc'; then $(CYGPATH_W) 'chimera.cc'; else $(CYGPATH_W) '$(srcdir)/chimera.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-chimera.Tpo $(DEPDIR)/libvsearch_core_a-chimera.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='chimera.cc' object='libvsearch_core_a-chimera.obj' libtool=no @AMDEPBACKSLASH@
+core/libvsearch_core_a-chimera.obj: core/chimera.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-chimera.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-chimera.Tpo -c -o core/libvsearch_core_a-chimera.obj `if test -f 'core/chimera.cpp'; then $(CYGPATH_W) 'core/chimera.cpp'; else $(CYGPATH_W) '$(srcdir)/core/chimera.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-chimera.Tpo core/$(DEPDIR)/libvsearch_core_a-chimera.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/chimera.cpp' object='core/libvsearch_core_a-chimera.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-chimera.obj `if test -f 'chimera.cc'; then $(CYGPATH_W) 'chimera.cc'; else $(CYGPATH_W) '$(srcdir)/chimera.cc'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-chimera.obj `if test -f 'core/chimera.cpp'; then $(CYGPATH_W) 'core/chimera.cpp'; else $(CYGPATH_W) '$(srcdir)/core/chimera.cpp'; fi`
+
+commands/libvsearch_core_a-uchime_denovo.o: commands/uchime_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime_denovo.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Tpo -c -o commands/libvsearch_core_a-uchime_denovo.o `test -f 'commands/uchime_denovo.cpp' || echo '$(srcdir)/'`commands/uchime_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime_denovo.cpp' object='commands/libvsearch_core_a-uchime_denovo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime_denovo.o `test -f 'commands/uchime_denovo.cpp' || echo '$(srcdir)/'`commands/uchime_denovo.cpp
+
+commands/libvsearch_core_a-uchime_denovo.obj: commands/uchime_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime_denovo.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Tpo -c -o commands/libvsearch_core_a-uchime_denovo.obj `if test -f 'commands/uchime_denovo.cpp'; then $(CYGPATH_W) 'commands/uchime_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime_denovo.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime_denovo.cpp' object='commands/libvsearch_core_a-uchime_denovo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime_denovo.obj `if test -f 'commands/uchime_denovo.cpp'; then $(CYGPATH_W) 'commands/uchime_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime_denovo.cpp'; fi`
+
+commands/libvsearch_core_a-uchime2_denovo.o: commands/uchime2_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime2_denovo.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Tpo -c -o commands/libvsearch_core_a-uchime2_denovo.o `test -f 'commands/uchime2_denovo.cpp' || echo '$(srcdir)/'`commands/uchime2_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime2_denovo.cpp' object='commands/libvsearch_core_a-uchime2_denovo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime2_denovo.o `test -f 'commands/uchime2_denovo.cpp' || echo '$(srcdir)/'`commands/uchime2_denovo.cpp
+
+commands/libvsearch_core_a-uchime2_denovo.obj: commands/uchime2_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime2_denovo.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Tpo -c -o commands/libvsearch_core_a-uchime2_denovo.obj `if test -f 'commands/uchime2_denovo.cpp'; then $(CYGPATH_W) 'commands/uchime2_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime2_denovo.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime2_denovo.cpp' object='commands/libvsearch_core_a-uchime2_denovo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime2_denovo.obj `if test -f 'commands/uchime2_denovo.cpp'; then $(CYGPATH_W) 'commands/uchime2_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime2_denovo.cpp'; fi`
+
+commands/libvsearch_core_a-uchime3_denovo.o: commands/uchime3_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime3_denovo.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Tpo -c -o commands/libvsearch_core_a-uchime3_denovo.o `test -f 'commands/uchime3_denovo.cpp' || echo '$(srcdir)/'`commands/uchime3_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime3_denovo.cpp' object='commands/libvsearch_core_a-uchime3_denovo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime3_denovo.o `test -f 'commands/uchime3_denovo.cpp' || echo '$(srcdir)/'`commands/uchime3_denovo.cpp
+
+commands/libvsearch_core_a-uchime3_denovo.obj: commands/uchime3_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime3_denovo.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Tpo -c -o commands/libvsearch_core_a-uchime3_denovo.obj `if test -f 'commands/uchime3_denovo.cpp'; then $(CYGPATH_W) 'commands/uchime3_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime3_denovo.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime3_denovo.cpp' object='commands/libvsearch_core_a-uchime3_denovo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime3_denovo.obj `if test -f 'commands/uchime3_denovo.cpp'; then $(CYGPATH_W) 'commands/uchime3_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime3_denovo.cpp'; fi`
+
+commands/libvsearch_core_a-uchime_ref.o: commands/uchime_ref.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime_ref.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Tpo -c -o commands/libvsearch_core_a-uchime_ref.o `test -f 'commands/uchime_ref.cpp' || echo '$(srcdir)/'`commands/uchime_ref.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime_ref.cpp' object='commands/libvsearch_core_a-uchime_ref.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime_ref.o `test -f 'commands/uchime_ref.cpp' || echo '$(srcdir)/'`commands/uchime_ref.cpp
+
+commands/libvsearch_core_a-uchime_ref.obj: commands/uchime_ref.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-uchime_ref.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Tpo -c -o commands/libvsearch_core_a-uchime_ref.obj `if test -f 'commands/uchime_ref.cpp'; then $(CYGPATH_W) 'commands/uchime_ref.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime_ref.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Tpo commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/uchime_ref.cpp' object='commands/libvsearch_core_a-uchime_ref.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-uchime_ref.obj `if test -f 'commands/uchime_ref.cpp'; then $(CYGPATH_W) 'commands/uchime_ref.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/uchime_ref.cpp'; fi`
+
+commands/libvsearch_core_a-chimeras_denovo.o: commands/chimeras_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-chimeras_denovo.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Tpo -c -o commands/libvsearch_core_a-chimeras_denovo.o `test -f 'commands/chimeras_denovo.cpp' || echo '$(srcdir)/'`commands/chimeras_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/chimeras_denovo.cpp' object='commands/libvsearch_core_a-chimeras_denovo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-chimeras_denovo.o `test -f 'commands/chimeras_denovo.cpp' || echo '$(srcdir)/'`commands/chimeras_denovo.cpp
+
+commands/libvsearch_core_a-chimeras_denovo.obj: commands/chimeras_denovo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-chimeras_denovo.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Tpo -c -o commands/libvsearch_core_a-chimeras_denovo.obj `if test -f 'commands/chimeras_denovo.cpp'; then $(CYGPATH_W) 'commands/chimeras_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/chimeras_denovo.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Tpo commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/chimeras_denovo.cpp' object='commands/libvsearch_core_a-chimeras_denovo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-chimeras_denovo.obj `if test -f 'commands/chimeras_denovo.cpp'; then $(CYGPATH_W) 'commands/chimeras_denovo.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/chimeras_denovo.cpp'; fi`
 
 libvsearch_core_a-cli.o: cli.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-cli.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-cli.Tpo -c -o libvsearch_core_a-cli.o `test -f 'cli.cc' || echo '$(srcdir)/'`cli.cc
@@ -3843,7 +4009,6 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/align_simd.Po
 	-rm -f ./$(DEPDIR)/attributes.Po
 	-rm -f ./$(DEPDIR)/bitmap.Po
-	-rm -f ./$(DEPDIR)/chimera.Po
 	-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/cpu.Po
 	-rm -f ./$(DEPDIR)/db.Po
@@ -3862,7 +4027,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-align_simd.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-attributes.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-bitmap.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-chimera.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-db.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dbhash.Po
@@ -3897,6 +4061,7 @@ distclean: distclean-am
 	-rm -f arch/x86_64/$(DEPDIR)/cpu_features.Po
 	-rm -f arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
 	-rm -f commands/$(DEPDIR)/allpairs_global.Po
+	-rm -f commands/$(DEPDIR)/chimeras_denovo.Po
 	-rm -f commands/$(DEPDIR)/cluster_fast.Po
 	-rm -f commands/$(DEPDIR)/cluster_size.Po
 	-rm -f commands/$(DEPDIR)/cluster_smallmem.Po
@@ -3926,6 +4091,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/fastx_uniques.Po
 	-rm -f commands/$(DEPDIR)/help.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cluster_fast.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cluster_size.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cluster_smallmem.Po
@@ -3964,6 +4130,10 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sintax.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sortbylength.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sortbysize.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udb2fasta.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po
@@ -3979,16 +4149,22 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/sintax.Po
 	-rm -f commands/$(DEPDIR)/sortbylength.Po
 	-rm -f commands/$(DEPDIR)/sortbysize.Po
+	-rm -f commands/$(DEPDIR)/uchime2_denovo.Po
+	-rm -f commands/$(DEPDIR)/uchime3_denovo.Po
+	-rm -f commands/$(DEPDIR)/uchime_denovo.Po
+	-rm -f commands/$(DEPDIR)/uchime_ref.Po
 	-rm -f commands/$(DEPDIR)/udb2fasta.Po
 	-rm -f commands/$(DEPDIR)/udbinfo.Po
 	-rm -f commands/$(DEPDIR)/udbstats.Po
 	-rm -f commands/$(DEPDIR)/usearch_global.Po
 	-rm -f commands/$(DEPDIR)/version.Po
+	-rm -f core/$(DEPDIR)/chimera.Po
 	-rm -f core/$(DEPDIR)/cluster.Po
 	-rm -f core/$(DEPDIR)/derep.Po
 	-rm -f core/$(DEPDIR)/eestats.Po
 	-rm -f core/$(DEPDIR)/filter.Po
 	-rm -f core/$(DEPDIR)/getseq.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-chimera.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-cluster.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-eestats.Po
@@ -4094,7 +4270,6 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/align_simd.Po
 	-rm -f ./$(DEPDIR)/attributes.Po
 	-rm -f ./$(DEPDIR)/bitmap.Po
-	-rm -f ./$(DEPDIR)/chimera.Po
 	-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/cpu.Po
 	-rm -f ./$(DEPDIR)/db.Po
@@ -4113,7 +4288,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-align_simd.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-attributes.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-bitmap.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-chimera.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-db.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-dbhash.Po
@@ -4148,6 +4322,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f arch/x86_64/$(DEPDIR)/cpu_features.Po
 	-rm -f arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
 	-rm -f commands/$(DEPDIR)/allpairs_global.Po
+	-rm -f commands/$(DEPDIR)/chimeras_denovo.Po
 	-rm -f commands/$(DEPDIR)/cluster_fast.Po
 	-rm -f commands/$(DEPDIR)/cluster_size.Po
 	-rm -f commands/$(DEPDIR)/cluster_smallmem.Po
@@ -4177,6 +4352,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/fastx_uniques.Po
 	-rm -f commands/$(DEPDIR)/help.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-allpairs_global.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-chimeras_denovo.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cluster_fast.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cluster_size.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-cluster_smallmem.Po
@@ -4215,6 +4391,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sintax.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sortbylength.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sortbysize.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime2_denovo.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime3_denovo.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime_denovo.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-uchime_ref.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udb2fasta.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbinfo.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-udbstats.Po
@@ -4230,16 +4410,22 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/sintax.Po
 	-rm -f commands/$(DEPDIR)/sortbylength.Po
 	-rm -f commands/$(DEPDIR)/sortbysize.Po
+	-rm -f commands/$(DEPDIR)/uchime2_denovo.Po
+	-rm -f commands/$(DEPDIR)/uchime3_denovo.Po
+	-rm -f commands/$(DEPDIR)/uchime_denovo.Po
+	-rm -f commands/$(DEPDIR)/uchime_ref.Po
 	-rm -f commands/$(DEPDIR)/udb2fasta.Po
 	-rm -f commands/$(DEPDIR)/udbinfo.Po
 	-rm -f commands/$(DEPDIR)/udbstats.Po
 	-rm -f commands/$(DEPDIR)/usearch_global.Po
 	-rm -f commands/$(DEPDIR)/version.Po
+	-rm -f core/$(DEPDIR)/chimera.Po
 	-rm -f core/$(DEPDIR)/cluster.Po
 	-rm -f core/$(DEPDIR)/derep.Po
 	-rm -f core/$(DEPDIR)/eestats.Po
 	-rm -f core/$(DEPDIR)/filter.Po
 	-rm -f core/$(DEPDIR)/getseq.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-chimera.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-cluster.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-eestats.Po
