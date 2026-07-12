@@ -129,7 +129,11 @@ sortbysize.h \
 subsample.h \
 system.h \
 tax.h \
-udb.h \
+commands/makeudb_usearch.hpp \
+commands/udb2fasta.hpp \
+commands/udbinfo.hpp \
+commands/udbstats.hpp \
+core/udb.hpp \
 unique.h \
 util.h \
 utils/cigar.hpp \
@@ -259,7 +263,11 @@ sortbylength.cc \
 sortbysize.cc \
 subsample.cc \
 tax.cc \
-udb.cc \
+commands/makeudb_usearch.cpp \
+commands/udb2fasta.cpp \
+commands/udbinfo.cpp \
+commands/udbstats.cpp \
+core/udb.cpp \
 unique.cc \
 util.cc \
 utils/fatal.cpp \

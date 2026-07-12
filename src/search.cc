@@ -67,7 +67,7 @@
 #include "core/mask.hpp"
 #include "minheap.h"
 #include "otutable.h"
-#include "udb.h"
+#include "core/udb.hpp"
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
