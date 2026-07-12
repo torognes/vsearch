@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "core/mask.hpp"
-#include "otutable.h"
+#include "core/otutable.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"

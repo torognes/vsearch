@@ -63,7 +63,7 @@
 #include "dbindex.h"
 #include "core/mask.hpp"
 #include "core/udb.hpp"
-#include "unique.h"
+#include "core/unique.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"

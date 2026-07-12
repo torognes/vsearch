@@ -63,7 +63,7 @@
 #include "core/attributes.hpp"
 #include "core/bitmap.hpp"
 #include "dbindex.h"
-#include "unique.h"
+#include "core/unique.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::max

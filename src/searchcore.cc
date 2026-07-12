@@ -63,8 +63,8 @@
 #include "dbindex.h"
 #include "core/linmemalign.hpp"
 #include "core/minheap.hpp"
-#include "otutable.h"
-#include "unique.h"
+#include "core/otutable.hpp"
+#include "core/unique.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include <algorithm>  // std::count_if, std::min, std::max

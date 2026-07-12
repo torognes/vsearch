@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "core/mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
-#include "kmerhash.h"
+#include "core/kmerhash.hpp"
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"

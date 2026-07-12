@@ -65,7 +65,7 @@
 #include "searchcore.h"
 #include "dbindex.h"
 #include "core/mask.hpp"
-#include "otutable.h"
+#include "core/otutable.hpp"
 #include "core/udb.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

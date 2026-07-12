@@ -69,7 +69,7 @@
 #include "core/mask.hpp"
 #include "core/minheap.hpp"
 #include "core/udb.hpp"
-#include "unique.h"
+#include "core/unique.hpp"
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

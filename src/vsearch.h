@@ -190,12 +190,12 @@
 #include "db.h"
 #include "core/mask.hpp"
 #include "searchcore.h"
-#include "results.h"
+#include "core/results.hpp"
 #include "cpu.h"
 #include "core/fastx.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
-#include "dbhash.h"
+#include "core/dbhash.hpp"
 
 /* Over-allocation headroom (bytes) for the per-query header and sequence
    buffers in the search engine: populate_si() grows them to

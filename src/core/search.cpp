@@ -66,7 +66,7 @@
 #include "dbindex.h"
 #include "core/mask.hpp"
 #include "core/minheap.hpp"
-#include "unique.h"
+#include "core/unique.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"

@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "core/attributes.hpp"
 #include "core/showalign.hpp"
-#include "tax.h"
+#include "core/tax.hpp"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
