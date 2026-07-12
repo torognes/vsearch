@@ -765,16 +765,21 @@ It can be called without any initialization.
 | `dust_all()` | Apply DUST masking to all database sequences. |
 | `dust_single(seq, len, hardmask)` | Mask one sequence in-place. `hardmask=true` replaces with N; `false` lowercases. Thread-safe. |
 
-### Masking constants
+### Masking modes
 
-| Constant | Value | Meaning |
-|----------|-------|---------|
-| `MASK_NONE` | 0 | No masking. |
-| `MASK_DUST` | 1 | DUST low-complexity masking. |
-| `MASK_SOFT` | 2 | Soft masking (lowercase). |
+`opt_dbmask` and `opt_qmask` are of type `Masking`, an `enum struct`
+declared in `mask.h`, and control which masking is applied to database
+and query sequences, respectively.
 
-`opt_dbmask` and `opt_qmask` control which masking is applied to
-database and query sequences, respectively. Both default to `MASK_DUST`.
+| Enumerator | Value | Meaning |
+|------------|-------|---------|
+| `Masking::none` | 0 | No masking. |
+| `Masking::dust` | 1 | DUST low-complexity masking. |
+| `Masking::soft` | 2 | Soft masking (lowercase). |
+
+Both default to `Masking::dust`. (`Masking::error`, value -1, is an
+internal sentinel produced when an unrecognised `--qmask` / `--dbmask`
+argument is parsed; it is not a valid masking mode.)
 
 ---
 
