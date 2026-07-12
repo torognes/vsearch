@@ -159,7 +159,7 @@
 #include "derep.h"
 #include "fastq_mergepairs.h"
 #include "core/mask.hpp"
-#include "search.h"
+#include "core/search.hpp"
 
 /* === API version queries === */
 

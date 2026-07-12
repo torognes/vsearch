@@ -84,7 +84,7 @@
 #include "commands/maskfasta.hpp"
 #include "orient.h"
 #include "rereplicate.h"
-#include "search.h"
+#include "commands/usearch_global.hpp"
 #include "search_exact.h"
 #include "sff_convert.h"
 #include "shuffle.h"

@@ -60,8 +60,6 @@
 
 #pragma once
 
-auto usearch_global(struct Parameters const & parameters) -> void;
-
 /* === Library API for embedding global search === */
 
 /* Result of a single search hit. The target's header can be obtained

@@ -117,7 +117,9 @@ orient.h \
 otutable.h \
 rereplicate.h \
 results.h \
-search.h \
+commands/usearch_global.hpp \
+core/search.hpp \
+core/search_internal.hpp \
 searchcore.h \
 search_exact.h \
 sff_convert.h \
@@ -252,7 +254,8 @@ orient.cc \
 otutable.cc \
 rereplicate.cc \
 results.cc \
-search.cc \
+commands/usearch_global.cpp \
+core/search.cpp \
 searchcore.cc \
 search_exact.cc \
 sff_convert.cc \
