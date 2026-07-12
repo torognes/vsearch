@@ -61,7 +61,7 @@
 #include "vsearch.h"
 #include "commands/makeudb_usearch.hpp"
 #include "core/mask.hpp"
-#include "bitmap.h"
+#include "core/bitmap.hpp"
 #include "dbindex.h"
 #include "utils/fatal.hpp"
 #include "utils/progress.hpp"

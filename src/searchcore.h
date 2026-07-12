@@ -60,7 +60,7 @@
 
 #pragma once
 
-#include "linmemalign.h"
+#include "core/linmemalign.hpp"
 #include "core/mask.hpp"  // Masking
 #include <array>
 #include <vector>

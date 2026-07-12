@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "msa.h"
+#include "core/msa.hpp"
 #include "utils/cigar.hpp"
 #include "utils/span.hpp"
 #include <array>

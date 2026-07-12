@@ -73,11 +73,11 @@ endif
 export MACOSX_DEPLOYMENT_TARGET=10.9
 
 VSEARCHHEADERS=\
-align_simd.h \
+core/align_simd.hpp \
 commands/allpairs_global.hpp \
 arch/x86_64/cpu_features.hpp \
-attributes.h \
-bitmap.h \
+core/attributes.hpp \
+core/bitmap.hpp \
 core/chimera.hpp \
 core/chimera_internal.hpp \
 commands/uchime_denovo.hpp \
@@ -132,13 +132,13 @@ commands/fastx_getsubseq.hpp \
 core/getseq.hpp \
 commands/help.hpp \
 kmerhash.h \
-linmemalign.h \
+core/linmemalign.hpp \
 commands/fastx_mask.hpp \
 commands/maskfasta.hpp \
 core/mask.hpp \
 vendored/md5.h \
-minheap.h \
-msa.h \
+core/minheap.hpp \
+core/msa.hpp \
 commands/orient.hpp \
 otutable.h \
 commands/rereplicate.hpp \
@@ -149,7 +149,7 @@ core/search_internal.hpp \
 searchcore.h \
 commands/search_exact.hpp \
 commands/sff_convert.hpp \
-showalign.h \
+core/showalign.hpp \
 vendored/sha1.h \
 commands/shuffle.hpp \
 commands/sintax.hpp \
@@ -240,10 +240,10 @@ endif
 # cpu.cc and city.cc are excluded — they need per-target SIMD/warning flags
 # and are built as separate sub-libraries (libcpu_*, libcityhash_*).
 VSEARCH_COMMON_SOURCES = \
-align_simd.cc \
+core/align_simd.cpp \
 commands/allpairs_global.cpp \
-attributes.cc \
-bitmap.cc \
+core/attributes.cpp \
+core/bitmap.cpp \
 core/chimera.cpp \
 commands/uchime_denovo.cpp \
 commands/uchime2_denovo.cpp \
@@ -292,13 +292,13 @@ commands/fastx_getsubseq.cpp \
 core/getseq.cpp \
 commands/help.cpp \
 kmerhash.cc \
-linmemalign.cc \
+core/linmemalign.cpp \
 commands/fastx_mask.cpp \
 commands/maskfasta.cpp \
 core/mask.cpp \
 vendored/md5.c \
-minheap.cc \
-msa.cc \
+core/minheap.cpp \
+core/msa.cpp \
 commands/orient.cpp \
 otutable.cc \
 commands/rereplicate.cpp \
@@ -309,7 +309,7 @@ searchcore.cc \
 commands/search_exact.cpp \
 commands/sff_convert.cpp \
 vendored/sha1.c \
-showalign.cc \
+core/showalign.cpp \
 commands/shuffle.cpp \
 commands/sintax.cpp \
 commands/sortbylength.cpp \

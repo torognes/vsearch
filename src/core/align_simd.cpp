@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "align_simd.h"
+#include "core/align_simd.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max

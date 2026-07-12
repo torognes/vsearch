@@ -79,10 +79,10 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "bitmap.h"
+#include "core/bitmap.hpp"
 #include "dbindex.h"
 #include "core/mask.hpp"
-#include "minheap.h"
+#include "core/minheap.hpp"
 #include "tax.h"
 #include "core/udb.hpp"
 #include "unique.h"

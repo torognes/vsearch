@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "attributes.h"
-#include "showalign.h"
+#include "core/attributes.hpp"
+#include "core/showalign.hpp"
 #include "tax.h"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"

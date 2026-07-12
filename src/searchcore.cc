@@ -59,10 +59,10 @@
 */
 
 #include "vsearch.h"
-#include "align_simd.h"
+#include "core/align_simd.hpp"
 #include "dbindex.h"
-#include "linmemalign.h"
-#include "minheap.h"
+#include "core/linmemalign.hpp"
+#include "core/minheap.hpp"
 #include "otutable.h"
 #include "unique.h"
 #include "utils/seqcmp.hpp"

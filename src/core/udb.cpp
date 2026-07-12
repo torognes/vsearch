@@ -60,8 +60,8 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
-#include "attributes.h"
-#include "bitmap.h"
+#include "core/attributes.hpp"
+#include "core/bitmap.hpp"
 #include "dbindex.h"
 #include "unique.h"
 #include "utils/fatal.hpp"

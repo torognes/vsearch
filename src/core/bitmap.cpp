@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "bitmap.h"
+#include "core/bitmap.hpp"
 #include <cstring> // std::memset
 
 

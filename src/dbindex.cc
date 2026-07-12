@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "bitmap.h"
+#include "core/bitmap.hpp"
 #include "dbindex.h"
 #include "unique.h"
 #include "utils/open_file.hpp"

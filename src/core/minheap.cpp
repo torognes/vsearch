@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "minheap.h"
+#include "core/minheap.hpp"
 #include <cstdio>  // printf
 #include <cstdlib>  // qsort()
 

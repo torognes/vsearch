@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "attributes.h"
+#include "core/attributes.hpp"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::min
 #include <array>
