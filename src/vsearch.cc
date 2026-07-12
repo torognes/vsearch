@@ -670,7 +670,7 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_derep_fulllength != nullptr)
     {
-      derep(parameters, parameters.opt_derep_fulllength, false);
+      derep_fulllength(parameters);
     }
   else if (parameters.opt_derep_prefix != nullptr)
     {
@@ -682,7 +682,7 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_derep_id != nullptr)
     {
-      derep(parameters, parameters.opt_derep_id, true);
+      derep_id(parameters);
     }
   else if (parameters.opt_shuffle != nullptr)
     {
@@ -815,7 +815,7 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_fastx_uniques != nullptr)
     {
-      derep(parameters, parameters.opt_fastx_uniques, false);
+      fastx_uniques(parameters);
     }
   else
     {

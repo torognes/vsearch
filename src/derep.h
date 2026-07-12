@@ -60,7 +60,11 @@
 
 #pragma once
 
-auto derep(struct Parameters const & parameters, char * input_filename, bool use_header) -> void;
+/* The three CLI dereplication commands. They share a single engine
+   (file-local to derep.cc); each selects its behaviour by mode. */
+auto derep_fulllength(struct Parameters const & parameters) -> void;
+auto derep_id(struct Parameters const & parameters) -> void;
+auto fastx_uniques(struct Parameters const & parameters) -> void;
 
 /* === Library API for in-memory dereplication === */
 

@@ -244,10 +244,20 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 }
 
 
+// Selects which of the three dereplication commands the shared engine
+// runs as. Previously inferred implicitly from which option pointer was
+// non-null (opt_fastx_uniques) plus a use_header bool.
+enum struct Derep_mode { fulllength, id, uniques };
+
+
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
-auto derep(struct Parameters const & parameters, char * input_filename, bool const use_header) -> void
+auto derep(struct Parameters const & parameters, char * input_filename, Derep_mode const mode) -> void
 {
   /* dereplicate full length sequences, optionally require identical headers */
+
+  /* derep_id is the only command that also requires identical headers to
+     collapse two sequences into one */
+  bool const use_header = (mode == Derep_mode::id);
 
   /*
     derep_fulllength output options: --output, --uc (only FASTA, depreciated)
@@ -260,7 +270,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     {
       if (fastx_is_fastq(input_handle))
         {
-          if (parameters.opt_fastx_uniques == nullptr) {
+          if (mode != Derep_mode::uniques) {
             fatal("FASTQ input is only allowed with the fastx_uniques command");
           }
         }
@@ -286,7 +296,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
   std::FILE * fp_uc = nullptr;
   std::FILE * fp_tabbedout = nullptr;
 
-  if (parameters.opt_fastx_uniques != nullptr)
+  if (mode == Derep_mode::uniques)
     {
       if ((parameters.opt_uc == nullptr) and (parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr) and (parameters.opt_tabbedout == nullptr)) {
         fatal("Output file for dereplication with fastx_uniques must be "
@@ -299,7 +309,7 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
     }
   }
 
-  if (parameters.opt_fastx_uniques != nullptr)
+  if (mode == Derep_mode::uniques)
     {
       fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
       fp_fastaout = fastaout_handle.get();
@@ -917,6 +927,24 @@ auto derep(struct Parameters const & parameters, char * input_filename, bool con
       xfree(bucket.qual);
     }
   }
+}
+
+
+auto derep_fulllength(struct Parameters const & parameters) -> void
+{
+  derep(parameters, parameters.opt_derep_fulllength, Derep_mode::fulllength);
+}
+
+
+auto derep_id(struct Parameters const & parameters) -> void
+{
+  derep(parameters, parameters.opt_derep_id, Derep_mode::id);
+}
+
+
+auto fastx_uniques(struct Parameters const & parameters) -> void
+{
+  derep(parameters, parameters.opt_fastx_uniques, Derep_mode::uniques);
 }
 
 
