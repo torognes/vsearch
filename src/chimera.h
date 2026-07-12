@@ -62,7 +62,13 @@
 
 constexpr auto maxparents = 20; /* max, could be fewer */
 
-auto chimera(struct Parameters const & parameters) -> void;
+/* The five CLI chimera-detection commands. They share a single engine
+   (file-local to chimera.cc); each selects its behaviour from the parameters. */
+auto uchime_denovo(struct Parameters const & parameters) -> void;
+auto uchime2_denovo(struct Parameters const & parameters) -> void;
+auto uchime3_denovo(struct Parameters const & parameters) -> void;
+auto uchime_ref(struct Parameters const & parameters) -> void;
+auto chimeras_denovo(struct Parameters const & parameters) -> void;
 
 /* === Library API for embedding chimera detection === */
 

@@ -462,57 +462,6 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
 }
 
 
-auto cmd_chimera(struct Parameters const & parameters) -> void
-{
-  if ((parameters.opt_chimeras == nullptr)  and (parameters.opt_nonchimeras == nullptr) and
-      (parameters.opt_uchimeout == nullptr) and (parameters.opt_uchimealns == nullptr) and
-      (parameters.opt_tabbedout == nullptr) and (parameters.opt_alnout == nullptr))
-    {
-      fatal("No output files specified");
-    }
-
-  if ((parameters.opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
-    {
-      fatal("Database filename not specified with --db");
-    }
-
-  if (parameters.opt_abskew < 1.0)
-    {
-      fatal("Argument to --abskew must be >= 1.0");
-    }
-
-  if (parameters.opt_xn <= 1.0)
-    {
-      fatal("Argument to --xn must be > 1");
-    }
-
-  if (parameters.opt_dn <= 0.0)
-    {
-      fatal("Argument to --dn must be > 0");
-    }
-
-  if ((parameters.opt_uchime2_denovo == nullptr) and (parameters.opt_uchime3_denovo == nullptr))
-    {
-      if (parameters.opt_mindiffs <= 0)
-        {
-          fatal("Argument to --mindiffs must be > 0");
-        }
-
-      if (parameters.opt_mindiv <= 0.0)
-        {
-          fatal("Argument to --mindiv must be > 0");
-        }
-
-      if (parameters.opt_minh <= 0.0)
-        {
-          fatal("Argument to --minh must be > 0");
-        }
-    }
-
-  chimera(parameters);
-}
-
-
 auto cmd_fastq_join(struct Parameters & parameters) -> void
 {
   if (is_not_ASCII(parameters.opt_join_padgap)) {
@@ -705,9 +654,25 @@ auto dispatch_command(struct Parameters & parameters) -> void
     {
       cmd_cluster(parameters);
     }
-  else if ((parameters.opt_uchime_denovo != nullptr) or (parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime2_denovo != nullptr) or (parameters.opt_uchime3_denovo != nullptr) or (parameters.opt_chimeras_denovo != nullptr))
+  else if (parameters.opt_uchime_denovo != nullptr)
     {
-      cmd_chimera(parameters);
+      uchime_denovo(parameters);
+    }
+  else if (parameters.opt_uchime_ref != nullptr)
+    {
+      uchime_ref(parameters);
+    }
+  else if (parameters.opt_uchime2_denovo != nullptr)
+    {
+      uchime2_denovo(parameters);
+    }
+  else if (parameters.opt_uchime3_denovo != nullptr)
+    {
+      uchime3_denovo(parameters);
+    }
+  else if (parameters.opt_chimeras_denovo != nullptr)
+    {
+      chimeras_denovo(parameters);
     }
   else if (parameters.opt_fastq_chars != nullptr)
     {
