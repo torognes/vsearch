@@ -106,7 +106,9 @@ filter.h \
 getseq.h \
 kmerhash.h \
 linmemalign.h \
-mask.h \
+commands/fastx_mask.hpp \
+commands/maskfasta.hpp \
+core/mask.h \
 vendored/md5.h \
 minheap.h \
 msa.h \
@@ -235,7 +237,9 @@ filter.cc \
 getseq.cc \
 kmerhash.cc \
 linmemalign.cc \
-mask.cc \
+commands/fastx_mask.cpp \
+commands/maskfasta.cpp \
+core/mask.cc \
 vendored/md5.c \
 minheap.cc \
 msa.cc \

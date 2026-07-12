@@ -58,26 +58,40 @@
 
 */
 
-#pragma once
+#include "vsearch.h"
+#include "commands/maskfasta.hpp"
+#include "core/mask.h"
+#include "utils/open_file.hpp"
+#include "utils/progress.hpp"
+#include <cstdint>  // uint64_t
 
-#include "core/mask.h"  // Masking
 
-struct bucket_s;
-struct uhandle_s;
+auto maskfasta(struct Parameters const & parameters) -> void
+{
+  auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
 
-auto unique_init() -> struct uhandle_s *;
+  db_read(parameters.opt_maskfasta, 0, parameters);
+  // memory-intensive: the entire database is now held in memory
 
-auto unique_exit(struct uhandle_s * unique_handle) -> void;
+  uint64_t const seqcount = db_getsequencecount();
 
-auto unique_count(struct uhandle_s * unique_handle,
-                  int wordlength,
-                  int seqlen,
-                  char const * seq,
-                  unsigned int * listlen,
-                  unsigned int const * * list,
-                  Masking seqmask) -> void;
+  if (parameters.opt_qmask == Masking::dust)
+    {
+      dust_all(parameters);
+    }
+  else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
+    {
+      hardmask_all();
+    }
 
-auto unique_count_shared(struct uhandle_s const & unique_handle,
-                         int wordlength,
-                         int listlen,
-                         unsigned int const * list) -> unsigned int;
+  {
+    Progress progress("Writing output", seqcount, parameters);
+    for (uint64_t i = 0; i < seqcount; i++)
+      {
+        fasta_print_db_relabel(output_handle.get(), i, i + 1, parameters);
+        progress.update(i);
+      }
+  }
+
+  db_free();
+}

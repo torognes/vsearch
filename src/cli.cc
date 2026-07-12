@@ -63,7 +63,7 @@
 #include "vsearch_api.h"
 #include "system.h"  // system_get_cores
 #include "chimera.h"  // maxparents
-#include "mask.h"  // Masking
+#include "core/mask.h"  // Masking
 #include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal

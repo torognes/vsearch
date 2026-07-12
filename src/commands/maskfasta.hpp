@@ -60,24 +60,4 @@
 
 #pragma once
 
-#include "core/mask.h"  // Masking
-
-struct bucket_s;
-struct uhandle_s;
-
-auto unique_init() -> struct uhandle_s *;
-
-auto unique_exit(struct uhandle_s * unique_handle) -> void;
-
-auto unique_count(struct uhandle_s * unique_handle,
-                  int wordlength,
-                  int seqlen,
-                  char const * seq,
-                  unsigned int * listlen,
-                  unsigned int const * * list,
-                  Masking seqmask) -> void;
-
-auto unique_count_shared(struct uhandle_s const & unique_handle,
-                         int wordlength,
-                         int listlen,
-                         unsigned int const * list) -> unsigned int;
+auto maskfasta(struct Parameters const & parameters) -> void;

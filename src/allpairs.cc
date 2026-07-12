@@ -62,7 +62,7 @@
 #include "utils/progress.hpp"
 #include "align_simd.h"
 #include "linmemalign.h"
-#include "mask.h"
+#include "core/mask.h"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"

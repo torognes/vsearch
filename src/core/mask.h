@@ -60,24 +60,19 @@
 
 #pragma once
 
-#include "core/mask.h"  // Masking
+enum struct Masking : int { error = -1, none = 0, dust = 1, soft = 2 };
 
-struct bucket_s;
-struct uhandle_s;
 
-auto unique_init() -> struct uhandle_s *;
+auto dust(char * seq, int len, struct Parameters const & parameters) -> void;
+auto hardmask(char * seq, int len) -> void;
+auto dust_all(struct Parameters const & parameters) -> void;
+auto hardmask_all() -> void;
 
-auto unique_exit(struct uhandle_s * unique_handle) -> void;
+/* === Library API for single-sequence masking === */
 
-auto unique_count(struct uhandle_s * unique_handle,
-                  int wordlength,
-                  int seqlen,
-                  char const * seq,
-                  unsigned int * listlen,
-                  unsigned int const * * list,
-                  Masking seqmask) -> void;
-
-auto unique_count_shared(struct uhandle_s const & unique_handle,
-                         int wordlength,
-                         int listlen,
-                         unsigned int const * list) -> unsigned int;
+/* Apply DUST low-complexity masking to a single sequence in-place.
+   Does NOT require database loading — works on any null-terminated sequence.
+   use_hardmask: if false, soft-mask (lowercase); if true, hard-mask ('N').
+   The sequence is modified in-place.
+   Thread-safe: does not read or write any global state. */
+auto dust_single(char * seq, int len, bool use_hardmask) -> void;

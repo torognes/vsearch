@@ -64,7 +64,7 @@
 #include "searchcore.h"
 #include "align_simd.h"
 #include "dbindex.h"
-#include "mask.h"
+#include "core/mask.h"
 #include "minheap.h"
 #include "otutable.h"
 #include "udb.h"

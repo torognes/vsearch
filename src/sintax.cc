@@ -81,7 +81,7 @@
 #include "utils/progress.hpp"
 #include "bitmap.h"
 #include "dbindex.h"
-#include "mask.h"
+#include "core/mask.h"
 #include "minheap.h"
 #include "tax.h"
 #include "udb.h"

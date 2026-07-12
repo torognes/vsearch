@@ -63,7 +63,7 @@
 #include "attributes.h"
 #include "bitmap.h"
 #include "dbindex.h"
-#include "mask.h"
+#include "core/mask.h"
 #include "unique.h"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
