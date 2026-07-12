@@ -98,6 +98,8 @@ fastq.h \
 commands/fastq_chars.hpp \
 commands/fastq_join.hpp \
 commands/fastq_mergepairs.hpp \
+core/mergepairs.hpp \
+core/mergepairs_internal.hpp \
 commands/fastq_stats.hpp \
 fastqops.h \
 fastx.h \
@@ -237,6 +239,7 @@ fastq.cc \
 commands/fastq_chars.cpp \
 commands/fastq_join.cpp \
 commands/fastq_mergepairs.cpp \
+core/mergepairs.cpp \
 commands/fastq_stats.cpp \
 fastqops.cc \
 fastx.cc \
