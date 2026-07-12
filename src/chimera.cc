@@ -2480,11 +2480,11 @@ auto chimera(struct Parameters const & parameters) -> void
       else
         {
           db_read(parameters.opt_db, 0, parameters);
-          if (parameters.opt_dbmask == MASK_DUST)
+          if (parameters.opt_dbmask == Masking::dust)
             {
               dust_all(parameters);
             }
-          else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
+          else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
             {
               hardmask_all();
             }
@@ -2527,11 +2527,11 @@ auto chimera(struct Parameters const & parameters) -> void
 
       db_read(denovo_dbname, 0, parameters);
 
-      if (parameters.opt_qmask == MASK_DUST)
+      if (parameters.opt_qmask == Masking::dust)
         {
           dust_all(parameters);
         }
-      else if ((parameters.opt_qmask == MASK_SOFT) and (parameters.opt_hardmask))
+      else if ((parameters.opt_qmask == Masking::soft) and (parameters.opt_hardmask))
         {
           hardmask_all();
         }

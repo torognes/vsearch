@@ -374,11 +374,11 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
       /* mask query */
-      if (state.parameters.opt_qmask == MASK_DUST)
+      if (state.parameters.opt_qmask == Masking::dust)
         {
           dust(si->qsequence, si->qseqlen, state.parameters);
         }
-      else if ((state.parameters.opt_qmask == MASK_SOFT) && (state.parameters.opt_hardmask))
+      else if ((state.parameters.opt_qmask == Masking::soft) && (state.parameters.opt_hardmask))
         {
           hardmask(si->qsequence, si->qseqlen);
         }
@@ -666,11 +666,11 @@ static auto search_prep(struct search_cli_state_s & state) -> void
     {
       db_read(state.parameters.opt_db, 0, state.parameters);
       results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.parameters);
-      if (state.parameters.opt_dbmask == MASK_DUST)
+      if (state.parameters.opt_dbmask == Masking::dust)
         {
           dust_all(state.parameters);
         }
-      else if ((state.parameters.opt_dbmask == MASK_SOFT) && (state.parameters.opt_hardmask))
+      else if ((state.parameters.opt_dbmask == Masking::soft) && (state.parameters.opt_hardmask))
         {
           hardmask_all();
         }
@@ -1042,11 +1042,11 @@ auto search_session_single(struct search_session_s * ss,
       struct searchinfo_s * strand_si =
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
 
-      if (parameters.opt_qmask == MASK_DUST)
+      if (parameters.opt_qmask == Masking::dust)
         {
           dust(strand_si->qsequence, strand_si->qseqlen, parameters);
         }
-      else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
+      else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
         {
           hardmask(strand_si->qsequence, strand_si->qseqlen);
         }
@@ -1195,11 +1195,11 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
         struct searchinfo_s * strand_si =
           (s != 0) ? my_si_minus : my_si_plus;
 
-        if (parameters.opt_qmask == MASK_DUST)
+        if (parameters.opt_qmask == Masking::dust)
           {
             dust(strand_si->qsequence, strand_si->qseqlen, parameters);
           }
-        else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
+        else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
           {
             hardmask(strand_si->qsequence, strand_si->qseqlen);
           }

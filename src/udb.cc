@@ -1004,11 +1004,11 @@ auto udb_make(struct Parameters const & parameters) -> void
 
   db_read(parameters.opt_makeudb_usearch, 1, parameters);
 
-  if (parameters.opt_dbmask == MASK_DUST)
+  if (parameters.opt_dbmask == Masking::dust)
     {
       dust_all(parameters);
     }
-  else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
+  else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
     {
       hardmask_all();
     }

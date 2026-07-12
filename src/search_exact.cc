@@ -417,11 +417,11 @@ auto search_exact_query(uint64_t t, struct search_exact_state_s & state) -> int
       struct searchinfo_s * si = (s != 0) ? state.si_minus + t : state.si_plus + t;
 
       /* mask query */
-      if (parameters.opt_qmask == MASK_DUST)
+      if (parameters.opt_qmask == Masking::dust)
         {
           dust(si->qsequence, si->qseqlen, parameters);
         }
-      else if ((parameters.opt_qmask == MASK_SOFT) && (parameters.opt_hardmask))
+      else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
         {
           hardmask(si->qsequence, si->qseqlen);
         }
@@ -625,11 +625,11 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
 
   results_show_samheader(state.fp_samout, parameters.opt_db, parameters);
 
-  if (parameters.opt_dbmask == MASK_DUST)
+  if (parameters.opt_dbmask == Masking::dust)
     {
       dust_all(parameters);
     }
-  else if ((parameters.opt_dbmask == MASK_SOFT) && (parameters.opt_hardmask))
+  else if ((parameters.opt_dbmask == Masking::soft) && (parameters.opt_hardmask))
     {
       hardmask_all();
     }

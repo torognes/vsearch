@@ -63,7 +63,7 @@
 #include "vsearch_api.h"
 #include "system.h"  // system_get_cores
 #include "chimera.h"  // maxparents
-#include "mask.h"  // MASK_NONE, MASK_DUST, MASK_SOFT, MASK_ERROR
+#include "mask.h"  // Masking
 #include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal
@@ -3219,38 +3219,38 @@ namespace {
           case option_qmask:
             if (are_same_string(optarg, "none"))
               {
-                parameters.opt_qmask = MASK_NONE;
+                parameters.opt_qmask = Masking::none;
               }
             else if (are_same_string(optarg, "dust"))
               {
-                parameters.opt_qmask = MASK_DUST;
+                parameters.opt_qmask = Masking::dust;
               }
             else if (are_same_string(optarg, "soft"))
               {
-                parameters.opt_qmask = MASK_SOFT;
+                parameters.opt_qmask = Masking::soft;
               }
             else
               {
-                parameters.opt_qmask = MASK_ERROR;
+                parameters.opt_qmask = Masking::error;
               }
             break;
 
           case option_dbmask:
             if (are_same_string(optarg, "none"))
               {
-                parameters.opt_dbmask = MASK_NONE;
+                parameters.opt_dbmask = Masking::none;
               }
             else if (are_same_string(optarg, "dust"))
               {
-                parameters.opt_dbmask = MASK_DUST;
+                parameters.opt_dbmask = Masking::dust;
               }
             else if (are_same_string(optarg, "soft"))
               {
-                parameters.opt_dbmask = MASK_SOFT;
+                parameters.opt_dbmask = Masking::soft;
               }
             else
               {
-                parameters.opt_dbmask = MASK_ERROR;
+                parameters.opt_dbmask = Masking::error;
               }
             break;
 
@@ -4238,12 +4238,12 @@ namespace {
         fatal("The argument to --rowlen must not be negative");
       }
 
-    if (parameters.opt_qmask == MASK_ERROR)
+    if (parameters.opt_qmask == Masking::error)
       {
         fatal("The argument to --qmask must be none, dust or soft");
       }
 
-    if (parameters.opt_dbmask == MASK_ERROR)
+    if (parameters.opt_dbmask == Masking::error)
       {
         fatal("The argument to --dbmask must be none, dust or soft");
       }

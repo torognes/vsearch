@@ -186,11 +186,11 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (not is_udb)
     {
-      if (parameters.opt_dbmask == MASK_DUST)
+      if (parameters.opt_dbmask == Masking::dust)
         {
           dust_all(parameters);
         }
-      else if ((parameters.opt_dbmask == MASK_SOFT) and (parameters.opt_hardmask))
+      else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
         {
           hardmask_all();
         }

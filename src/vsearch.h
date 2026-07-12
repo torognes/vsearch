@@ -188,6 +188,7 @@
 #include "system.h"
 #include "util.h"
 #include "db.h"
+#include "mask.h"
 #include "searchcore.h"
 #include "results.h"
 #include "cpu.h"
@@ -334,7 +335,7 @@ struct Parameters {
   int64_t opt_minseqlength = -1;
   int64_t opt_minsize = 0;
   int64_t opt_minuniquesize = 1;
-  int64_t opt_qmask = 1;  // MASK_DUST
+  Masking opt_qmask = Masking::dust;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;
@@ -486,7 +487,7 @@ struct Parameters {
   int       opt_uchimeout5                   = 0;
   int       opt_usersort                     = 0;
 
-  int64_t   opt_dbmask                       = 1;
+  Masking   opt_dbmask                       = Masking::dust;
   int64_t   opt_fastq_maxdiffs               = 10;
   int64_t   opt_fastq_maxlen                 = int64_max;
   int64_t   opt_fastq_maxmergelen            = 1000000;
