@@ -66,13 +66,13 @@
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
 #include "utils/taxonomic_fields.h"
-#include "xstring.h"
 #include <algorithm>  // std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::snprintf, std::sscanf
 #include <cstring>  // std::strlen, std::strncmp
+#include <string>  // std::string, std::to_string
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -783,8 +783,8 @@ auto build_sam_strings(char const * alignment,
                        int64_t const queryseqlen,
                        char const * targetseq,
                        int64_t const targetseqlen,
-                       xstring & cigar,
-                       xstring & md) -> void
+                       std::string & cigar,
+                       std::string & md) -> void
 {
   /*
     convert cigar to sam format:
@@ -840,8 +840,8 @@ auto build_sam_strings(char const * alignment,
             {
               fatal("Invalid CIGAR string: run length exceeds sequence bounds");
             }
-          cigar.add_d(run);
-          cigar.add_c('M');
+          cigar += std::to_string(run);
+          cigar += 'M';
 
           for (auto i = 0; i < run; ++i)
             {
@@ -853,12 +853,12 @@ auto build_sam_strings(char const * alignment,
                 {
                   if (not flag)
                     {
-                      md.add_d(matched);
+                      md += std::to_string(matched);
                       matched = 0;
                       flag = true;
                     }
 
-                  md.add_c(targetseq[tpos]);
+                  md += targetseq[tpos];
                   flag = false;
                 }
               ++qpos;
@@ -872,8 +872,8 @@ auto build_sam_strings(char const * alignment,
             {
               fatal("Invalid CIGAR string: run length exceeds sequence bounds");
             }
-          cigar.add_d(run);
-          cigar.add_c('I');
+          cigar += std::to_string(run);
+          cigar += 'I';
           qpos += run;
           break;
 
@@ -882,20 +882,20 @@ auto build_sam_strings(char const * alignment,
             {
               fatal("Invalid CIGAR string: run length exceeds sequence bounds");
             }
-          cigar.add_d(run);
-          cigar.add_c('D');
+          cigar += std::to_string(run);
+          cigar += 'D';
 
           if (not flag)
             {
-              md.add_d(matched);
+              md += std::to_string(matched);
               matched = 0;
               flag = true;
             }
 
-          md.add_c('^');
+          md += '^';
           for (auto i = 0; i < run; ++i)
             {
-              md.add_c(targetseq[tpos]);
+              md += targetseq[tpos];
               ++tpos;
             }
           flag = false;
@@ -905,7 +905,7 @@ auto build_sam_strings(char const * alignment,
 
   if (not flag)
     {
-      md.add_d(matched);
+      md += std::to_string(matched);
     }
 }
 
@@ -1016,8 +1016,8 @@ auto results_show_samout(std::FILE * output_handle,
         }
 
 
-      xstring cigar;
-      xstring md;
+      std::string cigar;
+      std::string md;
 
       auto const target = static_cast<uint64_t>(hp->target);
       auto const * const query = (hp->strand != 0) ? qsequence_rc : qsequence;

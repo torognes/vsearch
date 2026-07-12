@@ -185,8 +185,7 @@ utils/userfields.hpp \
 utils/worker_loop.hpp \
 commands/version.hpp \
 vsearch.h \
-vsearch_api.h \
-xstring.h
+vsearch_api.h
 
 if TARGET_X86_64
 # The two x86 ISA levels are separate single-ISA sources (no -DSSSE3 toggle):
