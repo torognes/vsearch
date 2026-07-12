@@ -192,9 +192,9 @@
 #include "searchcore.h"
 #include "results.h"
 #include "cpu.h"
-#include "fastx.h"
-#include "fasta.h"
-#include "fastq.h"
+#include "core/fastx.hpp"
+#include "core/fasta.hpp"
+#include "core/fastq.hpp"
 #include "dbhash.h"
 
 /* Over-allocation headroom (bytes) for the per-query header and sequence

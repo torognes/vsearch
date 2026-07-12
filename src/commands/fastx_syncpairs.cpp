@@ -59,9 +59,9 @@
 */
 
 #include "vsearch.h"
-#include "fasta.h"  // fasta_print_general
-#include "fastq.h"  // fastq_print_general
-#include "fastx.h"  // fastx_handle
+#include "core/fasta.hpp"  // fasta_print_general
+#include "core/fastq.hpp"  // fastq_print_general
+#include "core/fastx.hpp"  // fastx_handle
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // chrmap_no_change()

@@ -59,8 +59,8 @@
 */
 
 #include "vsearch.h"
-#include "fastq.h"  // fastq_open, fastq_get_sequence, fastq_get_quality
-#include "fastx.h"  // fastx_handle
+#include "core/fastq.hpp"  // fastq_open, fastq_get_sequence, fastq_get_quality
+#include "core/fastx.hpp"  // fastx_handle
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
