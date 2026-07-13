@@ -198,11 +198,11 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash_search_first(normalized.data(), seqlen, & info);
+  int64_t ret = dbhash_search_first(normalized.data(), seqlen, & info, db_global);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
-      ret = dbhash_search_next(&info);
+      ret = dbhash_search_next(&info, db_global);
     }
 }
 
@@ -648,7 +648,7 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   std::memset(state.dbmatched, 0, static_cast<size_t>(state.seqcount) * sizeof(uint64_t));
 
   dbhash_open(static_cast<uint64_t>(state.seqcount));
-  dbhash_add_all(parameters);
+  dbhash_add_all(db_global, parameters);
 }
 
 auto search_exact_done(struct search_exact_state_s const & state) -> void

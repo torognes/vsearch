@@ -117,7 +117,8 @@ auto dbhash_close() -> void
 
 auto dbhash_search_first(char * seq,
                          uint64_t const seqlen,
-                         struct dbhash_search_info_s * info) -> int64_t
+                         struct dbhash_search_info_s * info,
+                         struct Database const & db) -> int64_t
 {
   auto const hash = hash_cityhash64(seq, seqlen);
   info->hash = hash;
@@ -129,8 +130,8 @@ auto dbhash_search_first(char * seq,
   while ((bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
-          (seqlen != db_getsequencelen(bp->seqno)) or
-          (seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
+          (seqlen != db.getsequencelen(bp->seqno)) or
+          (seqcmp(seq, db.getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
       bp = &dbhash_table[index];
@@ -146,7 +147,7 @@ auto dbhash_search_first(char * seq,
 }
 
 
-auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
+auto dbhash_search_next(struct dbhash_search_info_s * info, struct Database const & db) -> int64_t
 {
   auto const hash = info->hash;
   auto const * seq = info->seq;
@@ -157,8 +158,8 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
   while ((bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
-          (seqlen != db_getsequencelen(bp->seqno)) or
-          (seqcmp(seq, db_getsequence(bp->seqno), seqlen) != 0)))
+          (seqlen != db.getsequencelen(bp->seqno)) or
+          (seqcmp(seq, db.getsequence(bp->seqno), seqlen) != 0)))
     {
       index = (index + 1) & dbhash_mask;
       bp = &dbhash_table[index];
@@ -174,14 +175,14 @@ auto dbhash_search_next(struct dbhash_search_info_s * info) -> int64_t
 }
 
 
-auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
+auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void
 {
   struct dbhash_search_info_s info;
 
-  auto ret = dbhash_search_first(seq, seqlen, &info);
+  auto ret = dbhash_search_first(seq, seqlen, &info, db);
   while (ret >= 0)
     {
-      ret = dbhash_search_next(&info);
+      ret = dbhash_search_next(&info, db);
     }
 
   bitmap_set(dbhash_bitmap, static_cast<unsigned int>(info.index));
@@ -191,16 +192,16 @@ auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno) -> void
 }
 
 
-auto dbhash_add_all(struct Parameters const & parameters) -> void
+auto dbhash_add_all(struct Database const & db, struct Parameters const & parameters) -> void
 {
-  Progress progress("Hashing database sequences", db_getsequencecount(), parameters);
-  std::vector<char> normalized(db_getlongestsequence() + 1);
-  for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
+  Progress progress("Hashing database sequences", db.getsequencecount(), parameters);
+  std::vector<char> normalized(db.getlongestsequence() + 1);
+  for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
-      auto const * seq = db_getsequence(seqno);
-      auto const seqlen = db_getsequencelen(seqno);
+      auto const * seq = db.getsequence(seqno);
+      auto const seqlen = db.getsequencelen(seqno);
       string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
-      dbhash_add(normalized.data(), seqlen, seqno);
+      dbhash_add(normalized.data(), seqlen, seqno, db);
       progress.update(seqno + 1);
     }
 }
