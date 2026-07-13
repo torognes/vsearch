@@ -116,6 +116,7 @@ struct sintax_state_s
   /* the run configuration, threaded through the helpers instead of the
      opt_* globals (E1/F3); set once at construction, read-only thereafter */
   struct Parameters const & parameters;
+  struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;
@@ -163,12 +164,12 @@ static auto sintax_analyse(struct sintax_state_s & state,
           auto const seqno = all_seqno[i];
           std::array<int, tax_levels> new_level_name_start {{}};
           std::array<int, tax_levels> new_level_name_len {{}};
-          tax_split(seqno, new_level_name_start.data(), new_level_name_len.data(), db_global);
+          tax_split(seqno, new_level_name_start.data(), new_level_name_len.data(), state.db);
           cand_level_name_len[static_cast<std::size_t>(i)] = new_level_name_len;
           for (auto k = 0; k < tax_levels; k++)
             {
               cand_level_name_start[static_cast<std::size_t>(i)][static_cast<std::size_t>(k)] =
-                db_getheader(static_cast<uint64_t>(seqno)) + new_level_name_start[static_cast<std::size_t>(k)];
+                state.db.getheader(static_cast<uint64_t>(seqno)) + new_level_name_start[static_cast<std::size_t>(k)];
             }
         }
 
@@ -359,7 +360,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
     {
       count_t const count = searchinfo->kmers[i];
       auto const seqno = searchinfo->dbindex->getmapping(i);
-      unsigned int const length = static_cast<unsigned int>(db_getsequencelen(seqno));
+      unsigned int const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
       if (count > best.count)
         {
@@ -608,7 +609,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   /* thread specific initialiation */
   si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
-  si->db = &db_global;  /* searchcore reads the sequences through the si */
+  si->db = &state.db;  /* searchcore reads the sequences through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(state.tophits);
@@ -709,19 +710,19 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true, state.dbindex, db_global, parameters);
+      udb_read(parameters.opt_db, true, true, state.dbindex, state.db, parameters);
     }
   else
     {
-      db_read(parameters.opt_db, 0, parameters);
+      state.db.read(parameters.opt_db, 0, parameters);
     }
 
-  seqcount = static_cast<int>(db_getsequencecount());
+  seqcount = static_cast<int>(state.db.getsequencecount());
 
   if (! is_udb)
     {
-      state.dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
-      state.dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
+      state.dbindex.prepare(1, parameters.opt_dbmask, state.db, parameters);
+      state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
     }
 
   /* prepare reading of queries */
@@ -795,5 +796,5 @@ auto sintax(struct Parameters const & parameters) -> void
   fastx_close(query_fastx_h, parameters);
 
   state.dbindex.clear();
-  db_free();
+  state.db.clear();
 }
