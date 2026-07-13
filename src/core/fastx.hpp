@@ -60,9 +60,13 @@
 
 #pragma once
 
+#include "utils/view.hpp"  // View
 #include <array>
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <cstring>  // std::memchr
+#include <iterator>  // std::next, std::distance
 
 
 constexpr auto byte_range = 256U;
@@ -175,3 +179,55 @@ auto fastx_get_quality(fastx_handle input_handle) -> char const *;
 auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t;
 
 auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t;
+
+
+/* Line-reading primitive shared by the FASTA and FASTQ record parsers.
+
+   A read-only view of the next line fragment sitting in the input buffer:
+     view          bytes available now, up to and including the LF if present
+     has_newline   true when the fragment ends at an LF (the line is complete)
+     end_of_input  true when the buffer could not be refilled (no more data)
+
+   The three fasta/fastq readers all scanned for the next '\n' by hand, each
+   repeating the same fastx_file_fill_buffer + std::memchr + pointer arithmetic.
+   peek_line_fragment() folds that into one place; consume_fragment() advances
+   the read position past a fragment once the caller has copied it out. Policy
+   that genuinely differs between the loops (raw vs filtered copy, lineno
+   accounting, EOF handling, record-boundary sentinels) stays with the caller. */
+struct Line_fragment
+{
+  View<char> view;
+  bool has_newline;
+  bool end_of_input;
+};
+
+// Refill the file buffer if it is empty and locate the next LF, WITHOUT
+// consuming: the caller inspects the fragment (e.g. peeks view[0] for a
+// record-boundary sentinel), copies it into whichever destination buffer it
+// wants, then calls consume_fragment(). Kept inline in the header so the hot
+// parser loops in fasta.cpp / fastq.cpp keep the fully-inlined scan they have
+// today (no whole-program optimisation is assumed at build time).
+inline auto peek_line_fragment(fastx_handle input_handle) -> Line_fragment
+{
+  auto const rest = fastx_file_fill_buffer(input_handle);
+  if (rest == 0)
+    {
+      return Line_fragment{View<char>{nullptr, std::size_t{0}}, false, true};
+    }
+  auto & file_buffer = input_handle->file_buffer;
+  auto * const start = std::next(file_buffer.data,
+                                 static_cast<std::ptrdiff_t>(file_buffer.position));
+  auto * const line_end = static_cast<char *>(std::memchr(start, '\n', rest));
+  auto const has_newline = (line_end != nullptr);
+  auto const length = has_newline
+    ? static_cast<std::size_t>(std::distance(start, line_end)) + 1
+    : static_cast<std::size_t>(rest);
+  return Line_fragment{View<char>{start, length}, has_newline, false};
+}
+
+// Advance the file-buffer read position past a fragment already copied out.
+inline auto consume_fragment(fastx_handle input_handle,
+                             Line_fragment const & fragment) -> void
+{
+  input_handle->file_buffer.position += fragment.view.size();
+}
