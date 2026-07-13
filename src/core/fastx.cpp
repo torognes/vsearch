@@ -171,18 +171,17 @@ auto find_header_end(Span<char> raw_header) -> std::size_t {
 }
 
 
-auto warn(char const * const format,
-          unsigned char const symbol,
-          uint64_t const line_number) -> void {
-  std::fprintf(stderr, "\nWARNING: ");
-  std::fprintf(stderr, format, symbol, symbol, line_number);
-  std::fprintf(stderr, "\n");
+// Emit a pre-formatted warning line to stderr and, when open, the log file.
+// The caller formats the message itself (mirroring the snprintf-into-a-buffer
+// idiom used by the fatal()/deferred paths below), so this stays a simple
+// reporter and the message's format string is validated by -Wformat at the
+// call site instead of being forwarded as a runtime argument to fprintf.
+auto warn(char const * const message) -> void {
+  std::fprintf(stderr, "\nWARNING: %s\n", message);
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
-    std::fprintf(log, "\nWARNING: ");
-    std::fprintf(log, format, symbol, symbol, line_number);
-    std::fprintf(log, "\n");
+    std::fprintf(log, "\nWARNING: %s\n", message);
   }
 }
 
@@ -243,10 +242,12 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
     auto const symbol_unsigned = static_cast<unsigned char>(symbol);
     auto const is_not_ascii = (symbol_unsigned > 127);
     if (is_not_ascii) {
-      warn("Non-ASCII character encountered in FASTA/FASTQ header.\n"
-           "Character no %d (0x%2x) on line %" PRIu64 ".",
-           symbol_unsigned,
-           input_handle->lineno_start);
+      std::array<char, 256> message {{}};
+      std::snprintf(message.data(), message.size(),
+                    "Non-ASCII character encountered in FASTA/FASTQ header.\n"
+                    "Character no %d (0x%2x) on line %" PRIu64 ".",
+                    symbol_unsigned, symbol_unsigned, input_handle->lineno_start);
+      warn(message.data());
     }
   }
 }
