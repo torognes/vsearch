@@ -325,13 +325,13 @@ db.clear();
 | `db.getlongestsequence()` | Length of longest sequence. |
 | `db.getshortestsequence()` | Length of shortest sequence. |
 | `db.getlongestheader()` | Length of longest header. |
-| `db.getheader(seqno)` | Pointer to header string (database-owned). |
-| `db.getsequence(seqno)` | Pointer to sequence string (database-owned). |
+| `db.getheader(seqno)` | Read-only pointer to header string (database-owned). |
+| `db.getsequence(seqno)` | Read-only pointer to sequence string (database-owned). |
 | `db.getsequencelen(seqno)` | Sequence length. |
 | `db.getheaderlen(seqno)` | Header length. |
 | `db.getabundance(seqno)` | Abundance annotation. |
 | `db.getquality(seqno)` | Quality string (FASTQ only). |
-| `db.is_fastq` | Whether database contains FASTQ data (public bool member). |
+| `db.is_fastq()` | Whether database contains FASTQ data (accessor). |
 | `db.sortbylength(parameters)` | Sort by length, longest first. |
 | `db.sortbylength_shortest_first(parameters)` | Sort by length, shortest first. |
 | `db.sortbyabundance(parameters)` | Sort by abundance, highest first. |

@@ -90,7 +90,7 @@ static int test_db_read_fasta_accessors()
         }
     }
 
-  if (db.is_fastq)
+  if (db.is_fastq())
     {
       std::fprintf(stderr, "FAIL: db_is_fastq() true after reading a FASTA file\n");
       ++failures;
@@ -120,7 +120,7 @@ static int test_db_read_fastq_quality()
   Database db;
   db.read("data/merge_fwd.fastq", 0, parameters);
 
-  if (not db.is_fastq)
+  if (not db.is_fastq())
     {
       std::fprintf(stderr, "FAIL: db_is_fastq() false after reading a FASTQ file\n");
       ++failures;
@@ -177,7 +177,7 @@ static int test_db_add_fastq_quality()
   db.add(true, header, sequence, quality,
          std::strlen(header), std::strlen(sequence), 1);
 
-  if (not db.is_fastq)
+  if (not db.is_fastq())
     {
       std::fprintf(stderr, "FAIL: db_is_fastq() false after db_add(is_fastq=true)\n");
       ++failures;
