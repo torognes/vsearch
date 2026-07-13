@@ -118,6 +118,16 @@ auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
 }
 
 
+/* The std::qsort comparator below needs the database to compare header strings,
+   but a C comparator is a plain function pointer that cannot capture it
+   (qsort_r, which passes context, is non-portable). derep_prefix() sets this
+   file-scope pointer to its Database immediately before the qsort; the sort is
+   single-threaded, so the transient sharing is safe. */
+namespace {
+  Database const * derep_sort_db = nullptr;
+}
+
+
 auto derep_compare_prefix(const void * a, const void * b) -> int
 {
   auto const * lhs = static_cast<struct bucket const *>(a);
@@ -145,8 +155,8 @@ auto derep_compare_prefix(const void * a, const void * b) -> int
     }
 
   // both are deleted, same abundances, compare sequence headers
-  auto const result = std::strcmp(db_getheader(lhs->seqno_first),
-                                  db_getheader(rhs->seqno_first));
+  auto const result = std::strcmp(derep_sort_db->getheader(lhs->seqno_first),
+                                  derep_sort_db->getheader(rhs->seqno_first));
   if (result != 0)
     {
       return result;
@@ -177,13 +187,14 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   auto uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
   std::FILE * const fp_uc = uc_handle.get();
 
-  db_read(parameters.opt_derep_prefix, 0, parameters);
+  Database db;
+  db.read(parameters.opt_derep_prefix, 0, parameters);
 
-  db_sortbylength_shortest_first(parameters);
+  db.sortbylength_shortest_first(parameters);
 
   // memory-intensive: the entire database is now held in memory
 
-  int64_t const dbsequencecount = static_cast<int64_t>(db_getsequencecount());
+  int64_t const dbsequencecount = static_cast<int64_t>(db.getsequencecount());
 
   /* adjust size of hash table for 2/3 fill rate */
 
@@ -207,25 +218,25 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
   std::vector<unsigned int> nextseqtab(static_cast<std::vector<unsigned int>::size_type>(dbsequencecount), terminal);
 
-  std::vector<char> seq_up(db_getlongestsequence() + 1);
+  std::vector<char> seq_up(db.getlongestsequence() + 1);
 
   /* make table of hash values of prefixes */
 
-  unsigned int const len_longest = static_cast<unsigned int>(db_getlongestsequence());
-  unsigned int const len_shortest = static_cast<unsigned int>(db_getshortestsequence());
+  unsigned int const len_longest = static_cast<unsigned int>(db.getlongestsequence());
+  unsigned int const len_shortest = static_cast<unsigned int>(db.getshortestsequence());
   std::vector<uint64_t> prefix_hashes(len_longest + 1);
 
   {
     Progress progress("Dereplicating", static_cast<uint64_t>(dbsequencecount), parameters);
     for (int64_t i = 0; i < dbsequencecount; i++)
       {
-        unsigned int const seqlen = static_cast<unsigned int>(db_getsequencelen(static_cast<uint64_t>(i)));
-        auto const * seq = db_getsequence(static_cast<uint64_t>(i));
+        unsigned int const seqlen = static_cast<unsigned int>(db.getsequencelen(static_cast<uint64_t>(i)));
+        auto const * seq = db.getsequence(static_cast<uint64_t>(i));
 
         /* normalize sequence: uppercase and replace U by T  */
         string_normalize(seq_up.data(), seq, seqlen);
 
-        auto const abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
+        auto const abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
         sumsize += static_cast<int64_t>(abundance);
 
         /*
@@ -260,8 +271,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         while ((bp->size != 0U) and
                ((bp->deleted) or
                 (bp->hash != hash) or
-                (prefix_len != db_getsequencelen(bp->seqno_first)) or
-                (seqcmp(seq_up.data(), db_getsequence(bp->seqno_first), prefix_len) != 0)))
+                (prefix_len != db.getsequencelen(bp->seqno_first)) or
+                (seqcmp(seq_up.data(), db.getsequence(bp->seqno_first), prefix_len) != 0)))
           {
             ++bp;
             if (bp > &hashtable.back())
@@ -299,9 +310,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 while ((bp->size != 0U) and
                        ((bp->deleted) or
                         (bp->hash != hash) or
-                        (prefix_len != db_getsequencelen(bp->seqno_first)) or
+                        (prefix_len != db.getsequencelen(bp->seqno_first)) or
                         (seqcmp(seq_up.data(),
-                                db_getsequence(bp->seqno_first),
+                                db.getsequence(bp->seqno_first),
                                 prefix_len) != 0)))
                   {
                     ++bp;
@@ -351,6 +362,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   {
     Progress const progress("Sorting", 1, parameters);
+    derep_sort_db = &db;
     std::qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
   }
 
@@ -436,10 +448,10 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 ++relabel_count;
                 fasta_print_general(fp_output,
                                     nullptr,
-                                    db_getsequence(bp.seqno_first),
-                                    static_cast<int>(db_getsequencelen(bp.seqno_first)),
-                                    db_getheader(bp.seqno_first),
-                                    static_cast<int>(db_getheaderlen(bp.seqno_first)),
+                                    db.getsequence(bp.seqno_first),
+                                    static_cast<int>(db.getsequencelen(bp.seqno_first)),
+                                    db.getheader(bp.seqno_first),
+                                    static_cast<int>(db.getheaderlen(bp.seqno_first)),
                                     static_cast<uint64_t>(size),
                                     relabel_count,
                                     -1.0,
@@ -465,8 +477,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         for (int64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-            auto const * h =  db_getheader(bp.seqno_first);
-            int64_t const len = static_cast<int64_t>(db_getsequencelen(bp.seqno_first));
+            auto const * h =  db.getheader(bp.seqno_first);
+            int64_t const len = static_cast<int64_t>(db.getsequencelen(bp.seqno_first));
 
             std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                     i, len, h);
@@ -477,7 +489,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
               {
                 std::fprintf(fp_uc,
                         "H\t%" PRId64 "\t%" PRIu64 "\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
-                        i, db_getsequencelen(next), 100.0, db_getheader(next), h);
+                        i, db.getsequencelen(next), 100.0, db.getheader(next), h);
               }
 
             progress.update(static_cast<uint64_t>(i));
@@ -490,7 +502,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             std::fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, bp.size, db_getheader(bp.seqno_first));
+                    i, bp.size, db.getheader(bp.seqno_first));
             progress.update(static_cast<uint64_t>(i));
           }
         uc_handle.reset();
@@ -518,5 +530,5 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
     }
 
-  db_free();
+  db.clear();
 }
