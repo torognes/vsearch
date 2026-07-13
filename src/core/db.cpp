@@ -94,19 +94,47 @@ auto Database::init() -> void
 }
 
 
-auto Database::setinfo(bool new_is_fastq,
-                       uint64_t new_sequences,
-                       uint64_t new_nucleotides,
-                       uint64_t new_longest,
-                       uint64_t new_shortest,
-                       uint64_t new_longestheader) -> void
+auto Database::udb_reserve(uint64_t const count, uint64_t const datap_bytes) -> void
 {
-  is_fastq = new_is_fastq;
-  sequences = new_sequences;
-  nucleotides = new_nucleotides;
-  longest = new_longest;
-  shortest = new_shortest;
-  longestheader = new_longestheader;
+  /* udb_read fills these buffers in place (it bypasses add()); allocate them
+     up front at the exact sizes derived from the UDB header. */
+  seqindex = static_cast<seqinfo_t *>(xmalloc(count * sizeof(seqinfo_t)));
+  datap = static_cast<char *>(xmalloc(datap_bytes));
+}
+
+
+auto Database::udb_finalize(uint64_t const count,
+                            uint64_t const nucleotide_count,
+                            uint64_t const longest_sequence,
+                            uint64_t const shortest_sequence,
+                            uint64_t const longest_header,
+                            struct Parameters const & parameters) -> void
+{
+  /* move sequences and insert zero at end of each sequence */
+
+  {
+    Progress progress("Reorganizing data in memory", count, parameters);
+    for (auto i = count - 1; i > 0; i--)
+      {
+        auto const old_p = seqindex[i].seq_p;
+        auto const new_p = seqindex[i].seq_p + i;
+        auto const len   = seqindex[i].seqlen;
+        std::memmove(datap + new_p, datap + old_p, len);
+        *(datap + new_p + len) = 0;
+        seqindex[i].seq_p = new_p;
+        progress.update(count - i);
+      }
+    *(datap + seqindex[0].seq_p + seqindex[0].seqlen) = 0;
+  }
+
+  /* record the summary statistics (a UDB database is never FASTQ) */
+
+  is_fastq = false;
+  sequences = count;
+  nucleotides = nucleotide_count;
+  longest = longest_sequence;
+  shortest = shortest_sequence;
+  longestheader = longest_header;
 }
 
 

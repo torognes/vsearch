@@ -361,9 +361,13 @@ auto udb_read(const char * filename,
     nucleotides = ((static_cast<uint64_t>(buffer[4])) << 32U) | buffer[3];
     auto const udb_headerchars = ((static_cast<uint64_t>(buffer[6])) << 32U) | buffer[5];
 
-    /* header index */
+    /* allocate the two database buffers up front; udb_read fills them in place */
 
-    seqindex = static_cast<seqinfo_t *>(xmalloc(seqcount * sizeof(seqinfo_t)));
+    uint64_t const datap_bytes =
+      udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount);
+    db.udb_reserve(seqcount, datap_bytes);
+
+    /* header index */
 
     std::vector<unsigned int> header_index(seqcount + 1);
 
@@ -397,8 +401,6 @@ auto udb_read(const char * filename,
 
 
     /* headers */
-
-    datap = static_cast<char *>(xmalloc(udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount)));
 
     pos += largeread(in_stream, datap, udb_headerchars, pos, progress_bar);
 
@@ -461,22 +463,9 @@ auto udb_read(const char * filename,
 
   xfree(prompt);
 
-  /* move sequences and insert zero at end of each sequence */
+  /* reorganize the sequences in memory and record the database statistics */
 
-  {
-    Progress progress("Reorganizing data in memory", seqcount, parameters);
-    for (auto i = seqcount - 1; i > 0; i--)
-      {
-        auto const old_p = seqindex[i].seq_p;
-        auto const new_p = seqindex[i].seq_p + i;
-        auto const len   = seqindex[i].seqlen;
-        std::memmove(datap + new_p, datap + old_p, len);
-        *(datap + new_p + len) = 0;
-        seqindex[i].seq_p = new_p;
-        progress.update(seqcount - i);
-      }
-    *(datap + seqindex[0].seq_p + seqindex[0].seqlen) = 0;
-  }
+  db.udb_finalize(seqcount, nucleotides, longest, shortest, longestheader, parameters);
 
   /* Create bitmaps for the most frequent words */
 
@@ -527,13 +516,6 @@ auto udb_read(const char * filename,
   /* set database info */
 
   dbindex.uhandle = unique_init();
-
-  db.setinfo(false,
-             seqcount,
-             nucleotides,
-             longest,
-             shortest,
-             longestheader);
 
   /* make mapping from indexno to seqno */
 

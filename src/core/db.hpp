@@ -131,12 +131,18 @@ struct Database
   auto read(char const * filename, int upcase, struct Parameters const & parameters) -> void;
   auto clear() -> void;
 
-  auto setinfo(bool new_is_fastq,
-               uint64_t new_sequences,
-               uint64_t new_nucleotides,
-               uint64_t new_longest,
-               uint64_t new_shortest,
-               uint64_t new_longestheader) -> void;
+  /* UDB bulk-load seam, used only by udb_read (the second database loader, which
+     bypasses add() and fills the reserved buffers in place, mirroring how it
+     fills Dbindex's buffers). udb_reserve allocates the two buffers up front;
+     udb_finalize runs the terminator-insertion memmove pass and records the
+     summary statistics. */
+  auto udb_reserve(uint64_t count, uint64_t datap_bytes) -> void;
+  auto udb_finalize(uint64_t count,
+                    uint64_t nucleotide_count,
+                    uint64_t longest_sequence,
+                    uint64_t shortest_sequence,
+                    uint64_t longest_header,
+                    struct Parameters const & parameters) -> void;
 
   auto getquality(uint64_t seqno) const -> char *;
 
