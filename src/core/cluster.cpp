@@ -167,7 +167,12 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
   const int seqno = si->query_no;
   auto const useqno = static_cast<uint64_t>(seqno);
   si->query_head_len = static_cast<int>(db.getheaderlen(useqno));
-  si->query_head = db.getheader(useqno);
+  /* query_head is a read-only borrow here (cluster's db is const, shared by the
+     worker threads); the searchinfo_s field is char * only because the
+     usearch_global/search_exact/sintax paths own and rewrite that buffer. Fully
+     removing this cast needs the searchinfo_s query-buffer split (owned storage
+     vs const view) deferred in TBD_20260713_UDB_load.md. */
+  si->query_head = const_cast<char *>(db.getheader(useqno));
   si->qsize = static_cast<int64_t>(db.getabundance(useqno));
   si->qseqlen = static_cast<int>(db.getsequencelen(useqno));
   if (si->strand != 0)
@@ -754,7 +759,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                          perform a new alignment with the
                          linear memory aligner */
 
-                      char * tseq = db.getsequence(target);
+                      char const * tseq = db.getsequence(target);
 
                       if (nwcigar != nullptr)
                         {

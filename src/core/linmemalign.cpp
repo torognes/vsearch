@@ -673,8 +673,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 }
 
 
-auto LinearMemoryAligner::align(char * _a_seq,
-                                char * _b_seq,
+auto LinearMemoryAligner::align(char const * _a_seq,
+                                char const * _b_seq,
                                 int64_t a_len,
                                 int64_t b_len) -> char *
 {
@@ -700,8 +700,8 @@ auto LinearMemoryAligner::align(char * _a_seq,
 
 
 auto LinearMemoryAligner::alignstats(char * cigar,
-                                     char * _a_seq,
-                                     char * _b_seq,
+                                     char const * _a_seq,
+                                     char const * _b_seq,
                                      int64_t * _nwscore,
                                      int64_t * _nwalignmentlength,
                                      int64_t * _nwmatches,

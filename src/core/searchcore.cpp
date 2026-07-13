@@ -809,7 +809,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                      perform a new alignment with the
                      linear memory aligner */
 
-                  char * dseq = searchinfo->db->getsequence(static_cast<uint64_t>(target));
+                  char const * dseq = searchinfo->db->getsequence(static_cast<uint64_t>(target));
 
                   if (nwcigar_list[i] != nullptr)
                     {

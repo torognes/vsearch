@@ -106,8 +106,8 @@ private:
   int64_t cigar_length = 0;
   std::vector<char> cigar_string;
 
-  char * a_seq = nullptr;
-  char * b_seq = nullptr;
+  char const * a_seq = nullptr;
+  char const * b_seq = nullptr;
 
   // initialize a 16x16 matrix
   std::vector<std::vector<int64_t>> scorematrix = std::vector<std::vector<int64_t>>(matrix_size, std::vector<int64_t>(matrix_size));
@@ -164,14 +164,14 @@ public:
 
   explicit LinearMemoryAligner(struct Scoring const & scoring);
 
-  auto align(char * _a_seq,
-             char * _b_seq,
+  auto align(char const * _a_seq,
+             char const * _b_seq,
              int64_t a_len,
              int64_t b_len) -> char *;
 
   auto alignstats(char * cigar,
-                  char * a_seq,
-                  char * b_seq,
+                  char const * a_seq,
+                  char const * b_seq,
                   int64_t * nwscore,
                   int64_t * nwalignmentlength,
                   int64_t * nwmatches,

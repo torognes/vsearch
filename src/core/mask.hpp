@@ -67,8 +67,8 @@ enum struct Masking : int { error = -1, none = 0, dust = 1, soft = 2 };
 
 auto dust(char * seq, int len, struct Parameters const & parameters) -> void;
 auto hardmask(char * seq, int len) -> void;
-auto dust_all(struct Database const & db, struct Parameters const & parameters) -> void;
-auto hardmask_all(struct Database const & db) -> void;
+auto dust_all(struct Database & db, struct Parameters const & parameters) -> void;
+auto hardmask_all(struct Database & db) -> void;
 
 /* === Library API for single-sequence masking === */
 

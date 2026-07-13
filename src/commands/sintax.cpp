@@ -145,7 +145,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
   std::array<int, tax_levels> level_matchcount {{}};
   std::array<int, tax_levels> level_best {{}};
-  std::array<std::array<char *, tax_levels>, bootstrap_count> cand_level_name_start {{}};
+  std::array<std::array<char const *, tax_levels>, bootstrap_count> cand_level_name_start {{}};
   std::array<std::array<int, tax_levels>, bootstrap_count> cand_level_name_len {{}};
 
   /* Check number of successful bootstraps, must be at least half */

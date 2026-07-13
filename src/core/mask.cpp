@@ -209,7 +209,7 @@ struct dust_state_s
 };
 
 
-static auto dust_all_worker(struct dust_state_s & state, struct Database const & db) -> void
+static auto dust_all_worker(struct dust_state_s & state, struct Database & db) -> void
 {
   uint64_t seqno = 0;
 
@@ -221,7 +221,7 @@ static auto dust_all_worker(struct dust_state_s & state, struct Database const &
   };
 
   auto const process_sequence = [&]() {
-    dust(db.getsequence(seqno),
+    dust(db.mutatesequence(seqno),
          static_cast<int>(db.getsequencelen(seqno)),
          *state.parameters);
   };
@@ -230,7 +230,7 @@ static auto dust_all_worker(struct dust_state_s & state, struct Database const &
 }
 
 
-auto dust_all(struct Database const & db, struct Parameters const & parameters) -> void
+auto dust_all(struct Database & db, struct Parameters const & parameters) -> void
 {
   struct dust_state_s state;
   state.seqcount = db.getsequencecount();
@@ -262,11 +262,11 @@ auto hardmask(char * seq, int len) -> void
 }
 
 
-auto hardmask_all(struct Database const & db) -> void
+auto hardmask_all(struct Database & db) -> void
 {
   for (uint64_t i = 0; i < db.getsequencecount(); i++)
     {
-      hardmask(db.getsequence(i), static_cast<int>(db.getsequencelen(i)));
+      hardmask(db.mutatesequence(i), static_cast<int>(db.getsequencelen(i)));
     }
 }
 

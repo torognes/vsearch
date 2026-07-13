@@ -1601,10 +1601,10 @@ auto search16(s16info_s * s,
   VECTOR_SHORT * hep = nullptr;
   VECTOR_SHORT ** qp = nullptr;
 
-  std::array<BYTE *, CHANNELS> d_begin {{}};
-  std::array<BYTE *, CHANNELS> d_end {{}};
+  std::array<BYTE const *, CHANNELS> d_begin {{}};
+  std::array<BYTE const *, CHANNELS> d_end {{}};
   std::array<uint64_t, CHANNELS> d_offset {{}};
-  std::array<BYTE *, CHANNELS> d_address {{}};
+  std::array<BYTE const *, CHANNELS> d_address {{}};
   std::array<uint64_t, CHANNELS> d_length {{}};
   std::array<int64_t, CHANNELS> seq_id {{}};
   std::array<bool, CHANNELS> overflow {{}};
@@ -1884,11 +1884,11 @@ auto search16(s16info_s * s,
                   if (length > 0)
                     {
                       seq_id[cc] = cand_id;
-                      char * address = db.getsequence(seqnos[cand_id]);
-                      d_address[cc] = reinterpret_cast<BYTE *>(address);
+                      char const * address = db.getsequence(seqnos[cand_id]);
+                      d_address[cc] = reinterpret_cast<BYTE const *>(address);
                       d_length[cc] = static_cast<uint64_t>(length);
-                      d_begin[cc] = reinterpret_cast<unsigned char *>(address);
-                      d_end[cc] = reinterpret_cast<unsigned char *>(address) + length;
+                      d_begin[cc] = reinterpret_cast<unsigned char const *>(address);
+                      d_end[cc] = reinterpret_cast<unsigned char const *>(address) + length;
                       d_offset[cc] = static_cast<uint64_t>(dir - dirbuffer);
                       overflow[cc] = false;
 

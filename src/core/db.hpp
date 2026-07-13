@@ -155,7 +155,7 @@ public:
                     uint64_t longest_header,
                     struct Parameters const & parameters) -> void;
 
-  auto getquality(uint64_t seqno) const -> char *;
+  auto getquality(uint64_t seqno) const -> char const *;
 
   /* Note: the sorting members below must be called after read(),
      but before Dbindex::prepare */
@@ -163,14 +163,30 @@ public:
   auto sortbylength_shortest_first(struct Parameters const & parameters) -> void;
   auto sortbyabundance(struct Parameters const & parameters) -> void;
 
-  auto getheader(uint64_t seqno) const -> char *
+  auto getheader(uint64_t seqno) const -> char const *
   {
     return datap + seqindex[seqno].header_p;
   }
 
-  auto getsequence(uint64_t seqno) const -> char *
+  auto getsequence(uint64_t seqno) const -> char const *
   {
     return datap + seqindex[seqno].seq_p;
+  }
+
+  /* Non-const companions to getsequence()/getheader(): hand out writable
+     pointers to the stored data. mutatesequence() backs the in-place masking
+     passes (dust/hardmask); both are also borrowed by the search core into its
+     own writable query buffers (searchinfo_s). Only a non-const Database
+     exposes them, so read-only holders (e.g. the search worker threads) cannot
+     mutate the database. */
+  auto mutatesequence(uint64_t seqno) -> char *
+  {
+    return datap + seqindex[seqno].seq_p;
+  }
+
+  auto mutateheader(uint64_t seqno) -> char *
+  {
+    return datap + seqindex[seqno].header_p;
   }
 
   auto getabundance(uint64_t seqno) const -> uint64_t

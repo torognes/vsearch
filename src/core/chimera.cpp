@@ -2102,7 +2102,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              perform a new alignment with the
              linear memory aligner */
 
-          auto * tseq = db.getsequence(static_cast<uint64_t>(target));
+          auto const * tseq = db.getsequence(static_cast<uint64_t>(target));
           int64_t const tseqlen = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target)));
 
           if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)

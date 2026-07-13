@@ -137,7 +137,7 @@ auto Database::udb_finalize(uint64_t const count,
 }
 
 
-auto Database::getquality(uint64_t seqno) const -> char *
+auto Database::getquality(uint64_t seqno) const -> char const *
 {
   if (fastq_format)
     {

@@ -350,7 +350,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 
       auto const field = userfields_requested[c];
 
-      char * tsequence = nullptr;
+      char const * tsequence = nullptr;
       int64_t tseqlen = 0;
       char const * t_head = nullptr;
 
