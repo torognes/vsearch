@@ -201,13 +201,14 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 
 
 auto find_longest_target_on_reverse_strand(int const target_count,
-                                           std::vector<struct msa_target_s> const & target_list_v) -> int64_t {
+                                           std::vector<struct msa_target_s> const & target_list_v,
+                                           struct Database const & db) -> int64_t {
   int64_t longest_reversed = 0;
   for (auto i = 0; i < target_count; ++i)
     {
       auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       if (target.strand == 0) { continue; }
-      auto const len = static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target.seqno)));
+      auto const len = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target.seqno)));
       longest_reversed = std::max(len, longest_reversed);
     }
   return longest_reversed;
@@ -216,9 +217,10 @@ auto find_longest_target_on_reverse_strand(int const target_count,
 
 auto allocate_buffer_for_reverse_strand_target(int const target_count,
                                                std::vector<struct msa_target_s> const & target_list_v,
-                                               std::vector<char> & rc_buffer_v) -> char * {
+                                               std::vector<char> & rc_buffer_v,
+                                               struct Database const & db) -> char * {
   /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v);
+  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v, db);
   if (longest_reversed > 0)
     {
       rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed + 1));
@@ -237,6 +239,7 @@ auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
 auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix,
                                int const target_seqno,
                                std::vector<char> const & aln_v,
+                               struct Database const & db,
                                struct Parameters const & parameters) -> void {
   // header_prefix == "*" or "", resulting in ">*header" or ">header"
   if (fp_msaout == nullptr) { return ; }
@@ -245,18 +248,19 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
                       header_prefix,
                       aln_v.data(),
                       static_cast<int>(aln_v.size() - 1),
-                      db_getheader(static_cast<uint64_t>(target_seqno)),
-                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(target_seqno))),
-                      db_getabundance(static_cast<uint64_t>(target_seqno)),
+                      db.getheader(static_cast<uint64_t>(target_seqno)),
+                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(target_seqno))),
+                      db.getabundance(static_cast<uint64_t>(target_seqno)),
                       0, -1.0, -1, -1, nullptr, 0.0, 0, parameters);
 }
 
 
 auto reverse_complement_target_if_need_be(int const strand, int const target_seqno,
-                                          char * rc_buffer, char * target_seq) -> char * {
+                                          char * rc_buffer, char * target_seq,
+                                          struct Database const & db) -> char * {
   if (strand == 0) { return target_seq; }
   reverse_complement(rc_buffer, target_seq,
-                     static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target_seqno))));
+                     static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target_seqno))));
   return rc_buffer;
 }
 
@@ -267,13 +271,14 @@ auto process_and_print_centroid(char *rc_buffer,
                                 std::vector<prof_type> &profile,
                                 std::vector<char> &aln_v,
                                 std::FILE * fp_msaout,
+                                struct Database const & db,
                                 struct Parameters const & parameters) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   auto const & target = target_list_v.front();
   auto const target_seqno = target.seqno;
   auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
-                                                                 db_getsequence(static_cast<uint64_t>(target_seqno)));
-  prof_type const target_abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
+                                                                 db.getsequence(static_cast<uint64_t>(target_seqno)), db);
+  prof_type const target_abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(target_seqno)) : 1;
   auto position_in_alignment = 0;
 
   for (auto i = 0; i < centroid_len; ++i)
@@ -298,7 +303,7 @@ auto process_and_print_centroid(char *rc_buffer,
   aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
 
   /* print header & sequence */
-  print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v, parameters);
+  print_header_and_sequence(fp_msaout, "*", target_seqno, aln_v, db, parameters);
 }
 
 
@@ -322,17 +327,18 @@ auto compute_and_print_msa(int const target_count,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
                            std::FILE * fp_msaout,
+                           struct Database const & db,
                            struct Parameters const & parameters) -> void {
 
   blank_line_before_each_msa(fp_msaout);
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   std::vector<char> rc_buffer_v;
-  char * rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v);
+  char * rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v, db);
 
   // ------------------------------------------------------- deal with centroid
   process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
-                             profile, aln_v, fp_msaout, parameters);
+                             profile, aln_v, fp_msaout, db, parameters);
 
   // --------------------------------- deal with other sequences in the cluster
   for (auto i = 1; i < target_count; ++i)
@@ -340,8 +346,8 @@ auto compute_and_print_msa(int const target_count,
       auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       auto const target_seqno = target.seqno;
       auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
-                                                                     rc_buffer, db_getsequence(static_cast<uint64_t>(target_seqno)));
-      prof_type const target_abundance = parameters.opt_sizein ? db_getabundance(static_cast<uint64_t>(target_seqno)) : 1;
+                                                                     rc_buffer, db.getsequence(static_cast<uint64_t>(target_seqno)), db);
+      prof_type const target_abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(target_seqno)) : 1;
       int position_in_alignment = 0;
 
       auto is_inserted = false;
@@ -415,7 +421,7 @@ auto compute_and_print_msa(int const target_count,
       aln_v[static_cast<std::vector<char>::size_type>(position_in_alignment)] = '\0';
 
       /* print header & sequence */
-      print_header_and_sequence(fp_msaout, "", target_seqno, aln_v, parameters);
+      print_header_and_sequence(fp_msaout, "", target_seqno, aln_v, db, parameters);
     }
 }
 
@@ -498,14 +504,15 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
                               int64_t const totalabundance, int const target_count,
                               int const cluster,
                               int const centroid_seqno,
+                              struct Database const & db,
                               struct Parameters const & parameters) -> void {
   if (fp_consout == nullptr) { return ; }
   fasta_print_general(fp_consout,
                       "centroid=",
                       cons_v.data(),
                       static_cast<int>(cons_v.size() - 1),  // exclude the '\0' terminator slot
-                      db_getheader(static_cast<uint64_t>(centroid_seqno)),
-                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(centroid_seqno))),
+                      db.getheader(static_cast<uint64_t>(centroid_seqno)),
+                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(centroid_seqno))),
                       static_cast<uint64_t>(totalabundance),
                       cluster + 1,
                       -1.0,
@@ -522,6 +529,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                              int64_t const totalabundance, int const target_count,
                              int const cluster,
                              int const centroid_seqno,
+                             struct Database const & db,
                              struct Parameters const & parameters) -> void {
   if (fp_profile == nullptr) { return ; }
 
@@ -532,8 +540,8 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
                       "centroid=",
                       nullptr,
                       0,
-                      db_getheader(static_cast<uint64_t>(centroid_seqno)),
-                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(centroid_seqno))),
+                      db.getheader(static_cast<uint64_t>(centroid_seqno)),
+                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(centroid_seqno))),
                       static_cast<uint64_t>(totalabundance),
                       cluster + 1,
                       -1.0,
@@ -562,10 +570,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
          int const target_count, std::vector<struct msa_target_s> const & target_list_v,
          int64_t totalabundance,
+         struct Database const & db,
          struct Parameters const & parameters) -> void
 {
   int const centroid_seqno = target_list_v[0].seqno;
-  auto const centroid_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(centroid_seqno)));
+  auto const centroid_length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(centroid_seqno)));
 
   /* find max insertions in front of each position in the centroid sequence */
   auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v, centroid_length);
@@ -579,7 +588,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   /* msaout: multiple sequence alignment ... */
   compute_and_print_msa(target_count, target_list_v, max_insertions,
                         profile, aln_v,
-                        fp_msaout, parameters);
+                        fp_msaout, db, parameters);
 
   /* msaout: ... and consensus sequence at the end */
   compute_and_print_consensus(max_insertions,
@@ -593,12 +602,12 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   print_consensus_sequence(fp_consout, cons_v,
                            totalabundance, target_count,
                            cluster,
-                           centroid_seqno, parameters);
+                           centroid_seqno, db, parameters);
 
   /* profile: multiple sequence alignment profile (dedicated input) */
   print_alignment_profile(fp_profile, aln_v,
                           profile,
                           totalabundance, target_count,
                           cluster,
-                          centroid_seqno, parameters);
+                          centroid_seqno, db, parameters);
 }

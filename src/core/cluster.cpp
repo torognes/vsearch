@@ -1484,6 +1484,7 @@ auto cluster(char const * dbname,
                         lastcluster,
                         msa_target_count, msa_target_list_v,
                         cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                        db_global,
                         parameters);
                   }
 
@@ -1508,6 +1509,7 @@ auto cluster(char const * dbname,
                 lastcluster,
                 msa_target_count, msa_target_list_v,
                 cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
+                db_global,
                 parameters);
           }
       }
