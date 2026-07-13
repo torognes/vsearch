@@ -104,6 +104,7 @@ namespace {
 
 auto makeudb_usearch(struct Parameters const & parameters) -> void
 {
+  Database db;  /* the sequence database this run owns (RAII) */
   Dbindex dbindex;  /* the k-mer index this run owns (RAII) */
 
   if (parameters.opt_output == nullptr) {
@@ -116,27 +117,27 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
       fatal("Unable to open output file for writing (%s)", parameters.opt_output);
     }
 
-  db_read(parameters.opt_makeudb_usearch, 1, parameters);
+  db.read(parameters.opt_makeudb_usearch, 1, parameters);
 
   if (parameters.opt_dbmask == Masking::dust)
     {
-      dust_all(db_global, parameters);
+      dust_all(db, parameters);
     }
   else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
     {
-      hardmask_all(db_global);
+      hardmask_all(db);
     }
 
-  dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
-  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
-  auto const ntcount = db_getnucleotidecount();
+  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
+  auto const ntcount = db.getnucleotidecount();
 
   uint64_t header_characters = 0;
   for (auto i = 0U; i < seqcount; i++)
     {
-      header_characters += db_getheaderlen(i) + 1;
+      header_characters += db.getheaderlen(i) + 1;
     }
 
   uint64_t const kmerhash_entries = uint64_t{1} << (2 * static_cast<uint64_t>(parameters.opt_wordlength));
@@ -235,29 +236,29 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     for (auto i = 0U; i < seqcount; i++)
       {
         buffer[i] = sum;
-        sum += static_cast<unsigned int>(db_getheaderlen(i) + 1);
+        sum += static_cast<unsigned int>(db.getheaderlen(i) + 1);
       }
     pos += largewrite(out_stream, buffer.data(), 4 * seqcount, pos, progress_bar);
 
     /* headers (ascii, zero terminated, not padded) */
     for (auto i = 0U; i < seqcount; i++)
       {
-        unsigned int const len = static_cast<unsigned int>(db_getheaderlen(i));
-        pos += largewrite(out_stream, db_getheader(i), len + 1, pos, progress_bar);
+        unsigned int const len = static_cast<unsigned int>(db.getheaderlen(i));
+        pos += largewrite(out_stream, db.getheader(i), len + 1, pos, progress_bar);
       }
 
     /* sequence lengths (uint32_t) */
     for (auto i = 0U; i < seqcount; i++)
       {
-        buffer[i] = static_cast<unsigned int>(db_getsequencelen(i));
+        buffer[i] = static_cast<unsigned int>(db.getsequencelen(i));
       }
     pos += largewrite(out_stream, buffer.data(), 4 * seqcount, pos, progress_bar);
 
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)
       {
-        unsigned int const len = static_cast<unsigned int>(db_getsequencelen(i));
-        pos += largewrite(out_stream, db_getsequence(i), len, pos, progress_bar);
+        unsigned int const len = static_cast<unsigned int>(db.getsequencelen(i));
+        pos += largewrite(out_stream, db.getsequence(i), len, pos, progress_bar);
       }
 
     out_stream.close();
@@ -268,5 +269,5 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
   }
 
   dbindex.clear();
-  db_free();
+  db.clear();
 }

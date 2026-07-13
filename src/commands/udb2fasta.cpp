@@ -69,6 +69,7 @@
 
 auto udb2fasta(struct Parameters const & parameters) -> void
 {
+  Database db;  /* the sequence database this run owns (RAII) */
   Dbindex dbindex;  /* the k-mer index this run owns (RAII) */
 
   /* open FASTA file for writing */
@@ -77,20 +78,20 @@ auto udb2fasta(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udb2fasta, false, false, dbindex, db_global, parameters);
+  udb_read(parameters.opt_udb2fasta, false, false, dbindex, db, parameters);
 
   /* dump fasta */
 
-  auto const seqcount = db_getsequencecount();
+  auto const seqcount = db.getsequencecount();
   {
     Progress progress("Writing FASTA file", seqcount, parameters);
     for (std::size_t i = 0; i < seqcount; i++)
       {
-        fasta_print_db_relabel(fp_output.get(), i, i + 1, db_global, parameters);
+        fasta_print_db_relabel(fp_output.get(), i, i + 1, db, parameters);
         progress.update(i + 1);
       }
   }
 
   dbindex.clear();
-  db_free();
+  db.clear();
 }

@@ -114,11 +114,12 @@ auto udbstats(struct Parameters const & parameters) -> void
 {
   /* show word statistics for an UDB file */
 
+  Database db;  /* the sequence database this run owns (RAII) */
   Dbindex dbindex;  /* the k-mer index this run owns (RAII) */
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udbstats, false, false, dbindex, db_global, parameters);
+  udb_read(parameters.opt_udbstats, false, false, dbindex, db, parameters);
 
   /* dbindex.wordlength below is the effective index width that udb_read() just
      published from this UDB file's header (which may differ from the configured
@@ -140,8 +141,8 @@ auto udbstats(struct Parameters const & parameters) -> void
   auto const wcmedian = ( freqtable[(dbindex.hashsize / 2) - 1].count +
                             freqtable[dbindex.hashsize / 2].count ) / 2;
 
-  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
-  auto const nt = db_getnucleotidecount();
+  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
+  auto const nt = db.getnucleotidecount();
 
   /* show stats */
 
@@ -341,5 +342,5 @@ auto udbstats(struct Parameters const & parameters) -> void
     }
 
   dbindex.clear();
-  db_free();
+  db.clear();
 }
