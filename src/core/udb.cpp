@@ -72,7 +72,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
-#include <cstring>  // std::memset, std::memmove
+#include <cstring>  // std::memset
 #include <fstream>  // std::ifstream
 #include <istream>  // std::istream
 #include <limits>
@@ -513,7 +513,7 @@ auto udb_read(const char * filename,
       }
     }
 
-  /* set database info */
+  /* create the unique-kmer finder */
 
   dbindex.uhandle = unique_init();
 
