@@ -118,7 +118,7 @@ auto udbstats(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udbstats, false, false, dbindex, parameters);
+  udb_read(parameters.opt_udbstats, false, false, dbindex, db_global, parameters);
 
   /* dbindex.wordlength below is the effective index width that udb_read() just
      published from this UDB file's header (which may differ from the configured

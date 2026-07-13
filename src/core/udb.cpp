@@ -197,6 +197,7 @@ auto udb_read(const char * filename,
               bool create_bitmaps,
               bool parse_abundances,
               struct Dbindex & dbindex,
+              struct Database & db,
               struct Parameters const & parameters) -> void
 {
   /* read UDB as indexed database */
@@ -205,11 +206,11 @@ auto udb_read(const char * filename,
   auto udb_wordlength = 0U;
   uint64_t nucleotides = 0;
 
-  /* Transitional: udb_read populates the database buffers directly. Bind local
-     aliases to the process-wide instance so the code below reads unchanged;
-     these become the passed-in Database's members once it is threaded through. */
-  char * & datap = db_global.datap;
-  seqinfo_t * & seqindex = db_global.seqindex;
+  /* udb_read populates the database buffers directly (it bypasses Database::add);
+     bind local aliases to the passed-in Database's members so the low-level
+     loader code below reads and writes them unchanged. */
+  char * & datap = db.datap;
+  seqinfo_t * & seqindex = db.seqindex;
 
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
@@ -527,7 +528,7 @@ auto udb_read(const char * filename,
 
   dbindex.uhandle = unique_init();
 
-  db_setinfo(false,
+  db.setinfo(false,
              seqcount,
              nucleotides,
              longest,
@@ -554,18 +555,18 @@ auto udb_read(const char * filename,
         {
           std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount(),
-                  db_getshortestsequence(),
-                  db_getlongestsequence(),
-                  static_cast<double>(db_getnucleotidecount()) * 1.0 / static_cast<double>(db_getsequencecount()));
+                  db.getnucleotidecount(),
+                  db.getsequencecount(),
+                  db.getshortestsequence(),
+                  db.getlongestsequence(),
+                  static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
         }
       else
         {
           std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount());
+                  db.getnucleotidecount(),
+                  db.getsequencecount());
         }
     }
 
@@ -575,18 +576,18 @@ auto udb_read(const char * filename,
         {
           std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount(),
-                  db_getshortestsequence(),
-                  db_getlongestsequence(),
-                  static_cast<double>(db_getnucleotidecount()) * 1.0 / static_cast<double>(db_getsequencecount()));
+                  db.getnucleotidecount(),
+                  db.getsequencecount(),
+                  db.getshortestsequence(),
+                  db.getlongestsequence(),
+                  static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
         }
       else
         {
           std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount());
+                  db.getnucleotidecount(),
+                  db.getsequencecount());
         }
     }
 }

@@ -2482,7 +2482,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (is_udb)
         {
-          udb_read(parameters.opt_db, true, true, state.dbindex, parameters);
+          udb_read(parameters.opt_db, true, true, state.dbindex, db_global, parameters);
         }
       else
         {
