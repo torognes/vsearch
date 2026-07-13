@@ -63,11 +63,10 @@
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
 #include "utils/string_alloc.hpp"
-#include <algorithm>  // std::min, std::max
+#include <algorithm>  // std::min, std::max, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
-#include <cstdlib>  // std::qsort
 #include <cstring>  // std::memcpy, std::strcmp
 #include <limits>
 
@@ -442,148 +441,31 @@ Database::~Database()
 }
 
 
-/* The std::qsort comparators below need the data buffer to compare header
-   strings, but a C comparator is a plain function pointer that cannot capture
-   the Database being sorted (qsort_r, which passes context, is non-portable).
-   The sort members set this file-scope pointer to their own datap immediately
-   before calling qsort; sorting is single-threaded, so the transient sharing is
-   safe. Switching to std::sort with a capturing comparator would remove it (see
-   TBD_20260713_Database_polish.md). */
-namespace {
-  char const * sort_datap = nullptr;
-}
-
-
-auto compare_bylength(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<seqinfo_t const *>(a);
-  auto const * rhs = static_cast<seqinfo_t const *>(b);
-
-  /* longest first, then by abundance, then by label, otherwise keep order */
-
-  if (lhs->seqlen < rhs->seqlen)
-    {
-      return +1;
-    }
-  if (lhs->seqlen > rhs->seqlen)
-    {
-      return -1;
-    }
-
-  if (lhs->size < rhs->size)
-    {
-      return +1;
-    }
-  if (lhs->size > rhs->size)
-    {
-      return -1;
-    }
-
-  auto const result = std::strcmp(sort_datap + lhs->header_p, sort_datap + rhs->header_p);
-  if (result != 0)
-    {
-      return result;
-    }
-
-  if (lhs < rhs)
-    {
-      return -1;
-    }
-  if (lhs > rhs)
-    {
-      return +1;
-    }
-  return 0;
-}
-
-
-auto compare_bylength_shortest_first(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<seqinfo_t const *>(a);
-  auto const * rhs = static_cast<seqinfo_t const *>(b);
-
-  /* shortest first, then by abundance, then by label, otherwise keep order */
-
-  if (lhs->seqlen < rhs->seqlen)
-    {
-      return -1;
-    }
-  if (lhs->seqlen > rhs->seqlen)
-    {
-      return +1;
-    }
-
-  if (lhs->size < rhs->size)
-    {
-      return +1;
-    }
-  if (lhs->size > rhs->size)
-    {
-      return -1;
-    }
-
-  auto const result = std::strcmp(sort_datap + lhs->header_p, sort_datap + rhs->header_p);
-  if (result != 0)
-    {
-      return result;
-    }
-
-  if (lhs < rhs)
-    {
-      return -1;
-    }
-  if (lhs > rhs)
-    {
-      return +1;
-    }
-  return 0;
-}
-
-
-inline auto compare_byabundance(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<seqinfo_t const *>(a);
-  auto const * rhs = static_cast<seqinfo_t const *>(b);
-
-  /* most abundant first, then by label, otherwise keep order */
-
-  if (lhs->size > rhs->size)
-    {
-      return -1;
-    }
-  if (lhs->size < rhs->size)
-    {
-      return +1;
-    }
-
-  auto const result = std::strcmp(sort_datap + lhs->header_p, sort_datap + rhs->header_p);
-  if (result != 0)
-    {
-      return result;
-    }
-
-  if (lhs < rhs)
-    {
-      return -1;
-    }
-  if (lhs > rhs)
-    {
-      return +1;
-    }
-  return 0;
-}
-
+/* The sort comparators need the data buffer to compare header strings. Each is
+   a lambda capturing the Database (this), so no file-scope pointer is needed
+   (the old std::qsort path used one because a C comparator cannot capture, and
+   qsort_r is non-portable). header_p increases with input order, so comparing
+   it is a deterministic, stable tie-break that keeps equal records in their
+   original order (it replaces the element-address comparison the qsort version
+   relied on). */
 
 auto Database::sortbylength(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
-  sort_datap = datap;
-  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+
+  /* longest first, then by abundance, then by label, otherwise keep order */
+  auto const by_length = [this](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  {
+    if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen > rhs.seqlen; }
+    if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
+    auto const order = std::strcmp(datap + lhs.header_p, datap + rhs.header_p);
+    if (order != 0) { return order < 0; }
+    return lhs.header_p < rhs.header_p;
+  };
+
+  if (sequences > 0)  // std::sort must not be handed null iterators
     {
-      std::qsort(seqindex,
-            sequences,
-            sizeof(seqinfo_t),
-            compare_bylength);
+      std::sort(seqindex, seqindex + sequences, by_length);
     }
 }
 
@@ -591,13 +473,20 @@ auto Database::sortbylength(struct Parameters const & parameters) -> void
 auto Database::sortbylength_shortest_first(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
-  sort_datap = datap;
-  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+
+  /* shortest first, then by abundance, then by label, otherwise keep order */
+  auto const by_length_shortest = [this](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  {
+    if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen < rhs.seqlen; }
+    if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
+    auto const order = std::strcmp(datap + lhs.header_p, datap + rhs.header_p);
+    if (order != 0) { return order < 0; }
+    return lhs.header_p < rhs.header_p;
+  };
+
+  if (sequences > 0)  // std::sort must not be handed null iterators
     {
-      std::qsort(seqindex,
-            sequences,
-            sizeof(seqinfo_t),
-            compare_bylength_shortest_first);
+      std::sort(seqindex, seqindex + sequences, by_length_shortest);
     }
 }
 
@@ -605,12 +494,18 @@ auto Database::sortbylength_shortest_first(struct Parameters const & parameters)
 auto Database::sortbyabundance(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by abundance", 100, parameters);
-  sort_datap = datap;
-  if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
+
+  /* most abundant first, then by label, otherwise keep order */
+  auto const by_abundance = [this](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  {
+    if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
+    auto const order = std::strcmp(datap + lhs.header_p, datap + rhs.header_p);
+    if (order != 0) { return order < 0; }
+    return lhs.header_p < rhs.header_p;
+  };
+
+  if (sequences > 0)  // std::sort must not be handed null iterators
     {
-      std::qsort(seqindex,
-            sequences,
-            sizeof(seqinfo_t),
-            compare_byabundance);
+      std::sort(seqindex, seqindex + sequences, by_abundance);
     }
 }
