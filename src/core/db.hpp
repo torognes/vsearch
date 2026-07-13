@@ -60,8 +60,10 @@
 
 #pragma once
 
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::size_t
+#include <vector>
 
 
 struct seqinfo_s
@@ -98,8 +100,11 @@ using seqinfo_t = struct seqinfo_s;
 struct Database
 {
 private:
-  char *      datap    = nullptr;  // packed headers, sequences and qualities
-  seqinfo_t * seqindex = nullptr;  // per-sequence offsets, lengths and abundance
+  // packed headers, sequences and qualities; per-sequence offsets/lengths/
+  // abundance. FatalAllocator keeps the out-of-memory behaviour of the former
+  // raw xmalloc buffers (fatal(), not std::terminate).
+  std::vector<char, FatalAllocator<char>>           data_;
+  std::vector<seqinfo_t, FatalAllocator<seqinfo_t>> seqindex_;
 
   bool     fastq_format = false;  // read through the is_fastq() accessor
   uint64_t sequences = 0;
@@ -108,11 +113,7 @@ private:
   uint64_t shortest = 0;
   uint64_t longestheader = 0;
 
-  uint64_t    dataalloc = 0;  // allocation bookkeeping for datap
-  uint64_t    datalen = 0;
-  std::size_t seqindex_alloc = 0;  // allocation bookkeeping for seqindex
-
-  /* udb_read is a second database loader that fills datap/seqindex in place
+  /* udb_read is a second database loader that fills data_/seqindex_ in place
      (it bypasses add()); grant it access to the otherwise-private buffers. */
   friend auto udb_read(const char * filename,
                        bool create_bitmaps,
@@ -165,12 +166,12 @@ public:
 
   auto getheader(uint64_t seqno) const -> char const *
   {
-    return datap + seqindex[seqno].header_p;
+    return data_.data() + seqindex_[seqno].header_p;
   }
 
   auto getsequence(uint64_t seqno) const -> char const *
   {
-    return datap + seqindex[seqno].seq_p;
+    return data_.data() + seqindex_[seqno].seq_p;
   }
 
   /* Non-const companions to getsequence()/getheader(): hand out writable
@@ -181,27 +182,27 @@ public:
      mutate the database. */
   auto mutatesequence(uint64_t seqno) -> char *
   {
-    return datap + seqindex[seqno].seq_p;
+    return data_.data() + seqindex_[seqno].seq_p;
   }
 
   auto mutateheader(uint64_t seqno) -> char *
   {
-    return datap + seqindex[seqno].header_p;
+    return data_.data() + seqindex_[seqno].header_p;
   }
 
   auto getabundance(uint64_t seqno) const -> uint64_t
   {
-    return seqindex[seqno].size;
+    return seqindex_[seqno].size;
   }
 
   auto getsequencelen(uint64_t seqno) const -> uint64_t
   {
-    return seqindex[seqno].seqlen;
+    return seqindex_[seqno].seqlen;
   }
 
   auto getheaderlen(uint64_t seqno) const -> uint64_t
   {
-    return seqindex[seqno].headerlen;
+    return seqindex_[seqno].headerlen;
   }
 
   auto getsequencecount() const -> uint64_t { return sequences; }

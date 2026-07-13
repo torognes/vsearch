@@ -74,6 +74,26 @@
 constexpr uint64_t memchunk = 16777216;  // 2^24
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Grow a vector's capacity in fixed memchunk-byte steps, reproducing the raw
+     buffers' former xrealloc growth policy so that a large database's peak
+     memory does not balloon under std::vector's geometric growth. */
+  template <class Vector>
+  auto reserve_in_chunks(Vector & vec, std::size_t const needed_items) -> void
+  {
+    if (vec.capacity() >= needed_items) { return; }
+    auto const item_size = sizeof(typename Vector::value_type);
+    std::size_t chunked_bytes = vec.capacity() * item_size;
+    std::size_t const needed_bytes = needed_items * item_size;
+    while (chunked_bytes < needed_bytes) { chunked_bytes += memchunk; }
+    vec.reserve(chunked_bytes / item_size);
+  }
+
+}  // end of anonymous namespace
+
+
 /* Reset database state for library use.
    Must be called before the first add() when not using read().
    Frees any previously allocated data, then resets all counters.
@@ -87,18 +107,17 @@ auto Database::init() -> void
   longest = 0;
   shortest = std::numeric_limits<uint64_t>::max();
   longestheader = 0;
-  dataalloc = 0;
-  datalen = 0;
-  seqindex_alloc = 0;
 }
 
 
 auto Database::udb_reserve(uint64_t const count, uint64_t const datap_bytes) -> void
 {
-  /* udb_read fills these buffers in place (it bypasses add()); allocate them
-     up front at the exact sizes derived from the UDB header. */
-  seqindex = static_cast<seqinfo_t *>(xmalloc(count * sizeof(seqinfo_t)));
-  datap = static_cast<char *>(xmalloc(datap_bytes));
+  /* udb_read fills these buffers in place (it bypasses add()); size them up
+     front to the exact extents derived from the UDB header. resize() (not
+     reserve()) so data()/[] are valid across the whole buffer during the fill;
+     the value-initialised bytes are overwritten by the loader. */
+  seqindex_.resize(static_cast<std::size_t>(count));
+  data_.resize(static_cast<std::size_t>(datap_bytes));
 }
 
 
@@ -113,17 +132,18 @@ auto Database::udb_finalize(uint64_t const count,
 
   {
     Progress progress("Reorganizing data in memory", count, parameters);
+    char * const buffer = data_.data();
     for (auto i = count - 1; i > 0; i--)
       {
-        auto const old_p = seqindex[i].seq_p;
-        auto const new_p = seqindex[i].seq_p + i;
-        auto const len   = seqindex[i].seqlen;
-        std::memmove(datap + new_p, datap + old_p, len);
-        *(datap + new_p + len) = 0;
-        seqindex[i].seq_p = new_p;
+        auto const old_p = seqindex_[i].seq_p;
+        auto const new_p = seqindex_[i].seq_p + i;
+        auto const len   = seqindex_[i].seqlen;
+        std::memmove(buffer + new_p, buffer + old_p, len);
+        *(buffer + new_p + len) = 0;
+        seqindex_[i].seq_p = new_p;
         progress.update(count - i);
       }
-    *(datap + seqindex[0].seq_p + seqindex[0].seqlen) = 0;
+    *(buffer + seqindex_[0].seq_p + seqindex_[0].seqlen) = 0;
   }
 
   /* record the summary statistics (a UDB database is never FASTQ) */
@@ -141,7 +161,7 @@ auto Database::getquality(uint64_t seqno) const -> char const *
 {
   if (fastq_format)
     {
-      return datap + seqindex[seqno].qual_p;
+      return data_.data() + seqindex_[seqno].qual_p;
     }
   return nullptr;
 }
@@ -157,46 +177,27 @@ auto Database::add(bool const is_fastq_record,
 {
   /* Add a sequence to the database. Assumes that the database has been initialized. */
 
-  /* grow space for data, if necessary */
-
-  size_t const dataalloc_old = dataalloc;
-
-  size_t needed = datalen + headerlength + 1 + sequencelength + 1;
+  /* grow space for data, if necessary (memchunk-stepped, as the raw buffer was) */
+  size_t needed = data_.size() + headerlength + 1 + sequencelength + 1;
   if (is_fastq_record)
     {
       needed += sequencelength + 1;
     }
-  while (dataalloc < needed)
-    {
-      dataalloc += memchunk;
-    }
-  if (dataalloc > dataalloc_old)
-    {
-      datap = static_cast<char *>(xrealloc(datap, dataalloc));
-    }
+  reserve_in_chunks(data_, needed);
 
   /* store the header */
-  size_t const header_p = datalen;
-  std::memcpy(datap + header_p,
-              header,
-              headerlength + 1);
-  datalen += headerlength + 1;
+  size_t const header_p = data_.size();
+  data_.insert(data_.end(), header, header + headerlength + 1);
 
   /* store sequence */
-  size_t const sequence_p = datalen;
-  std::memcpy(datap + sequence_p,
-              sequence,
-              sequencelength + 1);
-  datalen += sequencelength + 1;
+  size_t const sequence_p = data_.size();
+  data_.insert(data_.end(), sequence, sequence + sequencelength + 1);
 
-  size_t const quality_p = datalen;
+  size_t const quality_p = data_.size();
   if (is_fastq_record)
     {
       /* store quality */
-      std::memcpy(datap + quality_p,
-                  quality,
-                  sequencelength + 1);
-      datalen += sequencelength + 1;
+      data_.insert(data_.end(), quality, quality + sequencelength + 1);
 
       /* A FASTQ record makes this a FASTQ database. read() sets the is_fastq
          flag itself before adding records, but callers that build a database
@@ -205,25 +206,16 @@ auto Database::add(bool const is_fastq_record,
       fastq_format = true;
     }
 
-  /* grow space for index, if necessary */
-  size_t const seqindex_alloc_old = seqindex_alloc;
-  while ((sequences + 1) * sizeof(seqinfo_t) > seqindex_alloc)
-    {
-      seqindex_alloc += memchunk;
-    }
-  if (seqindex_alloc > seqindex_alloc_old)
-    {
-      seqindex = static_cast<seqinfo_t *>(xrealloc(seqindex, seqindex_alloc));
-    }
-
-  /* update index */
-  seqinfo_t * seqindex_p = seqindex + sequences;
-  seqindex_p->headerlen = static_cast<unsigned int>(headerlength);
-  seqindex_p->seqlen = static_cast<unsigned int>(sequencelength);
-  seqindex_p->header_p = header_p;
-  seqindex_p->seq_p = sequence_p;
-  seqindex_p->qual_p = quality_p;
-  seqindex_p->size = static_cast<uint64_t>(abundance);
+  /* grow space for the index, if necessary, then append the entry */
+  reserve_in_chunks(seqindex_, seqindex_.size() + 1);
+  seqinfo_t record;
+  record.headerlen = static_cast<unsigned int>(headerlength);
+  record.seqlen = static_cast<unsigned int>(sequencelength);
+  record.header_p = header_p;
+  record.seq_p = sequence_p;
+  record.qual_p = quality_p;
+  record.size = static_cast<uint64_t>(abundance);
+  seqindex_.push_back(record);
 
   /* update statistics */
   ++sequences;
@@ -258,14 +250,9 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
   int64_t discarded_long = 0;
   int64_t discarded_unoise = 0;
 
-  /* allocate space for data */
-  dataalloc = 0;
-  datap = nullptr;
-  datalen = 0;
-
-  /* allocate space for index */
-  seqindex_alloc = 0;
-  seqindex = nullptr;
+  /* start from empty buffers; the records are appended by add() below */
+  data_.clear();
+  seqindex_.clear();
 
   {
     Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
@@ -414,24 +401,18 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 
 auto Database::clear() -> void
 {
-  if (datap != nullptr)
-    {
-      xfree(datap);
-      datap = nullptr;
-    }
-  if (seqindex != nullptr)
-    {
-      xfree(seqindex);
-      seqindex = nullptr;
-    }
+  /* release the heap storage (clear() alone keeps capacity); the vectors' own
+     destructors would do this too, but callers use clear() to free a database
+     early. */
+  data_.clear();
+  data_.shrink_to_fit();
+  seqindex_.clear();
+  seqindex_.shrink_to_fit();
   sequences = 0;
   nucleotides = 0;
   longest = 0;
   shortest = std::numeric_limits<uint64_t>::max();
   longestheader = 0;
-  dataalloc = 0;
-  datalen = 0;
-  seqindex_alloc = 0;
 }
 
 
@@ -454,19 +435,17 @@ auto Database::sortbylength(struct Parameters const & parameters) -> void
   Progress const progress("Sorting by length", 100, parameters);
 
   /* longest first, then by abundance, then by label, otherwise keep order */
-  auto const by_length = [this](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const * const buffer = data_.data();
+  auto const by_length = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen > rhs.seqlen; }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = std::strcmp(datap + lhs.header_p, datap + rhs.header_p);
+    auto const order = std::strcmp(buffer + lhs.header_p, buffer + rhs.header_p);
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
 
-  if (sequences > 0)  // std::sort must not be handed null iterators
-    {
-      std::sort(seqindex, seqindex + sequences, by_length);
-    }
+  std::sort(seqindex_.begin(), seqindex_.end(), by_length);
 }
 
 
@@ -475,19 +454,17 @@ auto Database::sortbylength_shortest_first(struct Parameters const & parameters)
   Progress const progress("Sorting by length", 100, parameters);
 
   /* shortest first, then by abundance, then by label, otherwise keep order */
-  auto const by_length_shortest = [this](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const * const buffer = data_.data();
+  auto const by_length_shortest = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen < rhs.seqlen; }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = std::strcmp(datap + lhs.header_p, datap + rhs.header_p);
+    auto const order = std::strcmp(buffer + lhs.header_p, buffer + rhs.header_p);
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
 
-  if (sequences > 0)  // std::sort must not be handed null iterators
-    {
-      std::sort(seqindex, seqindex + sequences, by_length_shortest);
-    }
+  std::sort(seqindex_.begin(), seqindex_.end(), by_length_shortest);
 }
 
 
@@ -496,16 +473,14 @@ auto Database::sortbyabundance(struct Parameters const & parameters) -> void
   Progress const progress("Sorting by abundance", 100, parameters);
 
   /* most abundant first, then by label, otherwise keep order */
-  auto const by_abundance = [this](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const * const buffer = data_.data();
+  auto const by_abundance = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = std::strcmp(datap + lhs.header_p, datap + rhs.header_p);
+    auto const order = std::strcmp(buffer + lhs.header_p, buffer + rhs.header_p);
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
 
-  if (sequences > 0)  // std::sort must not be handed null iterators
-    {
-      std::sort(seqindex, seqindex + sequences, by_abundance);
-    }
+  std::sort(seqindex_.begin(), seqindex_.end(), by_abundance);
 }

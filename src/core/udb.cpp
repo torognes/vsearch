@@ -206,11 +206,12 @@ auto udb_read(const char * filename,
   auto udb_wordlength = 0U;
   uint64_t nucleotides = 0;
 
-  /* udb_read populates the database buffers directly (it bypasses Database::add);
-     bind local aliases to the passed-in Database's members so the low-level
-     loader code below reads and writes them unchanged. */
-  char * & datap = db.datap;
-  seqinfo_t * & seqindex = db.seqindex;
+  /* udb_read fills the reserved database buffers in place (it bypasses
+     Database::add). These raw pointers are bound to the passed-in Database's
+     vector storage right after udb_reserve() sizes it below; the buffers are
+     not resized again during the load, so the pointers stay valid throughout. */
+  char * datap = nullptr;
+  seqinfo_t * seqindex = nullptr;
 
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
@@ -366,6 +367,8 @@ auto udb_read(const char * filename,
     uint64_t const datap_bytes =
       udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount);
     db.udb_reserve(seqcount, datap_bytes);
+    datap = db.data_.data();
+    seqindex = db.seqindex_.data();
 
     /* header index */
 
