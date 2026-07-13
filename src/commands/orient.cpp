@@ -169,6 +169,8 @@ auto orient(struct Parameters const & parameters) -> void
   tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
   fp_tabbedout = tabbedout_handle.get();
 
+  /* the sequence database this run owns (RAII) */
+  Database db;
   /* the k-mer index this run owns (RAII) */
   Dbindex dbindex;
 
@@ -178,25 +180,25 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true, dbindex, db_global, parameters);
+      udb_read(parameters.opt_db, true, true, dbindex, db, parameters);
     }
   else
     {
-      db_read(parameters.opt_db, 0, parameters);
+      db.read(parameters.opt_db, 0, parameters);
     }
 
   if (not is_udb)
     {
       if (parameters.opt_dbmask == Masking::dust)
         {
-          dust_all(db_global, parameters);
+          dust_all(db, parameters);
         }
       else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
         {
-          hardmask_all(db_global);
+          hardmask_all(db);
         }
-      dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
-      dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
+      dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+      dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
     }
 
   uhandle_s * uh_fwd = unique_init();
@@ -444,7 +446,7 @@ auto orient(struct Parameters const & parameters) -> void
   unique_exit(uh_fwd);
 
   dbindex.clear();
-  db_free();
+  db.clear();
 
   if (parameters.opt_tabbedout != nullptr)
     {
