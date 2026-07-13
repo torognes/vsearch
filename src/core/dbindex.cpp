@@ -118,7 +118,7 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint
     }
 }
 
-auto Dbindex::add_sequence(unsigned int seqno, Masking seqmask) -> void
+auto Dbindex::add_sequence(unsigned int seqno, Masking seqmask, struct Database const & db) -> void
 {
 #if 0
   std::printf("Adding seqno %d as index element no %d\n", seqno, count);
@@ -127,7 +127,7 @@ auto Dbindex::add_sequence(unsigned int seqno, Masking seqmask) -> void
   unsigned int uniquecount = 0;
   unsigned int const * uniquelist = nullptr;
   unique_count(uhandle, static_cast<int>(wordlength),
-               static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
+               static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
                &uniquecount, &uniquelist, seqmask);
   map[count] = seqno;
   for (auto i = 0U; i < uniquecount; i++)
@@ -148,19 +148,19 @@ auto Dbindex::add_sequence(unsigned int seqno, Masking seqmask) -> void
 }
 
 
-auto Dbindex::add_all_sequences(Masking seqmask, struct Parameters const & parameters) -> void
+auto Dbindex::add_all_sequences(Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
-  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
+  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
   Progress progress("Creating k-mer index", seqcount, parameters);
   for (auto seqno = 0U; seqno < seqcount ; seqno++)
     {
-      add_sequence(seqno, seqmask);
+      add_sequence(seqno, seqmask, db);
       progress.update(seqno);
     }
 }
 
 
-auto Dbindex::prepare(int use_bitmap, Masking seqmask, struct Parameters const & parameters) -> void
+auto Dbindex::prepare(int use_bitmap, Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* Release any state from a previous prepare first (mirrors db_init ->
      db_free), so a second prepare without an intervening clear() does
@@ -170,7 +170,7 @@ auto Dbindex::prepare(int use_bitmap, Masking seqmask, struct Parameters const &
 
   uhandle = unique_init();
 
-  unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
+  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
   /* this is the FASTA-database path; the effective index word length is the
      configured one (a UDB database sets wordlength in udb_read instead). */
   wordlength = static_cast<unsigned int>(parameters.opt_wordlength);
@@ -188,7 +188,7 @@ auto Dbindex::prepare(int use_bitmap, Masking seqmask, struct Parameters const &
         unsigned int uniquecount = 0;
         unsigned int const * uniquelist = nullptr;
         unique_count(uhandle, static_cast<int>(wordlength),
-                     static_cast<int>(db_getsequencelen(seqno)), db_getsequence(seqno),
+                     static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
                      &uniquecount, &uniquelist, seqmask);
         for (auto i = 0U; i < uniquecount; i++)
           {

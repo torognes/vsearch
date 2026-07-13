@@ -2353,7 +2353,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         /* uchime_denovo: add non-chimeras to db */
         if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
           {
-            state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask);
+            state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask, db_global);
           }
       }
 
@@ -2492,8 +2492,8 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               hardmask_all();
             }
-          state.dbindex.prepare(1, parameters.opt_dbmask, parameters);
-          state.dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+          state.dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
+          state.dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
@@ -2541,7 +2541,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       db_sortbyabundance(parameters);
-      state.dbindex.prepare(1, parameters.opt_qmask, parameters);
+      state.dbindex.prepare(1, parameters.opt_qmask, db_global, parameters);
       progress_total = db_getnucleotidecount();
     }
 

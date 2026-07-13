@@ -981,7 +981,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               state.clusterinfo[myseqno].strand = 0;
 
               /* add current sequence to database */
-              state.dbindex.add_sequence(static_cast<unsigned int>(myseqno), state.parameters.opt_qmask);
+              state.dbindex.add_sequence(static_cast<unsigned int>(myseqno), state.parameters.opt_qmask, db_global);
 
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
@@ -1074,7 +1074,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.clusterinfo[seqno].clusterno = state.clusters;
           state.clusterinfo[seqno].cigar = nullptr;
           state.clusterinfo[seqno].strand = 0;
-          state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask);
+          state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask, db_global);
           cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head,
                                      si_p[0].qseqlen,
@@ -1182,7 +1182,7 @@ auto cluster(char const * dbname,
       db_sortbyabundance(parameters);
     }
 
-  state.dbindex.prepare(1, parameters.opt_qmask, parameters);
+  state.dbindex.prepare(1, parameters.opt_qmask, db_global, parameters);
 
   /* tophits = the maximum number of hits we need to store */
 
@@ -1714,7 +1714,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                     db_getheader(static_cast<uint64_t>(seqno)));
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
-      cs->dbindex->add_sequence(static_cast<unsigned int>(seqno), parameters.opt_qmask);
+      cs->dbindex->add_sequence(static_cast<unsigned int>(seqno), parameters.opt_qmask, db_global);
       ++cs->cluster_count;
     }
 
@@ -1872,7 +1872,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                             db_getheader(static_cast<uint64_t>(myseqno)));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
-              cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), parameters.opt_qmask);
+              cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), parameters.opt_qmask, db_global);
               ++cs->cluster_count;
             }
 

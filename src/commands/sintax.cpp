@@ -720,8 +720,8 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! is_udb)
     {
-      state.dbindex.prepare(1, parameters.opt_dbmask, parameters);
-      state.dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+      state.dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
+      state.dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
     }
 
   /* prepare reading of queries */

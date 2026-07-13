@@ -572,8 +572,8 @@ static auto search_prep(struct search_cli_state_s & state) -> void
         }
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
-      state.dbindex.prepare(1, state.parameters.opt_dbmask, state.parameters);
-      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.parameters);
+      state.dbindex.prepare(1, state.parameters.opt_dbmask, db_global, state.parameters);
+      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, db_global, state.parameters);
     }
 
   /* tophits = the maximum number of hits we need to store */

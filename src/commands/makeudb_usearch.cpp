@@ -127,8 +127,8 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
       hardmask_all();
     }
 
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
 
   unsigned int const seqcount = static_cast<unsigned int>(db_getsequencecount());
   auto const ntcount = db_getnucleotidecount();

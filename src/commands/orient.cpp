@@ -195,8 +195,8 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all();
         }
-      dbindex.prepare(1, parameters.opt_dbmask, parameters);
-      dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+      dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
+      dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
     }
 
   uhandle_s * uh_fwd = unique_init();
