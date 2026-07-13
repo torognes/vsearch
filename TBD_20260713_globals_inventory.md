@@ -1,7 +1,9 @@
 # Remaining global variables: inventory and elimination plan
 
-Status: Phases 1 + 2 DONE on branch `tmp_20260713082154` (commits dc22fb25,
-2ce96b81; awaiting human review/merge). Phases 3 + 4 deferred to a later date.
+Status: Phases 1 + 2 DONE, and **Phase 4 fully DONE** (Group A `db.cpp` → the
+owned `Database` class, and Group B `dbhash.cpp` → the owned `Dbhash` class), all
+on branch `tmp_20260713082154` (awaiting human review/merge). Phase 3 (Groups
+C–G) deferred to a later date.
 Date: 2026-07-13.
 
 Goal (from `CLAUDE.md`): "avoid non const global variables". This document
@@ -25,7 +27,7 @@ mutable globals and are left alone.
 | Group | File | Variables | Linkage | Notes |
 |-------|------|-----------|---------|-------|
 | **A** | `core/db.cpp` | `datap`, `seqindex` (both `extern` in `db.hpp`), `seqindex_alloc`, `h`, `is_fastq`, `sequences`, `nucleotides`, `longest`, `shortest`, `longestheader`, `dataalloc`, `datalen` — **12** | 2 external, 10 file-static | The in-memory sequence database. Already wrapped by free-function + inline accessors (`db_get*`); **31 TUs** consume it, but only `udb.cpp` touches `datap`/`seqindex` directly. |
-| **B** | `core/dbhash.cpp` | `dbhash_table` (external, no header decl), `dbhash_bitmap`, `dbhash_size`, `dbhash_shift`, `dbhash_mask` — **5** | 1 external-leak, 4 static | DB dedup hash index; tightly coupled to Group A. |
+| **B** ✅DONE | `core/dbhash.cpp` | ~~`dbhash_table`, `dbhash_bitmap`, `dbhash_size`, `dbhash_shift`, `dbhash_mask`~~ — **5** | — | DB dedup hash index → owned `Dbhash` class (`dbhash_size` became an open()-local, `dbhash_shift` was dead and dropped). |
 | **C** | `core/mergepairs.cpp` | tables `merge_qual_same`, `merge_qual_diff`, `match_score`, `mism_score`, `q2p` (all external-linkage, no header decl); abort state `merge_abort`, `merge_error_claimed`, `merge_error_reason`, `merge_error_value` — **9** | 5 external-leak, 4 static | Tables filled once from `Parameters` at init; abort state coordinates worker threads (exposed via `request_merge_abort`/`merge_aborted`). |
 | **D** | `core/otutable.cpp` | `otutable` (pointer to heap `otutable_s`) — **1** | static | Singleton; the struct already exists. |
 | **E** | `core/getseq.cpp` | `labels_data` (external, no header decl) — **1** | external-leak | `std::vector<std::vector<char>>`. |
@@ -96,14 +98,19 @@ through the relevant functions (the proven `Dbindex` RAII-struct playbook).
   (aligns with the pending derep refactor, `TBD_20260712_derep_refactoring.md`).
 - **G** `base_seed` -> a small seed holder threaded to `random_*`.
 
-### Phase 4 — the DB core (large, ABI-breaking; do last)  [deferred]
+### Phase 4 — the DB core (large, ABI-breaking)  [DONE]
 
-Groups A + B -> a `Db` type holding `datap`/`seqindex`/counts with `db_get*`
-as members (or free functions taking `Db const &`), and `Dbhash` alongside it.
-Mirrors the completed `Dbindex` refactor exactly: instantiate in the command
-layer, thread a mutable `Db &`, update the library API, and break the
-`libvsearch_core` ABI per the standing E1 decision. Blast radius: 31 TUs +
-`udb.cpp` + public API.
+Done as two owned classes rather than one combined `Db`:
+- **Group A** → an owned `Database` class (`datap`/`seqindex`/counts +
+  `getX()` members), threaded through all 31 TUs + `udb.cpp` + the public API;
+  later polished to private `std::vector` (via `FatalAllocator`) storage,
+  `std::sort`, and const-correctness. ABI broken → api 0.10.0. See
+  `TBD_20260713_Database_polish.md`.
+- **Group B** → an owned `Dbhash` class (`core/dbhash.cpp`), threaded into
+  `--search_exact` (the sole consumer). Internal only, so no ABI change.
+
+Both mirror the earlier `Dbindex` refactor. Full CLI suite + release
+`api_examples` + Windows/POWER/mips64el cross-compiles all pass.
 
 ### Cross-cutting risks
 
