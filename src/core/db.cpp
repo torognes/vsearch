@@ -82,7 +82,7 @@ constexpr uint64_t memchunk = 16777216;  // 2^24
 auto Database::init() -> void
 {
   clear();
-  is_fastq = false;
+  fastq_format = false;
   sequences = 0;
   nucleotides = 0;
   longest = 0;
@@ -129,7 +129,7 @@ auto Database::udb_finalize(uint64_t const count,
 
   /* record the summary statistics (a UDB database is never FASTQ) */
 
-  is_fastq = false;
+  fastq_format = false;
   sequences = count;
   nucleotides = nucleotide_count;
   longest = longest_sequence;
@@ -140,7 +140,7 @@ auto Database::udb_finalize(uint64_t const count,
 
 auto Database::getquality(uint64_t seqno) const -> char *
 {
-  if (is_fastq)
+  if (fastq_format)
     {
       return datap + seqindex[seqno].qual_p;
     }
@@ -203,7 +203,7 @@ auto Database::add(bool const is_fastq_record,
          flag itself before adding records, but callers that build a database
          directly with add() rely on this assignment so that the is_fastq flag
          and getquality() can reach the stored quality. */
-      is_fastq = true;
+      fastq_format = true;
     }
 
   /* grow space for index, if necessary */
@@ -239,7 +239,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 {
   fastx_handle h = fastx_open(filename, parameters);
 
-  is_fastq = fastx_is_fastq(h);
+  fastq_format = fastx_is_fastq(h);
 
   int64_t const filesize = static_cast<int64_t>(fastx_get_size(h));
 
@@ -297,10 +297,10 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
           }
         else
           {
-            add(is_fastq,
+            add(fastq_format,
                 fastx_get_header(h),
                 fastx_get_sequence(h),
-                is_fastq ? fastx_get_quality(h) : nullptr,
+                fastq_format ? fastx_get_quality(h) : nullptr,
                 fastx_get_header_length(h),
                 sequencelength,
                 abundance);

@@ -82,7 +82,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   db.read(parameters.opt_fastx_mask, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  if ((fp_fastqout != nullptr) && ! db.is_fastq)
+  if ((fp_fastqout != nullptr) && ! db.is_fastq())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }

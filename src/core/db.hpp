@@ -97,10 +97,11 @@ using seqinfo_t = struct seqinfo_s;
    the code. Remaining polish is tracked in TBD_20260713_Database_polish.md. */
 struct Database
 {
+private:
   char *      datap    = nullptr;  // packed headers, sequences and qualities
   seqinfo_t * seqindex = nullptr;  // per-sequence offsets, lengths and abundance
 
-  bool     is_fastq = false;
+  bool     fastq_format = false;  // read through the is_fastq() accessor
   uint64_t sequences = 0;
   uint64_t nucleotides = 0;
   uint64_t longest = 0;
@@ -111,6 +112,16 @@ struct Database
   uint64_t    datalen = 0;
   std::size_t seqindex_alloc = 0;  // allocation bookkeeping for seqindex
 
+  /* udb_read is a second database loader that fills datap/seqindex in place
+     (it bypasses add()); grant it access to the otherwise-private buffers. */
+  friend auto udb_read(const char * filename,
+                       bool create_bitmaps,
+                       bool parse_abundances,
+                       struct Dbindex & dbindex,
+                       struct Database & db,
+                       struct Parameters const & parameters) -> void;
+
+public:
   Database() = default;
   ~Database();
   Database(Database const &) = delete;
@@ -182,6 +193,7 @@ struct Database
   auto getlongestheader() const -> uint64_t { return longestheader; }
   auto getlongestsequence() const -> uint64_t { return longest; }
   auto getshortestsequence() const -> uint64_t { return shortest; }
+  auto is_fastq() const -> bool { return fastq_format; }
 };
 
 
