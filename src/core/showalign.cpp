@@ -63,6 +63,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::copy, std::fill_n, std::min
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -147,7 +148,7 @@ namespace {
   }
 
 
-  auto get_alignment_row(Span<char> const seq_view, Span<char> const cigar_view,
+  auto get_alignment_row(View<char> const seq_view, Span<char> const cigar_view,
                          int const alignlen,
                          Operation const insertion_equivalent) -> std::vector<char> {
     std::vector<char> row(static_cast<size_t>(alignlen) + 1);
@@ -366,14 +367,14 @@ auto align_show(std::FILE * output_handle,
 }
 
 
-auto get_alignment_qrow(Span<char> const seq_view, Span<char> const cigar_view,
+auto get_alignment_qrow(View<char> const seq_view, Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
   static constexpr auto insertion_equivalent = adapt_to_viewpoint(Viewpoint::query);
   return get_alignment_row(seq_view, cigar_view, alignlen, insertion_equivalent);
 }
 
 
-auto get_alignment_trow(Span<char> const seq_view, Span<char> const cigar_view,
+auto get_alignment_trow(View<char> const seq_view, Span<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
   static constexpr auto insertion_equivalent = adapt_to_viewpoint(Viewpoint::target);
   return get_alignment_row(seq_view, cigar_view, alignlen, insertion_equivalent);

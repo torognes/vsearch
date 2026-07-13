@@ -66,6 +66,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"
+#include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
 #include <algorithm>  // std::max
@@ -111,7 +112,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
   }
 
   auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
-  auto const qrow = get_alignment_qrow(Span<char>{query, std::strlen(query)},
+  auto const qrow = get_alignment_qrow(View<char>{query, std::strlen(query)},
                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
@@ -131,7 +132,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       parameters);
 
   auto const target = static_cast<uint64_t>(hits->target);
-  auto const trow = get_alignment_trow(Span<char>{db.getsequence(target), static_cast<std::size_t>(db.getsequencelen(target))},
+  auto const trow = get_alignment_trow(View<char>{db.getsequence(target), static_cast<std::size_t>(db.getsequencelen(target))},
                                  Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
@@ -459,7 +460,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           if (hits != nullptr)
             {
               auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
-              auto const qrow = get_alignment_qrow(Span<char>{query, std::strlen(query)},
+              auto const qrow = get_alignment_qrow(View<char>{query, std::strlen(query)},
                                              Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
                                              hits->nwalignmentlength);
               std::fprintf(output_handle, "%.*s",
@@ -470,7 +471,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 27: /* trow */
           if (hits != nullptr)
             {
-              auto const trow = get_alignment_trow(Span<char>{tsequence, std::strlen(tsequence)},
+              auto const trow = get_alignment_trow(View<char>{tsequence, std::strlen(tsequence)},
                                              Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
                                              hits->nwalignmentlength);
               std::fprintf(output_handle, "%.*s",

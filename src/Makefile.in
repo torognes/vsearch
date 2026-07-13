@@ -215,10 +215,10 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -278,10 +278,10 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -341,10 +341,10 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -398,10 +398,10 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -455,10 +455,10 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -512,10 +512,10 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -568,10 +568,10 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -781,10 +781,10 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
 	utils/cityhash.hpp utils/compare_strings_nocase.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp utils/maps.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/progress.hpp utils/random.hpp \
-	utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
+	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
@@ -1417,6 +1417,7 @@ utils/cityhash.hpp \
 utils/compare_strings_nocase.hpp \
 utils/dynlib_loader.hpp \
 utils/fatal.hpp \
+utils/fatal_allocator.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/maps.hpp \

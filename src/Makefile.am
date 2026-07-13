@@ -188,6 +188,7 @@ utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
+utils/view.hpp \
 utils/worker_loop.hpp \
 commands/version.hpp \
 vsearch.h \

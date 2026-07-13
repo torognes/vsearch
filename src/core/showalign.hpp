@@ -59,16 +59,17 @@
 */
 
 #include "utils/span.hpp"
+#include "utils/view.hpp"
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 #include <vector>
 
 
-auto get_alignment_qrow(Span<char> seq_view,
+auto get_alignment_qrow(View<char> seq_view,
                         Span<char> cigar_view,
                         int alignlen) -> std::vector<char>;
 
-auto get_alignment_trow(Span<char> seq_view,
+auto get_alignment_trow(View<char> seq_view,
                         Span<char> cigar_view,
                         int alignlen) -> std::vector<char>;
 
