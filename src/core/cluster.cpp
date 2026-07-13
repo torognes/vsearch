@@ -190,6 +190,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
 
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
+  si->db = &db_global;  /* searchcore reads the sequences through the si */
   si->qsize = 1;
   si->nw = nullptr;
   si->hit_count = 0;
@@ -724,7 +725,8 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                            & snwmatches,
                            & snwmismatches,
                            & snwgaps,
-                           & nwcigar);
+                           & nwcigar,
+                           db_global);
 
                   int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(target));
 

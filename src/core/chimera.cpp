@@ -1878,6 +1878,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
+  search_info->db = &db_global;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
@@ -2069,7 +2070,8 @@ static auto chimera_process_query(struct chimera_info_s * ci,
            ci->snwmatches.data(),
            ci->snwmismatches.data(),
            ci->snwgaps.data(),
-           ci->nwcigar.data());
+           ci->nwcigar.data(),
+           db_global);
 
   for (auto i = 0; i < ci->cand_count; ++i)
     {

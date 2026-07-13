@@ -331,7 +331,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
       if (count >= minmatches)
         {
           auto const seqno = searchinfo->dbindex->getmapping(i);
-          unsigned int const length = static_cast<unsigned int>(db_getsequencelen(seqno));
+          unsigned int const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
           elem_t novel;
           novel.count = count;
@@ -558,10 +558,10 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
 
   auto const target_seqno = static_cast<uint64_t>(target);
   auto const * qseq = searchinfo.qsequence;
-  auto const * dlabel = db_getheader(target_seqno);
-  auto const * dseq = db_getsequence(target_seqno);
-  int64_t const dseqlen = static_cast<int64_t>(db_getsequencelen(target_seqno));
-  int64_t const tsize = static_cast<int64_t>(db_getabundance(target_seqno));
+  auto const * dlabel = searchinfo.db->getheader(target_seqno);
+  auto const * dseq = searchinfo.db->getsequence(target_seqno);
+  int64_t const dseqlen = static_cast<int64_t>(searchinfo.db->getsequencelen(target_seqno));
+  int64_t const tsize = static_cast<int64_t>(searchinfo.db->getabundance(target_seqno));
 
   return (
           /* maxqsize */
@@ -696,7 +696,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       (hit->matches + hit->mismatches >= parameters.opt_query_cov * searchinfo.qseqlen) and
       /* target_cov */
       (hit->matches + hit->mismatches >=
-       parameters.opt_target_cov * static_cast<double>(db_getsequencelen(static_cast<uint64_t>(hit->target)))) and
+       parameters.opt_target_cov * static_cast<double>(searchinfo.db->getsequencelen(static_cast<uint64_t>(hit->target)))) and
       /* maxid */
       (hit->id <= 100.0 * parameters.opt_maxid) and
       /* mid */
@@ -707,7 +707,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       if (parameters.opt_cluster_unoise != nullptr)
         {
           const auto mismatches = hit->mismatches;
-          auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(db_getabundance(static_cast<uint64_t>(hit->target)));
+          auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(searchinfo.db->getabundance(static_cast<uint64_t>(hit->target)));
           auto const beta = 1.0 / std::pow(2, (1.0 * parameters.opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
@@ -779,7 +779,8 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                nwmatches_list.data(),
                nwmismatches_list.data(),
                nwgaps_list.data(),
-               nwcigar_list.data());
+               nwcigar_list.data(),
+               *searchinfo->db);
     }
 
   unsigned int i = 0;
@@ -806,7 +807,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               int64_t nwmismatches = 0;
               int64_t nwgaps = 0;
 
-              int64_t const dseqlen = static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target)));
+              int64_t const dseqlen = static_cast<int64_t>(searchinfo->db->getsequencelen(static_cast<uint64_t>(target)));
 
               if (nwscore == std::numeric_limits<short>::max())
                 {
@@ -814,7 +815,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                      perform a new alignment with the
                      linear memory aligner */
 
-                  char * dseq = db_getsequence(static_cast<uint64_t>(target));
+                  char * dseq = searchinfo->db->getsequence(static_cast<uint64_t>(target));
 
                   if (nwcigar_list[i] != nullptr)
                     {

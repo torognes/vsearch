@@ -132,6 +132,7 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
+  si->db = &db_global;  /* searchcore reads the sequences through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
@@ -318,7 +319,7 @@ auto search_session_single(struct search_session_s * ss,
       r.gaps = h.nwgaps;
       r.alignment_length = h.nwalignmentlength;
       r.query_length = si->qseqlen;
-      r.target_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(h.target)));
+      r.target_length = static_cast<int>(si->db->getsequencelen(static_cast<uint64_t>(h.target)));
       r.accepted = h.accepted;
       r.strand = h.strand;
       ++count;
@@ -473,7 +474,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
         r.gaps = h.nwgaps;
         r.alignment_length = h.nwalignmentlength;
         r.query_length = qlen;
-        r.target_length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(h.target)));
+        r.target_length = static_cast<int>(my_si_plus->db->getsequencelen(static_cast<uint64_t>(h.target)));
         r.accepted = h.accepted;
         r.strand = h.strand;
         ++count;

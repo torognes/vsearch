@@ -66,6 +66,7 @@ using CELL = signed short;
 using WORD = unsigned short;
 using BYTE = unsigned char;
 struct s16info_s;
+struct Database;
 
 
 // The score/penalty parameters are int64_t rather than CELL: search16_init
@@ -103,4 +104,5 @@ auto search16(s16info_s * searchinfo,
               unsigned short * pmatches,
               unsigned short * pmismatches,
               unsigned short * pgaps,
-              char * * pcigar) -> void;
+              char * * pcigar,
+              struct Database const & db) -> void;

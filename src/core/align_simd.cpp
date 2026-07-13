@@ -1452,7 +1452,8 @@ auto search16(s16info_s * s,
               unsigned short * pmatches,
               unsigned short * pmismatches,
               unsigned short * pgaps,
-              char ** pcigar) -> void
+              char ** pcigar,
+              struct Database const & db) -> void
 {
   CELL ** q_start = reinterpret_cast<CELL **>(s->qtable);
   CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile);
@@ -1482,7 +1483,7 @@ auto search16(s16info_s * s,
       for (auto cand_id = 0U; cand_id < sequences; cand_id++)
         {
           auto const seqno = seqnos[cand_id];
-          int64_t const length = static_cast<int64_t>(db_getsequencelen(seqno));
+          int64_t const length = static_cast<int64_t>(db.getsequencelen(seqno));
 
           /* An empty query aligns to the target as one insertion of 'length'
              residues, so aligned == gaps == length. When that exceeds the
@@ -1541,7 +1542,7 @@ auto search16(s16info_s * s,
   uint64_t maxdlen = 0;
   for (int64_t i = 0; i < sequences; i++)
     {
-      uint64_t const dlen = db_getsequencelen(seqnos[i]);
+      uint64_t const dlen = db.getsequencelen(seqnos[i]);
       /* skip sequences the SIMD aligner cannot handle (product/sum limits) */
       if (search16_fits(static_cast<uint64_t>(s->qlen), dlen))
         {
@@ -1866,7 +1867,7 @@ auto search16(s16info_s * s,
                   while ((length == 0) and (next_id < sequences))
                     {
                       cand_id = static_cast<int64_t>(next_id++);
-                      length = static_cast<int64_t>(db_getsequencelen(seqnos[cand_id]));
+                      length = static_cast<int64_t>(db.getsequencelen(seqnos[cand_id]));
                       if ((length == 0) or (not search16_fits(static_cast<uint64_t>(s->qlen), static_cast<uint64_t>(length))))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
@@ -1883,7 +1884,7 @@ auto search16(s16info_s * s,
                   if (length > 0)
                     {
                       seq_id[cc] = cand_id;
-                      char * address = db_getsequence(seqnos[cand_id]);
+                      char * address = db.getsequence(seqnos[cand_id]);
                       d_address[cc] = reinterpret_cast<BYTE *>(address);
                       d_length[cc] = static_cast<uint64_t>(length);
                       d_begin[cc] = reinterpret_cast<unsigned char *>(address);

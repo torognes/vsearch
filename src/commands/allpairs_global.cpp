@@ -332,6 +332,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
 
   struct searchinfo_s searchinfo;
   searchinfo.parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
+  searchinfo.db = &db_global;  /* searchcore reads the sequences through the si */
 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
@@ -415,7 +416,8 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
                  pmatches.data(),
                  pmismatches.data(),
                  pgaps.data(),
-                 pcigar.data());
+                 pcigar.data(),
+                 db_global);
 
         /* convert to hit structure */
         for (std::size_t h = 0; h < static_cast<std::size_t>(searchinfo.hit_count); h++)

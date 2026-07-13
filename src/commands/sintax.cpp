@@ -608,6 +608,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   /* thread specific initialiation */
   si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
+  si->db = &db_global;  /* searchcore reads the sequences through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(state.tophits);
