@@ -162,6 +162,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           query_head,
                           qsequence,
                           qseqlen,
+                          db_global,
                           state.parameters);
     }
 
@@ -173,6 +174,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           query_head,
                           qsequence,
                           qsequence_rc,
+                          db_global,
                           state.parameters);
     }
 
@@ -196,6 +198,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
+                                          db_global,
                                           state.parameters);
             }
 
@@ -214,6 +217,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
             {
               results_show_tsegout_one(state.fp_tsegout,
                                        hp,
+                                       db_global,
                                        state.parameters);
             }
 
@@ -226,6 +230,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                       query_head,
                                       qseqlen,
                                       hp->target,
+                                      db_global,
                                       state.parameters);
                 }
             }
@@ -238,6 +243,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
+                                       db_global,
                                        state.parameters);
             }
 
@@ -246,7 +252,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
               results_show_blast6out_one(state.fp_blast6out,
                                          hp,
                                          query_head,
-                                         qseqlen);
+                                         qseqlen,
+                                         db_global);
             }
         }
     }
@@ -259,6 +266,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               query_head,
                               qseqlen,
                               0,
+                              db_global,
                               state.parameters);
         }
 
@@ -272,6 +280,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
+                                       db_global,
                                        state.parameters);
             }
 
@@ -280,7 +289,8 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
               results_show_blast6out_one(state.fp_blast6out,
                                          nullptr,
                                          query_head,
-                                         qseqlen);
+                                         qseqlen,
+                                         db_global);
             }
         }
     }
@@ -616,7 +626,7 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   db_read(parameters.opt_allpairs_global, 0, parameters);
 
-  results_show_samheader(fp_samout, parameters.opt_allpairs_global, parameters);
+  results_show_samheader(fp_samout, parameters.opt_allpairs_global, db_global, parameters);
 
   if (parameters.opt_qmask == Masking::dust)
     {

@@ -167,6 +167,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                           query_head,
                           qsequence,
                           qseqlen,
+                          db_global,
                           state.parameters);
     }
 
@@ -176,6 +177,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
+                          db_global,
                           state.parameters);
     }
 
@@ -187,6 +189,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                           query_head,
                           qsequence,
                           qsequence_rc,
+                          db_global,
                           state.parameters);
     }
 
@@ -217,6 +220,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
+                                          db_global,
                                           state.parameters);
             }
 
@@ -235,6 +239,7 @@ static auto search_output_results(struct search_cli_state_s & state,
             {
               results_show_tsegout_one(state.fp_tsegout.get(),
                                        hp,
+                                       db_global,
                                        state.parameters);
             }
 
@@ -247,6 +252,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                       query_head,
                                       qseqlen,
                                       hp->target,
+                                      db_global,
                                       state.parameters);
                 }
             }
@@ -259,6 +265,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
+                                       db_global,
                                        state.parameters);
             }
 
@@ -267,7 +274,8 @@ static auto search_output_results(struct search_cli_state_s & state,
               results_show_blast6out_one(state.fp_blast6out.get(),
                                          hp,
                                          query_head,
-                                         qseqlen);
+                                         qseqlen,
+                                         db_global);
             }
         }
     }
@@ -287,6 +295,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                               query_head,
                               qseqlen,
                               0,
+                              db_global,
                               state.parameters);
         }
 
@@ -300,6 +309,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
+                                       db_global,
                                        state.parameters);
             }
 
@@ -308,7 +318,8 @@ static auto search_output_results(struct search_cli_state_s & state,
               results_show_blast6out_one(state.fp_blast6out.get(),
                                          nullptr,
                                          query_head,
-                                         qseqlen);
+                                         qseqlen,
+                                         db_global);
             }
         }
     }
@@ -554,14 +565,14 @@ static auto search_prep(struct search_cli_state_s & state) -> void
   if (is_udb)
     {
       udb_read(state.parameters.opt_db, true, true, state.dbindex, state.parameters);
-      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.parameters);
+      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, db_global, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());
     }
   else
     {
       db_read(state.parameters.opt_db, 0, state.parameters);
-      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.parameters);
+      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, db_global, state.parameters);
       if (state.parameters.opt_dbmask == Masking::dust)
         {
           dust_all(db_global, state.parameters);

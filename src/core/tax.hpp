@@ -59,4 +59,6 @@
 */
 
 
-auto tax_split(int seqno, int * level_start, int * level_len) -> void;
+struct Database;
+
+auto tax_split(int seqno, int * level_start, int * level_len, struct Database const & db) -> void;

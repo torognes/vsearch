@@ -228,6 +228,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                           query_head,
                           qsequence,
                           qseqlen,
+                          db_global,
                           parameters);
     }
 
@@ -239,6 +240,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                           query_head,
                           qsequence,
                           qsequence_rc,
+                          db_global,
                           parameters);
     }
 
@@ -269,6 +271,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
+                                          db_global,
                                           parameters);
             }
 
@@ -287,6 +290,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
             {
               results_show_tsegout_one(state.fp_tsegout,
                                        &hit,
+                                       db_global,
                                        parameters);
             }
 
@@ -299,6 +303,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                       query_head,
                                       qseqlen,
                                       hit.target,
+                                      db_global,
                                       parameters);
                 }
             }
@@ -311,6 +316,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
+                                       db_global,
                                        parameters);
             }
 
@@ -319,7 +325,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
               results_show_blast6out_one(state.fp_blast6out,
                                          &hit,
                                          query_head,
-                                         qseqlen);
+                                         qseqlen,
+                                         db_global);
             }
         }
     }
@@ -339,6 +346,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                               query_head,
                               qseqlen,
                               0,
+                              db_global,
                               parameters);
         }
 
@@ -352,6 +360,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
+                                       db_global,
                                        parameters);
             }
 
@@ -360,7 +369,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
               results_show_blast6out_one(state.fp_blast6out,
                                          nullptr,
                                          query_head,
-                                         qseqlen);
+                                         qseqlen,
+                                         db_global);
             }
         }
     }
@@ -626,7 +636,7 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
 
   db_read(parameters.opt_db, 0, parameters);
 
-  results_show_samheader(state.fp_samout, parameters.opt_db, parameters);
+  results_show_samheader(state.fp_samout, parameters.opt_db, db_global, parameters);
 
   if (parameters.opt_dbmask == Masking::dust)
     {

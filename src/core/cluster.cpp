@@ -412,6 +412,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                           best, query_head,
                           qseqlen,
                           clusterno,
+                          db_global,
                           state.parameters);
     }
 
@@ -420,6 +421,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
       results_show_alnout(state.fp_alnout,
                           best, 1, query_head,
                           qsequence, qseqlen,
+                          db_global,
                           state.parameters);
     }
 
@@ -428,6 +430,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
       results_show_samout(state.fp_samout,
                           best, 1, query_head,
                           qsequence, qsequence_rc,
+                          db_global,
                           state.parameters);
     }
 
@@ -438,6 +441,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                   query_head,
                                   qsequence,
                                   qsequence_rc,
+                                  db_global,
                                   state.parameters);
     }
 
@@ -456,6 +460,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
     {
       results_show_tsegout_one(state.fp_tsegout,
                                best,
+                               db_global,
                                state.parameters);
     }
 
@@ -463,13 +468,15 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
     {
       results_show_userout_one(state.fp_userout, best, query_head,
                                qsequence, qseqlen, qsequence_rc,
+                               db_global,
                                state.parameters);
     }
 
   if (state.fp_blast6out != nullptr)
     {
       results_show_blast6out_one(state.fp_blast6out, best, query_head,
-                                 qseqlen);
+                                 qseqlen,
+                                 db_global);
     }
 
   if (state.parameters.opt_matched != nullptr)
@@ -532,13 +539,15 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
         {
           results_show_userout_one(state.fp_userout, nullptr, query_head,
                                    qsequence, qseqlen, qsequence_rc,
+                                   db_global,
                                    state.parameters);
         }
 
       if (state.fp_blast6out != nullptr)
         {
           results_show_blast6out_one(state.fp_blast6out, nullptr, query_head,
-                                     qseqlen);
+                                     qseqlen,
+                                     db_global);
         }
     }
 
@@ -1158,7 +1167,7 @@ auto cluster(char const * dbname,
 
   otutable_init();
 
-  results_show_samheader(fp_samout, dbname, parameters);
+  results_show_samheader(fp_samout, dbname, db_global, parameters);
 
   if (parameters.opt_qmask == Masking::dust)
     {

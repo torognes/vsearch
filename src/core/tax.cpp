@@ -125,7 +125,7 @@ auto tax_parse(char const * header,
 }
 
 
-auto tax_split(int seqno, int * level_start, int * level_len) -> void
+auto tax_split(int seqno, int * level_start, int * level_len, struct Database const & db) -> void
 {
   /* Parse taxonomy string into the following 9 parts
      d domain
@@ -141,8 +141,8 @@ auto tax_split(int seqno, int * level_start, int * level_len) -> void
   static constexpr auto length_of_attribute_name = 4;  // "tax=" -> 4 letters
   auto tax_start = 0;
   auto tax_end = 0;
-  auto const * const header = db_getheader(static_cast<uint64_t>(seqno));
-  auto const header_length = static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno)));
+  auto const * const header = db.getheader(static_cast<uint64_t>(seqno));
+  auto const header_length = static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno)));
   auto const attribute_is_present = tax_parse(header, header_length, & tax_start, & tax_end);
   if (not attribute_is_present) { return; }
   auto offset = tax_start + length_of_attribute_name;

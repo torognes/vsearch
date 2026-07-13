@@ -163,7 +163,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
           auto const seqno = all_seqno[i];
           std::array<int, tax_levels> new_level_name_start {{}};
           std::array<int, tax_levels> new_level_name_len {{}};
-          tax_split(seqno, new_level_name_start.data(), new_level_name_len.data());
+          tax_split(seqno, new_level_name_start.data(), new_level_name_len.data(), db_global);
           cand_level_name_len[static_cast<std::size_t>(i)] = new_level_name_len;
           for (auto k = 0; k < tax_levels; k++)
             {
