@@ -61,9 +61,12 @@
 #pragma once
 
 #include <cstdint>  // uint64_t
+#include <vector>
 
 
+struct bitmap_s;
 struct Database;
+struct Parameters;
 
 struct dbhash_bucket_s
 {
@@ -79,15 +82,36 @@ struct dbhash_search_info_s
   uint64_t index = 0;
 };
 
-auto dbhash_open(uint64_t maxelements) -> void;
-auto dbhash_close() -> void;
 
-auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void;
-auto dbhash_add_all(struct Database const & db, struct Parameters const & parameters) -> void;
+/* The exact-match dedup hash index over a Database (used by --search_exact).
+   Owns its bucket table and open-addressing bitmap (RAII: released by clear()
+   and the destructor) and is non-copyable/non-movable. The search API
+   (search_first/search_next) is const, so the worker threads can query one
+   shared index concurrently; add()/add_all() build it single-threaded first. */
+struct Dbhash
+{
+private:
+  struct bitmap_s * bitmap_ = nullptr;  /* one occupancy bit per bucket slot */
+  uint64_t mask_ = 0;  /* table size is a power of two; index = hash & mask_ */
+  std::vector<struct dbhash_bucket_s> table_;
 
-auto dbhash_search_first(char * seq,
-                         uint64_t seqlen,
-                         struct dbhash_search_info_s * info,
-                         struct Database const & db) -> int64_t;
-auto dbhash_search_next(struct dbhash_search_info_s * info, struct Database const & db) -> int64_t;
-auto dbhash_search_finish(struct dbhash_search_info_s * info) -> void;
+public:
+  Dbhash() = default;
+  ~Dbhash();
+  Dbhash(Dbhash const &) = delete;
+  auto operator=(Dbhash const &) -> Dbhash & = delete;
+  Dbhash(Dbhash &&) = delete;
+  auto operator=(Dbhash &&) -> Dbhash & = delete;
+
+  auto open(uint64_t maxelements) -> void;
+  auto clear() -> void;
+
+  auto add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void;
+  auto add_all(struct Database const & db, struct Parameters const & parameters) -> void;
+
+  auto search_first(char * seq,
+                    uint64_t seqlen,
+                    struct dbhash_search_info_s * info,
+                    struct Database const & db) const -> int64_t;
+  auto search_next(struct dbhash_search_info_s * info, struct Database const & db) const -> int64_t;
+};

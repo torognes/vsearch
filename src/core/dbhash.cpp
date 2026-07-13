@@ -69,77 +69,73 @@
 #include <vector>
 
 
-static struct bitmap_s * dbhash_bitmap;
-static uint64_t dbhash_size;
-static unsigned int dbhash_shift;
-static uint64_t dbhash_mask;
-static std::vector<struct dbhash_bucket_s> dbhash_table;
-
-
-auto dbhash_open(uint64_t const maxelements) -> void
+auto Dbhash::open(uint64_t const maxelements) -> void
 {
   /* adjust size of hash table for 2/3 fill rate */
   /* and use a multiple of 2 */
 
-  dbhash_size = 1;
-  dbhash_shift = 0;
-  while (3 * maxelements > 2 * dbhash_size)
+  uint64_t size = 1;
+  while (3 * maxelements > 2 * size)
     {
-      dbhash_size <<= 1U;
-      ++dbhash_shift;
+      size <<= 1U;
     }
-  dbhash_mask = dbhash_size - 1;
+  mask_ = size - 1;
 
-  dbhash_table.resize(dbhash_size);
+  table_.resize(size);
 
-  dbhash_bitmap = bitmap_init(static_cast<unsigned int>(dbhash_size));
-  bitmap_reset_all(dbhash_bitmap);
+  bitmap_ = bitmap_init(static_cast<unsigned int>(size));
+  bitmap_reset_all(bitmap_);
 }
 
 
-auto dbhash_close() -> void
+Dbhash::~Dbhash()
 {
-  bitmap_free(dbhash_bitmap);
-  dbhash_bitmap = nullptr;
-
-  /* Return the remaining file-static state to its initial values so a second
-     session starts clean and the (potentially large) table memory is released
-     now rather than held until the next dbhash_open() or process exit. The
-     bitmap already gates every read of dbhash_table, so leaving stale buckets
-     was harmless, but symmetry with dbhash_open() avoids relying on that (L2b). */
-  dbhash_table.clear();
-  dbhash_table.shrink_to_fit();
-  dbhash_size = 0;
-  dbhash_shift = 0;
-  dbhash_mask = 0;
+  clear();
 }
 
 
-auto dbhash_search_first(char * seq,
-                         uint64_t const seqlen,
-                         struct dbhash_search_info_s * info,
-                         struct Database const & db) -> int64_t
+auto Dbhash::clear() -> void
+{
+  /* Release the (potentially large) table and bitmap now rather than holding
+     them until the Dbhash is destroyed, and reset to the empty state so the
+     index can be reopened. Guarded so the destructor is safe on an instance
+     that was never open()ed. */
+  if (bitmap_ != nullptr)
+    {
+      bitmap_free(bitmap_);
+      bitmap_ = nullptr;
+    }
+  table_.clear();
+  table_.shrink_to_fit();
+  mask_ = 0;
+}
+
+
+auto Dbhash::search_first(char * seq,
+                          uint64_t const seqlen,
+                          struct dbhash_search_info_s * info,
+                          struct Database const & db) const -> int64_t
 {
   auto const hash = hash_cityhash64(seq, seqlen);
   info->hash = hash;
   info->seq = seq;
   info->seqlen = seqlen;
-  auto index = hash & dbhash_mask;
-  auto * bp = &dbhash_table[index];
+  auto index = hash & mask_;
+  auto const * bp = &table_[index];
 
-  while ((bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
+  while ((bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
           (seqcmp(seq, db.getsequence(bp->seqno), seqlen) != 0)))
     {
-      index = (index + 1) & dbhash_mask;
-      bp = &dbhash_table[index];
+      index = (index + 1) & mask_;
+      bp = &table_[index];
     }
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
+  if (bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
     {
       return static_cast<int64_t>(bp->seqno);
     }
@@ -147,27 +143,27 @@ auto dbhash_search_first(char * seq,
 }
 
 
-auto dbhash_search_next(struct dbhash_search_info_s * info, struct Database const & db) -> int64_t
+auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database const & db) const -> int64_t
 {
   auto const hash = info->hash;
   auto const * seq = info->seq;
   auto const seqlen = info->seqlen;
-  auto index = (info->index + 1) & dbhash_mask;
-  auto * bp = &dbhash_table[index];
+  auto index = (info->index + 1) & mask_;
+  auto const * bp = &table_[index];
 
-  while ((bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
+  while ((bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
           (seqcmp(seq, db.getsequence(bp->seqno), seqlen) != 0)))
     {
-      index = (index + 1) & dbhash_mask;
-      bp = &dbhash_table[index];
+      index = (index + 1) & mask_;
+      bp = &table_[index];
     }
 
   info->index = index;
 
-  if (bitmap_get(dbhash_bitmap, static_cast<unsigned int>(index)) != 0U)
+  if (bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
     {
       return static_cast<int64_t>(bp->seqno);
     }
@@ -175,24 +171,24 @@ auto dbhash_search_next(struct dbhash_search_info_s * info, struct Database cons
 }
 
 
-auto dbhash_add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void
+auto Dbhash::add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void
 {
   struct dbhash_search_info_s info;
 
-  auto ret = dbhash_search_first(seq, seqlen, &info, db);
+  auto ret = search_first(seq, seqlen, &info, db);
   while (ret >= 0)
     {
-      ret = dbhash_search_next(&info, db);
+      ret = search_next(&info, db);
     }
 
-  bitmap_set(dbhash_bitmap, static_cast<unsigned int>(info.index));
-  auto & bucket = dbhash_table[info.index];
+  bitmap_set(bitmap_, static_cast<unsigned int>(info.index));
+  auto & bucket = table_[info.index];
   bucket.hash = info.hash;
   bucket.seqno = seqno;
 }
 
 
-auto dbhash_add_all(struct Database const & db, struct Parameters const & parameters) -> void
+auto Dbhash::add_all(struct Database const & db, struct Parameters const & parameters) -> void
 {
   Progress progress("Hashing database sequences", db.getsequencecount(), parameters);
   std::vector<char> normalized(db.getlongestsequence() + 1);
@@ -201,7 +197,7 @@ auto dbhash_add_all(struct Database const & db, struct Parameters const & parame
       auto const * seq = db.getsequence(seqno);
       auto const seqlen = db.getsequencelen(seqno);
       string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
-      dbhash_add(normalized.data(), seqlen, seqno, db);
+      add(normalized.data(), seqlen, seqno, db);
       progress.update(seqno + 1);
     }
 }

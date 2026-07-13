@@ -90,6 +90,7 @@ struct search_exact_state_s
      opt_* globals (E1/F3); set once at construction, read-only thereafter */
   struct Parameters const & parameters;
   struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
+  struct Dbhash dbhash;  /* the exact-match hash index this run owns (RAII) */
 
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;
@@ -188,7 +189,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
     }
 }
 
-auto search_exact_onequery(struct searchinfo_s * si) -> void
+auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhash) -> void
 {
   dbhash_search_info_s info;
 
@@ -199,11 +200,11 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash_search_first(normalized.data(), seqlen, & info, *si->db);
+  int64_t ret = dbhash.search_first(normalized.data(), seqlen, & info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
-      ret = dbhash_search_next(&info, *si->db);
+      ret = dbhash.search_next(&info, *si->db);
     }
 }
 
@@ -441,7 +442,7 @@ auto search_exact_query(uint64_t t, struct search_exact_state_s & state) -> int
         }
 
       /* perform search */
-      search_exact_onequery(si);
+      search_exact_onequery(si, state.dbhash);
     }
 
   std::vector<struct hit> hits;
@@ -660,15 +661,15 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   state.dbmatched = static_cast<uint64_t *>(xmalloc(static_cast<size_t>(state.seqcount) * sizeof(uint64_t)));
   std::memset(state.dbmatched, 0, static_cast<size_t>(state.seqcount) * sizeof(uint64_t));
 
-  dbhash_open(static_cast<uint64_t>(state.seqcount));
-  dbhash_add_all(state.db, parameters);
+  state.dbhash.open(static_cast<uint64_t>(state.seqcount));
+  state.dbhash.add_all(state.db, parameters);
 }
 
 auto search_exact_done(struct search_exact_state_s & state) -> void
 {
-  /* clean up, global; the output files are closed by search_exact() through
-     the RAII handles it owns */
-  dbhash_close();
+  /* clean up; the output files are closed by search_exact() through the RAII
+     handles it owns */
+  state.dbhash.clear();
 
   state.db.clear();
   xfree(state.dbmatched);
