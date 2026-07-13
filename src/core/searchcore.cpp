@@ -179,7 +179,7 @@ inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rh
 }
 
 
-inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * rhs) -> int
+inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * rhs, struct Database const & db) -> int
 {
   // high abundance, then low abundance
   // high id, then low id
@@ -211,8 +211,8 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
       return 0;
     }
 
-  auto const lhs_abundance = db_getabundance(static_cast<uint64_t>(lhs->target));
-  auto const rhs_abundance = db_getabundance(static_cast<uint64_t>(rhs->target));
+  auto const lhs_abundance = db.getabundance(static_cast<uint64_t>(lhs->target));
+  auto const rhs_abundance = db.getabundance(static_cast<uint64_t>(rhs->target));
   if (lhs_abundance > rhs_abundance)
     {
       return -1;
@@ -246,12 +246,6 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
 auto hit_compare_byid(const void * lhs, const void * rhs) -> int
 {
   return hit_compare_byid_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
-}
-
-
-auto hit_compare_bysize(const void * lhs, const void * rhs) -> int
-{
-  return hit_compare_bysize_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
 
 
@@ -1005,7 +999,7 @@ auto search_findbest2_bysize(struct searchinfo_s const * si_p,
 
   for (int i = 0; i < si_p->hit_count; i++)
     {
-      if ((best == nullptr) or (hit_compare_bysize_typed(si_p->hits + i, best) < 0))
+      if ((best == nullptr) or (hit_compare_bysize_typed(si_p->hits + i, best, *si_p->db) < 0))
         {
           best = si_p->hits + i;
         }
@@ -1015,7 +1009,7 @@ auto search_findbest2_bysize(struct searchinfo_s const * si_p,
     {
       for (int i = 0; i < si_m->hit_count; i++)
         {
-          if ((best == nullptr) or (hit_compare_bysize_typed(si_m->hits + i, best) < 0))
+          if ((best == nullptr) or (hit_compare_bysize_typed(si_m->hits + i, best, *si_p->db) < 0))
             {
               best = si_m->hits + i;
             }

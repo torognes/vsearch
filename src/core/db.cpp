@@ -419,6 +419,18 @@ Database::~Database()
 }
 
 
+/* The std::qsort comparators below need the data buffer to compare header
+   strings, but a C comparator is a plain function pointer that cannot capture
+   the Database being sorted (qsort_r, which passes context, is non-portable).
+   The sort members set this file-scope pointer to their own datap immediately
+   before calling qsort; sorting is single-threaded, so the transient sharing is
+   safe. Switching to std::sort with a capturing comparator would remove it (see
+   TBD_20260713_Database_polish.md). */
+namespace {
+  char const * sort_datap = nullptr;
+}
+
+
 auto compare_bylength(const void * a, const void * b) -> int
 {
   auto const * lhs = static_cast<seqinfo_t const *>(a);
@@ -444,7 +456,7 @@ auto compare_bylength(const void * a, const void * b) -> int
       return -1;
     }
 
-  auto const result = std::strcmp(db_global.datap + lhs->header_p, db_global.datap + rhs->header_p);
+  auto const result = std::strcmp(sort_datap + lhs->header_p, sort_datap + rhs->header_p);
   if (result != 0)
     {
       return result;
@@ -487,7 +499,7 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
       return -1;
     }
 
-  auto const result = std::strcmp(db_global.datap + lhs->header_p, db_global.datap + rhs->header_p);
+  auto const result = std::strcmp(sort_datap + lhs->header_p, sort_datap + rhs->header_p);
   if (result != 0)
     {
       return result;
@@ -521,7 +533,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
       return +1;
     }
 
-  auto const result = std::strcmp(db_global.datap + lhs->header_p, db_global.datap + rhs->header_p);
+  auto const result = std::strcmp(sort_datap + lhs->header_p, sort_datap + rhs->header_p);
   if (result != 0)
     {
       return result;
@@ -542,6 +554,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
 auto Database::sortbylength(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
+  sort_datap = datap;
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
       std::qsort(seqindex,
@@ -555,6 +568,7 @@ auto Database::sortbylength(struct Parameters const & parameters) -> void
 auto Database::sortbylength_shortest_first(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
+  sort_datap = datap;
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
       std::qsort(seqindex,
@@ -568,6 +582,7 @@ auto Database::sortbylength_shortest_first(struct Parameters const & parameters)
 auto Database::sortbyabundance(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by abundance", 100, parameters);
+  sort_datap = datap;
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
     {
       std::qsort(seqindex,

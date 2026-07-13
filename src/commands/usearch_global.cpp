@@ -506,10 +506,10 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* init per-thread search state before the workers start */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters, state.dbindex);
+      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters, state.dbindex, db_global);
       if (si_minus != nullptr)
         {
-          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters, state.dbindex);
+          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters, state.dbindex, db_global);
         }
     }
 

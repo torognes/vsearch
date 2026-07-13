@@ -127,12 +127,13 @@ auto populate_si(struct searchinfo_s * si,
 
 auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits,
                         struct Parameters const & parameters,
-                        struct Dbindex const & dbindex) -> void
+                        struct Dbindex const & dbindex,
+                        struct Database const & db) -> void
 {
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
-  si->db = &db_global;  /* searchcore reads the sequences through the si */
+  si->db = &db;  /* searchcore reads the sequences through the si */
   si->uh = unique_init();
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
   si->m = minheap_init(tophits);
@@ -195,6 +196,9 @@ struct search_session_s {
   /* the k-mer index this session searches, supplied by the caller at
      search_session_init and installed on the si's; must outlive the session. */
   struct Dbindex const * dbindex = nullptr;
+  /* the sequence database this session searches, supplied by the caller at
+     search_session_init and installed on the si's; must outlive the session. */
+  struct Database const * db = nullptr;
 };
 
 
@@ -215,14 +219,16 @@ auto search_session_free(struct search_session_s * ss) -> void
 
 
 auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters,
-                         struct Dbindex const & dbindex) -> void
+                         struct Dbindex const & dbindex,
+                         struct Database const & db) -> void
 {
   /* Initialize search session for library use.
      Mirrors cluster_session_init: stores seqcount/tophits in the session,
      allocates si_plus (always) and si_minus (when searching both strands). */
   ss->parameters = &parameters;
   ss->dbindex = &dbindex;
-  ss->seqcount = static_cast<int>(db_getsequencecount());
+  ss->db = &db;
+  ss->seqcount = static_cast<int>(db.getsequencecount());
   /* The library path does not clamp to the database size (only the CLI
      search_prep does), so the sizing uses the configured values from
      parameters; si->parameters (set in search_thread_init) carries the same. */
@@ -233,13 +239,13 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
     }
 
   ss->si_plus = make_unique<searchinfo_s>();
-  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex);
+  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
   ss->si_plus->strand = 0;
 
   if (parameters.opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
-      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex);
+      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
       ss->si_minus->strand = 1;
     }
 }
@@ -504,6 +510,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
 auto search_batch(struct Parameters const & parameters,
                   struct Dbindex const & dbindex,
+                  struct Database const & db,
                   const char ** query_seqs,
                   const char ** query_heads,
                   const int * query_lens,
@@ -517,7 +524,7 @@ auto search_batch(struct Parameters const & parameters,
      The library path does not clamp to the database size (only the CLI
      search_prep does), so the sizing uses the configured values from
      parameters; si->parameters (set in search_thread_init) carries the same. */
-  int const seqcount = static_cast<int>(db_getsequencecount());
+  int const seqcount = static_cast<int>(db.getsequencecount());
   int tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
   if (tophits > seqcount)
     {
@@ -552,10 +559,10 @@ auto search_batch(struct Parameters const & parameters,
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters, dbindex);
+      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters, dbindex, db);
       if (ctx.batch_si_minus != nullptr)
         {
-          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters, dbindex);
+          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters, dbindex, db);
         }
     }
 
