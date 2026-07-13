@@ -72,8 +72,8 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto create_deck() -> std::vector<int> {
-    auto const dbsequencecount = db_getsequencecount();
+  auto create_deck(Database const & db) -> std::vector<int> {
+    auto const dbsequencecount = db.getsequencecount();
     std::vector<int> deck(dbsequencecount);
     std::iota(deck.begin(), deck.end(), 0);
     return deck;
@@ -104,11 +104,12 @@ namespace {
 
   auto output_shuffled_fasta(std::vector<int> const & deck,
                              std::FILE * output_file,
+                             Database const & db,
                              struct Parameters const & parameters) -> void {
     Progress progress("Writing output", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto const sequence_id: deck) {
-      fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1, db_global, parameters);
+      fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1, db, parameters);
       progress.update(counter);
       ++counter;
     }
@@ -119,14 +120,15 @@ namespace {
 
 auto shuffle(struct Parameters const & parameters) -> void {
   auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
-  db_read(parameters.opt_shuffle, 0, parameters);
+  Database db;
+  db.read(parameters.opt_shuffle, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  auto deck = create_deck();
+  auto deck = create_deck(db);
   shuffle_deck(deck, parameters);
 
   truncate_deck(deck, parameters.opt_topn);
-  output_shuffled_fasta(deck, output_handle.get(), parameters);
+  output_shuffled_fasta(deck, output_handle.get(), db, parameters);
 
-  db_free();
+  db.clear();
 }

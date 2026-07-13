@@ -85,16 +85,16 @@ namespace {
   };
 
 
-  auto create_deck(struct Parameters const & parameters) -> std::vector<struct sortinfo_length_s> {
-    auto const dbsequencecount = db_getsequencecount();
+  auto create_deck(Database const & db, struct Parameters const & parameters) -> std::vector<struct sortinfo_length_s> {
+    auto const dbsequencecount = db.getsequencecount();
     assert(dbsequencecount < std::numeric_limits<std::size_t>::max());
     std::vector<struct sortinfo_length_s> deck(dbsequencecount);
     Progress progress("Getting lengths", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto & sequence: deck) {
       sequence.seqno = static_cast<unsigned int>(counter);
-      sequence.length = static_cast<unsigned int>(db_getsequencelen(counter));
-      sequence.size = static_cast<unsigned int>(db_getabundance(counter));
+      sequence.length = static_cast<unsigned int>(db.getsequencelen(counter));
+      sequence.size = static_cast<unsigned int>(db.getabundance(counter));
       progress.update(counter);
       ++counter;
     }
@@ -103,8 +103,9 @@ namespace {
 
 
   auto sort_deck(std::vector<sortinfo_length_s> & deck,
+                 Database const & db,
                  struct Parameters const & parameters) -> void {
-    auto compare_sequences = [](struct sortinfo_length_s const & lhs,
+    auto compare_sequences = [&db](struct sortinfo_length_s const & lhs,
                                 struct sortinfo_length_s const & rhs) -> bool {
       // longest first...
       if (lhs.length < rhs.length) {
@@ -122,7 +123,7 @@ namespace {
       }
       // ...then ties are sorted by sequence labels (alpha-numerical ordering),
       // preserve input order
-      auto const result = std::strcmp(db_getheader(lhs.seqno), db_getheader(rhs.seqno));
+      auto const result = std::strcmp(db.getheader(lhs.seqno), db.getheader(rhs.seqno));
       return result < 0;
     };
 
@@ -185,11 +186,12 @@ namespace {
   // refactoring: extract as a template
   auto output_sorted_fasta(std::vector<struct sortinfo_length_s> const & deck,
                            std::FILE * output_file,
+                           Database const & db,
                            struct Parameters const & parameters) -> void {
     Progress progress("Writing output", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto const & sequence: deck) {
-      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1, db_global, parameters);
+      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1, db, parameters);
       progress.update(counter);
       ++counter;
     }
@@ -200,17 +202,18 @@ namespace {
 
 auto sortbylength(struct Parameters const & parameters) -> void {
   auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
-  db_read(parameters.opt_sortbylength, 0, parameters);
+  Database db;
+  db.read(parameters.opt_sortbylength, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  auto deck = create_deck(parameters);
+  auto deck = create_deck(db, parameters);
 
-  sort_deck(deck, parameters);
+  sort_deck(deck, db, parameters);
 
   output_median_length(deck, parameters);
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, output_handle.get(), parameters);
+  output_sorted_fasta(deck, output_handle.get(), db, parameters);
 
-  db_free();
+  db.clear();
 }
