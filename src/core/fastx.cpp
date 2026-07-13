@@ -747,7 +747,7 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
      downstream (e.g. searchinfo_s::qseqlen, sized as qseqlen + buffer_headroom;
      the chimera query buffers; cut's rc_buffer). Such a sequence would be
      narrowed to a negative int and overflow the per-record buffer. Database
-     sequences over --maxseqlength are discarded by db_read, but many commands
+     sequences over --maxseqlength are discarded by Database::read, but many commands
      read records directly via fasta_next/fastx_next with no length filter, so
      guard it here, at the single point all FASTA/FASTQ (and DB) reads pass
      through -- symmetric with the header guard in fastx_filter_header. Mirrors

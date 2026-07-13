@@ -63,7 +63,7 @@
 /* === Library API for embedding global search === */
 
 /* Result of a single search hit. The target's header can be obtained
-   with db_getheader(result.target). */
+   with db.getheader(result.target). */
 struct search_result_s {
   int target;                  /* database sequence index */
   double id;                   /* percent identity (method per opt_iddef) */

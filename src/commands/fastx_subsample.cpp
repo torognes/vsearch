@@ -249,8 +249,8 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
           ++amplicon_number;
           /* Only read the next amplicon's mass while one remains. On the
              iteration that consumes the last unit of the last amplicon,
-             amplicon_number reaches db_getsequencecount() and the mass is never
-             used again, so skip the one-past-the-end db_getabundance() read
+             amplicon_number reaches db.getsequencecount() and the mass is never
+             used again, so skip the one-past-the-end db.getabundance() read
              (S20). */
           if (amplicon_number < db.getsequencecount())
             {

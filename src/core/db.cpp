@@ -76,7 +76,7 @@ constexpr uint64_t memchunk = 16777216;  // 2^24
 
 
 /* Reset database state for library use.
-   Must be called before the first db_add() when not using db_read().
+   Must be called before the first add() when not using read().
    Frees any previously allocated data, then resets all counters.
    Sets shortest to UINT64_MAX so min-tracking works correctly. */
 auto Database::init() -> void
@@ -171,10 +171,10 @@ auto Database::add(bool const is_fastq_record,
                   sequencelength + 1);
       datalen += sequencelength + 1;
 
-      /* A FASTQ record makes this a FASTQ database. db_read() sets the global
-         is_fastq flag itself before adding records, but callers that build a
-         database directly with db_add() rely on this assignment so that
-         db_is_fastq() and db_getquality() can reach the stored quality. */
+      /* A FASTQ record makes this a FASTQ database. read() sets the is_fastq
+         flag itself before adding records, but callers that build a database
+         directly with add() rely on this assignment so that the is_fastq flag
+         and getquality() can reach the stored quality. */
       is_fastq = true;
     }
 
@@ -250,7 +250,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
         int64_t const abundance = fastx_get_abundance(h);
 
         /* opt_minseqlength defaults to the -1 "unset" sentinel, which the CLI
-           resolves to a command-specific value (1 or 32) before db_read runs.
+           resolves to a command-specific value (1 or 32) before read() runs.
            A library caller may leave it unset, so guard the cast: a non-positive
            minimum means "no lower bound". Without this, static_cast<size_t>(-1)
            is SIZE_MAX and every sequence is discarded as too short. */

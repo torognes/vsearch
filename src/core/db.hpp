@@ -76,7 +76,7 @@ struct seqinfo_s
   // 40 to 48 bytes — +8 bytes per sequence in the seqindex array (alignment
   // padding makes widening just one cost the same as widening both). If the
   // --maxseqlength cap is ever raised above UINT32_MAX, widen both to uint64_t
-  // (and drop the narrowing casts in db_add()); until then the cap is the guard
+  // (and drop the narrowing casts in Database::add()); until then the cap is the guard
   // for the N1(c) storage path.
   unsigned int headerlen {};
   unsigned int seqlen {};

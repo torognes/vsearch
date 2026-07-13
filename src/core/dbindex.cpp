@@ -162,8 +162,8 @@ auto Dbindex::add_all_sequences(Masking seqmask, struct Database const & db, str
 
 auto Dbindex::prepare(int use_bitmap, Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
-  /* Release any state from a previous prepare first (mirrors db_init ->
-     db_free), so a second prepare without an intervening clear() does
+  /* Release any state from a previous prepare first (mirrors Database::init ->
+     clear()), so a second prepare without an intervening clear() does
      not leak the earlier five buffers. clear() is a no-op on the
      first call (all members are null) (L2a). */
   clear();
