@@ -260,7 +260,7 @@ auto fasta_next(fastx_handle input_handle,
   input_handle->sequence_buffer.length = 0;
   input_handle->sequence_buffer.data[0] = 0;
 
-  std::size_t rest = fastx_file_fill_buffer(input_handle);
+  std::size_t const rest = fastx_file_fill_buffer(input_handle);
 
   if (rest == 0)
     {
@@ -283,12 +283,12 @@ auto fasta_next(fastx_handle input_handle,
     }
   ++input_handle->file_buffer.position;
 
-  char const * line_end = nullptr;
-  while (line_end == nullptr)
+  bool header_complete = false;
+  while (not header_complete)
     {
       /* get more data if buffer empty*/
-      rest = fastx_file_fill_buffer(input_handle);
-      if (rest == 0)
+      auto const fragment = peek_line_fragment(input_handle);
+      if (fragment.end_of_input)
         {
           if (input_handle->defer_errors)
             {
@@ -298,25 +298,16 @@ auto fasta_next(fastx_handle input_handle,
           fatal("Invalid FASTA - header must be terminated with newline");
         }
 
-      /* find new line char ('LF') */
-      auto * const current_position = std::next(input_handle->file_buffer.data, static_cast<long>(input_handle->file_buffer.position));
-      line_end = static_cast<char *>(std::memchr(current_position,
-                                                 '\n',
-                                                 rest));
-
       /* copy to header buffer */
-      uint64_t len = rest;
-      if (line_end != nullptr)
+      buffer_extend(& input_handle->header_buffer,
+                    fragment.view.data(),
+                    fragment.view.size());
+      consume_fragment(input_handle, fragment);
+      if (fragment.has_newline)
         {
-          /* LF found, copy up to and including LF */
-          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           ++input_handle->lineno;
         }
-      buffer_extend(& input_handle->header_buffer,
-                    input_handle->file_buffer.data + input_handle->file_buffer.position,
-                    len);
-      input_handle->file_buffer.position += len;
-      rest -= len;
+      header_complete = fragment.has_newline;
     }
 
   /* read one or more sequence lines */
