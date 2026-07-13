@@ -230,19 +230,20 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
 {
   int failures = 0;
 
-  db_init();
+  Database db;
+  db.init();
   char const * const header = "ref1";
   char const * const sequence =
     "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
-  db_add(false, header, sequence, nullptr,
+  db.add(false, header, sequence, nullptr,
          std::strlen(header), std::strlen(sequence), 1);
-  dust_all(parameters);
+  dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   struct chimera_info_s * const info = chimera_info_alloc();
-  chimera_detect_init(info, parameters, dbindex);
+  chimera_detect_init(info, parameters, dbindex, db);
 
   /* A query identical to the single reference cannot be a chimera. */
   struct chimera_result_s result;
@@ -282,7 +283,7 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
   chimera_detect_cleanup(info);
   chimera_info_free(info);
   dbindex.clear();
-  db_free();
+  db.clear();
 
   if (failures == 0)
     {

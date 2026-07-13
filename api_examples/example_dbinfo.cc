@@ -47,14 +47,15 @@ static int test_db_read_fasta_accessors()
   struct Parameters parameters;
   vsearch_session_begin(parameters);
 
-  db_read("data/chimera_ref.fasta", 0, parameters);
+  Database db;
+  db.read("data/chimera_ref.fasta", 0, parameters);
 
   struct { char const * name; uint64_t got; uint64_t want; } const checks[] = {
-    { "sequencecount",  db_getsequencecount(),  6    },
-    { "nucleotidecount", db_getnucleotidecount(), 1800 },
-    { "longestsequence", db_getlongestsequence(), 300  },
-    { "shortestsequence", db_getshortestsequence(), 300 },
-    { "longestheader",   db_getlongestheader(),   4    },
+    { "sequencecount",  db.getsequencecount(),  6    },
+    { "nucleotidecount", db.getnucleotidecount(), 1800 },
+    { "longestsequence", db.getlongestsequence(), 300  },
+    { "shortestsequence", db.getshortestsequence(), 300 },
+    { "longestheader",   db.getlongestheader(),   4    },
   };
   for (auto const & check : checks)
     {
@@ -67,35 +68,35 @@ static int test_db_read_fasta_accessors()
     }
 
   /* Per-record accessors: header length, sequence length, default abundance. */
-  for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
+  for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
-      if (db_getsequencelen(seqno) != 300)
+      if (db.getsequencelen(seqno) != 300)
         {
           std::fprintf(stderr, "FAIL: db_getsequencelen(%lu) = %lu, expected 300\n",
-                       (unsigned long) seqno, (unsigned long) db_getsequencelen(seqno));
+                       (unsigned long) seqno, (unsigned long) db.getsequencelen(seqno));
           ++failures;
         }
-      if (db_getheaderlen(seqno) != std::strlen(db_getheader(seqno)))
+      if (db.getheaderlen(seqno) != std::strlen(db.getheader(seqno)))
         {
           std::fprintf(stderr, "FAIL: db_getheaderlen(%lu) disagrees with strlen(header)\n",
                        (unsigned long) seqno);
           ++failures;
         }
-      if (db_getabundance(seqno) != 1)
+      if (db.getabundance(seqno) != 1)
         {
           std::fprintf(stderr, "FAIL: db_getabundance(%lu) = %lu, expected 1 (no ;size=)\n",
-                       (unsigned long) seqno, (unsigned long) db_getabundance(seqno));
+                       (unsigned long) seqno, (unsigned long) db.getabundance(seqno));
           ++failures;
         }
     }
 
-  if (db_is_fastq())
+  if (db.is_fastq)
     {
       std::fprintf(stderr, "FAIL: db_is_fastq() true after reading a FASTA file\n");
       ++failures;
     }
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   if (failures == 0)
@@ -116,36 +117,37 @@ static int test_db_read_fastq_quality()
   struct Parameters parameters;
   vsearch_session_begin(parameters);
 
-  db_read("data/merge_fwd.fastq", 0, parameters);
+  Database db;
+  db.read("data/merge_fwd.fastq", 0, parameters);
 
-  if (not db_is_fastq())
+  if (not db.is_fastq)
     {
       std::fprintf(stderr, "FAIL: db_is_fastq() false after reading a FASTQ file\n");
       ++failures;
     }
-  if (db_getsequencecount() < 1)
+  if (db.getsequencecount() < 1)
     {
       std::fprintf(stderr, "FAIL: FASTQ read produced no sequences\n");
       ++failures;
     }
   else
     {
-      char const * const quality = db_getquality(0);
+      char const * const quality = db.getquality(0);
       if (quality == nullptr)
         {
           std::fprintf(stderr, "FAIL: db_getquality(0) is null for a FASTQ database\n");
           ++failures;
         }
-      else if (std::strlen(quality) != db_getsequencelen(0))
+      else if (std::strlen(quality) != db.getsequencelen(0))
         {
           std::fprintf(stderr, "FAIL: quality length %lu != sequence length %lu\n",
                        (unsigned long) std::strlen(quality),
-                       (unsigned long) db_getsequencelen(0));
+                       (unsigned long) db.getsequencelen(0));
           ++failures;
         }
     }
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   if (failures == 0)
@@ -167,19 +169,20 @@ static int test_db_add_fastq_quality()
   struct Parameters parameters;
   vsearch_session_begin(parameters);
 
-  db_init();
+  Database db;
+  db.init();
   char const * const header = "read1";
   char const * const sequence = "ACGTACGTACGT";
   char const * const quality  = "IIIIIIIIIIII";
-  db_add(true, header, sequence, quality,
+  db.add(true, header, sequence, quality,
          std::strlen(header), std::strlen(sequence), 1);
 
-  if (not db_is_fastq())
+  if (not db.is_fastq)
     {
       std::fprintf(stderr, "FAIL: db_is_fastq() false after db_add(is_fastq=true)\n");
       ++failures;
     }
-  char const * const stored = db_getquality(0);
+  char const * const stored = db.getquality(0);
   if (stored == nullptr)
     {
       std::fprintf(stderr, "FAIL: db_getquality(0) null after db_add(is_fastq=true)\n");
@@ -191,7 +194,7 @@ static int test_db_add_fastq_quality()
       ++failures;
     }
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   if (failures == 0)
@@ -226,12 +229,12 @@ static std::vector<record_s> make_records()
   return records;
 }
 
-static void load_records(std::vector<record_s> const & records)
+static void load_records(Database & db, std::vector<record_s> const & records)
 {
-  db_init();
+  db.init();
   for (auto const & record : records)
     {
-      db_add(false, record.header.c_str(), record.sequence.c_str(), nullptr,
+      db.add(false, record.header.c_str(), record.sequence.c_str(), nullptr,
              record.header.size(), record.sequence.size(), record.abundance);
     }
 }
@@ -246,7 +249,8 @@ static int test_db_add_accessors()
   vsearch_session_begin(parameters);
 
   std::vector<record_s> const records = make_records();
-  load_records(records);
+  Database db;
+  load_records(db, records);
 
   uint64_t expected_nt = 0;
   uint64_t expected_longest = 0;
@@ -258,31 +262,31 @@ static int test_db_add_accessors()
       expected_shortest = std::min<uint64_t>(expected_shortest, record.sequence.size());
     }
 
-  if (db_getsequencecount() != records.size())
+  if (db.getsequencecount() != records.size())
     {
       std::fprintf(stderr, "FAIL: db_getsequencecount() = %lu, expected %zu\n",
-                   (unsigned long) db_getsequencecount(), records.size());
+                   (unsigned long) db.getsequencecount(), records.size());
       ++failures;
     }
-  if (db_getnucleotidecount() != expected_nt)
+  if (db.getnucleotidecount() != expected_nt)
     {
       std::fprintf(stderr, "FAIL: db_getnucleotidecount() = %lu, expected %lu\n",
-                   (unsigned long) db_getnucleotidecount(), (unsigned long) expected_nt);
+                   (unsigned long) db.getnucleotidecount(), (unsigned long) expected_nt);
       ++failures;
     }
-  if (db_getlongestsequence() != expected_longest ||
-      db_getshortestsequence() != expected_shortest)
+  if (db.getlongestsequence() != expected_longest ||
+      db.getshortestsequence() != expected_shortest)
     {
       std::fprintf(stderr, "FAIL: longest/shortest = %lu/%lu, expected %lu/%lu\n",
-                   (unsigned long) db_getlongestsequence(),
-                   (unsigned long) db_getshortestsequence(),
+                   (unsigned long) db.getlongestsequence(),
+                   (unsigned long) db.getshortestsequence(),
                    (unsigned long) expected_longest, (unsigned long) expected_shortest);
       ++failures;
     }
-  for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
+  for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
-      if (db_getabundance(seqno) != static_cast<uint64_t>(records[seqno].abundance) ||
-          db_getsequencelen(seqno) != records[seqno].sequence.size())
+      if (db.getabundance(seqno) != static_cast<uint64_t>(records[seqno].abundance) ||
+          db.getsequencelen(seqno) != records[seqno].sequence.size())
         {
           std::fprintf(stderr, "FAIL: record %lu abundance/len mismatch\n",
                        (unsigned long) seqno);
@@ -290,7 +294,7 @@ static int test_db_add_accessors()
         }
     }
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   if (failures == 0)
@@ -302,12 +306,12 @@ static int test_db_add_accessors()
 
 
 /* Collect the multiset of sequence lengths currently in the database. */
-static std::vector<uint64_t> current_lengths()
+static std::vector<uint64_t> current_lengths(Database const & db)
 {
   std::vector<uint64_t> lengths;
-  for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
+  for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
-      lengths.push_back(db_getsequencelen(seqno));
+      lengths.push_back(db.getsequencelen(seqno));
     }
   std::sort(lengths.begin(), lengths.end());
   return lengths;
@@ -326,14 +330,15 @@ static int test_sort_contracts()
   vsearch_session_begin(parameters);
 
   std::vector<record_s> const records = make_records();
-  load_records(records);
-  std::vector<uint64_t> const reference_lengths = current_lengths();
+  Database db;
+  load_records(db, records);
+  std::vector<uint64_t> const reference_lengths = current_lengths(db);
 
   /* db_sortbyabundance: abundance non-increasing */
-  db_sortbyabundance(parameters);
-  for (uint64_t seqno = 1; seqno < db_getsequencecount(); ++seqno)
+  db.sortbyabundance(parameters);
+  for (uint64_t seqno = 1; seqno < db.getsequencecount(); ++seqno)
     {
-      if (db_getabundance(seqno) > db_getabundance(seqno - 1))
+      if (db.getabundance(seqno) > db.getabundance(seqno - 1))
         {
           std::fprintf(stderr, "FAIL: db_sortbyabundance not non-increasing at %lu\n",
                        (unsigned long) seqno);
@@ -342,10 +347,10 @@ static int test_sort_contracts()
     }
 
   /* db_sortbylength: length non-increasing */
-  db_sortbylength(parameters);
-  for (uint64_t seqno = 1; seqno < db_getsequencecount(); ++seqno)
+  db.sortbylength(parameters);
+  for (uint64_t seqno = 1; seqno < db.getsequencecount(); ++seqno)
     {
-      if (db_getsequencelen(seqno) > db_getsequencelen(seqno - 1))
+      if (db.getsequencelen(seqno) > db.getsequencelen(seqno - 1))
         {
           std::fprintf(stderr, "FAIL: db_sortbylength not non-increasing at %lu\n",
                        (unsigned long) seqno);
@@ -354,10 +359,10 @@ static int test_sort_contracts()
     }
 
   /* db_sortbylength_shortest_first: length non-decreasing */
-  db_sortbylength_shortest_first(parameters);
-  for (uint64_t seqno = 1; seqno < db_getsequencecount(); ++seqno)
+  db.sortbylength_shortest_first(parameters);
+  for (uint64_t seqno = 1; seqno < db.getsequencecount(); ++seqno)
     {
-      if (db_getsequencelen(seqno) < db_getsequencelen(seqno - 1))
+      if (db.getsequencelen(seqno) < db.getsequencelen(seqno - 1))
         {
           std::fprintf(stderr, "FAIL: db_sortbylength_shortest_first not non-decreasing at %lu\n",
                        (unsigned long) seqno);
@@ -365,13 +370,13 @@ static int test_sort_contracts()
         }
     }
 
-  if (current_lengths() != reference_lengths)
+  if (current_lengths(db) != reference_lengths)
     {
       std::fprintf(stderr, "FAIL: sorting changed the multiset of sequences\n");
       ++failures;
     }
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   if (failures == 0)
@@ -386,10 +391,11 @@ static int test_sort_contracts()
    list of "target:%.2f id" hit descriptors, so two index builds can be compared. */
 static std::vector<std::string> search_hits(struct Parameters const & parameters,
                                             struct Dbindex const & dbindex,
+                                            struct Database const & db,
                                             char const * query)
 {
   struct search_session_s * const session = search_session_alloc();
-  search_session_init(session, parameters, dbindex);
+  search_session_init(session, parameters, dbindex, db);
 
   struct search_result_s results[16];
   int count = 0;
@@ -454,14 +460,15 @@ static int test_incremental_indexing()
     std::fclose(input);
   }
 
+  Database db;
   auto load_db = [&]() {
-    db_init();
+    db.init();
     for (size_t idx = 0; idx < ref_labels.size(); ++idx)
       {
-        db_add(false, ref_labels[idx].c_str(), ref_seqs[idx].c_str(), nullptr,
+        db.add(false, ref_labels[idx].c_str(), ref_seqs[idx].c_str(), nullptr,
                ref_labels[idx].size(), ref_seqs[idx].size(), 1);
       }
-    dust_all(parameters);
+    dust_all(db, parameters);
   };
 
   char const * const query = ref_seqs[0].c_str();
@@ -469,21 +476,21 @@ static int test_incremental_indexing()
   /* (a) batch indexing */
   load_db();
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
-  std::vector<std::string> const hits_batch = search_hits(parameters, dbindex, query);
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
+  std::vector<std::string> const hits_batch = search_hits(parameters, dbindex, db, query);
   dbindex.clear();
 
   /* (b) incremental indexing: one dbindex_addsequence() per sequence */
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  for (uint64_t seqno = 0; seqno < db_getsequencecount(); ++seqno)
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
-      dbindex.add_sequence(static_cast<unsigned int>(seqno), parameters.opt_dbmask);
+      dbindex.add_sequence(static_cast<unsigned int>(seqno), parameters.opt_dbmask, db);
     }
-  std::vector<std::string> const hits_incremental = search_hits(parameters, dbindex, query);
+  std::vector<std::string> const hits_incremental = search_hits(parameters, dbindex, db, query);
   dbindex.clear();
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   if (hits_batch.empty())

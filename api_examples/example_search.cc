@@ -79,18 +79,19 @@ static int run_search_tsv() {
     std::vector<std::string> ref_labels, ref_seqs;
     read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
 
-    db_init();
+    Database db;
+    db.init();
     for (size_t i = 0; i < ref_labels.size(); i++) {
-        db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
+        db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-    dust_all(parameters);
+    dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_dbmask, parameters);
-    dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     struct search_session_s * ss = search_session_alloc();
-    search_session_init(ss, parameters, dbindex);
+    search_session_init(ss, parameters, dbindex, db);
 
     std::vector<std::string> query_labels, query_seqs;
     read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -111,7 +112,7 @@ static int run_search_tsv() {
         for (int j = 0; j < count; j++) {
             std::printf("%s\t%s\t%.1f\n",
                         query_labels[i].c_str(),
-                        db_getheader(results[j].target),
+                        db.getheader(results[j].target),
                         results[j].id);
         }
     }
@@ -119,7 +120,7 @@ static int run_search_tsv() {
     search_session_cleanup(ss);
     search_session_free(ss);
     dbindex.clear();
-    db_free();
+    db.clear();
     vsearch_session_end();
 
     return 0;
@@ -142,16 +143,17 @@ static int run_batch_tests()
   std::vector<std::string> ref_labels, ref_seqs;
   read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
 
-  db_init();
+  Database db;
+  db.init();
   for (size_t i = 0; i < ref_labels.size(); i++)
     {
-      db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
+      db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
              nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-  dust_all(parameters);
+  dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   /* Sequential: search each query one-by-one */
   std::vector<std::string> query_labels, query_seqs;
@@ -163,7 +165,7 @@ static int run_batch_tests()
   std::vector<int> seq_counts(nq, 0);
 
   struct search_session_s * ss = search_session_alloc();
-  search_session_init(ss, parameters, dbindex);
+  search_session_init(ss, parameters, dbindex, db);
 
   for (int i = 0; i < nq; i++)
     {
@@ -196,7 +198,7 @@ static int run_batch_tests()
   std::vector<struct search_result_s> batch_results(nq * max_per_query);
   std::vector<int> batch_counts(nq, 0);
 
-  search_batch(parameters, dbindex,
+  search_batch(parameters, dbindex, db,
                q_seqs.data(), q_heads.data(), q_lens.data(), q_sizes.data(),
                nq, batch_results.data(), max_per_query, batch_counts.data());
 
@@ -237,7 +239,7 @@ static int run_batch_tests()
     }
 
   dbindex.clear();
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   return failures;
@@ -258,16 +260,17 @@ static bool search_rc_finds_hit(const std::string & fwd,
   parameters.opt_maxrejects = 32;
   vsearch_session_begin(parameters);
 
-  db_init();
-  db_add(false, "fwd", fwd.c_str(), nullptr,
+  Database db;
+  db.init();
+  db.add(false, "fwd", fwd.c_str(), nullptr,
          3, static_cast<int>(fwd.size()), 1);
-  dust_all(parameters);
+  dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   struct search_session_s * ss = search_session_alloc();
-  search_session_init(ss, parameters, dbindex);
+  search_session_init(ss, parameters, dbindex, db);
 
   struct search_result_s results[4];
   int count = 0;
@@ -290,7 +293,7 @@ static bool search_rc_finds_hit(const std::string & fwd,
   search_session_cleanup(ss);
   search_session_free(ss);
   dbindex.clear();
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   return found;

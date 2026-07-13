@@ -67,18 +67,19 @@ static int run_chimera_tsv() {
     std::vector<std::string> ref_labels, ref_seqs;
     read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
 
-    db_init();
+    Database db;
+    db.init();
     for (size_t i = 0; i < ref_labels.size(); i++) {
-        db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
+        db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
                nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-    dust_all(parameters);
+    dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_dbmask, parameters);
-    dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci, parameters, dbindex);
+    chimera_detect_init(ci, parameters, dbindex, db);
 
     std::vector<std::string> query_labels, query_seqs;
     read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -119,7 +120,7 @@ static int run_chimera_tsv() {
     chimera_detect_cleanup(ci);
     chimera_info_free(ci);
     dbindex.clear();
-    db_free();
+    db.clear();
     vsearch_session_end();
 
     return 0;
@@ -139,16 +140,17 @@ static int run_batch_tests()
   std::vector<std::string> ref_labels, ref_seqs;
   read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
 
-  db_init();
+  Database db;
+  db.init();
   for (size_t i = 0; i < ref_labels.size(); i++)
     {
-      db_add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
+      db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
              nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
     }
-  dust_all(parameters);
+  dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, parameters);
-  dbindex.add_all_sequences(parameters.opt_dbmask, parameters);
+  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   std::vector<std::string> query_labels, query_seqs;
   read_fasta("data/chimera_queries.fasta", query_labels, query_seqs);
@@ -158,7 +160,7 @@ static int run_batch_tests()
   std::vector<struct chimera_result_s> seq_results(nq);
   {
     struct chimera_info_s * ci = chimera_info_alloc();
-    chimera_detect_init(ci, parameters, dbindex);
+    chimera_detect_init(ci, parameters, dbindex, db);
 
     for (int i = 0; i < nq; i++)
       {
@@ -188,7 +190,7 @@ static int run_batch_tests()
     }
 
   std::vector<struct chimera_result_s> batch_results(nq);
-  chimera_detect_batch(parameters, dbindex,
+  chimera_detect_batch(parameters, dbindex, db,
                        q_seqs.data(), q_heads.data(), q_lens.data(),
                        q_sizes.data(), nq, batch_results.data());
 
@@ -227,7 +229,7 @@ static int run_batch_tests()
     }
 
   dbindex.clear();
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   return failures;

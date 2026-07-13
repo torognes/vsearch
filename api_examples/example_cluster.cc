@@ -56,20 +56,21 @@ static int run_cluster_uc() {
     std::vector<std::string> labels, seqs;
     read_fasta("data/chimera_ref.fasta", labels, seqs);
 
-    db_init();
+    Database db;
+    db.init();
     for (size_t i = 0; i < labels.size(); i++) {
-        db_add(false, labels[i].c_str(), seqs[i].c_str(),
+        db.add(false, labels[i].c_str(), seqs[i].c_str(),
                nullptr, labels[i].size(), seqs[i].size(), 1);
     }
-    dust_all(parameters);
-    db_sortbylength(parameters);
+    dust_all(db, parameters);
+    db.sortbylength(parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_qmask, parameters);
+    dbindex.prepare(1, parameters.opt_qmask, db, parameters);
 
     struct cluster_session_s * cs = cluster_session_alloc();
-    cluster_session_init(cs, parameters, dbindex);
+    cluster_session_init(cs, parameters, dbindex, db);
 
-    int seqcount = static_cast<int>(db_getsequencecount());
+    int seqcount = static_cast<int>(db.getsequencecount());
     std::vector<struct cluster_result_s> results(seqcount);
     std::vector<int> cluster_sizes;
 
@@ -87,15 +88,15 @@ static int run_cluster_uc() {
         if (r.is_centroid) {
             std::printf("S\t%d\t%lu\t*\t*\t*\t*\t*\t%s\t*\n",
                         r.cluster_id,
-                        (unsigned long) db_getsequencelen(i),
-                        db_getheader(i));
+                        (unsigned long) db.getsequencelen(i),
+                        db.getheader(i));
         } else {
             std::printf("H\t%d\t%lu\t%.1f\t+\t0\t0\t%s\t%s\t%s\n",
                         r.cluster_id,
-                        (unsigned long) db_getsequencelen(i),
+                        (unsigned long) db.getsequencelen(i),
                         r.identity,
                         r.cigar[0] ? r.cigar : "*",
-                        db_getheader(i),
+                        db.getheader(i),
                         r.centroid_label);
         }
     }
@@ -104,7 +105,7 @@ static int run_cluster_uc() {
         for (int i = 0; i < seqcount; i++) {
             if (results[i].is_centroid && results[i].cluster_id == c) {
                 std::printf("C\t%d\t%d\t*\t*\t*\t*\t*\t%s\t*\n",
-                            c, cluster_sizes[c], db_getheader(i));
+                            c, cluster_sizes[c], db.getheader(i));
                 break;
             }
         }
@@ -113,7 +114,7 @@ static int run_cluster_uc() {
     cluster_session_cleanup(cs);
     cluster_session_free(cs);
     dbindex.clear();
-    db_free();
+    db.clear();
     vsearch_session_end();
 
     return 0;
@@ -136,22 +137,23 @@ static int run_batch_tests()
   std::vector<std::string> labels, seqs;
   read_fasta("data/chimera_ref.fasta", labels, seqs);
 
-  db_init();
+  Database db;
+  db.init();
   for (size_t i = 0; i < labels.size(); i++)
     {
-      db_add(false, labels[i].c_str(), seqs[i].c_str(),
+      db.add(false, labels[i].c_str(), seqs[i].c_str(),
              nullptr, labels[i].size(), seqs[i].size(), 1);
     }
-  dust_all(parameters);
-  db_sortbylength(parameters);
+  dust_all(db, parameters);
+  db.sortbylength(parameters);
 
-  int const sc = static_cast<int>(db_getsequencecount());
+  int const sc = static_cast<int>(db.getsequencecount());
 
   /* Sequential: use cluster_assign_single one at a time */
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_qmask, parameters);
+  dbindex.prepare(1, parameters.opt_qmask, db, parameters);
   struct cluster_session_s * cs_seq = cluster_session_alloc();
-  cluster_session_init(cs_seq, parameters, dbindex);
+  cluster_session_init(cs_seq, parameters, dbindex, db);
 
   std::vector<struct cluster_result_s> seq_results(sc);
   for (int i = 0; i < sc; i++)
@@ -164,9 +166,9 @@ static int run_batch_tests()
   dbindex.clear();
 
   /* Batch: use cluster_assign_batch for all at once */
-  dbindex.prepare(1, parameters.opt_qmask, parameters);
+  dbindex.prepare(1, parameters.opt_qmask, db, parameters);
   struct cluster_session_s * cs_batch = cluster_session_alloc();
-  cluster_session_init(cs_batch, parameters, dbindex);
+  cluster_session_init(cs_batch, parameters, dbindex, db);
 
   std::vector<struct cluster_result_s> batch_results(sc);
   cluster_assign_batch(cs_batch, 0, sc, batch_results.data());
@@ -211,7 +213,7 @@ static int run_batch_tests()
                    "(%d sequences, %ld threads)\n", sc, (long) parameters.opt_threads);
     }
 
-  db_free();
+  db.clear();
   vsearch_session_end();
 
   return failures;
