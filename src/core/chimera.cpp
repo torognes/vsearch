@@ -270,7 +270,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
+auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const & db) -> void
 {
   struct Parameters const & parameters = *chimera_info->parameters;
   if (parameters.opt_chimeras_denovo != nullptr)
@@ -321,7 +321,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info) -> void
       chimera_info->scan_p.resize(static_cast<size_t>(maxqlen) + 1);
       chimera_info->scan_q.resize(static_cast<size_t>(maxqlen) + 1);
 
-      const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db_getlongestsequence()));
+      const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
       chimera_info->paln.resize(maxparents);
       for (auto & a_parent_alignment : chimera_info->paln) {
         a_parent_alignment.resize(static_cast<size_t>(maxalnlen) + 1);
@@ -355,7 +355,7 @@ auto reset_matches(struct chimera_info_s * a_chimera_info) -> void {
 }
 
 
-auto find_matches(struct chimera_info_s * chimera_info) -> void
+auto find_matches(struct chimera_info_s * chimera_info, struct Database const & db) -> void
 {
   /* find the positions with matches for each potential parent */
   /* also note the positions with inserts in front */
@@ -364,7 +364,7 @@ auto find_matches(struct chimera_info_s * chimera_info) -> void
 
   for (auto i = 0; i < chimera_info->cand_count; ++i)
     {
-      auto const * tseq = db_getsequence(chimera_info->cand_list[static_cast<size_t>(i)]);
+      auto const * tseq = db.getsequence(chimera_info->cand_list[static_cast<size_t>(i)]);
 
       auto qpos = 0;
       auto tpos = 0;
@@ -501,7 +501,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
      and excluding regions matched by previously identified parents. */
 
   reset_matches(ci);
-  find_matches(ci);
+  find_matches(ci, db_global);
 
   std::vector<struct parents_info_s> best_parents(maxparents);
   std::vector<bool> position_used(static_cast<size_t>(ci->query_len), false);
@@ -618,7 +618,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 auto find_best_parents(struct chimera_info_s * ci) -> int
 {
   reset_matches(ci);
-  find_matches(ci);
+  find_matches(ci, db_global);
 
   std::array<int, maxparents> best_parent_cand {{}};
 
@@ -783,7 +783,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 }
 
 
-auto fill_alignment_parents(struct chimera_info_s * ci) -> void
+auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & db) -> void
 {
   /* fill in alignment strings for the parents */
 
@@ -792,7 +792,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci) -> void
       auto & alignment = ci->paln[static_cast<size_t>(i)];
       int const cand = ci->best_parents[static_cast<size_t>(i)];
       int const target_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(cand)]);
-      char const * target_seq = db_getsequence(static_cast<uint64_t>(target_seqno));
+      char const * target_seq = db.getsequence(static_cast<uint64_t>(target_seqno));
 
       auto is_inserted = false;
       int qpos = 0;
@@ -983,7 +983,7 @@ auto compute_diffs(struct chimera_info_s const * ci,
 }
 
 
-auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) -> Status
+auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
   /* always chimeric if called */
@@ -992,7 +992,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
   fill_max_alignment_length(ci);
   auto const alnlen = find_total_alignment_length(ci);
 
-  fill_alignment_parents(ci);
+  fill_alignment_parents(ci, db);
 
   fill_in_alignment_string_for_query(ci);
   fill_in_model_string_for_query(ci);
@@ -1046,19 +1046,19 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                     ci->query_head_len, ci->query_head.data());
       std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
+                    static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
       std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
+                    static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
       /* closest parent = max of QA, QB */
       if (QA >= QB)
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
+                        "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
         }
       else
         {
           std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
+                        "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
         }
       r->id_query_model = QM;
       r->id_query_a = QA;
@@ -1104,10 +1104,10 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
           int const parent_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[static_cast<size_t>(f)])]);
           std::fprintf(cli->fp_uchimealns, "\nParent%c (%5" PRIu64 " nt) ",
                        'A' + f,
-                       db_getsequencelen(static_cast<uint64_t>(parent_seqno)));
+                       db.getsequencelen(static_cast<uint64_t>(parent_seqno)));
           header_fprint_strip(cli->fp_uchimealns,
-                              db_getheader(static_cast<uint64_t>(parent_seqno)),
-                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(parent_seqno))),
+                              db.getheader(static_cast<uint64_t>(parent_seqno)),
+                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(parent_seqno))),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1183,15 +1183,15 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
                           parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       header_fprint_strip(cli->fp_uchimeout,
-                          db_getheader(static_cast<uint64_t>(seqno_a)),
-                          static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
+                          db.getheader(static_cast<uint64_t>(seqno_a)),
+                          static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       header_fprint_strip(cli->fp_uchimeout,
-                          db_getheader(static_cast<uint64_t>(seqno_b)),
-                          static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
+                          db.getheader(static_cast<uint64_t>(seqno_b)),
+                          static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
@@ -1199,8 +1199,8 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       if (seqno_c >= 0)
         {
           header_fprint_strip(cli->fp_uchimeout,
-                              db_getheader(static_cast<uint64_t>(seqno_c)),
-                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_c))),
+                              db.getheader(static_cast<uint64_t>(seqno_c)),
+                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_c))),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1233,7 +1233,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 }
 
 
-auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) -> Status
+auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
   auto status = Status::no_alignment;
@@ -1242,7 +1242,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
   fill_max_alignment_length(ci);
   auto const alnlen = find_total_alignment_length(ci);
 
-  fill_alignment_parents(ci);
+  fill_alignment_parents(ci, db);
 
   /* fill in alignment string for query */
 
@@ -1649,18 +1649,18 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
           std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
                         ci->query_head_len, ci->query_head.data());
           std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                        static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
+                        static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
           std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                        static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
+                        static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
           if (QA >= QB)
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))), db_getheader(static_cast<uint64_t>(seqno_a)));
+                            "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
             }
           else
             {
               std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))), db_getheader(static_cast<uint64_t>(seqno_b)));
+                            "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
             }
           r->id_query_model = QM;
           r->id_query_a = QA;
@@ -1705,19 +1705,19 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
                               parameters.opt_xlength);
 
           std::fprintf(cli->fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
-                  db_getsequencelen(static_cast<uint64_t>(seqno_a)));
+                  db.getsequencelen(static_cast<uint64_t>(seqno_a)));
           header_fprint_strip(cli->fp_uchimealns,
-                              db_getheader(static_cast<uint64_t>(seqno_a)),
-                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
+                              db.getheader(static_cast<uint64_t>(seqno_a)),
+                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
 
           std::fprintf(cli->fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
-                  db_getsequencelen(static_cast<uint64_t>(seqno_b)));
+                  db.getsequencelen(static_cast<uint64_t>(seqno_b)));
           header_fprint_strip(cli->fp_uchimealns,
-                              db_getheader(static_cast<uint64_t>(seqno_b)),
-                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
+                              db.getheader(static_cast<uint64_t>(seqno_b)),
+                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1810,15 +1810,15 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
                               parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
           header_fprint_strip(cli->fp_uchimeout,
-                              db_getheader(static_cast<uint64_t>(seqno_a)),
-                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
+                              db.getheader(static_cast<uint64_t>(seqno_a)),
+                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
           header_fprint_strip(cli->fp_uchimeout,
-                              db_getheader(static_cast<uint64_t>(seqno_b)),
-                              static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
+                              db.getheader(static_cast<uint64_t>(seqno_b)),
+                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1829,8 +1829,8 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
               if (QA >= QB)
                 {
                   header_fprint_strip(cli->fp_uchimeout,
-                                      db_getheader(static_cast<uint64_t>(seqno_a)),
-                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_a))),
+                                      db.getheader(static_cast<uint64_t>(seqno_a)),
+                                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
                                       parameters.opt_xsize,
                                       parameters.opt_xee,
                                       parameters.opt_xlength);
@@ -1838,8 +1838,8 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
               else
                 {
                   header_fprint_strip(cli->fp_uchimeout,
-                                      db_getheader(static_cast<uint64_t>(seqno_b)),
-                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno_b))),
+                                      db.getheader(static_cast<uint64_t>(seqno_b)),
+                                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
                                       parameters.opt_xsize,
                                       parameters.opt_xee,
                                       parameters.opt_xlength);
@@ -1872,6 +1872,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli) 
 
 
 static auto query_init(struct searchinfo_s * search_info, int const tophits,
+                       struct Database const & db,
                        struct Parameters const & parameters,
                        struct Dbindex const & dbindex) -> void
 {
@@ -1881,8 +1882,8 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   search_info->db = &db_global;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
-  search_info->kmers_v.reserve(db_getsequencecount() + overflow_padding);
-  search_info->kmers_v.resize(db_getsequencecount());
+  search_info->kmers_v.reserve(db.getsequencecount() + overflow_padding);
+  search_info->kmers_v.resize(db.getsequencecount());
   search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
   search_info->uh = unique_init();
@@ -1952,7 +1953,7 @@ auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
 
   for (int i = 0; i < maxparts; ++i)
     {
-      query_init(&ci->si[static_cast<size_t>(i)], tophits, parameters, dbindex);
+      query_init(&ci->si[static_cast<size_t>(i)], tophits, db_global, parameters, dbindex);
     }
 
   ci->s = search16_init(parameters.opt_match,
@@ -1991,7 +1992,8 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 static auto chimera_process_query(struct chimera_info_s * ci,
                                   std::vector<struct hit> & allhits_list,
                                   LinearMemoryAligner & lma,
-                                  struct chimera_cli_state_s * cli) -> Status
+                                  struct chimera_cli_state_s * cli,
+                                  struct Database const & db) -> Status
 {
   struct Parameters const & parameters = *ci->parameters;
   /* partition query */
@@ -2089,8 +2091,8 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              perform a new alignment with the
              linear memory aligner */
 
-          auto * tseq = db_getsequence(static_cast<uint64_t>(target));
-          int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(static_cast<uint64_t>(target)));
+          auto * tseq = db.getsequence(static_cast<uint64_t>(target));
+          int64_t const tseqlen = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target)));
 
           if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
             {
@@ -2135,7 +2137,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
       /* long high-quality reads */
       if (find_best_parents_long(ci) != 0)
         {
-          return eval_parents_long(ci, cli);
+          return eval_parents_long(ci, cli, db);
         }
       else
         {
@@ -2146,7 +2148,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
     {
       if (find_best_parents(ci) != 0)
         {
-          return eval_parents(ci, cli);
+          return eval_parents(ci, cli, db);
         }
       else
         {
@@ -2158,7 +2160,8 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
 static auto chimera_thread_core(struct chimera_cli_state_s & state,
                          struct chimera_info_s * ci,
-                         std::mutex & mutex_input) -> uint64_t
+                         std::mutex & mutex_input,
+                         struct Database const & db) -> uint64_t
 {
   /* tophits sizes the per-part minheaps; it is maxaccepts + maxrejects from
      the chimera-detection copy chimera() built before spawning the pool.
@@ -2195,7 +2198,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             ci->query_size = fasta_get_abundance(state.query_fasta_h);
 
             /* if necessary expand memory for arrays based on query length */
-            realloc_arrays(ci);
+            realloc_arrays(ci, db);
 
             /* copy the data locally (query seq, head) */
             std::strcpy(ci->query_head.data(), fasta_get_header(state.query_fasta_h));
@@ -2209,18 +2212,18 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
       }
     else
       {
-        if (state.seqno < db_getsequencecount())
+        if (state.seqno < db.getsequencecount())
           {
             ci->query_no = static_cast<int>(state.seqno);
-            ci->query_head_len = static_cast<int>(db_getheaderlen(state.seqno));
-            ci->query_len = static_cast<int>(db_getsequencelen(state.seqno));
-            ci->query_size = static_cast<int64_t>(db_getabundance(state.seqno));
+            ci->query_head_len = static_cast<int>(db.getheaderlen(state.seqno));
+            ci->query_len = static_cast<int>(db.getsequencelen(state.seqno));
+            ci->query_size = static_cast<int64_t>(db.getabundance(state.seqno));
 
             /* if necessary expand memory for arrays based on query length */
-            realloc_arrays(ci);
+            realloc_arrays(ci, db);
 
-            std::strcpy(ci->query_head.data(), db_getheader(state.seqno));
-            std::strcpy(ci->query_seq.data(), db_getsequence(state.seqno));
+            std::strcpy(ci->query_head.data(), db.getheader(state.seqno));
+            std::strcpy(ci->query_seq.data(), db.getsequence(state.seqno));
           }
         else
           {
@@ -2232,7 +2235,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
   };
 
   auto const process_query = [&]() {
-    auto const status = chimera_process_query(ci, allhits_list, lma, &state);
+    auto const status = chimera_process_query(ci, allhits_list, lma, &state, db);
 
     /* output results */
 
@@ -2371,7 +2374,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
       }
     else
       {
-        state.progress += db_getsequencelen(state.seqno);
+        state.progress += db.getsequencelen(state.seqno);
       }
 
     state.progress_bar->update(state.progress);
@@ -2399,7 +2402,7 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
                             [&state, &mutex_input](uint64_t nth_thread) {
-                              chimera_thread_core(state, state.cia + nth_thread, mutex_input);
+                              chimera_thread_core(state, state.cia + nth_thread, mutex_input, db_global);
                             });
   threadrunner.run();
 }
@@ -2542,7 +2545,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
       db_sortbyabundance(parameters);
       state.dbindex.prepare(1, parameters.opt_qmask, db_global, parameters);
-      progress_total = db_getnucleotidecount();
+      progress_total = db_global.getnucleotidecount();
     }
 
   if (parameters.opt_log != nullptr)
@@ -2903,7 +2906,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   ci->query_len = query_len;
   ci->query_size = query_size;
 
-  realloc_arrays(ci);
+  realloc_arrays(ci, db_global);
 
   std::strcpy(ci->query_head.data(), query_head);
   std::strcpy(ci->query_seq.data(), query_seq);
@@ -2917,7 +2920,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
      (cli == nullptr): the detection core populates ci->result_out instead of
      writing files, and takes no output lock. */
   auto const status = chimera_process_query(ci, ci->api_allhits_list,
-                                            *ci->api_lma_ptr, nullptr);
+                                            *ci->api_lma_ptr, nullptr, db_global);
 
   if (status == Status::no_parents)
     {
