@@ -63,6 +63,12 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>   // std::FILE, std::size_t
 
+// <sys/stat.h> provides struct stat and, on mingw, the __stat64 -> _stat64
+// macro that xstat_t depends on. It must precede the alias below so this
+// header is self-contained rather than relying on the includer to pull in
+// <sys/stat.h> in the right order first.
+#include <sys/stat.h>
+
 
 #ifdef _WIN32
 using xstat_t = struct __stat64;
