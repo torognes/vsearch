@@ -77,11 +77,11 @@ auto maskfasta(struct Parameters const & parameters) -> void
 
   if (parameters.opt_qmask == Masking::dust)
     {
-      dust_all(parameters);
+      dust_all(db_global, parameters);
     }
   else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
     {
-      hardmask_all();
+      hardmask_all(db_global);
     }
 
   {

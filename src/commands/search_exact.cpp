@@ -630,11 +630,11 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
 
   if (parameters.opt_dbmask == Masking::dust)
     {
-      dust_all(parameters);
+      dust_all(db_global, parameters);
     }
   else if ((parameters.opt_dbmask == Masking::soft) && (parameters.opt_hardmask))
     {
-      hardmask_all();
+      hardmask_all(db_global);
     }
 
   // memory-intensive: the entire database is now held in memory

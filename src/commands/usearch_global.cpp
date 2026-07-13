@@ -564,11 +564,11 @@ static auto search_prep(struct search_cli_state_s & state) -> void
       results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.parameters);
       if (state.parameters.opt_dbmask == Masking::dust)
         {
-          dust_all(state.parameters);
+          dust_all(db_global, state.parameters);
         }
       else if ((state.parameters.opt_dbmask == Masking::soft) && (state.parameters.opt_hardmask))
         {
-          hardmask_all();
+          hardmask_all(db_global);
         }
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(db_getsequencecount());

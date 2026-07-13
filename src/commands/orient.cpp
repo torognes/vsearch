@@ -189,11 +189,11 @@ auto orient(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_dbmask == Masking::dust)
         {
-          dust_all(parameters);
+          dust_all(db_global, parameters);
         }
       else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
         {
-          hardmask_all();
+          hardmask_all(db_global);
         }
       dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
       dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);

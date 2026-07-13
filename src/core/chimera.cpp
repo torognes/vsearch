@@ -2486,11 +2486,11 @@ auto chimera(struct Parameters const & parameters) -> void
           db_read(parameters.opt_db, 0, parameters);
           if (parameters.opt_dbmask == Masking::dust)
             {
-              dust_all(parameters);
+              dust_all(db_global, parameters);
             }
           else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
             {
-              hardmask_all();
+              hardmask_all(db_global);
             }
           state.dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
           state.dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
@@ -2533,11 +2533,11 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (parameters.opt_qmask == Masking::dust)
         {
-          dust_all(parameters);
+          dust_all(db_global, parameters);
         }
       else if ((parameters.opt_qmask == Masking::soft) and (parameters.opt_hardmask))
         {
-          hardmask_all();
+          hardmask_all(db_global);
         }
 
       db_sortbyabundance(parameters);

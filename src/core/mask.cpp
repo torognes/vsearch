@@ -209,7 +209,7 @@ struct dust_state_s
 };
 
 
-static auto dust_all_worker(struct dust_state_s & state) -> void
+static auto dust_all_worker(struct dust_state_s & state, struct Database const & db) -> void
 {
   uint64_t seqno = 0;
 
@@ -221,8 +221,8 @@ static auto dust_all_worker(struct dust_state_s & state) -> void
   };
 
   auto const process_sequence = [&]() {
-    dust(db_getsequence(seqno),
-         static_cast<int>(db_getsequencelen(seqno)),
+    dust(db.getsequence(seqno),
+         static_cast<int>(db.getsequencelen(seqno)),
          *state.parameters);
   };
 
@@ -230,17 +230,17 @@ static auto dust_all_worker(struct dust_state_s & state) -> void
 }
 
 
-auto dust_all(struct Parameters const & parameters) -> void
+auto dust_all(struct Database const & db, struct Parameters const & parameters) -> void
 {
   struct dust_state_s state;
-  state.seqcount = db_getsequencecount();
+  state.seqcount = db.getsequencecount();
   state.parameters = &parameters;
   Progress progress("Masking", state.seqcount, parameters);
   state.progress = &progress;
 
   ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
-                            [&state](uint64_t /*nth_thread*/)
-                            { dust_all_worker(state); });
+                            [&state, &db](uint64_t /*nth_thread*/)
+                            { dust_all_worker(state, db); });
   threadrunner.run();
 }
 
@@ -262,11 +262,11 @@ auto hardmask(char * seq, int len) -> void
 }
 
 
-auto hardmask_all() -> void
+auto hardmask_all(struct Database const & db) -> void
 {
-  for (uint64_t i = 0; i < db_getsequencecount(); i++)
+  for (uint64_t i = 0; i < db.getsequencecount(); i++)
     {
-      hardmask(db_getsequence(i), static_cast<int>(db_getsequencelen(i)));
+      hardmask(db.getsequence(i), static_cast<int>(db.getsequencelen(i)));
     }
 }
 
