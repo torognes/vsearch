@@ -86,32 +86,133 @@ struct seqinfo_s
 
 using seqinfo_t = struct seqinfo_s;
 
-extern char * datap;
-extern seqinfo_t * seqindex;
+
+/* The in-memory sequence database. Owns its two heap buffers (RAII: released by
+   clear() and the destructor) and is non-copyable/non-movable. The read API (the
+   getX members) is const so search worker threads can query one shared database
+   concurrently. It is populated in one of three ways: init() + add() when a
+   library caller assembles a database programmatically, read() from a
+   FASTA/FASTQ file, or udb_read() straight from a UDB file.
+
+   Transitional: while the per-command Database instances are threaded through
+   the ~350 existing call sites, a single process-wide instance (db_global,
+   below) holds the state and the db_* free functions forward to it, so those
+   call sites keep compiling unchanged. See TBD_20260713_Database_polish.md. */
+struct Database
+{
+  char *      datap    = nullptr;  // packed headers, sequences and qualities
+  seqinfo_t * seqindex = nullptr;  // per-sequence offsets, lengths and abundance
+
+  bool     is_fastq = false;
+  uint64_t sequences = 0;
+  uint64_t nucleotides = 0;
+  uint64_t longest = 0;
+  uint64_t shortest = 0;
+  uint64_t longestheader = 0;
+
+  uint64_t    dataalloc = 0;  // allocation bookkeeping for datap
+  uint64_t    datalen = 0;
+  std::size_t seqindex_alloc = 0;  // allocation bookkeeping for seqindex
+
+  Database() = default;
+  ~Database();
+  Database(Database const &) = delete;
+  auto operator=(Database const &) -> Database & = delete;
+  Database(Database &&) = delete;
+  auto operator=(Database &&) -> Database & = delete;
+
+  auto init() -> void;
+
+  auto add(bool is_fastq_record,
+           char const * header,
+           char const * sequence,
+           char const * quality,
+           std::size_t headerlength,
+           std::size_t sequencelength,
+           int64_t abundance) -> void;
+
+  auto read(char const * filename, int upcase, struct Parameters const & parameters) -> void;
+  auto clear() -> void;
+
+  auto setinfo(bool new_is_fastq,
+               uint64_t new_sequences,
+               uint64_t new_nucleotides,
+               uint64_t new_longest,
+               uint64_t new_shortest,
+               uint64_t new_longestheader) -> void;
+
+  auto getquality(uint64_t seqno) const -> char *;
+
+  /* Note: the sorting members below must be called after read(),
+     but before Dbindex::prepare */
+  auto sortbylength(struct Parameters const & parameters) -> void;
+  auto sortbylength_shortest_first(struct Parameters const & parameters) -> void;
+  auto sortbyabundance(struct Parameters const & parameters) -> void;
+
+  auto getheader(uint64_t seqno) const -> char *
+  {
+    return datap + seqindex[seqno].header_p;
+  }
+
+  auto getsequence(uint64_t seqno) const -> char *
+  {
+    return datap + seqindex[seqno].seq_p;
+  }
+
+  auto getabundance(uint64_t seqno) const -> uint64_t
+  {
+    return seqindex[seqno].size;
+  }
+
+  auto getsequencelen(uint64_t seqno) const -> uint64_t
+  {
+    return seqindex[seqno].seqlen;
+  }
+
+  auto getheaderlen(uint64_t seqno) const -> uint64_t
+  {
+    return seqindex[seqno].headerlen;
+  }
+
+  auto getsequencecount() const -> uint64_t { return sequences; }
+  auto getnucleotidecount() const -> uint64_t { return nucleotides; }
+  auto getlongestheader() const -> uint64_t { return longestheader; }
+  auto getlongestsequence() const -> uint64_t { return longest; }
+  auto getshortestsequence() const -> uint64_t { return shortest; }
+};
+
+
+/* Transitional process-wide instance the db_* shims below forward to
+   (see the Database comment above). */
+extern Database db_global;
+
+
+/* db_* free-function shims: thin forwarders to db_global, kept so the existing
+   call sites compile unchanged while Database instances are threaded through. */
 
 inline auto db_getheader(uint64_t seqno) -> char *
 {
-  return datap + seqindex[seqno].header_p;
+  return db_global.getheader(seqno);
 }
 
 inline auto db_getsequence(uint64_t seqno) -> char *
 {
-  return datap + seqindex[seqno].seq_p;
+  return db_global.getsequence(seqno);
 }
 
 inline auto db_getabundance(uint64_t seqno) -> uint64_t
 {
-  return seqindex[seqno].size;
+  return db_global.getabundance(seqno);
 }
 
 inline auto db_getsequencelen(uint64_t seqno) -> uint64_t
 {
-  return seqindex[seqno].seqlen;
+  return db_global.getsequencelen(seqno);
 }
 
 inline auto db_getheaderlen(uint64_t seqno) -> uint64_t
 {
-  return seqindex[seqno].headerlen;
+  return db_global.getheaderlen(seqno);
 }
 
 /* Reset database state for library use.

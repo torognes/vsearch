@@ -205,6 +205,12 @@ auto udb_read(const char * filename,
   auto udb_wordlength = 0U;
   uint64_t nucleotides = 0;
 
+  /* Transitional: udb_read populates the database buffers directly. Bind local
+     aliases to the process-wide instance so the code below reads unchanged;
+     these become the passed-in Database's members once it is threaded through. */
+  char * & datap = db_global.datap;
+  seqinfo_t * & seqindex = db_global.seqindex;
+
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
     {

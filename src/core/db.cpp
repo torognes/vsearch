@@ -74,29 +74,19 @@
 
 constexpr uint64_t memchunk = 16777216;  // 2^24
 
-static fastx_handle h = nullptr;
-static bool is_fastq = false;
-static uint64_t sequences = 0;
-static uint64_t nucleotides = 0;
-static uint64_t longest = 0;
-static uint64_t shortest = 0;
-static uint64_t longestheader = 0;
-
-static uint64_t dataalloc = 0;
-static uint64_t datalen = 0;
-static size_t seqindex_alloc = 0;
-
-seqinfo_t * seqindex = nullptr;
-char * datap = nullptr;
+/* Transitional process-wide database instance. The db_* free functions at the
+   bottom of this file forward to it; direct clients (udb.cpp) reference it by
+   name. To be removed once every command owns its own Database. */
+Database db_global;
 
 
 /* Reset database state for library use.
    Must be called before the first db_add() when not using db_read().
    Frees any previously allocated data, then resets all counters.
    Sets shortest to UINT64_MAX so min-tracking works correctly. */
-auto db_init() -> void
+auto Database::init() -> void
 {
-  db_free();
+  clear();
   is_fastq = false;
   sequences = 0;
   nucleotides = 0;
@@ -109,12 +99,12 @@ auto db_init() -> void
 }
 
 
-auto db_setinfo(bool new_is_fastq,
-                uint64_t new_sequences,
-                uint64_t new_nucleotides,
-                uint64_t new_longest,
-                uint64_t new_shortest,
-                uint64_t new_longestheader) -> void
+auto Database::setinfo(bool new_is_fastq,
+                       uint64_t new_sequences,
+                       uint64_t new_nucleotides,
+                       uint64_t new_longest,
+                       uint64_t new_shortest,
+                       uint64_t new_longestheader) -> void
 {
   is_fastq = new_is_fastq;
   sequences = new_sequences;
@@ -125,13 +115,7 @@ auto db_setinfo(bool new_is_fastq,
 }
 
 
-auto db_is_fastq() -> bool
-{
-  return is_fastq;
-}
-
-
-auto db_getquality(uint64_t seqno) -> char *
+auto Database::getquality(uint64_t seqno) const -> char *
 {
   if (is_fastq)
     {
@@ -141,13 +125,13 @@ auto db_getquality(uint64_t seqno) -> char *
 }
 
 
-auto db_add(bool const is_fastq_record,
-            char const * header,
-            char const * sequence,
-            char const * quality,
-            size_t const headerlength,
-            size_t const sequencelength,
-            int64_t const abundance) -> void
+auto Database::add(bool const is_fastq_record,
+                   char const * header,
+                   char const * sequence,
+                   char const * quality,
+                   size_t const headerlength,
+                   size_t const sequencelength,
+                   int64_t const abundance) -> void
 {
   /* Add a sequence to the database. Assumes that the database has been initialized. */
 
@@ -228,9 +212,9 @@ auto db_add(bool const is_fastq_record,
 }
 
 
-auto db_read(const char * filename, int upcase, struct Parameters const & parameters) -> void
+auto Database::read(const char * filename, int upcase, struct Parameters const & parameters) -> void
 {
-  h = fastx_open(filename, parameters);
+  fastx_handle h = fastx_open(filename, parameters);
 
   is_fastq = fastx_is_fastq(h);
 
@@ -290,13 +274,13 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
           }
         else
           {
-            db_add(is_fastq,
-                   fastx_get_header(h),
-                   fastx_get_sequence(h),
-                   is_fastq ? fastx_get_quality(h) : nullptr,
-                   fastx_get_header_length(h),
-                   sequencelength,
-                   abundance);
+            add(is_fastq,
+                fastx_get_header(h),
+                fastx_get_sequence(h),
+                is_fastq ? fastx_get_quality(h) : nullptr,
+                fastx_get_header_length(h),
+                sequencelength,
+                abundance);
           }
         progress.update(fastx_get_position(h));
       }
@@ -311,18 +295,18 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
           std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, "
                   "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount(),
-                  db_getshortestsequence(),
-                  db_getlongestsequence(),
-                  static_cast<double>(db_getnucleotidecount()) / static_cast<double>(db_getsequencecount()));
+                  getnucleotidecount(),
+                  getsequencecount(),
+                  getshortestsequence(),
+                  getlongestsequence(),
+                  static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
         }
       else
         {
           std::fprintf(stderr,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount());
+                  getnucleotidecount(),
+                  getsequencecount());
         }
     }
 
@@ -333,18 +317,18 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
           std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs, "
                   "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount(),
-                  db_getshortestsequence(),
-                  db_getlongestsequence(),
-                  static_cast<double>(db_getnucleotidecount()) / static_cast<double>(db_getsequencecount()));
+                  getnucleotidecount(),
+                  getsequencecount(),
+                  getshortestsequence(),
+                  getlongestsequence(),
+                  static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
         }
       else
         {
           std::fprintf(parameters.fp_log,
                   "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
-                  db_getnucleotidecount(),
-                  db_getsequencecount());
+                  getnucleotidecount(),
+                  getsequencecount());
         }
     }
 
@@ -406,37 +390,7 @@ auto db_read(const char * filename, int upcase, struct Parameters const & parame
 }
 
 
-auto db_getsequencecount() -> uint64_t
-{
-  return sequences;
-}
-
-
-auto db_getnucleotidecount() -> uint64_t
-{
-  return nucleotides;
-}
-
-
-auto db_getlongestheader() -> uint64_t
-{
-  return longestheader;
-}
-
-
-auto db_getlongestsequence() -> uint64_t
-{
-  return longest;
-}
-
-
-auto db_getshortestsequence() -> uint64_t
-{
-  return shortest;
-}
-
-
-auto db_free() -> void
+auto Database::clear() -> void
 {
   if (datap != nullptr)
     {
@@ -456,6 +410,12 @@ auto db_free() -> void
   dataalloc = 0;
   datalen = 0;
   seqindex_alloc = 0;
+}
+
+
+Database::~Database()
+{
+  clear();
 }
 
 
@@ -484,7 +444,7 @@ auto compare_bylength(const void * a, const void * b) -> int
       return -1;
     }
 
-  auto const result = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  auto const result = std::strcmp(db_global.datap + lhs->header_p, db_global.datap + rhs->header_p);
   if (result != 0)
     {
       return result;
@@ -527,7 +487,7 @@ auto compare_bylength_shortest_first(const void * a, const void * b) -> int
       return -1;
     }
 
-  auto const result = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  auto const result = std::strcmp(db_global.datap + lhs->header_p, db_global.datap + rhs->header_p);
   if (result != 0)
     {
       return result;
@@ -561,7 +521,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
       return +1;
     }
 
-  auto const result = std::strcmp(datap + lhs->header_p, datap + rhs->header_p);
+  auto const result = std::strcmp(db_global.datap + lhs->header_p, db_global.datap + rhs->header_p);
   if (result != 0)
     {
       return result;
@@ -579,7 +539,7 @@ inline auto compare_byabundance(const void * a, const void * b) -> int
 }
 
 
-auto db_sortbylength(struct Parameters const & parameters) -> void
+auto Database::sortbylength(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
@@ -592,7 +552,7 @@ auto db_sortbylength(struct Parameters const & parameters) -> void
 }
 
 
-auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> void
+auto Database::sortbylength_shortest_first(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
@@ -605,7 +565,7 @@ auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> voi
 }
 
 
-auto db_sortbyabundance(struct Parameters const & parameters) -> void
+auto Database::sortbyabundance(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by abundance", 100, parameters);
   if (sequences > 0)  // qsort requires a non-null pointer even for zero elements
@@ -615,4 +575,120 @@ auto db_sortbyabundance(struct Parameters const & parameters) -> void
             sizeof(seqinfo_t),
             compare_byabundance);
     }
+}
+
+
+/* ---------------------------------------------------------------------------
+   Transitional db_* free-function shims: forward to db_global (see db.hpp).
+   --------------------------------------------------------------------------- */
+
+auto db_init() -> void
+{
+  db_global.init();
+}
+
+
+auto db_setinfo(bool new_is_fastq,
+                uint64_t new_sequences,
+                uint64_t new_nucleotides,
+                uint64_t new_longest,
+                uint64_t new_shortest,
+                uint64_t new_longestheader) -> void
+{
+  db_global.setinfo(new_is_fastq,
+                    new_sequences,
+                    new_nucleotides,
+                    new_longest,
+                    new_shortest,
+                    new_longestheader);
+}
+
+
+auto db_is_fastq() -> bool
+{
+  return db_global.is_fastq;
+}
+
+
+auto db_getquality(uint64_t seqno) -> char *
+{
+  return db_global.getquality(seqno);
+}
+
+
+auto db_add(bool const is_fastq_record,
+            char const * header,
+            char const * sequence,
+            char const * quality,
+            size_t const headerlength,
+            size_t const sequencelength,
+            int64_t const abundance) -> void
+{
+  db_global.add(is_fastq_record,
+                header,
+                sequence,
+                quality,
+                headerlength,
+                sequencelength,
+                abundance);
+}
+
+
+auto db_read(const char * filename, int upcase, struct Parameters const & parameters) -> void
+{
+  db_global.read(filename, upcase, parameters);
+}
+
+
+auto db_getsequencecount() -> uint64_t
+{
+  return db_global.getsequencecount();
+}
+
+
+auto db_getnucleotidecount() -> uint64_t
+{
+  return db_global.getnucleotidecount();
+}
+
+
+auto db_getlongestheader() -> uint64_t
+{
+  return db_global.getlongestheader();
+}
+
+
+auto db_getlongestsequence() -> uint64_t
+{
+  return db_global.getlongestsequence();
+}
+
+
+auto db_getshortestsequence() -> uint64_t
+{
+  return db_global.getshortestsequence();
+}
+
+
+auto db_free() -> void
+{
+  db_global.clear();
+}
+
+
+auto db_sortbylength(struct Parameters const & parameters) -> void
+{
+  db_global.sortbylength(parameters);
+}
+
+
+auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> void
+{
+  db_global.sortbylength_shortest_first(parameters);
+}
+
+
+auto db_sortbyabundance(struct Parameters const & parameters) -> void
+{
+  db_global.sortbyabundance(parameters);
 }
