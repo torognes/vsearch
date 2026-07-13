@@ -1,36 +1,50 @@
-# `Database` polish: deferred improvements
+# `Database` polish: COMPLETE
 
-Status: the migration is DONE; the items below are follow-ups. Branch context: `tmp_20260713082154`.
+Status: **all items done and verified.** Branch context: `tmp_20260713082154`.
 Date: 2026-07-13.
 
 The DB-core refactor (Group A / Phase 4 of `TBD_20260713_globals_inventory.md`)
-is complete: a `Database` struct in `src/core/db.hpp`/`db.cpp` now wraps the
-former `datap`/`seqindex` externs and the `db.cpp` file-statics, and **every
-command and library caller owns its own instance** and threads a reference
-through the code. The transitional `db_global` instance and all the `db_*`
-free functions have been **deleted**; the original `datap`/`seqindex` externs
-no longer exist. The library API is the `Database`-owned model (api version
-0.9.0). Main build + full CLI test suite are green.
+is complete: a `Database` struct in `src/core/db.hpp`/`db.cpp` wraps the former
+`datap`/`seqindex` externs and the `db.cpp` file-statics; **every command and
+library caller owns its own instance** and threads a reference through the code.
+The transitional `db_global` and all the `db_*` free functions are gone.
 
-The design is intentionally conservative where it had to be: `Database` is a
-`struct` with **public** data members and **raw `xrealloc` buffers**. This
-document lists the improvements deliberately left as follow-ups, and explains
-why the two most valuable ones are **blocked by `udb.cpp`**.
+The follow-up polish that this document originally deferred has now also landed
+(commits `0b8646f7`..`b9f1150b`) and been verified:
 
-## Verification (all done)
+- **Encapsulation** — `Database`'s data members are now **private**; access is
+  through const getters + an `is_fastq()` accessor (member renamed
+  `fastq_format`), with non-const `mutatesequence()`/`mutateheader()` for the
+  in-place masking passes. `udb_read` is a `friend`.
+- **`std::vector` storage** — `data_`/`seqindex_` are `std::vector` parameterised
+  with a `FatalAllocator` (`utils/fatal_allocator.hpp`) that routes through
+  `xmalloc`/`xfree`, preserving the raw buffers' fatal-on-OOM behaviour instead
+  of throwing `std::bad_alloc` (which `-fno-exceptions` would turn into
+  `std::terminate`). `add()` grows in `memchunk` steps via `reserve_in_chunks`.
+- **`std::qsort` → `std::sort`** — the sort members use `std::sort`/`std::stable_sort`
+  with capturing comparators; the transient `sort_datap`/`derep_sort_db` file
+  globals are gone.
+- **const-correctness** — getters return `char const *`; a read-only `View`
+  (`utils/view.hpp`) carries the sequence spans into the aligner without a
+  `const_cast`.
+- Library API reconciled and bumped to **0.10.0**.
 
-- **CLI test suite** (`vsearch-tests/run_all_tests.sh`): 0 failures (debug build).
-- **Release-build `api_examples`**: `configure CXXFLAGS=-O2` (no `_GLIBCXX_DEBUG`)
-  + `cd api_examples && make test` → "All tests passed" (search/cluster/chimera
-  batch-vs-sequential, dbinfo db.read/db.add/accessors/sort/indexing, reinit,
-  merge, dust, derep — all match the `vsearch` binary).
-- **Cross-compiles**: Windows (`x86_64-w64-mingw32` → `vsearch.exe`), POWER
-  (`powerpc64le-linux-gnu`), and `mips64el-linux-gnuabi64` all build clean. (The
-  change is pure reference-parameter threading with no CPU-intrinsic edits.)
-- Tree restored to the standard `--enable-debug -O0 -ggdb3` config afterward.
+The `udb.cpp` blocker (below) was resolved by the `udb_reserve`/`udb_finalize`
+seam + `friend` access, so the loader fills the private `std::vector` buffers in
+place. Re-verification of this final state:
 
+- **CLI test suite**: 0 failures (debug build).
+- **cppcheck** (db.cpp/hpp, udb.cpp, fatal_allocator.hpp, view.hpp): only
+  pre-existing findings; the old `db_add` `knownConditionTrueFalse` false
+  positive is gone (the `std::vector` rewrite removed the flagged comparison).
+- **Release `api_examples`** `make test`: 30/30 pass at api 0.10.0.
+- **Cross-compiles**: Windows / POWER / mips64el all build clean.
+- Tree left in the standard `--enable-debug -O0 -ggdb3` config.
 
-## The blocker: `udb.cpp` writes the buffers directly
+The rest of this document is retained as the historical rationale for how the
+`udb.cpp` coupling was broken.
+
+## (Historical) The blocker: `udb.cpp` wrote the buffers directly
 
 `udb_read()` (in `src/core/udb.cpp`) is a second database loader: instead of
 building the DB record-by-record through `add()`, it reads a binary `.udb` file
@@ -58,7 +72,7 @@ improvements below. Any of them requires first giving `udb_read()` a
 **controlled population path** on `Database` (see "Prerequisite" below).
 
 
-## Blocked improvement 1 — encapsulation (private members)
+## (DONE) Encapsulation (private members) — how the udb blocker was broken
 
 **Goal:** make `datap`, `seqindex`, the statistics, and the allocation
 bookkeeping (`dataalloc`, `datalen`, `seqindex_alloc`) **private**, exposing
@@ -77,7 +91,7 @@ writable spans plus a `finalize_udb()` that runs the memmove/terminator pass.
 Once `udb_read` no longer touches raw members, they can become private.
 
 
-## Blocked improvement 2 — `std::vector` storage (RAII containers)
+## (DONE) `std::vector` storage (RAII containers)
 
 **Goal:** replace the raw `xrealloc`/`memchunk` buffers with
 `std::vector<char> data_` and `std::vector<seqinfo_t> seqindex_`, per the
@@ -119,54 +133,26 @@ session-init functions (`search_session_init`, `cluster_session_init`,
 `Database const & db` parameter (the 0.9.0 ABI break).
 
 
-## Other deferred items (not udb-blocked)
+## Other items — all resolved
 
-- **`std::qsort` → `std::sort`.** `std::qsort` was kept per instruction. Because
-  a C comparator (a plain function pointer) cannot capture the `Database` and
-  `qsort_r` is a non-portable linuxism, the comparators now reach the data
-  through small **transient file-scope pointers** set immediately before each
-  sort: `sort_datap` in `db.cpp` (the three `compare_*`) and `derep_sort_db` in
-  `commands/derep_prefix.cpp`. These are single-threaded and internal, but they
-  are non-const file-scope state — mild irony in a globals-elimination refactor,
-  and the reason to revisit. Switching to `std::sort` with a comparator
-  capturing the `Database` removes them and satisfies "prefer std algorithms" —
-  **but** the comparators' final tie-break is on element *addresses*
-  (`lhs < rhs`), whose result differs once elements move under `std::sort`. That
-  only reorders true duplicates (equal length, size, and header), so output is
-  equivalent in practice, but it is a behaviour change on duplicate-heavy input
-  and must be verified against the full test suite before landing.
+Every follow-up originally listed here has since been resolved:
 
-- **Stale comments (DONE).** The comments that named the deleted `db_*` free
-  functions (in `db.cpp` `init()`/`add()`/`read()` + the `seqinfo_s` note,
-  `fastx_subsample.cpp`, `fastx.cpp`, `search.hpp`, `dbindex.cpp`) were reworded
-  to the `Database` method names, and the `chimera.cpp` `#if 0` debug block was
-  updated to `ci->db->getheader(...)`.
+- **`std::qsort` → `std::sort`** — done; the comparators capture the `Database`,
+  and the transient `sort_datap` (db.cpp) / `derep_sort_db` (derep_prefix.cpp)
+  file globals were removed. `std::stable_sort` is used where the old
+  address-tie-break mattered, so duplicate ordering is preserved.
+- **`db_add` grow-if-needed false positive** — gone: the `std::vector` rewrite of
+  `add()` (insert + `reserve_in_chunks`) no longer has the `_old` comparison
+  `cppcheck` flagged.
+- **`db_is_fastq` asymmetry** — resolved: the member was renamed `fastq_format`
+  and a proper `is_fastq()` accessor added.
+- **Stale comments** — reworded to the `Database` method names; the
+  `chimera.cpp` `#if 0` debug block uses `ci->db->getheader(...)`.
 
-- **`db_add` grow-if-needed false positive.** `cppcheck` flags
-  `dataalloc > dataalloc_old` and `seqindex_alloc > seqindex_alloc_old` as
-  "always false" (`knownConditionTrueFalse`) — a false positive: the preceding
-  `while` loop can raise the value. The logic is correct and was copied verbatim
-  from the original `db_add`; the warning only appeared once the variables
-  became members. A behaviour-preserving cleanup that also silences it (and
-  drops the `_old` locals):
+## Truly remaining (optional, future)
 
-  ```cpp
-  if (needed > dataalloc)
-    {
-      while (dataalloc < needed) { dataalloc += memchunk; }
-      datap = static_cast<char *>(xrealloc(datap, dataalloc));
-    }
-  ```
-
-  Left out of step 1 to keep it a pure structural wrap; apply once reviewed.
-
-- **`db_is_fastq` asymmetry.** All queries became `Database` const accessors
-  (`getheader()`, `getsequencecount()`, …) except the FASTQ flag: an accessor
-  named `is_fastq()` would clash with the `is_fastq` member, and renaming the
-  member would falsify a preserved comment in `add()`. So `db_is_fastq()`
-  forwards by reading the public member directly. When members go private,
-  rename the member (e.g. `fastq_format`) and add an `is_fastq()` accessor.
-
-- **Comment audit.** A comment in `Database::add()` still refers to "the global
-  `is_fastq` flag". It stays accurate while `db_global` exists; once `db_global`
-  is gone it should be reworded (requires human sign-off per `CLAUDE.md`).
+- **Group B `Dbhash`** (`core/dbhash.cpp`) is still process-global — the sibling
+  of this refactor, not part of it. See `TBD_20260713_globals_inventory.md`.
+- A full per-session context object (so more than one library session could be
+  active at once) is still future work; some lower-level compute state remains
+  process-global.
