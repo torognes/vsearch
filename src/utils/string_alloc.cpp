@@ -60,7 +60,7 @@
 
 #include "string_alloc.hpp"
 #include "fatal.hpp"  // fatal
-#include "os/system.h"  // xmalloc
+#include "os/system.hpp"  // xmalloc
 #include <cstdarg>  // std::va_list, va_start, va_end
 #include <cstddef>  // std::size_t
 #include <cstdio>  // std::vsnprintf

@@ -70,7 +70,7 @@
 // _stat64" alias (via _mingw_stat64.h) that system.h's xstat_t = struct
 // __stat64 relies on, so that xstat_t resolves to the real struct _stat64
 // expected by _fstat64/_stat64 rather than a distinct forward-declared type.
-#include "os/system.h"
+#include "os/system.hpp"
 #include "utils/fatal.hpp"
 
 /* system_get_memused()/system_get_memtotal() are genuinely per-OS and live in

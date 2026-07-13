@@ -58,7 +58,7 @@
 
 */
 
-#include "os/system.h"
+#include "os/system.hpp"
 #include "utils/fatal.hpp"
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t

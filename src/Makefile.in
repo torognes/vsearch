@@ -209,7 +209,7 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -272,7 +272,7 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -335,7 +335,7 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -392,7 +392,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -449,7 +449,7 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -506,7 +506,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -562,7 +562,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -775,7 +775,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/search_exact.hpp commands/sff_convert.hpp \
 	core/showalign.hpp vendored/sha1.h commands/shuffle.hpp \
 	commands/sintax.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.h core/tax.hpp \
+	commands/sortbysize.hpp os/system.hpp core/tax.hpp \
 	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
 	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
 	core/unique.hpp utils/cigar.hpp utils/cigar_operations.hpp \
@@ -1403,7 +1403,7 @@ commands/shuffle.hpp \
 commands/sintax.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
-os/system.h \
+os/system.hpp \
 core/tax.hpp \
 commands/makeudb_usearch.hpp \
 commands/udb2fasta.hpp \

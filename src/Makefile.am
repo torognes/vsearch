@@ -155,7 +155,7 @@ commands/shuffle.hpp \
 commands/sintax.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
-os/system.h \
+os/system.hpp \
 core/tax.hpp \
 commands/makeudb_usearch.hpp \
 commands/udb2fasta.hpp \

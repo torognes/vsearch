@@ -58,7 +58,7 @@
 
 */
 
-#include "os/system.h"
+#include "os/system.hpp"
 #include "utils/fatal.hpp"
 #include <cstdint>  // int64_t, uint64_t
 #include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage

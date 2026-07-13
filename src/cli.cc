@@ -61,7 +61,7 @@
 #include "cli.h"
 #include "vsearch.h"
 #include "vsearch_api.h"
-#include "os/system.h"  // system_get_cores
+#include "os/system.hpp"  // system_get_cores
 #include "core/chimera.hpp"  // maxparents
 #include "core/mask.hpp"  // Masking
 #include "utils/userfields.hpp"  // parse_userfields_arg
