@@ -260,7 +260,7 @@ auto fasta_next(fastx_handle input_handle,
   input_handle->sequence_buffer.length = 0;
   input_handle->sequence_buffer.data[0] = 0;
 
-  std::size_t const rest = fastx_file_fill_buffer(input_handle);
+  std::size_t rest = fastx_file_fill_buffer(input_handle);
 
   if (rest == 0)
     {
@@ -287,8 +287,8 @@ auto fasta_next(fastx_handle input_handle,
   while (not header_complete)
     {
       /* get more data if buffer empty*/
-      auto const fragment = peek_line_fragment(input_handle);
-      if (fragment.end_of_input)
+      rest = fastx_file_fill_buffer(input_handle);
+      if (rest == 0)
         {
           if (input_handle->defer_errors)
             {
@@ -299,6 +299,7 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* copy to header buffer */
+      auto const fragment = scan_line_fragment(input_handle);
       buffer_extend(& input_handle->header_buffer,
                     fragment.view.data(),
                     fragment.view.size());
@@ -317,20 +318,21 @@ auto fasta_next(fastx_handle input_handle,
   while (true)
     {
       /* get more data, if necessary */
-      auto const fragment = peek_line_fragment(input_handle);
+      rest = fastx_file_fill_buffer(input_handle);
 
       /* end if no more data */
-      if (fragment.end_of_input)
+      if (rest == 0)
         {
           break;
         }
 
       /* end if new sequence starts */
-      if (previous_line_complete and (fragment.view[0] == '>'))
+      if (previous_line_complete and (input_handle->file_buffer.data[input_handle->file_buffer.position] == '>'))
         {
           break;
         }
 
+      auto const fragment = scan_line_fragment(input_handle);
       buffer_extend(& input_handle->sequence_buffer,
                     fragment.view.data(),
                     fragment.view.size());

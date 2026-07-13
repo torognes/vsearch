@@ -341,7 +341,7 @@ auto fastq_next(fastx_handle input_handle,
   auto ok = true;
   char illegal_char = '\0';
 
-  auto const rest = fastx_file_fill_buffer(input_handle);
+  auto rest = fastx_file_fill_buffer(input_handle);
 
   /* check end of file */
 
@@ -365,14 +365,15 @@ auto fastq_next(fastx_handle input_handle,
   while (not header_complete)
     {
       /* get more data if buffer empty */
-      auto const fragment = peek_line_fragment(input_handle);
-      if (fragment.end_of_input)
+      rest = fastx_file_fill_buffer(input_handle);
+      if (rest == 0)
         {
           fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
           return false;
         }
 
       /* copy to header buffer */
+      auto const fragment = scan_line_fragment(input_handle);
       buffer_extend(&input_handle->header_buffer,
                     fragment.view.data(),
                     fragment.view.size());
@@ -389,22 +390,23 @@ auto fastq_next(fastx_handle input_handle,
   while (true)
     {
       /* get more data, if necessary */
-      auto const fragment = peek_line_fragment(input_handle);
+      rest = fastx_file_fill_buffer(input_handle);
 
       /* cannot end here */
-      if (fragment.end_of_input)
+      if (rest == 0)
         {
           fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
           return false;
         }
 
       /* end when new line starting with + is seen */
-      if (previous_line_complete && (fragment.view[0] == '+'))
+      if (previous_line_complete && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
         {
           break;
         }
 
       /* copy to sequence buffer */
+      auto const fragment = scan_line_fragment(input_handle);
       buffer_filter_extend(input_handle,
                            &input_handle->sequence_buffer,
                            fragment.view.data(),
@@ -448,16 +450,17 @@ auto fastq_next(fastx_handle input_handle,
   while (not plusline_complete)
     {
       /* get more data if buffer empty */
-      auto const fragment = peek_line_fragment(input_handle);
+      rest = fastx_file_fill_buffer(input_handle);
 
       /* cannot end here */
-      if (fragment.end_of_input)
+      if (rest == 0)
         {
           fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
           return false;
         }
 
       /* copy to plusline buffer */
+      auto const fragment = scan_line_fragment(input_handle);
       buffer_extend(&input_handle->plusline_buffer,
                     fragment.view.data(),
                     fragment.view.size());
@@ -504,23 +507,24 @@ auto fastq_next(fastx_handle input_handle,
   while (true)
     {
       /* get more data, if necessary */
-      auto const fragment = peek_line_fragment(input_handle);
+      rest = fastx_file_fill_buffer(input_handle);
 
       /* end if no more data */
-      if (fragment.end_of_input)
+      if (rest == 0)
         {
           break;
         }
 
       /* end if next entry starts : LF + '@' + correct length */
       if (last_line_complete &&
-          (fragment.view[0] == '@') &&
+          (input_handle->file_buffer.data[input_handle->file_buffer.position] == '@') &&
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
           break;
         }
 
       /* copy to quality buffer */
+      auto const fragment = scan_line_fragment(input_handle);
       buffer_filter_extend(input_handle,
                            &input_handle->quality_buffer,
                            fragment.view.data(),
