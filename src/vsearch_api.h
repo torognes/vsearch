@@ -68,22 +68,25 @@
  *                                      (e.g., parameters.opt_wordlength = 8)
  *   3. vsearch_session_begin(parameters) — acquire the session lock, resolve
  *                                          sentinels, and apply the config
- *   4. db_init()                     — reset database state
- *   5. db_add() ...                  — load sequences
- *   6. dust_all()                    — apply DUST masking
+ *   4. Database db;                  — an owned, empty database (RAII; passed
+ *                                      by reference to steps 6-8)
+ *   5. db.add() ...                  — load sequences (or db.read(file, ...));
+ *      (db.init() first if           call db.init() before the first db.add()
+ *       building with add())         when assembling a database programmatically
+ *   6. dust_all(db, parameters)      — apply DUST masking
  *   7. Dbindex dbindex;              — build k-mer index (an owned object,
- *      dbindex.prepare() +             passed by reference to step 8/9)
- *      dbindex.add_all_sequences()
+ *      dbindex.prepare(.., db, ..) +   passed by reference to step 8/9)
+ *      dbindex.add_all_sequences(db)
  *   8. Per-subsystem session setup   — e.g., chimera_session_init(),
- *                                      search_session_init(ss, params, dbindex), etc.
+ *                                      search_session_init(ss, params, dbindex, db), etc.
  *   9. Per-thread working state      — e.g., chimera_info_alloc() +
  *                                      chimera_detect_thread_init()
  *                                      (repeat for each thread)
  *  10. Per-query calls               — e.g., chimera_detect_single(),
  *                                      search_session_single()
  *  11. Per-thread teardown + per-subsystem cleanup (reverse of 8-9)
- *  12. db_free()                     — release database (the Dbindex frees
- *                                      itself when it goes out of scope)
+ *  12. (database released)           — db and dbindex free themselves when they
+ *                                      go out of scope (RAII)
  *  13. vsearch_session_end()         — release session lock
  *
  * === Thread safety ===
@@ -91,7 +94,7 @@
  * - Initialization (steps 1-8): single-threaded only
  * - Per-thread init (step 9): safe for different thread-local instances
  * - Computation (step 10): thread-safe IF each thread uses its own
- *   per-thread state. The global database and k-mer index are
+ *   per-thread state. The database and k-mer index are
  *   read-only after step 7.
  * - Cleanup (steps 11-13): single-threaded only
  *
@@ -123,7 +126,7 @@
 /* === API version === */
 
 #define VSEARCH_API_VERSION_MAJOR 0
-#define VSEARCH_API_VERSION_MINOR 8
+#define VSEARCH_API_VERSION_MINOR 9
 #define VSEARCH_API_VERSION_PATCH 0
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
@@ -185,7 +188,7 @@ auto vsearch_api_version_string() -> const char *;
 auto vsearch_session_begin(struct Parameters & parameters) -> void;
 
 /* Release the session mutex acquired by vsearch_session_begin().
-   Call after all cleanup (Dbindex destroyed, db_free, etc.) is complete.
+   Call after all cleanup (Database and Dbindex destroyed, etc.) is complete.
    Omitting this call will cause the next vsearch_session_begin() to
    fail with a fatal diagnostic (the session lock is still held). */
 auto vsearch_session_end() -> void;

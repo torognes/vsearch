@@ -139,9 +139,11 @@ higher).
 
 vsearch was designed as a CLI tool with roughly 200 options. Configuration
 now lives entirely in a `Parameters` struct threaded through the API — there
-are no `opt_*` configuration globals. Internal compute state (the sequence
-database and k-mer index) is still process-global, so there is no per-session
-context object for it.
+are no `opt_*` configuration globals. The sequence database and k-mer index
+are now caller-owned objects (`Database` and `Dbindex`) rather than process
+globals. Some lower-level compute state (e.g. the dedup hash) is still
+process-global, so there is not yet a full per-session context object and only
+one session may be active at a time.
 
 **Consequences:**
 
