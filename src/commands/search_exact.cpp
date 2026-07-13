@@ -89,6 +89,7 @@ struct search_exact_state_s
   /* the run configuration, threaded through the helpers instead of the
      opt_* globals (E1/F3); set once at construction, read-only thereafter */
   struct Parameters const & parameters;
+  struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
 
   struct searchinfo_s * si_plus = nullptr;
   struct searchinfo_s * si_minus = nullptr;
@@ -198,11 +199,11 @@ auto search_exact_onequery(struct searchinfo_s * si) -> void
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash_search_first(normalized.data(), seqlen, & info, db_global);
+  int64_t ret = dbhash_search_first(normalized.data(), seqlen, & info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
-      ret = dbhash_search_next(&info, db_global);
+      ret = dbhash_search_next(&info, *si->db);
     }
 }
 
@@ -228,7 +229,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                           query_head,
                           qsequence,
                           qseqlen,
-                          db_global,
+                          state.db,
                           parameters);
     }
 
@@ -240,7 +241,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                           query_head,
                           qsequence,
                           qsequence_rc,
-                          db_global,
+                          state.db,
                           parameters);
     }
 
@@ -251,7 +252,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
       if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
           otutable_add(query_head,
-                       db_getheader(static_cast<uint64_t>(hits[0].target)),
+                       state.db.getheader(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
 
@@ -271,7 +272,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
-                                          db_global,
+                                          state.db,
                                           parameters);
             }
 
@@ -290,7 +291,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
             {
               results_show_tsegout_one(state.fp_tsegout,
                                        &hit,
-                                       db_global,
+                                       state.db,
                                        parameters);
             }
 
@@ -303,7 +304,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                       query_head,
                                       qseqlen,
                                       hit.target,
-                                      db_global,
+                                      state.db,
                                       parameters);
                 }
             }
@@ -316,7 +317,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
-                                       db_global,
+                                       state.db,
                                        parameters);
             }
 
@@ -326,7 +327,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                          &hit,
                                          query_head,
                                          qseqlen,
-                                         db_global);
+                                         state.db);
             }
         }
     }
@@ -346,7 +347,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                               query_head,
                               qseqlen,
                               0,
-                              db_global,
+                              state.db,
                               parameters);
         }
 
@@ -360,7 +361,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
-                                       db_global,
+                                       state.db,
                                        parameters);
             }
 
@@ -370,7 +371,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                          nullptr,
                                          query_head,
                                          qseqlen,
-                                         db_global);
+                                         state.db);
             }
         }
     }
@@ -602,9 +603,11 @@ auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void
   for (int t = 0; t < parameters.opt_threads; t++)
     {
       search_exact_thread_init(state.si_plus + t, effective, state.tophits);
+      (state.si_plus + t)->db = &state.db;  /* searchcore reads the sequences through the si */
       if (state.si_minus != nullptr)
         {
           search_exact_thread_init(state.si_minus + t, effective, state.tophits);
+          (state.si_minus + t)->db = &state.db;
         }
     }
 
@@ -634,22 +637,22 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   /* the output files were opened by the caller (search_exact), which owns
      the RAII handles for the duration of the run */
 
-  db_read(parameters.opt_db, 0, parameters);
+  state.db.read(parameters.opt_db, 0, parameters);
 
-  results_show_samheader(state.fp_samout, parameters.opt_db, db_global, parameters);
+  results_show_samheader(state.fp_samout, parameters.opt_db, state.db, parameters);
 
   if (parameters.opt_dbmask == Masking::dust)
     {
-      dust_all(db_global, parameters);
+      dust_all(state.db, parameters);
     }
   else if ((parameters.opt_dbmask == Masking::soft) && (parameters.opt_hardmask))
     {
-      hardmask_all(db_global);
+      hardmask_all(state.db);
     }
 
   // memory-intensive: the entire database is now held in memory
 
-  state.seqcount = static_cast<int>(db_getsequencecount());
+  state.seqcount = static_cast<int>(state.db.getsequencecount());
 
   /* tophits = the maximum number of hits we need to store */
   state.tophits = state.seqcount;
@@ -658,16 +661,16 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   std::memset(state.dbmatched, 0, static_cast<size_t>(state.seqcount) * sizeof(uint64_t));
 
   dbhash_open(static_cast<uint64_t>(state.seqcount));
-  dbhash_add_all(db_global, parameters);
+  dbhash_add_all(state.db, parameters);
 }
 
-auto search_exact_done(struct search_exact_state_s const & state) -> void
+auto search_exact_done(struct search_exact_state_s & state) -> void
 {
   /* clean up, global; the output files are closed by search_exact() through
      the RAII handles it owns */
   dbhash_close();
 
-  db_free();
+  state.db.clear();
   xfree(state.dbmatched);
 }
 
@@ -811,7 +814,7 @@ auto search_exact(struct Parameters const & parameters) -> void
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < state.seqcount; i++) {
       if (state.dbmatched[i] == 0U) {
-        otutable_add(nullptr, db_getheader(static_cast<uint64_t>(i)), 0);
+        otutable_add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
       }
     }
   }
@@ -850,10 +853,10 @@ auto search_exact(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(state.fp_dbmatched,
                                       nullptr,
-                                      db_getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getsequencelen(static_cast<uint64_t>(i))),
-                                      db_getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(i))),
+                                      state.db.getsequence(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
+                                      state.db.getheader(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
                                       state.dbmatched[i],
                                       count_dbmatched,
                                       -1.0,
@@ -869,10 +872,10 @@ auto search_exact(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(state.fp_dbnotmatched,
                                       nullptr,
-                                      db_getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getsequencelen(static_cast<uint64_t>(i))),
-                                      db_getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(i))),
+                                      state.db.getsequence(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
+                                      state.db.getheader(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
                                       0,
                                       count_dbnotmatched,
                                       -1.0,
