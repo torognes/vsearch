@@ -149,10 +149,10 @@ auto open_output_files(struct file_types & ouput_files) -> void {
 }
 
 
-auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files) -> void {
+auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files, Database const & db) -> void {
   auto const output_is_fastq = (ouput_files.fastq.kept.handle != nullptr
                                 or ouput_files.fastq.lost.handle != nullptr);
-  auto const input_is_fasta = not db_is_fastq();
+  auto const input_is_fasta = not db.is_fastq;
   if (input_is_fasta and output_is_fastq) {
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
   }
@@ -162,13 +162,13 @@ auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files) -> void 
 namespace {
   // anonymous namespace to avoid linker error (multiple definitions
   // of function with identical names and parameters)
-  auto create_deck(bool const sizein_requested) -> std::vector<uint64_t> {
-    auto const dbsequencecount = db_getsequencecount();
+  auto create_deck(bool const sizein_requested, Database const & db) -> std::vector<uint64_t> {
+    auto const dbsequencecount = db.getsequencecount();
     std::vector<uint64_t> deck(dbsequencecount, 1);
     if (sizein_requested) {
       auto counter = std::size_t{0};
       for (auto & abundance : deck) {
-        abundance = db_getabundance(counter);
+        abundance = db.getabundance(counter);
         ++counter;
       }
     }
@@ -217,12 +217,13 @@ auto write_subsampling_stats(std::vector<uint64_t> const &deck,
 
 auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
                         uint64_t const n_reads, bool const sizein_requested,
+                        Database const & db,
                         struct Parameters const & parameters) -> void {
   auto n_reads_left = n_reads;
   uint64_t amplicon_number = 0;
   uint64_t n_read_being_checked = 0;
   uint64_t accumulated_mass = 0;
-  auto amplicon_mass = sizein_requested ? db_getabundance(0) : 1;
+  auto amplicon_mass = sizein_requested ? db.getabundance(0) : 1;
 
   /* reproducible across platforms and seeds (see util.h) */
   std::mt19937_64 generator(random_base_seed());
@@ -251,9 +252,9 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
              amplicon_number reaches db_getsequencecount() and the mass is never
              used again, so skip the one-past-the-end db_getabundance() read
              (S20). */
-          if (amplicon_number < db_getsequencecount())
+          if (amplicon_number < db.getsequencecount())
             {
-              amplicon_mass = sizein_requested ? db_getabundance(amplicon_number) : 1;
+              amplicon_mass = sizein_requested ? db.getabundance(amplicon_number) : 1;
             }
           accumulated_mass = 0;
         }
@@ -274,6 +275,7 @@ auto substract_two_decks(std::vector<uint64_t> const & original_deck,
 
 auto writing_fasta_output(std::vector<uint64_t> const & deck,
                           struct a_file const & fasta_file,
+                          Database const & db,
                           struct Parameters const & parameters) -> void {
   if (fasta_file.name == nullptr) {
     return;
@@ -290,10 +292,10 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
       ++amplicons_printed;
       fasta_print_general(fasta_file.handle.get(),
                           nullptr,
-                          db_getsequence(counter),
-                          static_cast<int>(db_getsequencelen(counter)),
-                          db_getheader(counter),
-                          static_cast<int>(db_getheaderlen(counter)),
+                          db.getsequence(counter),
+                          static_cast<int>(db.getsequencelen(counter)),
+                          db.getheader(counter),
+                          static_cast<int>(db.getheaderlen(counter)),
                           new_abundance,
                           amplicons_printed,
                           -1.0,
@@ -308,6 +310,7 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
 
 auto writing_fastq_output(std::vector<uint64_t> const & deck,
                           struct a_file const & fastq_file,
+                          Database const & db,
                           struct Parameters const & parameters) -> void {
   if (fastq_file.name == nullptr) {
     return;
@@ -323,11 +326,11 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
       }
       ++amplicons_printed;
       fastq_print_general(fastq_file.handle.get(),
-                          db_getsequence(counter),
-                          static_cast<int>(db_getsequencelen(counter)),
-                          db_getheader(counter),
-                          static_cast<int>(db_getheaderlen(counter)),
-                          db_getquality(counter),
+                          db.getsequence(counter),
+                          static_cast<int>(db.getsequencelen(counter)),
+                          db.getheader(counter),
+                          static_cast<int>(db.getheaderlen(counter)),
+                          db.getquality(counter),
                           new_abundance,
                           amplicons_printed,
                           -1.0,
@@ -356,13 +359,14 @@ auto subsample(struct Parameters const & parameters) -> void {
   ouput_files.fastq.lost.name = parameters.opt_fastqout_discarded;
   open_output_files(ouput_files);
 
-  db_read(parameters.opt_fastx_subsample, 0, parameters);
+  Database db;
+  db.read(parameters.opt_fastx_subsample, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  abort_if_fastq_out_of_fasta(ouput_files);
+  abort_if_fastq_out_of_fasta(ouput_files, db);
 
   // subsampling
-  auto const original_abundances = create_deck(parameters.opt_sizein);
+  auto const original_abundances = create_deck(parameters.opt_sizein, db);
   auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
   auto subsampled_abundances = original_abundances;
   std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
@@ -376,22 +380,22 @@ auto subsample(struct Parameters const & parameters) -> void {
       fatal("Cannot subsample more reads than in the original sample");
     }
 
-  random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein, parameters);  // refactoring: pass & original, copy, subsample, return new (const) vector
+  random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein, db, parameters);  // refactoring: pass & original, copy, subsample, return new (const) vector
 
   // write output files
-  writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept, parameters);
-  writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept, parameters);
+  writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept, db, parameters);
+  writing_fastq_output(subsampled_abundances, ouput_files.fastq.kept, db, parameters);
   auto const discarded_output_is_requested = (ouput_files.fasta.lost.handle != nullptr) or (ouput_files.fastq.lost.handle != nullptr);
   if (discarded_output_is_requested) {
     auto const discarded_abundances = substract_two_decks(original_abundances,
                                                           subsampled_abundances);
-    writing_fasta_output(discarded_abundances, ouput_files.fasta.lost, parameters);
-    writing_fastq_output(discarded_abundances, ouput_files.fastq.lost, parameters);
+    writing_fasta_output(discarded_abundances, ouput_files.fasta.lost, db, parameters);
+    writing_fastq_output(discarded_abundances, ouput_files.fastq.lost, db, parameters);
   }
 
   write_subsampling_stats(subsampled_abundances, n_reads, parameters);
 
   // clean up
-  db_free();
+  db.clear();
   close_output_files(ouput_files);
 }
