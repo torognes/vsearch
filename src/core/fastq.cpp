@@ -341,7 +341,7 @@ auto fastq_next(fastx_handle input_handle,
   auto ok = true;
   char illegal_char = '\0';
 
-  auto rest = fastx_file_fill_buffer(input_handle);
+  auto const rest = fastx_file_fill_buffer(input_handle);
 
   /* check end of file */
 
@@ -360,80 +360,63 @@ auto fastq_next(fastx_handle input_handle,
       return false;
     }
   input_handle->file_buffer.position++;
-  --rest;
 
-  char const * line_end = nullptr;
-  while (line_end == nullptr)
+  bool header_complete = false;
+  while (not header_complete)
     {
       /* get more data if buffer empty */
-      rest = fastx_file_fill_buffer(input_handle);
-      if (rest == 0)
+      auto const fragment = peek_line_fragment(input_handle);
+      if (fragment.end_of_input)
         {
           fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
           return false;
         }
 
-      /* find LF */
-      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           '\n',
-                           rest));
-
       /* copy to header buffer */
-      auto len = rest;
-      if (line_end != nullptr)
+      buffer_extend(&input_handle->header_buffer,
+                    fragment.view.data(),
+                    fragment.view.size());
+      consume_fragment(input_handle, fragment);
+      if (fragment.has_newline)
         {
-          /* LF found, copy up to and including LF */
-          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           input_handle->lineno++;
         }
-      buffer_extend(&input_handle->header_buffer,
-                    input_handle->file_buffer.data + input_handle->file_buffer.position,
-                    len);
-      input_handle->file_buffer.position += len;
-      rest -= len;
+      header_complete = fragment.has_newline;
     }
 
   /* read sequence line(s) */
-  line_end = nullptr;
+  bool previous_line_complete = false;
   while (true)
     {
       /* get more data, if necessary */
-      rest = fastx_file_fill_buffer(input_handle);
+      auto const fragment = peek_line_fragment(input_handle);
 
       /* cannot end here */
-      if (rest == 0)
+      if (fragment.end_of_input)
         {
           fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
           return false;
         }
 
       /* end when new line starting with + is seen */
-      if ((line_end != nullptr) && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
+      if (previous_line_complete && (fragment.view[0] == '+'))
         {
           break;
         }
 
-      /* find LF */
-      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           '\n', rest));
-
       /* copy to sequence buffer */
-      auto len = rest;
-      if (line_end != nullptr)
-        {
-          /* LF found, copy up to and including LF */
-          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
-          input_handle->lineno++;
-        }
-
       buffer_filter_extend(input_handle,
                            &input_handle->sequence_buffer,
-                           input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           len,
+                           fragment.view.data(),
+                           fragment.view.size(),
                            char_fq_action_seq.data(), char_mapping,
                            &ok, &illegal_char);
-      input_handle->file_buffer.position += len;
-      rest -= len;
+      consume_fragment(input_handle, fragment);
+      if (fragment.has_newline)
+        {
+          input_handle->lineno++;
+        }
+      previous_line_complete = fragment.has_newline;
 
       if (! ok)
         {
@@ -451,7 +434,7 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal sequence character (unprintable, no %d)",
                        static_cast<unsigned char>(illegal_char));
             }
-          fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
+          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.data());
           return false;
         }
     }
@@ -460,38 +443,30 @@ auto fastq_next(fastx_handle input_handle,
 
   /* skip + character */
   input_handle->file_buffer.position++;
-  --rest;
 
-  line_end = nullptr;
-  while (line_end == nullptr)
+  bool plusline_complete = false;
+  while (not plusline_complete)
     {
       /* get more data if buffer empty */
-      rest = fastx_file_fill_buffer(input_handle);
+      auto const fragment = peek_line_fragment(input_handle);
 
       /* cannot end here */
-      if (rest == 0)
+      if (fragment.end_of_input)
         {
           fastq_fatal(input_handle, input_handle->lineno, "Unexpected end of file");
           return false;
         }
 
-      /* find LF */
-      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           '\n',
-                           rest));
       /* copy to plusline buffer */
-      auto len = rest;
-      if (line_end != nullptr)
+      buffer_extend(&input_handle->plusline_buffer,
+                    fragment.view.data(),
+                    fragment.view.size());
+      consume_fragment(input_handle, fragment);
+      if (fragment.has_newline)
         {
-          /* LF found, copy up to and including LF */
-          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
           input_handle->lineno++;
         }
-      buffer_extend(&input_handle->plusline_buffer,
-                    input_handle->file_buffer.data + input_handle->file_buffer.position,
-                    len);
-      input_handle->file_buffer.position += len;
-      rest -= len;
+      plusline_complete = fragment.has_newline;
     }
 
   /* check that the plus line is empty or identical to @ line */
@@ -516,54 +491,48 @@ auto fastq_next(fastx_handle input_handle,
     }
   if (plusline_invalid)
     {
-      fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
+      /* the '+' line above is always LF-terminated here (its loop only
+         exits on a newline), so the offending line is lineno - 1 */
+      fastq_fatal(input_handle, input_handle->lineno - 1,
                   "'+' line must be empty or identical to header");
       return false;
     }
 
   /* read quality line(s) */
 
-  line_end = nullptr;
+  bool last_line_complete = false;
   while (true)
     {
       /* get more data, if necessary */
-      rest = fastx_file_fill_buffer(input_handle);
+      auto const fragment = peek_line_fragment(input_handle);
 
       /* end if no more data */
-      if (rest == 0)
+      if (fragment.end_of_input)
         {
           break;
         }
 
       /* end if next entry starts : LF + '@' + correct length */
-      if ((line_end != nullptr) &&
-          (input_handle->file_buffer.data[input_handle->file_buffer.position] == '@') &&
+      if (last_line_complete &&
+          (fragment.view[0] == '@') &&
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
           break;
         }
 
-      /* find LF */
-      line_end = static_cast<char *>(std::memchr(input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           '\n', rest));
-
       /* copy to quality buffer */
-      auto len = rest;
-      if (line_end != nullptr)
-        {
-          /* LF found, copy up to and including LF */
-          len = static_cast<uint64_t>(line_end - (input_handle->file_buffer.data + input_handle->file_buffer.position) + 1);
-          input_handle->lineno++;
-        }
-
       buffer_filter_extend(input_handle,
                            &input_handle->quality_buffer,
-                           input_handle->file_buffer.data + input_handle->file_buffer.position,
-                           len,
+                           fragment.view.data(),
+                           fragment.view.size(),
                            char_fq_action_qual.data(), chrmap_identity.data(),
                            &ok, &illegal_char);
-      input_handle->file_buffer.position += len;
-      rest -= len;
+      consume_fragment(input_handle, fragment);
+      if (fragment.has_newline)
+        {
+          input_handle->lineno++;
+        }
+      last_line_complete = fragment.has_newline;
 
       /* break if quality line already too long */
       if (input_handle->quality_buffer.length > input_handle->sequence_buffer.length)
@@ -587,14 +556,14 @@ auto fastq_next(fastx_handle input_handle,
                        "Illegal quality character (unprintable, no %d)",
                        static_cast<unsigned char>(illegal_char));
             }
-          fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0), message.data());
+          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.data());
           return false;
         }
     }
 
   if (input_handle->sequence_buffer.length != input_handle->quality_buffer.length)
     {
-      fastq_fatal(input_handle, input_handle->lineno - ((line_end != nullptr) ? 1 : 0),
+      fastq_fatal(input_handle, input_handle->lineno - (last_line_complete ? 1 : 0),
                   "Sequence and quality lines must be equally long");
       return false;
     }
