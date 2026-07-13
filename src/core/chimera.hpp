@@ -120,9 +120,10 @@ auto chimera_session_cleanup() -> void;
    after chimera_session_init(). ci must not be shared across threads.
    parameters: the configured Parameters (stored in ci for the detection
    core to read; must outlive ci).
-   dbindex: the k-mer index to search (installed on ci's si's; must outlive ci). */
+   dbindex: the k-mer index to search (installed on ci's si's; must outlive ci).
+   db: the sequence database to query (installed on ci; must outlive ci). */
 auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                                struct Dbindex const & dbindex) -> void;
+                                struct Dbindex const & dbindex, struct Database const & db) -> void;
 
 /* Free per-thread resources allocated by chimera_detect_thread_init. */
 auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
@@ -132,7 +133,7 @@ auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
 /* Convenience: chimera_session_init() + chimera_detect_thread_init(ci).
    Use when only one chimera_info_s exists per session. */
 auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                         struct Dbindex const & dbindex) -> void;
+                         struct Dbindex const & dbindex, struct Database const & db) -> void;
 
 /* Detect chimera for a single query sequence.
    Supports both uchime_ref and uchime_denovo modes (based on opt_chimeras_denovo).
@@ -169,6 +170,7 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
    results: caller-allocated array of query_count elements. */
 auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,
+                          struct Database const & db,
                           const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,

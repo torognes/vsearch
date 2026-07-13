@@ -91,7 +91,7 @@ auto cluster_session_free(struct cluster_session_s * cs) -> void;
    Database must be pre-sorted by length (cluster_fast) or
    abundance (cluster_size) before loading. */
 auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const & parameters,
-                          struct Dbindex & dbindex) -> void;
+                          struct Dbindex & dbindex, struct Database const & db) -> void;
 
 /* Assign a single database sequence to a cluster.
    Must be called sequentially (seqno 0, 1, 2, ...).

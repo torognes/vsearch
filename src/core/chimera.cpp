@@ -139,6 +139,12 @@ struct chimera_info_s
      copy held in chimera_cli_state_s. */
   struct Parameters detection_parameters;
 
+  /* the sequence database this thread queries, installed by chimera_thread_init
+     and read by the detection core (realloc_arrays, find_matches, ...) instead
+     of a process-wide global; a pointer so chimera_info_s stays
+     default-constructible. Must outlive ci. */
+  struct Database const * db = nullptr;
+
   int query_alloc = 0; /* the longest query sequence allocated memory for */
   int head_alloc = 0; /* the longest header allocated memory for */
   int part_alloc = 0; /* the longest query part allocated memory for */
@@ -229,6 +235,9 @@ struct chimera_cli_state_s
      chimera_threads_run sizes the pool from opt_threads here, so chimera() no
      longer mutates the opt_* globals (E1 trap-writer). */
   struct Parameters detection_parameters;
+  /* the in-memory sequence database this run owns (RAII); declared before
+     dbindex so it is destroyed after it, and si->db points here */
+  struct Database db;
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   std::mutex mutex_output;  /* serializes all CLI output + stats updates */
   std::FILE * fp_uchimealns = nullptr;
@@ -501,7 +510,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
      and excluding regions matched by previously identified parents. */
 
   reset_matches(ci);
-  find_matches(ci, db_global);
+  find_matches(ci, *ci->db);
 
   std::vector<struct parents_info_s> best_parents(maxparents);
   std::vector<bool> position_used(static_cast<size_t>(ci->query_len), false);
@@ -618,7 +627,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
 auto find_best_parents(struct chimera_info_s * ci) -> int
 {
   reset_matches(ci);
-  find_matches(ci, db_global);
+  find_matches(ci, *ci->db);
 
   std::array<int, maxparents> best_parent_cand {{}};
 
@@ -1879,7 +1888,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(short) = 32 bytes
   search_info->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
-  search_info->db = &db_global;  /* searchcore reads the sequences through the si */
+  search_info->db = &db;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
   search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db.getsequencecount() + overflow_padding);
@@ -1947,13 +1956,15 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
 
 auto chimera_thread_init(struct chimera_info_s * ci, int const tophits,
                          struct Parameters const & parameters,
-                         struct Dbindex const & dbindex) -> void
+                         struct Dbindex const & dbindex,
+                         struct Database const & db) -> void
 {
   ci->parameters = &parameters;  /* detection core reads config through ci (E1) */
+  ci->db = &db;  /* detection core reads the sequences through ci */
 
   for (int i = 0; i < maxparts; ++i)
     {
-      query_init(&ci->si[static_cast<size_t>(i)], tophits, db_global, parameters, dbindex);
+      query_init(&ci->si[static_cast<size_t>(i)], tophits, db, parameters, dbindex);
     }
 
   ci->s = search16_init(parameters.opt_match,
@@ -2073,7 +2084,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
            ci->snwmismatches.data(),
            ci->snwgaps.data(),
            ci->nwcigar.data(),
-           db_global);
+           db);
 
   for (auto i = 0; i < ci->cand_count; ++i)
     {
@@ -2168,7 +2179,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
      Computed here rather than read from a shared file-static (E4). */
   int const tophits = static_cast<int>(state.detection_parameters.opt_maxaccepts +
                                        state.detection_parameters.opt_maxrejects);
-  chimera_thread_init(ci, tophits, state.detection_parameters, state.dbindex);
+  chimera_thread_init(ci, tophits, state.detection_parameters, state.dbindex, db);
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
@@ -2356,7 +2367,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         /* uchime_denovo: add non-chimeras to db */
         if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
           {
-            state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask, db_global);
+            state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask, db);
           }
       }
 
@@ -2402,7 +2413,7 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
                             [&state, &mutex_input](uint64_t nth_thread) {
-                              chimera_thread_core(state, state.cia + nth_thread, mutex_input, db_global);
+                              chimera_thread_core(state, state.cia + nth_thread, mutex_input, state.db);
                             });
   threadrunner.run();
 }
@@ -2482,21 +2493,21 @@ auto chimera(struct Parameters const & parameters) -> void
 
       if (is_udb)
         {
-          udb_read(parameters.opt_db, true, true, state.dbindex, db_global, parameters);
+          udb_read(parameters.opt_db, true, true, state.dbindex, state.db, parameters);
         }
       else
         {
-          db_read(parameters.opt_db, 0, parameters);
+          state.db.read(parameters.opt_db, 0, parameters);
           if (parameters.opt_dbmask == Masking::dust)
             {
-              dust_all(db_global, parameters);
+              dust_all(state.db, parameters);
             }
           else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
             {
-              hardmask_all(db_global);
+              hardmask_all(state.db);
             }
-          state.dbindex.prepare(1, parameters.opt_dbmask, db_global, parameters);
-          state.dbindex.add_all_sequences(parameters.opt_dbmask, db_global, parameters);
+          state.dbindex.prepare(1, parameters.opt_dbmask, state.db, parameters);
+          state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
@@ -2532,20 +2543,20 @@ auto chimera(struct Parameters const & parameters) -> void
         fatal("Internal error");
       }
 
-      db_read(denovo_dbname, 0, parameters);
+      state.db.read(denovo_dbname, 0, parameters);
 
       if (parameters.opt_qmask == Masking::dust)
         {
-          dust_all(db_global, parameters);
+          dust_all(state.db, parameters);
         }
       else if ((parameters.opt_qmask == Masking::soft) and (parameters.opt_hardmask))
         {
-          hardmask_all(db_global);
+          hardmask_all(state.db);
         }
 
-      db_sortbyabundance(parameters);
-      state.dbindex.prepare(1, parameters.opt_qmask, db_global, parameters);
-      progress_total = db_global.getnucleotidecount();
+      state.db.sortbyabundance(parameters);
+      state.dbindex.prepare(1, parameters.opt_qmask, state.db, parameters);
+      progress_total = state.db.getnucleotidecount();
     }
 
   if (parameters.opt_log != nullptr)
@@ -2750,7 +2761,7 @@ auto chimera(struct Parameters const & parameters) -> void
     }
 
   state.dbindex.clear();
-  db_free();
+  state.db.clear();
 
   borderline_handle.reset();
   uchimeout_handle.reset();
@@ -2832,7 +2843,7 @@ auto chimera_session_cleanup() -> void
 
 
 auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                                struct Dbindex const & dbindex) -> void
+                                struct Dbindex const & dbindex, struct Database const & db) -> void
 {
   /* Per-thread initialization: SIMD aligners, k-mer finders, working
      buffers. Safe to call concurrently for different ci instances.
@@ -2845,7 +2856,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
   int const tophits = static_cast<int>(ci->detection_parameters.opt_maxaccepts +
                                        ci->detection_parameters.opt_maxrejects);
 
-  chimera_thread_init(ci, tophits, ci->detection_parameters, dbindex);
+  chimera_thread_init(ci, tophits, ci->detection_parameters, dbindex, db);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
@@ -2858,14 +2869,14 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
 
 
 auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                         struct Dbindex const & dbindex) -> void
+                         struct Dbindex const & dbindex, struct Database const & db) -> void
 {
   /* Convenience wrapper: session init + per-thread init in one call.
      Use for single-threaded detection (one chimera_info_s per session).
      For multi-threaded detection, call chimera_session_init() once then
      chimera_detect_thread_init() per thread. */
   chimera_session_init(parameters);
-  chimera_detect_thread_init(ci, parameters, dbindex);
+  chimera_detect_thread_init(ci, parameters, dbindex, db);
 }
 
 auto chimera_detect_single(struct chimera_info_s * ci,
@@ -2906,7 +2917,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   ci->query_len = query_len;
   ci->query_size = query_size;
 
-  realloc_arrays(ci, db_global);
+  realloc_arrays(ci, *ci->db);
 
   std::strcpy(ci->query_head.data(), query_head);
   std::strcpy(ci->query_seq.data(), query_seq);
@@ -2920,7 +2931,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
      (cli == nullptr): the detection core populates ci->result_out instead of
      writing files, and takes no output lock. */
   auto const status = chimera_process_query(ci, ci->api_allhits_list,
-                                            *ci->api_lma_ptr, nullptr, db_global);
+                                            *ci->api_lma_ptr, nullptr, *ci->db);
 
   if (status == Status::no_parents)
     {
@@ -3024,6 +3035,7 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 
 auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,
+                          struct Database const & db,
                           const char ** query_seqs,
                           const char ** query_heads,
                           const int * query_lens,
@@ -3058,7 +3070,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
   for (int t = 0; t < nthreads; t++)
     {
       ctx.ci_array[t] = chimera_info_alloc();
-      chimera_detect_thread_init(ctx.ci_array[t], parameters, dbindex);
+      chimera_detect_thread_init(ctx.ci_array[t], parameters, dbindex, db);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */
