@@ -156,24 +156,24 @@ struct thread_work_s
 };
 
 
-inline auto cluster_query_core(struct searchinfo_s * si, struct Parameters const & parameters) -> void
+inline auto cluster_query_core(struct searchinfo_s * si, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* the main core function for clustering */
 
   /* get sequence etc */
   const int seqno = si->query_no;
   auto const useqno = static_cast<uint64_t>(seqno);
-  si->query_head_len = static_cast<int>(db_getheaderlen(useqno));
-  si->query_head = db_getheader(useqno);
-  si->qsize = static_cast<int64_t>(db_getabundance(useqno));
-  si->qseqlen = static_cast<int>(db_getsequencelen(useqno));
+  si->query_head_len = static_cast<int>(db.getheaderlen(useqno));
+  si->query_head = db.getheader(useqno);
+  si->qsize = static_cast<int64_t>(db.getabundance(useqno));
+  si->qseqlen = static_cast<int>(db.getsequencelen(useqno));
   if (si->strand != 0)
     {
-      reverse_complement(si->qsequence, db_getsequence(useqno), si->qseqlen);
+      reverse_complement(si->qsequence, db.getsequence(useqno), si->qseqlen);
     }
   else
     {
-      std::strcpy(si->qsequence, db_getsequence(useqno));
+      std::strcpy(si->qsequence, db.getsequence(useqno));
     }
 
   /* perform search */
@@ -182,6 +182,7 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Parameters const
 
 
 auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits,
+                        struct Database const & db,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex) -> void
 {
@@ -197,7 +198,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
 
   /* allocate memory for sequence */
 
-  si->seq_alloc = static_cast<int>(db_getlongestsequence() + 1);
+  si->seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
   si->qsequence = static_cast<char *>(xmalloc(static_cast<std::size_t>(si->seq_alloc)));
 
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<std::size_t>(seqcount) * sizeof(count_t)) + 32));
@@ -279,12 +280,12 @@ struct cluster_work_pool_s
   {
     for (auto & si : si_plus)
       {
-        cluster_query_init(&si, seqcount, tophits, parameters, dbindex);
+        cluster_query_init(&si, seqcount, tophits, db_global, parameters, dbindex);
         si.strand = 0;
       }
     for (auto & si : si_minus)
       {
-        cluster_query_init(&si, seqcount, tophits, parameters, dbindex);
+        cluster_query_init(&si, seqcount, tophits, db_global, parameters, dbindex);
         si.strand = 1;
       }
     runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
@@ -309,10 +310,10 @@ struct cluster_work_pool_s
     auto const & work = thread_work[t];
     for (int q = 0; q < work.query_count; q++)
       {
-        cluster_query_core(si_plus.data() + work.query_first + q, parameters);
+        cluster_query_core(si_plus.data() + work.query_first + q, db_global, parameters);
         if (not si_minus.empty())
           {
-            cluster_query_core(si_minus.data() + work.query_first + q, parameters);
+            cluster_query_core(si_minus.data() + work.query_first + q, db_global, parameters);
           }
       }
   }
@@ -383,7 +384,8 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                               int qseqlen,
                               char const * qsequence,
                               char const * qsequence_rc,
-                              int64_t qsize) -> void
+                              int64_t qsize,
+                              struct Database const & db) -> void
 {
   ++state.count_matched;
 
@@ -392,8 +394,8 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno,
-                                     db_getsequence(static_cast<uint64_t>(best->target)),
-                                     static_cast<int>(db_getsequencelen(static_cast<uint64_t>(best->target))),
+                                     db.getsequence(static_cast<uint64_t>(best->target)),
+                                     static_cast<int>(db.getsequencelen(static_cast<uint64_t>(best->target))),
                                      state.parameters);
           otutable_add(query_head, label, qsize);
           xfree(label);
@@ -401,7 +403,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
       else
         {
           otutable_add(query_head,
-                       db_getheader(static_cast<uint64_t>(best->target)),
+                       db.getheader(static_cast<uint64_t>(best->target)),
                        qsize);
         }
     }
@@ -590,7 +592,8 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                                 const int * extra_list,
                                 int extra_count,
                                 LinearMemoryAligner & lma,
-                                int const tophits) -> void
+                                int const tophits,
+                                struct Database const & db) -> void
 {
   int added = 0;
 
@@ -633,7 +636,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
               while ((x > 0) and
                      ((si->hits[x - 1].count < shared) or
                       ((si->hits[x - 1].count == shared) and
-                       (db_getsequencelen(static_cast<uint64_t>(si->hits[x - 1].target))
+                       (db.getsequencelen(static_cast<uint64_t>(si->hits[x - 1].target))
                         > length))))
                 {
                   --x;
@@ -737,7 +740,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                            & nwcigar,
                            db_global);
 
-                  int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(target));
+                  int64_t const tseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
                   if (snwscore == std::numeric_limits<short>::max())
                     {
@@ -745,7 +748,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                          perform a new alignment with the
                          linear memory aligner */
 
-                      char * tseq = db_getsequence(target);
+                      char * tseq = db.getsequence(target);
 
                       if (nwcigar != nullptr)
                         {
@@ -861,7 +864,8 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
 }
 
 auto cluster_core_parallel(struct cluster_cli_state_s & state,
-                           int const seqcount, int const tophits) -> void
+                           int const seqcount, int const tophits,
+                           struct Database const & db) -> void
 {
   constexpr static int queries_per_thread = 1;
   const int max_queries = queries_per_thread * static_cast<int>(state.parameters.opt_threads);
@@ -887,7 +891,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
   int64_t sum_nucleotides = 0;
 
-  Progress progress("Clustering", db_getnucleotidecount(), state.parameters);
+  Progress progress("Clustering", db.getnucleotidecount(), state.parameters);
 
   while (seqno < seqcount)
     {
@@ -900,7 +904,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
         {
           if (seqno < seqcount)
             {
-              int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
+              int const length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(seqno)));
 
               if ((state.parameters.opt_cluster_smallmem != nullptr) and (state.parameters.opt_usersort == 0) and (length > lastlength))
                 {
@@ -938,7 +942,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, tophits);
+              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, tophits, db);
             }
 
           /* find best hit */
@@ -966,7 +970,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
                                        si_p->qseqlen,
                                        si_p->qsequence,
                                        (best->strand != 0) ? si_m->qsequence : nullptr,
-                                       si_p->qsize);
+                                       si_p->qsize,
+                                       db);
 
               /* update cluster info about this sequence */
               state.clusterinfo[myseqno].seqno = myseqno;
@@ -1015,15 +1020,16 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
 
 auto cluster_core_serial(struct cluster_cli_state_s & state,
-                         int const seqcount, int const tophits) -> void
+                         int const seqcount, int const tophits,
+                         struct Database const & db) -> void
 {
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.data(), seqcount, tophits, state.effective_parameters, state.dbindex);
+  cluster_query_init(si_p.data(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
   if (state.parameters.opt_strand)
     {
-      cluster_query_init(si_m.data(), seqcount, tophits, state.effective_parameters, state.dbindex);
+      cluster_query_init(si_m.data(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -1031,7 +1037,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   Progress progress("Clustering", static_cast<uint64_t>(seqcount), state.parameters);
   for (int seqno = 0; seqno < seqcount; seqno++)
     {
-      int const length = static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno)));
+      int const length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(seqno)));
 
       if ((state.parameters.opt_cluster_smallmem != nullptr) and (state.parameters.opt_usersort == 0) and (length > lastlength))
         {
@@ -1042,13 +1048,13 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
       si_p[0].query_no = seqno;
       si_p[0].strand = 0;
-      cluster_query_core(si_p.data(), state.parameters);
+      cluster_query_core(si_p.data(), db, state.parameters);
 
       if (state.parameters.opt_strand)
         {
           si_m[0].query_no = seqno;
           si_m[0].strand = 1;
-          cluster_query_core(si_m.data(), state.parameters);
+          cluster_query_core(si_m.data(), db, state.parameters);
         }
 
       struct hit * best = nullptr;
@@ -1070,7 +1076,8 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
                                    si_p[0].qseqlen,
                                    si_p[0].qsequence,
                                    (best->strand != 0) ? si_m[0].qsequence : nullptr,
-                                   si_p[0].qsize);
+                                   si_p[0].qsize,
+                                   db);
           state.clusterinfo[seqno].seqno = seqno;
           state.clusterinfo[seqno].clusterno = state.clusterinfo[target].clusterno;
           state.clusterinfo[seqno].cigar = best->nwalignment;
@@ -1180,7 +1187,7 @@ auto cluster(char const * dbname,
 
   // memory-intensive: the entire database is now held in memory
 
-  int const seqcount = static_cast<int>(db_getsequencecount());
+  int const seqcount = static_cast<int>(db_global.getsequencecount());
 
   if (parameters.opt_cluster_fast != nullptr)
     {
@@ -1237,11 +1244,11 @@ auto cluster(char const * dbname,
 
   if (parameters.opt_threads == 1)
     {
-      cluster_core_serial(state, seqcount, tophits);
+      cluster_core_serial(state, seqcount, tophits, db_global);
     }
   else
     {
-      cluster_core_parallel(state, seqcount, tophits);
+      cluster_core_parallel(state, seqcount, tophits, db_global);
     }
 
 
@@ -1255,7 +1262,7 @@ auto cluster(char const * dbname,
       int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
       int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
       cluster_abundance_v[static_cast<std::size_t>(clusterno)] +=
-        parameters.opt_sizein ? static_cast<int64_t>(db_getabundance(static_cast<uint64_t>(seqno))) : 1;
+        parameters.opt_sizein ? static_cast<int64_t>(db_global.getabundance(static_cast<uint64_t>(seqno))) : 1;
       ++cluster_size_v[static_cast<std::size_t>(clusterno)];
     }
 
@@ -1331,17 +1338,17 @@ auto cluster(char const * dbname,
               {
                 fasta_print_general(fp_centroids,
                                     nullptr,
-                                    db_getsequence(static_cast<uint64_t>(seqno)),
-                                    static_cast<int>(db_getsequencelen(static_cast<uint64_t>(seqno))),
-                                    db_getheader(static_cast<uint64_t>(seqno)),
-                                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
+                                    db_global.getsequence(static_cast<uint64_t>(seqno)),
+                                    static_cast<int>(db_global.getsequencelen(static_cast<uint64_t>(seqno))),
+                                    db_global.getheader(static_cast<uint64_t>(seqno)),
+                                    static_cast<int>(db_global.getheaderlen(static_cast<uint64_t>(seqno))),
                                     static_cast<uint64_t>(cluster_abundance_v[static_cast<std::size_t>(clusterno)]),
                                     clusterno + 1,
                                     -1.0,
                                     -1,
                                     parameters.opt_clusterout_id ? clusterno : -1,
                                     nullptr, 0.0,
-                                    db_getabundance(static_cast<uint64_t>(seqno)),
+                                    db_global.getabundance(static_cast<uint64_t>(seqno)),
                                     parameters);
               }
 
@@ -1351,8 +1358,8 @@ auto cluster(char const * dbname,
                         clusterno,
                         cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
                 header_fprint_strip(fp_uc,
-                                    db_getheader(static_cast<uint64_t>(seqno)),
-                                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
+                                    db_global.getheader(static_cast<uint64_t>(seqno)),
+                                    static_cast<int>(db_global.getheaderlen(static_cast<uint64_t>(seqno))),
                                     parameters.opt_xsize,
                                     parameters.opt_xee,
                                     parameters.opt_xlength);
@@ -1635,7 +1642,7 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
      The library path does not clamp to the database size (only the CLI
      cluster() does), so the sizing uses the configured values from parameters;
      si->parameters (set in cluster_query_init) carries the same. */
-  cs->seqcount = static_cast<int>(db_getsequencecount());
+  cs->seqcount = static_cast<int>(db_global.getsequencecount());
   cs->tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
   if (cs->tophits > cs->seqcount)
     {
@@ -1643,13 +1650,13 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
     }
 
   cs->si = make_unique<searchinfo_s>();
-  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, parameters, *cs->dbindex);
+  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, db_global, parameters, *cs->dbindex);
   cs->si->strand = 0;
 
   if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, parameters, *cs->dbindex);
+      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, db_global, parameters, *cs->dbindex);
       cs->si_minus->strand = 1;
     }
 
@@ -1674,13 +1681,13 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
   cs->si->query_no = seqno;
   cs->si->strand = 0;
-  cluster_query_core(cs->si.get(), parameters);
+  cluster_query_core(cs->si.get(), db_global, parameters);
 
   if (parameters.opt_strand)
     {
       cs->si_minus->query_no = seqno;
       cs->si_minus->strand = 1;
-      cluster_query_core(cs->si_minus.get(), parameters);
+      cluster_query_core(cs->si_minus.get(), db_global, parameters);
     }
 
   struct hit const * best = nullptr;
@@ -1702,8 +1709,8 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->identity = best->id;
       std::snprintf(result->centroid_label, sizeof(result->centroid_label),
                     "%.*s",
-                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(best->target))),
-                    db_getheader(static_cast<uint64_t>(best->target)));
+                    static_cast<int>(db_global.getheaderlen(static_cast<uint64_t>(best->target))),
+                    db_global.getheader(static_cast<uint64_t>(best->target)));
       if (best->nwalignment != nullptr)
         {
           int n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
@@ -1721,8 +1728,8 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->identity = 100.0;
       std::snprintf(result->centroid_label, sizeof(result->centroid_label),
                     "%.*s",
-                    static_cast<int>(db_getheaderlen(static_cast<uint64_t>(seqno))),
-                    db_getheader(static_cast<uint64_t>(seqno)));
+                    static_cast<int>(db_global.getheaderlen(static_cast<uint64_t>(seqno))),
+                    db_global.getheader(static_cast<uint64_t>(seqno)));
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
       cs->dbindex->add_sequence(static_cast<unsigned int>(seqno), parameters.opt_qmask, db_global);
@@ -1753,7 +1760,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      match the data being indexed and the k-mer buffer would be sized for the
      wrong count -> out-of-bounds indexing. Fail loudly in release builds (an
      assert would be stripped under NDEBUG) rather than corrupt memory (L2d). */
-  if (cs->seqcount != static_cast<int>(db_getsequencecount()))
+  if (cs->seqcount != static_cast<int>(db_global.getsequencecount()))
     {
       fatal("cluster_assign_batch: the database changed since "
             "cluster_session_init(); re-initialize the clustering session.");
@@ -1826,7 +1833,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             {
               struct searchinfo_s * si = (s != 0) ? si_m : si_p;
 
-              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, cs->tophits);
+              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, cs->tophits, db_global);
             }
 
           /* Find best hit across strands */
@@ -1855,8 +1862,8 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               std::snprintf(results[ri].centroid_label,
                             sizeof(results[ri].centroid_label),
                             "%.*s",
-                            static_cast<int>(db_getheaderlen(static_cast<uint64_t>(best->target))),
-                            db_getheader(static_cast<uint64_t>(best->target)));
+                            static_cast<int>(db_global.getheaderlen(static_cast<uint64_t>(best->target))),
+                            db_global.getheader(static_cast<uint64_t>(best->target)));
               if (best->nwalignment != nullptr)
                 {
                   int n = std::snprintf(results[ri].cigar,
@@ -1879,8 +1886,8 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               std::snprintf(results[ri].centroid_label,
                             sizeof(results[ri].centroid_label),
                             "%.*s",
-                            static_cast<int>(db_getheaderlen(static_cast<uint64_t>(myseqno))),
-                            db_getheader(static_cast<uint64_t>(myseqno)));
+                            static_cast<int>(db_global.getheaderlen(static_cast<uint64_t>(myseqno))),
+                            db_global.getheader(static_cast<uint64_t>(myseqno)));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
               cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), parameters.opt_qmask, db_global);
