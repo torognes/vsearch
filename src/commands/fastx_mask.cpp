@@ -78,23 +78,24 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   auto fp_fastaout = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
   auto fp_fastqout = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
 
-  db_read(parameters.opt_fastx_mask, 0, parameters);
+  Database db;
+  db.read(parameters.opt_fastx_mask, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  if ((fp_fastqout != nullptr) && ! db_is_fastq())
+  if ((fp_fastqout != nullptr) && ! db.is_fastq)
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  uint64_t const seqcount = db_getsequencecount();
+  uint64_t const seqcount = db.getsequencecount();
 
   if (parameters.opt_qmask == Masking::dust)
     {
-      dust_all(db_global, parameters);
+      dust_all(db, parameters);
     }
   else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
     {
-      hardmask_all(db_global);
+      hardmask_all(db);
     }
 
   auto kept = 0;
@@ -105,8 +106,8 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     for (uint64_t i = 0; i < seqcount; i++)
       {
         auto unmasked = 0;
-        auto const * seq = db_getsequence(i);
-        const int len = static_cast<int>(db_getsequencelen(i));
+        auto const * seq = db.getsequence(i);
+        const int len = static_cast<int>(db.getsequencelen(i));
         if (parameters.opt_qmask == Masking::none)
           {
             unmasked = len;
@@ -151,9 +152,9 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                                     nullptr,
                                     seq,
                                     len,
-                                    db_getheader(i),
-                                    static_cast<int>(db_getheaderlen(i)),
-                                    db_getabundance(i),
+                                    db.getheader(i),
+                                    static_cast<int>(db.getheaderlen(i)),
+                                    db.getabundance(i),
                                     kept,
                                     -1.0,
                                     -1, -1, nullptr, 0.0,
@@ -166,10 +167,10 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                 fastq_print_general(fp_fastqout.get(),
                                     seq,
                                     len,
-                                    db_getheader(i),
-                                    static_cast<int>(db_getheaderlen(i)),
-                                    db_getquality(i),
-                                    db_getabundance(i),
+                                    db.getheader(i),
+                                    static_cast<int>(db.getheaderlen(i)),
+                                    db.getquality(i),
+                                    db.getabundance(i),
                                     kept,
                                     -1.0,
                                     parameters);
@@ -206,7 +207,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log, "%d sequences kept\n", kept);
     }
 
-  db_free();
+  db.clear();
 
   /* reset() in the original fclose order (fastaout before fastqout); a no-op on
      an unopened handle, and scope-exit would reverse the flush order for the

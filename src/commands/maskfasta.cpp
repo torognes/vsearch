@@ -70,28 +70,29 @@ auto maskfasta(struct Parameters const & parameters) -> void
 {
   auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
 
-  db_read(parameters.opt_maskfasta, 0, parameters);
+  Database db;
+  db.read(parameters.opt_maskfasta, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
-  uint64_t const seqcount = db_getsequencecount();
+  uint64_t const seqcount = db.getsequencecount();
 
   if (parameters.opt_qmask == Masking::dust)
     {
-      dust_all(db_global, parameters);
+      dust_all(db, parameters);
     }
   else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
     {
-      hardmask_all(db_global);
+      hardmask_all(db);
     }
 
   {
     Progress progress("Writing output", seqcount, parameters);
     for (uint64_t i = 0; i < seqcount; i++)
       {
-        fasta_print_db_relabel(output_handle.get(), i, i + 1, db_global, parameters);
+        fasta_print_db_relabel(output_handle.get(), i, i + 1, db, parameters);
         progress.update(i);
       }
   }
 
-  db_free();
+  db.clear();
 }
