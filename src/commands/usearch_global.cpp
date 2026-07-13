@@ -104,6 +104,7 @@ struct search_cli_state_s
      database size (search_prep); si->parameters points here so the shared
      searchcore reads the clamped values without a mutated global (E1). */
   struct Parameters effective_parameters;
+  struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
@@ -167,7 +168,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                           query_head,
                           qsequence,
                           qseqlen,
-                          db_global,
+                          state.db,
                           state.parameters);
     }
 
@@ -177,7 +178,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                           hits.data(),
                           static_cast<int>(toreport),
                           query_head,
-                          db_global,
+                          state.db,
                           state.parameters);
     }
 
@@ -189,7 +190,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                           query_head,
                           qsequence,
                           qsequence_rc,
-                          db_global,
+                          state.db,
                           state.parameters);
     }
 
@@ -200,7 +201,7 @@ static auto search_output_results(struct search_cli_state_s & state,
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
           otutable_add(query_head,
-                       db_getheader(static_cast<uint64_t>(hits[0].target)),
+                       state.db.getheader(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
 
@@ -220,7 +221,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
-                                          db_global,
+                                          state.db,
                                           state.parameters);
             }
 
@@ -239,7 +240,7 @@ static auto search_output_results(struct search_cli_state_s & state,
             {
               results_show_tsegout_one(state.fp_tsegout.get(),
                                        hp,
-                                       db_global,
+                                       state.db,
                                        state.parameters);
             }
 
@@ -252,7 +253,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                       query_head,
                                       qseqlen,
                                       hp->target,
-                                      db_global,
+                                      state.db,
                                       state.parameters);
                 }
             }
@@ -265,7 +266,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
-                                       db_global,
+                                       state.db,
                                        state.parameters);
             }
 
@@ -275,7 +276,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                          hp,
                                          query_head,
                                          qseqlen,
-                                         db_global);
+                                         state.db);
             }
         }
     }
@@ -295,7 +296,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                               query_head,
                               qseqlen,
                               0,
-                              db_global,
+                              state.db,
                               state.parameters);
         }
 
@@ -309,7 +310,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
-                                       db_global,
+                                       state.db,
                                        state.parameters);
             }
 
@@ -319,7 +320,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                                          nullptr,
                                          query_head,
                                          qseqlen,
-                                         db_global);
+                                         state.db);
             }
         }
     }
@@ -506,10 +507,10 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* init per-thread search state before the workers start */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters, state.dbindex, db_global);
+      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
       if (si_minus != nullptr)
         {
-          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters, state.dbindex, db_global);
+          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
         }
     }
 
@@ -564,27 +565,27 @@ static auto search_prep(struct search_cli_state_s & state) -> void
 
   if (is_udb)
     {
-      udb_read(state.parameters.opt_db, true, true, state.dbindex, db_global, state.parameters);
-      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, db_global, state.parameters);
+      udb_read(state.parameters.opt_db, true, true, state.dbindex, state.db, state.parameters);
+      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.db, state.parameters);
       // memory-intensive: the entire database is now held in memory
-      state.seqcount = static_cast<int>(db_getsequencecount());
+      state.seqcount = static_cast<int>(state.db.getsequencecount());
     }
   else
     {
-      db_read(state.parameters.opt_db, 0, state.parameters);
-      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, db_global, state.parameters);
+      state.db.read(state.parameters.opt_db, 0, state.parameters);
+      results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.db, state.parameters);
       if (state.parameters.opt_dbmask == Masking::dust)
         {
-          dust_all(db_global, state.parameters);
+          dust_all(state.db, state.parameters);
         }
       else if ((state.parameters.opt_dbmask == Masking::soft) && (state.parameters.opt_hardmask))
         {
-          hardmask_all(db_global);
+          hardmask_all(state.db);
         }
       // memory-intensive: the entire database is now held in memory
-      state.seqcount = static_cast<int>(db_getsequencecount());
-      state.dbindex.prepare(1, state.parameters.opt_dbmask, db_global, state.parameters);
-      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, db_global, state.parameters);
+      state.seqcount = static_cast<int>(state.db.getsequencecount());
+      state.dbindex.prepare(1, state.parameters.opt_dbmask, state.db, state.parameters);
+      state.dbindex.add_all_sequences(state.parameters.opt_dbmask, state.db, state.parameters);
     }
 
   /* tophits = the maximum number of hits we need to store */
@@ -619,7 +620,7 @@ static auto search_done(struct search_cli_state_s & state) -> void
   /* clean up, global */
 
   state.dbindex.clear();
-  db_free();
+  state.db.clear();
 
   /* reset() is a no-op on an empty handle, so unopened outputs need no guard.
      The fixed order matches the legacy fclose sequence: RAII scope-exit would
@@ -762,7 +763,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < seqcount; i++) {
       if (dbmatched[i] == 0U) {
-        otutable_add(nullptr, db_getheader(static_cast<uint64_t>(i)), 0);
+        otutable_add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
       }
     }
   }
@@ -801,10 +802,10 @@ auto usearch_global(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(fp_dbmatched.get(),
                                       nullptr,
-                                      db_getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getsequencelen(static_cast<uint64_t>(i))),
-                                      db_getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(i))),
+                                      state.db.getsequence(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
+                                      state.db.getheader(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
                                       dbmatched[i],
                                       count_dbmatched,
                                       -1.0,
@@ -820,11 +821,11 @@ auto usearch_global(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(fp_dbnotmatched.get(),
                                       nullptr,
-                                      db_getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getsequencelen(static_cast<uint64_t>(i))),
-                                      db_getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(db_getheaderlen(static_cast<uint64_t>(i))),
-                                      db_getabundance(static_cast<uint64_t>(i)),
+                                      state.db.getsequence(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
+                                      state.db.getheader(static_cast<uint64_t>(i)),
+                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
+                                      state.db.getabundance(static_cast<uint64_t>(i)),
                                       count_dbnotmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
