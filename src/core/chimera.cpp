@@ -579,7 +579,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                  best_start,
                  best_len,
                  ci->query_head.data(),
-                 db_getheader(ci->cand_list[best_cand]));
+                 ci->db->getheader(ci->cand_list[best_cand]));
 #endif
 
           /* mark positions used */

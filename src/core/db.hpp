@@ -92,12 +92,9 @@ using seqinfo_t = struct seqinfo_s;
    getX members) is const so search worker threads can query one shared database
    concurrently. It is populated in one of three ways: init() + add() when a
    library caller assembles a database programmatically, read() from a
-   FASTA/FASTQ file, or udb_read() straight from a UDB file.
-
-   Transitional: while the per-command Database instances are threaded through
-   the ~350 existing call sites, a single process-wide instance (db_global,
-   below) holds the state and the db_* free functions forward to it, so those
-   call sites keep compiling unchanged. See TBD_20260713_Database_polish.md. */
+   FASTA/FASTQ file, or udb_read() straight from a UDB file. Each command (and
+   each library caller) owns its own instance and threads a reference through
+   the code. Remaining polish is tracked in TBD_20260713_Database_polish.md. */
 struct Database
 {
   char *      datap    = nullptr;  // packed headers, sequences and qualities
@@ -182,75 +179,3 @@ struct Database
 };
 
 
-/* Transitional process-wide instance the db_* shims below forward to
-   (see the Database comment above). */
-extern Database db_global;
-
-
-/* db_* free-function shims: thin forwarders to db_global, kept so the existing
-   call sites compile unchanged while Database instances are threaded through. */
-
-inline auto db_getheader(uint64_t seqno) -> char *
-{
-  return db_global.getheader(seqno);
-}
-
-inline auto db_getsequence(uint64_t seqno) -> char *
-{
-  return db_global.getsequence(seqno);
-}
-
-inline auto db_getabundance(uint64_t seqno) -> uint64_t
-{
-  return db_global.getabundance(seqno);
-}
-
-inline auto db_getsequencelen(uint64_t seqno) -> uint64_t
-{
-  return db_global.getsequencelen(seqno);
-}
-
-inline auto db_getheaderlen(uint64_t seqno) -> uint64_t
-{
-  return db_global.getheaderlen(seqno);
-}
-
-/* Reset database state for library use.
-   Call before the first db_add() when building a DB programmatically
-   (not via db_read). Sets shortest to UINT64_MAX so min-tracking works. */
-auto db_init() -> void;
-
-auto db_add(bool is_fastq,
-            char const * header,
-            char const * sequence,
-            char const * quality,
-            size_t headerlength,
-            size_t sequencelength,
-            int64_t abundance) -> void;
-
-auto db_read(const char * filename, int upcase, struct Parameters const & parameters) -> void;
-auto db_free() -> void;
-
-auto db_getsequencecount() -> uint64_t;
-auto db_getnucleotidecount() -> uint64_t;
-auto db_getlongestheader() -> uint64_t;
-auto db_getlongestsequence() -> uint64_t;
-auto db_getshortestsequence() -> uint64_t;
-
-/* Note: the sorting functions below must be called after db_read,
-   but before Dbindex::prepare */
-
-auto db_sortbylength(struct Parameters const & parameters) -> void;
-auto db_sortbylength_shortest_first(struct Parameters const & parameters) -> void;
-
-auto db_sortbyabundance(struct Parameters const & parameters) -> void;
-
-auto db_is_fastq() -> bool;
-auto db_getquality(uint64_t seqno) -> char *;
-
-auto db_setinfo(bool new_is_fastq,
-                uint64_t new_sequences,
-                uint64_t new_nucleotides,
-                uint64_t new_longest,
-                uint64_t new_shortest,
-                uint64_t new_longestheader) -> void;
