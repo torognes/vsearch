@@ -61,7 +61,7 @@
 #include "logfile.hpp"
 #include "vsearch.h"  // struct Parameters
 #include "open_file.hpp"  // open_optional_output_file, OutputOption
-#include "system.h"  // system_get_memused
+#include "os/system.h"  // system_get_memused
 #include "timestamp.hpp"  // iso8601_local_timestamp
 #include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cmath>  // std::floor

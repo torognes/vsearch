@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "dynlibs.h"
+#include "os/dynlibs.hpp"
 #include "utils/dynlib_loader.hpp"
 #include "utils/fatal.hpp"
 #include <cstdio>  // std::FILE

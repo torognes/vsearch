@@ -78,7 +78,7 @@
 #include "commands/fastx_uniques.hpp"
 #include "commands/derep_prefix.hpp"
 #include "commands/derep_smallmem.hpp"
-#include "dynlibs.h"
+#include "os/dynlibs.hpp"
 #include "commands/fastq_eestats.hpp"
 #include "commands/fastq_eestats2.hpp"
 #include "commands/fasta2fastq.hpp"

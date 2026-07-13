@@ -105,7 +105,7 @@ commands/derep_id.hpp \
 commands/fastx_uniques.hpp \
 commands/derep_prefix.hpp \
 commands/derep_smallmem.hpp \
-dynlibs.h \
+os/dynlibs.hpp \
 commands/fastq_eestats.hpp \
 commands/fastq_eestats2.hpp \
 core/eestats.hpp \
@@ -155,7 +155,7 @@ commands/shuffle.hpp \
 commands/sintax.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
-system.h \
+os/system.h \
 core/tax.hpp \
 commands/makeudb_usearch.hpp \
 commands/udb2fasta.hpp \
@@ -287,7 +287,7 @@ commands/derep_id.cpp \
 commands/fastx_uniques.cpp \
 commands/derep_prefix.cpp \
 commands/derep_smallmem.cpp \
-dynlibs.cc \
+os/dynlibs.cpp \
 commands/fastq_eestats.cpp \
 commands/fastq_eestats2.cpp \
 core/eestats.cpp \

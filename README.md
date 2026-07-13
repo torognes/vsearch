@@ -62,6 +62,14 @@ sudo make install
 
 You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
+**Out-of-tree (VPATH) builds** `configure` and `make` may be run from a separate, initially empty directory instead of the source tree. All object files, libraries and the final binary are then written under that build directory, leaving the source tree pristine, and several builds (for example debug and release, or different cross-compilation targets) can coexist from a single checkout:
+
+```
+mkdir build && cd build
+../configure CFLAGS="-O3" CXXFLAGS="-O3"
+make ARFLAGS="cr"
+```
+
 To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, ghostscript, groff, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
 
 To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, ghostscript, groff-base, make, zlib-devel.

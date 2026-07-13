@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.h"
-#include "dynlibs.h"
+#include "os/dynlibs.hpp"
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // log_file::handle
 #include "utils/open_file.hpp"  // open_input_file

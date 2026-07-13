@@ -60,7 +60,7 @@
 
 #include "vsearch.h"
 #include "commands/version.hpp"
-#include "dynlibs.h"
+#include "os/dynlibs.hpp"
 #include <cstdio>  // std::printf, std::fprintf
 
 

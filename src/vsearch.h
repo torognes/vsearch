@@ -185,7 +185,7 @@
 #include "vendored/city.h"
 #include "vendored/sha1.h"
 
-#include "system.h"
+#include "os/system.h"
 #include "core/db.hpp"
 #include "core/mask.hpp"
 #include "core/searchcore.hpp"
