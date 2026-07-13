@@ -67,7 +67,7 @@
 
 
 using Hash = decltype(&CityHash64);
-static Hash hash_function = CityHash64;
+static constexpr Hash hash_function = CityHash64;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit

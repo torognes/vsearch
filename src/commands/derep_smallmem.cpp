@@ -80,7 +80,7 @@
 
 
 using Hash = decltype(&hash_cityhash128);
-static Hash hash_function = hash_cityhash128;
+static constexpr Hash hash_function = hash_cityhash128;
 
 
 struct sm_bucket
