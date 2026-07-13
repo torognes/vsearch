@@ -158,7 +158,7 @@ while a session is active fails with a fatal diagnostic (it does not block).
 Operations that support multi-threaded execution (chimera detection,
 search, clustering) provide opaque per-thread state objects. Each
 thread allocates its own instance; the objects must not be shared
-across threads. The global database and k-mer index are read-only
+across threads. The database and k-mer index are read-only
 after initialization, so no locking is needed during computation.
 
 ### Output and I/O
@@ -190,7 +190,11 @@ parameters.opt_id = 0.97;
 //    active), resolves sentinel values, and applies the configuration.
 vsearch_session_begin(parameters);
 
-// 4-N. Use the library (load DB, run operations, etc.)
+// 4. An owned, empty database (RAII; frees itself at scope exit). Populate it
+//    with db.read(file, ...) or db.init() + db.add(), then mask and index it.
+Database db;
+
+// 5-N. Use the library (load DB, run operations, etc.)
 // ...
 
 // Final. Release the session mutex.
@@ -233,18 +237,23 @@ See `api_examples/example_reinit.cc` for a tested multi-session example.
 
 ## Database management
 
-vsearch uses a global in-memory sequence database. Sequences are loaded
-via `db_init()` + `db_add()`, then indexed for k-mer search.
+vsearch stores sequences in a caller-owned in-memory database, `Database db;`
+(a non-copyable RAII object declared in `core/db.hpp` that frees itself when it
+goes out of scope). Sequences are loaded via `db.init()` + `db.add()`, then
+indexed for k-mer search.
 
 ### Loading sequences
 
 ```cpp
+// The owned database (RAII; frees itself at scope exit)
+Database db;
+
 // Reset database state (also frees any previous data)
-db_init();
+db.init();
 
 // Add sequences one at a time
 for (int i = 0; i < n_seqs; i++) {
-    db_add(false,             // is_fastq: false for FASTA
+    db.add(false,             // is_fastq: false for FASTA
            headers[i],        // null-terminated header string
            sequences[i],      // null-terminated DNA sequence (ACGT, uppercase)
            nullptr,           // quality string (nullptr for FASTA)
@@ -256,19 +265,19 @@ for (int i = 0; i < n_seqs; i++) {
 
 **Requirements:**
 
-- `db_init()` must be called before `db_add()`. Without it, internal
+- `db.init()` must be called before `db.add()`. Without it, internal
   statistics (shortest sequence length) are corrupted.
 - Sequences must be DNA (ACGT). Convert U to T before calling.
-- `db_init()` calls `db_free()` internally, so it is safe to call on
-  an already-populated database.
+- `db.init()` clears any previous data internally (like `db.clear()`), so
+  it is safe to call on an already-populated database.
 
 ### Reading from files
 
-For file-based workflows, `db_read()` loads sequences from FASTA/FASTQ
+For file-based workflows, `db.read()` loads sequences from FASTA/FASTQ
 files directly:
 
 ```cpp
-db_read("sequences.fasta", 0, parameters);  // 0 = do not upcase
+db.read("sequences.fasta", 0, parameters);  // 0 = do not upcase
 ```
 
 ### Masking and indexing
@@ -276,10 +285,10 @@ db_read("sequences.fasta", 0, parameters);  // 0 = do not upcase
 After loading sequences, apply masking and build the k-mer index:
 
 ```cpp
-dust_all();                                       // DUST low-complexity masking
-Dbindex dbindex;                                  // the k-mer index (owns its buffers, RAII)
-dbindex.prepare(1, opt_dbmask, parameters);       // allocate index (1 = use bitmap)
-dbindex.add_all_sequences(opt_dbmask, parameters);// index all sequences
+dust_all(db, parameters);                              // DUST low-complexity masking
+Dbindex dbindex;                                       // the k-mer index (owns its buffers, RAII)
+dbindex.prepare(1, opt_dbmask, db, parameters);        // allocate index (1 = use bitmap)
+dbindex.add_all_sequences(opt_dbmask, db, parameters); // index all sequences
 ```
 
 ### Sorting
@@ -287,51 +296,52 @@ dbindex.add_all_sequences(opt_dbmask, parameters);// index all sequences
 Some operations require the database to be pre-sorted:
 
 ```cpp
-db_sortbylength();               // for cluster_fast
-db_sortbylength_shortest_first();
-db_sortbyabundance();            // for cluster_size
+db.sortbylength(parameters);               // for cluster_fast
+db.sortbylength_shortest_first(parameters);
+db.sortbyabundance(parameters);            // for cluster_size
 ```
 
 ### Cleanup
 
 ```cpp
-// the Dbindex frees its buffers automatically when it goes out of scope (RAII);
-// call clear() explicitly only to release it early or to reuse it for another build.
-db_free();
+// Both the Database and the Dbindex free their buffers automatically when they
+// go out of scope (RAII); call clear() explicitly only to release memory early
+// or to reuse the object for another build.
+db.clear();
 ```
 
 ### Database functions
 
 | Function | Description |
 |----------|-------------|
-| `db_init()` | Reset database state. Call before `db_add()`. |
-| `db_add(is_fastq, header, seq, qual, hlen, slen, abund)` | Add one sequence. |
-| `db_read(filename, upcase, parameters)` | Load sequences from file. |
-| `db_free()` | Free all database memory. |
-| `db_getsequencecount()` | Number of loaded sequences. |
-| `db_getnucleotidecount()` | Total nucleotides across all sequences. |
-| `db_getlongestsequence()` | Length of longest sequence. |
-| `db_getshortestsequence()` | Length of shortest sequence. |
-| `db_getlongestheader()` | Length of longest header. |
-| `db_getheader(seqno)` | Pointer to header string (database-owned). |
-| `db_getsequence(seqno)` | Pointer to sequence string (database-owned). |
-| `db_getsequencelen(seqno)` | Sequence length. |
-| `db_getheaderlen(seqno)` | Header length. |
-| `db_getabundance(seqno)` | Abundance annotation. |
-| `db_getquality(seqno)` | Quality string (FASTQ only). |
-| `db_is_fastq()` | Whether database contains FASTQ data. |
-| `db_sortbylength()` | Sort by length, longest first. |
-| `db_sortbylength_shortest_first()` | Sort by length, shortest first. |
-| `db_sortbyabundance()` | Sort by abundance, highest first. |
+| `db.init()` | Reset database state. Call before `db.add()`. |
+| `db.add(is_fastq, header, seq, qual, hlen, slen, abund)` | Add one sequence. |
+| `db.read(filename, upcase, parameters)` | Load sequences from file. |
+| `db.clear()` | Free all database memory (also done automatically by the destructor). |
+| `db.getsequencecount()` | Number of loaded sequences. |
+| `db.getnucleotidecount()` | Total nucleotides across all sequences. |
+| `db.getlongestsequence()` | Length of longest sequence. |
+| `db.getshortestsequence()` | Length of shortest sequence. |
+| `db.getlongestheader()` | Length of longest header. |
+| `db.getheader(seqno)` | Pointer to header string (database-owned). |
+| `db.getsequence(seqno)` | Pointer to sequence string (database-owned). |
+| `db.getsequencelen(seqno)` | Sequence length. |
+| `db.getheaderlen(seqno)` | Header length. |
+| `db.getabundance(seqno)` | Abundance annotation. |
+| `db.getquality(seqno)` | Quality string (FASTQ only). |
+| `db.is_fastq` | Whether database contains FASTQ data (public bool member). |
+| `db.sortbylength(parameters)` | Sort by length, longest first. |
+| `db.sortbylength_shortest_first(parameters)` | Sort by length, shortest first. |
+| `db.sortbyabundance(parameters)` | Sort by abundance, highest first. |
 
 ### K-mer index functions
 
 | Function | Description |
 |----------|-------------|
 | `Dbindex dbindex;` | The k-mer index, an owned object (RAII, non-copyable). Pass it by reference to the session/batch entry points below. |
-| `dbindex.prepare(bitmap, mask, parameters)` | Allocate k-mer index. `bitmap=1` enables bitmap mode (required for clustering). |
-| `dbindex.add_all_sequences(mask, parameters)` | Index all loaded sequences. |
-| `dbindex.add_sequence(seqno, mask)` | Index a single sequence (for incremental indexing). |
+| `dbindex.prepare(bitmap, mask, db, parameters)` | Allocate k-mer index. `bitmap=1` enables bitmap mode (required for clustering). |
+| `dbindex.add_all_sequences(mask, db, parameters)` | Index all loaded sequences. |
+| `dbindex.add_sequence(seqno, mask, db)` | Index a single sequence (for incremental indexing). |
 | `dbindex.clear()` | Free k-mer index memory (also done automatically by the destructor). |
 
 ---
@@ -348,7 +358,7 @@ Needleman-Wunsch alignment.
 
 ```cpp
 struct chimera_info_s * ci = chimera_info_alloc();
-chimera_detect_init(ci, parameters, dbindex);   // session + per-thread init
+chimera_detect_init(ci, parameters, dbindex, db);   // session + per-thread init
 
 struct chimera_result_s result;
 chimera_detect_single(ci, query_seq, query_head,
@@ -366,9 +376,9 @@ chimera_session_init(parameters);
 
 // Per-thread init: one handle per thread
 struct chimera_info_s * ci1 = chimera_info_alloc();
-chimera_detect_thread_init(ci1, parameters, dbindex);
+chimera_detect_thread_init(ci1, parameters, dbindex, db);
 struct chimera_info_s * ci2 = chimera_info_alloc();
-chimera_detect_thread_init(ci2, parameters, dbindex);
+chimera_detect_thread_init(ci2, parameters, dbindex, db);
 
 // Detection: thread-safe with separate handles
 // thread 1: chimera_detect_single(ci1, ...)
@@ -422,7 +432,7 @@ classifications and output. In this mode:
 
 - Process queries in decreasing abundance order
 - After classifying a query as non-chimeric, add it to the reference
-  database with `db_add()` and index it with `dbindex.add_sequence()`
+  database with `db.add()` and index it with `dbindex.add_sequence()`
 - The `query_abundance` parameter to `chimera_detect_single()` controls
   abundance skew filtering
 
@@ -448,10 +458,10 @@ De novo mode is inherently sequential (single-threaded).
 | `chimera_info_free(ci)` | Free per-thread state. Does NOT call cleanup. Null-safe. |
 | `chimera_session_init(parameters)` | Session-level init hook. Currently a no-op — detection config is built per-thread in `chimera_detect_thread_init` — but kept as a stable API symbol; call once after DB indexed. |
 | `chimera_session_cleanup()` | Session-level teardown: destroy mutexes. Call after all per-thread cleanup. |
-| `chimera_detect_thread_init(ci, parameters, dbindex)` | Per-thread init: allocate SIMD aligners, k-mer finders; searches `dbindex`. |
+| `chimera_detect_thread_init(ci, parameters, dbindex, db)` | Per-thread init: allocate SIMD aligners, k-mer finders; searches `dbindex`. |
 | `chimera_detect_thread_cleanup(ci)` | Per-thread teardown: free resources. |
 | `chimera_detect_single(ci, seq, head, len, abund, result)` | Detect chimera for one query. Returns 0 on success. |
-| `chimera_detect_init(ci, parameters, dbindex)` | Convenience: `session_init` + `thread_init`. Single-threaded only. |
+| `chimera_detect_init(ci, parameters, dbindex, db)` | Convenience: `session_init` + `thread_init`. Single-threaded only. |
 | `chimera_detect_cleanup(ci)` | Convenience: `thread_cleanup` + `session_cleanup`. Single-threaded only. |
 
 ---
@@ -473,7 +483,7 @@ parameters.opt_strand = true;       // optional: search both strands
 
 // Allocate and initialize the session
 struct search_session_s * ss = search_session_alloc();
-search_session_init(ss, parameters, dbindex);  // call after DB indexed
+search_session_init(ss, parameters, dbindex, db);  // call after DB indexed
 
 // Search queries
 struct search_result_s results[10];
@@ -485,7 +495,7 @@ search_session_single(ss, query_seq, query_head, query_len,
 for (int i = 0; i < result_count; i++) {
     printf("%s\t%s\t%.1f\n",
            query_head,
-           db_getheader(results[i].target),
+           db.getheader(results[i].target),
            results[i].id);
 }
 
@@ -497,7 +507,7 @@ search_session_free(ss);
 For bulk workloads, `search_batch()` parallelizes across `opt_threads`:
 
 ```cpp
-search_batch(parameters, dbindex, q_seqs, q_heads, q_lens, q_sizes, query_count,
+search_batch(parameters, dbindex, db, q_seqs, q_heads, q_lens, q_sizes, query_count,
              results, max_results_per_query, result_counts);
 ```
 
@@ -507,7 +517,7 @@ search_batch(parameters, dbindex, q_seqs, q_heads, q_lens, q_sizes, query_count,
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `target` | `int` | Database sequence index. Use `db_getheader(target)` for the header string and `db_getsequence(target)` for the sequence. |
+| `target` | `int` | Database sequence index. Use `db.getheader(target)` for the header string and `db.getsequence(target)` for the sequence. |
 | `id` | `double` | Percent identity (per `opt_iddef`). |
 | `matches` | `int` | Matching columns. |
 | `mismatches` | `int` | Mismatching columns. |
@@ -539,10 +549,10 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 |----------|-------------|
 | `search_session_alloc()` | Allocate opaque session state. |
 | `search_session_free(ss)` | Free session state. Null-safe (cleanup is implicit). |
-| `search_session_init(ss, parameters, dbindex)` | Initialize session. Call after DB indexed. Respects `opt_strand`. Stores a reference to `dbindex`, which must outlive the session. |
+| `search_session_init(ss, parameters, dbindex, db)` | Initialize session. Call after DB indexed. Respects `opt_strand`. Stores a reference to `dbindex`, which must outlive the session. |
 | `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand` is true). One session per process; do not share across threads. |
 | `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
-| `search_batch(parameters, dbindex, seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search of `dbindex`. Internally uses `opt_threads`. |
+| `search_batch(parameters, dbindex, db, seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search of `dbindex`. Internally uses `opt_threads`. |
 
 ---
 
@@ -556,21 +566,21 @@ assigned to an existing cluster or becomes a new centroid.
 
 ```cpp
 // Sort database (required)
-db_sortbylength();          // for cluster_fast behavior
-// or: db_sortbyabundance() for cluster_size behavior
+db.sortbylength(parameters);          // for cluster_fast behavior
+// or: db.sortbyabundance(parameters) for cluster_size behavior
 
 // Prepare index — do NOT call dbindex.add_all_sequences().
 // Centroids are indexed incrementally during clustering.
 Dbindex dbindex;
-dbindex.prepare(1, opt_qmask, parameters);
+dbindex.prepare(1, opt_qmask, db, parameters);
 
 // Allocate and initialize session
 struct cluster_session_s * cs = cluster_session_alloc();
-cluster_session_init(cs, parameters, dbindex);
+cluster_session_init(cs, parameters, dbindex, db);
 
 // Assign sequences sequentially (0, 1, 2, ...)
 struct cluster_result_s result;
-for (int i = 0; i < db_getsequencecount(); i++) {
+for (int i = 0; i < db.getsequencecount(); i++) {
     cluster_assign_single(cs, i, &result);
     // result.is_centroid, result.cluster_id, result.identity, ...
 }
@@ -607,7 +617,7 @@ cluster_session_free(cs);
 |----------|-------------|
 | `cluster_session_alloc()` | Allocate opaque session state. |
 | `cluster_session_free(cs)` | Free session state. Null-safe. |
-| `cluster_session_init(cs, parameters, dbindex)` | Initialize session. DB must be sorted; `dbindex.prepare()` called but NOT `add_all_sequences`. Stores a reference to `dbindex` (mutated as centroids are added); it must outlive the session. |
+| `cluster_session_init(cs, parameters, dbindex, db)` | Initialize session. DB must be sorted; `dbindex.prepare()` called but NOT `add_all_sequences`. Stores a reference to `dbindex` (mutated as centroids are added); it must outlive the session. |
 | `cluster_assign_single(cs, seqno, result)` | Assign one sequence. Must be called in seqno order (0, 1, 2, ...). |
 | `cluster_session_cleanup(cs)` | Free session resources. |
 
@@ -616,7 +626,7 @@ cluster_session_free(cs);
 ## Dereplication
 
 Full-length dereplication: collapse identical sequences and sum their
-abundances. This operation does NOT use the global database — it
+abundances. This operation does NOT use the database — it
 maintains its own internal state.
 
 ### Lifecycle
@@ -744,11 +754,11 @@ calling `merge_result_free()` between calls.
 ## Sequence masking
 
 DUST low-complexity masking, available both as a batch operation on the
-global database and as a standalone per-sequence function.
+database and as a standalone per-sequence function.
 
 ```cpp
-// Batch: mask all sequences in the global database
-dust_all();
+// Batch: mask all sequences in the database
+dust_all(db, parameters);
 
 // Standalone: mask a single sequence in-place (thread-safe)
 char seq[] = "AAAAAAAAAAAACCGTACGT";
@@ -762,7 +772,7 @@ It can be called without any initialization.
 
 | Function | Description |
 |----------|-------------|
-| `dust_all()` | Apply DUST masking to all database sequences. |
+| `dust_all(db, parameters)` | Apply DUST masking to all database sequences. |
 | `dust_single(seq, len, hardmask)` | Mask one sequence in-place. `hardmask=true` replaces with N; `false` lowercases. Thread-safe. |
 
 ### Masking modes
@@ -827,7 +837,7 @@ interior). This matches the internal scoring convention.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `opt_minseqlength` | `int64_t` | -1 | Minimum sequence length. The default is the -1 "unset" sentinel; `db_read()` treats any non-positive value as no lower bound (the CLI resolves it to a command-specific 1 or 32). |
+| `opt_minseqlength` | `int64_t` | -1 | Minimum sequence length. The default is the -1 "unset" sentinel; `db.read()` treats any non-positive value as no lower bound (the CLI resolves it to a command-specific 1 or 32). |
 | `opt_maxseqlength` | `int64_t` | `INT_MAX` | Maximum sequence length. |
 | `opt_minsize` | `int64_t` | 0 | Minimum abundance. Set explicitly for your use case. |
 | `opt_maxsize` | `int64_t` | `INT_MAX` | Maximum abundance. |
@@ -859,7 +869,7 @@ unrecoverable errors, the library will terminate the process.
 Known fatal error triggers include:
 
 - Out of memory (xmalloc/xrealloc failure)
-- Invalid FASTA/FASTQ format in `db_read()`
+- Invalid FASTA/FASTQ format in `db.read()`
 - File I/O failures
 
 **Library API return codes:**
@@ -930,13 +940,14 @@ Several result structs still use fixed-size character buffers:
 `merge_result_s.merged_sequence` / `merged_quality` are dynamically
 allocated by `mergepairs_single()` and owned by the caller — release
 with `merge_result_free()`. `search_result_s` no longer carries a
-target header copy; look it up with `db_getheader(result.target)`.
+target header copy; look it up with `db.getheader(result.target)`.
 
 ### Database pointers
 
-Pointers returned by `db_getheader()`, `db_getsequence()`, and
-`db_getquality()` point into global database memory. They are valid
-only while the database is loaded (until `db_free()` is called).
+Pointers returned by `db.getheader()`, `db.getsequence()`, and
+`db.getquality()` point into database-owned memory. They are valid
+only while the database is loaded (until `db.clear()` is called or the
+`Database` goes out of scope).
 
 ### Internal allocations
 
@@ -954,7 +965,7 @@ previous allocation. No action is required from the caller.
 |-------|---------------|
 | Configuring `Parameters` (`parameters.opt_* = ...`) | Single-threaded. |
 | `vsearch_session_begin()` | Single-threaded. Acquires session mutex. |
-| Database loading (`db_init`, `db_add`, `dust_all`) | Single-threaded. |
+| Database loading (`db.init`, `db.add`, `dust_all`) | Single-threaded. |
 | Index building (`dbindex.prepare`, `dbindex.add_all_sequences`) | Single-threaded. |
 | Session init (`chimera_session_init`, etc.) | Single-threaded. |
 | Per-thread init (`chimera_detect_thread_init`, etc.) | Safe for different instances. |
@@ -971,7 +982,7 @@ previous allocation. No action is required from the caller.
    threads.
 
 3. **Database is read-only during computation.** After indexing
-   completes, the global database and k-mer index are safe to read
+   completes, the database and k-mer index are safe to read
    from any thread.
 
 4. **Dereplication is self-contained.** `derep_session_s` has no global
@@ -982,7 +993,7 @@ previous allocation. No action is required from the caller.
    `mergepairs_single()` are fully independent and thread-safe.
 
 6. **Masking:** `dust_single()` is thread-safe. `dust_all()` operates
-   on the global database and is single-threaded.
+   on the database and is single-threaded.
 
 ---
 
@@ -1039,12 +1050,12 @@ cleanup.
 | `example_chimera.cc` | Chimera detection (reference) | Single-threaded convenience API, 18-column output |
 | `example_search.cc` | Global search | Identity filtering, multi-hit results |
 | `example_cluster.cc` | Greedy clustering | Length-sorted DB, incremental centroid indexing |
-| `example_derep.cc` | Dereplication | Self-contained (no global DB), abundance output |
+| `example_derep.cc` | Dereplication | Self-contained (no sequence DB), abundance output |
 | `example_merge.cc` | Paired-end merging | FASTQ quality handling, stateless API |
 | `example_dust.cc` | DUST masking | Standalone per-sequence, no init needed |
 | `example_reinit.cc` | Re-initialization | Multi-session, multi-handle, gap penalty regression |
 | `example_lifecycle.cc` | API memory/error contracts | Free null-safety, `merge_result_free` idempotency, `mergepairs_single` -1 return, result reuse |
-| `example_dbinfo.cc` | Database query/indexing surface | `db_read`, statistical accessors, quality, sort ordering, incremental `dbindex.add_sequence` |
+| `example_dbinfo.cc` | Database query/indexing surface | `db.read`, statistical accessors, quality, sort ordering, incremental `dbindex.add_sequence` |
 
 ### Building examples
 
@@ -1071,18 +1082,19 @@ int main() {
     vsearch_session_begin(parameters);
 
     // Load database
-    db_init();
+    Database db;
+    db.init();
     const char * h = "ref1";
     const char * s = "ACGTACGTACGTACGTACGT";
-    db_add(false, h, s, nullptr, strlen(h), strlen(s), 1);
-    dust_all();
+    db.add(false, h, s, nullptr, strlen(h), strlen(s), 1);
+    dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, opt_dbmask, parameters);
-    dbindex.add_all_sequences(opt_dbmask, parameters);
+    dbindex.prepare(1, opt_dbmask, db, parameters);
+    dbindex.add_all_sequences(opt_dbmask, db, parameters);
 
     // Search
     struct search_session_s * ss = search_session_alloc();
-    search_session_init(ss, parameters, dbindex);
+    search_session_init(ss, parameters, dbindex, db);
 
     const char * qh = "query1";
     const char * qs = "ACGTACGTACGTACGTACGT";
@@ -1092,14 +1104,14 @@ int main() {
 
     for (int i = 0; i < count; i++) {
         printf("%s\t%s\t%.1f%%\n",
-               qh, db_getheader(results[i].target), results[i].id);
+               qh, db.getheader(results[i].target), results[i].id);
     }
 
     // Cleanup
     search_session_cleanup(ss);
     search_session_free(ss);
     dbindex.clear();  // (also freed automatically at scope exit)
-    db_free();
+    db.clear();
     vsearch_session_end();
 }
 ```
