@@ -84,11 +84,11 @@ constexpr auto merge_mismatchmax     = -4.0;
 /* static variables */
 
 constexpr auto n_quality_symbols = 128U;
-std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
-std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
-std::array<std::array<double, n_quality_symbols>, n_quality_symbols> match_score {{}};
-std::array<std::array<double, n_quality_symbols>, n_quality_symbols> mism_score {{}};
-std::array<double, n_quality_symbols> q2p {{}};
+static std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
+static std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
+static std::array<std::array<double, n_quality_symbols>, n_quality_symbols> match_score {{}};
+static std::array<std::array<double, n_quality_symbols>, n_quality_symbols> mism_score {{}};
+static std::array<double, n_quality_symbols> q2p {{}};
 
 
 /* A worker must never call std::exit() (e.g. via fatal()) while sibling

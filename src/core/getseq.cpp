@@ -80,7 +80,7 @@
 #include <vector>
 
 
-std::vector<std::vector<char>> labels_data;
+static std::vector<std::vector<char>> labels_data;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit

@@ -73,7 +73,7 @@ static struct bitmap_s * dbhash_bitmap;
 static uint64_t dbhash_size;
 static unsigned int dbhash_shift;
 static uint64_t dbhash_mask;
-std::vector<struct dbhash_bucket_s> dbhash_table;
+static std::vector<struct dbhash_bucket_s> dbhash_table;
 
 
 auto dbhash_open(uint64_t const maxelements) -> void
