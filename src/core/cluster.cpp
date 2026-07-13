@@ -1377,7 +1377,7 @@ auto cluster(char const * dbname,
         if (parameters.opt_clusters != nullptr)
           {
             ++ordinal;
-            fasta_print_db_relabel(fp_clusters.get(), static_cast<uint64_t>(seqno), ordinal, parameters);
+            fasta_print_db_relabel(fp_clusters.get(), static_cast<uint64_t>(seqno), ordinal, db_global, parameters);
           }
 
         progress.update(static_cast<uint64_t>(i));

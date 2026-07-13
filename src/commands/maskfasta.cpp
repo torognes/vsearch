@@ -88,7 +88,7 @@ auto maskfasta(struct Parameters const & parameters) -> void
     Progress progress("Writing output", seqcount, parameters);
     for (uint64_t i = 0; i < seqcount; i++)
       {
-        fasta_print_db_relabel(output_handle.get(), i, i + 1, parameters);
+        fasta_print_db_relabel(output_handle.get(), i, i + 1, db_global, parameters);
         progress.update(i);
       }
   }

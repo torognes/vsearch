@@ -86,7 +86,7 @@ auto udb2fasta(struct Parameters const & parameters) -> void
     Progress progress("Writing FASTA file", seqcount, parameters);
     for (std::size_t i = 0; i < seqcount; i++)
       {
-        fasta_print_db_relabel(fp_output.get(), i, i + 1, parameters);
+        fasta_print_db_relabel(fp_output.get(), i, i + 1, db_global, parameters);
         progress.update(i + 1);
       }
   }

@@ -64,6 +64,9 @@
 #include <cstdint>  // uint64_t
 
 
+struct Database;
+
+
 /* fasta input */
 
 auto fasta_open_rest(fastx_handle input_handle) -> void;
@@ -109,9 +112,11 @@ auto fasta_print_general(std::FILE * output_handle,
 
 auto fasta_print_db(std::FILE * output_handle,
                     uint64_t seqno,
+                    struct Database const & db,
                     struct Parameters const & parameters) -> void;
 
 auto fasta_print_db_relabel(std::FILE * output_handle,
                             uint64_t seqno,
                             uint64_t ordinal,
+                            struct Database const & db,
                             struct Parameters const & parameters) -> void;
