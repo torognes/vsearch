@@ -1,6 +1,7 @@
 # Remaining global variables: inventory and elimination plan
 
-Status: in progress (Phase 1 + 2 landing on branch `tmp_20260713082154`).
+Status: Phases 1 + 2 DONE on branch `tmp_20260713082154` (commits dc22fb25,
+2ce96b81; awaiting human review/merge). Phases 3 + 4 deferred to a later date.
 Date: 2026-07-13.
 
 Goal (from `CLAUDE.md`): "avoid non const global variables". This document
@@ -59,17 +60,19 @@ fix, not just hygiene.
 
 ## Plan
 
-### Phase 1 — const-ify the set-once (no ABI impact)  [this branch]
+### Phase 1 — const-ify the set-once (no ABI impact)  [DONE, commit dc22fb25]
 
 - Group F: the three `hash_function` function pointers are never reassigned ->
   `static constexpr Hash hash_function = ...` (a function address is a valid
   constant-expression initializer). Removes them from the mutable-global set.
+  Done in `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp`.
 
-### Phase 2 — plug the external-linkage leaks (low risk)  [this branch]
+### Phase 2 — plug the external-linkage leaks (low risk)  [DONE, commit 2ce96b81]
 
-Give internal linkage to the file-scope state that currently leaks external
-symbols, matching the `static` convention already used by sibling declarations
-in each file. Independently commit-worthy; also de-risks Phase 3/4.
+Gave internal linkage to the file-scope state that leaked external symbols,
+matching the `static` convention already used by sibling declarations in each
+file. Independently commit-worthy; also de-risks Phase 3/4. `nm` confirmed each
+symbol moved from `B` (external) to `b` (local).
 
 - `core/mergepairs.cpp`: `static` on `merge_qual_same`, `merge_qual_diff`,
   `match_score`, `mism_score`, `q2p` (the abort state below them is already
@@ -77,7 +80,7 @@ in each file. Independently commit-worthy; also de-risks Phase 3/4.
 - `core/dbhash.cpp`: `static` on `dbhash_table` (siblings already `static`).
 - `core/getseq.cpp`: `static` on `labels_data`.
 
-### Phase 3 — encapsulate self-contained TU state into per-run structs (medium)
+### Phase 3 — encapsulate self-contained TU state into per-run structs (medium)  [deferred]
 
 Each is independent and low-blast-radius; thread an owned instance by reference
 through the relevant functions (the proven `Dbindex` RAII-struct playbook).
@@ -93,7 +96,7 @@ through the relevant functions (the proven `Dbindex` RAII-struct playbook).
   (aligns with the pending derep refactor, `TBD_20260712_derep_refactoring.md`).
 - **G** `base_seed` -> a small seed holder threaded to `random_*`.
 
-### Phase 4 — the DB core (large, ABI-breaking; do last)
+### Phase 4 — the DB core (large, ABI-breaking; do last)  [deferred]
 
 Groups A + B -> a `Db` type holding `datap`/`seqindex`/counts with `db_get*`
 as members (or free functions taking `Db const &`), and `Dbhash` alongside it.
