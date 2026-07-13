@@ -87,6 +87,7 @@ struct allpairs_state_s
   /* the run configuration, threaded through the helpers instead of the
      opt_* globals (E1/F3); set once at construction, read-only thereafter */
   struct Parameters const & parameters;
+  struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   int seqcount = 0;         /* number of database sequences */
   std::mutex mutex_input;   /* serializes query reads */
   std::mutex mutex_output;  /* serializes output + counter updates */
@@ -162,7 +163,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           query_head,
                           qsequence,
                           qseqlen,
-                          db_global,
+                          state.db,
                           state.parameters);
     }
 
@@ -174,7 +175,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           query_head,
                           qsequence,
                           qsequence_rc,
-                          db_global,
+                          state.db,
                           state.parameters);
     }
 
@@ -198,7 +199,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
-                                          db_global,
+                                          state.db,
                                           state.parameters);
             }
 
@@ -217,7 +218,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
             {
               results_show_tsegout_one(state.fp_tsegout,
                                        hp,
-                                       db_global,
+                                       state.db,
                                        state.parameters);
             }
 
@@ -230,7 +231,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                       query_head,
                                       qseqlen,
                                       hp->target,
-                                      db_global,
+                                      state.db,
                                       state.parameters);
                 }
             }
@@ -243,7 +244,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
-                                       db_global,
+                                       state.db,
                                        state.parameters);
             }
 
@@ -253,7 +254,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                          hp,
                                          query_head,
                                          qseqlen,
-                                         db_global);
+                                         state.db);
             }
         }
     }
@@ -266,7 +267,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               query_head,
                               qseqlen,
                               0,
-                              db_global,
+                              state.db,
                               state.parameters);
         }
 
@@ -280,7 +281,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        qsequence,
                                        qseqlen,
                                        qsequence_rc,
-                                       db_global,
+                                       state.db,
                                        state.parameters);
             }
 
@@ -290,7 +291,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                          nullptr,
                                          query_head,
                                          qseqlen,
-                                         db_global);
+                                         state.db);
             }
         }
     }
@@ -342,7 +343,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
 
   struct searchinfo_s searchinfo;
   searchinfo.parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
-  searchinfo.db = &db_global;  /* searchcore reads the sequences through the si */
+  searchinfo.db = &state.db;  /* searchcore reads the sequences through the si */
 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
@@ -394,11 +395,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
     /* init search info */
     auto const query_no_u = static_cast<uint64_t>(query_no);
     searchinfo.query_no = query_no;
-    searchinfo.qsize = static_cast<int64_t>(db_getabundance(query_no_u));
-    searchinfo.query_head_len = static_cast<int>(db_getheaderlen(query_no_u));
-    searchinfo.query_head = db_getheader(query_no_u);
-    searchinfo.qseqlen = static_cast<int>(db_getsequencelen(query_no_u));
-    searchinfo.qsequence = db_getsequence(query_no_u);
+    searchinfo.qsize = static_cast<int64_t>(state.db.getabundance(query_no_u));
+    searchinfo.query_head_len = static_cast<int>(state.db.getheaderlen(query_no_u));
+    searchinfo.query_head = state.db.getheader(query_no_u);
+    searchinfo.qseqlen = static_cast<int>(state.db.getsequencelen(query_no_u));
+    searchinfo.qsequence = state.db.getsequence(query_no_u);
     searchinfo.rejects = 0;
     searchinfo.accepts = 0;
     searchinfo.hit_count = 0;
@@ -427,7 +428,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
                  pmismatches.data(),
                  pgaps.data(),
                  pcigar.data(),
-                 db_global);
+                 state.db);
 
         /* convert to hit structure */
         for (std::size_t h = 0; h < static_cast<std::size_t>(searchinfo.hit_count); h++)
@@ -449,8 +450,8 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
                    perform a new alignment with the
                    linear memory aligner */
 
-                char * tseq = db_getsequence(target);
-                int64_t const tseqlen = static_cast<int64_t>(db_getsequencelen(target));
+                char * tseq = state.db.getsequence(target);
+                int64_t const tseqlen = static_cast<int64_t>(state.db.getsequencelen(target));
 
                 if (pcigar[h] != nullptr)
                   {
@@ -499,7 +500,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
             hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
             hit->mismatches = hit->nwdiff - hit->nwindels;
 
-            auto const dseqlen = static_cast<int>(db_getsequencelen(target));
+            auto const dseqlen = static_cast<int>(state.db.getsequencelen(target));
             hit->shortest = std::min(searchinfo.qseqlen, dseqlen);
             hit->longest = std::max(searchinfo.qseqlen, dseqlen);
 
@@ -624,22 +625,22 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   OutputFileHandle notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
   fp_notmatched = notmatched_handle.get();
 
-  db_read(parameters.opt_allpairs_global, 0, parameters);
+  state.db.read(parameters.opt_allpairs_global, 0, parameters);
 
-  results_show_samheader(fp_samout, parameters.opt_allpairs_global, db_global, parameters);
+  results_show_samheader(fp_samout, parameters.opt_allpairs_global, state.db, parameters);
 
   if (parameters.opt_qmask == Masking::dust)
     {
-      dust_all(db_global, parameters);
+      dust_all(state.db, parameters);
     }
   else if ((parameters.opt_qmask == Masking::soft) and parameters.opt_hardmask)
     {
-      hardmask_all(db_global);
+      hardmask_all(state.db);
     }
 
   // memory-intensive: the entire database is now held in memory
 
-  seqcount = static_cast<int>(db_getsequencecount());
+  seqcount = static_cast<int>(state.db.getsequencecount());
 
   /* prepare reading of queries */
   qmatches = 0;
@@ -675,7 +676,7 @@ auto allpairs_global(struct Parameters const & parameters) -> void
     }
 
   /* clean up, global */
-  db_free();
+  state.db.clear();
   /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard. */
   matched_handle.reset();
