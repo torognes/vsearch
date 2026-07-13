@@ -282,7 +282,6 @@ auto fasta_next(fastx_handle input_handle,
       fatal("Invalid FASTA - header must start with > character");
     }
   ++input_handle->file_buffer.position;
-  --rest;
 
   char const * line_end = nullptr;
   while (line_end == nullptr)
@@ -322,38 +321,30 @@ auto fasta_next(fastx_handle input_handle,
 
   /* read one or more sequence lines */
 
+  // the header loop above consumed a full LF-terminated line
+  bool previous_line_complete = true;
   while (true)
     {
       /* get more data, if necessary */
-      rest = fastx_file_fill_buffer(input_handle);
+      auto const fragment = peek_line_fragment(input_handle);
 
       /* end if no more data */
-      if (rest == 0)
+      if (fragment.end_of_input)
         {
           break;
         }
 
       /* end if new sequence starts */
-      if ((line_end != nullptr) and (input_handle->file_buffer.data[input_handle->file_buffer.position] == '>'))
+      if (previous_line_complete and (fragment.view[0] == '>'))
         {
           break;
         }
 
-      /* find LF */
-      auto * const current_position = std::next(input_handle->file_buffer.data, static_cast<std::ptrdiff_t>(input_handle->file_buffer.position));
-      line_end = static_cast<char *>(std::memchr(current_position, '\n', rest));
-
-      uint64_t len = rest;
-      if (line_end != nullptr)
-        {
-          /* LF found, copy up to and including LF */
-          len = static_cast<uint64_t>(line_end - current_position + 1);
-        }
       buffer_extend(& input_handle->sequence_buffer,
-                    current_position,
-                    len);
-      input_handle->file_buffer.position += len;
-      rest -= len;
+                    fragment.view.data(),
+                    fragment.view.size());
+      consume_fragment(input_handle, fragment);
+      previous_line_complete = fragment.has_newline;
     }
 
   ++input_handle->seqno;
