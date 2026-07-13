@@ -222,7 +222,7 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	arch/ppc64le/increment_counters.cpp \
 	arch/aarch64/increment_counters.cpp
@@ -285,7 +285,7 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	arch/ppc64le/increment_counters.cpp \
 	arch/aarch64/increment_counters.cpp
@@ -348,7 +348,7 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -405,7 +405,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -462,7 +462,7 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -519,7 +519,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
@@ -575,7 +575,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	core/align_simd.cpp commands/allpairs_global.cpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
@@ -788,7 +788,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
-	utils/userfields.hpp utils/worker_loop.hpp \
+	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
 	commands/version.hpp vsearch.h vsearch_api.h \
 	core/align_simd.cpp commands/allpairs_global.cpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
@@ -1436,6 +1436,7 @@ utils/taxonomic_fields.h \
 utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
+utils/view.hpp \
 utils/worker_loop.hpp \
 commands/version.hpp \
 vsearch.h \
