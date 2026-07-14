@@ -132,17 +132,19 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
   unsigned int kmer = 0;
   char const * s = seq;
 
+  auto const * two_bit_map = chrmap_2bit();
+  auto const * mask_ambig_map = chrmap_mask_ambig();
   for (int pos = 0; pos < len; pos++)
     {
       char const c = *s;
       ++s;
 
       bad <<= 2ULL;
-      bad |= map_mask_ambig(c);
+      bad |= mask_ambig_map[static_cast<unsigned char>(c)];
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= map_2bit(c);
+      kmer |= two_bit_map[static_cast<unsigned char>(c)];
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -168,16 +170,19 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
   unsigned int kmer = 0;
   char const * seq_cursor = seq + len - 1;
 
+  auto const * two_bit_map = chrmap_2bit();
+  auto const * mask_ambig_map = chrmap_mask_ambig();
+  auto const * complement_map = chrmap_complement();
   for (int pos = 0; pos < len; pos++)
     {
       char const nucleotide = *seq_cursor--;
 
       bad <<= 2ULL;
-      bad |= map_mask_ambig(nucleotide);
+      bad |= mask_ambig_map[static_cast<unsigned char>(nucleotide)];
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= map_2bit(map_complement(nucleotide));
+      kmer |= two_bit_map[complement_map[static_cast<unsigned char>(nucleotide)]];
       kmer &= kmer_mask;
 
       if (bad == 0U)
