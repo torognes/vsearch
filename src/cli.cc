@@ -76,6 +76,7 @@
 #include <cstdio>  // std::sscanf, std::fprintf, fprintf, stderr, stdout
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
+#include <string>  // std::to_string
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>  // std::numeric_limits
@@ -4394,9 +4395,8 @@ namespace {
 
     if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
       {
-        std::array<char, 25> maxparents_string {{}};
-        std::snprintf(maxparents_string.data(), maxparents_string.size(), "%d", maxparents);
-        fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n", maxparents_string.data());
+        fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n",
+              std::to_string(maxparents).c_str());
       }
 
     if ((parameters.opt_chimeras_diff_pct < 0.0) or (parameters.opt_chimeras_diff_pct > 50.0))

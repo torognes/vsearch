@@ -747,9 +747,9 @@ auto results_show_alnout(std::FILE * output_handle,
       auto const * dseq = db.getsequence(target);
       int64_t const dseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
-      auto const qlenlen = std::snprintf(nullptr, 0, "%" PRId64, qseqlen);
-      auto const tlenlen = std::snprintf(nullptr, 0, "%" PRId64, dseqlen);
-      auto const numwidth = std::max(qlenlen, tlenlen);
+      auto const qlenlen = std::to_string(qseqlen).size();
+      auto const tlenlen = std::to_string(dseqlen).size();
+      auto const numwidth = static_cast<int>(std::max(qlenlen, tlenlen));
 
       std::fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
               qseqlen, query_head);
