@@ -62,6 +62,10 @@
 #include "utils/progress.hpp"
 #include "core/derep.hpp"
 #include "core/derep_internal.hpp"
+#include "core/fasta.hpp"  // fasta_print_general
+#include "core/fastq.hpp"  // fastq_print_general
+#include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
+#include "os/system.hpp"  // xfree
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"

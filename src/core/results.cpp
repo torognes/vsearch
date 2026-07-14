@@ -60,6 +60,9 @@
 
 #include "vsearch.h"
 #include "core/attributes.hpp"
+#include "core/db.hpp"  // Database
+#include "core/fasta.hpp"  // fasta_print_general
+#include "core/searchcore.hpp"  // struct hit
 #include "core/showalign.hpp"
 #include "core/tax.hpp"
 #include "utils/cigar.hpp"

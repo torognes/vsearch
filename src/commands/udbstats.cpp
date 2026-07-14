@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "commands/udbstats.hpp"
+#include "core/db.hpp"
 #include "core/udb.hpp"
 #include "core/dbindex.hpp"
 #include <algorithm>  // std::max, std::min

@@ -60,6 +60,9 @@
 
 #include "core/filter.hpp"
 #include "vsearch.h"
+#include "core/fasta.hpp"
+#include "core/fastq.hpp"
+#include "core/fastx.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

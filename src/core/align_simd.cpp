@@ -61,6 +61,8 @@
 #include "vsearch.h"
 #include "arch/intrinsics.hpp"
 #include "core/align_simd.hpp"
+#include "core/db.hpp"
+#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/string_alloc.hpp"

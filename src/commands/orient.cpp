@@ -60,7 +60,11 @@
 
 #include "vsearch.h"
 #include "utils/progress.hpp"
+#include "core/db.hpp"
 #include "core/dbindex.hpp"
+#include "core/fasta.hpp"
+#include "core/fastq.hpp"
+#include "core/fastx.hpp"
 #include "core/mask.hpp"
 #include "core/udb.hpp"
 #include "core/unique.hpp"

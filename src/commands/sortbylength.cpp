@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include "core/db.hpp"
+#include "core/fasta.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"

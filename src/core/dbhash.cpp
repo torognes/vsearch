@@ -61,6 +61,8 @@
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "core/bitmap.hpp"
+#include "core/db.hpp"
+#include "core/dbhash.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/cityhash.hpp"
 #include "utils/string_normalize.hpp"

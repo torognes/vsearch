@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "core/db.hpp"  // Database
 #include "utils/taxonomic_fields.h"
 #include <algorithm>  // std::find
 #include <cctype>  // std::tolower

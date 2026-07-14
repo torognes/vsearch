@@ -60,6 +60,11 @@
 
 #include "vsearch.h"
 #include "commands/usearch_global.hpp"
+#include "core/db.hpp"
+#include "core/fasta.hpp"
+#include "core/fastx.hpp"
+#include "core/results.hpp"
+#include "os/system.hpp"
 #include "core/search_internal.hpp"
 #include "utils/progress.hpp"
 #include "core/searchcore.hpp"

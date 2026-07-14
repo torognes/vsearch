@@ -59,12 +59,16 @@
 */
 
 #include "vsearch.h"
+#include "arch/increment_counters.hpp"  // increment_counters_from_bitmap*
 #include "core/align_simd.hpp"
+#include "core/db.hpp"  // Database
 #include "core/dbindex.hpp"
 #include "core/linmemalign.hpp"
 #include "core/minheap.hpp"
 #include "core/otutable.hpp"
+#include "core/searchcore.hpp"  // struct hit, struct searchinfo_s
 #include "core/unique.hpp"
+#include "os/system.hpp"  // xfree
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include "utils/string_alloc.hpp"

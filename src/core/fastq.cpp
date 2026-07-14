@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "core/attributes.hpp"
+#include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
 #include <array>

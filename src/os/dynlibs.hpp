@@ -68,9 +68,19 @@
   globals and the manual dynlibs_open()/dynlibs_close() pair. The thin
   accessors forward to the resolved function pointers; keeping them in the
   header lets the compiler inline the calls in the read hot loop. The
-  gzFile/BZFILE types come from zlib.h/bzlib.h, included (under the same
-  HAVE_* guards) by vsearch.h before this header.
+  gzFile/BZFILE types come from zlib.h/bzlib.h, which this header includes
+  directly (under the same HAVE_* guards).
 */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"  // HAVE_ZLIB_H, HAVE_BZLIB_H
+#endif
+#ifdef HAVE_ZLIB_H
+#include <zlib.h>  // gzFile
+#endif
+#ifdef HAVE_BZLIB_H
+#include <bzlib.h>  // BZFILE
+#endif
 
 class DynamicLibraries
 {

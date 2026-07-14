@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "core/minheap.hpp"
+#include "os/system.hpp"  // xmalloc, xfree
 #include <cstdio>  // printf
 #include <cstdlib>  // qsort()
 

@@ -63,8 +63,10 @@
 #include "utils/progress.hpp"
 #include "core/attributes.hpp"
 #include "core/bitmap.hpp"
+#include "core/db.hpp"  // Database, seqinfo_t
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
+#include "os/system.hpp"  // xstat_t, xstat, xfstat, xmalloc, S_ISREG, S_ISFIFO
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::max

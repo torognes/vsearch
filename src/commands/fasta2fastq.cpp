@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include "core/fasta.hpp"
+#include "core/fastq.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"

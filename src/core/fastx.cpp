@@ -60,7 +60,11 @@
 
 #include "vsearch.h"
 #include "core/buffer_headroom.hpp"  // buffer_headroom
+#include "core/fasta.hpp"
+#include "core/fastq.hpp"
+#include "core/fastx.hpp"
 #include "os/dynlibs.hpp"
+#include "os/system.hpp"  // xmalloc, xrealloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // log_file::handle
 #include "utils/open_file.hpp"  // open_input_file

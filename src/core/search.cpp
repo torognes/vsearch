@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "core/buffer_headroom.hpp"
+#include "core/db.hpp"  // Database
 #include "core/search.hpp"
 #include "core/search_internal.hpp"
 #include "core/searchcore.hpp"
@@ -68,6 +69,7 @@
 #include "core/mask.hpp"
 #include "core/minheap.hpp"
 #include "core/unique.hpp"
+#include "os/system.hpp"  // xmalloc, xrealloc, xfree
 #include "utils/make_unique.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"

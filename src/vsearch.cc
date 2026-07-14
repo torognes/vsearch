@@ -62,6 +62,7 @@
 #include "vsearch_api.h"
 #include "commands/allpairs_global.hpp"
 #include "core/chimera.hpp"  // maxparents
+#include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "commands/uchime_denovo.hpp"
 #include "commands/uchime2_denovo.hpp"
 #include "commands/uchime3_denovo.hpp"

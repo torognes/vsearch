@@ -59,6 +59,9 @@
 */
 
 #include "vsearch.h"
+#include "core/fasta.hpp"
+#include "core/fastx.hpp"
+#include "os/system.hpp"
 #include "utils/progress.hpp"
 #include "vendored/city.h"
 #include "utils/fatal.hpp"

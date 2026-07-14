@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "commands/udbinfo.hpp"
+#include "os/system.hpp"
 #include "utils/fatal.hpp"
 #include <array>
 #include <cstdint>  // uint64_t

@@ -60,6 +60,8 @@
 
 #include "vsearch.h"
 #include "core/msa.hpp"
+#include "core/db.hpp"
+#include "core/fasta.hpp"
 #include "utils/cigar.hpp"
 #include "utils/span.hpp"
 #include "utils/reverse_complement.hpp"

@@ -60,8 +60,10 @@
 
 #include "vsearch.h"
 #include "core/bitmap.hpp"
+#include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
+#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <array>

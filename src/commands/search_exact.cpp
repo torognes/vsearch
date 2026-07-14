@@ -59,6 +59,12 @@
 */
 
 #include "vsearch.h"
+#include "core/db.hpp"
+#include "core/dbhash.hpp"
+#include "core/fasta.hpp"
+#include "core/fastx.hpp"
+#include "core/results.hpp"
+#include "core/searchcore.hpp"
 #include "core/buffer_headroom.hpp"
 #include "utils/progress.hpp"
 #include "core/mask.hpp"

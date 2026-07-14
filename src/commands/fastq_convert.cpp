@@ -60,6 +60,7 @@
 
 #include "commands/fastq_convert.hpp"
 #include "vsearch.h"
+#include "core/fastq.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

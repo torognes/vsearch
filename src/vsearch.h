@@ -70,36 +70,13 @@
 #include "config.h"
 #endif
 
-#include <cctype>
-#include <cfloat>
-#include <cinttypes>
-#include <clocale>
-#include <cmath>
-#include <cstdarg>
 #include <cstdint>
 #include <cstdio>  // std::size_t
-#include <cstdlib>
-#include <cstring>
-#include <map>
-#include <set>
 #include <string>
 #include <vector>
-#include <cassert>
 #include <limits>
 
-#include "vendored/city.h"
-#include "vendored/sha1.h"
-
-#include "os/system.hpp"
-#include "core/db.hpp"
-#include "core/mask.hpp"
-#include "core/searchcore.hpp"
-#include "core/results.hpp"
-#include "arch/increment_counters.hpp"
-#include "core/fastx.hpp"
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
-#include "core/dbhash.hpp"
+#include "core/mask.hpp"  // Masking
 
 // C++20 refactoring: constexpr
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33

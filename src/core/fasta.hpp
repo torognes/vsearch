@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "core/fastx.hpp"  // fastx_handle, struct fastx_s
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 

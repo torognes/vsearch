@@ -62,6 +62,7 @@
 #include "core/mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
 #include "core/kmerhash.hpp"
+#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
@@ -69,6 +70,7 @@
 #include <array>
 #include <atomic>  // std::atomic, std::memory_order
 #include <cassert>
+#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // std::strlen, std::strcpy, std::memcpy

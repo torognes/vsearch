@@ -60,6 +60,8 @@
 
 #include "commands/fastq_eestats.hpp"
 #include "core/eestats.hpp"
+#include "core/fastq.hpp"
+#include "core/fastx.hpp"
 #include "vsearch.h"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"

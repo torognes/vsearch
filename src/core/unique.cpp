@@ -61,6 +61,7 @@
 #include "vsearch.h"
 #include "vendored/city.h"
 #include "core/mask.hpp"
+#include "os/system.hpp"  // xmalloc, xrealloc, xfree
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min
 #include <cstdint> // uint64_t

@@ -78,6 +78,10 @@
 */
 
 #include "vsearch.h"
+#include "core/db.hpp"
+#include "core/fastx.hpp"
+#include "core/searchcore.hpp"
+#include "arch/increment_counters.hpp"
 #include "core/buffer_headroom.hpp"
 #include "utils/progress.hpp"
 #include "core/bitmap.hpp"

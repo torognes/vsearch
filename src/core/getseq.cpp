@@ -63,6 +63,10 @@
 
 #include "core/getseq.hpp"
 #include "vsearch.h"
+#include "core/fasta.hpp"
+#include "core/fastq.hpp"
+#include "core/fastx.hpp"
+#include "os/system.hpp"  // xstat_t, xfstat, S_ISFIFO
 #include "utils/progress.hpp"
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"

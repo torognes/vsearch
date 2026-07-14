@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "core/fastq.hpp"
 #include "utils/progress.hpp"
 #include "utils/maps.hpp"
 #include "utils/span.hpp"

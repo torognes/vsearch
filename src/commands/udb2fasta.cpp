@@ -60,6 +60,8 @@
 
 #include "vsearch.h"
 #include "commands/udb2fasta.hpp"
+#include "core/db.hpp"
+#include "core/fasta.hpp"
 #include "core/udb.hpp"
 #include "core/dbindex.hpp"
 #include "utils/open_file.hpp"

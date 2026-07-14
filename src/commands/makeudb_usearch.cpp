@@ -60,6 +60,7 @@
 
 #include "vsearch.h"
 #include "commands/makeudb_usearch.hpp"
+#include "core/db.hpp"
 #include "core/mask.hpp"
 #include "core/bitmap.hpp"
 #include "core/dbindex.hpp"

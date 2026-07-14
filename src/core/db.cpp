@@ -59,6 +59,8 @@
 */
 
 #include "vsearch.h"
+#include "core/db.hpp"
+#include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"

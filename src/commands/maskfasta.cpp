@@ -60,6 +60,8 @@
 
 #include "vsearch.h"
 #include "commands/maskfasta.hpp"
+#include "core/db.hpp"
+#include "core/fasta.hpp"
 #include "core/mask.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
