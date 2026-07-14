@@ -72,7 +72,7 @@ namespace {
   }
 
 
-  constexpr std::array<unsigned char, 256> chrmap_4bit =
+  constexpr std::array<unsigned char, 256> chrmap_4bit_vector =
     {{
       /*
         Map from ascii to 4-bit nucleotide code
@@ -150,7 +150,7 @@ namespace {
     }};
 
 
-  constexpr std::array<unsigned int, 256> chrmap_2bit =
+  constexpr std::array<unsigned int, 256> chrmap_2bit_vector =
     {{
       /*
 
@@ -205,7 +205,7 @@ namespace {
   }};
 
 
-  constexpr std::array<unsigned int, 256> chrmap_mask_ambig =
+  constexpr std::array<unsigned int, 256> chrmap_mask_ambig_vector =
     {{
       /*
         Should character be masked and not used for search ?
@@ -389,18 +389,33 @@ auto chrmap_complement() -> unsigned char const * {
 }
 
 
+auto chrmap_2bit() -> unsigned int const * {
+  return chrmap_2bit_vector.data();
+}
+
+
+auto chrmap_4bit() -> unsigned char const * {
+  return chrmap_4bit_vector.data();
+}
+
+
+auto chrmap_mask_ambig() -> unsigned int const * {
+  return chrmap_mask_ambig_vector.data();
+}
+
+
 auto map_uppercase(char const nucleotide) -> char {
   return static_cast<char>(chrmap_upcase_vector[to_uchar(nucleotide)]);
 }
 
 
 auto map_2bit(char const nucleotide) -> unsigned int {
-  return chrmap_2bit[to_uchar(nucleotide)];
+  return chrmap_2bit_vector[to_uchar(nucleotide)];
 }
 
 
 auto map_4bit(char const nucleotide) -> unsigned char {
-  return chrmap_4bit[to_uchar(nucleotide)];
+  return chrmap_4bit_vector[to_uchar(nucleotide)];
 }
 
 
@@ -410,7 +425,7 @@ auto map_complement(char const nucleotide) -> char {
 
 
 auto map_mask_ambig(char const nucleotide) -> unsigned int {
-  return chrmap_mask_ambig[to_uchar(nucleotide)];
+  return chrmap_mask_ambig_vector[to_uchar(nucleotide)];
 }
 
 
