@@ -581,13 +581,13 @@ auto fastq_next(fastx_handle input_handle,
 }
 
 
-auto fastq_get_quality(fastx_handle input_handle) -> char const *
+auto fastq_get_quality(struct fastx_s const * input_handle) -> char const *
 {
   return input_handle->quality_buffer.data;
 }
 
 
-auto fastq_get_quality_length(fastx_handle input_handle) -> uint64_t
+auto fastq_get_quality_length(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->quality_buffer.length;
 }
@@ -617,25 +617,25 @@ auto fastq_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 }
 
 
-auto fastq_get_header_length(fastx_handle input_handle) -> uint64_t
+auto fastq_get_header_length(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->header_buffer.length;
 }
 
 
-auto fastq_get_sequence_length(fastx_handle input_handle) -> uint64_t
+auto fastq_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->sequence_buffer.length;
 }
 
 
-auto fastq_get_header(fastx_handle input_handle) -> char const *
+auto fastq_get_header(struct fastx_s const * input_handle) -> char const *
 {
   return input_handle->header_buffer.data;
 }
 
 
-auto fastq_get_sequence(fastx_handle input_handle) -> char const *
+auto fastq_get_sequence(struct fastx_s const * input_handle) -> char const *
 {
   return input_handle->sequence_buffer.data;
 }

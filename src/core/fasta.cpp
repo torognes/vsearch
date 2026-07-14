@@ -394,25 +394,25 @@ auto fasta_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 }
 
 
-auto fasta_get_header_length(fastx_handle input_handle) -> uint64_t
+auto fasta_get_header_length(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->header_buffer.length;
 }
 
 
-auto fasta_get_sequence_length(fastx_handle input_handle) -> uint64_t
+auto fasta_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
 {
   return input_handle->sequence_buffer.length;
 }
 
 
-auto fasta_get_header(fastx_handle input_handle) -> char const *
+auto fasta_get_header(struct fastx_s const * input_handle) -> char const *
 {
   return input_handle->header_buffer.data;
 }
 
 
-auto fasta_get_sequence(fastx_handle input_handle) -> char const *
+auto fasta_get_sequence(struct fastx_s const * input_handle) -> char const *
 {
   return input_handle->sequence_buffer.data;
 }

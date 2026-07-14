@@ -814,7 +814,7 @@ auto fastx_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 }
 
 
-auto fastx_get_header(fastx_handle input_handle) -> char const *
+auto fastx_get_header(struct fastx_s const * input_handle) -> char const *
 {
   if (input_handle->is_fastq)
     {
@@ -824,7 +824,7 @@ auto fastx_get_header(fastx_handle input_handle) -> char const *
 }
 
 
-auto fastx_get_sequence(fastx_handle input_handle) -> char const *
+auto fastx_get_sequence(struct fastx_s const * input_handle) -> char const *
 {
   if (input_handle->is_fastq)
     {
@@ -834,7 +834,7 @@ auto fastx_get_sequence(fastx_handle input_handle) -> char const *
 }
 
 
-auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t
+auto fastx_get_header_length(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
     {
@@ -844,7 +844,7 @@ auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t
+auto fastx_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
 {
   if (input_handle->is_fastq)
     {
@@ -854,7 +854,7 @@ auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_get_quality(fastx_handle input_handle) -> char const *
+auto fastx_get_quality(struct fastx_s const * input_handle) -> char const *
 {
   if (input_handle->is_fastq)
     {

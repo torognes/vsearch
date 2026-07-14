@@ -74,14 +74,14 @@ auto fastq_get_position(struct fastx_s const * input_handle) -> uint64_t;
 auto fastq_get_size(struct fastx_s const * input_handle) -> uint64_t;
 auto fastq_get_lineno(struct fastx_s const * input_handle) -> uint64_t;
 auto fastq_get_seqno(struct fastx_s const * input_handle) -> uint64_t;
-auto fastq_get_header(fastx_handle input_handle) -> char const *;
-auto fastq_get_sequence(fastx_handle input_handle) -> char const *;
-auto fastq_get_quality(fastx_handle input_handle) -> char const *;
+auto fastq_get_header(struct fastx_s const * input_handle) -> char const *;
+auto fastq_get_sequence(struct fastx_s const * input_handle) -> char const *;
+auto fastq_get_quality(struct fastx_s const * input_handle) -> char const *;
 auto fastq_get_abundance(struct fastx_s const * input_handle) -> int64_t;
 auto fastq_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t;
-auto fastq_get_header_length(fastx_handle input_handle) -> uint64_t;
-auto fastq_get_sequence_length(fastx_handle input_handle) -> uint64_t;
-auto fastq_get_quality_length(fastx_handle input_handle) -> uint64_t;
+auto fastq_get_header_length(struct fastx_s const * input_handle) -> uint64_t;
+auto fastq_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t;
+auto fastq_get_quality_length(struct fastx_s const * input_handle) -> uint64_t;
 
 auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality,
                  struct Parameters const & parameters) -> void;

@@ -163,10 +163,10 @@ auto fastx_get_position(struct fastx_s const * input_handle) -> uint64_t;
 auto fastx_get_size(struct fastx_s const * input_handle) -> uint64_t;
 auto fastx_get_lineno(struct fastx_s const * input_handle) -> uint64_t;
 auto fastx_get_seqno(struct fastx_s const * input_handle) -> uint64_t;
-auto fastx_get_header(fastx_handle input_handle) -> char const *;
-auto fastx_get_sequence(fastx_handle input_handle) -> char const *;
-auto fastx_get_header_length(fastx_handle input_handle) -> uint64_t;
-auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t;
+auto fastx_get_header(struct fastx_s const * input_handle) -> char const *;
+auto fastx_get_sequence(struct fastx_s const * input_handle) -> char const *;
+auto fastx_get_header_length(struct fastx_s const * input_handle) -> uint64_t;
+auto fastx_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t;
 
 // Reject a sequence too long for the int length bookkeeping used downstream.
 // Called from fasta_next/fastx_next so every read is bounded at one choke
@@ -175,7 +175,7 @@ auto fastx_get_sequence_length(fastx_handle input_handle) -> uint64_t;
 // it is fatal.
 auto fastx_filter_sequence_length(fastx_handle input_handle) -> void;
 
-auto fastx_get_quality(fastx_handle input_handle) -> char const *;
+auto fastx_get_quality(struct fastx_s const * input_handle) -> char const *;
 auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t;
 
 auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t;
