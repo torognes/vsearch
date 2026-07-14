@@ -58,45 +58,35 @@
 
 */
 
-#include "arch/increment_counters.hpp"
-#include "arch/intrinsics.hpp"
-#include "vsearch.h"
-#include <cstring>  // std::memcpy
+#pragma once
 
+/* SIMD intrinsics for the target instruction set. Isolated here so the
+   umbrella vsearch header does not drag an architecture header into every
+   translation unit: only the SIMD sources include it, namely
+   core/align_simd.cpp and the per-ISA increment_counters.cpp backends under
+   arch/. The portable fallback (neither x86_64, ppc64le nor aarch64) uses
+   SIMDe to translate the x86 SSE intrinsics. */
 
-// ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via vsearch.h). Single
-// plain-named variant (no runtime dispatch off x86).
-void increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int const totalbits)
-{
-  const __vector unsigned char c1 =
-    { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-  const __vector unsigned char c2 =
-    { 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
-      0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f };
-  const __vector unsigned char c3 =
-    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+#ifdef __x86_64__
 
-  unsigned short const * p = reinterpret_cast<unsigned short const *>(bitmap);
-  __vector signed short * q = reinterpret_cast<__vector signed short *>(counters);
-  const auto r = (totalbits + 15) / 16;
+#include <x86intrin.h>
 
-  for (auto j = 0U; j < r; j++)
-    {
-      __vector unsigned char r0;
+#elif __PPC__
 
-      std::memcpy(&r0, p, 2);
-      ++p;
-      __vector unsigned char r1 = vec_perm(r0, r0, c1);
-      __vector unsigned char r2 = vec_or(r1, c2);
-      __vector __bool char r3 = vec_cmpeq(r2, c3);
-      __vector signed short r4 = (__vector signed short) vec_unpackl(r3);
-      __vector signed short r5 = (__vector signed short) vec_unpackh(r3);
-      *q = vec_subs(*q, r4);
-      ++q;
-      *q = vec_subs(*q, r5);
-      ++q;
-    }
-}
+#ifdef __LITTLE_ENDIAN__
+#include <altivec.h>
+#undef bool
+#else
+#error Big endian ppc64 CPUs not supported
+#endif
+
+#elif __aarch64__
+
+#include <arm_neon.h>
+
+#else
+
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/x86/avx512.h>
+
+#endif

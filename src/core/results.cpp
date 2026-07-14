@@ -69,6 +69,7 @@
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
+#include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

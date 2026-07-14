@@ -58,45 +58,48 @@
 
 */
 
-#include "arch/increment_counters.hpp"
-#include "arch/intrinsics.hpp"
-#include "vsearch.h"
-#include <cstring>  // std::memcpy
+#pragma once
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"  // PACKAGE, PACKAGE_VERSION
+#endif
 
-// ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via vsearch.h). Single
-// plain-named variant (no runtime dispatch off x86).
-void increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char const * bitmap,
-                                    unsigned int const totalbits)
-{
-  const __vector unsigned char c1 =
-    { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
-  const __vector unsigned char c2 =
-    { 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
-      0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f };
-  const __vector unsigned char c3 =
-    { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+/* Program identity strings reported in the --version banner and in the
+   headers of several output formats. Split out of the umbrella vsearch header
+   so the per-architecture / per-OS preprocessor ladders that build the
+   "os_cpu" tag are confined to the few TUs that print them (vsearch.cc,
+   core/otutable.cpp, core/results.cpp). Only the identity *string* is defined
+   here; the SIMD intrinsics and the OS runtime headers live elsewhere. */
 
-  unsigned short const * p = reinterpret_cast<unsigned short const *>(bitmap);
-  __vector signed short * q = reinterpret_cast<__vector signed short *>(counters);
-  const auto r = (totalbits + 15) / 16;
+#define PROG_NAME PACKAGE
+#define PROG_VERSION PACKAGE_VERSION
 
-  for (auto j = 0U; j < r; j++)
-    {
-      __vector unsigned char r0;
+#ifdef __x86_64__
+#define PROG_CPU "x86_64"
+#elif __PPC__
+#ifdef __LITTLE_ENDIAN__
+#define PROG_CPU "ppc64le"
+#else
+#error Big endian ppc64 CPUs not supported
+#endif
+#elif __aarch64__
+#define PROG_CPU "aarch64"
+#else
+#define PROG_CPU "simde"
+#endif
 
-      std::memcpy(&r0, p, 2);
-      ++p;
-      __vector unsigned char r1 = vec_perm(r0, r0, c1);
-      __vector unsigned char r2 = vec_or(r1, c2);
-      __vector __bool char r3 = vec_cmpeq(r2, c3);
-      __vector signed short r4 = (__vector signed short) vec_unpackl(r3);
-      __vector signed short r5 = (__vector signed short) vec_unpackh(r3);
-      *q = vec_subs(*q, r4);
-      ++q;
-      *q = vec_subs(*q, r5);
-      ++q;
-    }
-}
+#ifdef _WIN32
+#define PROG_OS "win"
+#elif __APPLE__
+#define PROG_OS "macos"
+#elif __linux__
+#define PROG_OS "linux"
+#elif __FreeBSD__
+#define PROG_OS "freebsd"
+#elif __NetBSD__
+#define PROG_OS "netbsd"
+#else
+#define PROG_OS "unknown"
+#endif
+
+#define PROG_ARCH PROG_OS "_" PROG_CPU

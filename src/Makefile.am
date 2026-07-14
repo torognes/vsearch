@@ -95,6 +95,7 @@ commands/cluster_smallmem.hpp \
 commands/cluster_size.hpp \
 commands/cluster_unoise.hpp \
 arch/increment_counters.hpp \
+arch/intrinsics.hpp \
 commands/cut.hpp \
 core/db.hpp \
 core/dbhash.hpp \
@@ -177,6 +178,7 @@ utils/maps.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
 utils/os_byteswap.hpp \
+utils/prog_id.hpp \
 utils/progress.hpp \
 utils/random.hpp \
 utils/reverse_complement.hpp \

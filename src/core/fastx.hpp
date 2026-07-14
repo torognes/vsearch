@@ -60,6 +60,10 @@
 
 #pragma once
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"  // HAVE_ZLIB_H, HAVE_BZLIB_H
+#endif
+
 #include "utils/view.hpp"  // View
 #include <array>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -67,6 +71,13 @@
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memchr
 #include <iterator>  // std::next, std::distance
+
+#ifdef HAVE_ZLIB_H
+#include <zlib.h>  // gzFile
+#endif
+#ifdef HAVE_BZLIB_H
+#include <bzlib.h>  // BZFILE
+#endif
 
 
 constexpr auto byte_range = 256U;

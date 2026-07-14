@@ -62,6 +62,7 @@
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/timestamp.hpp"  // iso8601_local_timestamp
+#include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::copy
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64

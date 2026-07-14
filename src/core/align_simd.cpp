@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "arch/intrinsics.hpp"
 #include "core/align_simd.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

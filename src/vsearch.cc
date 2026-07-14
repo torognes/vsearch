@@ -118,6 +118,7 @@
 #endif
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
+#include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
 #include "utils/random.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>

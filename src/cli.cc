@@ -80,6 +80,10 @@
 #include <string>  // std::to_string
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
+#ifdef __NetBSD__
+/* Alters behavior, but NetBSD 7 does not have getopt_long_only() */
+#define getopt_long_only getopt_long
+#endif
 #include <limits>  // std::numeric_limits
 #include <unistd.h>  // isatty, fileno
 
