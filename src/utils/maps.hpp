@@ -66,6 +66,8 @@ auto chrmap_normalize() -> unsigned char const *;
 
 auto chrmap_upcase() -> unsigned char const *;
 
+auto chrmap_complement() -> unsigned char const *;
+
 auto map_uppercase(char nucleotide) -> char;
 
 auto map_2bit(char nucleotide) -> unsigned int;

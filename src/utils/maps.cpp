@@ -118,7 +118,7 @@ namespace {
     }};
 
 
-  constexpr std::array<unsigned char, 256> chrmap_complement =
+  constexpr std::array<unsigned char, 256> chrmap_complement_vector =
     {{
       /*
 
@@ -384,6 +384,11 @@ auto chrmap_upcase() -> unsigned char const * {
 }
 
 
+auto chrmap_complement() -> unsigned char const * {
+  return chrmap_complement_vector.data();
+}
+
+
 auto map_uppercase(char const nucleotide) -> char {
   return static_cast<char>(chrmap_upcase_vector[to_uchar(nucleotide)]);
 }
@@ -400,7 +405,7 @@ auto map_4bit(char const nucleotide) -> unsigned char {
 
 
 auto map_complement(char const nucleotide) -> char {
-  return static_cast<char>(chrmap_complement[to_uchar(nucleotide)]);
+  return static_cast<char>(chrmap_complement_vector[to_uchar(nucleotide)]);
 }
 
 

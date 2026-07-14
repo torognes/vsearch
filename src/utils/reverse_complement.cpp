@@ -59,7 +59,7 @@
 */
 
 #include "reverse_complement.hpp"
-#include "maps.hpp"  // map_complement
+#include "maps.hpp"  // chrmap_complement
 #include <cstdint>  // int64_t
 #include <iterator>  // std::next
 
@@ -77,10 +77,11 @@ auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> v
      The memory for rc_seq must be long enough for the rc_seq of the sequence
      (identical to the length of seq + 1). */
 
+  auto const * complement_map = chrmap_complement();
   for (auto i = 0LL; i < len; ++i) {
     auto const nucleotide = *std::next(seq, len - 1 - i);
-    auto const complement_char = map_complement(nucleotide);
-    *std::next(rc_seq, i) = complement_char;
+    auto const complement_char = complement_map[static_cast<unsigned char>(nucleotide)];
+    *std::next(rc_seq, i) = static_cast<char>(complement_char);
   }
   *std::next(rc_seq, len) = '\0';
 }
