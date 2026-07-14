@@ -92,14 +92,8 @@ struct sm_bucket
   uint64_t size;
 };
 
-struct sm_hashtable
-{
-  struct sm_bucket * buckets = nullptr;
-  uint64_t size = 0;
-};
 
-
-auto find_median(struct sm_hashtable const & hashtable) -> double
+auto find_median(std::vector<struct sm_bucket> const & hashtable) -> double
 {
   /* find the median size, based on an iterative search starting at e.g. 1 */
 
@@ -113,9 +107,9 @@ auto find_median(struct sm_hashtable const & hashtable) -> double
       uint64_t below_count = 0; /* number of clusters with smaller size than cand */
       uint64_t above_count = 0; /* number of clusters with larger size than cand */
 
-      for (uint64_t i = 0; i < hashtable.size; i++)
+      for (uint64_t i = 0; i < hashtable.size(); i++)
         {
-          auto const v = hashtable.buckets[i].size;
+          auto const v = hashtable[i].size;
           if (v > 0)
             {
               if (v > cand)
@@ -194,43 +188,27 @@ inline auto next_bucket(uint64_t const prev_bucket, uint64_t const htsize) -> ui
 }
 
 
-auto rehash_smallmem(struct sm_hashtable & hashtable) -> void
+auto rehash_smallmem(std::vector<struct sm_bucket> & hashtable) -> void
 {
   /* allocate new hash table, 50% larger */
-  auto const new_hashtablesize = 3 * hashtable.size / 2;
-  auto * new_hashtable =
-    static_cast<struct sm_bucket *>(xmalloc(sizeof(struct sm_bucket) * new_hashtablesize));
-
-  /* zero new hash table */
-  for (uint64_t j = 0; j < new_hashtablesize; j++)
-    {
-      new_hashtable[j].hash.first = 0;
-      new_hashtable[j].hash.second = 0;
-      new_hashtable[j].size = 0;
-    }
+  auto const new_hashtablesize = 3 * hashtable.size() / 2;
+  std::vector<struct sm_bucket> new_hashtable(new_hashtablesize);
 
   /* rehash all from old to new */
-  for (uint64_t i = 0; i < hashtable.size; i++)
+  for (auto const & old_bucket : hashtable)
     {
-      auto * old_bp = hashtable.buckets + i;
-      if (old_bp->size != 0U)
+      if (old_bucket.size != 0U)
         {
-          auto k = hash2bucket(old_bp->hash, new_hashtablesize);
+          auto k = hash2bucket(old_bucket.hash, new_hashtablesize);
           while (new_hashtable[k].size != 0U)
             {
               k = next_bucket(k, new_hashtablesize);
             }
-          auto * new_bp = new_hashtable + k;
-          * new_bp = * old_bp;
+          new_hashtable[k] = old_bucket;
         }
     }
 
-  /* free old table */
-  xfree(hashtable.buckets);
-
-  /* update variables */
-  hashtable.buckets = new_hashtable;
-  hashtable.size = new_hashtablesize;
+  hashtable.swap(new_hashtable);
 }
 
 
@@ -259,17 +237,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* allocate initial hashtable with 1024 buckets */
 
-  struct sm_hashtable hashtable;
-  hashtable.size = 1024;
-  hashtable.buckets = static_cast<struct sm_bucket *>(xmalloc(sizeof(struct sm_bucket) * hashtable.size));
-
-  /* zero hash table */
-  for (uint64_t j = 0; j < hashtable.size; j++)
-    {
-      hashtable.buckets[j].hash.first = 0;
-      hashtable.buckets[j].hash.second = 0;
-      hashtable.buckets[j].size = 0;
-    }
+  std::vector<struct sm_bucket> hashtable(1024);
 
   // memory-intensive: the hash table has been allocated
 
@@ -324,7 +292,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             // memory-intensive: sequence buffers grown to fit the longest sequence
           }
 
-        if (100 * (clusters + 1) > 95 * hashtable.size)
+        if (100 * (clusters + 1) > 95 * hashtable.size())
           {
             // keep hash table fill rate at max 95% */
             rehash_smallmem(hashtable);
@@ -352,13 +320,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         */
 
         auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
-        auto j =  hash2bucket(hash, hashtable.size);
-        auto * bp = hashtable.buckets + j;
+        auto j =  hash2bucket(hash, hashtable.size());
+        auto * bp = &hashtable[j];
 
         while ((bp->size != 0U) and (hash != bp->hash))
           {
-            j = next_bucket(j, hashtable.size);
-            bp = hashtable.buckets + j;
+            j = next_bucket(j, hashtable.size());
+            bp = &hashtable[j];
           }
 
         if (parameters.opt_strand and (bp->size == 0U))
@@ -367,13 +335,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* check minus strand as well */
 
             auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
-            auto k =  hash2bucket(rc_hash, hashtable.size);
-            auto * rc_bp = hashtable.buckets + k;
+            auto k =  hash2bucket(rc_hash, hashtable.size());
+            auto * rc_bp = &hashtable[k];
 
             while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
               {
-                k = next_bucket(k, hashtable.size);
-                rc_bp = hashtable.buckets + k;
+                k = next_bucket(k, hashtable.size());
+                rc_bp = &hashtable[k];
               }
 
             if (rc_bp->size != 0U)
@@ -554,13 +522,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           }
 
         auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
-        auto j =  hash2bucket(hash, hashtable.size);
-        auto * bp = hashtable.buckets + j;
+        auto j =  hash2bucket(hash, hashtable.size());
+        auto * bp = &hashtable[j];
 
         while ((bp->size != 0U) and (hash != bp->hash))
           {
-            j = next_bucket(j, hashtable.size);
-            bp = hashtable.buckets + j;
+            j = next_bucket(j, hashtable.size());
+            bp = &hashtable[j];
           }
 
         if (parameters.opt_strand and (bp->size == 0U))
@@ -569,13 +537,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* check minus strand as well */
 
             auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
-            auto k =  hash2bucket(rc_hash, hashtable.size);
-            auto * rc_bp = hashtable.buckets + k;
+            auto k =  hash2bucket(rc_hash, hashtable.size());
+            auto * rc_bp = &hashtable[k];
 
             while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
               {
-                k = next_bucket(k, hashtable.size);
-                rc_bp = hashtable.buckets + k;
+                k = next_bucket(k, hashtable.size());
+                rc_bp = &hashtable[k];
               }
 
             if (rc_bp->size != 0U)
@@ -638,6 +606,4 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                   100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
         }
     }
-
-  xfree(hashtable.buckets);
 }
