@@ -85,18 +85,21 @@ std::string const default_sequence_padding = "NNNNNNNN";
 class DynamicLibraries;  // owned by main(), referenced through parameters.dyn_libs
 
 struct Parameters {
-  /* Canonical library defaults for the options below (formerly a block of
-     namespace-scope constants in this header). Kept as static constexpr
-     members so they no longer leak into every translation unit that includes
-     this header, and so the option initializers below can name them directly. */
+private:
+  /* Canonical option defaults referenced only by this struct's own member
+     initializers (formerly namespace-scope constants in this header). Private
+     so they do not widen the public Parameters surface; the initializers,
+     being members, may still name them. */
   static constexpr int64_t default_fasta_width = 80;
   static constexpr int64_t default_fastq_tail = 4;
   static constexpr int64_t default_maxseqlength = 50000;
-  static constexpr int64_t default_ascii_offset = 33;
   static constexpr int64_t default_max_quality = 41;
+
+public:
+  /* Defaults also read outside the struct (the --threads range check and the
+     FASTQ offset detection), so these stay public. */
+  static constexpr int64_t default_ascii_offset = 33;
   static constexpr int64_t n_threads_max = 1024;
-  static constexpr auto dbl_max = std::numeric_limits<double>::max();
-  static constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 
   std::string prog_header {};
   std::string command_line {};
@@ -191,7 +194,7 @@ struct Parameters {
   char * progname = nullptr;  // refactoring: unused?
   std::FILE * fp_log = nullptr;
   DynamicLibraries const * dyn_libs = nullptr;
-  double opt_fastq_truncee_rate = dbl_max;
+  double opt_fastq_truncee_rate = std::numeric_limits<double>::max();
   double opt_max_unmasked_pct = 100.0;
   double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
@@ -205,8 +208,8 @@ struct Parameters {
   int64_t opt_fastq_minqual = 0;
   int64_t opt_fastq_tail = default_fastq_tail;
   int64_t opt_maxseqlength = default_maxseqlength;
-  int64_t opt_maxsize = int64_max;
-  int64_t opt_maxuniquesize = int64_max;
+  int64_t opt_maxsize = std::numeric_limits<int64_t>::max();
+  int64_t opt_maxuniquesize = std::numeric_limits<int64_t>::max();
   int64_t opt_minseqlength = -1;
   int64_t opt_minsize = 0;
   int64_t opt_minuniquesize = 1;
@@ -214,7 +217,7 @@ struct Parameters {
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;
-  int64_t opt_topn = int64_max;
+  int64_t opt_topn = std::numeric_limits<int64_t>::max();
   bool opt_bzip2_decompress = false;
   bool opt_clusterout_id = false;
   bool opt_clusterout_sort = false;
@@ -295,15 +298,15 @@ struct Parameters {
   double    opt_chimeras_diff_pct            = 0.0;
   double    opt_dn                           = 1.4;
   double    opt_fastq_maxdiffpct             = 100.0;
-  double    opt_fastq_maxee                  = dbl_max;
-  double    opt_fastq_maxee_rate             = dbl_max;
-  double    opt_fastq_truncee                = dbl_max;
+  double    opt_fastq_maxee                  = std::numeric_limits<double>::max();
+  double    opt_fastq_maxee_rate             = std::numeric_limits<double>::max();
+  double    opt_fastq_truncee                = std::numeric_limits<double>::max();
   double    opt_id                           = -1.0;
   double    opt_lca_cutoff                   = 1.0;
   double    opt_maxid                        = 1.0;
-  double    opt_maxqt                        = dbl_max;
-  double    opt_maxsizeratio                 = dbl_max;
-  double    opt_maxsl                        = dbl_max;
+  double    opt_maxqt                        = std::numeric_limits<double>::max();
+  double    opt_maxsizeratio                 = std::numeric_limits<double>::max();
+  double    opt_maxsl                        = std::numeric_limits<double>::max();
   double    opt_mid                          = 0.0;
   double    opt_mindiv                       = 0.8;
   double    opt_minh                         = 0.28;
@@ -364,9 +367,9 @@ struct Parameters {
 
   Masking   opt_dbmask                       = Masking::dust;
   int64_t   opt_fastq_maxdiffs               = 10;
-  int64_t   opt_fastq_maxlen                 = int64_max;
+  int64_t   opt_fastq_maxlen                 = std::numeric_limits<int64_t>::max();
   int64_t   opt_fastq_maxmergelen            = 1000000;
-  int64_t   opt_fastq_maxns                  = int64_max;
+  int64_t   opt_fastq_maxns                  = std::numeric_limits<int64_t>::max();
   int64_t   opt_fastq_minlen                 = 1;
   int64_t   opt_fastq_minmergelen            = 0;
   int64_t   opt_fastq_minovlen               = 10;
@@ -385,7 +388,7 @@ struct Parameters {
   int64_t   opt_maxdiffs                     = std::numeric_limits<int>::max();
   int64_t   opt_maxgaps                      = std::numeric_limits<int>::max();
   int64_t   opt_maxhits                      = 0;
-  int64_t   opt_maxqsize                     = int64_max;
+  int64_t   opt_maxqsize                     = std::numeric_limits<int64_t>::max();
   int64_t   opt_maxrejects                   = -1;
   int64_t   opt_maxsubs                      = std::numeric_limits<int>::max();
   int64_t   opt_mincols                      = 0;
@@ -397,7 +400,7 @@ struct Parameters {
   int64_t   opt_rowlen                       = 64;
   int64_t   opt_self                         = 0;
   int64_t   opt_selfid                       = 0;
-  int64_t   opt_subseq_end                   = int64_max;
+  int64_t   opt_subseq_end                   = std::numeric_limits<int64_t>::max();
   int64_t   opt_subseq_start                 = 1;
   int64_t   opt_top_hits_only                = 0;
   int64_t   opt_wordlength                   = 0;
