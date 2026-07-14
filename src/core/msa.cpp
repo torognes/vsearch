@@ -567,9 +567,9 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
 
 
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
-         int cluster,
+         int const cluster,
          int const target_count, std::vector<struct msa_target_s> const & target_list_v,
-         int64_t totalabundance,
+         int64_t const totalabundance,
          struct Database const & db,
          struct Parameters const & parameters) -> void
 {

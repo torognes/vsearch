@@ -120,7 +120,7 @@ auto buffer_free(struct fastx_buffer_s * buffer) -> void
 }
 
 
-auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void
+auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t const size) -> void
 {
   /* make sure there is space for x more chars in buffer */
 
@@ -138,7 +138,7 @@ auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void
 
 auto buffer_extend(struct fastx_buffer_s * dest_buffer,
                    char const * source_buf,
-                   uint64_t len) -> void
+                   uint64_t const len) -> void
 {
   buffer_makespace(dest_buffer, len + 1);
   std::memcpy(dest_buffer->data + dest_buffer->length,
@@ -186,7 +186,7 @@ auto warn(char const * const message) -> void {
 }
 
 
-auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void {
+auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
   // truncate header (in-place)
   auto raw_header = Span<char>{input_handle->header_buffer.data, input_handle->header_buffer.length};
   auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
@@ -694,7 +694,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 
 
 auto fastx_next(fastx_handle input_handle,
-                bool truncateatspace,
+                bool const truncateatspace,
                 const unsigned char * char_mapping) -> bool
 {
   /* deferred-error mode (see fastx.h): if a previous call already

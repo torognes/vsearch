@@ -118,7 +118,7 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint
     }
 }
 
-auto Dbindex::add_sequence(unsigned int seqno, Masking seqmask, struct Database const & db) -> void
+auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, struct Database const & db) -> void
 {
 #if 0
   std::printf("Adding seqno %d as index element no %d\n", seqno, count);
@@ -148,7 +148,7 @@ auto Dbindex::add_sequence(unsigned int seqno, Masking seqmask, struct Database 
 }
 
 
-auto Dbindex::add_all_sequences(Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void
+auto Dbindex::add_all_sequences(Masking const seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
   unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
   Progress progress("Creating k-mer index", seqcount, parameters);
@@ -160,7 +160,7 @@ auto Dbindex::add_all_sequences(Masking seqmask, struct Database const & db, str
 }
 
 
-auto Dbindex::prepare(int use_bitmap, Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void
+auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* Release any state from a previous prepare first (mirrors Database::init ->
      clear()), so a second prepare without an intervening clear() does

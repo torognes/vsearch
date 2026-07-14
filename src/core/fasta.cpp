@@ -136,7 +136,7 @@ namespace {
   }
 
 
-  auto report_illegal_symbol_and_exit(fastx_handle input_handle, unsigned char symbol, uint64_t line_number) -> void {
+  auto report_illegal_symbol_and_exit(fastx_handle input_handle, unsigned char const symbol, uint64_t const line_number) -> void {
     static constexpr std::size_t max_buffer_size = 200;
     std::array<char, max_buffer_size> msg {{}};
     static_cast<void>(std::snprintf(
@@ -154,7 +154,7 @@ namespace {
   }
 
 
-  auto report_unprintable_symbol_and_exit(fastx_handle input_handle, unsigned char symbol, uint64_t line_number) -> void {
+  auto report_unprintable_symbol_and_exit(fastx_handle input_handle, unsigned char const symbol, uint64_t const line_number) -> void {
     static constexpr std::size_t max_buffer_size = 200;
     std::array<char, max_buffer_size> msg {{}};
     static_cast<void>(std::snprintf(
@@ -250,7 +250,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
 
 auto fasta_next(fastx_handle input_handle,
-                bool truncateatspace,
+                bool const truncateatspace,
                 const unsigned char * char_mapping) -> bool
 {
   input_handle->lineno_start = input_handle->lineno;
@@ -627,8 +627,8 @@ auto fasta_print_general(std::FILE * output_handle,
 // int and size_t were ambiguous for a uint64_t argument on platforms where
 // uint64_t, size_t and int are all distinct types (e.g. macOS).
 auto fasta_print_db_relabel(std::FILE * output_handle,
-                            uint64_t seqno,
-                            uint64_t ordinal,
+                            uint64_t const seqno,
+                            uint64_t const ordinal,
                             struct Database const & db,
                             struct Parameters const & parameters) -> void
 {
@@ -648,7 +648,7 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
 }
 
 
-auto fasta_print_db(std::FILE * output_handle, uint64_t seqno,
+auto fasta_print_db(std::FILE * output_handle, uint64_t const seqno,
                     struct Database const & db,
                     struct Parameters const & parameters) -> void
 {

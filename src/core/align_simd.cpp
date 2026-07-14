@@ -1051,9 +1051,9 @@ inline auto finishop(s16info_s * s) -> void
 
 auto backtrack16(s16info_s * s,
                  char const * dseq,
-                 uint64_t dlen,
-                 uint64_t offset,
-                 uint64_t channel,
+                 uint64_t const dlen,
+                 uint64_t const offset,
+                 uint64_t const channel,
                  unsigned short * paligned,
                  unsigned short * pmatches,
                  unsigned short * pmismatches,
@@ -1403,7 +1403,7 @@ auto search16_exit(s16info_s * s) -> void
 }
 
 
-auto search16_qprep(s16info_s * s, char * qseq, int qlen) -> void
+auto search16_qprep(s16info_s * s, char * qseq, int const qlen) -> void
 {
   s->qlen = qlen;
   s->qseq = qseq;
@@ -1445,7 +1445,7 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
 
 
 auto search16(s16info_s * s,
-              unsigned int sequences,
+              unsigned int const sequences,
               unsigned int const * seqnos,
               CELL * pscores,
               unsigned short * paligned,

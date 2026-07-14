@@ -76,7 +76,7 @@
 constexpr int dust_window = 64;
 
 
-auto wo(int len, const char *s, int *beg, int *end) -> int
+auto wo(int const len, const char *s, int *beg, int *end) -> int
 {
   static constexpr auto dust_word = 3;
   static constexpr auto word_count = 1U << (2U * dust_word);  // 64
@@ -136,7 +136,7 @@ auto wo(int len, const char *s, int *beg, int *end) -> int
 
 /* Core DUST implementation with explicit hardmask parameter.
    Thread-safe: does not read any globals. */
-static auto dust_core(char * seq, int len, bool use_hardmask) -> void
+static auto dust_core(char * seq, int const len, bool const use_hardmask) -> void
 {
   static constexpr auto dust_level = 20;
   static constexpr auto half_dust_window = dust_window / 2;
@@ -188,7 +188,7 @@ static auto dust_core(char * seq, int len, bool use_hardmask) -> void
 }
 
 
-auto dust(char * seq, int len, struct Parameters const & parameters) -> void
+auto dust(char * seq, int const len, struct Parameters const & parameters) -> void
 {
   dust_core(seq, len, parameters.opt_hardmask);
 }
@@ -245,7 +245,7 @@ auto dust_all(struct Database & db, struct Parameters const & parameters) -> voi
 }
 
 
-auto hardmask(char * seq, int len) -> void
+auto hardmask(char * seq, int const len) -> void
 {
   /* convert all lower case letters in seq to N */
   // auto const * const end = std::next(seq, len);
@@ -271,7 +271,7 @@ auto hardmask_all(struct Database & db) -> void
 }
 
 
-auto dust_single(char * seq, int len, bool use_hardmask) -> void
+auto dust_single(char * seq, int const len, bool const use_hardmask) -> void
 {
   dust_core(seq, len, use_hardmask);
 }

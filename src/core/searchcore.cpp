@@ -881,7 +881,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto search_onequery(struct searchinfo_s * searchinfo, Masking seqmask) -> void
+auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) -> void
 {
   /* opt_maxaccepts/opt_maxrejects are read through searchinfo->parameters: each
      caller threads a copy carrying its adjustment (search/cluster the seqcount

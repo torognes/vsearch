@@ -175,7 +175,7 @@ auto otutable_done() -> void
 }
 
 
-auto otutable_add(char const * query_header, char const * target_header, int64_t abundance) -> void
+auto otutable_add(char const * query_header, char const * target_header, int64_t const abundance) -> void
 {
   /* read sample annotation in query */
 

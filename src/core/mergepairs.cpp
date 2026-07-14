@@ -290,8 +290,8 @@ auto precompute_qual(struct Parameters const & parameters) -> void
 
 
 auto merge_sym(char * sym,       char * qual,
-               char fwd_sym,     char rev_sym,
-               char fwd_qual,    char rev_qual) -> void
+               char const fwd_sym,     char const rev_sym,
+               char const fwd_qual,    char const rev_qual) -> void
 {
   if (rev_sym == 'N')
     {
@@ -777,10 +777,10 @@ auto mergepairs_init(struct Parameters const & parameters) -> void
 auto mergepairs_single(struct Parameters const & parameters,
                         const char * fwd_seq,
                         const char * fwd_qual,
-                        int fwd_len,
+                        int const fwd_len,
                         const char * rev_seq,
                         const char * rev_qual,
-                        int rev_len,
+                        int const rev_len,
                         const char * fwd_header,
                         const char * rev_header,
                         struct merge_result_s * result) -> int

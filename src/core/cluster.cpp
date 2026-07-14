@@ -356,7 +356,7 @@ struct cluster_work_pool_s
 };
 
 
-auto relabel_otu(int clusterno, char const * sequence, int seqlen, struct Parameters const & parameters) -> char *
+auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, struct Parameters const & parameters) -> char *
 {
   char * label = nullptr;
   if (parameters.opt_relabel != nullptr)
@@ -387,12 +387,12 @@ auto relabel_otu(int clusterno, char const * sequence, int seqlen, struct Parame
 
 auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                               struct hit const * best,
-                              int clusterno,
+                              int const clusterno,
                               char const * query_head,
-                              int qseqlen,
+                              int const qseqlen,
                               char const * qsequence,
                               char const * qsequence_rc,
-                              int64_t qsize,
+                              int64_t const qsize,
                               struct Database const & db) -> void
 {
   ++state.count_matched;
@@ -508,12 +508,12 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
 
 
 auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
-                                int clusterno,
+                                int const clusterno,
                                 char const * query_head,
-                                int qseqlen,
+                                int const qseqlen,
                                 char const * qsequence,
                                 char const * qsequence_rc,
-                                int64_t qsize) -> void
+                                int64_t const qsize) -> void
 {
   ++state.count_notmatched;
 
@@ -598,7 +598,7 @@ auto compare_kmersample(const void * a, const void * b) -> int
 static auto evaluate_extra_hits(struct searchinfo_s * si,
                                 struct searchinfo_s const * si_plus,
                                 const int * extra_list,
-                                int extra_count,
+                                int const extra_count,
                                 LinearMemoryAligner & lma,
                                 int const tophits,
                                 struct Database const & db) -> void
@@ -1677,7 +1677,7 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
 
 
 auto cluster_assign_single(struct cluster_session_s * cs,
-                            int seqno,
+                            int const seqno,
                             struct cluster_result_s * result) -> void
 {
   /* Assign a single database sequence to a cluster.
@@ -1755,8 +1755,8 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
 
 auto cluster_assign_batch(struct cluster_session_s * cs,
-                          int start_seqno,
-                          int count,
+                          int const start_seqno,
+                          int const count,
                           struct cluster_result_s * results) -> void
 {
   if (count <= 0)

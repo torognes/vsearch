@@ -149,7 +149,7 @@ namespace {
 
 
   // refactoring: same as find_median_abundance()
-  auto find_median_size(std::vector<struct bucket> const & hashtable, uint64_t num_used) -> double {
+  auto find_median_size(std::vector<struct bucket> const & hashtable, uint64_t const num_used) -> double {
     static constexpr auto half = 0.5;
     if (num_used == 0) {
       return 0.0;
@@ -982,8 +982,8 @@ auto derep_session_init(struct derep_session_s * ds) -> void
 auto derep_add_sequence(struct derep_session_s * ds,
                         const char * header,
                         const char * sequence,
-                        int seqlen,
-                        int64_t abundance) -> void
+                        int const seqlen,
+                        int64_t const abundance) -> void
 {
   if (seqlen <= 0)
     {
@@ -1052,7 +1052,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
 
 auto derep_get_results(struct derep_session_s * ds,
                        struct derep_result_s * results,
-                       int max_results,
+                       int const max_results,
                        int * result_count) -> void
 {
   /* Guard against a null output array: without this, a populated session with

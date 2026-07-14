@@ -125,7 +125,7 @@ auto tax_parse(char const * header,
 }
 
 
-auto tax_split(int seqno, int * level_start, int * level_len, struct Database const & db) -> void
+auto tax_split(int const seqno, int * level_start, int * level_len, struct Database const & db) -> void
 {
   /* Parse taxonomy string into the following 9 parts
      d domain

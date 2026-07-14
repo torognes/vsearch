@@ -284,7 +284,7 @@ auto LinearMemoryAligner::subst_score(char const lhs, char const rhs) -> int64_t
 }
 
 
-auto LinearMemoryAligner::cigar_add(char _op, int64_t run) -> void
+auto LinearMemoryAligner::cigar_add(char const _op, int64_t const run) -> void
 {
   if (op == _op)
     {
@@ -675,8 +675,8 @@ auto LinearMemoryAligner::diff(int64_t a_start,
 
 auto LinearMemoryAligner::align(char const * _a_seq,
                                 char const * _b_seq,
-                                int64_t a_len,
-                                int64_t b_len) -> char *
+                                int64_t const a_len,
+                                int64_t const b_len) -> char *
 {
   /* copy parameters */
   a_seq = _a_seq;

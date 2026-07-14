@@ -194,8 +194,8 @@ namespace {
 
 
 auto udb_read(const char * filename,
-              bool create_bitmaps,
-              bool parse_abundances,
+              bool const create_bitmaps,
+              bool const parse_abundances,
               struct Dbindex & dbindex,
               struct Database & db,
               struct Parameters const & parameters) -> void

@@ -2882,8 +2882,8 @@ auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & p
 auto chimera_detect_single(struct chimera_info_s * ci,
                            const char * query_seq,
                            const char * query_head,
-                           int query_len,
-                           int64_t query_size,
+                           int const query_len,
+                           int64_t const query_size,
                            struct chimera_result_s * result) -> int
 {
   /* Validate the caller-supplied query before trusting query_len: the buffers
@@ -3040,7 +3040,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
                           const char ** query_heads,
                           const int * query_lens,
                           const int64_t * query_sizes,
-                          int query_count,
+                          int const query_count,
                           struct chimera_result_s * results) -> void
 {
   if (query_count <= 0)

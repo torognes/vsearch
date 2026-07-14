@@ -171,7 +171,7 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
 }
 
 
-auto Dbhash::add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void
+auto Dbhash::add(char * seq, uint64_t const seqlen, uint64_t const seqno, struct Database const & db) -> void
 {
   struct dbhash_search_info_s info;
 

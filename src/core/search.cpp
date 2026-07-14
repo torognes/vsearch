@@ -81,12 +81,12 @@
 
 auto populate_si(struct searchinfo_s * si,
                  const char * head,
-                 int head_len,
+                 int const head_len,
                  const char * seq,
-                 int seq_len,
-                 int query_no,
-                 int64_t qsize,
-                 int strand) -> void
+                 int const seq_len,
+                 int const query_no,
+                 int64_t const qsize,
+                 int const strand) -> void
 {
   si->query_head_len = head_len;
   si->qseqlen = seq_len;
@@ -246,10 +246,10 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
 auto search_session_single(struct search_session_s * ss,
                            const char * query_seq,
                            const char * query_head,
-                           int query_len,
-                           int64_t query_size,
+                           int const query_len,
+                           int64_t const query_size,
                            struct search_result_s * results,
-                           int max_results,
+                           int const max_results,
                            int * result_count) -> void
 {
   int const head_len = static_cast<int>(std::strlen(query_head));
@@ -507,9 +507,9 @@ auto search_batch(struct Parameters const & parameters,
                   const char ** query_heads,
                   const int * query_lens,
                   const int64_t * query_sizes,
-                  int query_count,
+                  int const query_count,
                   struct search_result_s * results,
-                  int max_results_per_query,
+                  int const max_results_per_query,
                   int * result_counts) -> void
 {
   /* per-thread buffer sizes for search_thread_init (formerly file-statics).
