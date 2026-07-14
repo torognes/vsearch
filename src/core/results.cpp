@@ -73,7 +73,7 @@
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::snprintf, std::sscanf
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::sscanf
 #include <cstring>  // std::strlen, std::strncmp
 #include <string>  // std::string, std::to_string
 
