@@ -216,7 +216,6 @@ constexpr auto dbl_max = std::numeric_limits<double>::max();
 constexpr int64_t default_max_quality = 41;
 constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
-std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
 std::string const default_sequence_padding = "NNNNNNNN";
 
 class DynamicLibraries;  // owned by main(), referenced through parameters.dyn_libs

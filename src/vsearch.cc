@@ -478,6 +478,7 @@ auto cmd_fastq_join(struct Parameters & parameters) -> void
   }
   if ((not parameters.opt_join_padgapq_set_by_user) and
       (parameters.opt_fastq_ascii != default_ascii_offset)) {
+    std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
     parameters.opt_join_padgapq = alternative_quality_padding;
   }
   fastq_join(parameters);
