@@ -64,7 +64,7 @@
 #include <cstring>  // std::memcpy
 
 
-// ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via vsearch.h). Single
+// ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via arch/intrinsics.hpp). Single
 // plain-named variant (no runtime dispatch off x86).
 void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char const * bitmap,

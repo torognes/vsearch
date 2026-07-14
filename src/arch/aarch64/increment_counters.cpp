@@ -63,7 +63,7 @@
 #include "vsearch.h"
 
 
-// aarch64 backend: NEON intrinsics (arm_neon.h, via vsearch.h). Single
+// aarch64 backend: NEON intrinsics (arm_neon.h, via arch/intrinsics.hpp). Single
 // plain-named variant (no runtime dispatch off x86).
 void increment_counters_from_bitmap(count_t * counters,
                                     unsigned char const * bitmap,

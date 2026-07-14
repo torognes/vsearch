@@ -65,7 +65,7 @@
 
 
 // SIMDE backend: portable fallback for targets without a native SIMD
-// backend (e.g. RISC-V, MIPS). vsearch.h pulls in SIMDE with native aliases,
+// backend (e.g. RISC-V, MIPS). arch/intrinsics.hpp pulls in SIMDE with native aliases,
 // so the x86 SSE intrinsics below compile everywhere. Single plain-named
 // variant (no runtime SSE2/SSSE3 dispatch off x86).
 void increment_counters_from_bitmap(count_t * counters,
