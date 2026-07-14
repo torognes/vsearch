@@ -189,7 +189,7 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
 {
   if (parameters.opt_maxhits == 0)
     {
-      parameters.opt_maxhits = Parameters::int64_max;
+      parameters.opt_maxhits = std::numeric_limits<int64_t>::max();
     }
 
   if (parameters.opt_minwordmatches < 0)
