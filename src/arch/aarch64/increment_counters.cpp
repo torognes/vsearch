@@ -65,14 +65,14 @@
 // aarch64 backend: NEON intrinsics (arm_neon.h, via vsearch.h). Single
 // plain-named variant (no runtime dispatch off x86).
 void increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char * bitmap,
-                                    unsigned int totalbits)
+                                    unsigned char const * bitmap,
+                                    unsigned int const totalbits)
 {
   const uint8x16_t c1 =
     { 0x01, 0x01, 0x02, 0x02, 0x04, 0x04, 0x08, 0x08,
       0x10, 0x10, 0x20, 0x20, 0x40, 0x40, 0x80, 0x80 };
 
-  unsigned short * p = reinterpret_cast<unsigned short *>(bitmap);
+  unsigned short const * p = reinterpret_cast<unsigned short const *>(bitmap);
   int16x8_t * q = reinterpret_cast<int16x8_t *>(counters);
   const auto r = (totalbits + 15) / 16;
 

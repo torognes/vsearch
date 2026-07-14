@@ -68,8 +68,8 @@
 // a chain of unpack instructions instead. Runtime-selected on CPUs without
 // SSSE3; see arch/x86_64/SSSE3/ for the faster variant.
 void increment_counters_from_bitmap_sse2(count_t * counters,
-                                         unsigned char * bitmap,
-                                         unsigned int totalbits)
+                                         unsigned char const * bitmap,
+                                         unsigned int const totalbits)
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -99,13 +99,13 @@ void increment_counters_from_bitmap_sse2(count_t * counters,
   const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
   const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto * p = reinterpret_cast<unsigned short *>(bitmap);
+  auto * p = reinterpret_cast<unsigned short const *>(bitmap);
   auto * q = reinterpret_cast<__m128i *>(counters);
   const auto r = (totalbits + 15) / 16;
 
   for (auto j = 0U; j < r; j++)
     {
-      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i *>(p++));
+      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i const *>(p++));
       const auto xmm6 = _mm_unpacklo_epi8(xmm0, xmm0);
       const auto xmm7 = _mm_unpacklo_epi16(xmm6, xmm6);
       const auto xmm1 = _mm_unpacklo_epi32(xmm7, xmm7);

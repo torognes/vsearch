@@ -66,8 +66,8 @@
 // ppc64le backend: AltiVec/VSX intrinsics (altivec.h, via vsearch.h). Single
 // plain-named variant (no runtime dispatch off x86).
 void increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char * bitmap,
-                                    unsigned int totalbits)
+                                    unsigned char const * bitmap,
+                                    unsigned int const totalbits)
 {
   const __vector unsigned char c1 =
     { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -78,7 +78,7 @@ void increment_counters_from_bitmap(count_t * counters,
     { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
-  unsigned short * p = reinterpret_cast<unsigned short *>(bitmap);
+  unsigned short const * p = reinterpret_cast<unsigned short const *>(bitmap);
   __vector signed short * q = reinterpret_cast<__vector signed short *>(counters);
   const auto r = (totalbits + 15) / 16;
 

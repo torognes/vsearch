@@ -67,8 +67,8 @@
 // instruction (_mm_shuffle_epi8) to expand the 16 bitmap bits in one step.
 // Runtime-selected on CPUs with SSSE3 support.
 void increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char * bitmap,
-                                          unsigned int totalbits)
+                                          unsigned char const * bitmap,
+                                          unsigned int const totalbits)
 {
   /*
     Increment selected elements in an array of 16 bit counters.
@@ -98,13 +98,13 @@ void increment_counters_from_bitmap_ssse3(count_t * counters,
   const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
   const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto * p = reinterpret_cast<unsigned short *>(bitmap);
+  auto * p = reinterpret_cast<unsigned short const *>(bitmap);
   auto * q = reinterpret_cast<__m128i *>(counters);
   const auto r = (totalbits + 15) / 16;
 
   for (auto j = 0U; j < r; j++)
     {
-      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i *>(p++));
+      const auto xmm0 = _mm_loadu_si128(reinterpret_cast<__m128i const *>(p++));
       const auto xmm1 = _mm_shuffle_epi8(xmm0, c1);
       const auto xmm2 = _mm_or_si128(xmm1, c2);
       const auto xmm3 = _mm_cmpeq_epi8(xmm2, c3);

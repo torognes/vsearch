@@ -78,13 +78,13 @@ using count_t = unsigned short;
 
 #ifdef __x86_64__
 auto increment_counters_from_bitmap_sse2(count_t * counters,
-                                         unsigned char * bitmap,
+                                         unsigned char const * bitmap,
                                          unsigned int totalbits) -> void;
 auto increment_counters_from_bitmap_ssse3(count_t * counters,
-                                          unsigned char * bitmap,
+                                          unsigned char const * bitmap,
                                           unsigned int totalbits) -> void;
 #else
 auto increment_counters_from_bitmap(count_t * counters,
-                                    unsigned char * bitmap,
+                                    unsigned char const * bitmap,
                                     unsigned int totalbits) -> void;
 #endif
