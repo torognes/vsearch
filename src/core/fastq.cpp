@@ -62,13 +62,13 @@
 #include "core/attributes.hpp"
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
-#include "utils/string_alloc.hpp"
 #include <array>
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
+#include <string>  // std::string, std::to_string
 #include <vector>
 
 
@@ -198,44 +198,19 @@ namespace {
 
 auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * msg) -> void
 {
-  char * string = nullptr;
-  if (xsprintf(&string,
-               "Invalid line %lu in FASTQ file: %s",
-               lineno,
-               msg) == -1)
-    {
-      if (input_handle->defer_errors)
-        {
-          fastx_set_deferred_error(input_handle, "Out of memory");
-          return;
-        }
-      fatal("Out of memory");
-    }
+  std::string const message = "Invalid line " + std::to_string(lineno)
+    + " in FASTQ file: " + msg;
 
-  if (string != nullptr)
+  /* deferred-error mode (see fastx.h): record the message and return
+     so the worker can stop cooperatively instead of std::exit()-ing
+     from a worker thread. The caller (fastq_next) returns false right
+     after this call. */
+  if (input_handle->defer_errors)
     {
-      /* deferred-error mode (see fastx.h): record the message and return
-         so the worker can stop cooperatively instead of std::exit()-ing
-         from a worker thread. The caller (fastq_next) returns false right
-         after this call. */
-      if (input_handle->defer_errors)
-        {
-          fastx_set_deferred_error(input_handle, string);
-          xfree(string);
-          return;
-        }
-      fatal(string);
-      xfree(string);
+      fastx_set_deferred_error(input_handle, message.c_str());
+      return;
     }
-  else
-    {
-      if (input_handle->defer_errors)
-        {
-          fastx_set_deferred_error(input_handle, "Out of memory");
-          return;
-        }
-      fatal("Out of memory");
-    }
+  fatal(message.c_str());
 }
 
 

@@ -59,11 +59,8 @@
 */
 
 #include "string_alloc.hpp"
-#include "fatal.hpp"  // fatal
 #include "os/system.hpp"  // xmalloc
-#include <cstdarg>  // std::va_list, va_start, va_end
 #include <cstddef>  // std::size_t
-#include <cstdio>  // std::vsnprintf
 #include <cstring>  // std::strlen, std::strcpy
 
 
@@ -72,30 +69,4 @@ auto xstrdup(char const * src) -> char *
   auto const len = std::strlen(src);
   auto * dest = static_cast<char *>(xmalloc(len + 1));
   return std::strcpy(dest, src);
-}
-
-
-auto xsprintf(char * * ret, char const * format, ...) -> int
-{
-  // refactoring: build string with std::string?
-  // refactoring: C variadic function, replace with template variadic function?
-  // Only used with one or two extra arguments, it could be a simple overload
-  std::va_list args;
-  va_start(args, format);
-  auto len = std::vsnprintf(nullptr, 0, format, args);
-  va_end(args);
-  if (len < 0)
-    {
-      fatal("Error with vsnprintf in xsprintf");
-    }
-  auto * buffer = static_cast<char *>(xmalloc(static_cast<size_t>(len) + 1));
-  if (buffer == nullptr)
-    {
-      fatal("Out of memory");
-    }
-  va_start(args, format);
-  len = std::vsnprintf(buffer, static_cast<size_t>(len) + 1, format, args);
-  va_end(args);
-  *ret = buffer;
-  return len;
 }

@@ -77,6 +77,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::strlen, std::memset, std::strcpy
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <string>  // std::string, std::to_string
 #include <vector>
 
 
@@ -154,11 +155,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
       hp->matches = si->qseqlen;
       hp->mismatches = 0;
 
-      int const ret = xsprintf(&hp->nwalignment, "%dM", si->qseqlen);
-      if ((ret == -1) || (hp->nwalignment == nullptr))
-        {
-          fatal("Out of memory");
-        }
+      hp->nwalignment = xstrdup((std::to_string(si->qseqlen) + "M").c_str());
 
       hp->internal_alignmentlength = si->qseqlen;
       hp->internal_gaps = 0;

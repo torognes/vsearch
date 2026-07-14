@@ -66,7 +66,6 @@
 #include "core/unique.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -76,6 +75,7 @@
 #include <fstream>  // std::ifstream
 #include <istream>  // std::istream
 #include <limits>
+#include <string>  // std::string
 #include <vector>
 
 
@@ -237,11 +237,7 @@ auto udb_read(const char * filename,
       fatal("Unable to open UDB file for reading");
     }
 
-  char * prompt = nullptr;
-  if (xsprintf(&prompt, "Reading UDB file %s", filename) == -1)
-    {
-      fatal("Out of memory");
-    }
+  std::string const prompt = std::string("Reading UDB file ") + filename;
 
 
   /* header */
@@ -253,7 +249,7 @@ auto udb_read(const char * filename,
   auto shortest = std::numeric_limits<unsigned int>::max();
   auto longest = 0U;
   {
-    Progress progress_bar(prompt, filesize, parameters);
+    Progress progress_bar(prompt.c_str(), filesize, parameters);
     pos += largeread(in_stream, buffer.data(), 4 * 50, pos, progress_bar);
 
     if ((buffer[0]  != 0x55444246) or
@@ -463,8 +459,6 @@ auto udb_read(const char * filename,
 
     in_stream.close();
   }
-
-  xfree(prompt);
 
   /* reorganize the sequences in memory and record the database statistics */
 

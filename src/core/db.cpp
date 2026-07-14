@@ -62,13 +62,13 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
 #include <cstring>  // std::memcpy, std::strcmp
 #include <limits>
+#include <string>  // std::string
 
 
 constexpr uint64_t memchunk = 16777216;  // 2^24
@@ -234,11 +234,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 
   int64_t const filesize = static_cast<int64_t>(fastx_get_size(h));
 
-  char * prompt = nullptr;
-  if (xsprintf(&prompt, "Reading file %s", filename) == -1)
-    {
-      fatal("Out of memory");
-    }
+  std::string const prompt = std::string("Reading file ") + filename;
 
   longest = 0;
   shortest = std::numeric_limits<uint64_t>::max();  // refactoring: direct initialization
@@ -255,7 +251,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
   seqindex_.clear();
 
   {
-    Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
+    Progress progress(prompt.c_str(), static_cast<uint64_t>(filesize), parameters);
     while (fastx_next(h,
                      not parameters.opt_notrunclabels,
                       (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))
@@ -294,7 +290,6 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
         progress.update(fastx_get_position(h));
       }
   }
-  xfree(prompt);
   fastx_close(h, parameters);
 
   if (not parameters.opt_quiet)

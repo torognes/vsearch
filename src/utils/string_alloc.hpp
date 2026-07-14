@@ -61,4 +61,3 @@
 #pragma once
 
 auto xstrdup(char const * src) -> char *;
-auto xsprintf(char * * ret, char const * format, ...) -> int;

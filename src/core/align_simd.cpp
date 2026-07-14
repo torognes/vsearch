@@ -71,6 +71,7 @@
 #include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
 #include <iterator>  // std::next
 #include <limits>
+#include <string>  // std::string, std::to_string
 
 
 /*
@@ -1522,11 +1523,7 @@ auto search16(s16info_s * s,
           char * cigar = nullptr;
           if (length > 0)
             {
-              auto const ret = xsprintf(&cigar, "%" PRId64 "I", length);
-              if ((ret < 2) or (cigar == nullptr))
-                {
-                  fatal("Unable to allocate enough memory.");
-                }
+              cigar = xstrdup((std::to_string(length) + "I").c_str());
             }
           else
             {
