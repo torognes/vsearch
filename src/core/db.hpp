@@ -96,7 +96,7 @@ using seqinfo_t = struct seqinfo_s;
    library caller assembles a database programmatically, read() from a
    FASTA/FASTQ file, or udb_read() straight from a UDB file. Each command (and
    each library caller) owns its own instance and threads a reference through
-   the code. Remaining polish is tracked in TBD_20260713_Database_polish.md. */
+   the code. */
 struct Database
 {
 private:
