@@ -206,41 +206,53 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   while (*source != '\0')
     {
       auto const current_char = static_cast<unsigned char>(*source);
+      auto const action = map_action(*source);
 
-      switch (map_action(*source))
+      /* Fast path: nucleotides dominate the input, so test the common
+         'accept' action with a single, well-predicted branch. Handling it
+         inside the switch let the compiler lower the switch to a jump table
+         whose per-character indirect branch mispredicts on every byte. */
+      if (action == Action::accept)
         {
-        case Action::warn:
-          /* stripped */
-          ++input_handle->stripped_all;
-          ++input_handle->stripped[current_char];
-          break;
-
-        case Action::accept:
           /* legal character */
           *dest = static_cast<char>(char_mapping[current_char]);
           dest = std::next(dest);
-          break;
+        }
+      else
+        {
+          switch (action)
+            {
+            case Action::warn:
+              /* stripped */
+              ++input_handle->stripped_all;
+              ++input_handle->stripped[current_char];
+              break;
 
-        case Action::reject:
-          /* fatal character */
-          report_illegal_symbol_and_exit(input_handle, current_char, input_handle->lineno);
-          if (input_handle->error) { return; }
-          break;
+            case Action::reject:
+              /* fatal character */
+              report_illegal_symbol_and_exit(input_handle, current_char, input_handle->lineno);
+              if (input_handle->error) { return; }
+              break;
 
-        case Action::show:
-          /* fatal unprintable character */
-          report_unprintable_symbol_and_exit(input_handle, current_char, input_handle->lineno);
-          if (input_handle->error) { return; }
-          break;
+            case Action::show:
+              /* fatal unprintable character */
+              report_unprintable_symbol_and_exit(input_handle, current_char, input_handle->lineno);
+              if (input_handle->error) { return; }
+              break;
 
-        case Action::skip:
-          /* silently stripped chars (whitespace) */
-          break;
+            case Action::skip:
+              /* silently stripped chars (whitespace) */
+              break;
 
-        case Action::count:
-          /* newline (silently stripped) */
-          ++input_handle->lineno;
-          break;
+            case Action::count:
+              /* newline (silently stripped) */
+              ++input_handle->lineno;
+              break;
+
+            case Action::accept:
+              /* handled above on the fast path */
+              break;
+            }
         }
       source = std::next(source);
     }
