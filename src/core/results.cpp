@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/attributes.hpp"
 #include "core/db.hpp"  // Database
 #include "core/fasta.hpp"  // fasta_print_general

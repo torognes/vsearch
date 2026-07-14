@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"

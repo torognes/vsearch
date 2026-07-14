@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_handle

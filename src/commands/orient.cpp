@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"

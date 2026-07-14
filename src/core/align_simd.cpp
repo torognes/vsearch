@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "arch/intrinsics.hpp"
 #include "core/align_simd.hpp"
 #include "core/db.hpp"

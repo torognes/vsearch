@@ -60,7 +60,7 @@
 
 #include "commands/chimeras_denovo.hpp"
 #include "core/chimera_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto chimeras_denovo(struct Parameters const & parameters) -> void

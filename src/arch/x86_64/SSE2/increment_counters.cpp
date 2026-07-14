@@ -60,7 +60,7 @@
 
 #include "arch/increment_counters.hpp"
 #include "arch/intrinsics.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include <cstdint>  // int32_t
 
 

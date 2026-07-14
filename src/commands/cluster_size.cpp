@@ -60,7 +60,7 @@
 
 #include "commands/cluster_size.hpp"
 #include "core/cluster_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto cluster_size(struct Parameters const & parameters) -> void

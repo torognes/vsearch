@@ -194,7 +194,7 @@ utils/userfields.hpp \
 utils/view.hpp \
 utils/worker_loop.hpp \
 commands/version.hpp \
-vsearch.h \
+vsearch.hpp \
 vsearch_api.h
 
 if TARGET_X86_64

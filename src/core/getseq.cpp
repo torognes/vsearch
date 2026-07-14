@@ -62,7 +62,7 @@
    https://drive5.com/usearch/manual/cmd_fastx_getseqs.html                  */
 
 #include "core/getseq.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"

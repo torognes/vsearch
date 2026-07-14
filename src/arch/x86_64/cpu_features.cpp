@@ -64,7 +64,7 @@
 // needed here -- the Makefile owns the architecture selection.
 
 #include "cpu_features.hpp"
-#include "vsearch.h"  // struct Parameters
+#include "vsearch.hpp"  // struct Parameters
 #include "utils/fatal.hpp"  // fatal
 #include <cstdint>  // int64_t
 #include <cpuid.h>  // __cpuid_count, bit_* feature masks

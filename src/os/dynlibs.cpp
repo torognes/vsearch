@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "os/dynlibs.hpp"
 #include "utils/dynlib_loader.hpp"
 #include "utils/fatal.hpp"

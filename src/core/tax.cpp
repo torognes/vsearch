@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/db.hpp"  // Database
 #include "utils/taxonomic_fields.h"
 #include <algorithm>  // std::find

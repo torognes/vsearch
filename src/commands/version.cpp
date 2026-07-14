@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "commands/version.hpp"
 #include "os/dynlibs.hpp"
 #include <cstdio>  // std::printf, std::fprintf

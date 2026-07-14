@@ -60,7 +60,7 @@
 
 #include "commands/derep_id.hpp"
 #include "core/derep_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto derep_id(struct Parameters const & parameters) -> void

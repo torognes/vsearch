@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "commands/fastq_mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"

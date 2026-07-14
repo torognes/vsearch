@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "vendored/city.h"
 #include "core/mask.hpp"
 #include "os/system.hpp"  // xmalloc, xrealloc, xfree

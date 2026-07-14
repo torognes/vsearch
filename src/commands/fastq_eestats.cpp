@@ -62,7 +62,7 @@
 #include "core/eestats.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

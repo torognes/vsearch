@@ -59,7 +59,7 @@
 */
 
 #include "userfields.hpp"
-#include "vsearch.h"  // struct Parameters
+#include "vsearch.hpp"  // struct Parameters
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::strcmp, std::strchr, std::strlen
 #include <vector>  // std::vector::clear, push_back

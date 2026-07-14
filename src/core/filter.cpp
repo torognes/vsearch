@@ -59,7 +59,7 @@
 */
 
 #include "core/filter.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"

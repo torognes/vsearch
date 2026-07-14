@@ -176,14 +176,15 @@ libcpu_a_LIBADD =
 am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/align_simd.hpp commands/allpairs_global.hpp \
 	arch/x86_64/cpu_features.hpp core/attributes.hpp \
-	core/bitmap.hpp core/chimera.hpp core/chimera_internal.hpp \
-	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
-	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
-	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp \
-	arch/increment_counters.hpp commands/cut.hpp core/db.hpp \
+	core/bitmap.hpp core/buffer_headroom.hpp core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	arch/intrinsics.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
@@ -217,13 +218,14 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h \
+	commands/version.hpp vsearch.hpp vsearch_api.h \
 	arch/ppc64le/increment_counters.cpp \
 	arch/aarch64/increment_counters.cpp
 am__objects_1 =
@@ -239,14 +241,15 @@ libcpu_pic_a_LIBADD =
 am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/align_simd.hpp commands/allpairs_global.hpp \
 	arch/x86_64/cpu_features.hpp core/attributes.hpp \
-	core/bitmap.hpp core/chimera.hpp core/chimera_internal.hpp \
-	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
-	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
-	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
-	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
-	commands/cluster_size.hpp commands/cluster_unoise.hpp \
-	arch/increment_counters.hpp commands/cut.hpp core/db.hpp \
+	core/bitmap.hpp core/buffer_headroom.hpp core/chimera.hpp \
+	core/chimera_internal.hpp commands/uchime_denovo.hpp \
+	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
+	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
+	vendored/city.h cli.h core/cluster.hpp \
+	core/cluster_internal.hpp commands/cluster_fast.hpp \
+	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
+	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	arch/intrinsics.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp commands/derep_fulllength.hpp \
 	commands/derep_id.hpp commands/fastx_uniques.hpp \
@@ -280,13 +283,14 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h \
+	commands/version.hpp vsearch.hpp vsearch_api.h \
 	arch/ppc64le/increment_counters.cpp \
 	arch/aarch64/increment_counters.cpp
 @TARGET_AARCH64_FALSE@@TARGET_PPC_FALSE@@TARGET_X86_64_FALSE@am_libcpu_pic_a_OBJECTS = arch/simde/libcpu_pic_a-increment_counters.$(OBJEXT) \
@@ -301,14 +305,15 @@ libcpu_sse2_a_LIBADD =
 am__libcpu_sse2_a_SOURCES_DIST =  \
 	arch/x86_64/SSE2/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
+	core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
@@ -343,13 +348,14 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h
+	commands/version.hpp vsearch.hpp vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_sse2_a_OBJECTS = $(am_libcpu_sse2_a_OBJECTS)
@@ -358,14 +364,15 @@ libcpu_sse2_pic_a_LIBADD =
 am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	arch/x86_64/SSE2/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
+	core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
@@ -400,13 +407,14 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h
+	commands/version.hpp vsearch.hpp vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_sse2_pic_a_OBJECTS = arch/x86_64/SSE2/libcpu_sse2_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_sse2_pic_a_OBJECTS = $(am_libcpu_sse2_pic_a_OBJECTS)
@@ -415,14 +423,15 @@ libcpu_ssse3_a_LIBADD =
 am__libcpu_ssse3_a_SOURCES_DIST =  \
 	arch/x86_64/SSSE3/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
+	core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
@@ -457,13 +466,14 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h
+	commands/version.hpp vsearch.hpp vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_ssse3_a_OBJECTS = $(am_libcpu_ssse3_a_OBJECTS)
@@ -472,14 +482,15 @@ libcpu_ssse3_pic_a_LIBADD =
 am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	arch/x86_64/SSSE3/increment_counters.cpp core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
+	core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
@@ -514,13 +525,14 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h
+	commands/version.hpp vsearch.hpp vsearch_api.h
 @TARGET_X86_64_TRUE@am_libcpu_ssse3_pic_a_OBJECTS = arch/x86_64/SSSE3/libcpu_ssse3_pic_a-increment_counters.$(OBJEXT) \
 @TARGET_X86_64_TRUE@	$(am__objects_1)
 libcpu_ssse3_pic_a_OBJECTS = $(am_libcpu_ssse3_pic_a_OBJECTS)
@@ -528,14 +540,15 @@ libvsearch_core_a_AR = $(AR) $(ARFLAGS)
 libvsearch_core_a_LIBADD =
 am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
+	core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
@@ -570,13 +583,14 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h \
+	commands/version.hpp vsearch.hpp vsearch_api.h \
 	core/align_simd.cpp commands/allpairs_global.cpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
 	commands/uchime_denovo.cpp commands/uchime2_denovo.cpp \
@@ -741,14 +755,15 @@ am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
 libvsearch_core_a_OBJECTS = $(am_libvsearch_core_a_OBJECTS)
 am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
-	core/attributes.hpp core/bitmap.hpp core/chimera.hpp \
-	core/chimera_internal.hpp commands/uchime_denovo.hpp \
-	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
-	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
-	core/cluster_internal.hpp commands/cluster_fast.hpp \
-	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
-	commands/cluster_unoise.hpp arch/increment_counters.hpp \
+	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
+	core/chimera.hpp core/chimera_internal.hpp \
+	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
+	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
+	commands/chimeras_denovo.hpp vendored/city.h cli.h \
+	core/cluster.hpp core/cluster_internal.hpp \
+	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
+	commands/cluster_size.hpp commands/cluster_unoise.hpp \
+	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
@@ -783,13 +798,14 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/dynlib_loader.hpp utils/fatal.hpp \
 	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
 	utils/logfile.hpp utils/maps.hpp utils/number_of_strands.hpp \
-	utils/open_file.hpp utils/os_byteswap.hpp utils/progress.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_alloc.hpp utils/string_normalize.hpp \
 	utils/taxonomic_fields.h utils/threads.hpp utils/timestamp.hpp \
 	utils/userfields.hpp utils/view.hpp utils/worker_loop.hpp \
-	commands/version.hpp vsearch.h vsearch_api.h \
+	commands/version.hpp vsearch.hpp vsearch_api.h \
 	core/align_simd.cpp commands/allpairs_global.cpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
 	commands/uchime_denovo.cpp commands/uchime2_denovo.cpp \
@@ -1326,6 +1342,7 @@ commands/allpairs_global.hpp \
 arch/x86_64/cpu_features.hpp \
 core/attributes.hpp \
 core/bitmap.hpp \
+core/buffer_headroom.hpp \
 core/chimera.hpp \
 core/chimera_internal.hpp \
 commands/uchime_denovo.hpp \
@@ -1342,6 +1359,7 @@ commands/cluster_smallmem.hpp \
 commands/cluster_size.hpp \
 commands/cluster_unoise.hpp \
 arch/increment_counters.hpp \
+arch/intrinsics.hpp \
 commands/cut.hpp \
 core/db.hpp \
 core/dbhash.hpp \
@@ -1424,6 +1442,7 @@ utils/maps.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
 utils/os_byteswap.hpp \
+utils/prog_id.hpp \
 utils/progress.hpp \
 utils/random.hpp \
 utils/reverse_complement.hpp \
@@ -1439,7 +1458,7 @@ utils/userfields.hpp \
 utils/view.hpp \
 utils/worker_loop.hpp \
 commands/version.hpp \
-vsearch.h \
+vsearch.hpp \
 vsearch_api.h
 
 

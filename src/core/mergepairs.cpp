@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
 #include "core/kmerhash.hpp"

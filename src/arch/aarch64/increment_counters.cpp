@@ -60,7 +60,7 @@
 
 #include "arch/increment_counters.hpp"
 #include "arch/intrinsics.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 // aarch64 backend: NEON intrinsics (arm_neon.h, via arch/intrinsics.hpp). Single

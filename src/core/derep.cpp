@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/derep.hpp"
 #include "core/derep_internal.hpp"

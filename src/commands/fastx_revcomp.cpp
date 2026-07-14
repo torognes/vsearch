@@ -59,7 +59,7 @@
 */
 
 #include "commands/fastx_revcomp.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"

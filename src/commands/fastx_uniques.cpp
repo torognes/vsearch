@@ -60,7 +60,7 @@
 
 #include "commands/fastx_uniques.hpp"
 #include "core/derep_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto fastx_uniques(struct Parameters const & parameters) -> void

@@ -59,7 +59,7 @@
 */
 
 #include "logfile.hpp"
-#include "vsearch.h"  // struct Parameters
+#include "vsearch.hpp"  // struct Parameters
 #include "open_file.hpp"  // open_optional_output_file, OutputOption
 #include "os/system.hpp"  // system_get_memused
 #include "timestamp.hpp"  // iso8601_local_timestamp

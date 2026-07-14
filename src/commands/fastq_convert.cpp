@@ -59,7 +59,7 @@
 */
 
 #include "commands/fastq_convert.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/fastq.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"

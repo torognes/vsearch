@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"  // struct Parameters
+#include "vsearch.hpp"  // struct Parameters
 
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64

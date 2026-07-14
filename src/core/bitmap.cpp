@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/bitmap.hpp"
 #include "os/system.hpp"  // xmalloc, xfree
 #include <cstring> // std::memset

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "vsearch_api.h"
 #include "commands/allpairs_global.hpp"
 #include "core/chimera.hpp"  // maxparents

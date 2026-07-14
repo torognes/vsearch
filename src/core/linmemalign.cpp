@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/linmemalign.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"

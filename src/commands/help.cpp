@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "commands/help.hpp"
 #include "commands/version.hpp"  // show_publication
 #include <array>

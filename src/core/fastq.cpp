@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/attributes.hpp"
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"

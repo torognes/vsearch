@@ -60,7 +60,7 @@
 
 #include "commands/uchime_ref.hpp"
 #include "core/chimera_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto uchime_ref(struct Parameters const & parameters) -> void

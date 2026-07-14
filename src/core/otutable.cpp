@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/timestamp.hpp"  // iso8601_local_timestamp

@@ -59,7 +59,7 @@
 */
 
 #include "core/eestats.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include <cinttypes>  // macro PRId64
 #include <cmath>  // std::pow
 #include <cstdio>  // std::fprintf

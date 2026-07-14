@@ -60,7 +60,7 @@
 
 #include "commands/derep_fulllength.hpp"
 #include "core/derep_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto derep_fulllength(struct Parameters const & parameters) -> void

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/buffer_headroom.hpp"
 #include "utils/progress.hpp"
 #include "core/attributes.hpp"

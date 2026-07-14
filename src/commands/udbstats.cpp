@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "commands/udbstats.hpp"
 #include "core/db.hpp"
 #include "core/udb.hpp"

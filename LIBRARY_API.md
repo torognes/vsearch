@@ -123,7 +123,7 @@ Add `src/` to your include path. The single entry point header is:
 #include "vsearch_api.h"
 ```
 
-This transitively includes `vsearch.h` (all global declarations) and
+This transitively includes `vsearch.hpp` (all global declarations) and
 the module headers for each API subsystem.
 
 ### C++ standard
@@ -799,7 +799,7 @@ argument is parsed; it is not a valid masking mode.)
 
 All configuration is done by setting `opt_*` fields on a `Parameters` struct
 before `vsearch_session_begin()`. The full set of ~200 options is defined in
-the `Parameters` struct in `vsearch.h`. The tables below list them by option
+the `Parameters` struct in `vsearch.hpp`. The tables below list them by option
 name (accessed as `parameters.opt_name`), grouped by subsystem.
 
 ### Alignment scoring

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/fastq.hpp"
 #include "utils/progress.hpp"
 #include "utils/maps.hpp"
@@ -84,7 +84,7 @@ namespace {
 
   // Solexa / Illumina 1.3+ quality offset (phred+64), the alternative to the
   // default phred+33 (Parameters::default_ascii_offset). Was a namespace-scope
-  // constant in vsearch.h, used only in this translation unit.
+  // constant in vsearch.hpp, used only in this translation unit.
   constexpr char alternative_ascii_offset = 64;
 
   struct statistics {

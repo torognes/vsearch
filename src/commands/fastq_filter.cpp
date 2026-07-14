@@ -60,7 +60,7 @@
 
 #include "commands/fastq_filter.hpp"
 #include "core/filter.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto fastq_filter(struct Parameters const & parameters) -> void

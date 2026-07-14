@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/buffer_headroom.hpp"
 #include "core/db.hpp"  // Database
 #include "core/search.hpp"

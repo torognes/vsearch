@@ -77,7 +77,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fastx.hpp"
 #include "core/searchcore.hpp"

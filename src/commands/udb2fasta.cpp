@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "commands/udb2fasta.hpp"
 #include "core/db.hpp"
 #include "core/fasta.hpp"

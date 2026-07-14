@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::swap
 #include <array>

@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "arch/increment_counters.hpp"  // increment_counters_from_bitmap*
 #include "core/align_simd.hpp"
 #include "core/db.hpp"  // Database

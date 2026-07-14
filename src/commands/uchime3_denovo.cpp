@@ -60,7 +60,7 @@
 
 #include "commands/uchime3_denovo.hpp"
 #include "core/chimera_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto uchime3_denovo(struct Parameters const & parameters) -> void

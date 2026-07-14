@@ -59,7 +59,7 @@
 */
 
 #include "cli.h"
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "vsearch_api.h"
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom

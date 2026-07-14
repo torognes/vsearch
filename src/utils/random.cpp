@@ -59,7 +59,7 @@
 */
 
 #include "random.hpp"
-#include "vsearch.h"  // struct Parameters (opt_randseed)
+#include "vsearch.hpp"  // struct Parameters (opt_randseed)
 #include <cstdint>  // uint64_t
 #include <random>  // std::random_device
 

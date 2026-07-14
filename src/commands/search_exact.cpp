@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/dbhash.hpp"
 #include "core/fasta.hpp"

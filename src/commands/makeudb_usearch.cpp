@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "commands/makeudb_usearch.hpp"
 #include "core/db.hpp"
 #include "core/mask.hpp"

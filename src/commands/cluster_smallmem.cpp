@@ -60,7 +60,7 @@
 
 #include "commands/cluster_smallmem.hpp"
 #include "core/cluster_internal.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto cluster_smallmem(struct Parameters const & parameters) -> void

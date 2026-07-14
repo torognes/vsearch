@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.h"
+#include "vsearch.hpp"
 #include "core/bitmap.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"

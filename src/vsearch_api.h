@@ -148,7 +148,7 @@
 
 /* Aggregate header — includes config.h, system headers, and all
    module headers, and defines the Parameters configuration struct. */
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 /* Module headers for API functions not declared in vsearch.h.
    searchcore.h is intentionally NOT included here — it defines

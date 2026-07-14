@@ -60,7 +60,7 @@
 
 #include "commands/fastx_getsubseq.hpp"
 #include "core/getseq.hpp"
-#include "vsearch.h"
+#include "vsearch.hpp"
 
 
 auto fastx_getsubseq(struct Parameters const & parameters) -> void
