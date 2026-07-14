@@ -140,7 +140,7 @@ struct sff_read_stats {
 };
 
 
-auto round_up_to_8(uint16_t n_bytes) -> uint16_t {
+auto round_up_to_8(uint16_t const n_bytes) -> uint16_t {
   // add stub to guarantee overflow into the next bucket, then zero
   // out the remainder bits
   static constexpr uint16_t stub = 8 - 1;     // ... 00000111
@@ -156,7 +156,7 @@ auto round_up_to_8(uint16_t n_bytes) -> uint16_t {
 }
 
 
-auto fskip(std::FILE * file_handle, uint64_t length) -> uint64_t
+auto fskip(std::FILE * file_handle, uint64_t const length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
   /* used instead of seeking in order to work with pipes   */
@@ -328,7 +328,7 @@ auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void 
 }
 
 
-auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char const * const message) -> void {
+auto skip_sff_section(std::FILE * sff_handle, uint64_t const n_bytes_to_skip, char const * const message) -> void {
   auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
   if (n_bytes_skipped < n_bytes_to_skip) {
     fatal("Invalid SFF file. Unable to read %s. File may be truncated.", message);
@@ -336,7 +336,7 @@ auto skip_sff_section(std::FILE * sff_handle, uint64_t n_bytes_to_skip, char con
 }
 
 
-auto read_a_string(std::FILE * sff_handle, std::size_t n_bytes_to_read, char const * const message) -> std::vector<char> {
+auto read_a_string(std::FILE * sff_handle, std::size_t const n_bytes_to_read, char const * const message) -> std::vector<char> {
   assert(sff_handle != nullptr);
   assert(message != nullptr);
   /* Validation, not an invariant: n_bytes_to_read is file-derived; SIZE_MAX

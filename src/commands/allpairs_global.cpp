@@ -145,10 +145,10 @@ auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 
 
 static auto allpairs_output_results(struct allpairs_state_s & state,
-                             int hit_count,
+                             int const hit_count,
                              struct hit * hits,
                              char const * query_head,
-                             int qseqlen,
+                             int const qseqlen,
                              char const * qsequence,
                              char const * qsequence_rc) -> void
 {
@@ -337,7 +337,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
 }
 
 
-static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> void
+static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const t) -> void
 {
   (void) t;
 

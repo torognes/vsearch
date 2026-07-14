@@ -79,7 +79,7 @@ constexpr auto blocksize = uint64_t{4096UL * 4096UL};
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto largewrite(std::ostream & output, void const * buf, uint64_t nbyte, uint64_t offset, Progress & progress_bar) -> uint64_t
+  auto largewrite(std::ostream & output, void const * buf, uint64_t const nbyte, uint64_t const offset, Progress & progress_bar) -> uint64_t
   {
     /* call write multiple times and update progress */
 

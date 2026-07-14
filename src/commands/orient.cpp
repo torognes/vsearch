@@ -87,7 +87,7 @@
 // 0b011110 -> 0b010010
 // 0b101010 -> 0b010101
 // 0b010101 -> 0b101010
-auto rc_kmer(unsigned int kmer, unsigned int wordlength) -> unsigned int
+auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned int
 {
   /* reverse complement a kmer where k = wordlength */
 

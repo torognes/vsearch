@@ -150,10 +150,10 @@ struct search_cli_state_s
 static auto search_output_results(struct search_cli_state_s & state,
                            std::vector<struct hit> const & hits,
                            char const * query_head,
-                           int qseqlen,
+                           int const qseqlen,
                            char const * qsequence,
                            char const * qsequence_rc,
-                           int64_t qsize) -> void
+                           int64_t const qsize) -> void
 {
   std::lock_guard<std::mutex> const lock(state.mutex_output);
 
@@ -373,7 +373,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 }
 
 
-static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
+static auto search_query(struct search_cli_state_s & state, uint64_t const t) -> int
 {
   struct searchinfo_s * const si_plus = state.si_plus;
   struct searchinfo_s * const si_minus = state.si_minus;
@@ -421,7 +421,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t t) -> int
 }
 
 
-static auto search_thread_run(struct search_cli_state_s & state, uint64_t t) -> void
+static auto search_thread_run(struct search_cli_state_s & state, uint64_t const t) -> void
 {
   auto const query_fastx_h = state.query_fastx_h;
   struct searchinfo_s * const si_plus = state.si_plus;

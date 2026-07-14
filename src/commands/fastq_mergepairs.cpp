@@ -597,7 +597,7 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
 
 
 auto pair_worker(struct mergepairs_cli_state_s & state,
-                 uint64_t t,
+                 uint64_t const t,
                  std::mutex & mutex_chunks,
                  std::condition_variable & cond_chunks) -> void
 {

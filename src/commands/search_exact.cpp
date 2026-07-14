@@ -133,7 +133,7 @@ struct search_exact_state_s
 };
 
 
-auto add_hit(struct searchinfo_s * si, uint64_t seqno) -> void
+auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 {
   if (search_acceptable_unaligned(*si, static_cast<int>(seqno)))
     {
@@ -211,10 +211,10 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 auto search_exact_output_results(struct search_exact_state_s & state,
                                  std::vector<struct hit> const & hits,
                                  char const * query_head,
-                                 int qseqlen,
+                                 int const qseqlen,
                                  char * qsequence,
                                  char * qsequence_rc,
-                                 int64_t qsize) -> void
+                                 int64_t const qsize) -> void
 {
   struct Parameters const & parameters = state.parameters;
   std::lock_guard<std::mutex> const lock(state.mutex_output);
@@ -424,7 +424,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     }
 }
 
-auto search_exact_query(uint64_t t, struct search_exact_state_s & state) -> int
+auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -> int
 {
   struct Parameters const & parameters = state.parameters;
   for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
@@ -469,7 +469,7 @@ auto search_exact_query(uint64_t t, struct search_exact_state_s & state) -> int
   return static_cast<int>(hits.size());
 }
 
-auto search_exact_thread_run(uint64_t t, struct search_exact_state_s & state) -> void
+auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & state) -> void
 {
   struct Parameters const & parameters = state.parameters;
   int64_t qsize = 0;
@@ -552,7 +552,7 @@ auto search_exact_thread_run(uint64_t t, struct search_exact_state_s & state) ->
   run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
 }
 
-auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const & parameters, int tophits) -> void
+auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const & parameters, int const tophits) -> void
 {
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
