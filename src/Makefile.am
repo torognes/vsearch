@@ -180,6 +180,7 @@ utils/open_file.hpp \
 utils/os_byteswap.hpp \
 utils/prog_id.hpp \
 utils/progress.hpp \
+utils/quality_encoding.hpp \
 utils/random.hpp \
 utils/reverse_complement.hpp \
 utils/seqcmp.hpp \

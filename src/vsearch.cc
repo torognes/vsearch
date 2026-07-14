@@ -120,6 +120,7 @@
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
+#include "utils/quality_encoding.hpp"  // sanger_ascii_offset
 #include "utils/random.hpp"
 #include <algorithm>  // std::count, std::any_of
 #include <array>
@@ -210,10 +211,7 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
       parameters.opt_weak_id = parameters.opt_id;
     }
 
-  if ((parameters.opt_threads < 0) or (parameters.opt_threads > Parameters::n_threads_max))
-    {
-      fatal("The argument to --threads must be in the range 0 (default) to 1024");
-    }
+  validate_thread_count(parameters.opt_threads);
   if (parameters.opt_threads == 0)
     {
       parameters.opt_threads = system_get_cores();
@@ -479,7 +477,7 @@ auto cmd_fastq_join(struct Parameters & parameters) -> void
     fatal("Option --join_padgapq contains non-ASCII characters");
   }
   if ((not parameters.opt_join_padgapq_set_by_user) and
-      (parameters.opt_fastq_ascii != Parameters::default_ascii_offset)) {
+      (parameters.opt_fastq_ascii != sanger_ascii_offset)) {
     std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
     parameters.opt_join_padgapq = alternative_quality_padding;
   }

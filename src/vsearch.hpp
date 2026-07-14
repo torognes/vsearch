@@ -77,6 +77,7 @@
 #include <limits>
 
 #include "core/mask.hpp"  // Masking
+#include "utils/quality_encoding.hpp"  // sanger_ascii_offset (opt_fastq_ascii default)
 
 // C++20 refactoring: constexpr
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
@@ -96,11 +97,6 @@ private:
   static constexpr int64_t default_max_quality = 41;
 
 public:
-  /* Defaults also read outside the struct (the --threads range check and the
-     FASTQ offset detection), so these stay public. */
-  static constexpr int64_t default_ascii_offset = 33;
-  static constexpr int64_t n_threads_max = 1024;
-
   std::string prog_header {};
   std::string command_line {};
 
@@ -199,8 +195,8 @@ public:
   double opt_min_unmasked_pct = 0;
   double opt_sample_pct = 0;
   int64_t opt_fasta_width = default_fasta_width;
-  int64_t opt_fastq_ascii = default_ascii_offset;
-  int64_t opt_fastq_asciiout = default_ascii_offset;
+  int64_t opt_fastq_ascii = sanger_ascii_offset;
+  int64_t opt_fastq_asciiout = sanger_ascii_offset;
   int64_t opt_fastq_qmax = default_max_quality;
   int64_t opt_fastq_qmaxout = default_max_quality;
   int64_t opt_fastq_qmin = 0;

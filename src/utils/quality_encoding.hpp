@@ -2,7 +2,7 @@
 
   VSEARCH: a versatile open source tool for metagenomics
 
-  Copyright (C) 2014-2025, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
+  Copyright (C) 2014-2026, Torbjorn Rognes, Frederic Mahe and Tomas Flouri
   All rights reserved.
 
   Contact: Torbjorn Rognes <torognes@ifi.uio.no>,
@@ -58,24 +58,11 @@
 
 */
 
-// Command-line interface: parse and validate the user-supplied options,
-// populate the global opt_* variables and the Parameters struct, and report
-// usage errors. Extracted from vsearch.cc to keep the argument-parsing
-// machinery separate from the command dispatch and the main program.
-
 #pragma once
 
-#include <cstdint>  // int64_t
+/* FASTQ quality-score ASCII offsets: the byte value subtracted from a
+   quality character to recover its Phred score. Two encodings are in use;
+   sanger_ascii_offset is the default (and the default for --fastq_ascii). */
 
-
-// Parse the command line, set all opt_* globals and the matching fields in
-// parameters, and validate the requested command and its options.
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void;
-
-// Upper bound for the --threads option. Only validate_thread_count() below
-// consumes it; kept here (rather than in Parameters) so the option's range
-// limit lives with the CLI validation instead of the configuration struct.
-constexpr int64_t n_threads_max = 1024;
-
-// Fatal unless the requested thread count is within [0, n_threads_max].
-auto validate_thread_count(int64_t threads) -> void;
+constexpr int sanger_ascii_offset = 33;  // Phred+33 (Sanger / Illumina 1.8+)
+constexpr int solexa_ascii_offset = 64;  // Phred+64 (Solexa / Illumina 1.3+)

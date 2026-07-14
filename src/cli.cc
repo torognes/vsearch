@@ -88,6 +88,18 @@
 #include <unistd.h>  // isatty, fileno
 
 
+auto validate_thread_count(int64_t const threads) -> void
+{
+  if ((threads < 0) or (threads > n_threads_max))
+    {
+      std::string const message =
+        "The argument to --threads must be in the range 0 (default) to "
+        + std::to_string(n_threads_max);
+      fatal(message.c_str());
+    }
+}
+
+
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
@@ -4121,10 +4133,7 @@ namespace {
   {
     /* multi-threaded commands */
 
-    if ((parameters.opt_threads < 0) or (parameters.opt_threads > Parameters::n_threads_max))
-      {
-        fatal("The argument to --threads must be in the range 0 (default) to 1024");
-      }
+    validate_thread_count(parameters.opt_threads);
 
     if ((parameters.opt_allpairs_global != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or
         (parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_unoise != nullptr) or (parameters.opt_fastq_mergepairs != nullptr) or

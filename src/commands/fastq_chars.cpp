@@ -62,6 +62,7 @@
 #include "core/fastq.hpp"
 #include "utils/progress.hpp"
 #include "utils/maps.hpp"
+#include "utils/quality_encoding.hpp"  // sanger_ascii_offset, solexa_ascii_offset
 #include "utils/span.hpp"
 #include <algorithm>  // std::find_if
 #include <cassert>
@@ -81,11 +82,6 @@ constexpr unsigned int n_characters = 256;
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-
-  // Solexa / Illumina 1.3+ quality offset (phred+64), the alternative to the
-  // default phred+33 (Parameters::default_ascii_offset). Was a namespace-scope
-  // constant in vsearch.hpp, used only in this translation unit.
-  constexpr char alternative_ascii_offset = 64;
 
   struct statistics {
     std::vector<uint64_t> sequence_chars;
@@ -109,10 +105,10 @@ namespace {
     static constexpr auto upperbound = 'K';  // char 75 (+1 after offset +33 normal range)
 
     if ((stats.qmin < lowerbound) or (stats.qmax < upperbound)) {
-      stats.fastq_ascii = static_cast<char>(Parameters::default_ascii_offset);  // +33
+      stats.fastq_ascii = static_cast<char>(sanger_ascii_offset);  // +33
     }
     else {
-      stats.fastq_ascii = alternative_ascii_offset;  // +64
+      stats.fastq_ascii = static_cast<char>(solexa_ascii_offset);  // +64
     }
     stats.fastq_qmax = static_cast<char>(stats.qmax - stats.fastq_ascii);
     stats.fastq_qmin = static_cast<char>(stats.qmin - stats.fastq_ascii);
@@ -188,9 +184,9 @@ namespace {
     std::fprintf(output_stream, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
                  stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
 
-    if (stats.fastq_ascii == alternative_ascii_offset)
+    if (stats.fastq_ascii == solexa_ascii_offset)
       {
-        if (stats.qmin < alternative_ascii_offset)
+        if (stats.qmin < solexa_ascii_offset)
           {
             std::fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
           }
