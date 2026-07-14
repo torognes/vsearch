@@ -78,6 +78,7 @@
 */
 
 #include "vsearch.h"
+#include "core/buffer_headroom.hpp"
 #include "utils/progress.hpp"
 #include "core/bitmap.hpp"
 #include "core/dbindex.hpp"

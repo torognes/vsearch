@@ -78,6 +78,7 @@ commands/allpairs_global.hpp \
 arch/x86_64/cpu_features.hpp \
 core/attributes.hpp \
 core/bitmap.hpp \
+core/buffer_headroom.hpp \
 core/chimera.hpp \
 core/chimera_internal.hpp \
 commands/uchime_denovo.hpp \

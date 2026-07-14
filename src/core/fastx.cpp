@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "os/dynlibs.hpp"
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // log_file::handle

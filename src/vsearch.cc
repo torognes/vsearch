@@ -187,7 +187,7 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
 {
   if (parameters.opt_maxhits == 0)
     {
-      parameters.opt_maxhits = int64_max;
+      parameters.opt_maxhits = Parameters::int64_max;
     }
 
   if (parameters.opt_minwordmatches < 0)
@@ -208,7 +208,7 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
       parameters.opt_weak_id = parameters.opt_id;
     }
 
-  if ((parameters.opt_threads < 0) or (parameters.opt_threads > n_threads_max))
+  if ((parameters.opt_threads < 0) or (parameters.opt_threads > Parameters::n_threads_max))
     {
       fatal("The argument to --threads must be in the range 0 (default) to 1024");
     }
@@ -477,7 +477,7 @@ auto cmd_fastq_join(struct Parameters & parameters) -> void
     fatal("Option --join_padgapq contains non-ASCII characters");
   }
   if ((not parameters.opt_join_padgapq_set_by_user) and
-      (parameters.opt_fastq_ascii != default_ascii_offset)) {
+      (parameters.opt_fastq_ascii != Parameters::default_ascii_offset)) {
     std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
     parameters.opt_join_padgapq = alternative_quality_padding;
   }

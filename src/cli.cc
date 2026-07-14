@@ -62,6 +62,7 @@
 #include "vsearch.h"
 #include "vsearch_api.h"
 #include "os/system.hpp"  // system_get_cores
+#include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/chimera.hpp"  // maxparents
 #include "core/mask.hpp"  // Masking
 #include "utils/userfields.hpp"  // parse_userfields_arg
@@ -4116,7 +4117,7 @@ namespace {
   {
     /* multi-threaded commands */
 
-    if ((parameters.opt_threads < 0) or (parameters.opt_threads > n_threads_max))
+    if ((parameters.opt_threads < 0) or (parameters.opt_threads > Parameters::n_threads_max))
       {
         fatal("The argument to --threads must be in the range 0 (default) to 1024");
       }

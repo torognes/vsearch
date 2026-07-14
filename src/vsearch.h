@@ -196,25 +196,6 @@
 #include "core/fastq.hpp"
 #include "core/dbhash.hpp"
 
-/* Over-allocation headroom (bytes) for the per-query header and sequence
-   buffers in the search engine: populate_si() grows them to
-   length + buffer_headroom (see searchinfo_s::query_head_alloc / seq_alloc),
-   so a query slightly longer than the previous one does not trigger another
-   realloc. It also fixes the sequence/header length ceiling: --maxseqlength is
-   capped at INT_MAX - buffer_headroom (cli.cc) and fastx_filter_header rejects
-   longer headers, so length + buffer_headroom can never overflow the int size
-   fields. */
-constexpr int buffer_headroom = 2001;
-
-constexpr int64_t default_fasta_width = 80;
-constexpr int64_t default_fastq_tail = 4;
-constexpr int64_t default_maxseqlength = 50000;
-constexpr int64_t n_threads_max = 1024;
-constexpr int64_t default_ascii_offset = 33;
-constexpr char alternative_ascii_offset = 64;
-constexpr auto dbl_max = std::numeric_limits<double>::max();
-constexpr int64_t default_max_quality = 41;
-constexpr auto int64_max = std::numeric_limits<int64_t>::max();
 // C++20 refactoring: constexpr
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
 std::string const default_sequence_padding = "NNNNNNNN";
@@ -222,6 +203,19 @@ std::string const default_sequence_padding = "NNNNNNNN";
 class DynamicLibraries;  // owned by main(), referenced through parameters.dyn_libs
 
 struct Parameters {
+  /* Canonical library defaults for the options below (formerly a block of
+     namespace-scope constants in this header). Kept as static constexpr
+     members so they no longer leak into every translation unit that includes
+     this header, and so the option initializers below can name them directly. */
+  static constexpr int64_t default_fasta_width = 80;
+  static constexpr int64_t default_fastq_tail = 4;
+  static constexpr int64_t default_maxseqlength = 50000;
+  static constexpr int64_t default_ascii_offset = 33;
+  static constexpr int64_t default_max_quality = 41;
+  static constexpr int64_t n_threads_max = 1024;
+  static constexpr auto dbl_max = std::numeric_limits<double>::max();
+  static constexpr auto int64_max = std::numeric_limits<int64_t>::max();
+
   std::string prog_header {};
   std::string command_line {};
 

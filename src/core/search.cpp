@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.h"
+#include "core/buffer_headroom.hpp"
 #include "core/search.hpp"
 #include "core/search_internal.hpp"
 #include "core/searchcore.hpp"

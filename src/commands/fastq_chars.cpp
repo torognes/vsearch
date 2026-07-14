@@ -81,6 +81,11 @@ constexpr unsigned int n_characters = 256;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  // Solexa / Illumina 1.3+ quality offset (phred+64), the alternative to the
+  // default phred+33 (Parameters::default_ascii_offset). Was a namespace-scope
+  // constant in vsearch.h, used only in this translation unit.
+  constexpr char alternative_ascii_offset = 64;
+
   struct statistics {
     std::vector<uint64_t> sequence_chars;
     std::vector<uint64_t> quality_chars;
@@ -103,10 +108,10 @@ namespace {
     static constexpr auto upperbound = 'K';  // char 75 (+1 after offset +33 normal range)
 
     if ((stats.qmin < lowerbound) or (stats.qmax < upperbound)) {
-      stats.fastq_ascii = static_cast<char>(default_ascii_offset);  // +33, from vsearch.h
+      stats.fastq_ascii = static_cast<char>(Parameters::default_ascii_offset);  // +33
     }
     else {
-      stats.fastq_ascii = alternative_ascii_offset;  // +64, from vsearch.h
+      stats.fastq_ascii = alternative_ascii_offset;  // +64
     }
     stats.fastq_qmax = static_cast<char>(stats.qmax - stats.fastq_ascii);
     stats.fastq_qmin = static_cast<char>(stats.qmin - stats.fastq_ascii);
