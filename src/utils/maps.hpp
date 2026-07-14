@@ -74,6 +74,8 @@ auto chrmap_4bit() -> unsigned char const *;
 
 auto chrmap_mask_ambig() -> unsigned int const *;
 
+auto chrmap_mask_lower() -> unsigned int const *;
+
 auto map_uppercase(char nucleotide) -> char;
 
 auto map_2bit(char nucleotide) -> unsigned int;

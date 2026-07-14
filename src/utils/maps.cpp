@@ -235,7 +235,7 @@ namespace {
     }};
 
 
-  constexpr std::array<unsigned int, 256> chrmap_mask_lower =
+  constexpr std::array<unsigned int, 256> chrmap_mask_lower_vector =
     {{
       /*
 
@@ -404,6 +404,11 @@ auto chrmap_mask_ambig() -> unsigned int const * {
 }
 
 
+auto chrmap_mask_lower() -> unsigned int const * {
+  return chrmap_mask_lower_vector.data();
+}
+
+
 auto map_uppercase(char const nucleotide) -> char {
   return static_cast<char>(chrmap_upcase_vector[to_uchar(nucleotide)]);
 }
@@ -430,7 +435,7 @@ auto map_mask_ambig(char const nucleotide) -> unsigned int {
 
 
 auto map_mask_lower(char const nucleotide) -> unsigned int {
-  return chrmap_mask_lower[to_uchar(nucleotide)];
+  return chrmap_mask_lower_vector[to_uchar(nucleotide)];
 }
 
 

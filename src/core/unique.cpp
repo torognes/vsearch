@@ -66,7 +66,6 @@
 #include <algorithm>  // std::min
 #include <cstdint> // uint64_t
 #include <cstring>  // std::memset
-#include <functional>  // std::function
 
 
 /*
@@ -196,16 +195,17 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  std::function<unsigned int(char)> const maskmap = (seqmask != Masking::none) ?
-    map_mask_lower : map_mask_ambig;
+  auto const * mask_map = (seqmask != Masking::none) ?
+    chrmap_mask_lower() : chrmap_mask_ambig();
+  auto const * two_bit_map = chrmap_2bit();
 
   while (s < e1)
     {
       bad <<= 2ULL;
-      bad |= maskmap(*s);
+      bad |= mask_map[static_cast<unsigned char>(*s)];
 
       kmer <<= 2ULL;
-      kmer |= map_2bit(*s);
+      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
       ++s;
     }
 
@@ -214,11 +214,11 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   while (s < e2)
     {
       bad <<= 2ULL;
-      bad |= maskmap(*s);
+      bad |= mask_map[static_cast<unsigned char>(*s)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= map_2bit(*s);
+      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
       ++s;
       kmer &= mask;
 
@@ -284,16 +284,17 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   auto const * e2 = s + seqlen;
   e1 = std::min(e2, e1);
 
-  std::function<unsigned int(char)> const maskmap = (seqmask != Masking::none) ?
-    map_mask_lower : map_mask_ambig;
+  auto const * mask_map = (seqmask != Masking::none) ?
+    chrmap_mask_lower() : chrmap_mask_ambig();
+  auto const * two_bit_map = chrmap_2bit();
 
   while (s < e1)
     {
       bad <<= 2ULL;
-      bad |= maskmap(*s);
+      bad |= mask_map[static_cast<unsigned char>(*s)];
 
       kmer <<= 2ULL;
-      kmer |= map_2bit(*s);
+      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
       ++s;
     }
 
@@ -302,11 +303,11 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   while (s < e2)
     {
       bad <<= 2ULL;
-      bad |= maskmap(*s);
+      bad |= mask_map[static_cast<unsigned char>(*s)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= map_2bit(*s);
+      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
       ++s;
       kmer &= mask;
 
