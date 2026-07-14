@@ -215,6 +215,7 @@ constexpr char alternative_ascii_offset = 64;
 constexpr auto dbl_max = std::numeric_limits<double>::max();
 constexpr int64_t default_max_quality = 41;
 constexpr auto int64_max = std::numeric_limits<int64_t>::max();
+// C++20 refactoring: constexpr
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
 std::string const default_sequence_padding = "NNNNNNNN";
 
