@@ -555,14 +555,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
         si->qsize = qsize;
         si->strand = s;
 
-        /* allocate more memory for header and sequence, if necessary */
-
-        if (si->query_head_len + 1 > si->query_head_alloc)
-          {
-            si->query_head_alloc = si->query_head_len + buffer_headroom;
-            si->query_head = static_cast<char *>(
-              xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
-          }
+        /* allocate more memory for the sequence, if necessary */
 
         if (si->qseqlen + 1 > si->seq_alloc)
           {
@@ -572,8 +565,10 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
           }
       }
 
-    /* plus strand: copy header and sequence */
-    std::strcpy(si_plus[t].query_head, qhead);
+    /* plus strand: copy header (into owned storage, view points at it) and sequence */
+    si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
+    std::strcpy(si_plus[t].query_head_v.data(), qhead);
+    si_plus[t].query_head = si_plus[t].query_head_v.data();
     std::strcpy(si_plus[t].qsequence, qseq);
 
     /* get progress as amount of input file read */
@@ -585,7 +580,8 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     /* minus strand: copy header and reverse complementary sequence */
     if (state.parameters.opt_strand)
       {
-        std::strcpy(si_minus[t].query_head, si_plus[t].query_head);
+        si_minus[t].query_head_v = si_plus[t].query_head_v;
+        si_minus[t].query_head = si_minus[t].query_head_v.data();
         reverse_complement(si_minus[t].qsequence,
                            si_plus[t].qsequence,
                            si_plus[t].qseqlen);
@@ -615,7 +611,6 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->m = minheap_init(state.tophits);
   si->hits = nullptr;
   si->qsize = 1;
-  si->query_head_alloc = 0;
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
@@ -630,10 +625,7 @@ static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
   unique_exit(searchinfo->uh);
   minheap_exit(searchinfo->m);
   xfree(searchinfo->kmers);
-  if (searchinfo->query_head != nullptr)
-    {
-      xfree(searchinfo->query_head);
-    }
+  /* query_head is a view; its owned storage query_head_v frees itself */
   if (searchinfo->qsequence != nullptr)
     {
       xfree(searchinfo->qsequence);

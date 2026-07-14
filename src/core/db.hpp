@@ -174,20 +174,14 @@ public:
     return data_.data() + seqindex_[seqno].seq_p;
   }
 
-  /* Non-const companions to getsequence()/getheader(): hand out writable
-     pointers to the stored data. mutatesequence() backs the in-place masking
-     passes (dust/hardmask); both are also borrowed by the search core into its
-     own writable query buffers (searchinfo_s). Only a non-const Database
-     exposes them, so read-only holders (e.g. the search worker threads) cannot
-     mutate the database. */
+  /* Non-const companion to getsequence(): hands out a writable pointer to the
+     stored sequence. It backs the in-place masking passes (dust/hardmask) and is
+     borrowed by allpairs_global into its writable qsequence buffer. Only a
+     non-const Database exposes it, so read-only holders (e.g. the search worker
+     threads) cannot mutate the database. */
   auto mutatesequence(uint64_t seqno) -> char *
   {
     return data_.data() + seqindex_[seqno].seq_p;
-  }
-
-  auto mutateheader(uint64_t seqno) -> char *
-  {
-    return data_.data() + seqindex_[seqno].header_p;
   }
 
   auto getabundance(uint64_t seqno) const -> uint64_t

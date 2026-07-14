@@ -193,9 +193,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
   input_handle->header_buffer.length = count;
 
   /* Reject a header too long for the int header-length bookkeeping used
-     downstream (searchinfo_s::query_head_len / query_head_alloc, where the
-     allocation is query_head_len + buffer_headroom). Such a header would be
-     narrowed to a negative int and overflow the per-query header buffer. The
+     downstream (searchinfo_s::query_head_len). Such a header would be narrowed
+     to a negative int, breaking the per-query header allocation. The
      sequence length is bounded by --maxseqlength, but the header length is not,
      so guard it here, at the single point all FASTA/FASTQ (and DB) reads pass
      through. Mirrors the deferred/fatal handling of the illegal-character check

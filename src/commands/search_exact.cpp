@@ -210,7 +210,7 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 
 auto search_exact_output_results(struct search_exact_state_s & state,
                                  std::vector<struct hit> const & hits,
-                                 char * query_head,
+                                 char const * query_head,
                                  int qseqlen,
                                  char * qsequence,
                                  char * qsequence_rc,
@@ -498,14 +498,7 @@ auto search_exact_thread_run(uint64_t t, struct search_exact_state_s & state) ->
         si->qsize = qsize;
         si->strand = s;
 
-        /* allocate more memory for header and sequence, if necessary */
-
-        if (si->query_head_len + 1 > si->query_head_alloc)
-          {
-            si->query_head_alloc = si->query_head_len + buffer_headroom;
-            si->query_head = static_cast<char *>(
-              xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
-          }
+        /* allocate more memory for the sequence, if necessary */
 
         if (si->qseqlen + 1 > si->seq_alloc)
           {
@@ -515,8 +508,10 @@ auto search_exact_thread_run(uint64_t t, struct search_exact_state_s & state) ->
           }
       }
 
-    /* plus strand: copy header and sequence */
-    std::strcpy(state.si_plus[t].query_head, qhead);
+    /* plus strand: copy header (into owned storage, view points at it) and sequence */
+    state.si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
+    std::strcpy(state.si_plus[t].query_head_v.data(), qhead);
+    state.si_plus[t].query_head = state.si_plus[t].query_head_v.data();
     std::strcpy(state.si_plus[t].qsequence, qseq);
 
     /* get progress as amount of input file read */
@@ -528,7 +523,8 @@ auto search_exact_thread_run(uint64_t t, struct search_exact_state_s & state) ->
     /* minus strand: copy header and reverse complementary sequence */
     if (parameters.opt_strand)
       {
-        std::strcpy(state.si_minus[t].query_head, state.si_plus[t].query_head);
+        state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
+        state.si_minus[t].query_head = state.si_minus[t].query_head_v.data();
         reverse_complement(state.si_minus[t].qsequence,
                            state.si_plus[t].qsequence,
                            state.si_plus[t].qseqlen);
@@ -566,7 +562,6 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
   si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;
-  si->query_head_alloc = 0;
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
@@ -577,10 +572,7 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
 auto search_exact_thread_exit(struct searchinfo_s * si) -> void
 {
   /* thread specific clean up */
-  if (si->query_head != nullptr)
-    {
-      xfree(si->query_head);
-    }
+  /* query_head is a view; its owned storage query_head_v frees itself */
   if (si->qsequence != nullptr)
     {
       xfree(si->qsequence);

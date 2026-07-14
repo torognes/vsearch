@@ -397,7 +397,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t t) -> 
     searchinfo.query_no = query_no;
     searchinfo.qsize = static_cast<int64_t>(state.db.getabundance(query_no_u));
     searchinfo.query_head_len = static_cast<int>(state.db.getheaderlen(query_no_u));
-    searchinfo.query_head = state.db.mutateheader(query_no_u);
+    searchinfo.query_head = state.db.getheader(query_no_u);
     searchinfo.qseqlen = static_cast<int>(state.db.getsequencelen(query_no_u));
     searchinfo.qsequence = state.db.mutatesequence(query_no_u);
     searchinfo.rejects = 0;

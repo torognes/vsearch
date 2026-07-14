@@ -134,8 +134,9 @@ struct searchinfo_s
   int strand = 0;                   /* strand of query being analysed */
   int64_t qsize = 0;                    /* query abundance */
   int query_head_len = 0;           /* query header length */
-  int query_head_alloc = 0;         /* bytes allocated for the header */
-  char * query_head = nullptr;            /* query header */
+  std::vector<char> query_head_v {};  /* owned header storage (the copying paths) */
+  char const * query_head = nullptr;  /* query header: a view into query_head_v, the
+                                         database, or a caller-owned buffer */
   int qseqlen = 0;                  /* query length */
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
   std::vector<char> qsequence_v {};  /* vector of query sequence chars */

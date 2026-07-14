@@ -94,14 +94,7 @@ auto populate_si(struct searchinfo_s * si,
   si->qsize = qsize;
   si->strand = strand;
 
-  /* allocate more memory for header and sequence, if necessary */
-
-  if (si->query_head_len + 1 > si->query_head_alloc)
-    {
-      si->query_head_alloc = si->query_head_len + buffer_headroom;
-      si->query_head = static_cast<char *>(
-        xrealloc(si->query_head, static_cast<size_t>(si->query_head_alloc)));
-    }
+  /* allocate more memory for the sequence, if necessary */
 
   if (si->qseqlen + 1 > si->seq_alloc)
     {
@@ -110,8 +103,10 @@ auto populate_si(struct searchinfo_s * si,
         xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
     }
 
-  /* copy header */
-  std::strcpy(si->query_head, head);
+  /* copy the header into owned storage, then point the read-only view at it */
+  si->query_head_v.resize(static_cast<std::size_t>(si->query_head_len) + 1);
+  std::strcpy(si->query_head_v.data(), head);
+  si->query_head = si->query_head_v.data();
 
   /* copy or reverse-complement sequence */
   if (strand == 0)
@@ -140,7 +135,6 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->hits = static_cast<struct hit *>(xmalloc
     (sizeof(struct hit) * static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand))));
   si->qsize = 1;
-  si->query_head_alloc = 0;
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
@@ -170,10 +164,8 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
   xfree(si->hits);
   minheap_exit(si->m);
   xfree(si->kmers);
-  if (si->query_head != nullptr)
-    {
-      xfree(si->query_head);
-    }
+  /* query_head is a view (into query_head_v, the db, or a caller buffer); the
+     owned storage query_head_v frees itself. */
   if (si->qsequence != nullptr)
     {
       xfree(si->qsequence);
