@@ -76,6 +76,19 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  // How to handle an input character, mirroring fasta.cc's Action. The tables
+  // below map every byte to one of these; buffer_filter_extend() switches on
+  // it. Unlike fasta, 'reject' is deferred (recorded and reported by the
+  // caller) and 'newline' is a no-op here (the caller keeps the line count).
+  enum struct Action : unsigned char {
+    warn,     // (0) symbol is stripped, with a warning
+    accept,   // (1) legal character
+    reject,   // (2) fatal character (recorded, reported by the caller)
+    skip,     // (3) silently stripped (e.g. CR)
+    newline   // (4) LF; silently stripped here
+  };
+
+
   // refactoring: eliminate and replace with an overload of buffer_filter_extend()?
   const std::vector<unsigned char> chrmap_identity = {
     /* identity map: does nothing */
@@ -130,7 +143,7 @@ namespace {
   };
 
 
-  const std::vector<unsigned int> char_fq_action_seq =
+  const std::vector<Action> char_fq_action_seq =
     {
       /*
         How to handle input characters for FASTQ:
@@ -139,32 +152,32 @@ namespace {
         LF is newline.
         Rest is fatal
 
-        0=stripped, 1=legal, 2=fatal, 3=silently stripped, 4=newline
+        0=warn, 1=accept, 2=reject, 3=skip, 4=newline (see the Action enum)
 
         @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
         P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
       */
 
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  3,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  1,  1,  1,  1,  2,  2,  1,  1,  2,  2,  1,  2,  1,  1,  2,
-      2,  2,  1,  1,  1,  1,  1,  1,  2,  1,  2,  2,  2,  2,  2,  2,
-      2,  1,  1,  1,  1,  2,  2,  1,  1,  2,  2,  1,  2,  1,  1,  2,
-      2,  2,  1,  1,  1,  1,  1,  1,  2,  1,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::newline,  Action::reject,  Action::reject,  Action::skip,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::reject,  Action::accept,  Action::accept,  Action::reject,
+      Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::accept,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::reject,  Action::accept,  Action::accept,  Action::reject,
+      Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::accept,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
     };
 
 
-  const std::vector<unsigned int> char_fq_action_qual =
+  const std::vector<Action> char_fq_action_qual =
     {
       /*
         Quality characters, any from 33 to 126 is valid (legal).
@@ -176,22 +189,22 @@ namespace {
         P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
       */
 
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  4,  2,  2,  3,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,
-      2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::newline,  Action::reject,  Action::reject,  Action::skip,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
+      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
+      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
+      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
+      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
+      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
+      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject
     };
 
 }  // end of anonymous namespace
@@ -219,7 +232,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
                           struct fastx_buffer_s * dest_buffer,
                           char const * source_buf,
                           uint64_t const len,
-                          unsigned int const * char_action,
+                          Action const * char_action,
                           unsigned char const * char_mapping,
                           bool * ok,
                           char * illegal_char) -> void
@@ -237,37 +250,47 @@ auto buffer_filter_extend(fastx_handle input_handle,
   for (auto i = 0ULL; i < len; i++)
     {
       auto const c = *p++;
-      char const m = static_cast<char>(char_action[static_cast<unsigned char>(c)]);
+      auto const action = char_action[static_cast<unsigned char>(c)];
 
-      switch (m)
+      /* Fast path: legal characters dominate, so test 'accept' with a single
+         predictable branch and keep it off the switch (which the compiler may
+         lower to a mispredicting jump table). Same precaution as in fasta.cc. */
+      if (action == Action::accept)
         {
-        case 0:
-          /* stripped */
-          input_handle->stripped_all++;
-          input_handle->stripped[static_cast<unsigned char>(c)]++;
-          break;
-
-        case 1:
           /* legal character */
           *q++ = static_cast<char>(char_mapping[static_cast<unsigned char>(c)]);
-          break;
-
-        case 2:
-          /* fatal character */
-          if (*ok)
+        }
+      else
+        {
+          switch (action)
             {
-              *illegal_char = c;
+            case Action::warn:
+              /* stripped */
+              input_handle->stripped_all++;
+              input_handle->stripped[static_cast<unsigned char>(c)]++;
+              break;
+
+            case Action::reject:
+              /* fatal character */
+              if (*ok)
+                {
+                  *illegal_char = c;
+                }
+              *ok = false;
+              break;
+
+            case Action::skip:
+              /* silently stripped chars (whitespace) */
+              break;
+
+            case Action::newline:
+              /* newline (silently stripped) */
+              break;
+
+            case Action::accept:
+              /* handled above on the fast path */
+              break;
             }
-          *ok = false;
-          break;
-
-        case 3:
-          /* silently stripped chars (whitespace) */
-          break;
-
-        case 4:
-          /* newline (silently stripped) */
-          break;
         }
     }
 
