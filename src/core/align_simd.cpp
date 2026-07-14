@@ -1279,21 +1279,21 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto search16_init(int64_t score_match,
-                   int64_t score_mismatch,
-                   int64_t penalty_gap_open_query_left,
-                   int64_t penalty_gap_open_target_left,
-                   int64_t penalty_gap_open_query_interior,
-                   int64_t penalty_gap_open_target_interior,
-                   int64_t penalty_gap_open_query_right,
-                   int64_t penalty_gap_open_target_right,
-                   int64_t penalty_gap_extension_query_left,
-                   int64_t penalty_gap_extension_target_left,
-                   int64_t penalty_gap_extension_query_interior,
-                   int64_t penalty_gap_extension_target_interior,
-                   int64_t penalty_gap_extension_query_right,
-                   int64_t penalty_gap_extension_target_right,
-                   bool score_n_mismatch) -> struct s16info_s *
+auto search16_init(int64_t const score_match,
+                   int64_t const score_mismatch,
+                   int64_t const penalty_gap_open_query_left,
+                   int64_t const penalty_gap_open_target_left,
+                   int64_t const penalty_gap_open_query_interior,
+                   int64_t const penalty_gap_open_target_interior,
+                   int64_t const penalty_gap_open_query_right,
+                   int64_t const penalty_gap_open_target_right,
+                   int64_t const penalty_gap_extension_query_left,
+                   int64_t const penalty_gap_extension_target_left,
+                   int64_t const penalty_gap_extension_query_interior,
+                   int64_t const penalty_gap_extension_target_interior,
+                   int64_t const penalty_gap_extension_query_right,
+                   int64_t const penalty_gap_extension_target_right,
+                   bool const score_n_mismatch) -> struct s16info_s *
 {
   /* prepare alloc of qtable, dprofile, hearray, dir */
   auto * s = static_cast<struct s16info_s *>(

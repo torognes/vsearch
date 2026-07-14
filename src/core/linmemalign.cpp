@@ -299,10 +299,10 @@ auto LinearMemoryAligner::cigar_add(char const _op, int64_t const run) -> void
 }
 
 
-auto LinearMemoryAligner::diff(int64_t a_start,
-                               int64_t b_start,
-                               int64_t a_len,
-                               int64_t b_len,
+auto LinearMemoryAligner::diff(int64_t const a_start,
+                               int64_t const b_start,
+                               int64_t const a_len,
+                               int64_t const b_len,
                                bool gap_b_left,  /* gap open left of b      */
                                bool gap_b_right, /* gap open right of b     */
                                bool a_left,      /* includes left end of a  */
