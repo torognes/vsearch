@@ -85,7 +85,7 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto args_get_ee_cutoffs(char * arg, struct Parameters & parameters) -> void
+  auto args_get_ee_cutoffs(char const * arg, struct Parameters & parameters) -> void
   {
     /* get comma-separated list of floating point numbers */
     /* save in parameters.opt_ee_cutoffs */

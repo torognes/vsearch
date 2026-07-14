@@ -169,7 +169,7 @@ public:
              int64_t a_len,
              int64_t b_len) -> char *;
 
-  auto alignstats(char * cigar,
+  auto alignstats(char const * cigar,
                   char const * a_seq,
                   char const * b_seq,
                   int64_t * nwscore,

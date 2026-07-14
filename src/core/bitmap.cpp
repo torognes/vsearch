@@ -75,7 +75,7 @@ auto bitmap_init(unsigned int const size) -> struct bitmap_s *
 }
 
 
-auto bitmap_get(struct bitmap_s * a_bitmap, unsigned int const seed_value) -> unsigned char
+auto bitmap_get(struct bitmap_s const * a_bitmap, unsigned int const seed_value) -> unsigned char
 {
   constexpr auto mask_111 = 7U;
   constexpr auto divider = 3U;  // divide by 8

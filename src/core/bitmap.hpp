@@ -69,7 +69,7 @@ struct bitmap_s
 
 auto bitmap_init(unsigned int size) -> struct bitmap_s *;
 
-auto bitmap_get(struct bitmap_s * a_bitmap, unsigned int seed_value) -> unsigned char;
+auto bitmap_get(struct bitmap_s const * a_bitmap, unsigned int seed_value) -> unsigned char;
 
 auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void;
 

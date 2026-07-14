@@ -250,7 +250,7 @@ auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
 
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
-auto derep(struct Parameters const & parameters, char * input_filename, Derep_mode const mode) -> void
+auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void
 {
   /* dereplicate full length sequences, optionally require identical headers */
 

@@ -699,7 +699,7 @@ auto LinearMemoryAligner::align(char const * _a_seq,
 }
 
 
-auto LinearMemoryAligner::alignstats(char * cigar,
+auto LinearMemoryAligner::alignstats(char const * cigar,
                                      char const * _a_seq,
                                      char const * _b_seq,
                                      int64_t * _nwscore,
