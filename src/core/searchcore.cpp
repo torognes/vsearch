@@ -519,7 +519,7 @@ namespace {
     /* Compare value against mantissa * 2^exponent * reference in 128 bits,
        applying the power-of-two shift one bit at a time with an overflow guard
        so neither side can leave the 128-bit range (the guard also terminates
-       early for extreme ratios such as the dbl_max default). */
+       early for extreme ratios such as the maximum-double default). */
     auto lhs = static_cast<uint128_t>(static_cast<uint64_t>(value));
     auto rhs = static_cast<uint128_t>(static_cast<uint64_t>(mantissa))
              * static_cast<uint128_t>(static_cast<uint64_t>(reference));
