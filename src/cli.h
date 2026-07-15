@@ -72,10 +72,6 @@
 // parameters, and validate the requested command and its options.
 auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void;
 
-// Upper bound for the --threads option. Only validate_thread_count() below
-// consumes it; kept here (rather than in Parameters) so the option's range
-// limit lives with the CLI validation instead of the configuration struct.
-constexpr int64_t n_threads_max = 1024;
-
-// Fatal unless the requested thread count is within [0, n_threads_max].
+// Fatal unless the requested thread count is within the accepted range
+// (see the upper bound local to validate_thread_count()).
 auto validate_thread_count(int64_t threads) -> void;
