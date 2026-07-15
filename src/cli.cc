@@ -88,22 +88,6 @@
 #include <unistd.h>  // isatty, fileno
 
 
-auto validate_thread_count(int64_t const threads) -> void
-{
-  // Upper bound for the --threads option. Kept local to its only consumer
-  // (rather than in Parameters) so the option's range limit lives with the
-  // CLI validation instead of the configuration struct.
-  constexpr int64_t n_threads_max = 1024;
-  if ((threads < 0) or (threads > n_threads_max))
-    {
-      std::string const message =
-        "The argument to --threads must be in the range 0 (default) to "
-        + std::to_string(n_threads_max);
-      fatal(message.c_str());
-    }
-}
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 

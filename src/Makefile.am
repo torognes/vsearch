@@ -278,6 +278,7 @@ commands/uchime3_denovo.cpp \
 commands/uchime_ref.cpp \
 commands/chimeras_denovo.cpp \
 cli.cc \
+parameters.cpp \
 core/cluster.cpp \
 commands/cluster_fast.cpp \
 commands/cluster_smallmem.cpp \

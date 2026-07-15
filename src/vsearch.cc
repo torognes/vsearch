@@ -61,8 +61,6 @@
 #include "vsearch.hpp"
 #include "vsearch_api.h"
 #include "commands/allpairs_global.hpp"
-#include "core/chimera.hpp"  // maxparents
-#include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "commands/uchime_denovo.hpp"
 #include "commands/uchime2_denovo.hpp"
 #include "commands/uchime3_denovo.hpp"
@@ -132,7 +130,6 @@
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <limits>
-#include <mutex>  // std::mutex
 #include <new>  // std::set_new_handler
 #include <string>
 #include <unistd.h>  // write, _exit, STDERR_FILENO
@@ -156,11 +153,6 @@ namespace {
 }  // end of anonymous namespace
 
 
-/* Serializes library sessions: acquired by vsearch_session_begin() and released
-   by vsearch_session_end(), so only one session runs at a time. */
-static std::mutex session_mutex;
-
-
 auto vsearch_api_version() -> int
 {
   return VSEARCH_API_VERSION;
@@ -169,126 +161,6 @@ auto vsearch_api_version() -> int
 auto vsearch_api_version_string() -> const char *
 {
   return VSEARCH_API_VERSION_STRING;
-}
-
-
-
-auto vsearch_session_end() -> void
-{
-  session_mutex.unlock();
-}
-
-
-
-
-/* Parameters-based sentinel/range resolution: an exact mirror of the global
-   overload above, operating on the struct. Introduced for the E1 migration to
-   Parameters-primary configuration (F2); the two are kept in lockstep until
-   the globals are removed. The gap-open adjustment is guarded by the struct's
-   own gap_penalties_adjusted so a repeated call stays idempotent. */
-auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
-{
-  if (parameters.opt_maxhits == 0)
-    {
-      parameters.opt_maxhits = std::numeric_limits<int64_t>::max();
-    }
-
-  if (parameters.opt_minwordmatches < 0)
-    {
-      if (parameters.opt_wordlength >= 0 and
-          parameters.opt_wordlength < static_cast<int64_t>(minwordmatches_defaults.size()))
-        {
-          parameters.opt_minwordmatches = minwordmatches_defaults[static_cast<size_t>(parameters.opt_wordlength)];
-        }
-      else
-        {
-          parameters.opt_minwordmatches = 0;
-        }
-    }
-
-  if (parameters.opt_id >= 0.0 and parameters.opt_weak_id > parameters.opt_id)
-    {
-      parameters.opt_weak_id = parameters.opt_id;
-    }
-
-  validate_thread_count(parameters.opt_threads);
-  if (parameters.opt_threads == 0)
-    {
-      parameters.opt_threads = system_get_cores();
-    }
-
-  if (parameters.opt_maxrejects == -1)
-    {
-      parameters.opt_maxrejects = 32;
-    }
-  if (parameters.opt_maxaccepts < 0)
-    {
-      fatal("The argument to --maxaccepts must not be negative");
-    }
-  if (parameters.opt_maxrejects < 0)
-    {
-      fatal("The argument to --maxrejects must not be negative");
-    }
-
-  if (parameters.opt_wordlength == 0)
-    {
-      parameters.opt_wordlength = 8;
-    }
-  if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
-    {
-      fatal("The argument to --wordlength must be in the range 3 to 15");
-    }
-
-  if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
-    {
-      std::string const message =
-        "The argument to --chimeras_parents_max must be in the range 2 to "
-        + std::to_string(maxparents);
-      fatal(message.c_str());
-    }
-
-  if (not parameters.gap_penalties_adjusted)
-    {
-      parameters.opt_gap_open_query_left -= parameters.opt_gap_extension_query_left;
-      parameters.opt_gap_open_target_left -= parameters.opt_gap_extension_target_left;
-      parameters.opt_gap_open_query_interior -= parameters.opt_gap_extension_query_interior;
-      parameters.opt_gap_open_target_interior -= parameters.opt_gap_extension_target_interior;
-      parameters.opt_gap_open_query_right -= parameters.opt_gap_extension_query_right;
-      parameters.opt_gap_open_target_right -= parameters.opt_gap_extension_target_right;
-      parameters.gap_penalties_adjusted = true;
-    }
-
-  /* Fold the twelve '*' gap-penalty sentinels into one flag so the accept path
-     can skip the cigar scan on the common finite-penalty runs. Idempotent. */
-  parameters.opt_gap_penalty_has_infinite =
-    parameters.opt_gap_open_query_left_infinite or
-    parameters.opt_gap_open_query_interior_infinite or
-    parameters.opt_gap_open_query_right_infinite or
-    parameters.opt_gap_open_target_left_infinite or
-    parameters.opt_gap_open_target_interior_infinite or
-    parameters.opt_gap_open_target_right_infinite or
-    parameters.opt_gap_extension_query_left_infinite or
-    parameters.opt_gap_extension_query_interior_infinite or
-    parameters.opt_gap_extension_query_right_infinite or
-    parameters.opt_gap_extension_target_left_infinite or
-    parameters.opt_gap_extension_target_interior_infinite or
-    parameters.opt_gap_extension_target_right_infinite;
-}
-
-
-/* Begin a library session from a Parameters (E1/F2, shape A). Acquires the
-   session lock (same non-blocking semantics as the retired
-   vsearch_init_defaults) and resolves the struct's sentinels/ranges. Pair with
-   vsearch_session_end(). */
-auto vsearch_session_begin(struct Parameters & parameters) -> void
-{
-  if (not session_mutex.try_lock())
-    {
-      fatal("A vsearch library session is already active: a previous "
-            "vsearch_session_begin() was not paired with vsearch_session_end(). "
-            "Call vsearch_session_end() before starting a new session.");
-    }
-  vsearch_apply_defaults_fixups(parameters);
 }
 
 
