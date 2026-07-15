@@ -584,6 +584,8 @@ auto show_header(struct Parameters const & parameters) -> void {
    All global variable definitions and helper functions above remain
    available — only the CLI entry point is excluded. */
 #ifndef VSEARCH_NO_MAIN
+namespace {
+
 /* Installed via std::set_new_handler so that a failed C++ allocation
    (std::vector, std::string, ...) reports the same friendly message as the
    xmalloc path instead of throwing std::bad_alloc, which under -fno-exceptions
@@ -592,7 +594,7 @@ auto show_header(struct Parameters const & parameters) -> void {
    and leaves via _exit() without flushing stdio. This catches a refused
    allocation (operator new gets nullptr); it cannot catch a kernel OOM kill
    of an overcommitted allocation. */
-static auto vsearch_new_handler() -> void
+auto vsearch_new_handler() -> void
 {
   static char const message[] = "\n\nFatal error: Unable to allocate enough memory.\n";
   ssize_t const written = write(STDERR_FILENO, message, sizeof(message) - 1);
@@ -801,6 +803,22 @@ auto dispatch_command(struct Parameters & parameters) -> void
 }
 
 
+/* Output written directly to stdout is not closed through an OutputFileHandle
+   (whose CheckedCloseOutputHandle deleter surfaces deferred write errors), so
+   surface any deferred write error here (full disk, quota, or a broken pipe
+   such as `vsearch ... | head`) rather than exiting 0 with truncated output
+   (I1). */
+auto flush_stdout() -> void
+{
+  if ((std::fflush(stdout) != 0) or (std::ferror(stdout) != 0))
+    {
+      fatal("Unable to write to standard output (disk full, quota exceeded, or broken pipe?)");
+    }
+}
+
+}  // end of anonymous namespace
+
+
 auto main(int argc, char** argv) -> int
 {
   std::set_new_handler(vsearch_new_handler);
@@ -841,14 +859,6 @@ auto main(int argc, char** argv) -> int
     dispatch_command(parameters);
   }
 
-  /* Output written directly to stdout is not closed through an OutputFileHandle
-     (whose CheckedCloseOutputHandle deleter surfaces deferred write errors), so
-     surface any deferred write error here (full disk, quota, or a broken pipe
-     such as `vsearch ... | head`) rather than exiting 0 with truncated output
-     (I1). */
-  if ((std::fflush(stdout) != 0) or (std::ferror(stdout) != 0))
-    {
-      fatal("Unable to write to standard output (disk full, quota exceeded, or broken pipe?)");
-    }
+  flush_stdout();
 }
 #endif /* VSEARCH_NO_MAIN */
