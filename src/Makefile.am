@@ -88,6 +88,7 @@ commands/uchime_ref.hpp \
 commands/chimeras_denovo.hpp \
 vendored/city.h \
 cli.h \
+parameters.hpp \
 core/cluster.hpp \
 core/cluster_internal.hpp \
 commands/cluster_fast.hpp \

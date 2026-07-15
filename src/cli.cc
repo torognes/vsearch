@@ -61,6 +61,7 @@
 #include "cli.h"
 #include "vsearch.hpp"
 #include "vsearch_api.h"
+#include "parameters.hpp"  // vsearch_apply_defaults_fixups
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/chimera.hpp"  // maxparents

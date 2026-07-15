@@ -66,8 +66,9 @@
 // the argument parser or in main(). validate_thread_count() lives here too,
 // next to its fixups caller.
 
-#include "vsearch.hpp"  // struct Parameters, vsearch_apply_defaults_fixups
-#include "vsearch_api.h"  // vsearch_session_begin, vsearch_session_end
+#include "parameters.hpp"  // vsearch_apply_defaults_fixups, vsearch_session_begin
+#include "vsearch.hpp"  // struct Parameters
+#include "vsearch_api.h"  // vsearch_session_end
 #include "cli.h"  // validate_thread_count
 #include "core/chimera.hpp"  // maxparents
 #include "core/searchcore.hpp"  // minwordmatches_defaults

@@ -413,12 +413,8 @@ public:
   bool gap_penalties_adjusted = false;
 };
 
-/* Library API: session lifecycle */
-/* Resolve a Parameters' sentinel values and ranges (maxhits, minwordmatches,
-   maxrejects, wordlength, weak_id clamp, threads, chimeras_parents_max, and the
-   once-only gap-open adjustment). Called by vsearch_session_begin(); exposed so
-   callers can inspect the resolved values. Idempotent per struct. */
-auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;
-/* Begin a library session from a Parameters: acquire the session lock and
-   resolve the struct's sentinel values. Pair with vsearch_session_end(). */
-auto vsearch_session_begin(struct Parameters & parameters) -> void;
+/* The shared parameter-resolution / session-lifecycle declarations that used
+   to sit here now live in parameters.hpp (paired with parameters.cpp); it is
+   included so the many translation units that reach these functions through
+   vsearch.hpp keep compiling unchanged. */
+#include "parameters.hpp"
