@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include <array>
+
 /* === Library API for embedding paired-end merging === */
 
 /* Result of merging a single read pair.
@@ -86,14 +88,33 @@ struct merge_result_s {
   int overlap_length;          /* length of overlap region */
 };
 
-/* Initialize the quality score lookup table.
-   Must be called once before mergepairs_single().
-   Reads opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax from the passed
-   parameters (configure them before vsearch_session_begin, then pass the
-   same Parameters here). */
-auto mergepairs_init(struct Parameters const & parameters) -> void;
+/* Number of ASCII quality symbols indexable in the score tables. */
+constexpr auto n_quality_symbols = 128U;
+
+/* Precomputed per-quality-symbol score tables produced by mergepairs_init()
+   from the run's Parameters. Hold the returned value for the lifetime of the
+   merging session and pass it (by const reference) to every mergepairs_single()
+   call. Once returned it is read-only, so a single instance may be shared
+   across threads. Replaces the former file-scope globals in mergepairs.cpp. */
+struct QualityTables {
+  std::array<std::array<char,   n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
+  std::array<std::array<char,   n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
+  std::array<std::array<double, n_quality_symbols>, n_quality_symbols> match_score     {{}};
+  std::array<std::array<double, n_quality_symbols>, n_quality_symbols> mism_score      {{}};
+  std::array<double, n_quality_symbols> q2p {{}};
+};
+
+/* Build the quality score lookup tables.
+   Must be called once before mergepairs_single(); the returned QualityTables
+   is passed to every mergepairs_single() call (there is no hidden global
+   state). Reads opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax from the
+   passed parameters (configure them before vsearch_session_begin, then pass
+   the same Parameters here). */
+auto mergepairs_init(struct Parameters const & parameters) -> QualityTables;
 
 /* Merge a single forward/reverse read pair.
+   tables: the score tables returned by mergepairs_init(); read-only, may be
+     shared across threads.
    parameters: the configured Parameters (same one passed to
      mergepairs_init/vsearch_session_begin); supplies the merge tunables.
    fwd_seq/rev_seq: null-terminated DNA sequences.
@@ -123,7 +144,8 @@ auto mergepairs_init(struct Parameters const & parameters) -> void;
      opt_fastq_maxlen     — max merged length (default unlimited)
      opt_fastq_maxns      — max Ns allowed (default unlimited)
      opt_fastq_ascii      — quality ASCII offset (default 33) */
-auto mergepairs_single(struct Parameters const & parameters,
+auto mergepairs_single(QualityTables const & tables,
+                        struct Parameters const & parameters,
                         const char * fwd_seq,
                         const char * fwd_qual,
                         int fwd_len,

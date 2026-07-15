@@ -687,13 +687,14 @@ consensus sequence with combined quality scores.
 ### Lifecycle
 
 ```cpp
-// Initialize quality score lookup table (once)
-mergepairs_init(parameters);
+// Build the quality score lookup tables (once); the caller owns the
+// returned QualityTables and passes it to every mergepairs_single() call.
+QualityTables const tables = mergepairs_init(parameters);
 
 // Merge one pair. Zero-initialize so the pointers start at nullptr.
 struct merge_result_s result = {};
 int rc = mergepairs_single(
-    parameters,
+    tables, parameters,
     fwd_seq, fwd_qual, fwd_len,
     rev_seq, rev_qual, rev_len,
     fwd_header, rev_header, &result);
@@ -707,8 +708,10 @@ if (rc == 0 && result.merged) {
 merge_result_free(&result);
 ```
 
-No per-thread state is needed. Each call to `mergepairs_single()` is
-fully independent and thread-safe after `mergepairs_init()`.
+No per-thread state is needed. The `QualityTables` returned by
+`mergepairs_init()` is read-only, so a single instance can be shared across
+threads; each call to `mergepairs_single()` is fully independent and
+thread-safe.
 
 ### Result structure
 
@@ -747,8 +750,8 @@ calling `merge_result_free()` between calls.
 
 | Function | Description |
 |----------|-------------|
-| `mergepairs_init(parameters)` | Initialize quality lookup table. Call once before any merging. |
-| `mergepairs_single(parameters, fwd_s, fwd_q, fwd_l, rev_s, rev_q, rev_l, fwd_h, rev_h, result)` | Merge one pair. Allocates `result->merged_sequence` / `merged_quality` via xmalloc. Returns 0 on success, -1 on failure. Thread-safe. |
+| `mergepairs_init(parameters)` | Build the quality lookup tables. Call once before any merging; returns a `QualityTables` the caller holds and passes to `mergepairs_single()`. |
+| `mergepairs_single(tables, parameters, fwd_s, fwd_q, fwd_l, rev_s, rev_q, rev_l, fwd_h, rev_h, result)` | Merge one pair. Allocates `result->merged_sequence` / `merged_quality` via xmalloc. Returns 0 on success, -1 on failure. Thread-safe. |
 | `merge_result_free(result)` | Free the merged sequence/quality buffers and null the pointers. Null-safe on either field. |
 
 ---

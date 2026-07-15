@@ -85,12 +85,9 @@ constexpr auto merge_mismatchmax     = -4.0;
 
 /* static variables */
 
-constexpr auto n_quality_symbols = 128U;
-static std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
-static std::array<std::array<char, n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
-static std::array<std::array<double, n_quality_symbols>, n_quality_symbols> match_score {{}};
-static std::array<std::array<double, n_quality_symbols>, n_quality_symbols> mism_score {{}};
-static std::array<double, n_quality_symbols> q2p {{}};
+/* The per-quality-symbol score tables (formerly file-scope globals here) are
+   now owned by the caller as a QualityTables value built by precompute_qual()
+   and threaded by const reference through process(); see core/mergepairs.hpp. */
 
 
 /* A worker must never call std::exit() (e.g. via fatal()) while sibling
@@ -236,16 +233,17 @@ inline auto q_to_p(int const quality_symbol, struct Parameters const & parameter
 }
 
 
-auto precompute_qual(struct Parameters const & parameters) -> void
+auto precompute_qual(struct Parameters const & parameters) -> QualityTables
 {
   /* Precompute tables of scores etc */
+  QualityTables tables;
   auto const qmaxout = static_cast<double>(parameters.opt_fastq_qmaxout);
   auto const qminout = static_cast<double>(parameters.opt_fastq_qminout);
 
   for (auto x = 33U; x <= 126U; x++)
     {
       auto const px = q_to_p(static_cast<int>(x), parameters);
-      q2p[x] = px;
+      tables.q2p[x] = px;
 
       for (auto y = 33U; y <= 126U; y++)
         {
@@ -261,14 +259,14 @@ auto precompute_qual(struct Parameters const & parameters) -> void
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          merge_qual_same[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
+          tables.merge_qual_same[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - (py / 3.0)) / (px + py - (4.0 * px * py / 3.0));
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          merge_qual_diff[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
+          tables.merge_qual_diff[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
 
           /*
             observed match,
@@ -281,19 +279,21 @@ auto precompute_qual(struct Parameters const & parameters) -> void
           // what is the probability of observing a match (or a mismatch)?
 
           p = 1.0 - px - py + (px * py * 4.0 / 3.0);
-          match_score[x][y] = std::log2(p / 0.25);
+          tables.match_score[x][y] = std::log2(p / 0.25);
 
           // Use a minimum mismatch penalty
 
-          mism_score[x][y] = std::min(std::log2((1.0 - p) / 0.75), merge_mismatchmax);
+          tables.mism_score[x][y] = std::min(std::log2((1.0 - p) / 0.75), merge_mismatchmax);
         }
     }
+  return tables;
 }
 
 
 auto merge_sym(char * sym,       char * qual,
                char const fwd_sym,     char const rev_sym,
-               char const fwd_qual,    char const rev_qual) -> void
+               char const fwd_qual,    char const rev_qual,
+               QualityTables const & tables) -> void
 {
   if (rev_sym == 'N')
     {
@@ -309,7 +309,7 @@ auto merge_sym(char * sym,       char * qual,
     {
       /* agreement */
       * sym = fwd_sym;
-      * qual = merge_qual_same[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
+      * qual = tables.merge_qual_same[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
     }
   else
     {
@@ -317,18 +317,19 @@ auto merge_sym(char * sym,       char * qual,
       if (fwd_qual > rev_qual)
         {
           * sym = fwd_sym;
-          * qual = merge_qual_diff[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
+          * qual = tables.merge_qual_diff[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
         }
       else
         {
           * sym = rev_sym;
-          * qual = merge_qual_diff[static_cast<std::size_t>(rev_qual)][static_cast<std::size_t>(fwd_qual)];
+          * qual = tables.merge_qual_diff[static_cast<std::size_t>(rev_qual)][static_cast<std::size_t>(fwd_qual)];
         }
     }
 }
 
 
-auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> void
+auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
+           struct Parameters const & parameters) -> void
 {
   /* length of 5' overhang of the forward sequence not merged
      with the reverse sequence */
@@ -363,7 +364,7 @@ auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> 
       a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
       a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
 
-      ee = q2p[static_cast<std::size_t>(qual)];
+      ee = tables.q2p[static_cast<std::size_t>(qual)];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_fwd += ee;
 
@@ -390,7 +391,8 @@ auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> 
                 fwd_qual < 2 ? 'N' : fwd_sym,
                 rev_qual < 2 ? 'N' : rev_sym,
                 fwd_qual,
-                rev_qual);
+                rev_qual,
+                tables);
 
       if (sym != fwd_sym)
         {
@@ -403,9 +405,9 @@ auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> 
 
       a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
       a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
-      a_read_pair.ee_merged += q2p[static_cast<std::size_t>(qual)];
-      a_read_pair.ee_fwd += q2p[static_cast<std::size_t>(fwd_qual)];
-      a_read_pair.ee_rev += q2p[static_cast<std::size_t>(rev_qual)];
+      a_read_pair.ee_merged += tables.q2p[static_cast<std::size_t>(qual)];
+      a_read_pair.ee_fwd += tables.q2p[static_cast<std::size_t>(fwd_qual)];
+      a_read_pair.ee_rev += tables.q2p[static_cast<std::size_t>(rev_qual)];
 
       ++fwd_pos;
       --rev_pos;
@@ -423,7 +425,7 @@ auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> 
       a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
       ++merged_pos;
 
-      ee = q2p[static_cast<std::size_t>(qual)];
+      ee = tables.q2p[static_cast<std::size_t>(qual)];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_rev += ee;
 
@@ -450,6 +452,7 @@ auto merge(merge_data_t & a_read_pair, struct Parameters const & parameters) -> 
 
 auto optimize(merge_data_t & a_read_pair,
               struct kh_handle_s & kmerhash,
+              QualityTables const & tables,
               struct Parameters const & parameters) -> int64_t
 {
   /* Merge-acceptance thresholds, relaxed for short overlaps. Derived here from
@@ -525,12 +528,12 @@ auto optimize(merge_data_t & a_read_pair,
 
               if (fwd_sym == rev_sym)
                 {
-                  score += match_score[fwd_qual][rev_qual];
+                  score += tables.match_score[fwd_qual][rev_qual];
                   score_high = std::max(score, score_high);
                 }
               else
                 {
-                  score += mism_score[fwd_qual][rev_qual];
+                  score += tables.mism_score[fwd_qual][rev_qual];
                   ++diffs;
                   if (score < score_high - dropmax)
                     {
@@ -623,6 +626,7 @@ auto optimize(merge_data_t & a_read_pair,
 
 auto process(merge_data_t & a_read_pair,
              struct kh_handle_s & kmerhash,
+             QualityTables const & tables,
              struct Parameters const & parameters) -> void
 {
   a_read_pair.merged = false;
@@ -750,12 +754,12 @@ auto process(merge_data_t & a_read_pair,
 
   if (not skip)
     {
-      a_read_pair.offset = optimize(a_read_pair, kmerhash, parameters);
+      a_read_pair.offset = optimize(a_read_pair, kmerhash, tables, parameters);
     }
 
   if (a_read_pair.offset > 0)
     {
-      merge(a_read_pair, parameters);
+      merge(a_read_pair, tables, parameters);
     }
 
   a_read_pair.state = State::processed;
@@ -765,18 +769,19 @@ auto process(merge_data_t & a_read_pair,
 /* === Library API for embedding paired-end merging === */
 
 
-auto mergepairs_init(struct Parameters const & parameters) -> void
+auto mergepairs_init(struct Parameters const & parameters) -> QualityTables
 {
   /* The short-overlap relaxation of the merge-acceptance thresholds is now
      derived inside optimize() from opt_fastq_minovlen. mergepairs_single()
      threads a Parameters copy clamped to the >= 5 minimum the merge core
      requires, so optimize() sees the relaxed thresholds for short overlaps
      with no tunables to set here (matching the CLI path). */
-  precompute_qual(parameters);
+  return precompute_qual(parameters);
 }
 
 
-auto mergepairs_single(struct Parameters const & parameters,
+auto mergepairs_single(QualityTables const & tables,
+                        struct Parameters const & parameters,
                         const char * fwd_seq,
                         const char * fwd_qual,
                         int const fwd_len,
@@ -826,7 +831,7 @@ auto mergepairs_single(struct Parameters const & parameters,
       clamped.opt_fastq_minovlen = 5;
     }
   struct kh_handle_s kmerhash;
-  process(md, kmerhash, clamped);
+  process(md, kmerhash, tables, clamped);
 
   /* Populate result. Zero all fields including the pointers so that a
      failed merge leaves nullptr pointers for the caller. On success

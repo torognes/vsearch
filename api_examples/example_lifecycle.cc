@@ -71,7 +71,8 @@ static int test_free_null_safety()
    - a zero-initialised result is a no-op (nothing to free)
    - after freeing a populated result the pointers are nulled
    - a second free of the same result is safe (idempotent)         */
-static int test_merge_result_free_contract(struct Parameters const & parameters)
+static int test_merge_result_free_contract(QualityTables const & tables,
+                                           struct Parameters const & parameters)
 {
   int failures = 0;
 
@@ -95,7 +96,7 @@ static int test_merge_result_free_contract(struct Parameters const & parameters)
     }
 
   struct merge_result_s result = {};
-  int const status = mergepairs_single(parameters,
+  int const status = mergepairs_single(tables, parameters,
                                        fwd_seq.c_str(), fwd_qual.c_str(),
                                        static_cast<int>(fwd_seq.size()),
                                        rev_seq.c_str(), rev_qual.c_str(),
@@ -137,7 +138,8 @@ static int test_merge_result_free_contract(struct Parameters const & parameters)
    left at nullptr so the caller can safely skip merge_result_free (though it
    remains a no-op). This return channel is unique to the library — the CLI
    simply counts a "not merged" read and moves on. */
-static int test_merge_failure_contract(struct Parameters const & parameters)
+static int test_merge_failure_contract(QualityTables const & tables,
+                                       struct Parameters const & parameters)
 {
   int failures = 0;
 
@@ -146,7 +148,7 @@ static int test_merge_failure_contract(struct Parameters const & parameters)
   std::string const qual(60, 'I');
 
   struct merge_result_s result = {};
-  int const status = mergepairs_single(parameters,
+  int const status = mergepairs_single(tables, parameters,
                                        fwd_seq.c_str(), qual.c_str(),
                                        static_cast<int>(fwd_seq.size()),
                                        rev_seq.c_str(), qual.c_str(),
@@ -181,7 +183,8 @@ static int test_merge_failure_contract(struct Parameters const & parameters)
    The docs allow reusing one merge_result_s for successive merges provided
    merge_result_free() is called between calls. Verify a second merge into the
    same (freed) struct produces valid buffers again. */
-static int test_result_reuse(struct Parameters const & parameters)
+static int test_result_reuse(QualityTables const & tables,
+                             struct Parameters const & parameters)
 {
   int failures = 0;
 
@@ -197,7 +200,7 @@ static int test_result_reuse(struct Parameters const & parameters)
   struct merge_result_s result = {};
   for (int iteration = 0; iteration < 2; ++iteration)
     {
-      int const status = mergepairs_single(parameters,
+      int const status = mergepairs_single(tables, parameters,
                                            fwd_seq.c_str(), fwd_qual.c_str(),
                                            static_cast<int>(fwd_seq.size()),
                                            rev_seq.c_str(), rev_qual.c_str(),
@@ -338,12 +341,12 @@ int main()
   struct Parameters parameters;
   parameters.opt_wordlength = 8;
   vsearch_session_begin(parameters);
-  mergepairs_init(parameters);
+  QualityTables const tables = mergepairs_init(parameters);
 
   failures += test_free_null_safety();
-  failures += test_merge_result_free_contract(parameters);
-  failures += test_merge_failure_contract(parameters);
-  failures += test_result_reuse(parameters);
+  failures += test_merge_result_free_contract(tables, parameters);
+  failures += test_merge_failure_contract(tables, parameters);
+  failures += test_result_reuse(tables, parameters);
   failures += test_nonchimera_result_zeroed(parameters);
   failures += test_dust_hardmask();
 

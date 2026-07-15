@@ -68,6 +68,7 @@
    engine entry points the command drives directly (precompute_qual, process).
    Not part of the public library API (that is core/mergepairs.hpp). */
 
+#include "core/mergepairs.hpp"  // QualityTables (shared with the merge engine)
 #include <atomic>  // std::memory_order
 #include <cstdint>  // int64_t
 #include <vector>
@@ -163,7 +164,8 @@ auto merge_abort_reset() -> void;
 auto report_merge_abort(struct Parameters const & parameters) -> void;
 
 /* Merge engine entry points driven by both the CLI command and the library API. */
-auto precompute_qual(struct Parameters const & parameters) -> void;
+auto precompute_qual(struct Parameters const & parameters) -> QualityTables;
 auto process(merge_data_t & a_read_pair,
              struct kh_handle_s & kmerhash,
+             QualityTables const & tables,
              struct Parameters const & parameters) -> void;

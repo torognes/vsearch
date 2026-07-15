@@ -122,6 +122,12 @@ struct mergepairs_cli_state_s
      The <5 minimum-overlap clamp is applied to a local Parameters copy that is
      threaded to the merge core, so opt_fastq_minovlen no longer needs the global. */
   struct Parameters const & parameters;
+
+  /* per-quality-symbol score tables, built once by precompute_qual() and read
+     by every process() call; owned here instead of the former file-static
+     globals in mergepairs.cpp (see core/mergepairs.hpp). */
+  QualityTables tables;
+
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_fastaout = nullptr;
   std::FILE * fp_fastqout_notmerged_fwd = nullptr;
@@ -590,7 +596,7 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
             {
               break;
             }
-          process(state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash, state.parameters);
+          process(state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash, state.tables, state.parameters);
         }
       lock.lock();
       state.chunks[static_cast<std::size_t>(chunk_current)].state = State::processed;
@@ -1038,7 +1044,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* precompute merged quality values */
 
-  precompute_qual(parameters);
+  state.tables = precompute_qual(parameters);
 
   /* main */
 
