@@ -118,9 +118,7 @@
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
-#include "utils/quality_encoding.hpp"  // sanger_ascii_offset
 #include "utils/random.hpp"
-#include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -129,28 +127,10 @@
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
-#include <limits>
 #include <new>  // std::set_new_handler
 #include <string>
 #include <unistd.h>  // write, _exit, STDERR_FILENO
 #include <vector>
-
-
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
-
-  // performance: lambda compiles to a single x86-64 instruction (shr al, 7),
-  // equivalent to (c & ~0x7F) == 0
-  auto is_not_ASCII(std::string const & user_string) -> bool {
-    static constexpr auto ascii_max = static_cast<unsigned char>(std::numeric_limits<signed char>::max());
-    auto is_not_in_range = [](char const user_char) -> bool {
-      auto const unsigned_user_char = static_cast<unsigned char>(user_char);
-      return (unsigned_user_char > ascii_max);
-    };
-    return std::any_of(user_string.begin(), user_string.end(), is_not_in_range);
-  }
-
-}  // end of anonymous namespace
 
 
 auto vsearch_api_version() -> int
@@ -161,96 +141,6 @@ auto vsearch_api_version() -> int
 auto vsearch_api_version_string() -> const char *
 {
   return VSEARCH_API_VERSION_STRING;
-}
-
-
-auto cmd_allpairs_global(struct Parameters const & parameters) -> void
-{
-  /* check options */
-
-  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-      (parameters.opt_samout == nullptr) and (parameters.opt_fastapairs == nullptr))
-    {
-      fatal("No output files specified");
-    }
-
-  if (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0))))
-    {
-      fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
-    }
-
-  allpairs_global(parameters);
-}
-
-
-auto cmd_usearch_global(struct Parameters const & parameters) -> void
-{
-  /* check options */
-
-  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-      (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
-      (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
-      (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-      (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
-    {
-      fatal("No output files specified");
-    }
-
-  if (parameters.opt_db == nullptr)
-    {
-      fatal("Database filename not specified with --db");
-    }
-
-  if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
-    {
-      fatal("Identity between 0.0 and 1.0 must be specified with --id");
-    }
-
-  usearch_global(parameters);
-}
-
-
-auto cmd_search_exact(struct Parameters const & parameters) -> void
-{
-  /* check options */
-
-  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-      (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
-      (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
-      (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-      (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
-    {
-      fatal("No output files specified");
-    }
-
-  if (parameters.opt_db == nullptr)
-    {
-      fatal("Database filename not specified with --db");
-    }
-
-  search_exact(parameters);
-}
-
-
-auto cmd_subsample(struct Parameters const & parameters) -> void
-{
-  if ((parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr))
-    {
-      fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
-    }
-
-  if ((parameters.opt_sample_pct > 0) == (parameters.opt_sample_size > 0))
-    {
-      fatal("Specify either --sample_pct or --sample_size");
-    }
-
-  subsample(parameters);
 }
 
 
@@ -301,26 +191,6 @@ auto cmd_none(struct Parameters const & parameters) -> void {
 
 auto cmd_cluster(struct Parameters const & parameters) -> void
 {
-  if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-      (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-      (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-      (parameters.opt_centroids == nullptr) and (parameters.opt_clusters == nullptr) and
-      (parameters.opt_consout == nullptr) and (parameters.opt_msaout == nullptr) and
-      (parameters.opt_samout == nullptr) and (parameters.opt_profile == nullptr) and
-      (parameters.opt_otutabout == nullptr) and (parameters.opt_biomout == nullptr) and
-      (parameters.opt_mothur_shared_out == nullptr))
-    {
-      fatal("No output files specified");
-    }
-
-  if (parameters.opt_cluster_unoise == nullptr)
-    {
-      if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
-        {
-          fatal("Identity between 0.0 and 1.0 must be specified with --id");
-        }
-    }
-
   if (parameters.opt_cluster_fast != nullptr)
     {
       cluster_fast(parameters);
@@ -337,80 +207,6 @@ auto cmd_cluster(struct Parameters const & parameters) -> void
     {
       cluster_unoise(parameters);
     }
-}
-
-
-auto cmd_fastq_join(struct Parameters & parameters) -> void
-{
-  if (is_not_ASCII(parameters.opt_join_padgap)) {
-    fatal("Option --join_padgap contains non-ASCII characters");
-  }
-  if (is_not_ASCII(parameters.opt_join_padgapq)) {
-    fatal("Option --join_padgapq contains non-ASCII characters");
-  }
-  if ((not parameters.opt_join_padgapq_set_by_user) and
-      (parameters.opt_fastq_ascii != sanger_ascii_offset)) {
-    std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
-    parameters.opt_join_padgapq = alternative_quality_padding;
-  }
-  fastq_join(parameters);
-}
-
-
-auto cmd_fastq_mergepairs(struct Parameters const & parameters) -> void
-{
-  if (parameters.opt_reverse == nullptr)
-    {
-      fatal("No reverse reads file specified with --reverse");
-    }
-  if ((parameters.opt_fastqout == nullptr) and
-      (parameters.opt_fastaout == nullptr) and
-      (parameters.opt_fastqout_notmerged_fwd == nullptr) and
-      (parameters.opt_fastqout_notmerged_rev == nullptr) and
-      (parameters.opt_fastaout_notmerged_fwd == nullptr) and
-      (parameters.opt_fastaout_notmerged_rev == nullptr) and
-      (parameters.opt_eetabbedout == nullptr))
-    {
-      fatal("No output files specified");
-    }
-  if (parameters.opt_fastq_maxdiffs < 0) {
-    fatal("Argument to --fastq_maxdiffs must be positive");
-  }
-  if (parameters.opt_fastq_maxee <= 0.0) {
-    /* expected error is the sum of per-base error probabilities;
-       probabilities are strictly positive (min quality score is 93,
-       corresponding to probability ~1e-9.3), so the sum cannot be
-       zero or negative. A null or negative threshold would always
-       reject every read and is almost certainly a user mistake. */
-    fatal("Argument to --fastq_maxee must be a strictly positive number");
-  }
-  if (parameters.opt_fastq_maxlen < 1) {
-    fatal("Argument to --fastq_maxlen must be a positive integer");
-  }
-  if (parameters.opt_fastq_minlen < 1) {
-    fatal("Argument to --fastq_minlen must be a positive integer");
-  }
-  if (parameters.opt_fastq_maxns < 0) {
-    fatal("Argument to --fastq_maxns must be a non-negative integer");
-  }
-  if (parameters.opt_fastq_maxmergelen < 1) {
-    fatal("Argument to --fastq_maxmergelen must be a positive integer");
-  }
-  if (parameters.opt_fastq_minmergelen < 0) {
-    fatal("Argument to --fastq_minmergelen must be a non-negative integer");
-  }
-  {
-    /* Quality score range: 0..93 (Phred scores encoded in fastq).
-       The default value is std::numeric_limits<long>::min(), meaning
-       "no truncation"; skip the range check in that case so the default
-       is preserved. */
-    static constexpr auto long_min = std::numeric_limits<long>::min();
-    if ((parameters.opt_fastq_truncqual != long_min) and
-        ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
-      fatal("Argument to --fastq_truncqual must be in range 0..93");
-    }
-  }
-  fastq_mergepairs(parameters);
 }
 
 
@@ -477,9 +273,10 @@ auto vsearch_new_handler() -> void
 
 /* Run the command selected on the command line. Exactly one command option is
    set (enforced during parsing); the chain below picks it out and calls the
-   matching handler. A few commands adjust parameters just before running, and
-   an unrecognised (or empty) command falls through to cmd_none(). */
-auto dispatch_command(struct Parameters & parameters) -> void
+   matching handler. Configuration is fully resolved by args_init(), so this
+   reads `parameters` without modifying it; an unrecognised (or empty) command
+   falls through to cmd_none(). */
+auto dispatch_command(struct Parameters const & parameters) -> void
 {
   if (parameters.opt_help)
     {
@@ -487,13 +284,11 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_allpairs_global != nullptr)
     {
-      parameters.opt_strand = false;
-      parameters.opt_uc_allhits = true;
-      cmd_allpairs_global(parameters);
+      allpairs_global(parameters);
     }
   else if (parameters.opt_usearch_global != nullptr)
     {
-      cmd_usearch_global(parameters);
+      usearch_global(parameters);
     }
   else if (parameters.opt_sortbysize != nullptr)
     {
@@ -525,7 +320,7 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_fastx_subsample != nullptr)
     {
-      cmd_subsample(parameters);
+      subsample(parameters);
     }
   else if (parameters.opt_maskfasta != nullptr)
     {
@@ -581,7 +376,7 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_search_exact != nullptr)
     {
-      cmd_search_exact(parameters);
+      search_exact(parameters);
     }
   else if (parameters.opt_fastx_mask != nullptr)
     {
@@ -593,7 +388,7 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_fastq_mergepairs != nullptr)
     {
-      cmd_fastq_mergepairs(parameters);
+      fastq_mergepairs(parameters);
     }
   else if (parameters.opt_fastq_eestats != nullptr)
     {
@@ -605,11 +400,10 @@ auto dispatch_command(struct Parameters & parameters) -> void
     }
   else if (parameters.opt_fastq_join != nullptr)
     {
-      cmd_fastq_join(parameters);
+      fastq_join(parameters);
     }
   else if (parameters.opt_rereplicate != nullptr)
     {
-      parameters.opt_xsize = true;
       rereplicate(parameters);
     }
   else if (parameters.opt_version)

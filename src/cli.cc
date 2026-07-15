@@ -68,7 +68,8 @@
 #include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal
-#include <algorithm>  // std::count
+#include "utils/quality_encoding.hpp"  // sanger_ascii_offset
+#include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macro SCNd64
@@ -90,6 +91,17 @@
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
+
+  // performance: lambda compiles to a single x86-64 instruction (shr al, 7),
+  // equivalent to (c & ~0x7F) == 0
+  auto is_not_ASCII(std::string const & user_string) -> bool {
+    static constexpr auto ascii_max = static_cast<unsigned char>(std::numeric_limits<signed char>::max());
+    auto is_not_in_range = [](char const user_char) -> bool {
+      auto const unsigned_user_char = static_cast<unsigned char>(user_char);
+      return (unsigned_user_char > ascii_max);
+    };
+    return std::any_of(user_string.begin(), user_string.end(), is_not_in_range);
+  }
 
   auto args_get_ee_cutoffs(char const * arg, struct Parameters & parameters) -> void
   {
@@ -4521,6 +4533,28 @@ namespace {
       {
       parameters.opt_notrunclabels = true;
       }
+
+    /* Command-specific option overrides, moved here from the former
+       dispatch-time cmd_* wrappers so the command handlers receive a fully
+       resolved, unmodified Parameters. */
+    if (parameters.opt_allpairs_global != nullptr)
+      {
+        parameters.opt_strand = false;
+        parameters.opt_uc_allhits = true;
+      }
+
+    if (parameters.opt_rereplicate != nullptr)
+      {
+        parameters.opt_xsize = true;
+      }
+
+    if ((parameters.opt_fastq_join != nullptr) and
+        (not parameters.opt_join_padgapq_set_by_user) and
+        (parameters.opt_fastq_ascii != sanger_ascii_offset))
+      {
+        std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
+        parameters.opt_join_padgapq = alternative_quality_padding;
+      }
   }
 
 
@@ -4586,6 +4620,176 @@ namespace {
           }
       }
   }
+
+
+  /* Validate the requirements of the remaining commands. Relocated from the
+     former cmd_* dispatch wrappers so that all command-line validation happens
+     during args_init(); each block runs only when its command is active and
+     after apply_command_defaults() has resolved the relevant defaults, so it
+     sees exactly the configuration the command dispatch used to. */
+  auto validate_command_requirements(struct Parameters const & parameters) -> void
+  {
+    if (parameters.opt_allpairs_global != nullptr)
+      {
+        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
+            (parameters.opt_samout == nullptr) and (parameters.opt_fastapairs == nullptr))
+          {
+            fatal("No output files specified");
+          }
+
+        if (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0))))
+          {
+            fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
+          }
+      }
+
+    if (parameters.opt_usearch_global != nullptr)
+      {
+        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
+            (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
+            (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
+            (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
+            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
+          {
+            fatal("No output files specified");
+          }
+
+        if (parameters.opt_db == nullptr)
+          {
+            fatal("Database filename not specified with --db");
+          }
+
+        if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
+          {
+            fatal("Identity between 0.0 and 1.0 must be specified with --id");
+          }
+      }
+
+    if (parameters.opt_search_exact != nullptr)
+      {
+        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
+            (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
+            (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
+            (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
+            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
+          {
+            fatal("No output files specified");
+          }
+
+        if (parameters.opt_db == nullptr)
+          {
+            fatal("Database filename not specified with --db");
+          }
+      }
+
+    if (parameters.opt_fastx_subsample != nullptr)
+      {
+        if ((parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr))
+          {
+            fatal("Specify output files for subsampling with --fastaout and/or --fastqout");
+          }
+
+        if ((parameters.opt_sample_pct > 0) == (parameters.opt_sample_size > 0))
+          {
+            fatal("Specify either --sample_pct or --sample_size");
+          }
+      }
+
+    if ((parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_smallmem != nullptr) or
+        (parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
+      {
+        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
+            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
+            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
+            (parameters.opt_centroids == nullptr) and (parameters.opt_clusters == nullptr) and
+            (parameters.opt_consout == nullptr) and (parameters.opt_msaout == nullptr) and
+            (parameters.opt_samout == nullptr) and (parameters.opt_profile == nullptr) and
+            (parameters.opt_otutabout == nullptr) and (parameters.opt_biomout == nullptr) and
+            (parameters.opt_mothur_shared_out == nullptr))
+          {
+            fatal("No output files specified");
+          }
+
+        if (parameters.opt_cluster_unoise == nullptr)
+          {
+            if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
+              {
+                fatal("Identity between 0.0 and 1.0 must be specified with --id");
+              }
+          }
+      }
+
+    if (parameters.opt_fastq_mergepairs != nullptr)
+      {
+        if (parameters.opt_reverse == nullptr)
+          {
+            fatal("No reverse reads file specified with --reverse");
+          }
+        if ((parameters.opt_fastqout == nullptr) and
+            (parameters.opt_fastaout == nullptr) and
+            (parameters.opt_fastqout_notmerged_fwd == nullptr) and
+            (parameters.opt_fastqout_notmerged_rev == nullptr) and
+            (parameters.opt_fastaout_notmerged_fwd == nullptr) and
+            (parameters.opt_fastaout_notmerged_rev == nullptr) and
+            (parameters.opt_eetabbedout == nullptr))
+          {
+            fatal("No output files specified");
+          }
+        if (parameters.opt_fastq_maxdiffs < 0) {
+          fatal("Argument to --fastq_maxdiffs must be positive");
+        }
+        if (parameters.opt_fastq_maxee <= 0.0) {
+          /* expected error is the sum of per-base error probabilities;
+             probabilities are strictly positive (min quality score is 93,
+             corresponding to probability ~1e-9.3), so the sum cannot be
+             zero or negative. A null or negative threshold would always
+             reject every read and is almost certainly a user mistake. */
+          fatal("Argument to --fastq_maxee must be a strictly positive number");
+        }
+        if (parameters.opt_fastq_maxlen < 1) {
+          fatal("Argument to --fastq_maxlen must be a positive integer");
+        }
+        if (parameters.opt_fastq_minlen < 1) {
+          fatal("Argument to --fastq_minlen must be a positive integer");
+        }
+        if (parameters.opt_fastq_maxns < 0) {
+          fatal("Argument to --fastq_maxns must be a non-negative integer");
+        }
+        if (parameters.opt_fastq_maxmergelen < 1) {
+          fatal("Argument to --fastq_maxmergelen must be a positive integer");
+        }
+        if (parameters.opt_fastq_minmergelen < 0) {
+          fatal("Argument to --fastq_minmergelen must be a non-negative integer");
+        }
+        {
+          /* Quality score range: 0..93 (Phred scores encoded in fastq).
+             The default value is std::numeric_limits<long>::min(), meaning
+             "no truncation"; skip the range check in that case so the default
+             is preserved. */
+          static constexpr auto long_min = std::numeric_limits<long>::min();
+          if ((parameters.opt_fastq_truncqual != long_min) and
+              ((parameters.opt_fastq_truncqual < 0) or (parameters.opt_fastq_truncqual > 93))) {
+            fatal("Argument to --fastq_truncqual must be in range 0..93");
+          }
+        }
+      }
+
+    if (parameters.opt_fastq_join != nullptr)
+      {
+        if (is_not_ASCII(parameters.opt_join_padgap)) {
+          fatal("Option --join_padgap contains non-ASCII characters");
+        }
+        if (is_not_ASCII(parameters.opt_join_padgapq)) {
+          fatal("Option --join_padgapq contains non-ASCII characters");
+        }
+      }
+  }
 }  // end of anonymous namespace
 
 
@@ -4616,6 +4820,8 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   apply_command_defaults(options_selected, parameters);
 
   validate_chimera_options(parameters);
+
+  validate_command_requirements(parameters);
 
   // refactoring: C++17 <filesystem> std::filesystem::is_regular_file
   // check if stderr is referring to a terminal
