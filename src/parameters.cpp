@@ -83,9 +83,9 @@
 
 auto validate_thread_count(int64_t const threads) -> void
 {
-  // Upper bound for the --threads option. Kept local to its only consumer
-  // (rather than in Parameters) so the option's range limit lives with the
-  // CLI validation instead of the configuration struct.
+  // Upper bound for the --threads option. Kept local to this validator
+  // (rather than as a Parameters field) so the option's range limit lives
+  // with the check that enforces it instead of in the configuration struct.
   constexpr int64_t n_threads_max = 1024;
   if ((threads < 0) or (threads > n_threads_max))
     {
@@ -97,11 +97,12 @@ auto validate_thread_count(int64_t const threads) -> void
 }
 
 
-/* Parameters-based sentinel/range resolution: an exact mirror of the global
-   overload above, operating on the struct. Introduced for the E1 migration to
-   Parameters-primary configuration (F2); the two are kept in lockstep until
-   the globals are removed. The gap-open adjustment is guarded by the struct's
-   own gap_penalties_adjusted so a repeated call stays idempotent. */
+/* Sentinel/range resolution operating on a Parameters struct: resolves the
+   values the parser (or a library caller) left as sentinels, applies the
+   default thread count, and range-checks a few options. Shared by the CLI
+   (apply_command_defaults) and the library session (vsearch_session_begin).
+   The gap-open adjustment is guarded by the struct's own
+   gap_penalties_adjusted so a repeated call stays idempotent. */
 auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
 {
   if (parameters.opt_maxhits == 0)
