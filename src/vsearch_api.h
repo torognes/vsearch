@@ -192,3 +192,24 @@ auto vsearch_session_begin(struct Parameters & parameters) -> void;
    Omitting this call will cause the next vsearch_session_begin() to
    fail with a fatal diagnostic (the session lock is still held). */
 auto vsearch_session_end() -> void;
+
+/* Optional RAII guard over the session lifecycle above: the constructor calls
+   vsearch_session_begin() and the destructor calls vsearch_session_end(), so
+   the session is released automatically when the guard leaves scope (including
+   on an early return). Non-copyable and non-movable: a session is a single
+   process-wide resource, so exactly one guard owns it at a time. Callers that
+   need an unscoped begin/end pair (or a C-style interface) can keep using the
+   two functions directly; this is purely a convenience for C++ callers.
+
+     {
+       VsearchSession const session(parameters);
+       // ... use the library ...
+     }  // vsearch_session_end() runs here
+*/
+class VsearchSession {
+public:
+  explicit VsearchSession(struct Parameters & parameters) { vsearch_session_begin(parameters); }
+  ~VsearchSession() { vsearch_session_end(); }
+  VsearchSession(VsearchSession const &) = delete;
+  VsearchSession & operator=(VsearchSession const &) = delete;
+};
