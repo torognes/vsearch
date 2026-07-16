@@ -522,7 +522,11 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
   int pos_remaining = ci->query_len;
   int parents_found = 0;
 
-  for (int f = 0; f < parameters.opt_chimeras_parents_max; ++f)
+  /* Stop at maxparents even if opt_chimeras_parents_max is larger: best_parents
+     (above) and ci->best_parents/best_start/best_len are all maxparents-sized,
+     so f must stay below maxparents. parameters_validate() already rejects an
+     out-of-range option; this bound is the guard at the write site. */
+  for (int f = 0; (f < parameters.opt_chimeras_parents_max) and (f < maxparents); ++f)
     {
       /* scan each candidate and find longest matching region */
 
