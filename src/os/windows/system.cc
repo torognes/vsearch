@@ -107,12 +107,14 @@ auto xrealloc(void * ptr, std::size_t size) -> void *
   /* NOTE: _aligned_realloc preserves the vsearch_memalignment (16-byte)
      alignment that _aligned_malloc gave the block, so this Windows branch,
      unlike the POSIX xrealloc (plain realloc, only max_align_t), is safe for
-     the 16-byte-aligned SIMD buffers (the align_simd.cc VECTOR_SHORT arrays).
-     The portable contract nevertheless still holds: those buffers are
-     allocated with xmalloc and, as audited, never grown through xrealloc —
-     every caller resizes byte/scalar data (input buffers, sequence storage,
-     query strings, k-mer lists). Keep honouring it so the POSIX build, which
-     cannot rely on this, stays correct. */
+     the 16-byte-aligned SIMD buffers: the align_simd.cc VECTOR_SHORT arrays
+     (dprofile/hearray) and the per-query k-mer counter array (searchinfo kmers)
+     that increment_counters_from_bitmap accesses through a __m128i*. The
+     portable contract nevertheless still holds: those buffers are allocated
+     with xmalloc and, as audited, never grown through xrealloc — every caller
+     resizes byte/scalar data (input buffers, sequence storage, query strings,
+     and the unique.cc k-mer hash list/bitmap). Keep honouring it so the POSIX
+     build, which cannot rely on this, stays correct. */
   static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
   void * new_ptr = _aligned_realloc(ptr, size, vsearch_memalignment);

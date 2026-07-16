@@ -103,12 +103,19 @@ auto xrealloc(void * ptr, std::size_t size) -> void *
 {
   /* NOTE: unlike xmalloc (posix_memalign), the POSIX branch here uses plain
      realloc, which only guarantees max_align_t alignment, not xmalloc's
-     vsearch_memalignment (16 bytes). Buffers that require 16-byte alignment
-     for aligned SIMD loads/stores (the align_simd.cc VECTOR_SHORT arrays) must
-     therefore be allocated with xmalloc and never grown through xrealloc. As
-     audited, no such buffer currently passes through xrealloc — every caller
-     resizes byte/scalar data (input buffers, sequence storage, query strings,
-     k-mer lists). If that ever changes, emulate an aligned realloc here. */
+     vsearch_memalignment (16 bytes). Two buffer families need 16-byte alignment
+     for aligned SIMD access and must therefore be allocated with xmalloc and
+     never grown through xrealloc: (1) the align_simd.cc VECTOR_SHORT arrays
+     (dprofile/hearray), read and written with the aligned _mm_load_si128 /
+     _mm_store_si128 in v_load/v_store; and (2) the per-query k-mer counter array
+     (searchinfo kmers, allocated in search/cluster/sintax), which
+     increment_counters_from_bitmap accesses through a __m128i* — a dereference
+     the compiler emits as an aligned movdqa store. As audited, neither passes
+     through xrealloc: every xrealloc caller resizes byte/scalar data — input
+     buffers (fastx), sequence storage, query strings (qsequence), and the
+     unique.cc k-mer hash list/bitmap (a scalar hash table, distinct from the
+     kmers counter array above). If that ever changes, emulate an aligned
+     realloc here. */
   static constexpr auto minimal_allocation = std::size_t{1};
   size = std::max(size, minimal_allocation);
   void * new_ptr = std::realloc(ptr, size);
