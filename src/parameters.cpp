@@ -69,7 +69,6 @@
 #include "parameters.hpp"  // validate_thread_count, vsearch_apply_defaults_fixups, vsearch_session_begin
 #include "vsearch.hpp"  // struct Parameters
 #include "vsearch_api.h"  // vsearch_session_end
-#include "core/chimera.hpp"  // maxparents
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_cores
 #include "utils/fatal.hpp"  // fatal
@@ -103,7 +102,7 @@ auto validate_thread_count(int64_t const threads) -> void
    (apply_command_defaults) and the library session (vsearch_session_begin).
    The gap-open adjustment is guarded by the struct's own
    gap_penalties_adjusted so a repeated call stays idempotent. */
-auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
+auto parameters_resolve_derived(struct Parameters & parameters) -> void
 {
   if (parameters.opt_maxhits == 0)
     {
@@ -121,47 +120,6 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
         {
           parameters.opt_minwordmatches = 0;
         }
-    }
-
-  if (parameters.opt_id >= 0.0 and parameters.opt_weak_id > parameters.opt_id)
-    {
-      parameters.opt_weak_id = parameters.opt_id;
-    }
-
-  validate_thread_count(parameters.opt_threads);
-  if (parameters.opt_threads == 0)
-    {
-      parameters.opt_threads = system_get_cores();
-    }
-
-  if (parameters.opt_maxrejects == -1)
-    {
-      parameters.opt_maxrejects = 32;
-    }
-  if (parameters.opt_maxaccepts < 0)
-    {
-      fatal("The argument to --maxaccepts must not be negative");
-    }
-  if (parameters.opt_maxrejects < 0)
-    {
-      fatal("The argument to --maxrejects must not be negative");
-    }
-
-  if (parameters.opt_wordlength == 0)
-    {
-      parameters.opt_wordlength = 8;
-    }
-  if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
-    {
-      fatal("The argument to --wordlength must be in the range 3 to 15");
-    }
-
-  if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
-    {
-      std::string const message =
-        "The argument to --chimeras_parents_max must be in the range 2 to "
-        + std::to_string(maxparents);
-      fatal(message.c_str());
     }
 
   if (not parameters.gap_penalties_adjusted)
@@ -190,6 +148,55 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
     parameters.opt_gap_extension_target_left_infinite or
     parameters.opt_gap_extension_target_interior_infinite or
     parameters.opt_gap_extension_target_right_infinite;
+}
+
+
+auto parameters_validate(struct Parameters const & parameters) -> void
+{
+  validate_thread_count(parameters.opt_threads);
+
+  if (parameters.opt_maxaccepts < 0)
+    {
+      fatal("The argument to --maxaccepts must not be negative");
+    }
+  if (parameters.opt_maxrejects < 0)
+    {
+      fatal("The argument to --maxrejects must not be negative");
+    }
+
+  if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
+    {
+      fatal("The argument to --wordlength must be in the range 3 to 15");
+    }
+}
+
+
+auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
+{
+  parameters_resolve_derived(parameters);
+
+  /* Command-agnostic sentinel defaults. The CLI overrides these with
+     command-aware values (validate_option_values / configure_threads) and then
+     calls parameters_resolve_derived() and parameters_validate() directly, so
+     it never runs this block; the library reaches it through this umbrella. */
+  if (parameters.opt_id >= 0.0 and parameters.opt_weak_id > parameters.opt_id)
+    {
+      parameters.opt_weak_id = parameters.opt_id;
+    }
+  if (parameters.opt_threads == 0)
+    {
+      parameters.opt_threads = system_get_cores();
+    }
+  if (parameters.opt_maxrejects == -1)
+    {
+      parameters.opt_maxrejects = 32;
+    }
+  if (parameters.opt_wordlength == 0)
+    {
+      parameters.opt_wordlength = 8;
+    }
+
+  parameters_validate(parameters);
 }
 
 

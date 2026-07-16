@@ -76,8 +76,22 @@ struct Parameters;
 // (see the upper bound local to validate_thread_count()).
 auto validate_thread_count(int64_t threads) -> void;
 
-/* Resolve a Parameters' sentinel values and ranges (maxhits, minwordmatches,
-   maxrejects, wordlength, weak_id clamp, threads, chimeras_parents_max, and the
-   once-only gap-open adjustment). Called by vsearch_session_begin(); exposed so
-   callers can inspect the resolved values. Idempotent per struct. */
+/* Resolve the values derived purely from other options, with no command-
+   specific variant: the maxhits/minwordmatches sentinels and the once-only
+   gap-open adjustment (plus its folded infinite-penalty flag). Idempotent per
+   struct. Both the CLI and the library call this. */
+auto parameters_resolve_derived(struct Parameters & parameters) -> void;
+
+/* Fatal unless the thread count and the maxaccepts/maxrejects/wordlength
+   values are in range. Shared range validation for both the CLI and the
+   library; command-specific validation (e.g. --chimeras_parents_max) lives in
+   the CLI's own validators. */
+auto parameters_validate(struct Parameters const & parameters) -> void;
+
+/* Apply every default fix-up to a Parameters in the order the compute engines
+   expect: parameters_resolve_derived(), then the command-agnostic sentinel
+   defaults (weak_id clamp, threads, maxrejects, wordlength), then
+   parameters_validate(). The library's single entry point (called by
+   vsearch_session_begin()); the CLI supplies its own command-aware defaults
+   and calls the two helpers above directly. Idempotent per struct. */
 auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;

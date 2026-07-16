@@ -61,7 +61,7 @@
 #include "cli.h"
 #include "vsearch.hpp"
 #include "vsearch_api.h"
-#include "parameters.hpp"  // vsearch_apply_defaults_fixups
+#include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/chimera.hpp"  // maxparents
@@ -4188,16 +4188,6 @@ namespace {
           }
       }
 
-    if (parameters.opt_maxaccepts < 0)
-      {
-        fatal("The argument to --maxaccepts must not be negative");
-      }
-
-    if (parameters.opt_maxrejects < 0)
-      {
-        fatal("The argument to --maxrejects must not be negative");
-      }
-
     if (parameters.opt_wordlength == 0)
       {
         /* set default word length */
@@ -4209,11 +4199,6 @@ namespace {
           {
             parameters.opt_wordlength = 8;
           }
-      }
-
-    if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
-      {
-        fatal("The argument to --wordlength must be in the range 3 to 15");
       }
 
     if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
@@ -4471,11 +4456,15 @@ namespace {
 
     /* adapt/adjust parameters */
 
-    /* Resolve sentinel defaults and adjust gap penalties on `parameters`.
-       Generic fixups (including gap-open adjustment) are in
-       vsearch_apply_defaults_fixups(Parameters&); command-specific overrides
-       (abskew, minsize for unoise) follow below. */
-    vsearch_apply_defaults_fixups(parameters);
+    /* Resolve the derived values (maxhits/minwordmatches sentinels, gap-penalty
+       adjustment) and validate the shared ranges. The command-aware defaults
+       for weak_id/maxrejects/wordlength/threads were already applied by
+       validate_option_values() and configure_threads(), so the CLI calls these
+       two helpers directly rather than the vsearch_apply_defaults_fixups()
+       umbrella (whose generic defaults would be redundant no-ops here).
+       Command-specific overrides (abskew, minsize for unoise) follow below. */
+    parameters_resolve_derived(parameters);
+    parameters_validate(parameters);
 
     /* set default opt_minsize depending on command */
     if (parameters.opt_minsize == 0)
