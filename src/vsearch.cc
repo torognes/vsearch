@@ -133,6 +133,13 @@
 #include <vector>
 
 
+/* When building as a library (VSEARCH_NO_MAIN), exclude main() and the CLI
+   helpers it drives, to avoid symbol conflicts with the embedding
+   application's own entry point. These helpers are only ever called from
+   main()/dispatch_command(), so they carry internal linkage (anonymous
+   namespace) and are compiled solely into the standalone CLI build. */
+#ifndef VSEARCH_NO_MAIN
+namespace {
 auto cmd_none(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
   std::fprintf(stderr,
@@ -213,13 +220,9 @@ auto show_header(struct Parameters const & parameters) -> void {
   std::fprintf(stderr, "https://github.com/torognes/vsearch\n");
   std::fprintf(stderr, "\n");
 }
+}  // end of anonymous namespace
 
 
-/* When building as a library (VSEARCH_NO_MAIN), exclude main() to avoid
-   symbol conflicts with the embedding application's entry point.
-   All global variable definitions and helper functions above remain
-   available — only the CLI entry point is excluded. */
-#ifndef VSEARCH_NO_MAIN
 namespace {
 
 /* Installed via std::set_new_handler so that a failed C++ allocation
