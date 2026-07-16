@@ -72,13 +72,8 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <limits>
+#include <map>  // std::map
 #include <vector>
-
-
-auto ee_start(int64_t const pos, int const resolution) -> int64_t
-{
-  return pos * ((resolution * (pos + 1)) + 2) / 2;
-}
 
 
 auto fastq_eestats(struct Parameters const & parameters) -> void
@@ -105,11 +100,14 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
      while indexing by the unshifted value overflowed the row for qmin >= 2 */
   int const max_quality = static_cast<int>(parameters.opt_fastq_qmax + 1);
 
-  int64_t ee_size = ee_start(len_alloc, resolution);
-
   std::vector<uint64_t> read_length_table(static_cast<size_t>(len_alloc));
   std::vector<uint64_t> qual_length_table(static_cast<size_t>(len_alloc * (max_quality + 1)));
-  std::vector<uint64_t> ee_length_table(static_cast<size_t>(ee_size));
+  /* Sparse per-position expected-error histogram: ee_length_table[pos] maps each
+     observed e_int bin to its count. This replaces a dense triangular table of
+     size ~resolution*len^2/2 (almost entirely zeros) that OOM'd on long reads;
+     memory now scales with the cells actually observed. std::map keeps the keys
+     ordered so the reader's ascending walk over e_int is unchanged (E12). */
+  std::vector<std::map<int64_t, uint64_t>> ee_length_table(static_cast<size_t>(len_alloc));
   std::vector<double> sum_ee_length_table(static_cast<size_t>(len_alloc));
   std::vector<double> sum_pe_length_table(static_cast<size_t>(len_alloc));
 
@@ -131,16 +129,13 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
         if (new_alloc > len_alloc)
           {
-            int64_t const new_ee_size = ee_start(new_alloc, resolution);
-
             read_length_table.resize(static_cast<size_t>(new_alloc));
             qual_length_table.resize(static_cast<size_t>(new_alloc * (max_quality + 1)));
-            ee_length_table.resize(static_cast<size_t>(new_ee_size));
+            ee_length_table.resize(static_cast<size_t>(new_alloc));
             sum_ee_length_table.resize(static_cast<size_t>(new_alloc));
             sum_pe_length_table.resize(static_cast<size_t>(new_alloc));
 
             len_alloc = new_alloc;
-            ee_size = new_ee_size;
           }
 
         len_min = std::min(len, len_min);
@@ -171,7 +166,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
             ee += probability_of_error;
 
             auto const e_int = std::min<int64_t>(resolution * (i + 1), static_cast<int>(resolution * ee));
-            ++ee_length_table[static_cast<size_t>(ee_start(i, resolution) + e_int)];
+            ++ee_length_table[static_cast<size_t>(i)][e_int];
 
             sum_ee_length_table[static_cast<size_t>(i)] += ee;
           }
@@ -292,40 +287,36 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       double hi_ee  = -1.0;
       double max_ee = -1.0;
 
-      int64_t const ee_offset = ee_start(i, resolution);
-      int64_t const max_errors = resolution * (i + 1);
-
+      /* Walk the observed e_int bins for this position in ascending order
+         (std::map iterates sorted keys); every stored bin has a non-zero count,
+         so this is exactly the non-zero subset the former dense loop acted on. */
       n = 0;
-      for (int64_t e = 0; e <= max_errors; e++)
+      for (auto const & bin : ee_length_table[static_cast<size_t>(i)])
         {
-          int64_t const x = static_cast<int64_t>(ee_length_table[static_cast<size_t>(ee_offset + e)]);
+          int64_t const e = bin.first;
+          n += static_cast<double>(bin.second);
 
-          if (x > 0)
+          if (min_ee < 0)
             {
-              n += static_cast<double>(x);
-
-              if (min_ee < 0)
-                {
-                  min_ee = static_cast<double>(e);
-                }
-
-              if ((low_ee < 0) && (n >= 0.25 * static_cast<double>(reads)))
-                {
-                  low_ee = static_cast<double>(e);
-                }
-
-              if ((med_ee < 0) && (n >= 0.50 * static_cast<double>(reads)))
-                {
-                  med_ee = static_cast<double>(e);
-                }
-
-              if ((hi_ee < 0)  && (n >= 0.75 * static_cast<double>(reads)))
-                {
-                  hi_ee = static_cast<double>(e);
-                }
-
-              max_ee = static_cast<double>(e);
+              min_ee = static_cast<double>(e);
             }
+
+          if ((low_ee < 0) && (n >= 0.25 * static_cast<double>(reads)))
+            {
+              low_ee = static_cast<double>(e);
+            }
+
+          if ((med_ee < 0) && (n >= 0.50 * static_cast<double>(reads)))
+            {
+              med_ee = static_cast<double>(e);
+            }
+
+          if ((hi_ee < 0)  && (n >= 0.75 * static_cast<double>(reads)))
+            {
+              hi_ee = static_cast<double>(e);
+            }
+
+          max_ee = static_cast<double>(e);
         }
 
       double const mean_ee = sum_ee_length_table[static_cast<size_t>(i)] / static_cast<double>(reads);
