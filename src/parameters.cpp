@@ -68,6 +68,7 @@
 
 #include "parameters.hpp"  // validate_thread_count, parameters_resolve_derived, parameters_validate, vsearch_apply_defaults_fixups
 #include "vsearch.hpp"  // struct Parameters
+#include "core/chimera.hpp"  // maxparents
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_cores
 #include "utils/fatal.hpp"  // fatal
@@ -165,6 +166,20 @@ auto parameters_validate(struct Parameters const & parameters) -> void
   if ((parameters.opt_wordlength < 3) or (parameters.opt_wordlength > 15))
     {
       fatal("The argument to --wordlength must be in the range 3 to 15");
+    }
+
+  if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
+    {
+      fatal("The argument to --iddef must be in the range 0 to 4");
+    }
+
+  if ((parameters.opt_chimeras_parents_max < 2) or
+      (parameters.opt_chimeras_parents_max > maxparents))
+    {
+      std::string const message =
+        "The argument to --chimeras_parents_max must be in the range 2 to "
+        + std::to_string(maxparents);
+      fatal(message.c_str());
     }
 }
 

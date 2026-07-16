@@ -64,7 +64,6 @@
 #include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
-#include "core/chimera.hpp"  // maxparents
 #include "core/mask.hpp"  // Masking
 #include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
@@ -4312,11 +4311,6 @@ namespace {
           }
       }
 
-    if ((parameters.opt_iddef < 0) or (parameters.opt_iddef > 4))
-      {
-        fatal("The argument to --iddef must in the range 0 to 4");
-      }
-
   #if 0
 
     if (parameters.opt_match <= 0)
@@ -4502,12 +4496,6 @@ namespace {
     if (parameters.opt_chimeras_length_min < 1)
       {
         fatal("The argument to chimeras_length_min must be at least 1");
-      }
-
-    if ((parameters.opt_chimeras_parents_max < 2) or (parameters.opt_chimeras_parents_max > maxparents))
-      {
-        fatal("The argument to chimeras_parents_max must be in the range 2 to %s.\n",
-              std::to_string(maxparents).c_str());
       }
 
     if ((parameters.opt_chimeras_diff_pct < 0.0) or (parameters.opt_chimeras_diff_pct > 50.0))

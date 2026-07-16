@@ -82,10 +82,10 @@ auto validate_thread_count(int64_t threads) -> void;
    struct. Both the CLI and the library call this. */
 auto parameters_resolve_derived(struct Parameters & parameters) -> void;
 
-/* Fatal unless the thread count and the maxaccepts/maxrejects/wordlength
-   values are in range. Shared range validation for both the CLI and the
-   library; command-specific validation (e.g. --chimeras_parents_max) lives in
-   the CLI's own validators. */
+/* Fatal unless the thread count and the
+   maxaccepts/maxrejects/wordlength/iddef/chimeras_parents_max values are in
+   range. Shared range validation for both the CLI and the library, so a
+   library caller is held to the same bounds the CLI enforces. */
 auto parameters_validate(struct Parameters const & parameters) -> void;
 
 /* Apply every default fix-up to a Parameters in the order the compute engines

@@ -1111,7 +1111,10 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
                           parameters.opt_xee,
                           parameters.opt_xlength);
 
-      assert(ci->parents_found <= 20);  // 20 parents max ('A' to 'U')
+      if (ci->parents_found > maxparents)  // 20 parents max ('A' to 'U')
+        {
+          fatal("Internal error: chimera parents_found exceeds maxparents");
+        }
       for (int f = 0; f < ci->parents_found; ++f)
         {
           int const parent_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(ci->best_parents[static_cast<size_t>(f)])]);
