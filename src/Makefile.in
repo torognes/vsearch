@@ -596,7 +596,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/uchime_denovo.cpp commands/uchime2_denovo.cpp \
 	commands/uchime3_denovo.cpp commands/uchime_ref.cpp \
 	commands/chimeras_denovo.cpp cli.cc parameters.cpp \
-	core/cluster.cpp commands/cluster_fast.cpp \
+	vsearch_api.cpp core/cluster.cpp commands/cluster_fast.cpp \
 	commands/cluster_smallmem.cpp commands/cluster_size.cpp \
 	commands/cluster_unoise.cpp commands/cut.cpp core/db.cpp \
 	core/dbhash.cpp core/dbindex.cpp core/derep.cpp \
@@ -650,6 +650,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-chimeras_denovo.$(OBJEXT) \
 	libvsearch_core_a-cli.$(OBJEXT) \
 	libvsearch_core_a-parameters.$(OBJEXT) \
+	libvsearch_core_a-vsearch_api.$(OBJEXT) \
 	core/libvsearch_core_a-cluster.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_fast.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_smallmem.$(OBJEXT) \
@@ -813,7 +814,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/uchime_denovo.cpp commands/uchime2_denovo.cpp \
 	commands/uchime3_denovo.cpp commands/uchime_ref.cpp \
 	commands/chimeras_denovo.cpp cli.cc parameters.cpp \
-	core/cluster.cpp commands/cluster_fast.cpp \
+	vsearch_api.cpp core/cluster.cpp commands/cluster_fast.cpp \
 	commands/cluster_smallmem.cpp commands/cluster_size.cpp \
 	commands/cluster_unoise.cpp commands/cut.cpp core/db.cpp \
 	core/dbhash.cpp core/dbindex.cpp core/derep.cpp \
@@ -863,8 +864,8 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/uchime3_denovo.$(OBJEXT) \
 	commands/uchime_ref.$(OBJEXT) \
 	commands/chimeras_denovo.$(OBJEXT) cli.$(OBJEXT) \
-	parameters.$(OBJEXT) core/cluster.$(OBJEXT) \
-	commands/cluster_fast.$(OBJEXT) \
+	parameters.$(OBJEXT) vsearch_api.$(OBJEXT) \
+	core/cluster.$(OBJEXT) commands/cluster_fast.$(OBJEXT) \
 	commands/cluster_smallmem.$(OBJEXT) \
 	commands/cluster_size.$(OBJEXT) \
 	commands/cluster_unoise.$(OBJEXT) commands/cut.$(OBJEXT) \
@@ -960,7 +961,9 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-parameters.Po \
 	./$(DEPDIR)/libvsearch_core_a-vsearch.Po \
+	./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po \
 	./$(DEPDIR)/parameters.Po ./$(DEPDIR)/vsearch.Po \
+	./$(DEPDIR)/vsearch_api.Po \
 	arch/aarch64/$(DEPDIR)/increment_counters.Po \
 	arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
 	arch/ppc64le/$(DEPDIR)/increment_counters.Po \
@@ -1530,6 +1533,7 @@ commands/uchime_ref.cpp \
 commands/chimeras_denovo.cpp \
 cli.cc \
 parameters.cpp \
+vsearch_api.cpp \
 core/cluster.cpp \
 commands/cluster_fast.cpp \
 commands/cluster_smallmem.cpp \
@@ -2375,8 +2379,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-parameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch_api.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/ppc64le/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
@@ -2963,6 +2969,20 @@ libvsearch_core_a-parameters.obj: parameters.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='parameters.cpp' object='libvsearch_core_a-parameters.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-parameters.obj `if test -f 'parameters.cpp'; then $(CYGPATH_W) 'parameters.cpp'; else $(CYGPATH_W) '$(srcdir)/parameters.cpp'; fi`
+
+libvsearch_core_a-vsearch_api.o: vsearch_api.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-vsearch_api.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-vsearch_api.Tpo -c -o libvsearch_core_a-vsearch_api.o `test -f 'vsearch_api.cpp' || echo '$(srcdir)/'`vsearch_api.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-vsearch_api.Tpo $(DEPDIR)/libvsearch_core_a-vsearch_api.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vsearch_api.cpp' object='libvsearch_core_a-vsearch_api.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-vsearch_api.o `test -f 'vsearch_api.cpp' || echo '$(srcdir)/'`vsearch_api.cpp
+
+libvsearch_core_a-vsearch_api.obj: vsearch_api.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-vsearch_api.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-vsearch_api.Tpo -c -o libvsearch_core_a-vsearch_api.obj `if test -f 'vsearch_api.cpp'; then $(CYGPATH_W) 'vsearch_api.cpp'; else $(CYGPATH_W) '$(srcdir)/vsearch_api.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-vsearch_api.Tpo $(DEPDIR)/libvsearch_core_a-vsearch_api.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vsearch_api.cpp' object='libvsearch_core_a-vsearch_api.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-vsearch_api.obj `if test -f 'vsearch_api.cpp'; then $(CYGPATH_W) 'vsearch_api.cpp'; else $(CYGPATH_W) '$(srcdir)/vsearch_api.cpp'; fi`
 
 core/libvsearch_core_a-cluster.o: core/cluster.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-cluster.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-cluster.Tpo -c -o core/libvsearch_core_a-cluster.o `test -f 'core/cluster.cpp' || echo '$(srcdir)/'`core/cluster.cpp
@@ -4488,8 +4508,10 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-parameters.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
+	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po
 	-rm -f ./$(DEPDIR)/parameters.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
+	-rm -f ./$(DEPDIR)/vsearch_api.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
 	-rm -f arch/ppc64le/$(DEPDIR)/increment_counters.Po
@@ -4765,8 +4787,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-parameters.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
+	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po
 	-rm -f ./$(DEPDIR)/parameters.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
+	-rm -f ./$(DEPDIR)/vsearch_api.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
 	-rm -f arch/ppc64le/$(DEPDIR)/increment_counters.Po

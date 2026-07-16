@@ -59,7 +59,6 @@
 */
 
 #include "vsearch.hpp"
-#include "vsearch_api.h"
 #include "commands/allpairs_global.hpp"
 #include "commands/uchime_denovo.hpp"
 #include "commands/uchime2_denovo.hpp"
@@ -78,6 +77,7 @@
 #include "commands/derep_prefix.hpp"
 #include "commands/derep_smallmem.hpp"
 #include "os/dynlibs.hpp"
+#include "os/system.hpp"  // system_get_cores, system_get_memtotal
 #include "commands/fastq_eestats.hpp"
 #include "commands/fastq_eestats2.hpp"
 #include "commands/fasta2fastq.hpp"
@@ -131,17 +131,6 @@
 #include <string>
 #include <unistd.h>  // write, _exit, STDERR_FILENO
 #include <vector>
-
-
-auto vsearch_api_version() -> int
-{
-  return VSEARCH_API_VERSION;
-}
-
-auto vsearch_api_version_string() -> const char *
-{
-  return VSEARCH_API_VERSION_STRING;
-}
 
 
 auto cmd_none(struct Parameters const & parameters) -> void {

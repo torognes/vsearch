@@ -66,9 +66,8 @@
 // the argument parser or in main(). validate_thread_count() lives here too,
 // next to its fixups caller.
 
-#include "parameters.hpp"  // validate_thread_count, vsearch_apply_defaults_fixups, vsearch_session_begin
+#include "parameters.hpp"  // validate_thread_count, parameters_resolve_derived, parameters_validate, vsearch_apply_defaults_fixups
 #include "vsearch.hpp"  // struct Parameters
-#include "vsearch_api.h"  // vsearch_session_end
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_cores
 #include "utils/fatal.hpp"  // fatal
@@ -76,7 +75,6 @@
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
 #include <limits>  // std::numeric_limits
-#include <mutex>  // std::mutex
 #include <string>  // std::to_string, std::string
 
 
@@ -197,31 +195,4 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
     }
 
   parameters_validate(parameters);
-}
-
-
-/* Serializes library sessions: acquired by vsearch_session_begin() and released
-   by vsearch_session_end(), so only one session runs at a time. */
-static std::mutex session_mutex;
-
-
-/* Begin a library session from a Parameters (E1/F2, shape A). Acquires the
-   session lock (same non-blocking semantics as the retired
-   vsearch_init_defaults) and resolves the struct's sentinels/ranges. Pair with
-   vsearch_session_end(). */
-auto vsearch_session_begin(struct Parameters & parameters) -> void
-{
-  if (not session_mutex.try_lock())
-    {
-      fatal("A vsearch library session is already active: a previous "
-            "vsearch_session_begin() was not paired with vsearch_session_end(). "
-            "Call vsearch_session_end() before starting a new session.");
-    }
-  vsearch_apply_defaults_fixups(parameters);
-}
-
-
-auto vsearch_session_end() -> void
-{
-  session_mutex.unlock();
 }

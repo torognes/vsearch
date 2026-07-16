@@ -280,6 +280,7 @@ commands/uchime_ref.cpp \
 commands/chimeras_denovo.cpp \
 cli.cc \
 parameters.cpp \
+vsearch_api.cpp \
 core/cluster.cpp \
 commands/cluster_fast.cpp \
 commands/cluster_smallmem.cpp \
