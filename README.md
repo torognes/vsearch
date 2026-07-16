@@ -126,7 +126,7 @@ platform.
 
 ## API
 
-Thanks to Daniel McDonald (with help from Anthropic's Claude) there is now an API to many of VSEARCH's core functions. You can build a static library `libvsearch.a` and link it directly with your own code. Please see the [Library API Examples](api_examples/README.md) and [the main API header file](src/vsearch_api.h) for details. The API is currently at version 0.13.0 and may change quite a bit in the beginning.
+Thanks to Daniel McDonald (with help from Anthropic's Claude) there is now an API to many of VSEARCH's core functions. You can build a static library `libvsearch.a` and link it directly with your own code. Please see the [Library API Examples](api_examples/README.md) and [the main API header file](src/vsearch_api.h) for details. The API is currently at version 0.12.0 and may change quite a bit in the beginning.
 
 
 ## Packages, plugins, and wrappers

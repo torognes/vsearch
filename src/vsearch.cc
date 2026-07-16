@@ -256,17 +256,14 @@ auto vsearch_new_handler() -> void
 }
 
 
-/* Run the command selected on the command line. Exactly one command option is
-   set (enforced during parsing); the chain below picks it out and calls the
-   matching handler. Configuration is fully resolved by args_init(), so this
-   reads `parameters` without modifying it; an unrecognised (or empty) command
-   falls through to cmd_none(). */
-auto dispatch_command(struct Parameters const & parameters) -> void
+/* Run the command selected on the command line. The command was resolved once
+   during parsing (args_init) and is passed in, so dispatch is a plain table
+   lookup rather than a chain of opt_* pointer tests. Configuration is fully
+   resolved by args_init(), so this reads `parameters` without modifying it; an
+   unrecognised (or empty) command falls through to cmd_none() via default. */
+auto dispatch_command(struct Parameters const & parameters, Command const command) -> void
 {
-  /* The command was resolved once during parsing (args_init); dispatch
-     is a plain table lookup rather than a chain of opt_* pointer tests.
-     default handles Command::none (no valid command requested). */
-  switch (parameters.command)
+  switch (command)
     {
     case Command::help:             help(parameters);             break;
     case Command::version:          version(parameters);          break;
@@ -350,7 +347,7 @@ auto main(int argc, char** argv) -> int
 
   cpu_features_detect(parameters);
 
-  args_init(argc, argv, parameters);
+  Command const command = args_init(argc, argv, parameters);
 
   /* The log file's Started banner and Finished/elapsed/max-memory footer are
      written by the LogFile constructor and destructor; the explicit scope
@@ -371,7 +368,7 @@ auto main(int argc, char** argv) -> int
 
     cpu_features_test(parameters);
 
-    dispatch_command(parameters);
+    dispatch_command(parameters, command);
   }
 
   flush_stdout();

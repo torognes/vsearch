@@ -4894,7 +4894,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
+auto args_init(int argc, char ** argv, struct Parameters & parameters) -> Command
 {
   validate_option_tables();
 
@@ -4916,10 +4916,10 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   int const k = resolve_command(options_selected, long_options);
 
-  /* Resolve the command once, here where its row index k is known, so the
-     dispatcher switches on parameters.command instead of re-deriving the
+  /* Resolve the command once, here where its row index k is known, and return
+     it to main() so the dispatcher switches on it instead of re-deriving the
      command identity from ~50 opt_* pointer tests. k < 0 means no command. */
-  parameters.command = (k >= 0)
+  Command const command = (k >= 0)
     ? command_of_row[static_cast<std::size_t>(k)]
     : Command::none;
 
@@ -4941,5 +4941,7 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 
   /* Configuration is now fully resolved in `parameters` (parsed options,
      command-specific defaults and the sentinel fixups above); the compute
-     engines and command dispatch read it directly. */
+     engines read it directly, and the resolved command is returned for
+     dispatch. */
+  return command;
 }
