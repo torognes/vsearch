@@ -60,12 +60,18 @@
 
 #pragma once
 
-// Declarations for the shared parameter-resolution and library-session
-// functions defined in parameters.cpp. struct Parameters is (for now) still
-// defined in vsearch.hpp; these declarations only take it by reference, so an
-// incomplete type is sufficient and this header needs no include.
+// Declarations for the functions defined in parameters.cpp: thread-count
+// validation, Parameters sentinel/range resolution, and the library-session
+// lifecycle. struct Parameters is (for now) still defined in vsearch.hpp; the
+// functions that take it do so by reference, so a forward declaration suffices.
+
+#include <cstdint>  // int64_t (validate_thread_count)
 
 struct Parameters;
+
+// Fatal unless the requested thread count is within the accepted range
+// (see the upper bound local to validate_thread_count()).
+auto validate_thread_count(int64_t threads) -> void;
 
 /* Library API: session lifecycle */
 /* Resolve a Parameters' sentinel values and ranges (maxhits, minwordmatches,

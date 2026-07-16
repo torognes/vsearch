@@ -65,13 +65,7 @@
 
 #pragma once
 
-#include <cstdint>  // int64_t
-
 
 // Parse the command line, set all opt_* globals and the matching fields in
 // parameters, and validate the requested command and its options.
 auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void;
-
-// Fatal unless the requested thread count is within the accepted range
-// (see the upper bound local to validate_thread_count()).
-auto validate_thread_count(int64_t threads) -> void;
