@@ -340,7 +340,7 @@ int main()
 
   struct Parameters parameters;
   parameters.opt_wordlength = 8;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
   QualityTables const tables = mergepairs_init(parameters);
 
   failures += test_free_null_safety();
@@ -349,8 +349,6 @@ int main()
   failures += test_result_reuse(tables, parameters);
   failures += test_nonchimera_result_zeroed(parameters);
   failures += test_dust_hardmask();
-
-  vsearch_session_end();
 
   return failures == 0 ? 0 : 1;
 }

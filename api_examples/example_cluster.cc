@@ -51,7 +51,7 @@ static int run_cluster_uc() {
     parameters.opt_id = 0.70;
     parameters.opt_maxaccepts = 1;
     parameters.opt_maxrejects = 32;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     std::vector<std::string> labels, seqs;
     read_fasta("data/chimera_ref.fasta", labels, seqs);
@@ -115,7 +115,6 @@ static int run_cluster_uc() {
     cluster_session_free(cs);
     dbindex.clear();
     db.clear();
-    vsearch_session_end();
 
     return 0;
 }
@@ -132,7 +131,7 @@ static int run_batch_tests()
   parameters.opt_maxaccepts = 1;
   parameters.opt_maxrejects = 32;
   parameters.opt_threads = 2;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   std::vector<std::string> labels, seqs;
   read_fasta("data/chimera_ref.fasta", labels, seqs);
@@ -214,7 +213,6 @@ static int run_batch_tests()
     }
 
   db.clear();
-  vsearch_session_end();
 
   return failures;
 }

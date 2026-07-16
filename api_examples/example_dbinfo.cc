@@ -45,7 +45,7 @@ static int test_db_read_fasta_accessors()
   int failures = 0;
 
   struct Parameters parameters;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   Database db;
   db.read("data/chimera_ref.fasta", 0, parameters);
@@ -97,7 +97,6 @@ static int test_db_read_fasta_accessors()
     }
 
   db.clear();
-  vsearch_session_end();
 
   if (failures == 0)
     {
@@ -115,7 +114,7 @@ static int test_db_read_fastq_quality()
   int failures = 0;
 
   struct Parameters parameters;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   Database db;
   db.read("data/merge_fwd.fastq", 0, parameters);
@@ -148,7 +147,6 @@ static int test_db_read_fastq_quality()
     }
 
   db.clear();
-  vsearch_session_end();
 
   if (failures == 0)
     {
@@ -167,7 +165,7 @@ static int test_db_add_fastq_quality()
   int failures = 0;
 
   struct Parameters parameters;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   Database db;
   db.init();
@@ -195,7 +193,6 @@ static int test_db_add_fastq_quality()
     }
 
   db.clear();
-  vsearch_session_end();
 
   if (failures == 0)
     {
@@ -246,7 +243,7 @@ static int test_db_add_accessors()
   int failures = 0;
 
   struct Parameters parameters;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   std::vector<record_s> const records = make_records();
   Database db;
@@ -295,7 +292,6 @@ static int test_db_add_accessors()
     }
 
   db.clear();
-  vsearch_session_end();
 
   if (failures == 0)
     {
@@ -327,7 +323,7 @@ static int test_sort_contracts()
   int failures = 0;
 
   struct Parameters parameters;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   std::vector<record_s> const records = make_records();
   Database db;
@@ -377,7 +373,6 @@ static int test_sort_contracts()
     }
 
   db.clear();
-  vsearch_session_end();
 
   if (failures == 0)
     {
@@ -432,7 +427,7 @@ static int test_incremental_indexing()
   parameters.opt_id = 0.5;
   parameters.opt_maxaccepts = 8;
   parameters.opt_maxrejects = 32;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   std::vector<std::string> ref_labels, ref_seqs;
   {
@@ -440,7 +435,6 @@ static int test_incremental_indexing()
     if (input == nullptr)
       {
         std::fprintf(stderr, "FAIL: cannot open data/chimera_ref.fasta\n");
-        vsearch_session_end();
         return 1;
       }
     char line[65536];
@@ -491,7 +485,6 @@ static int test_incremental_indexing()
   dbindex.clear();
 
   db.clear();
-  vsearch_session_end();
 
   if (hits_batch.empty())
     {

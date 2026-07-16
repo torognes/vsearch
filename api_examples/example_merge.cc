@@ -54,7 +54,7 @@ static bool read_fastq_record(const char * path,
 int main() {
     /* 1. Initialize vsearch globals */
     struct Parameters parameters;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     /* 2. Initialize merge quality lookup tables (held by the caller and
           passed to every mergepairs_single call) */
@@ -101,7 +101,6 @@ int main() {
     }
 
     merge_result_free(&result);
-    vsearch_session_end();
 
     return 0;
 }

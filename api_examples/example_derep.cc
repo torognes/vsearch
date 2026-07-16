@@ -46,7 +46,7 @@ static void read_fasta(const char * path,
 int main() {
     /* 1. Initialize vsearch globals */
     struct Parameters parameters;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     /* 2. Read input sequences */
     std::vector<std::string> labels, seqs;
@@ -82,7 +82,6 @@ int main() {
     /* 6. Cleanup */
     derep_session_cleanup(ds);
     derep_session_free(ds);
-    vsearch_session_end();
 
     return 0;
 }

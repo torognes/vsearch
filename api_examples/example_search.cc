@@ -74,7 +74,7 @@ static int run_search_tsv() {
     parameters.opt_maxaccepts = 3;
     parameters.opt_maxrejects = 16;
 
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     std::vector<std::string> ref_labels, ref_seqs;
     read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -121,7 +121,6 @@ static int run_search_tsv() {
     search_session_free(ss);
     dbindex.clear();
     db.clear();
-    vsearch_session_end();
 
     return 0;
 }
@@ -138,7 +137,7 @@ static int run_batch_tests()
   parameters.opt_maxaccepts = 3;
   parameters.opt_maxrejects = 16;
   parameters.opt_threads = 2;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   std::vector<std::string> ref_labels, ref_seqs;
   read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -240,7 +239,6 @@ static int run_batch_tests()
 
   dbindex.clear();
   db.clear();
-  vsearch_session_end();
 
   return failures;
 }
@@ -258,7 +256,7 @@ static bool search_rc_finds_hit(const std::string & fwd,
   parameters.opt_strand = both_strands;
   parameters.opt_maxaccepts = 1;
   parameters.opt_maxrejects = 32;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   Database db;
   db.init();
@@ -294,7 +292,6 @@ static bool search_rc_finds_hit(const std::string & fwd,
   search_session_free(ss);
   dbindex.clear();
   db.clear();
-  vsearch_session_end();
 
   return found;
 }

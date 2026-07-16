@@ -62,7 +62,7 @@ static void read_fasta(const char * path,
 static int run_chimera_tsv() {
     struct Parameters parameters;
     parameters.opt_wordlength = 8;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     std::vector<std::string> ref_labels, ref_seqs;
     read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -121,7 +121,6 @@ static int run_chimera_tsv() {
     chimera_info_free(ci);
     dbindex.clear();
     db.clear();
-    vsearch_session_end();
 
     return 0;
 }
@@ -135,7 +134,7 @@ static int run_batch_tests()
   struct Parameters parameters;
   parameters.opt_wordlength = 8;
   parameters.opt_threads = 2;
-  vsearch_session_begin(parameters);
+  VsearchSession const session(parameters);
 
   std::vector<std::string> ref_labels, ref_seqs;
   read_fasta("data/chimera_ref.fasta", ref_labels, ref_seqs);
@@ -230,7 +229,6 @@ static int run_batch_tests()
 
   dbindex.clear();
   db.clear();
-  vsearch_session_end();
 
   return failures;
 }
