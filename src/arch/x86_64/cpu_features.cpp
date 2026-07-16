@@ -63,7 +63,7 @@
 // compiles this file only under TARGET_X86_64, so no __x86_64__ guard is
 // needed here -- the Makefile owns the architecture selection.
 
-#include "cpu_features.hpp"
+#include "arch/cpu_features.hpp"
 #include "vsearch.hpp"  // struct Parameters
 #include "utils/fatal.hpp"  // fatal
 #include <cstdint>  // int64_t

@@ -175,8 +175,8 @@ libcpu_a_AR = $(AR) $(ARFLAGS)
 libcpu_a_LIBADD =
 am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/align_simd.hpp commands/allpairs_global.hpp \
-	arch/x86_64/cpu_features.hpp core/attributes.hpp \
-	core/bitmap.hpp core/buffer_headroom.hpp core/chimera.hpp \
+	arch/cpu_features.hpp core/attributes.hpp core/bitmap.hpp \
+	core/buffer_headroom.hpp core/chimera.hpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
 	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
 	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
@@ -240,8 +240,8 @@ libcpu_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_pic_a_LIBADD =
 am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/align_simd.hpp commands/allpairs_global.hpp \
-	arch/x86_64/cpu_features.hpp core/attributes.hpp \
-	core/bitmap.hpp core/buffer_headroom.hpp core/chimera.hpp \
+	arch/cpu_features.hpp core/attributes.hpp core/bitmap.hpp \
+	core/buffer_headroom.hpp core/chimera.hpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
 	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
 	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
@@ -304,7 +304,7 @@ libcpu_sse2_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_a_LIBADD =
 am__libcpu_sse2_a_SOURCES_DIST =  \
 	arch/x86_64/SSE2/increment_counters.cpp core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
+	commands/allpairs_global.hpp arch/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
 	core/chimera.hpp core/chimera_internal.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
@@ -363,7 +363,7 @@ libcpu_sse2_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_sse2_pic_a_LIBADD =
 am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	arch/x86_64/SSE2/increment_counters.cpp core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
+	commands/allpairs_global.hpp arch/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
 	core/chimera.hpp core/chimera_internal.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
@@ -422,7 +422,7 @@ libcpu_ssse3_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_a_LIBADD =
 am__libcpu_ssse3_a_SOURCES_DIST =  \
 	arch/x86_64/SSSE3/increment_counters.cpp core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
+	commands/allpairs_global.hpp arch/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
 	core/chimera.hpp core/chimera_internal.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
@@ -481,7 +481,7 @@ libcpu_ssse3_pic_a_AR = $(AR) $(ARFLAGS)
 libcpu_ssse3_pic_a_LIBADD =
 am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	arch/x86_64/SSSE3/increment_counters.cpp core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
+	commands/allpairs_global.hpp arch/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
 	core/chimera.hpp core/chimera_internal.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
@@ -539,7 +539,7 @@ libcpu_ssse3_pic_a_OBJECTS = $(am_libcpu_ssse3_pic_a_OBJECTS)
 libvsearch_core_a_AR = $(AR) $(ARFLAGS)
 libvsearch_core_a_LIBADD =
 am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
+	commands/allpairs_global.hpp arch/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
 	core/chimera.hpp core/chimera_internal.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
@@ -633,11 +633,11 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/random.cpp utils/reverse_complement.cpp \
 	utils/sequence_digest.cpp utils/string_alloc.cpp \
 	utils/string_normalize.cpp commands/version.cpp vsearch.cc \
-	arch/x86_64/cpu_features.cpp os/posix/dynlib_loader.cc \
-	os/posix/system.cc os/macos/system_memory.cc \
-	os/freebsd/system_memory.cc os/linux/system_memory.cc \
-	os/windows/dynlib_loader.cc os/windows/system.cc \
-	os/windows/system_memory.cc
+	arch/generic/cpu_features.cpp arch/x86_64/cpu_features.cpp \
+	os/posix/dynlib_loader.cc os/posix/system.cc \
+	os/macos/system_memory.cc os/freebsd/system_memory.cc \
+	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
+	os/windows/system.cc os/windows/system_memory.cc
 am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-allpairs_global.$(OBJEXT) \
 	core/libvsearch_core_a-attributes.$(OBJEXT) \
@@ -740,6 +740,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-string_normalize.$(OBJEXT) \
 	commands/libvsearch_core_a-version.$(OBJEXT) \
 	libvsearch_core_a-vsearch.$(OBJEXT)
+@TARGET_X86_64_FALSE@am__objects_3 = arch/generic/libvsearch_core_a-cpu_features.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
 @TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_4 = os/macos/libvsearch_core_a-system_memory.$(OBJEXT)
 @TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__objects_5 = os/freebsd/libvsearch_core_a-system_memory.$(OBJEXT)
@@ -757,7 +758,7 @@ am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_3) $(am__objects_7)
 libvsearch_core_a_OBJECTS = $(am_libvsearch_core_a_OBJECTS)
 am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
-	commands/allpairs_global.hpp arch/x86_64/cpu_features.hpp \
+	commands/allpairs_global.hpp arch/cpu_features.hpp \
 	core/attributes.hpp core/bitmap.hpp core/buffer_headroom.hpp \
 	core/chimera.hpp core/chimera_internal.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
@@ -851,11 +852,11 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/random.cpp utils/reverse_complement.cpp \
 	utils/sequence_digest.cpp utils/string_alloc.cpp \
 	utils/string_normalize.cpp commands/version.cpp vsearch.cc \
-	arch/x86_64/cpu_features.cpp os/posix/dynlib_loader.cc \
-	os/posix/system.cc os/macos/system_memory.cc \
-	os/freebsd/system_memory.cc os/linux/system_memory.cc \
-	os/windows/dynlib_loader.cc os/windows/system.cc \
-	os/windows/system_memory.cc
+	arch/generic/cpu_features.cpp arch/x86_64/cpu_features.cpp \
+	os/posix/dynlib_loader.cc os/posix/system.cc \
+	os/macos/system_memory.cc os/freebsd/system_memory.cc \
+	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
+	os/windows/system.cc os/windows/system_memory.cc
 am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) core/attributes.$(OBJEXT) \
 	core/bitmap.$(OBJEXT) core/chimera.$(OBJEXT) \
@@ -915,6 +916,8 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	utils/sequence_digest.$(OBJEXT) utils/string_alloc.$(OBJEXT) \
 	utils/string_normalize.$(OBJEXT) commands/version.$(OBJEXT) \
 	vsearch.$(OBJEXT)
+@TARGET_X86_64_FALSE@am__objects_9 =  \
+@TARGET_X86_64_FALSE@	arch/generic/cpu_features.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_9 =  \
 @TARGET_X86_64_TRUE@	arch/x86_64/cpu_features.$(OBJEXT)
 @TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_10 = os/macos/system_memory.$(OBJEXT)
@@ -966,6 +969,8 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	./$(DEPDIR)/vsearch_api.Po \
 	arch/aarch64/$(DEPDIR)/increment_counters.Po \
 	arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
+	arch/generic/$(DEPDIR)/cpu_features.Po \
+	arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po \
 	arch/ppc64le/$(DEPDIR)/increment_counters.Po \
 	arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
 	arch/simde/$(DEPDIR)/increment_counters.Po \
@@ -1347,7 +1352,7 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions $(am__append_7)
 VSEARCHHEADERS = \
 core/align_simd.hpp \
 commands/allpairs_global.hpp \
-arch/x86_64/cpu_features.hpp \
+arch/cpu_features.hpp \
 core/attributes.hpp \
 core/bitmap.hpp \
 core/buffer_headroom.hpp \
@@ -1624,12 +1629,13 @@ utils/string_normalize.cpp \
 commands/version.cpp \
 vsearch.cc
 
-@TARGET_X86_64_FALSE@VSEARCH_ARCH_SOURCES = 
+@TARGET_X86_64_FALSE@VSEARCH_ARCH_SOURCES = arch/generic/cpu_features.cpp
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes
-# sense on x86_64 (elsewhere the ISA level is fixed at compile time), so
-# cpu_features is compiled only there; its single caller in vsearch.cc is
-# guarded by #ifdef __x86_64__ to match.
+# sense on x86_64 (elsewhere the ISA level is fixed at compile time). Both
+# implementations satisfy the arch-neutral arch/cpu_features.hpp interface,
+# so vsearch.cc calls cpu_features_detect()/cpu_features_test() with no
+# #ifdef: x86_64 gets the real CPUID probe, every other target gets a noop.
 @TARGET_X86_64_TRUE@VSEARCH_ARCH_SOURCES = arch/x86_64/cpu_features.cpp
 @TARGET_WIN_FALSE@VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc \
 @TARGET_WIN_FALSE@	os/posix/system.cc $(am__append_8) \
@@ -2069,6 +2075,15 @@ utils/libvsearch_core_a-string_normalize.$(OBJEXT):  \
 	utils/$(am__dirstamp) utils/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-version.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
+arch/generic/$(am__dirstamp):
+	@$(MKDIR_P) arch/generic
+	@: > arch/generic/$(am__dirstamp)
+arch/generic/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arch/generic/$(DEPDIR)
+	@: > arch/generic/$(DEPDIR)/$(am__dirstamp)
+arch/generic/libvsearch_core_a-cpu_features.$(OBJEXT):  \
+	arch/generic/$(am__dirstamp) \
+	arch/generic/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/$(am__dirstamp):
 	@$(MKDIR_P) arch/x86_64
 	@: > arch/x86_64/$(am__dirstamp)
@@ -2327,6 +2342,8 @@ utils/string_normalize.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
 commands/version.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
+arch/generic/cpu_features.$(OBJEXT): arch/generic/$(am__dirstamp) \
+	arch/generic/$(DEPDIR)/$(am__dirstamp)
 arch/x86_64/cpu_features.$(OBJEXT): arch/x86_64/$(am__dirstamp) \
 	arch/x86_64/$(DEPDIR)/$(am__dirstamp)
 os/posix/dynlib_loader.$(OBJEXT): os/posix/$(am__dirstamp) \
@@ -2356,6 +2373,7 @@ $(top_builddir)/bin/vsearch$(EXEEXT): $(__top_builddir__bin_vsearch_OBJECTS) $(_
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f arch/aarch64/*.$(OBJEXT)
+	-rm -f arch/generic/*.$(OBJEXT)
 	-rm -f arch/ppc64le/*.$(OBJEXT)
 	-rm -f arch/simde/*.$(OBJEXT)
 	-rm -f arch/x86_64/*.$(OBJEXT)
@@ -2385,6 +2403,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch_api.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/generic/$(DEPDIR)/cpu_features.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/ppc64le/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/simde/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
@@ -4202,6 +4222,20 @@ libvsearch_core_a-vsearch.obj: vsearch.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-vsearch.obj `if test -f 'vsearch.cc'; then $(CYGPATH_W) 'vsearch.cc'; else $(CYGPATH_W) '$(srcdir)/vsearch.cc'; fi`
 
+arch/generic/libvsearch_core_a-cpu_features.o: arch/generic/cpu_features.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT arch/generic/libvsearch_core_a-cpu_features.o -MD -MP -MF arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo -c -o arch/generic/libvsearch_core_a-cpu_features.o `test -f 'arch/generic/cpu_features.cpp' || echo '$(srcdir)/'`arch/generic/cpu_features.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/generic/cpu_features.cpp' object='arch/generic/libvsearch_core_a-cpu_features.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/generic/libvsearch_core_a-cpu_features.o `test -f 'arch/generic/cpu_features.cpp' || echo '$(srcdir)/'`arch/generic/cpu_features.cpp
+
+arch/generic/libvsearch_core_a-cpu_features.obj: arch/generic/cpu_features.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT arch/generic/libvsearch_core_a-cpu_features.obj -MD -MP -MF arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo -c -o arch/generic/libvsearch_core_a-cpu_features.obj `if test -f 'arch/generic/cpu_features.cpp'; then $(CYGPATH_W) 'arch/generic/cpu_features.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/generic/cpu_features.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='arch/generic/cpu_features.cpp' object='arch/generic/libvsearch_core_a-cpu_features.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o arch/generic/libvsearch_core_a-cpu_features.obj `if test -f 'arch/generic/cpu_features.cpp'; then $(CYGPATH_W) 'arch/generic/cpu_features.cpp'; else $(CYGPATH_W) '$(srcdir)/arch/generic/cpu_features.cpp'; fi`
+
 arch/x86_64/libvsearch_core_a-cpu_features.o: arch/x86_64/cpu_features.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT arch/x86_64/libvsearch_core_a-cpu_features.o -MD -MP -MF arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo -c -o arch/x86_64/libvsearch_core_a-cpu_features.o `test -f 'arch/x86_64/cpu_features.cpp' || echo '$(srcdir)/'`arch/x86_64/cpu_features.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo arch/x86_64/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
@@ -4463,6 +4497,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f arch/aarch64/$(DEPDIR)/$(am__dirstamp)
 	-rm -f arch/aarch64/$(am__dirstamp)
+	-rm -f arch/generic/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arch/generic/$(am__dirstamp)
 	-rm -f arch/ppc64le/$(DEPDIR)/$(am__dirstamp)
 	-rm -f arch/ppc64le/$(am__dirstamp)
 	-rm -f arch/simde/$(DEPDIR)/$(am__dirstamp)
@@ -4514,6 +4550,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/vsearch_api.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+	-rm -f arch/generic/$(DEPDIR)/cpu_features.Po
+	-rm -f arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
 	-rm -f arch/ppc64le/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
 	-rm -f arch/simde/$(DEPDIR)/increment_counters.Po
@@ -4793,6 +4831,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/vsearch_api.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
+	-rm -f arch/generic/$(DEPDIR)/cpu_features.Po
+	-rm -f arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
 	-rm -f arch/ppc64le/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/ppc64le/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
 	-rm -f arch/simde/$(DEPDIR)/increment_counters.Po

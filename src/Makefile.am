@@ -75,7 +75,7 @@ export MACOSX_DEPLOYMENT_TARGET=10.9
 VSEARCHHEADERS=\
 core/align_simd.hpp \
 commands/allpairs_global.hpp \
-arch/x86_64/cpu_features.hpp \
+arch/cpu_features.hpp \
 core/attributes.hpp \
 core/bitmap.hpp \
 core/buffer_headroom.hpp \
@@ -372,13 +372,14 @@ commands/version.cpp \
 vsearch.cc
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes
-# sense on x86_64 (elsewhere the ISA level is fixed at compile time), so
-# cpu_features is compiled only there; its single caller in vsearch.cc is
-# guarded by #ifdef __x86_64__ to match.
+# sense on x86_64 (elsewhere the ISA level is fixed at compile time). Both
+# implementations satisfy the arch-neutral arch/cpu_features.hpp interface,
+# so vsearch.cc calls cpu_features_detect()/cpu_features_test() with no
+# #ifdef: x86_64 gets the real CPUID probe, every other target gets a noop.
 if TARGET_X86_64
 VSEARCH_ARCH_SOURCES = arch/x86_64/cpu_features.cpp
 else
-VSEARCH_ARCH_SOURCES =
+VSEARCH_ARCH_SOURCES = arch/generic/cpu_features.cpp
 endif
 
 # Per-OS sources. Host-OS-specific code lives in one backend per OS family,

@@ -112,9 +112,7 @@
 #include "commands/udbstats.hpp"
 #include "commands/version.hpp"
 #include "utils/compare_strings_nocase.hpp"
-#ifdef __x86_64__
-#include "arch/x86_64/cpu_features.hpp"
-#endif
+#include "arch/cpu_features.hpp"
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
@@ -478,9 +476,7 @@ auto main(int argc, char** argv) -> int
 
   parameters.command_line = getentirecommandline(argc, argv);
 
-#ifdef __x86_64__
   cpu_features_detect(parameters);
-#endif
 
   args_init(argc, argv, parameters);
 
@@ -501,9 +497,7 @@ auto main(int argc, char** argv) -> int
     DynamicLibraries const dynamic_libraries;
     parameters.dyn_libs = &dynamic_libraries;
 
-#ifdef __x86_64__
     cpu_features_test(parameters);
-#endif
 
     dispatch_command(parameters);
   }
