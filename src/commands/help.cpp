@@ -579,3 +579,15 @@ auto help(struct Parameters const & parameters) -> void {
       std::fputs(line, stdout);
     }
 }
+
+
+auto help_message_line_count() -> std::size_t
+{
+  return help_message.size();
+}
+
+
+auto help_message_line(std::size_t const index) -> char const *
+{
+  return help_message[index];
+}
