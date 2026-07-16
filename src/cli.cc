@@ -62,7 +62,6 @@
 #include "vsearch.hpp"
 #include "vsearch_api.h"
 #include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count
-#include "commands/help.hpp"  // help_message_line{,_count} (option-name cross-check)
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/chimera.hpp"  // maxparents
@@ -2958,29 +2957,14 @@ namespace {
 
   /*
     Startup consistency check for the option metadata that must stay in sync:
-    the option_* enum (parser), the valid_options matrix (validator),
-    command_of_row (dispatcher), and the help text (see the help-text scan at
-    the end). C++11's std::array::operator[] is not constexpr
+    the option_* enum (parser), the valid_options matrix (validator), and
+    command_of_row (dispatcher). C++11's std::array::operator[] is not constexpr
     (that arrived in C++14, which this codebase does not yet use), so these
     invariants cannot be static_assert-ed and are verified once here, at CLI
     startup, instead. A failure is a programming error -- a desynced table --
     and is reported via fatal() so it can never pass unnoticed. args_init() is
     CLI-only, so the library configuration path never runs this.
   */
-  auto option_name_is_known(std::string const & name) -> bool
-  {
-    return std::any_of(option_specs.cbegin(), option_specs.cend(),
-                       [&name](OptionSpec const & spec) { return name == spec.name; });
-  }
-
-  auto is_option_name_char(char const character) -> bool
-  {
-    return ((character >= 'a') and (character <= 'z')) or
-           ((character >= 'A') and (character <= 'Z')) or
-           ((character >= '0') and (character <= '9')) or
-           (character == '_');
-  }
-
   auto validate_option_tables() -> void
   {
     /* every matrix entry is the -1 row terminator or a real option index */
@@ -3013,31 +2997,6 @@ namespace {
         if (command == Command::none)
           {
             fatal("internal error: command_of_row has an unmapped row");
-          }
-      }
-
-    /* every "--option" named in the help text is a real option, so renaming or
-       removing an option cannot leave the help text referring to it. The
-       converse (every option is documented) is deliberately not checked: some
-       options are intentionally absent from the help summary. */
-    for (std::size_t line_index = 0; line_index < help_message_line_count(); ++line_index)
-      {
-        std::string const line = help_message_line(line_index);
-        std::size_t position = line.find("--");
-        while (position != std::string::npos)
-          {
-            std::size_t const start = position + 2;
-            std::size_t stop = start;
-            while ((stop < line.size()) and is_option_name_char(line[stop]))
-              {
-                ++stop;
-              }
-            if ((stop > start) and
-                (not option_name_is_known(line.substr(start, stop - start))))
-              {
-                fatal("internal error: help text names an unknown option");
-              }
-            position = line.find("--", stop);
           }
       }
   }

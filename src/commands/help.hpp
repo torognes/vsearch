@@ -61,13 +61,4 @@
 
 #pragma once
 
-#include <cstddef>  // std::size_t
-
 auto help(struct Parameters const & parameters) -> void;
-
-/* Read-only access to the help text, one line per index. Exposed so the CLI
-   can verify at startup (see cli.cc, validate_option_tables) that every option
-   named in the help text is a real option, catching help text left stale by a
-   renamed or removed option. */
-auto help_message_line_count() -> std::size_t;
-auto help_message_line(std::size_t index) -> char const *;
