@@ -2955,6 +2955,52 @@ namespace {
       Command::version            // option_version
     }};
 
+  /*
+    Startup consistency check for the option metadata that must stay in sync:
+    the option_* enum (parser), the valid_options matrix (validator), and
+    command_of_row (dispatcher). C++11's std::array::operator[] is not constexpr
+    (that arrived in C++14, which this codebase does not yet use), so these
+    invariants cannot be static_assert-ed and are verified once here, at CLI
+    startup, instead. A failure is a programming error -- a desynced table --
+    and is reported via fatal() so it can never pass unnoticed. args_init() is
+    CLI-only, so the library configuration path never runs this.
+  */
+  auto validate_option_tables() -> void
+  {
+    /* every matrix entry is the -1 row terminator or a real option index */
+    for (auto const & row : valid_options)
+      {
+        for (int const entry : row)
+          {
+            if ((entry < -1) or (entry >= option_count))
+              {
+                fatal("internal error: valid_options holds an out-of-range option index");
+              }
+          }
+      }
+
+    /* rows are in canonical order (ascending primary option), the order
+       command_of_row is written against, so a reordered or duplicated command
+       row cannot silently point the dispatcher at the wrong handler */
+    for (std::size_t row = 1; row < valid_options.size(); ++row)
+      {
+        if (valid_options[row][0] <= valid_options[row - 1][0])
+          {
+            fatal("internal error: valid_options rows are not sorted by primary option");
+          }
+      }
+
+    /* every command row resolves to a real command (none would mean a row was
+       added to valid_options without a matching command_of_row entry) */
+    for (Command const command : command_of_row)
+      {
+        if (command == Command::none)
+          {
+            fatal("internal error: command_of_row has an unmapped row");
+          }
+      }
+  }
+
   /* Parse the command line with getopt: set each recognised option's
      Parameters field, record which options were seen in the returned
      vector (indexed by the option_* enum), and terminate on an ambiguous
@@ -4850,6 +4896,8 @@ namespace {
 
 auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
 {
+  validate_option_tables();
+
   parameters.progname = argv[0];
 
   /* The option parser (parse_options) populates this Parameters
