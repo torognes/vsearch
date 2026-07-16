@@ -178,27 +178,6 @@ auto cmd_none(struct Parameters const & parameters) -> void {
 }
 
 
-auto cmd_cluster(struct Parameters const & parameters) -> void
-{
-  if (parameters.opt_cluster_fast != nullptr)
-    {
-      cluster_fast(parameters);
-    }
-  else if (parameters.opt_cluster_smallmem != nullptr)
-    {
-      cluster_smallmem(parameters);
-    }
-  else if (parameters.opt_cluster_size != nullptr)
-    {
-      cluster_size(parameters);
-    }
-  else if (parameters.opt_cluster_unoise != nullptr)
-    {
-      cluster_unoise(parameters);
-    }
-}
-
-
 auto fill_prog_header(struct Parameters & parameters) -> void
 {
   static constexpr auto max_line_length = std::size_t{80};
@@ -315,9 +294,21 @@ auto dispatch_command(struct Parameters const & parameters) -> void
     {
       maskfasta(parameters);
     }
-  else if ((parameters.opt_cluster_smallmem != nullptr) or (parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
+  else if (parameters.opt_cluster_fast != nullptr)
     {
-      cmd_cluster(parameters);
+      cluster_fast(parameters);
+    }
+  else if (parameters.opt_cluster_smallmem != nullptr)
+    {
+      cluster_smallmem(parameters);
+    }
+  else if (parameters.opt_cluster_size != nullptr)
+    {
+      cluster_size(parameters);
+    }
+  else if (parameters.opt_cluster_unoise != nullptr)
+    {
+      cluster_unoise(parameters);
     }
   else if (parameters.opt_uchime_denovo != nullptr)
     {
