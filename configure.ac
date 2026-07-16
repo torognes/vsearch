@@ -18,6 +18,18 @@ AC_LANG([C++])
 AC_CONFIG_SRCDIR([src/vsearch.cc])
 AC_CONFIG_HEADERS([config.h])
 
+# Feature-test and C99-macro definitions, relocated from the top of
+# src/vsearch.hpp so translation units no longer inherit them from a project
+# header. config.h is included ahead of the standard library headers, so these
+# still take effect. The __STDC_*_MACROS are defined empty (not 1) to match the
+# way GCC's own <stdint.h> defines them in C++ mode: a value of 1 clashes with
+# that empty definition and triggers a "redefined" warning wherever <cstdint>
+# is seen first. They expose the C99 stdint/inttypes macros on older toolchains.
+AC_DEFINE([_GNU_SOURCE], [1], [Enable GNU/glibc extensions.])
+AC_DEFINE([__STDC_CONSTANT_MACROS], [], [Expose C99 <stdint.h> INT*_C() macros in C++.])
+AC_DEFINE([__STDC_FORMAT_MACROS], [], [Expose C99 <inttypes.h> PRI* macros in C++.])
+AC_DEFINE([__STDC_LIMIT_MACROS], [], [Expose C99 <stdint.h> INT*_MAX limit macros in C++.])
+
 AC_SUBST(MACOSX_DEPLOYMENT_TARGET)
 MACOSX_DEPLOYMENT_TARGET="10.9"
 

@@ -60,12 +60,9 @@
 
 #pragma once
 
-#define _GNU_SOURCE 1
-#define __STDC_CONSTANT_MACROS 1
-#define __STDC_FORMAT_MACROS 1
-#define __STDC_LIMIT_MACROS 1
-#define __restrict
-
+/* _GNU_SOURCE and the __STDC_*_MACROS feature-test macros are defined in
+   config.h (see configure.ac), which is included first below so they precede
+   the standard library headers. */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

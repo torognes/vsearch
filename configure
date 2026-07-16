@@ -3725,6 +3725,26 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 ac_config_headers="$ac_config_headers config.h"
 
 
+# Feature-test and C99-macro definitions, relocated from the top of
+# src/vsearch.hpp so translation units no longer inherit them from a project
+# header. config.h is included ahead of the standard library headers, so these
+# still take effect. The __STDC_*_MACROS are defined empty (not 1) to match the
+# way GCC's own <stdint.h> defines them in C++ mode: a value of 1 clashes with
+# that empty definition and triggers a "redefined" warning wherever <cstdint>
+# is seen first. They expose the C99 stdint/inttypes macros on older toolchains.
+
+printf "%s\n" "#define _GNU_SOURCE 1" >>confdefs.h
+
+
+printf "%s\n" "#define __STDC_CONSTANT_MACROS /**/" >>confdefs.h
+
+
+printf "%s\n" "#define __STDC_FORMAT_MACROS /**/" >>confdefs.h
+
+
+printf "%s\n" "#define __STDC_LIMIT_MACROS /**/" >>confdefs.h
+
+
 
 MACOSX_DEPLOYMENT_TARGET="10.9"
 

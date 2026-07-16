@@ -122,6 +122,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* Enable GNU/glibc extensions. */
+#undef _GNU_SOURCE
+
 /* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
    <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
    #define below would cause a syntax error. */
@@ -136,6 +139,15 @@
    <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
    #define below would cause a syntax error. */
 #undef _UINT8_T
+
+/* Expose C99 <stdint.h> INT*_C() macros in C++. */
+#undef __STDC_CONSTANT_MACROS
+
+/* Expose C99 <inttypes.h> PRI* macros in C++. */
+#undef __STDC_FORMAT_MACROS
+
+/* Expose C99 <stdint.h> INT*_MAX limit macros in C++. */
+#undef __STDC_LIMIT_MACROS
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
