@@ -123,6 +123,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf, std::printf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <cstring>  // std::strlen
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
                      // option (no_argument, required_argument)
 #include <new>  // std::set_new_handler
@@ -200,7 +201,22 @@ auto fill_prog_header(struct Parameters & parameters) -> void
 auto getentirecommandline(int argc, char** argv) -> std::string
 {
   std::string command_line;
-  for (int i = 0; i < argc; i++)
+  if (argc <= 0)
+    {
+      return command_line;
+    }
+
+  // Size the result up front so it is built in a single allocation: the sum
+  // of every argument's length plus one separating space between adjacent
+  // arguments.
+  auto total_length = static_cast<std::string::size_type>(argc - 1);
+  for (int i = 0; i < argc; ++i)
+    {
+      total_length += std::strlen(argv[i]);
+    }
+  command_line.reserve(total_length);
+
+  for (int i = 0; i < argc; ++i)
     {
       if (i > 0)
         {
