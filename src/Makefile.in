@@ -180,7 +180,7 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
 	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
 	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
+	vendored/city.h cli.h parameters.hpp core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
 	commands/cluster_unoise.hpp arch/increment_counters.hpp \
@@ -245,7 +245,7 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/chimera_internal.hpp commands/uchime_denovo.hpp \
 	commands/uchime2_denovo.hpp commands/uchime3_denovo.hpp \
 	commands/uchime_ref.hpp commands/chimeras_denovo.hpp \
-	vendored/city.h cli.h core/cluster.hpp \
+	vendored/city.h cli.h parameters.hpp core/cluster.hpp \
 	core/cluster_internal.hpp commands/cluster_fast.hpp \
 	commands/cluster_smallmem.hpp commands/cluster_size.hpp \
 	commands/cluster_unoise.hpp arch/increment_counters.hpp \
@@ -310,7 +310,7 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
 	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
 	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
+	parameters.hpp core/cluster.hpp core/cluster_internal.hpp \
 	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
@@ -369,7 +369,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
 	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
 	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
+	parameters.hpp core/cluster.hpp core/cluster_internal.hpp \
 	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
@@ -428,7 +428,7 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
 	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
 	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
+	parameters.hpp core/cluster.hpp core/cluster_internal.hpp \
 	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
@@ -487,7 +487,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
 	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
 	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
+	parameters.hpp core/cluster.hpp core/cluster_internal.hpp \
 	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
@@ -545,7 +545,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
 	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
 	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
+	parameters.hpp core/cluster.hpp core/cluster_internal.hpp \
 	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
@@ -595,19 +595,20 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
 	commands/uchime_denovo.cpp commands/uchime2_denovo.cpp \
 	commands/uchime3_denovo.cpp commands/uchime_ref.cpp \
-	commands/chimeras_denovo.cpp cli.cc core/cluster.cpp \
-	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
-	commands/cluster_size.cpp commands/cluster_unoise.cpp \
-	commands/cut.cpp core/db.cpp core/dbhash.cpp core/dbindex.cpp \
-	core/derep.cpp commands/derep_fulllength.cpp \
-	commands/derep_id.cpp commands/fastx_uniques.cpp \
-	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
-	os/dynlibs.cpp commands/fastq_eestats.cpp \
-	commands/fastq_eestats2.cpp core/eestats.cpp \
-	commands/fasta2fastq.cpp core/fasta.cpp core/fastq.cpp \
-	commands/fastq_chars.cpp commands/fastq_convert.cpp \
-	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
-	core/mergepairs.cpp commands/fastq_stats.cpp core/fastx.cpp \
+	commands/chimeras_denovo.cpp cli.cc parameters.cpp \
+	core/cluster.cpp commands/cluster_fast.cpp \
+	commands/cluster_smallmem.cpp commands/cluster_size.cpp \
+	commands/cluster_unoise.cpp commands/cut.cpp core/db.cpp \
+	core/dbhash.cpp core/dbindex.cpp core/derep.cpp \
+	commands/derep_fulllength.cpp commands/derep_id.cpp \
+	commands/fastx_uniques.cpp commands/derep_prefix.cpp \
+	commands/derep_smallmem.cpp os/dynlibs.cpp \
+	commands/fastq_eestats.cpp commands/fastq_eestats2.cpp \
+	core/eestats.cpp commands/fasta2fastq.cpp core/fasta.cpp \
+	core/fastq.cpp commands/fastq_chars.cpp \
+	commands/fastq_convert.cpp commands/fastq_join.cpp \
+	commands/fastq_mergepairs.cpp core/mergepairs.cpp \
+	commands/fastq_stats.cpp core/fastx.cpp \
 	commands/fastx_revcomp.cpp commands/fastx_subsample.cpp \
 	commands/fastx_syncpairs.cpp commands/fastq_filter.cpp \
 	commands/fastx_filter.cpp core/filter.cpp \
@@ -648,6 +649,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-uchime_ref.$(OBJEXT) \
 	commands/libvsearch_core_a-chimeras_denovo.$(OBJEXT) \
 	libvsearch_core_a-cli.$(OBJEXT) \
+	libvsearch_core_a-parameters.$(OBJEXT) \
 	core/libvsearch_core_a-cluster.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_fast.$(OBJEXT) \
 	commands/libvsearch_core_a-cluster_smallmem.$(OBJEXT) \
@@ -760,7 +762,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/uchime_denovo.hpp commands/uchime2_denovo.hpp \
 	commands/uchime3_denovo.hpp commands/uchime_ref.hpp \
 	commands/chimeras_denovo.hpp vendored/city.h cli.h \
-	core/cluster.hpp core/cluster_internal.hpp \
+	parameters.hpp core/cluster.hpp core/cluster_internal.hpp \
 	commands/cluster_fast.hpp commands/cluster_smallmem.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
@@ -810,19 +812,20 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	core/attributes.cpp core/bitmap.cpp core/chimera.cpp \
 	commands/uchime_denovo.cpp commands/uchime2_denovo.cpp \
 	commands/uchime3_denovo.cpp commands/uchime_ref.cpp \
-	commands/chimeras_denovo.cpp cli.cc core/cluster.cpp \
-	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
-	commands/cluster_size.cpp commands/cluster_unoise.cpp \
-	commands/cut.cpp core/db.cpp core/dbhash.cpp core/dbindex.cpp \
-	core/derep.cpp commands/derep_fulllength.cpp \
-	commands/derep_id.cpp commands/fastx_uniques.cpp \
-	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
-	os/dynlibs.cpp commands/fastq_eestats.cpp \
-	commands/fastq_eestats2.cpp core/eestats.cpp \
-	commands/fasta2fastq.cpp core/fasta.cpp core/fastq.cpp \
-	commands/fastq_chars.cpp commands/fastq_convert.cpp \
-	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
-	core/mergepairs.cpp commands/fastq_stats.cpp core/fastx.cpp \
+	commands/chimeras_denovo.cpp cli.cc parameters.cpp \
+	core/cluster.cpp commands/cluster_fast.cpp \
+	commands/cluster_smallmem.cpp commands/cluster_size.cpp \
+	commands/cluster_unoise.cpp commands/cut.cpp core/db.cpp \
+	core/dbhash.cpp core/dbindex.cpp core/derep.cpp \
+	commands/derep_fulllength.cpp commands/derep_id.cpp \
+	commands/fastx_uniques.cpp commands/derep_prefix.cpp \
+	commands/derep_smallmem.cpp os/dynlibs.cpp \
+	commands/fastq_eestats.cpp commands/fastq_eestats2.cpp \
+	core/eestats.cpp commands/fasta2fastq.cpp core/fasta.cpp \
+	core/fastq.cpp commands/fastq_chars.cpp \
+	commands/fastq_convert.cpp commands/fastq_join.cpp \
+	commands/fastq_mergepairs.cpp core/mergepairs.cpp \
+	commands/fastq_stats.cpp core/fastx.cpp \
 	commands/fastx_revcomp.cpp commands/fastx_subsample.cpp \
 	commands/fastx_syncpairs.cpp commands/fastq_filter.cpp \
 	commands/fastx_filter.cpp core/filter.cpp \
@@ -860,7 +863,8 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/uchime3_denovo.$(OBJEXT) \
 	commands/uchime_ref.$(OBJEXT) \
 	commands/chimeras_denovo.$(OBJEXT) cli.$(OBJEXT) \
-	core/cluster.$(OBJEXT) commands/cluster_fast.$(OBJEXT) \
+	parameters.$(OBJEXT) core/cluster.$(OBJEXT) \
+	commands/cluster_fast.$(OBJEXT) \
 	commands/cluster_smallmem.$(OBJEXT) \
 	commands/cluster_size.$(OBJEXT) \
 	commands/cluster_unoise.$(OBJEXT) commands/cut.$(OBJEXT) \
@@ -954,8 +958,9 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
+	./$(DEPDIR)/libvsearch_core_a-parameters.Po \
 	./$(DEPDIR)/libvsearch_core_a-vsearch.Po \
-	./$(DEPDIR)/vsearch.Po \
+	./$(DEPDIR)/parameters.Po ./$(DEPDIR)/vsearch.Po \
 	arch/aarch64/$(DEPDIR)/increment_counters.Po \
 	arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po \
 	arch/ppc64le/$(DEPDIR)/increment_counters.Po \
@@ -1352,6 +1357,7 @@ commands/uchime_ref.hpp \
 commands/chimeras_denovo.hpp \
 vendored/city.h \
 cli.h \
+parameters.hpp \
 core/cluster.hpp \
 core/cluster_internal.hpp \
 commands/cluster_fast.hpp \
@@ -1523,6 +1529,7 @@ commands/uchime3_denovo.cpp \
 commands/uchime_ref.cpp \
 commands/chimeras_denovo.cpp \
 cli.cc \
+parameters.cpp \
 core/cluster.cpp \
 commands/cluster_fast.cpp \
 commands/cluster_smallmem.cpp \
@@ -2366,7 +2373,9 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-parameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/increment_counters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po@am__quote@ # am--include-marker
@@ -2940,6 +2949,20 @@ libvsearch_core_a-cli.obj: cli.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cli.cc' object='libvsearch_core_a-cli.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-cli.obj `if test -f 'cli.cc'; then $(CYGPATH_W) 'cli.cc'; else $(CYGPATH_W) '$(srcdir)/cli.cc'; fi`
+
+libvsearch_core_a-parameters.o: parameters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-parameters.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-parameters.Tpo -c -o libvsearch_core_a-parameters.o `test -f 'parameters.cpp' || echo '$(srcdir)/'`parameters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-parameters.Tpo $(DEPDIR)/libvsearch_core_a-parameters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='parameters.cpp' object='libvsearch_core_a-parameters.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-parameters.o `test -f 'parameters.cpp' || echo '$(srcdir)/'`parameters.cpp
+
+libvsearch_core_a-parameters.obj: parameters.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-parameters.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-parameters.Tpo -c -o libvsearch_core_a-parameters.obj `if test -f 'parameters.cpp'; then $(CYGPATH_W) 'parameters.cpp'; else $(CYGPATH_W) '$(srcdir)/parameters.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-parameters.Tpo $(DEPDIR)/libvsearch_core_a-parameters.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='parameters.cpp' object='libvsearch_core_a-parameters.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-parameters.obj `if test -f 'parameters.cpp'; then $(CYGPATH_W) 'parameters.cpp'; else $(CYGPATH_W) '$(srcdir)/parameters.cpp'; fi`
 
 core/libvsearch_core_a-cluster.o: core/cluster.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-cluster.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-cluster.Tpo -c -o core/libvsearch_core_a-cluster.o `test -f 'core/cluster.cpp' || echo '$(srcdir)/'`core/cluster.cpp
@@ -4463,7 +4486,9 @@ clean-am: clean-binPROGRAMS clean-generic clean-local \
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
+	-rm -f ./$(DEPDIR)/libvsearch_core_a-parameters.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
+	-rm -f ./$(DEPDIR)/parameters.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
@@ -4738,7 +4763,9 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
+	-rm -f ./$(DEPDIR)/libvsearch_core_a-parameters.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
+	-rm -f ./$(DEPDIR)/parameters.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
 	-rm -f arch/aarch64/$(DEPDIR)/increment_counters.Po
 	-rm -f arch/aarch64/$(DEPDIR)/libcpu_pic_a-increment_counters.Po
