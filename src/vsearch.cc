@@ -263,205 +263,61 @@ auto vsearch_new_handler() -> void
    falls through to cmd_none(). */
 auto dispatch_command(struct Parameters const & parameters) -> void
 {
-  if (parameters.opt_help)
+  /* The command was resolved once during parsing (args_init); dispatch
+     is a plain table lookup rather than a chain of opt_* pointer tests.
+     default handles Command::none (no valid command requested). */
+  switch (parameters.command)
     {
-      help(parameters);
-    }
-  else if (parameters.opt_allpairs_global != nullptr)
-    {
-      allpairs_global(parameters);
-    }
-  else if (parameters.opt_usearch_global != nullptr)
-    {
-      usearch_global(parameters);
-    }
-  else if (parameters.opt_sortbysize != nullptr)
-    {
-      sortbysize(parameters);
-    }
-  else if (parameters.opt_sortbylength != nullptr)
-    {
-      sortbylength(parameters);
-    }
-  else if (parameters.opt_derep_fulllength != nullptr)
-    {
-      derep_fulllength(parameters);
-    }
-  else if (parameters.opt_derep_prefix != nullptr)
-    {
-      derep_prefix(parameters);
-    }
-  else if (parameters.opt_derep_smallmem != nullptr)
-    {
-      derep_smallmem(parameters);
-    }
-  else if (parameters.opt_derep_id != nullptr)
-    {
-      derep_id(parameters);
-    }
-  else if (parameters.opt_shuffle != nullptr)
-    {
-      shuffle(parameters);
-    }
-  else if (parameters.opt_fastx_subsample != nullptr)
-    {
-      subsample(parameters);
-    }
-  else if (parameters.opt_maskfasta != nullptr)
-    {
-      maskfasta(parameters);
-    }
-  else if (parameters.opt_cluster_fast != nullptr)
-    {
-      cluster_fast(parameters);
-    }
-  else if (parameters.opt_cluster_smallmem != nullptr)
-    {
-      cluster_smallmem(parameters);
-    }
-  else if (parameters.opt_cluster_size != nullptr)
-    {
-      cluster_size(parameters);
-    }
-  else if (parameters.opt_cluster_unoise != nullptr)
-    {
-      cluster_unoise(parameters);
-    }
-  else if (parameters.opt_uchime_denovo != nullptr)
-    {
-      uchime_denovo(parameters);
-    }
-  else if (parameters.opt_uchime_ref != nullptr)
-    {
-      uchime_ref(parameters);
-    }
-  else if (parameters.opt_uchime2_denovo != nullptr)
-    {
-      uchime2_denovo(parameters);
-    }
-  else if (parameters.opt_uchime3_denovo != nullptr)
-    {
-      uchime3_denovo(parameters);
-    }
-  else if (parameters.opt_chimeras_denovo != nullptr)
-    {
-      chimeras_denovo(parameters);
-    }
-  else if (parameters.opt_fastq_chars != nullptr)
-    {
-      fastq_chars(parameters);
-    }
-  else if (parameters.opt_fastq_stats != nullptr)
-    {
-      fastq_stats(parameters);
-    }
-  else if (parameters.opt_fastq_filter != nullptr)
-    {
-      fastq_filter(parameters);
-    }
-  else if (parameters.opt_fastx_filter != nullptr)
-    {
-      fastx_filter(parameters);
-    }
-  else if (parameters.opt_fastx_syncpairs != nullptr)
-    {
-      fastx_syncpairs(parameters);
-    }
-  else if (parameters.opt_fastx_revcomp != nullptr)
-    {
-      fastx_revcomp(parameters);
-    }
-  else if (parameters.opt_search_exact != nullptr)
-    {
-      search_exact(parameters);
-    }
-  else if (parameters.opt_fastx_mask != nullptr)
-    {
-      fastx_mask(parameters);
-    }
-  else if (parameters.opt_fastq_convert != nullptr)
-    {
-      fastq_convert(parameters);
-    }
-  else if (parameters.opt_fastq_mergepairs != nullptr)
-    {
-      fastq_mergepairs(parameters);
-    }
-  else if (parameters.opt_fastq_eestats != nullptr)
-    {
-      fastq_eestats(parameters);
-    }
-  else if (parameters.opt_fastq_eestats2 != nullptr)
-    {
-      fastq_eestats2(parameters);
-    }
-  else if (parameters.opt_fastq_join != nullptr)
-    {
-      fastq_join(parameters);
-    }
-  else if (parameters.opt_rereplicate != nullptr)
-    {
-      rereplicate(parameters);
-    }
-  else if (parameters.opt_version)
-    {
-      version(parameters);
-    }
-  else if (parameters.opt_makeudb_usearch != nullptr)
-    {
-      makeudb_usearch(parameters);
-    }
-  else if (parameters.opt_udb2fasta != nullptr)
-    {
-      udb2fasta(parameters);
-    }
-  else if (parameters.opt_udbinfo != nullptr)
-    {
-      udbinfo(parameters);
-    }
-  else if (parameters.opt_udbstats != nullptr)
-    {
-      udbstats(parameters);
-    }
-  else if (parameters.opt_sintax != nullptr)
-    {
-      sintax(parameters);
-    }
-  else if (parameters.opt_sff_convert != nullptr)
-    {
-      sff_convert(parameters);
-    }
-  else if (parameters.opt_fastx_getseq != nullptr)
-    {
-      fastx_getseq(parameters);
-    }
-  else if (parameters.opt_fastx_getseqs != nullptr)
-    {
-      fastx_getseqs(parameters);
-    }
-  else if (parameters.opt_fastx_getsubseq != nullptr)
-    {
-      fastx_getsubseq(parameters);
-    }
-  else if (parameters.opt_cut != nullptr)
-    {
-      cut(parameters);
-    }
-  else if (parameters.opt_orient != nullptr)
-    {
-      orient(parameters);
-    }
-  else if (parameters.opt_fasta2fastq != nullptr)
-    {
-      fasta2fastq(parameters);
-    }
-  else if (parameters.opt_fastx_uniques != nullptr)
-    {
-      fastx_uniques(parameters);
-    }
-  else
-    {
-      cmd_none(parameters);
+    case Command::help:             help(parameters);             break;
+    case Command::version:          version(parameters);          break;
+    case Command::allpairs_global:  allpairs_global(parameters);  break;
+    case Command::usearch_global:   usearch_global(parameters);   break;
+    case Command::search_exact:     search_exact(parameters);     break;
+    case Command::sintax:           sintax(parameters);           break;
+    case Command::orient:           orient(parameters);           break;
+    case Command::cluster_fast:     cluster_fast(parameters);     break;
+    case Command::cluster_smallmem: cluster_smallmem(parameters); break;
+    case Command::cluster_size:     cluster_size(parameters);     break;
+    case Command::cluster_unoise:   cluster_unoise(parameters);   break;
+    case Command::uchime_denovo:    uchime_denovo(parameters);    break;
+    case Command::uchime2_denovo:   uchime2_denovo(parameters);   break;
+    case Command::uchime3_denovo:   uchime3_denovo(parameters);   break;
+    case Command::uchime_ref:       uchime_ref(parameters);       break;
+    case Command::chimeras_denovo:  chimeras_denovo(parameters);  break;
+    case Command::derep_fulllength: derep_fulllength(parameters); break;
+    case Command::derep_prefix:     derep_prefix(parameters);     break;
+    case Command::derep_id:         derep_id(parameters);         break;
+    case Command::derep_smallmem:   derep_smallmem(parameters);   break;
+    case Command::fastq_chars:      fastq_chars(parameters);      break;
+    case Command::fastq_stats:      fastq_stats(parameters);      break;
+    case Command::fastq_filter:     fastq_filter(parameters);     break;
+    case Command::fastx_filter:     fastx_filter(parameters);     break;
+    case Command::fastq_convert:    fastq_convert(parameters);    break;
+    case Command::fastq_eestats:    fastq_eestats(parameters);    break;
+    case Command::fastq_eestats2:   fastq_eestats2(parameters);   break;
+    case Command::fastq_join:       fastq_join(parameters);       break;
+    case Command::fastq_mergepairs: fastq_mergepairs(parameters); break;
+    case Command::fastx_uniques:    fastx_uniques(parameters);    break;
+    case Command::fastx_mask:       fastx_mask(parameters);       break;
+    case Command::fastx_revcomp:    fastx_revcomp(parameters);    break;
+    case Command::fastx_syncpairs:  fastx_syncpairs(parameters);  break;
+    case Command::fastx_getseq:     fastx_getseq(parameters);     break;
+    case Command::fastx_getseqs:    fastx_getseqs(parameters);    break;
+    case Command::fastx_getsubseq:  fastx_getsubseq(parameters);  break;
+    case Command::fastx_subsample:  subsample(parameters);        break;
+    case Command::fasta2fastq:      fasta2fastq(parameters);      break;
+    case Command::cut:              cut(parameters);              break;
+    case Command::shuffle:          shuffle(parameters);          break;
+    case Command::sortbylength:     sortbylength(parameters);     break;
+    case Command::sortbysize:       sortbysize(parameters);       break;
+    case Command::rereplicate:      rereplicate(parameters);      break;
+    case Command::maskfasta:        maskfasta(parameters);        break;
+    case Command::sff_convert:      sff_convert(parameters);      break;
+    case Command::makeudb_usearch:  makeudb_usearch(parameters);  break;
+    case Command::udb2fasta:        udb2fasta(parameters);        break;
+    case Command::udbinfo:          udbinfo(parameters);          break;
+    case Command::udbstats:         udbstats(parameters);         break;
+    default:                        cmd_none(parameters);         break;
     }
 }
 

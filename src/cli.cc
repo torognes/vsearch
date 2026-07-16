@@ -2890,6 +2890,71 @@ namespace {
         -1 }
       }};
 
+  /*
+    The command each valid_options row selects, in the same order as the rows
+    above. resolve_command() finds the requested command's row index k, and
+    command_of_row[k] is the resolved Command the dispatcher switches on -- so
+    the pointer-test re-derivation in the old dispatch chain is gone. This array
+    MUST stay aligned with valid_options one row per entry (the --h/--help and
+    --v/--version alias rows both map to Command::help / Command::version). The
+    validate_option_tables() startup check guards the invariants a positional
+    array cannot express on its own (see below).
+  */
+  static constexpr std::array<Command, number_of_commands> command_of_row =
+    {{
+      Command::allpairs_global,   // option_allpairs_global
+      Command::chimeras_denovo,   // option_chimeras_denovo
+      Command::cluster_fast,      // option_cluster_fast
+      Command::cluster_size,      // option_cluster_size
+      Command::cluster_smallmem,  // option_cluster_smallmem
+      Command::cluster_unoise,    // option_cluster_unoise
+      Command::cut,               // option_cut
+      Command::derep_fulllength,  // option_derep_fulllength
+      Command::derep_id,          // option_derep_id
+      Command::derep_prefix,      // option_derep_prefix
+      Command::derep_smallmem,    // option_derep_smallmem
+      Command::fasta2fastq,       // option_fasta2fastq
+      Command::fastq_chars,       // option_fastq_chars
+      Command::fastq_convert,     // option_fastq_convert
+      Command::fastq_eestats,     // option_fastq_eestats
+      Command::fastq_eestats2,    // option_fastq_eestats2
+      Command::fastq_filter,      // option_fastq_filter
+      Command::fastq_join,        // option_fastq_join
+      Command::fastq_mergepairs,  // option_fastq_mergepairs
+      Command::fastq_stats,       // option_fastq_stats
+      Command::fastx_filter,      // option_fastx_filter
+      Command::fastx_getseq,      // option_fastx_getseq
+      Command::fastx_getseqs,     // option_fastx_getseqs
+      Command::fastx_getsubseq,   // option_fastx_getsubseq
+      Command::fastx_mask,        // option_fastx_mask
+      Command::fastx_revcomp,     // option_fastx_revcomp
+      Command::fastx_subsample,   // option_fastx_subsample
+      Command::fastx_syncpairs,   // option_fastx_syncpairs
+      Command::fastx_uniques,     // option_fastx_uniques
+      Command::help,              // option_h
+      Command::help,              // option_help
+      Command::makeudb_usearch,   // option_makeudb_usearch
+      Command::maskfasta,         // option_maskfasta
+      Command::orient,            // option_orient
+      Command::rereplicate,       // option_rereplicate
+      Command::search_exact,      // option_search_exact
+      Command::sff_convert,       // option_sff_convert
+      Command::shuffle,           // option_shuffle
+      Command::sintax,            // option_sintax
+      Command::sortbylength,      // option_sortbylength
+      Command::sortbysize,        // option_sortbysize
+      Command::uchime2_denovo,    // option_uchime2_denovo
+      Command::uchime3_denovo,    // option_uchime3_denovo
+      Command::uchime_denovo,     // option_uchime_denovo
+      Command::uchime_ref,        // option_uchime_ref
+      Command::udb2fasta,         // option_udb2fasta
+      Command::udbinfo,           // option_udbinfo
+      Command::udbstats,          // option_udbstats
+      Command::usearch_global,    // option_usearch_global
+      Command::version,           // option_v
+      Command::version            // option_version
+    }};
+
   /* Parse the command line with getopt: set each recognised option's
      Parameters field, record which options were seen in the returned
      vector (indexed by the option_* enum), and terminate on an ambiguous
@@ -4802,6 +4867,13 @@ auto args_init(int argc, char ** argv, struct Parameters & parameters) -> void
   auto const options_selected = parse_options(argc, argv, long_options, parameters);
 
   int const k = resolve_command(options_selected, long_options);
+
+  /* Resolve the command once, here where its row index k is known, so the
+     dispatcher switches on parameters.command instead of re-deriving the
+     command identity from ~50 opt_* pointer tests. k < 0 means no command. */
+  parameters.command = (k >= 0)
+    ? command_of_row[static_cast<std::size_t>(k)]
+    : Command::none;
 
   configure_threads(k, long_options, parameters);
 

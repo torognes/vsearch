@@ -82,6 +82,66 @@ std::string const default_sequence_padding = "NNNNNNNN";
 
 class DynamicLibraries;  // owned by main(), referenced through parameters.dyn_libs
 
+/* The single command a run performs, resolved once by the CLI parser (from the
+   requested command option) and consumed by the command dispatcher. One
+   enumerator per dispatch handler: the --h/--help and --v/--version option
+   aliases each collapse to a single command. Command::none means no (or no
+   valid) command was requested. The underlying type is fixed to int so the
+   value has a stable, non-narrowing representation as a Parameters field. */
+enum struct Command : int
+  {
+    none,
+    help,
+    version,
+    allpairs_global,
+    usearch_global,
+    search_exact,
+    sintax,
+    orient,
+    cluster_fast,
+    cluster_smallmem,
+    cluster_size,
+    cluster_unoise,
+    uchime_denovo,
+    uchime2_denovo,
+    uchime3_denovo,
+    uchime_ref,
+    chimeras_denovo,
+    derep_fulllength,
+    derep_prefix,
+    derep_id,
+    derep_smallmem,
+    fastq_chars,
+    fastq_stats,
+    fastq_filter,
+    fastx_filter,
+    fastq_convert,
+    fastq_eestats,
+    fastq_eestats2,
+    fastq_join,
+    fastq_mergepairs,
+    fastx_uniques,
+    fastx_mask,
+    fastx_revcomp,
+    fastx_syncpairs,
+    fastx_getseq,
+    fastx_getseqs,
+    fastx_getsubseq,
+    fastx_subsample,
+    fasta2fastq,
+    cut,
+    shuffle,
+    sortbylength,
+    sortbysize,
+    rereplicate,
+    maskfasta,
+    sff_convert,
+    makeudb_usearch,
+    udb2fasta,
+    udbinfo,
+    udbstats
+  };
+
 struct Parameters {
 private:
   /* Canonical option defaults referenced only by this struct's own member
@@ -408,6 +468,11 @@ public:
      adjustment in vsearch_apply_defaults_fixups() so a repeated call on the
      same struct is idempotent rather than double-subtracting. */
   bool gap_penalties_adjusted = false;
+
+  /* The command this run performs, resolved by args_init() from the requested
+     command option and consumed by the CLI dispatcher. Library users drive the
+     compute engines directly and never read this, so it stays Command::none. */
+  Command command = Command::none;
 };
 
 /* The shared parameter-resolution / session-lifecycle declarations that used
