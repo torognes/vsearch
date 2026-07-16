@@ -217,6 +217,36 @@ You configure only the fields you care about; the rest keep their library
 defaults. The `Parameters` struct is the single configuration source — the
 compute engines read it directly, so there are no `opt_*` globals to set.
 
+### RAII session guard (C++)
+
+C++ callers can replace the explicit `vsearch_session_begin()` /
+`vsearch_session_end()` pair with the `VsearchSession` guard declared in
+`vsearch_api.h`: its constructor begins the session and its destructor ends
+it, so the session is released automatically at scope exit — including on an
+early `return`. It is non-copyable and non-movable (a session is a single
+process-wide resource).
+
+```cpp
+#include "vsearch_api.h"
+
+struct Parameters parameters;
+parameters.opt_wordlength = 8;
+parameters.opt_id = 0.97;
+
+{
+  VsearchSession const session(parameters);   // begins the session here
+
+  Database db;
+  // ... configure, load, and use the library ...
+
+}  // session ends here: vsearch_session_end() runs in the destructor
+```
+
+The guard is a thin convenience wrapper; the two functions remain the primary
+interface, so code that needs an unscoped begin/end pair (or a C-style
+interface) can keep calling them directly. Most programs in `api_examples/`
+use the guard; `example_reinit.cc` uses the explicit calls.
+
 ### Re-initialization
 
 Multiple sequential sessions in the same process are supported.
@@ -234,6 +264,7 @@ See `api_examples/example_reinit.cc` for a tested multi-session example.
 | `vsearch_session_begin(Parameters &)` | Acquire session mutex, resolve sentinels, apply config. Call once after configuring. |
 | `vsearch_apply_defaults_fixups(Parameters &)` | Resolve a struct's sentinel values (called by session_begin; exposed for inspection). |
 | `vsearch_session_end()` | Release session mutex. Call after all cleanup. |
+| `VsearchSession session(Parameters &)` | RAII guard (C++): begins the session in its constructor, ends it in its destructor at scope exit. Optional convenience over the two functions above; non-copyable and non-movable. |
 
 ---
 
