@@ -424,7 +424,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
   SplitMix64 rng(random_substream_seed(random_base_seed(),
                                        static_cast<uint64_t>(si_plus[t].query_no)));
 
-  auto * b = bitmap_init(static_cast<unsigned int>(qseqlen));
+  Bitmap b(static_cast<unsigned int>(qseqlen));
 
   for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
     {
@@ -451,14 +451,14 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
               /* subsample 32 kmers */
               std::array<unsigned int, subset_size> kmersample_subset {{}};
               auto subsamples = 0;
-              bitmap_reset_all(b);
+              b.reset_all();
               for (auto j = 0; j < subset_size ; j++)
                 {
                   int64_t const x = static_cast<int64_t>(random_bounded(rng, kmersamplecount));
-                  if (bitmap_get(b, static_cast<unsigned int>(x)) == 0U)
+                  if (b.get(static_cast<unsigned int>(x)) == 0U)
                     {
                       kmersample_subset[static_cast<std::size_t>(subsamples++)] = kmersample[x];
-                      bitmap_set(b, static_cast<unsigned int>(x));
+                      b.set(static_cast<unsigned int>(x));
                     }
                 }
 
@@ -516,8 +516,6 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
                  best_strand,
                  all_seqno[static_cast<std::size_t>(best_strand)].data(),
                  boot_count[static_cast<std::size_t>(best_strand)]);
-
-  bitmap_free(b);
 }
 
 

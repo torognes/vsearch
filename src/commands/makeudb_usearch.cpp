@@ -190,13 +190,13 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
       {
-        if (dbindex.kmerbitmap[i] != nullptr)
+        if (not dbindex.kmerbitmap[i].empty())
           {
             std::memset(buffer.data(), 0, 4 * dbindex.kmercount[i]);
             auto elements = 0U;
             for (auto j = 0U; j < seqcount; j++)
               {
-                if (bitmap_get(dbindex.kmerbitmap[i], j) != 0U)
+                if (dbindex.kmerbitmap[i].get(j) != 0U)
                   {
                     buffer[elements++] = j;
                   }

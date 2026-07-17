@@ -65,6 +65,7 @@
 #include "core/unique.hpp"  // Uniquer
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <vector>  // std::vector
 
 
 struct Parameters;
@@ -81,7 +82,7 @@ struct Dbindex
   unsigned int * kmercount = nullptr; /* number of matching seqnos for each kmer */
   uint64_t * kmerhash = nullptr;  /* index into the list below for each kmer */
   unsigned int * kmerindex = nullptr; /* the list of matching seqnos for kmers */
-  struct bitmap_s * * kmerbitmap = nullptr;
+  std::vector<Bitmap> kmerbitmap;  /* one bit-set per kmer; an empty() slot means the kmer uses the list form (kmerindex) instead */
   unsigned int * map = nullptr;  /* mapping from index element number to seqno */
   Uniquer uhandle {};  /* unique-kmer finder, used while building */
   unsigned int count = 0;  /* number of sequences added to the index */
@@ -112,7 +113,7 @@ struct Dbindex
   auto add_all_sequences(Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void;
   auto clear() -> void;
 
-  auto getbitmap(unsigned int kmer) const -> unsigned char *;
+  auto getbitmap(unsigned int kmer) const -> unsigned char const *;
   auto getmatchcount(unsigned int kmer) const -> unsigned int;
   auto getmatchlist(unsigned int kmer) const -> unsigned int *;
   auto getmapping(unsigned int index) const -> unsigned int;

@@ -76,12 +76,12 @@
 constexpr unsigned int bitmap_threshold = 8;
 
 
-auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char *
+auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char const *
 {
-  auto * a_bitmap_s = *std::next(kmerbitmap, kmer);
-  if (a_bitmap_s != nullptr)
+  auto const & a_bitmap = kmerbitmap[kmer];
+  if (not a_bitmap.empty())
     {
-      return a_bitmap_s->bitmap;
+      return a_bitmap.data();
     }
   return nullptr;
 }
@@ -135,10 +135,10 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
   for (auto i = 0U; i < uniquecount; i++)
     {
       auto const kmer = uniquelist[i];
-      if (kmerbitmap[kmer] != nullptr)
+      if (not kmerbitmap[kmer].empty())
         {
           ++kmercount[kmer];
-          bitmap_set(kmerbitmap[kmer], count);
+          kmerbitmap[kmer].set(count);
         }
       else
         {
@@ -211,9 +211,8 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   /* determine minimum kmer count for bitmap usage */
   unsigned int const bitmap_mincount = (use_bitmap != 0) ? (seqcount / bitmap_threshold) : (seqcount + 1);
 
-  /* allocate and zero bitmap pointers */
-  kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(hashsize * sizeof(struct bitmap_s *)));
-  std::memset(kmerbitmap, 0, hashsize * sizeof(struct bitmap_s *));
+  /* allocate empty (list-form) bitmap slots for every kmer */
+  kmerbitmap = std::vector<Bitmap>(hashsize);
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
@@ -224,8 +223,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
       kmerhash[i] = sum;
       if (kmercount[i] >= bitmap_mincount)
         {
-          kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
-          bitmap_reset_all(kmerbitmap[i]);
+          kmerbitmap[i] = Bitmap(seqcount + 127); // pad for xmm
         }
       else
         {
@@ -260,26 +258,16 @@ auto Dbindex::clear() -> void
   /* Free and null every owned buffer so the routine is idempotent (a second
      call, or a call before any successful prepare, is a safe no-op) and a
      subsequent prepare() starts from a clean slate. xfree() fatals on
-     a null pointer, so each free is guarded; the bitmap loop is likewise guarded
-     because it may not have been allocated yet (L2a). The unique-kmer finder is
-     a Uniquer value member: assigning a fresh one releases its buffers (RAII). */
+     a null pointer, so each free is guarded. The k-mer bitmaps and the
+     unique-kmer finder are value members (a std::vector<Bitmap> and a Uniquer):
+     releasing them frees their buffers (RAII). */
   if (kmerhash != nullptr) { xfree(kmerhash); kmerhash = nullptr; }
   if (kmerindex != nullptr) { xfree(kmerindex); kmerindex = nullptr; }
   if (kmercount != nullptr) { xfree(kmercount); kmercount = nullptr; }
   if (map != nullptr) { xfree(map); map = nullptr; }
 
-  if (kmerbitmap != nullptr)
-    {
-      for (auto kmer = 0U; kmer < hashsize; kmer++)
-        {
-          if (kmerbitmap[kmer] != nullptr)
-            {
-              bitmap_free(kmerbitmap[kmer]);
-            }
-        }
-      xfree(kmerbitmap);
-      kmerbitmap = nullptr;
-    }
+  kmerbitmap.clear();
+  kmerbitmap.shrink_to_fit();
 
   uhandle = Uniquer();
 

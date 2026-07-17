@@ -85,8 +85,7 @@ auto Dbhash::open(uint64_t const maxelements) -> void
 
   table_.resize(size);
 
-  bitmap_ = bitmap_init(static_cast<unsigned int>(size));
-  bitmap_reset_all(bitmap_);
+  bitmap_ = Bitmap(static_cast<unsigned int>(size));
 }
 
 
@@ -100,13 +99,8 @@ auto Dbhash::clear() -> void
 {
   /* Release the (potentially large) table and bitmap now rather than holding
      them until the Dbhash is destroyed, and reset to the empty state so the
-     index can be reopened. Guarded so the destructor is safe on an instance
-     that was never open()ed. */
-  if (bitmap_ != nullptr)
-    {
-      bitmap_free(bitmap_);
-      bitmap_ = nullptr;
-    }
+     index can be reopened. Safe on an instance that was never open()ed. */
+  bitmap_ = Bitmap();
   table_.clear();
   table_.shrink_to_fit();
   mask_ = 0;
@@ -125,7 +119,7 @@ auto Dbhash::search_first(char * seq,
   auto index = hash & mask_;
   auto const * bp = &table_[index];
 
-  while ((bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
+  while ((bitmap_.get(static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
@@ -137,7 +131,7 @@ auto Dbhash::search_first(char * seq,
 
   info->index = index;
 
-  if (bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
+  if (bitmap_.get(static_cast<unsigned int>(index)) != 0U)
     {
       return static_cast<int64_t>(bp->seqno);
     }
@@ -153,7 +147,7 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
   auto index = (info->index + 1) & mask_;
   auto const * bp = &table_[index];
 
-  while ((bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
+  while ((bitmap_.get(static_cast<unsigned int>(index)) != 0U)
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
@@ -165,7 +159,7 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
 
   info->index = index;
 
-  if (bitmap_get(bitmap_, static_cast<unsigned int>(index)) != 0U)
+  if (bitmap_.get(static_cast<unsigned int>(index)) != 0U)
     {
       return static_cast<int64_t>(bp->seqno);
     }
@@ -183,7 +177,7 @@ auto Dbhash::add(char * seq, uint64_t const seqlen, uint64_t const seqno, struct
       ret = search_next(&info, db);
     }
 
-  bitmap_set(bitmap_, static_cast<unsigned int>(info.index));
+  bitmap_.set(static_cast<unsigned int>(info.index));
   auto & bucket = table_[info.index];
   bucket.hash = info.hash;
   bucket.seqno = seqno;

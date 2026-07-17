@@ -58,53 +58,77 @@
 
 */
 
-#include "vsearch.hpp"
 #include "core/bitmap.hpp"
 #include "os/system.hpp"  // xmalloc, xfree
+#include <cstddef>  // std::size_t
 #include <cstring> // std::memset
+#include <utility>  // std::swap
 
 
-auto bitmap_init(unsigned int const size) -> struct bitmap_s *
+Bitmap::Bitmap(unsigned int const size)
 {
   constexpr auto divider = 8U;
   constexpr auto padding = divider - 1U;
-  const auto minimal_size = (size + padding) / divider;
-  auto * a_bitmap = static_cast<struct bitmap_s *>(xmalloc(sizeof(struct bitmap_s)));
-  a_bitmap->size = size;
-  a_bitmap->bitmap = static_cast<unsigned char *>(xmalloc(minimal_size));
-  return a_bitmap;
+  bytes_ = (size + padding) / divider;
+  bitmap_ = static_cast<unsigned char *>(xmalloc(bytes_));
+  std::memset(bitmap_, 0, bytes_);
 }
 
 
-auto bitmap_get(struct bitmap_s const * a_bitmap, unsigned int const seed_value) -> unsigned char
+Bitmap::~Bitmap()
 {
-  constexpr auto mask_111 = 7U;
-  constexpr auto divider = 3U;  // divide by 8
-  return (a_bitmap->bitmap[seed_value >> divider] >> (seed_value & mask_111)) & 1U;
-}
-
-
-auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void
-{
-  constexpr auto n_bits_in_a_byte = 8U;
-  const auto size_in_bytes = (a_bitmap->size + n_bits_in_a_byte - 1) / n_bits_in_a_byte;
-  std::memset(a_bitmap->bitmap, 0, size_in_bytes);
-}
-
-
-auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int const seed_value) -> void
-{
-  constexpr auto mask_111 = 7U;
-  constexpr auto divider = 3U;  // divide by 8
-  a_bitmap->bitmap[seed_value >> divider] |= 1U << (seed_value & mask_111);
-}
-
-
-auto bitmap_free(struct bitmap_s * a_bitmap) -> void
-{
-  if (a_bitmap->bitmap != nullptr)
+  if (bitmap_ != nullptr)
     {
-      xfree(a_bitmap->bitmap);
+      xfree(bitmap_);
     }
-  xfree(a_bitmap);
+}
+
+
+Bitmap::Bitmap(Bitmap && other) noexcept
+  : bitmap_(other.bitmap_), bytes_(other.bytes_)
+{
+  other.bitmap_ = nullptr;
+  other.bytes_ = 0;
+}
+
+
+auto Bitmap::operator=(Bitmap && other) noexcept -> Bitmap &
+{
+  std::swap(bitmap_, other.bitmap_);
+  std::swap(bytes_, other.bytes_);
+  return *this;
+}
+
+
+auto Bitmap::empty() const -> bool
+{
+  return bitmap_ == nullptr;
+}
+
+
+auto Bitmap::data() const -> unsigned char const *
+{
+  return bitmap_;
+}
+
+
+auto Bitmap::get(unsigned int const seed_value) const -> unsigned char
+{
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  return (bitmap_[seed_value >> divider] >> (seed_value & mask_111)) & 1U;
+}
+
+
+auto Bitmap::reset_all() -> void
+{
+  std::memset(bitmap_, 0, bytes_);
+}
+
+
+auto Bitmap::set(unsigned int const seed_value) -> void
+{
+  constexpr auto mask_111 = 7U;
+  constexpr auto divider = 3U;  // divide by 8
+  bitmap_[seed_value >> divider] |= 1U << (seed_value & mask_111);
 }

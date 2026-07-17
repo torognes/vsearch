@@ -60,11 +60,11 @@
 
 #pragma once
 
+#include "core/bitmap.hpp"
 #include <cstdint>  // uint64_t
 #include <vector>
 
 
-struct bitmap_s;
 struct Database;
 struct Parameters;
 
@@ -91,7 +91,7 @@ struct dbhash_search_info_s
 struct Dbhash
 {
 private:
-  struct bitmap_s * bitmap_ = nullptr;  /* one occupancy bit per bucket slot */
+  Bitmap bitmap_;  /* one occupancy bit per bucket slot */
   uint64_t mask_ = 0;  /* table size is a power of two; index = hash & mask_ */
   std::vector<struct dbhash_bucket_s> table_;
 

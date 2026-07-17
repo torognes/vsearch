@@ -295,9 +295,7 @@ auto udb_read(const char * filename,
     dbindex.hashsize = 1U << (2 * udb_wordlength);
     dbindex.kmercount = static_cast<unsigned int *>(xmalloc(dbindex.hashsize * sizeof(unsigned int)));
     dbindex.kmerhash = static_cast<uint64_t *>(xmalloc(dbindex.hashsize * sizeof(uint64_t)));
-    dbindex.kmerbitmap = static_cast<struct bitmap_s **>(xmalloc(dbindex.hashsize * sizeof(struct bitmap_s **)));
-
-    std::memset(dbindex.kmerbitmap, 0, dbindex.hashsize * sizeof(struct bitmap_s **));
+    dbindex.kmerbitmap = std::vector<Bitmap>(dbindex.hashsize);
 
     pos += largeread(in_stream, dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
 
@@ -333,7 +331,7 @@ auto udb_read(const char * filename,
     pos += largeread(in_stream, dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
-       per-word bitmaps (bitmap_set writes bitmap[value >> 3], no bounds
+       per-word bitmaps (Bitmap::set writes bitmap[value >> 3], no bounds
        check) and as an index into seqindex/dbindex_map during search. A
        value >= seqcount is therefore an out-of-bounds write or read, so
        reject it here rather than at use. */
@@ -478,11 +476,10 @@ auto udb_read(const char * filename,
           {
             if (dbindex.kmercount[i] >= bitmap_mincount)
               {
-                dbindex.kmerbitmap[i] = bitmap_init(seqcount + 127); // pad for xmm
-                bitmap_reset_all(dbindex.kmerbitmap[i]);
+                dbindex.kmerbitmap[i] = Bitmap(seqcount + 127); // pad for xmm
                 for (auto j = 0U; j < dbindex.kmercount[i]; j++)
                   {
-                    bitmap_set(dbindex.kmerbitmap[i], dbindex.kmerindex[dbindex.kmerhash[i]+j]);
+                    dbindex.kmerbitmap[i].set(dbindex.kmerindex[dbindex.kmerhash[i]+j]);
                   }
               }
             progress.update(i + 1);

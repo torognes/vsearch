@@ -60,19 +60,33 @@
 
 #pragma once
 
-struct bitmap_s
+#include <cstddef>  // std::size_t
+
+
+/* A compact, runtime-sized bit-set: one bit per element, packed 8 bits per
+   byte (bit i lives in byte[i >> 3], position i & 7). Owns its buffer (RAII:
+   released by the destructor) and is move-only. data() exposes the raw bytes
+   so the SIMD counter routines (increment_counters_from_bitmap*) can read them
+   directly; empty() reports the moved-from / default-constructed state, which
+   the k-mer index uses as the "no bitmap for this k-mer" sentinel. */
+class Bitmap
 {
-  unsigned char * bitmap; /* the actual bitmap */
-  unsigned int size;      /* size in bits */
+public:
+  Bitmap() = default;
+  explicit Bitmap(unsigned int size);
+  ~Bitmap();
+  Bitmap(Bitmap const &) = delete;
+  auto operator=(Bitmap const &) -> Bitmap & = delete;
+  Bitmap(Bitmap && other) noexcept;
+  auto operator=(Bitmap && other) noexcept -> Bitmap &;
+
+  auto empty() const -> bool;
+  auto data() const -> unsigned char const *;
+  auto get(unsigned int seed_value) const -> unsigned char;
+  auto set(unsigned int seed_value) -> void;
+  auto reset_all() -> void;
+
+private:
+  unsigned char * bitmap_ = nullptr; /* the actual bitmap */
+  std::size_t bytes_ = 0;            /* size of the buffer in bytes */
 };
-
-
-auto bitmap_init(unsigned int size) -> struct bitmap_s *;
-
-auto bitmap_get(struct bitmap_s const * a_bitmap, unsigned int seed_value) -> unsigned char;
-
-auto bitmap_reset_all(struct bitmap_s * a_bitmap) -> void;
-
-auto bitmap_set(struct bitmap_s * a_bitmap, unsigned int seed_value) -> void;
-
-auto bitmap_free(struct bitmap_s * a_bitmap) -> void;
