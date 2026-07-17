@@ -83,6 +83,24 @@ auto vsearch_api_version_string() -> const char *
 }
 
 
+/* Reference to the thread_local flag that puts fatal() into throwing mode.
+   Defined here, next to its only mutators (vsearch_session_begin/end), rather
+   than in fatal.cpp: fatal.cpp merely reads it, and keeping the storage out of
+   that translation unit avoids a cppcheck false positive (it would otherwise
+   inline the accessor, see the default-false initial value with no local
+   write, and flag the throw branch as dead). Function-local thread_local so
+   the default (false) is guaranteed on every thread — worker threads keep it
+   false and keep using cooperative abort; only the session-owning thread flips
+   it to true. */
+namespace fatal_detail {
+  auto throw_on_fatal() -> bool &
+  {
+    thread_local bool enabled = false;
+    return enabled;
+  }
+}
+
+
 /* Serializes library sessions: acquired by vsearch_session_begin() and released
    by vsearch_session_end(), so only one session runs at a time. */
 static std::mutex session_mutex;

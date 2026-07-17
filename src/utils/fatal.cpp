@@ -58,11 +58,43 @@
 
 */
 
-#include "fatal.hpp"  // fatal
+#include "fatal.hpp"  // fatal, VsearchError, fatal_detail::throw_on_fatal
 #include "logfile.hpp"  // log_file::handle
+#include <cstddef>  // std::size_t
 #include <cstdint> // uint64_t
-#include <cstdio>  // std::fprintf
+#include <cstdio>  // std::fprintf, std::snprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <string>  // std::string (VsearchError payload)
+
+// fatal_detail::throw_on_fatal() is defined in vsearch_api.cpp, next to the
+// session begin/end that are its only mutators.
+
+
+#ifdef VSEARCH_ENABLE_THROW
+namespace {
+  // Render a printf-style (format, args...) pair into a std::string, so the
+  // thrown VsearchError carries the same text fatal() printed. Two-pass
+  // std::snprintf: measure, then format into a right-sized buffer (C++11
+  // guarantees std::string storage is contiguous and null-terminated, so
+  // writing length+1 bytes into &text[0] is well defined).
+  auto format_message(char const * format, char const * argument) -> std::string {
+    int const length = std::snprintf(nullptr, 0, format, argument);
+    if (length <= 0) { return std::string(); }
+    std::string text(static_cast<std::size_t>(length), '\0');
+    std::snprintf(&text[0], static_cast<std::size_t>(length) + 1, format, argument);
+    return text;
+  }
+
+  auto format_message(char const * format, char const symbol,
+                      uint64_t const line_number) -> std::string {
+    int const length = std::snprintf(nullptr, 0, format, symbol, line_number);
+    if (length <= 0) { return std::string(); }
+    std::string text(static_cast<std::size_t>(length), '\0');
+    std::snprintf(&text[0], static_cast<std::size_t>(length) + 1, format, symbol, line_number);
+    return text;
+  }
+}
+#endif
 
 
 __attribute__((noreturn))
@@ -76,7 +108,10 @@ auto fatal(char const * message) -> void {
     std::fprintf(log, "Fatal error: %s\n", message);
   }
 
-  std::exit(EXIT_FAILURE);
+#ifdef VSEARCH_ENABLE_THROW
+  if (fatal_detail::throw_on_fatal()) { throw VsearchError{message}; }  // library: unwind
+#endif
+  std::exit(EXIT_FAILURE);  // CLI: unchanged
 }
 
 
@@ -94,6 +129,9 @@ auto fatal(char const * format,
     std::fprintf(log, "\n");
   }
 
+#ifdef VSEARCH_ENABLE_THROW
+  if (fatal_detail::throw_on_fatal()) { throw VsearchError{format_message(format, message)}; }
+#endif
   std::exit(EXIT_FAILURE);
 }
 
@@ -114,5 +152,8 @@ auto fatal(char const * format,
     std::fprintf(log, "\n");
   }
 
+#ifdef VSEARCH_ENABLE_THROW
+  if (fatal_detail::throw_on_fatal()) { throw VsearchError{format_message(format, symbol, line_number)}; }
+#endif
   std::exit(EXIT_FAILURE);
 }

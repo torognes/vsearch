@@ -150,6 +150,12 @@
    module headers, and defines the Parameters configuration struct. */
 #include "vsearch.hpp"
 
+/* Recoverable-error payload thrown by the engines when a fatal condition
+   is hit inside a library session (see the error-handling section of
+   LIBRARY_API.md). Catch VsearchError to skip a bad input and continue
+   instead of the process being killed by std::exit(). */
+#include "utils/fatal.hpp"
+
 /* Module headers for API functions not declared in vsearch.h.
    searchcore.h is intentionally NOT included here — it defines
    internal types (searchinfo_s, struct hit, minwordmatches_defaults)

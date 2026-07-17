@@ -413,7 +413,19 @@ __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES
 
 # Static library core — same sources as the executable, compiled with -fPIC
 # for embedding into shared libraries (e.g., DuckDB extensions).
-libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN
+#
+# -fexceptions -DVSEARCH_ENABLE_THROW: enable the library-only recoverable
+# error channel. When a library session is active, fatal() throws a
+# VsearchError instead of calling std::exit(), so a consumer can catch it and
+# continue. The throw must unwind cleanly through the engines running C++
+# destructors, so *every* library TU (not just fatal.cpp) needs -fexceptions to
+# get cleanup landing pads; a frame compiled -fno-exceptions would be traversed
+# on unwind with its destructors skipped. -fexceptions overrides the
+# -fno-exceptions inherited from AM_CXXFLAGS (last flag wins), and has no
+# runtime cost on the non-throwing path (zero-cost model). The CLI executable
+# keeps AM_CXXFLAGS' -fno-exceptions and leaves VSEARCH_ENABLE_THROW undefined,
+# so its fatal.cpp has no throw and it exits exactly as before.
+libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN -fexceptions -DVSEARCH_ENABLE_THROW
 libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC -DVSEARCH_NO_MAIN
 libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
 

@@ -58,7 +58,33 @@
 
 */
 
+#pragma once
+
 #include <cstdint> // uint64_t
+#include <string>  // std::string
+
+
+// Recoverable-error payload for the library boundary. When a library
+// session is active, fatal() throws this instead of calling std::exit(),
+// so a library consumer can catch it, skip the bad input and continue
+// (the whole process no longer dies). The standalone CLI never enables
+// the throwing path (see VSEARCH_ENABLE_THROW in fatal.cpp), so it keeps
+// exiting exactly as before. `message` holds the same text fatal()
+// printed to stderr. Not derived from std::exception on purpose: the
+// library otherwise honours the "no exception handling" convention, and
+// the caller only ever catches this one concrete type.
+struct VsearchError {
+  std::string message;
+};
+
+namespace fatal_detail {
+  // Reference to a thread_local flag, default false (CLI behaviour). Only
+  // the thread that opened the library session flips it to true, so
+  // fatal() throws solely on that thread; worker threads keep it false and
+  // keep using cooperative abort (a C++ exception must never escape a
+  // std::thread body). See vsearch_session_begin/end.
+  auto throw_on_fatal() -> bool &;
+}
 
 
 // parameters must be marked as const!
