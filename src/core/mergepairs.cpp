@@ -74,6 +74,7 @@
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <cstdint>  // int64_t, uint64_t
 #include <cstring>  // std::strlen, std::strcpy, std::memcpy
+#include <memory>  // std::unique_ptr
 #include <vector>
 
 
@@ -843,13 +844,21 @@ auto mergepairs_single(QualityTables const & tables,
   if (md.merged)
     {
       int const len = static_cast<int>(md.merged_length);
+      /* Hold both buffers in guards while allocating, so that if the second
+         xmalloc fatals (OOM) and unwinds in a library session, the first is
+         freed rather than leaked. Transferred to the caller-owned result only
+         once both succeed (the caller frees them via merge_result_free). */
+      std::unique_ptr<char, decltype(&xfree)> merged_sequence(
+        static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1)), &xfree);
+      std::unique_ptr<char, decltype(&xfree)> merged_quality(
+        static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1)), &xfree);
+      std::memcpy(merged_sequence.get(), md.merged_sequence.data(), static_cast<std::size_t>(len));
+      merged_sequence.get()[len] = '\0';
+      std::memcpy(merged_quality.get(), md.merged_quality_v.data(), static_cast<std::size_t>(len));
+      merged_quality.get()[len] = '\0';
       result->merged_length = len;
-      result->merged_sequence = static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1));
-      result->merged_quality = static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1));
-      std::memcpy(result->merged_sequence, md.merged_sequence.data(), static_cast<std::size_t>(len));
-      result->merged_sequence[len] = '\0';
-      std::memcpy(result->merged_quality, md.merged_quality_v.data(), static_cast<std::size_t>(len));
-      result->merged_quality[len] = '\0';
+      result->merged_sequence = merged_sequence.release();
+      result->merged_quality = merged_quality.release();
       result->ee_merged = md.ee_merged;
       result->ee_fwd = md.ee_fwd;
       result->ee_rev = md.ee_rev;
