@@ -897,35 +897,94 @@ interior). This matches the internal scoring convention.
 
 ## Error handling
 
-vsearch was designed as a CLI tool and handles errors by printing a
-message to stderr and calling `exit()` via the internal `fatal()`
-function. **The library inherits this behavior.** On invalid input or
-unrecoverable errors, the library will terminate the process.
+vsearch was designed as a CLI tool: internally, an unrecoverable error
+prints a message to stderr and ends the program through the `fatal()`
+function. In the **CLI** that means `std::exit()`. In the **library**,
+`fatal()` instead **throws** a `VsearchError` for the duration of a
+session, so a consumer can catch it, skip the bad input and carry on
+rather than have the whole host process die.
 
-Known fatal error triggers include:
+```cpp
+struct VsearchError {   // declared in utils/fatal.hpp, included by vsearch_api.h
+  std::string message;  // the same text fatal() writes to stderr
+};
+```
 
-- Out of memory (xmalloc/xrealloc failure)
-- Invalid FASTA/FASTQ format in `db.read()`
+Throwing mode is enabled by `vsearch_session_begin()` and cleared by
+`vsearch_session_end()` (so the `VsearchSession` guard turns it on for
+its scope). It is a thread-local flag set only on the thread that opened
+the session: worker threads spawned by the compute engines never throw
+(they stop cooperatively and the main thread reports the error after
+joining), because a C++ exception must not escape a `std::thread`.
+
+Known error triggers include:
+
+- Invalid FASTA/FASTQ format, or an unreadable/missing file, in
+  `db.read()` / `udb_read()`
+- FASTQ quality values outside `[opt_fastq_qmin, opt_fastq_qmax]`
 - File I/O failures
+- Out of memory (xmalloc/xrealloc failure)
 
-**Library API return codes:**
+**Catching and recovering:**
+
+```cpp
+#include "vsearch_api.h"
+
+struct Parameters parameters;
+try {
+  VsearchSession const session(parameters);   // enables throwing mode
+  Database db;
+  db.read("maybe_bad.fasta", 0, parameters);   // any fatal() now unwinds
+  // ... use the library ...
+}                                              // ~VsearchSession ends the session
+catch (VsearchError const & error) {
+  std::fprintf(stderr, "vsearch: %s\n", error.message.c_str());
+  // recover: the session was ended by the guard's destructor during the
+  // unwind (files closed, database/index freed), so a fresh session and a
+  // new run in the same process are safe.
+}
+```
+
+Recovery relies on stack unwinding running destructors, so **own every
+resource with RAII** (`VsearchSession`, `Database`, `Dbindex`, the
+`OutputFileHandle` openers, the `*_session`/`*_info` handles via their
+free functions or a `unique_ptr` wrapper). A `fatal()` caught this way
+runs those destructors on the way out. If you drive the session with the
+bare `vsearch_session_begin()` / `vsearch_session_end()` pair instead of
+the guard, you must call `vsearch_session_end()` yourself in the catch
+block before starting another session.
+
+> **Caveat — best-effort recovery under OOM/internal errors.** Recovery
+> from *deterministic input errors* (bad or missing file, malformed
+> record, out-of-range quality) is resource-clean. A `fatal()` raised
+> deep inside the search/cluster engines under **out-of-memory or an
+> internal error** may still leak the per-hit alignment strings
+> accumulated for the query in progress (`hit::nwalignment` is a raw
+> owning `char *`). It does not corrupt state or crash — a subsequent
+> run in the same process is fine — but treat OOM recovery as
+> best-effort. (Fixing this fully means making `struct hit` own its
+> alignment string; tracked as a follow-up.)
+
+**Library API return codes** (independent of the throwing channel — these
+are ordinary, non-fatal outcomes):
 
 | Function | Success | Failure |
 |----------|---------|---------|
-| `chimera_detect_single()` | 0 | (fatal on internal error) |
+| `chimera_detect_single()` | 0 | (throws `VsearchError` on internal error) |
 | `mergepairs_single()` | 0 | -1 (merge failed; result.merged = false) |
-| All other functions | void | (fatal on internal error) |
+| All other functions | void | (throws `VsearchError` on error) |
 
 **Recommendations for embedding:**
 
 - Validate input data before passing to vsearch (DNA alphabet,
-  non-empty sequences, reasonable lengths).
-- If process termination is unacceptable, run vsearch operations in a
-  child process or use signal handlers / `setjmp`/`longjmp` to catch
-  `exit()` calls (fragile — may leak resources).
+  non-empty sequences, reasonable lengths) to avoid the throw path
+  entirely on the hot loop.
+- Wrap each run in `try { VsearchSession ... } catch (VsearchError ...)`
+  and keep all owned objects RAII, so a caught error cleans up.
 - With `opt_quiet = true` (the library default), no messages are
-  written to stderr during normal operation. Fatal errors still write
-  to stderr before exiting.
+  written to stderr during normal operation. A `fatal()` still writes
+  its message to stderr before throwing (and to the `--log` file if one
+  is open); the same text is available as `VsearchError::message`.
 
 ---
 
