@@ -150,47 +150,27 @@ auto report_merge_abort(struct Parameters const & parameters) -> void
 {
   switch (merge_error_reason)
     {
+    // route through fatal() (which writes stderr and the --log file; the printed
+    // text is unchanged). Called on the main thread after the worker pool has
+    // joined, so throwing in a library session is safe.
     case MergeAbortReason::quality_below_qmin:
-      std::fprintf(stderr,
-              "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
-              PRId64 ")\n",
-              merge_error_value, parameters.opt_fastq_qmin);
-      if (parameters.fp_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
-                  PRId64 ")\n",
-                  merge_error_value, parameters.opt_fastq_qmin);
-        }
+      fatal(("FASTQ quality value (" + std::to_string(merge_error_value) + ") below qmin ("
+             + std::to_string(parameters.opt_fastq_qmin) + ")").c_str());
       break;
 
     case MergeAbortReason::quality_above_qmax:
-      std::fprintf(stderr,
-              "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
-              PRId64 ")\n",
-              merge_error_value, parameters.opt_fastq_qmax);
-      std::fprintf(stderr,
-              "By default, quality values range from 0 to 41.\n"
-              "To allow higher quality values, "
-              "please use the option --fastq_qmax %d\n", merge_error_value);
-      if (parameters.fp_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
-                  PRId64 ")\n",
-                  merge_error_value, parameters.opt_fastq_qmax);
-          std::fprintf(parameters.fp_log,
-                  "By default, quality values range from 0 to 41.\n"
-                  "To allow higher quality values, "
-                  "please use the option --fastq_qmax %d\n", merge_error_value);
-        }
+      fatal(("FASTQ quality value (" + std::to_string(merge_error_value) + ") above qmax ("
+             + std::to_string(parameters.opt_fastq_qmax) + ")\n"
+             "By default, quality values range from 0 to 41.\n"
+             "To allow higher quality values, "
+             "please use the option --fastq_qmax " + std::to_string(merge_error_value)).c_str());
       break;
 
     case MergeAbortReason::more_fwd_than_rev:
       fatal("More forward reads than reverse reads");
       break;
     }
-  std::exit(EXIT_FAILURE);
+  std::exit(EXIT_FAILURE);  // unreachable: every case above fatal()s (noreturn)
 }
 
 

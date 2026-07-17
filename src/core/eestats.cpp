@@ -60,53 +60,30 @@
 
 #include "core/eestats.hpp"
 #include "vsearch.hpp"
-#include <cinttypes>  // macro PRId64
+#include "utils/fatal.hpp"  // fatal
 #include <cmath>  // std::pow
-#include <cstdio>  // std::fprintf
-#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <string>  // std::string, std::to_string
 
 
 auto fastq_get_qual_eestats(char const q, struct Parameters const & parameters) -> int
 {
   int const qual = static_cast<int>(q - parameters.opt_fastq_ascii);
 
+  // route through fatal() (which writes stderr and the --log file, and in a
+  // library session throws instead of std::exit()ing); the printed text is
+  // unchanged.
   if (qual < parameters.opt_fastq_qmin)
     {
-      std::fprintf(stderr,
-              "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
-              PRId64 ")\n",
-              qual, parameters.opt_fastq_qmin);
-      if (parameters.fp_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "\n\nFatal error: FASTQ quality value (%d) below qmin (%"
-                  PRId64 ")\n",
-                  qual, parameters.opt_fastq_qmin);
-        }
-      std::exit(EXIT_FAILURE);
+      fatal(("FASTQ quality value (" + std::to_string(qual) + ") below qmin ("
+             + std::to_string(parameters.opt_fastq_qmin) + ")").c_str());
     }
   else if (qual > parameters.opt_fastq_qmax)
     {
-      std::fprintf(stderr,
-              "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
-              PRId64 ")\n",
-              qual, parameters.opt_fastq_qmax);
-      std::fprintf(stderr,
-              "By default, quality values range from 0 to 41.\n"
-              "To allow higher quality values, "
-              "please use the option --fastq_qmax %d\n", qual);
-      if (parameters.fp_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "\n\nFatal error: FASTQ quality value (%d) above qmax (%"
-                  PRId64 ")\n",
-                  qual, parameters.opt_fastq_qmax);
-          std::fprintf(parameters.fp_log,
-                  "By default, quality values range from 0 to 41.\n"
-                  "To allow higher quality values, "
-                  "please use the option --fastq_qmax %d\n", qual);
-        }
-      std::exit(EXIT_FAILURE);
+      fatal(("FASTQ quality value (" + std::to_string(qual) + ") above qmax ("
+             + std::to_string(parameters.opt_fastq_qmax) + ")\n"
+             "By default, quality values range from 0 to 41.\n"
+             "To allow higher quality values, "
+             "please use the option --fastq_qmax " + std::to_string(qual)).c_str());
     }
   return qual;
 }
