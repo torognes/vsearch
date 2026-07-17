@@ -196,7 +196,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
             auto elements = 0U;
             for (auto j = 0U; j < seqcount; j++)
               {
-                if (dbindex.kmerbitmap[i].get(j) != 0U)
+                if (dbindex.kmerbitmap[i].is_set(j))
                   {
                     buffer[elements++] = j;
                   }

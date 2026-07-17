@@ -112,11 +112,11 @@ auto Bitmap::data() const -> unsigned char const *
 }
 
 
-auto Bitmap::get(unsigned int const seed_value) const -> unsigned char
+auto Bitmap::is_set(unsigned int const seed_value) const -> bool
 {
   constexpr auto mask_111 = 7U;
   constexpr auto divider = 3U;  // divide by 8
-  return (bitmap_[seed_value >> divider] >> (seed_value & mask_111)) & 1U;
+  return ((bitmap_[seed_value >> divider] >> (seed_value & mask_111)) & 1U) != 0U;
 }
 
 

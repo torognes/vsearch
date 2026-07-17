@@ -455,7 +455,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
               for (auto j = 0; j < subset_size ; j++)
                 {
                   int64_t const x = static_cast<int64_t>(random_bounded(rng, kmersamplecount));
-                  if (b.get(static_cast<unsigned int>(x)) == 0U)
+                  if (not b.is_set(static_cast<unsigned int>(x)))
                     {
                       kmersample_subset[static_cast<std::size_t>(subsamples++)] = kmersample[x];
                       b.set(static_cast<unsigned int>(x));

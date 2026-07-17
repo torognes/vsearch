@@ -82,7 +82,7 @@ public:
 
   auto empty() const -> bool;
   auto data() const -> unsigned char const *;
-  auto get(unsigned int seed_value) const -> unsigned char;
+  auto is_set(unsigned int seed_value) const -> bool;
   auto set(unsigned int seed_value) -> void;
   auto reset_all() -> void;
 
