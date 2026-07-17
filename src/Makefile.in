@@ -632,7 +632,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/logfile.cpp utils/userfields.cpp utils/cityhash.cpp \
 	utils/random.cpp utils/reverse_complement.cpp \
 	utils/sequence_digest.cpp utils/string_alloc.cpp \
-	utils/string_normalize.cpp commands/version.cpp vsearch.cc \
+	utils/string_normalize.cpp commands/version.cpp \
 	arch/generic/cpu_features.cpp arch/x86_64/cpu_features.cpp \
 	os/posix/dynlib_loader.cc os/posix/system.cc \
 	os/macos/system_memory.cc os/freebsd/system_memory.cc \
@@ -738,8 +738,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	utils/libvsearch_core_a-sequence_digest.$(OBJEXT) \
 	utils/libvsearch_core_a-string_alloc.$(OBJEXT) \
 	utils/libvsearch_core_a-string_normalize.$(OBJEXT) \
-	commands/libvsearch_core_a-version.$(OBJEXT) \
-	libvsearch_core_a-vsearch.$(OBJEXT)
+	commands/libvsearch_core_a-version.$(OBJEXT)
 @TARGET_X86_64_FALSE@am__objects_3 = arch/generic/libvsearch_core_a-cpu_features.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
 @TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_4 = os/macos/libvsearch_core_a-system_memory.$(OBJEXT)
@@ -851,12 +850,12 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/logfile.cpp utils/userfields.cpp utils/cityhash.cpp \
 	utils/random.cpp utils/reverse_complement.cpp \
 	utils/sequence_digest.cpp utils/string_alloc.cpp \
-	utils/string_normalize.cpp commands/version.cpp vsearch.cc \
+	utils/string_normalize.cpp commands/version.cpp \
 	arch/generic/cpu_features.cpp arch/x86_64/cpu_features.cpp \
 	os/posix/dynlib_loader.cc os/posix/system.cc \
 	os/macos/system_memory.cc os/freebsd/system_memory.cc \
 	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
-	os/windows/system.cc os/windows/system_memory.cc
+	os/windows/system.cc os/windows/system_memory.cc vsearch.cc
 am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) core/attributes.$(OBJEXT) \
 	core/bitmap.$(OBJEXT) core/chimera.$(OBJEXT) \
@@ -914,8 +913,7 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	utils/userfields.$(OBJEXT) utils/cityhash.$(OBJEXT) \
 	utils/random.$(OBJEXT) utils/reverse_complement.$(OBJEXT) \
 	utils/sequence_digest.$(OBJEXT) utils/string_alloc.$(OBJEXT) \
-	utils/string_normalize.$(OBJEXT) commands/version.$(OBJEXT) \
-	vsearch.$(OBJEXT)
+	utils/string_normalize.$(OBJEXT) commands/version.$(OBJEXT)
 @TARGET_X86_64_FALSE@am__objects_9 =  \
 @TARGET_X86_64_FALSE@	arch/generic/cpu_features.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_9 =  \
@@ -932,7 +930,8 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 @TARGET_WIN_TRUE@	$(am__objects_10) $(am__objects_11) \
 @TARGET_WIN_TRUE@	$(am__objects_12)
 am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
-	$(am__objects_8) $(am__objects_9) $(am__objects_13)
+	$(am__objects_8) $(am__objects_9) $(am__objects_13) \
+	vsearch.$(OBJEXT)
 __top_builddir__bin_vsearch_OBJECTS =  \
 	$(am___top_builddir__bin_vsearch_OBJECTS)
 @TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
@@ -963,7 +962,6 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-cli.Po \
 	./$(DEPDIR)/libvsearch_core_a-parameters.Po \
-	./$(DEPDIR)/libvsearch_core_a-vsearch.Po \
 	./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po \
 	./$(DEPDIR)/parameters.Po ./$(DEPDIR)/vsearch.Po \
 	./$(DEPDIR)/vsearch_api.Po \
@@ -1626,8 +1624,7 @@ utils/reverse_complement.cpp \
 utils/sequence_digest.cpp \
 utils/string_alloc.cpp \
 utils/string_normalize.cpp \
-commands/version.cpp \
-vsearch.cc
+commands/version.cpp
 
 @TARGET_X86_64_FALSE@VSEARCH_ARCH_SOURCES = arch/generic/cpu_features.cpp
 
@@ -1655,11 +1652,15 @@ vsearch.cc
 @TARGET_WIN_TRUE@	os/windows/system.cc \
 @TARGET_WIN_TRUE@	os/windows/system_memory.cc $(am__append_8) \
 @TARGET_WIN_TRUE@	$(am__append_9) $(am__append_10)
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
+
+# vsearch.cc holds main() + the CLI dispatcher; it is the standalone
+# executable's entry TU only, never compiled into libvsearch_core.
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES) vsearch.cc
 .DEFAULT_GOAL = ../bin/vsearch
 
-# Static library core — same sources as the executable, compiled with -fPIC
-# for embedding into shared libraries (e.g., DuckDB extensions).
+# Static library core — same sources as the executable minus the CLI entry TU
+# (vsearch.cc, which defines main()), compiled with -fPIC for embedding into
+# shared libraries (e.g., DuckDB extensions).
 #
 # -fexceptions -DVSEARCH_ENABLE_THROW: enable the library-only recoverable
 # error channel. When a library session is active, fatal() throws a
@@ -1672,8 +1673,8 @@ __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES
 # runtime cost on the non-throwing path (zero-cost model). The CLI executable
 # keeps AM_CXXFLAGS' -fno-exceptions and leaves VSEARCH_ENABLE_THROW undefined,
 # so its fatal.cpp has no throw and it exits exactly as before.
-libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN -fexceptions -DVSEARCH_ENABLE_THROW
-libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC -DVSEARCH_NO_MAIN
+libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -fexceptions -DVSEARCH_ENABLE_THROW
+libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC
 libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
 
 # Merged static library — combines core PIC objects with SIMD cpu and cityhash PIC objects.
@@ -2408,7 +2409,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-cli.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-parameters.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parameters.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vsearch.Po@am__quote@ # am--include-marker
@@ -4220,20 +4220,6 @@ commands/libvsearch_core_a-version.obj: commands/version.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-version.obj `if test -f 'commands/version.cpp'; then $(CYGPATH_W) 'commands/version.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/version.cpp'; fi`
 
-libvsearch_core_a-vsearch.o: vsearch.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-vsearch.o -MD -MP -MF $(DEPDIR)/libvsearch_core_a-vsearch.Tpo -c -o libvsearch_core_a-vsearch.o `test -f 'vsearch.cc' || echo '$(srcdir)/'`vsearch.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-vsearch.Tpo $(DEPDIR)/libvsearch_core_a-vsearch.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vsearch.cc' object='libvsearch_core_a-vsearch.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-vsearch.o `test -f 'vsearch.cc' || echo '$(srcdir)/'`vsearch.cc
-
-libvsearch_core_a-vsearch.obj: vsearch.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT libvsearch_core_a-vsearch.obj -MD -MP -MF $(DEPDIR)/libvsearch_core_a-vsearch.Tpo -c -o libvsearch_core_a-vsearch.obj `if test -f 'vsearch.cc'; then $(CYGPATH_W) 'vsearch.cc'; else $(CYGPATH_W) '$(srcdir)/vsearch.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libvsearch_core_a-vsearch.Tpo $(DEPDIR)/libvsearch_core_a-vsearch.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vsearch.cc' object='libvsearch_core_a-vsearch.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o libvsearch_core_a-vsearch.obj `if test -f 'vsearch.cc'; then $(CYGPATH_W) 'vsearch.cc'; else $(CYGPATH_W) '$(srcdir)/vsearch.cc'; fi`
-
 arch/generic/libvsearch_core_a-cpu_features.o: arch/generic/cpu_features.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT arch/generic/libvsearch_core_a-cpu_features.o -MD -MP -MF arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo -c -o arch/generic/libvsearch_core_a-cpu_features.o `test -f 'arch/generic/cpu_features.cpp' || echo '$(srcdir)/'`arch/generic/cpu_features.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Tpo arch/generic/$(DEPDIR)/libvsearch_core_a-cpu_features.Po
@@ -4555,7 +4541,6 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-parameters.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po
 	-rm -f ./$(DEPDIR)/parameters.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po
@@ -4836,7 +4821,6 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-cli.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-parameters.Po
-	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch.Po
 	-rm -f ./$(DEPDIR)/libvsearch_core_a-vsearch_api.Po
 	-rm -f ./$(DEPDIR)/parameters.Po
 	-rm -f ./$(DEPDIR)/vsearch.Po

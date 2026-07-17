@@ -132,12 +132,10 @@
 #include <vector>
 
 
-/* When building as a library (VSEARCH_NO_MAIN), exclude main() and the CLI
-   helpers it drives, to avoid symbol conflicts with the embedding
-   application's own entry point. These helpers are only ever called from
-   main()/dispatch_command(), so they carry internal linkage (anonymous
-   namespace) and are compiled solely into the standalone CLI build. */
-#ifndef VSEARCH_NO_MAIN
+/* Standalone CLI entry point: main(), the command dispatcher, and their
+   internal-linkage helpers. Listed only in the vsearch executable's sources
+   (never libvsearch_core), so the library defines no main() and cannot clash
+   with an embedding application's entry point. */
 namespace {
 auto cmd_none(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
@@ -373,4 +371,3 @@ auto main(int argc, char** argv) -> int
 
   flush_stdout();
 }
-#endif /* VSEARCH_NO_MAIN */

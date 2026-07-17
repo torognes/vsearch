@@ -368,8 +368,7 @@ utils/reverse_complement.cpp \
 utils/sequence_digest.cpp \
 utils/string_alloc.cpp \
 utils/string_normalize.cpp \
-commands/version.cpp \
-vsearch.cc
+commands/version.cpp
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes
 # sense on x86_64 (elsewhere the ISA level is fixed at compile time). Both
@@ -407,12 +406,15 @@ endif
 endif
 endif
 
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
+# vsearch.cc holds main() + the CLI dispatcher; it is the standalone
+# executable's entry TU only, never compiled into libvsearch_core.
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES) vsearch.cc
 
 .DEFAULT_GOAL = ../bin/vsearch
 
-# Static library core — same sources as the executable, compiled with -fPIC
-# for embedding into shared libraries (e.g., DuckDB extensions).
+# Static library core — same sources as the executable minus the CLI entry TU
+# (vsearch.cc, which defines main()), compiled with -fPIC for embedding into
+# shared libraries (e.g., DuckDB extensions).
 #
 # -fexceptions -DVSEARCH_ENABLE_THROW: enable the library-only recoverable
 # error channel. When a library session is active, fatal() throws a
@@ -425,8 +427,8 @@ __top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES
 # runtime cost on the non-throwing path (zero-cost model). The CLI executable
 # keeps AM_CXXFLAGS' -fno-exceptions and leaves VSEARCH_ENABLE_THROW undefined,
 # so its fatal.cpp has no throw and it exits exactly as before.
-libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -DVSEARCH_NO_MAIN -fexceptions -DVSEARCH_ENABLE_THROW
-libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC -DVSEARCH_NO_MAIN
+libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -fexceptions -DVSEARCH_ENABLE_THROW
+libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC
 libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
 
 # Merged static library — combines core PIC objects with SIMD cpu and cityhash PIC objects.
