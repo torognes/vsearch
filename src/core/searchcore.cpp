@@ -92,7 +92,6 @@
 // they never fatal() — safe to run during unwinding (noexcept).
 auto uhandle_deleter::operator()(uhandle_s * handle) const noexcept -> void { unique_exit(handle); }
 auto s16info_deleter::operator()(s16info_s * handle) const noexcept -> void { search16_exit(handle); }
-auto minheap_deleter::operator()(minheap_s * handle) const noexcept -> void { minheap_exit(handle); }
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -285,7 +284,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   /* zero counts */
   std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
 
-  minheap_clear(searchinfo->m.get());
+  searchinfo->m.clear();
 
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
@@ -344,11 +343,11 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
           novel.seqno = seqno;
           novel.length = length;
 
-          minheap_add(searchinfo->m.get(), & novel);
+          searchinfo->m.add(novel);
         }
     }
 
-  minheap_sort(searchinfo->m.get());
+  searchinfo->m.sort();
 }
 
 
@@ -936,9 +935,9 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
   while ((searchinfo->finalized + delayed < searchinfo->parameters->opt_maxaccepts + searchinfo->parameters->opt_maxrejects - 1) and
          (searchinfo->rejects < searchinfo->parameters->opt_maxrejects) and
          (searchinfo->accepts < searchinfo->parameters->opt_maxaccepts) and
-         (not minheap_isempty(searchinfo->m.get())))
+         (not searchinfo->m.is_empty()))
     {
-      elem_t const e = minheap_poplast(searchinfo->m.get());
+      elem_t const e = searchinfo->m.pop_last();
 
       struct hit * hit = searchinfo->hits + searchinfo->hit_count;
 

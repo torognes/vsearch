@@ -222,7 +222,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   si->hits = si->hits_v.data();
 
   si->uh.reset(unique_init());
-  si->m.reset(minheap_init(tophits));
+  si->m = Minheap(tophits);
   si->s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
                         parameters.opt_gap_open_query_left,
@@ -248,7 +248,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
 
   si->s.reset();
   si->uh.reset();
-  si->m.reset();
+  si->m = Minheap();
 
   /* kmers/hits/qsequence are views into the searchinfo_s vectors
      (kmers_v/hits_v/qsequence_v), which free their own storage. */

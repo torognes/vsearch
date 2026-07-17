@@ -60,6 +60,10 @@
 
 #pragma once
 
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include <cstddef>  // std::size_t
+#include <vector>  // std::vector
+
 struct topscore
 {
   unsigned int count;
@@ -69,28 +73,23 @@ struct topscore
 
 using elem_t = struct topscore;
 
-struct minheap_s
+/* A fixed-capacity min heap used to select and rank the best target
+   sequences (see minheap.cpp for the ordering and usage details). */
+class Minheap
 {
-  int alloc;
-  int count;
-  elem_t * array;
+public:
+  Minheap() = default;
+  explicit Minheap(int capacity);
+
+  auto is_empty() const -> bool;
+  auto clear() -> void;
+  auto add(elem_t const & element) -> void;
+  auto sort() -> void;
+  auto pop_last() -> elem_t;
+
+private:
+  auto replace_root(elem_t tmp) -> void;
+
+  std::size_t capacity_ {0};
+  std::vector<elem_t, FatalAllocator<elem_t>> array_ {};
 };
-
-using minheap_t = struct minheap_s;
-
-inline auto minheap_isempty(minheap_t const * a_minheap) -> bool
-{
-  return (a_minheap->count == 0);
-}
-
-inline auto minheap_clear(minheap_t * a_minheap) -> void
-{
-  a_minheap->count = 0;
-}
-
-auto minheap_poplast(minheap_t * a_minheap) -> elem_t;
-auto minheap_sort(minheap_t * a_minheap) -> void;
-auto minheap_init(int size) -> minheap_t *;
-auto minheap_exit(minheap_t * a_minheap) -> void;
-auto minheap_add(minheap_t * a_minheap, elem_t const * n) -> void;
-auto minheap_pop(minheap_t * a_minheap) -> elem_t;

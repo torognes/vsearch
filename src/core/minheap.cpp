@@ -58,18 +58,19 @@
 
 */
 
-#include "vsearch.hpp"
 #include "core/minheap.hpp"
-#include "os/system.hpp"  // xmalloc, xfree
-#include <cstdio>  // printf
-#include <cstdlib>  // qsort()
-#include <memory>  // std::unique_ptr
+#include <algorithm>  // std::sort
+#include <cstddef>  // std::size_t
 
 
 /* implement a priority queue with a min heap binary array structure */
 /* elements with the lowest count should be at the top (root) */
 
-// refactoring: std::priority_queue (#include <queue>)
+// refactoring note: std::priority_queue is a poor fit here. It offers no
+// bounded (top-k) insertion, so keeping only the best 'capacity' elements
+// would cost an extra sift per candidate, and it hides its container, so the
+// sort-then-drain-best-first access below (sort() + pop_last()) is not
+// expressible. A small hand-written heap keeps both cheap.
 
 /*
   To keep track of the n best potential target sequences, we store
@@ -81,117 +82,68 @@
   element and then the second best and so on.
 */
 
-auto elem_smaller(elem_t const * lhs, elem_t const * rhs) -> int
+namespace {
+
+auto elem_less(elem_t const & lhs, elem_t const & rhs) -> bool
 {
-  /* return 1 if lhs is smaller than rhs, 0 if equal or greater */
-  if (lhs->count < rhs->count)
-    {
-      return 1;
-    }
-  if (lhs->count > rhs->count)
-    {
-      return 0;
-    }
-
-  if (lhs->length > rhs->length)
-    {
-      return 1;
-    }
-  if (lhs->length < rhs->length)
-    {
-      return 0;
-    }
-
-  if (lhs->seqno > rhs->seqno)
-    {
-      return 1;
-    }
-  return 0;
-}
-
-
-auto minheap_compare(const void * lhs_a, const void * rhs_b) -> int
-{
-  auto const * lhs = static_cast<elem_t const *>(lhs_a);
-  auto const * rhs = static_cast<elem_t const *>(rhs_b);
-
-  /* return -1 if a is smaller than b, +1 if greater, otherwize 0 */
   /* first: lower count, larger length, lower seqno */
-
-  if (lhs->count < rhs->count)
+  if (lhs.count != rhs.count)
     {
-      return -1;
+      return lhs.count < rhs.count;
     }
-  if (lhs->count > rhs->count)
+  if (lhs.length != rhs.length)
     {
-      return +1;
+      return lhs.length > rhs.length;
     }
-
-  if (lhs->length > rhs->length)
-    {
-      return -1;
-    }
-  if (lhs->length < rhs->length)
-    {
-      return +1;
-    }
-
-  if (lhs->seqno > rhs->seqno)
-    {
-      return -1;
-    }
-  if (lhs->seqno < rhs->seqno)
-    {
-      return +1;
-    }
-  return 0;
+  return lhs.seqno > rhs.seqno;
 }
 
+}  // namespace
 
-auto minheap_init(int size) -> minheap_t *
+
+Minheap::Minheap(int capacity)
+  : capacity_(static_cast<std::size_t>(capacity))
 {
-  /* Own the struct while the array is allocated, so that if the array xmalloc
-     fatals (OOM) and unwinds in a library session the struct is freed rather
-     than leaked. Released to the caller (who calls minheap_exit) on success. */
-  std::unique_ptr<minheap_t, decltype(&xfree)> a_minheap(
-    static_cast<minheap_t *>(xmalloc(sizeof(minheap_t))), &xfree);
-  a_minheap->alloc = size;
-  a_minheap->count = 0;
-  a_minheap->array = static_cast<elem_t *>(xmalloc(static_cast<size_t>(size) * sizeof(elem_t)));
-  return a_minheap.release();
+  array_.reserve(capacity_);
 }
 
 
-auto minheap_exit(minheap_t * a_minheap) -> void
+auto Minheap::is_empty() const -> bool
 {
-  xfree(a_minheap->array);
-  xfree(a_minheap);
+  return array_.empty();
 }
 
 
-auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
+auto Minheap::clear() -> void
+{
+  array_.clear();
+}
+
+
+auto Minheap::replace_root(elem_t tmp) -> void
 {
   /* remove the element at the root, then swap children up
      to the root and insert tmp at suitable place */
 
   /* start with root */
-  int parent = 0;
-  int nth_child = (2 * parent) + 1;
+  std::size_t parent = 0;
+  std::size_t nth_child = (2 * parent) + 1;
+  auto const count = array_.size();
 
   /* while at least one child */
-  while (nth_child < a_minheap->count)
+  while (nth_child < count)
     {
       /* if two children: swap with the one with smallest value */
-      if ((nth_child + 1 < a_minheap->count) and
-          (elem_smaller(a_minheap->array + nth_child + 1, a_minheap->array + nth_child) != 0))
+      if ((nth_child + 1 < count) and
+          elem_less(array_[nth_child + 1], array_[nth_child]))
         {
           ++nth_child;
         }
 
       /* swap parent and child if child has lower value */
-      if (elem_smaller(a_minheap->array + nth_child, &tmp) != 0)
+      if (elem_less(array_[nth_child], tmp))
         {
-          a_minheap->array[parent] = a_minheap->array[nth_child];
+          array_[parent] = array_[nth_child];
         }
       else
         {
@@ -203,67 +155,52 @@ auto minheap_replaceroot(minheap_t * a_minheap, elem_t tmp) -> void
       nth_child = (2 * parent) + 1;
     }
 
-  a_minheap->array[parent] = tmp;
+  array_[parent] = tmp;
 }
 
 
-auto minheap_add(minheap_t * a_minheap, elem_t const * n) -> void
+auto Minheap::add(elem_t const & element) -> void
 {
-  if (a_minheap->count < a_minheap->alloc)
+  if (array_.size() < capacity_)
     {
       /* space for another item at end; swap upwards */
 
-      int index = a_minheap->count;
-      ++a_minheap->count;
-      int pos = (index - 1) / 2;
-      while ((index > 0) and (elem_smaller(n, a_minheap->array + pos) != 0))
+      array_.push_back(element);
+      auto index = array_.size() - 1;
+      while (index > 0)
         {
-          a_minheap->array[index] = a_minheap->array[pos];
+          auto const pos = (index - 1) / 2;
+          if (not elem_less(element, array_[pos]))
+            {
+              break;
+            }
+          array_[index] = array_[pos];
           index = pos;
-          pos = (index - 1) / 2;
         }
-      a_minheap->array[index] = *n;
+      array_[index] = element;
     }
-  else if (elem_smaller(a_minheap->array, n) != 0)
+  else if ((not array_.empty()) and elem_less(array_.front(), element))
     {
       /* replace the root if new element is larger than root */
-      minheap_replaceroot(a_minheap, *n);
+      replace_root(element);
     }
 }
 
 
-auto minheap_pop(minheap_t * a_minheap) -> elem_t
+auto Minheap::sort() -> void
+{
+  std::sort(array_.begin(), array_.end(), elem_less);
+}
+
+
+auto Minheap::pop_last() -> elem_t
 {
   /* return top element and restore order */
-  static const elem_t zero = {0, 0, 0};
-
-  if (a_minheap->count != 0)
+  if (array_.empty())
     {
-      elem_t top = a_minheap->array[0];
-      --a_minheap->count;
-      if (a_minheap->count != 0)
-        {
-          const elem_t tmp = a_minheap->array[a_minheap->count];
-          minheap_replaceroot(a_minheap, tmp);
-        }
-      return top;
+      return elem_t{0, 0, 0};
     }
-
-  return zero;
-}
-
-
-auto minheap_sort(minheap_t * a_minheap) -> void
-{
-  std::qsort(a_minheap->array, static_cast<size_t>(a_minheap->count), sizeof(elem_t), minheap_compare);
-}
-
-
-auto minheap_poplast(minheap_t * a_minheap) -> elem_t
-{
-  /* return top element and restore order */
-  if (a_minheap->count == 0) {
-    return elem_t{0, 0, 0};
-  }
-  return a_minheap->array[--a_minheap->count];
+  elem_t const last = array_.back();
+  array_.pop_back();
+  return last;
 }

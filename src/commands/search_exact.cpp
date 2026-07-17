@@ -557,7 +557,7 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->uh = nullptr;
   si->kmers = nullptr;
-  si->m = nullptr;
+  si->m = Minheap();
   si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;

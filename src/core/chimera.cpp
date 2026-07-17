@@ -1922,7 +1922,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
                                  parameters.opt_gap_extension_query_right,
                                  parameters.opt_gap_extension_target_right,
                                  parameters.opt_n_mismatch));
-  search_info->m.reset(minheap_init(tophits));
+  search_info->m = Minheap(tophits);
 }
 
 
@@ -1932,7 +1932,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
      before this runs. */
   search_info->s.reset();
   search_info->uh.reset();
-  search_info->m.reset();
+  search_info->m = Minheap();
 
   search_info->qsequence = nullptr;
   search_info->hits = nullptr;

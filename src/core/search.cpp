@@ -140,7 +140,7 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
   si->kmers_v.resize(static_cast<size_t>(seqcount));
   si->kmers = si->kmers_v.data();
-  si->m.reset(minheap_init(tophits));
+  si->m = Minheap(tophits);
   si->hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;
@@ -171,7 +171,7 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
      exception unwinds before this runs. */
   si->s.reset();
   si->uh.reset();
-  si->m.reset();
+  si->m = Minheap();
   /* kmers/hits/qsequence and query_head are views into the searchinfo_s vectors
      (kmers_v/hits_v/qsequence_v/query_head_v), which free their own storage. */
 }
