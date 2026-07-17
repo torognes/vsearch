@@ -1906,8 +1906,8 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   search_info->kmers_v.resize(db.getsequencecount());
   search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
-  search_info->uh = unique_init();
-  search_info->s = search16_init(parameters.opt_match,
+  search_info->uh.reset(unique_init());
+  search_info->s.reset(search16_init(parameters.opt_match,
                                  parameters.opt_mismatch,
                                  parameters.opt_gap_open_query_left,
                                  parameters.opt_gap_open_target_left,
@@ -1921,16 +1921,18 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
                                  parameters.opt_gap_extension_target_interior,
                                  parameters.opt_gap_extension_query_right,
                                  parameters.opt_gap_extension_target_right,
-                                 parameters.opt_n_mismatch);
-  search_info->m = minheap_init(tophits);
+                                 parameters.opt_n_mismatch));
+  search_info->m.reset(minheap_init(tophits));
 }
 
 
 auto query_exit(struct searchinfo_s * search_info) -> void
 {
-  search16_exit(search_info->s);
-  unique_exit(search_info->uh);
-  minheap_exit(search_info->m);
+  /* The handles are also freed by ~searchinfo_s if an exception unwinds
+     before this runs. */
+  search_info->s.reset();
+  search_info->uh.reset();
+  search_info->m.reset();
 
   search_info->qsequence = nullptr;
   search_info->hits = nullptr;

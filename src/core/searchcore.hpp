@@ -63,10 +63,21 @@
 #include "core/linmemalign.hpp"
 #include "core/mask.hpp"  // Masking
 #include <array>
+#include <memory>  // std::unique_ptr
 #include <vector>
 
 
 struct uhandle_s;
+struct s16info_s;
+struct minheap_s;
+
+/* Deleters so searchinfo_s can own the opaque per-query handles via unique_ptr
+   and free them on unwind (a fatal() thrown in a library session). Their
+   operator()s are defined in searchcore.cpp, where the matching *_exit
+   functions are visible. Stateless, so they add no size to the unique_ptr. */
+struct uhandle_deleter { auto operator()(uhandle_s * handle) const noexcept -> void; };
+struct s16info_deleter { auto operator()(s16info_s * handle) const noexcept -> void; };
+struct minheap_deleter { auto operator()(minheap_s * handle) const noexcept -> void; };
 
 /* the number of alignments that can be delayed */
 constexpr auto MAXDELAYED = 8U;
@@ -148,13 +159,13 @@ struct searchinfo_s
   std::vector<struct hit> hits_v {}; /* vector of hits */
   struct hit * hits = nullptr;            /* list of hits */
   int hit_count = 0;                /* number of hits in the above list */
-  struct uhandle_s * uh = nullptr;        /* unique kmer finder instance */
-  struct s16info_s * s = nullptr;         /* SIMD aligner instance */
+  std::unique_ptr<uhandle_s, uhandle_deleter> uh {};  /* unique kmer finder instance (owned) */
+  std::unique_ptr<s16info_s, s16info_deleter> s {};   /* SIMD aligner instance (owned) */
   struct nwinfo_s * nw = nullptr;         /* NW aligner instance */
-  LinearMemoryAligner * lma = nullptr;    /* Linear memory aligner instance pointer */
+  std::unique_ptr<LinearMemoryAligner> lma {};        /* Linear memory aligner instance (owned) */
   int accepts = 0;                  /* number of accepts */
   int rejects = 0;                  /* number of rejects */
-  struct minheap_s * m = nullptr;   /* min heap with the top kmer db seqs */
+  std::unique_ptr<minheap_s, minheap_deleter> m {};   /* min heap with the top kmer db seqs (owned) */
   int finalized = 0;
   /* run configuration, set by the per-thread init at each call site (E1
      shared-infra phase). A pointer (default null) so searchinfo_s stays

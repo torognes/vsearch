@@ -205,17 +205,24 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   si->nw = nullptr;
   si->hit_count = 0;
 
-  /* allocate memory for sequence */
+  /* allocate memory for sequence. kmers/hits/qsequence are backed by the
+     searchinfo_s vectors (RAII), so a fatal() unwinding out of a partial init
+     or a query frees them; the raw pointers are views into that owned storage. */
 
+  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si->seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
-  si->qsequence = static_cast<char *>(xmalloc(static_cast<std::size_t>(si->seq_alloc)));
+  si->qsequence_v.resize(static_cast<std::size_t>(si->seq_alloc));
+  si->qsequence = si->qsequence_v.data();
 
-  si->kmers = static_cast<count_t *>(xmalloc((static_cast<std::size_t>(seqcount) * sizeof(count_t)) + 32));
-  si->hits = static_cast<struct hit *>(xmalloc(sizeof(struct hit) * static_cast<std::size_t>(tophits)));
+  si->kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
+  si->kmers_v.resize(static_cast<std::size_t>(seqcount));
+  si->kmers = si->kmers_v.data();
+  si->hits_v.resize(static_cast<std::size_t>(tophits));
+  si->hits = si->hits_v.data();
 
-  si->uh = unique_init();
-  si->m = minheap_init(tophits);
-  si->s = search16_init(parameters.opt_match,
+  si->uh.reset(unique_init());
+  si->m.reset(minheap_init(tophits));
+  si->s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
                         parameters.opt_gap_open_query_left,
                         parameters.opt_gap_open_target_left,
@@ -229,30 +236,21 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
                         parameters.opt_gap_extension_target_interior,
                         parameters.opt_gap_extension_query_right,
                         parameters.opt_gap_extension_target_right,
-                        parameters.opt_n_mismatch);
+                        parameters.opt_n_mismatch));
 }
 
 
 auto cluster_query_exit(struct searchinfo_s * si) -> void
 {
-  /* clean up after thread execution; called once per thread */
+  /* clean up after thread execution; called once per thread. The handles are
+     also freed by ~searchinfo_s if an exception unwinds before this runs. */
 
-  search16_exit(si->s);
-  unique_exit(si->uh);
-  minheap_exit(si->m);
+  si->s.reset();
+  si->uh.reset();
+  si->m.reset();
 
-  if (si->qsequence != nullptr)
-    {
-      xfree(si->qsequence);
-    }
-  if (si->hits != nullptr)
-    {
-      xfree(si->hits);
-    }
-  if (si->kmers != nullptr)
-    {
-      xfree(si->kmers);
-    }
+  /* kmers/hits/qsequence are views into the searchinfo_s vectors
+     (kmers_v/hits_v/qsequence_v), which free their own storage. */
 }
 
 
@@ -741,7 +739,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   unsigned short snwmismatches = 0;
                   unsigned short snwgaps = 0;
 
-                  search16(si->s,
+                  search16(si->s.get(),
                            1,
                            & nwtarget,
                            & snwscore,

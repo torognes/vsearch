@@ -102,8 +102,8 @@ auto populate_si(struct searchinfo_s * si,
   if (si->qseqlen + 1 > si->seq_alloc)
     {
       si->seq_alloc = si->qseqlen + buffer_headroom;
-      si->qsequence = static_cast<char *>(
-        xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
+      si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
+      si->qsequence = si->qsequence_v.data();
     }
 
   /* copy the header into owned storage, then point the read-only view at it */
@@ -132,16 +132,22 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &db;  /* searchcore reads the sequences through the si */
-  si->uh = unique_init();
-  si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(seqcount) * sizeof(count_t)) + 32));
-  si->m = minheap_init(tophits);
-  si->hits = static_cast<struct hit *>(xmalloc
-    (sizeof(struct hit) * static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand))));
+  si->uh.reset(unique_init());
+  /* kmers/hits/qsequence are backed by the searchinfo_s vectors (RAII), so a
+     fatal() unwinding out of a partial init or a query frees them; the raw
+     pointers below are views into that owned storage. */
+  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
+  si->kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
+  si->kmers_v.resize(static_cast<size_t>(seqcount));
+  si->kmers = si->kmers_v.data();
+  si->m.reset(minheap_init(tophits));
+  si->hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
+  si->hits = si->hits_v.data();
   si->qsize = 1;
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
-  si->s = search16_init(parameters.opt_match,
+  si->s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
                         parameters.opt_gap_open_query_left,
                         parameters.opt_gap_open_target_left,
@@ -155,24 +161,19 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
                         parameters.opt_gap_extension_target_interior,
                         parameters.opt_gap_extension_query_right,
                         parameters.opt_gap_extension_target_right,
-                        parameters.opt_n_mismatch);
+                        parameters.opt_n_mismatch));
 }
 
 
 auto search_thread_exit(struct searchinfo_s * si) -> void
 {
-  /* thread specific clean up */
-  search16_exit(si->s);
-  unique_exit(si->uh);
-  xfree(si->hits);
-  minheap_exit(si->m);
-  xfree(si->kmers);
-  /* query_head is a view (into query_head_v, the db, or a caller buffer); the
-     owned storage query_head_v frees itself. */
-  if (si->qsequence != nullptr)
-    {
-      xfree(si->qsequence);
-    }
+  /* thread specific clean up. The handles are also freed by ~searchinfo_s if an
+     exception unwinds before this runs. */
+  si->s.reset();
+  si->uh.reset();
+  si->m.reset();
+  /* kmers/hits/qsequence and query_head are views into the searchinfo_s vectors
+     (kmers_v/hits_v/qsequence_v/query_head_v), which free their own storage. */
 }
 
 

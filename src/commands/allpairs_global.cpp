@@ -353,7 +353,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
   searchinfo.hits = searchinfo.hits_v.data();
 
-  searchinfo.s = search16_init(state.parameters.opt_match,
+  searchinfo.s.reset(search16_init(state.parameters.opt_match,
                         state.parameters.opt_mismatch,
                         state.parameters.opt_gap_open_query_left,
                         state.parameters.opt_gap_open_target_left,
@@ -367,7 +367,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                         state.parameters.opt_gap_extension_target_interior,
                         state.parameters.opt_gap_extension_query_right,
                         state.parameters.opt_gap_extension_target_right,
-                        state.parameters.opt_n_mismatch);
+                        state.parameters.opt_n_mismatch));
 
 
   struct Scoring scoring = scoring_from_options(state.parameters);
@@ -422,9 +422,9 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
       {
         /* perform alignments */
 
-        search16_qprep(searchinfo.s, searchinfo.qsequence, searchinfo.qseqlen);
+        search16_qprep(searchinfo.s.get(), searchinfo.qsequence, searchinfo.qseqlen);
 
-        search16(searchinfo.s,
+        search16(searchinfo.s.get(),
                  static_cast<unsigned int>(searchinfo.hit_count),
                  pseqnos.data(),
                  pscores.data(),
@@ -565,7 +565,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
   run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
 
-  search16_exit(searchinfo.s);
+  searchinfo.s.reset();
 }
 
 

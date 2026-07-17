@@ -85,6 +85,14 @@
 #include <vector>
 
 
+// Deleters for the opaque per-query handles owned by searchinfo_s via
+// unique_ptr (declared in searchcore.hpp). unique_ptr only invokes these on a
+// non-null pointer, and the *_exit functions free already-allocated buffers, so
+// they never fatal() — safe to run during unwinding (noexcept).
+auto uhandle_deleter::operator()(uhandle_s * handle) const noexcept -> void { unique_exit(handle); }
+auto s16info_deleter::operator()(s16info_s * handle) const noexcept -> void { search16_exit(handle); }
+auto minheap_deleter::operator()(minheap_s * handle) const noexcept -> void { minheap_exit(handle); }
+
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
@@ -277,7 +285,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   /* zero counts */
   std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
 
-  minheap_clear(searchinfo->m);
+  minheap_clear(searchinfo->m.get());
 
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
@@ -336,11 +344,11 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
           novel.seqno = seqno;
           novel.length = length;
 
-          minheap_add(searchinfo->m, & novel);
+          minheap_add(searchinfo->m.get(), & novel);
         }
     }
 
-  minheap_sort(searchinfo->m);
+  minheap_sort(searchinfo->m.get());
 }
 
 
@@ -769,7 +777,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
   if (target_count != 0)
     {
-      search16(searchinfo->s,
+      search16(searchinfo->s.get(),
                target_count,
                target_list.data(),
                nwscore_list.data(),
@@ -893,16 +901,16 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
      kmers are extracted at searchinfo->dbindex->wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
-  search16_qprep(searchinfo->s, searchinfo->qsequence, searchinfo->qseqlen);
+  search16_qprep(searchinfo->s.get(), searchinfo->qsequence, searchinfo->qseqlen);
 
   struct Scoring scoring = scoring_from_options(*searchinfo->parameters);
 
 
-  searchinfo->lma = new LinearMemoryAligner(scoring);
+  searchinfo->lma.reset(new LinearMemoryAligner(scoring));
 
 
   /* extract unique kmer samples from query*/
-  unique_count(searchinfo->uh, static_cast<int>(searchinfo->dbindex->wordlength),
+  unique_count(searchinfo->uh.get(), static_cast<int>(searchinfo->dbindex->wordlength),
                searchinfo->qseqlen, searchinfo->qsequence,
                &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 
@@ -919,9 +927,9 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
   while ((searchinfo->finalized + delayed < searchinfo->parameters->opt_maxaccepts + searchinfo->parameters->opt_maxrejects - 1) and
          (searchinfo->rejects < searchinfo->parameters->opt_maxrejects) and
          (searchinfo->accepts < searchinfo->parameters->opt_maxaccepts) and
-         (not minheap_isempty(searchinfo->m)))
+         (not minheap_isempty(searchinfo->m.get())))
     {
-      elem_t const e = minheap_poplast(searchinfo->m);
+      elem_t const e = minheap_poplast(searchinfo->m.get());
 
       struct hit * hit = searchinfo->hits + searchinfo->hit_count;
 
@@ -957,7 +965,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
       align_delayed(searchinfo);
     }
 
-  delete searchinfo->lma;
+  searchinfo->lma.reset();  // frees the aligner (also freed by ~searchinfo_s on unwind)
 }
 
 

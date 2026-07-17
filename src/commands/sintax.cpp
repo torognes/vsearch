@@ -400,9 +400,9 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
         }
     }
 
-  minheap_clear(searchinfo->m);
+  minheap_clear(searchinfo->m.get());
   if (best.count > 1) {
-    minheap_add(searchinfo->m, &best);
+    minheap_add(searchinfo->m.get(), &best);
   }
 }
 
@@ -438,7 +438,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
       /* find unique kmers at dbindex.wordlength, the effective index width (set
          by Dbindex::prepare for a FASTA db, or udb_read for a UDB db); reading
          parameters.opt_wordlength would use the wrong width against a UDB index. */
-      unique_count(si->uh, static_cast<int>(si->dbindex->wordlength),
+      unique_count(si->uh.get(), static_cast<int>(si->dbindex->wordlength),
                    si->qseqlen, si->qsequence,
                    &kmersamplecount, &kmersample, Masking::none);
 
@@ -467,9 +467,9 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
               sintax_search_topscores(si, rng, state.parameters);
 
-              if (! minheap_isempty(si->m))
+              if (! minheap_isempty(si->m.get()))
                 {
-                  auto const e = minheap_poplast(si->m);
+                  auto const e = minheap_poplast(si->m.get());
 
                   auto const strand_idx = static_cast<std::size_t>(s);
                   auto & boot = boot_count[strand_idx];
@@ -611,24 +611,24 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &state.db;  /* searchcore reads the sequences through the si */
-  si->uh = unique_init();
+  si->uh.reset(unique_init());
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
-  si->m = minheap_init(state.tophits);
+  si->m.reset(minheap_init(state.tophits));
   si->hits = nullptr;
   si->qsize = 1;
   si->query_head = nullptr;
   si->seq_alloc = 0;
   si->qsequence = nullptr;
   si->nw = nullptr;
-  si->s = nullptr;
+  si->s.reset();
 }
 
 
 static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 {
   /* thread specific clean up */
-  unique_exit(searchinfo->uh);
-  minheap_exit(searchinfo->m);
+  searchinfo->uh.reset();
+  searchinfo->m.reset();
   xfree(searchinfo->kmers);
   /* query_head is a view; its owned storage query_head_v frees itself */
   if (searchinfo->qsequence != nullptr)
