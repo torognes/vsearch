@@ -72,6 +72,7 @@
 #include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
 #include <cstring>  // std::memchr, std::strlen
 #include <iterator>  // std::next
+#include <memory>  // std::unique_ptr
 #include <vector>
 
 
@@ -176,15 +177,17 @@ namespace {
 
 auto fasta_open(const char * filename, struct Parameters const & parameters) -> fastx_handle
 {
-  auto * input_handle = fastx_open(filename, parameters);
+  // unique_ptr so the open handle is freed if the fatal() below unwinds
+  // (library session); released to the caller on the success path.
+  std::unique_ptr<fastx_s> input_handle(fastx_open(filename, parameters));
 
-  if (fastx_is_fastq(input_handle) and not input_handle->is_empty)
+  if (fastx_is_fastq(input_handle.get()) and not input_handle->is_empty)
     {
       fatal("FASTA file expected, FASTQ file found (%s)", filename);
     }
 
   assert(input_handle != nullptr);
-  return input_handle;
+  return input_handle.release();
 }
 
 

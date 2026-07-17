@@ -151,6 +151,14 @@ struct fastx_s
   bool defer_errors = false;
   bool error = false;
   std::array<char, 512> errmsg {{}};
+
+  /* Frees the owned resources (open files and buffers). Having it here means a
+     fastx_s held in a std::unique_ptr is cleaned up automatically when the
+     stack unwinds — e.g. when fatal() throws in a library session part-way
+     through fastx_open() or a read loop. It must not throw (destructors run
+     during unwinding), so it never calls fatal(); fastx_close() keeps the
+     user-facing stripped-character warning and then deletes the handle. */
+  ~fastx_s();
 };
 
 using fastx_handle = struct fastx_s *;

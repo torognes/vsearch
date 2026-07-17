@@ -70,6 +70,7 @@
 #include <cstdio>  // std::fprintf, std::size_t
 #include <cstring>  // std::memcpy, std::strcmp
 #include <limits>
+#include <memory>  // std::unique_ptr
 #include <string>  // std::string
 
 
@@ -231,6 +232,11 @@ auto Database::add(bool const is_fastq_record,
 auto Database::read(const char * filename, int upcase, struct Parameters const & parameters) -> void
 {
   fastx_handle h = fastx_open(filename, parameters);
+  /* Own the handle for the duration of the read loop: fastx_next() can fatal()
+     on a malformed record, which unwinds in a library session. The guard frees
+     the handle on that path; on the normal path it is released to the explicit
+     fastx_close() below (which also emits the stripped-character warning). */
+  std::unique_ptr<fastx_s> handle_guard(h);
 
   fastq_format = fastx_is_fastq(h);
 
@@ -292,6 +298,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
         progress.update(fastx_get_position(h));
       }
   }
+  static_cast<void>(handle_guard.release());  // normal path: hand the handle to fastx_close()
   fastx_close(h, parameters);
 
   if (not parameters.opt_quiet)

@@ -69,6 +69,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <cstring>  // std::memcmp, std::memchr, std::strlen
+#include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
 #include <vector>
 
@@ -302,15 +303,17 @@ auto buffer_filter_extend(fastx_handle input_handle,
 
 auto fastq_open(const char * filename, struct Parameters const & parameters) -> fastx_handle
 {
-  auto * input_handle = fastx_open(filename, parameters);
+  // unique_ptr so the open handle is freed if the fatal() below unwinds
+  // (library session); released to the caller on the success path.
+  std::unique_ptr<fastx_s> input_handle(fastx_open(filename, parameters));
 
-  if (not fastx_is_fastq(input_handle))
+  if (not fastx_is_fastq(input_handle.get()))
     {
       fatal("FASTQ file expected, FASTA file found (%s)", filename);
     }
 
   assert(input_handle != nullptr);
-  return input_handle;
+  return input_handle.release();
 }
 
 

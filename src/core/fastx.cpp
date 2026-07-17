@@ -80,6 +80,7 @@
 #include <cstring>  // std::memcpy, std::memcmp, std::strcmp
 #include <iterator> // std::distance
 #include <limits>  // std::numeric_limits
+#include <memory>  // std::unique_ptr
 #include <vector>
 
 
@@ -260,7 +261,9 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
 auto fastx_open(char const * filename, struct Parameters const & parameters) -> fastx_handle
 {
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
-  auto * input_handle = new fastx_s;
+  // Held in a unique_ptr so any fatal() below frees the partially-built handle
+  // when the stack unwinds (library session); released to the caller on success.
+  std::unique_ptr<fastx_s> input_handle(new fastx_s);
 
   input_handle->fp = nullptr;
   input_handle->libraries = parameters.dyn_libs;
@@ -421,7 +424,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   /* start filling up file buffer */
 
-  auto const rest = fastx_file_fill_buffer(input_handle);
+  auto const rest = fastx_file_fill_buffer(input_handle.get());
 
   /* examine first char and see if it starts with > or @ */
 
@@ -506,7 +509,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   input_handle->seqno = -1;
 
   assert(input_handle != nullptr);
-  return input_handle;
+  return input_handle.release();
 }
 
 
@@ -525,6 +528,52 @@ auto fastx_is_empty(struct fastx_s const * input_handle) -> bool
 auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool
 {
   return input_handle->is_pipe;
+}
+
+
+/* Release the owned resources: the compression handle (if any), the underlying
+   file, and the five buffers. Runs on delete, including during stack unwinding
+   when fatal() throws in a library session, so it must not throw: it never
+   calls fatal() (the "Internal error" default of the old fastx_close switch is
+   dropped — format is always plain/gzip/bzip here) and null-guards every member
+   so a handle abandoned part-way through fastx_open() is torn down safely. */
+fastx_s::~fastx_s()
+{
+  switch (format)
+    {
+    case Format::gzip:
+#ifdef HAVE_ZLIB_H
+      if ((libraries != nullptr) and (fp_gz != nullptr))
+        {
+          libraries->gzclose(fp_gz);
+        }
+#endif
+      break;
+
+    case Format::bzip:
+#ifdef HAVE_BZLIB_H
+      if ((libraries != nullptr) and (fp_bz != nullptr))
+        {
+          int bz_error = 0;
+          libraries->bz_read_close(&bz_error, fp_bz);
+        }
+#endif
+      break;
+
+    default:
+      break;
+    }
+
+  if (fp != nullptr)
+    {
+      std::fclose(fp);
+    }
+
+  buffer_free(& file_buffer);
+  buffer_free(& header_buffer);
+  buffer_free(& sequence_buffer);
+  buffer_free(& plusline_buffer);
+  buffer_free(& quality_buffer);
 }
 
 
@@ -560,48 +609,7 @@ auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters
         }
     }
 
-#ifdef HAVE_BZLIB_H
-  int bz_error = 0;
-#endif
-
-  switch (input_handle->format)
-    {
-    case Format::plain:
-      break;
-
-    case Format::gzip:
-#ifdef HAVE_ZLIB_H
-      input_handle->libraries->gzclose(input_handle->fp_gz);
-      input_handle->fp_gz = nullptr;
-      break;
-#endif
-
-    case Format::bzip:
-#ifdef HAVE_BZLIB_H
-      input_handle->libraries->bz_read_close(&bz_error, input_handle->fp_bz);
-      input_handle->fp_bz = nullptr;
-      break;
-#endif
-
-    default:
-      fatal("Internal error");
-    }
-
-  std::fclose(input_handle->fp);
-  input_handle->fp = nullptr;
-
-  buffer_free(& input_handle->file_buffer);
-  buffer_free(& input_handle->header_buffer);
-  buffer_free(& input_handle->sequence_buffer);
-  buffer_free(& input_handle->plusline_buffer);
-  buffer_free(& input_handle->quality_buffer);
-
-  input_handle->file_size = 0;
-  input_handle->file_position = 0;
-
-  input_handle->lineno = 0;
-  input_handle->seqno = -1;
-
+  /* ~fastx_s closes the files and frees the buffers. */
   delete input_handle;
 }
 
