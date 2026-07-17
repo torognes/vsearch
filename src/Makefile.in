@@ -637,7 +637,8 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	os/posix/dynlib_loader.cc os/posix/system.cc \
 	os/macos/system_memory.cc os/freebsd/system_memory.cc \
 	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
-	os/windows/system.cc os/windows/system_memory.cc
+	os/windows/system.cc os/windows/system_memory.cc \
+	utils/fatal_throw.cpp
 am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-allpairs_global.$(OBJEXT) \
 	core/libvsearch_core_a-attributes.$(OBJEXT) \
@@ -754,7 +755,8 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 @TARGET_WIN_TRUE@	$(am__objects_4) $(am__objects_5) \
 @TARGET_WIN_TRUE@	$(am__objects_6)
 am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	$(am__objects_3) $(am__objects_7)
+	$(am__objects_3) $(am__objects_7) \
+	utils/libvsearch_core_a-fatal_throw.$(OBJEXT)
 libvsearch_core_a_OBJECTS = $(am_libvsearch_core_a_OBJECTS)
 am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/allpairs_global.hpp arch/cpu_features.hpp \
@@ -855,7 +857,8 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	os/posix/dynlib_loader.cc os/posix/system.cc \
 	os/macos/system_memory.cc os/freebsd/system_memory.cc \
 	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
-	os/windows/system.cc os/windows/system_memory.cc vsearch.cc
+	os/windows/system.cc os/windows/system_memory.cc vsearch.cc \
+	utils/fatal_exit.cpp
 am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) core/attributes.$(OBJEXT) \
 	core/bitmap.$(OBJEXT) core/chimera.$(OBJEXT) \
@@ -931,7 +934,7 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 @TARGET_WIN_TRUE@	$(am__objects_12)
 am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
 	$(am__objects_8) $(am__objects_9) $(am__objects_13) \
-	vsearch.$(OBJEXT)
+	vsearch.$(OBJEXT) utils/fatal_exit.$(OBJEXT)
 __top_builddir__bin_vsearch_OBJECTS =  \
 	$(am___top_builddir__bin_vsearch_OBJECTS)
 @TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@__top_builddir__bin_vsearch_DEPENDENCIES =  \
@@ -1135,11 +1138,12 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	os/windows/$(DEPDIR)/system_memory.Po utils/$(DEPDIR)/cigar.Po \
 	utils/$(DEPDIR)/cityhash.Po \
 	utils/$(DEPDIR)/compare_strings_nocase.Po \
-	utils/$(DEPDIR)/fatal.Po \
+	utils/$(DEPDIR)/fatal.Po utils/$(DEPDIR)/fatal_exit.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-cigar.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-fatal.Po \
+	utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-logfile.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-maps.Po \
 	utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po \
@@ -1653,29 +1657,31 @@ commands/version.cpp
 @TARGET_WIN_TRUE@	os/windows/system_memory.cc $(am__append_8) \
 @TARGET_WIN_TRUE@	$(am__append_9) $(am__append_10)
 
-# vsearch.cc holds main() + the CLI dispatcher; it is the standalone
-# executable's entry TU only, never compiled into libvsearch_core.
-__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES) vsearch.cc
+# Executable-only translation units, never compiled into libvsearch_core:
+# vsearch.cc holds main() + the CLI dispatcher, and fatal_exit.cpp holds the
+# exit-only tail of fatal() (the library links fatal_throw.cpp instead, below).
+__top_builddir__bin_vsearch_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES) vsearch.cc utils/fatal_exit.cpp
 .DEFAULT_GOAL = ../bin/vsearch
 
 # Static library core — same sources as the executable minus the CLI entry TU
 # (vsearch.cc, which defines main()), compiled with -fPIC for embedding into
 # shared libraries (e.g., DuckDB extensions).
 #
-# -fexceptions -DVSEARCH_ENABLE_THROW: enable the library-only recoverable
-# error channel. When a library session is active, fatal() throws a
-# VsearchError instead of calling std::exit(), so a consumer can catch it and
-# continue. The throw must unwind cleanly through the engines running C++
-# destructors, so *every* library TU (not just fatal.cpp) needs -fexceptions to
-# get cleanup landing pads; a frame compiled -fno-exceptions would be traversed
-# on unwind with its destructors skipped. -fexceptions overrides the
+# -fexceptions: enable the library-only recoverable error channel. When a
+# library session is active, fatal() throws a VsearchError instead of calling
+# std::exit(), so a consumer can catch it and continue. The throw itself lives
+# in fatal_throw.cpp (added below; the executable links fatal_exit.cpp instead),
+# but the throw must unwind cleanly through the engines running C++ destructors,
+# so *every* library TU (not just fatal_throw.cpp) needs -fexceptions to get
+# cleanup landing pads; a frame compiled -fno-exceptions would be traversed on
+# unwind with its destructors skipped. -fexceptions overrides the
 # -fno-exceptions inherited from AM_CXXFLAGS (last flag wins), and has no
 # runtime cost on the non-throwing path (zero-cost model). The CLI executable
-# keeps AM_CXXFLAGS' -fno-exceptions and leaves VSEARCH_ENABLE_THROW undefined,
-# so its fatal.cpp has no throw and it exits exactly as before.
-libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -fexceptions -DVSEARCH_ENABLE_THROW
+# keeps AM_CXXFLAGS' -fno-exceptions and links the exit-only fatal_exit.cpp, so
+# it has no throw and exits exactly as before.
+libvsearch_core_a_CXXFLAGS = $(AM_CXXFLAGS) -fPIC -fexceptions
 libvsearch_core_a_CFLAGS = $(AM_CFLAGS) -fPIC
-libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES)
+libvsearch_core_a_SOURCES = $(VSEARCHHEADERS) $(VSEARCH_COMMON_SOURCES) $(VSEARCH_ARCH_SOURCES) $(VSEARCH_OS_SOURCES) utils/fatal_throw.cpp
 
 # Merged static library — combines core PIC objects with SIMD cpu and cityhash PIC objects.
 # Build with: make libvsearch.a
@@ -2156,6 +2162,8 @@ os/windows/libvsearch_core_a-system.$(OBJEXT):  \
 os/windows/libvsearch_core_a-system_memory.$(OBJEXT):  \
 	os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
+utils/libvsearch_core_a-fatal_throw.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
 
 libvsearch_core.a: $(libvsearch_core_a_OBJECTS) $(libvsearch_core_a_DEPENDENCIES) $(EXTRA_libvsearch_core_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libvsearch_core.a
@@ -2375,6 +2383,8 @@ os/windows/system.$(OBJEXT): os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 os/windows/system_memory.$(OBJEXT): os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
+utils/fatal_exit.$(OBJEXT): utils/$(am__dirstamp) \
+	utils/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/bin/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/bin
 	@: > $(top_builddir)/bin/$(am__dirstamp)
@@ -2605,10 +2615,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/cityhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/compare_strings_nocase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/fatal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/fatal_exit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-cigar.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-fatal.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-logfile.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-maps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po@am__quote@ # am--include-marker
@@ -4360,6 +4372,20 @@ os/windows/libvsearch_core_a-system_memory.obj: os/windows/system_memory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-system_memory.obj `if test -f 'os/windows/system_memory.cc'; then $(CYGPATH_W) 'os/windows/system_memory.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/system_memory.cc'; fi`
 
+utils/libvsearch_core_a-fatal_throw.o: utils/fatal_throw.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-fatal_throw.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Tpo -c -o utils/libvsearch_core_a-fatal_throw.o `test -f 'utils/fatal_throw.cpp' || echo '$(srcdir)/'`utils/fatal_throw.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Tpo utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/fatal_throw.cpp' object='utils/libvsearch_core_a-fatal_throw.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-fatal_throw.o `test -f 'utils/fatal_throw.cpp' || echo '$(srcdir)/'`utils/fatal_throw.cpp
+
+utils/libvsearch_core_a-fatal_throw.obj: utils/fatal_throw.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-fatal_throw.obj -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Tpo -c -o utils/libvsearch_core_a-fatal_throw.obj `if test -f 'utils/fatal_throw.cpp'; then $(CYGPATH_W) 'utils/fatal_throw.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/fatal_throw.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Tpo utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='utils/fatal_throw.cpp' object='utils/libvsearch_core_a-fatal_throw.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o utils/libvsearch_core_a-fatal_throw.obj `if test -f 'utils/fatal_throw.cpp'; then $(CYGPATH_W) 'utils/fatal_throw.cpp'; else $(CYGPATH_W) '$(srcdir)/utils/fatal_throw.cpp'; fi`
+
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
@@ -4737,10 +4763,12 @@ distclean: distclean-am
 	-rm -f utils/$(DEPDIR)/cityhash.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/fatal.Po
+	-rm -f utils/$(DEPDIR)/fatal_exit.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-logfile.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-maps.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po
@@ -5017,10 +5045,12 @@ maintainer-clean: maintainer-clean-am
 	-rm -f utils/$(DEPDIR)/cityhash.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/fatal.Po
+	-rm -f utils/$(DEPDIR)/fatal_exit.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cigar.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-cityhash.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-compare_strings_nocase.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal.Po
+	-rm -f utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-logfile.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-maps.Po
 	-rm -f utils/$(DEPDIR)/libvsearch_core_a-number_of_strands.Po

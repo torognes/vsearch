@@ -58,50 +58,31 @@
 
 */
 
-#pragma once
+#include "fatal.hpp"  // fatal_detail::exit_or_throw
+#include <cstdint>  // uint64_t
+#include <cstdlib>  // std::exit, EXIT_FAILURE
 
-#include <cstdint> // uint64_t
-#include <string>  // std::string
-
-
-// Recoverable-error payload for the library boundary. When a library
-// session is active, fatal() throws this instead of calling std::exit(),
-// so a library consumer can catch it, skip the bad input and continue
-// (the whole process no longer dies). The standalone CLI never enables
-// the throwing path (see fatal_exit.cpp / fatal_throw.cpp), so it keeps
-// exiting exactly as before. `message` holds the same text fatal()
-// printed to stderr. Not derived from std::exception on purpose: the
-// library otherwise honours the "no exception handling" convention, and
-// the caller only ever catches this one concrete type.
-struct VsearchError {
-  std::string message;
-};
-
+// Standalone CLI: fatal() always terminates the process. No library session is
+// ever active (throw_on_fatal() stays false), so there is nothing to throw and
+// this translation unit is compiled -fno-exceptions. The message arguments were
+// already printed by fatal() in fatal.cpp; only the throwing build
+// (fatal_throw.cpp) needs them, to package into a VsearchError, so they are
+// unnamed here. Selected over fatal_throw.cpp by the executable's source list
+// in Makefile.am, not the preprocessor.
 namespace fatal_detail {
-  // Reference to a thread_local flag, default false (CLI behaviour). Only
-  // the thread that opened the library session flips it to true, so
-  // fatal() throws solely on that thread; worker threads keep it false and
-  // keep using cooperative abort (a C++ exception must never escape a
-  // std::thread body). See vsearch_session_begin/end.
-  auto throw_on_fatal() -> bool &;
+  __attribute__((noreturn))
+  auto exit_or_throw(char const * /*message*/) -> void {
+    std::exit(EXIT_FAILURE);
+  }
 
-  // The "exit or throw" tail of fatal(), split out of fatal.cpp so the throw
-  // lives in a translation unit compiled with -fexceptions. The CLI links the
-  // exit-only definition (fatal_exit.cpp, -fno-exceptions); the library links
-  // the throwing definition (fatal_throw.cpp, -fexceptions). Which one is used
-  // is selected by the source list in Makefile.am, not the preprocessor.
   __attribute__((noreturn))
-  auto exit_or_throw(char const * message) -> void;
+  auto exit_or_throw(char const * /*format*/, char const * /*message*/) -> void {
+    std::exit(EXIT_FAILURE);
+  }
+
   __attribute__((noreturn))
-  auto exit_or_throw(char const * format, char const * message) -> void;
-  __attribute__((noreturn))
-  auto exit_or_throw(char const * format, char symbol, uint64_t line_number) -> void;
+  auto exit_or_throw(char const * /*format*/, char const /*symbol*/,
+                     uint64_t const /*line_number*/) -> void {
+    std::exit(EXIT_FAILURE);
+  }
 }
-
-
-// parameters must be marked as const!
-// ISO C++ forbids converting a string constant to 'char *'
-// error: invalid conversion from 'const char *' to 'char *'
-auto fatal(char const * message) -> void;
-auto fatal(char const * format, char const * message) -> void;
-auto fatal(char const * format, char symbol, uint64_t line_number) -> void;

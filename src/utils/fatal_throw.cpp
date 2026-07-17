@@ -58,50 +58,65 @@
 
 */
 
-#pragma once
+#include "fatal.hpp"  // fatal_detail::exit_or_throw, VsearchError, throw_on_fatal
+#include <cstddef>  // std::size_t
+#include <cstdint>  // uint64_t
+#include <cstdio>  // std::snprintf
+#include <cstdlib>  // std::exit, EXIT_FAILURE
+#include <string>  // std::string (VsearchError payload)
 
-#include <cstdint> // uint64_t
-#include <string>  // std::string
+// fatal_detail::throw_on_fatal() is defined in vsearch_api.cpp, next to the
+// session begin/end that are its only mutators. Only this translation unit
+// reads it.
 
 
-// Recoverable-error payload for the library boundary. When a library
-// session is active, fatal() throws this instead of calling std::exit(),
-// so a library consumer can catch it, skip the bad input and continue
-// (the whole process no longer dies). The standalone CLI never enables
-// the throwing path (see fatal_exit.cpp / fatal_throw.cpp), so it keeps
-// exiting exactly as before. `message` holds the same text fatal()
-// printed to stderr. Not derived from std::exception on purpose: the
-// library otherwise honours the "no exception handling" convention, and
-// the caller only ever catches this one concrete type.
-struct VsearchError {
-  std::string message;
-};
+namespace {
+  // Render a printf-style (format, args...) pair into a std::string, so the
+  // thrown VsearchError carries the same text fatal() printed. Two-pass
+  // std::snprintf: measure, then format into a right-sized buffer (C++11
+  // guarantees std::string storage is contiguous and null-terminated, so
+  // writing length+1 bytes into &text[0] is well defined).
+  auto format_message(char const * format, char const * argument) -> std::string {
+    int const length = std::snprintf(nullptr, 0, format, argument);
+    if (length <= 0) { return std::string(); }
+    std::string text(static_cast<std::size_t>(length), '\0');
+    std::snprintf(&text[0], static_cast<std::size_t>(length) + 1, format, argument);
+    return text;
+  }
 
-namespace fatal_detail {
-  // Reference to a thread_local flag, default false (CLI behaviour). Only
-  // the thread that opened the library session flips it to true, so
-  // fatal() throws solely on that thread; worker threads keep it false and
-  // keep using cooperative abort (a C++ exception must never escape a
-  // std::thread body). See vsearch_session_begin/end.
-  auto throw_on_fatal() -> bool &;
-
-  // The "exit or throw" tail of fatal(), split out of fatal.cpp so the throw
-  // lives in a translation unit compiled with -fexceptions. The CLI links the
-  // exit-only definition (fatal_exit.cpp, -fno-exceptions); the library links
-  // the throwing definition (fatal_throw.cpp, -fexceptions). Which one is used
-  // is selected by the source list in Makefile.am, not the preprocessor.
-  __attribute__((noreturn))
-  auto exit_or_throw(char const * message) -> void;
-  __attribute__((noreturn))
-  auto exit_or_throw(char const * format, char const * message) -> void;
-  __attribute__((noreturn))
-  auto exit_or_throw(char const * format, char symbol, uint64_t line_number) -> void;
+  auto format_message(char const * format, char const symbol,
+                      uint64_t const line_number) -> std::string {
+    int const length = std::snprintf(nullptr, 0, format, symbol, line_number);
+    if (length <= 0) { return std::string(); }
+    std::string text(static_cast<std::size_t>(length), '\0');
+    std::snprintf(&text[0], static_cast<std::size_t>(length) + 1, format, symbol, line_number);
+    return text;
+  }
 }
 
 
-// parameters must be marked as const!
-// ISO C++ forbids converting a string constant to 'char *'
-// error: invalid conversion from 'const char *' to 'char *'
-auto fatal(char const * message) -> void;
-auto fatal(char const * format, char const * message) -> void;
-auto fatal(char const * format, char symbol, uint64_t line_number) -> void;
+// Library build (-fexceptions): when a session is active, unwind back to the
+// consumer (who can catch VsearchError, skip the bad input and continue)
+// instead of killing the process; with no session active it exits exactly as
+// the CLI does. Selected over fatal_exit.cpp by libvsearch_core's source list
+// in Makefile.am, not the preprocessor.
+namespace fatal_detail {
+  __attribute__((noreturn))
+  auto exit_or_throw(char const * message) -> void {
+    if (throw_on_fatal()) { throw VsearchError{message}; }
+    std::exit(EXIT_FAILURE);
+  }
+
+  __attribute__((noreturn))
+  auto exit_or_throw(char const * format, char const * message) -> void {
+    if (throw_on_fatal()) { throw VsearchError{format_message(format, message)}; }
+    std::exit(EXIT_FAILURE);
+  }
+
+  __attribute__((noreturn))
+  auto exit_or_throw(char const * format, char const symbol,
+                     uint64_t const line_number) -> void {
+    if (throw_on_fatal()) { throw VsearchError{format_message(format, symbol, line_number)}; }
+    std::exit(EXIT_FAILURE);
+  }
+}
