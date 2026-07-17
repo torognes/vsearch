@@ -137,7 +137,7 @@
    (never libvsearch_core), so the library defines no main() and cannot clash
    with an embedding application's entry point. */
 namespace {
-auto cmd_none(struct Parameters const & parameters) -> void {
+auto usage_hint(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
   std::fprintf(stderr,
           "For more help, please enter: %s --help\n"
@@ -258,7 +258,7 @@ auto vsearch_new_handler() -> void
    during parsing (args_init) and is passed in, so dispatch is a plain table
    lookup rather than a chain of opt_* pointer tests. Configuration is fully
    resolved by args_init(), so this reads `parameters` without modifying it; an
-   unrecognised (or empty) command falls through to cmd_none() via default. */
+   unrecognised (or empty) command falls through to usage_hint() via default. */
 auto dispatch_command(struct Parameters const & parameters, Command const command) -> void
 {
   switch (command)
@@ -312,7 +312,7 @@ auto dispatch_command(struct Parameters const & parameters, Command const comman
     case Command::udb2fasta:        udb2fasta(parameters);        break;
     case Command::udbinfo:          udbinfo(parameters);          break;
     case Command::udbstats:         udbstats(parameters);         break;
-    default:                        cmd_none(parameters);         break;
+    default:                        usage_hint(parameters);       break;
     }
 }
 
