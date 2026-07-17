@@ -99,10 +99,15 @@ incremental `dbindex.add_sequence()` primitive checked against
 The library recoverable-error channel, which has no CLI equivalent: inside a
 session a fatal condition throws a `VsearchError` instead of calling
 `std::exit()`, so a bad input can be caught and skipped rather than killing the
-host process. Checks that a fatal (a `db.read()` on a missing file) is catchable
-and that a good read afterwards still succeeds, and that a fresh session works
-after a caught fatal (the unwinding `VsearchSession` guard released the lock).
-Self-validating.
+host process. Triggers the throw at increasing depth and checks recovery each
+time: a missing file (fails at open), a malformed FASTQ (fails mid-read, so the
+unwind frees an open handle and a partially-loaded database), and an
+engine-internal fatal from `chimera_detect_single()` (unwinds through live
+per-thread state, which must stay usable afterwards). Also pins the session
+contracts: the `VsearchError::message` carries the fatal text, a nested
+`vsearch_session_begin()` is a catchable fatal, a fresh session works after a
+caught fatal, and recovery works via the explicit `vsearch_session_begin()` /
+`vsearch_session_end()` pair (not just the RAII guard). Self-validating.
 
 ## Test data
 
@@ -114,6 +119,7 @@ All test data uses synthetic 300bp DNA sequences with known properties:
 | `data/chimera_queries.fasta` | 8 queries (4 chimeras, 4 non-chimeras) |
 | `data/merge_fwd.fastq` | Forward read (200bp, Q40) |
 | `data/merge_rev.fastq` | Reverse read (200bp, Q40, 100bp overlap) |
+| `data/malformed.fastq` | One valid record then a length-mismatched record (mid-read fatal for example_recover) |
 | `data/expected_chimera.tsv` | vsearch --uchimeout ground truth |
 | `data/expected_search.tsv` | vsearch --userout ground truth |
 | `data/expected_cluster.uc` | vsearch --uc ground truth |
