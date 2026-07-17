@@ -954,16 +954,16 @@ bare `vsearch_session_begin()` / `vsearch_session_end()` pair instead of
 the guard, you must call `vsearch_session_end()` yourself in the catch
 block before starting another session.
 
-> **Caveat — best-effort recovery under OOM/internal errors.** Recovery
-> from *deterministic input errors* (bad or missing file, malformed
-> record, out-of-range quality) is resource-clean. A `fatal()` raised
-> deep inside the search/cluster engines under **out-of-memory or an
-> internal error** may still leak the per-hit alignment strings
-> accumulated for the query in progress (`hit::nwalignment` is a raw
-> owning `char *`). It does not corrupt state or crash — a subsequent
-> run in the same process is fine — but treat OOM recovery as
-> best-effort. (Fixing this fully means making `struct hit` own its
-> alignment string; tracked as a follow-up.)
+> **Resource cleanup on recovery.** A caught `VsearchError` unwinds
+> cleanly: the engines' owning resources are RAII-managed (open files,
+> the k-mer index, per-thread aligner/heap state, and each hit's
+> alignment string, which `struct hit` now owns as a `std::string`), so
+> they are released whether the fatal was a deterministic input error
+> (bad or missing file, malformed record, out-of-range quality) or an
+> out-of-memory / internal error deep in the search/cluster engines.
+> Recovery leaves no leaks and never corrupts state — a subsequent run
+> in the same process is safe. (This assumes your own objects are RAII
+> too; see the try/catch example above.)
 
 **Library API return codes** (independent of the throwing channel — these
 are ordinary, non-fatal outcomes):
