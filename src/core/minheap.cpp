@@ -63,6 +63,7 @@
 #include "os/system.hpp"  // xmalloc, xfree
 #include <cstdio>  // printf
 #include <cstdlib>  // qsort()
+#include <memory>  // std::unique_ptr
 
 
 /* implement a priority queue with a min heap binary array structure */
@@ -149,11 +150,15 @@ auto minheap_compare(const void * lhs_a, const void * rhs_b) -> int
 
 auto minheap_init(int size) -> minheap_t *
 {
-  auto * a_minheap = static_cast<minheap_t *>(xmalloc(sizeof(minheap_t)));
+  /* Own the struct while the array is allocated, so that if the array xmalloc
+     fatals (OOM) and unwinds in a library session the struct is freed rather
+     than leaked. Released to the caller (who calls minheap_exit) on success. */
+  std::unique_ptr<minheap_t, decltype(&xfree)> a_minheap(
+    static_cast<minheap_t *>(xmalloc(sizeof(minheap_t))), &xfree);
   a_minheap->alloc = size;
-  a_minheap->array = static_cast<elem_t *>(xmalloc(static_cast<size_t>(size) * sizeof(elem_t)));
   a_minheap->count = 0;
-  return a_minheap;
+  a_minheap->array = static_cast<elem_t *>(xmalloc(static_cast<size_t>(size) * sizeof(elem_t)));
+  return a_minheap.release();
 }
 
 

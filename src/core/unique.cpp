@@ -66,6 +66,7 @@
 #include <algorithm>  // std::min
 #include <cstdint> // uint64_t
 #include <cstring>  // std::memset
+#include <memory>  // std::unique_ptr
 
 
 /*
@@ -113,24 +114,36 @@ struct uhandle_s
 };
 
 
+// forward declaration so unique_init() can use unique_exit() as the RAII guard
+// deleter for the handle it is building (it is defined below).
+auto unique_exit(struct uhandle_s * unique_handle) -> void;
+
 // refactoring: 2025-07-22 failed attempt to eliminate malloc/free,
 // requires major refactoring, see attempt in unique_struct.hpp
 auto unique_init() -> struct uhandle_s *
 {
   static constexpr auto initial_allocation = 2048;
   static constexpr auto initial_hash_mask = initial_allocation - 1U;
-  auto * unique_handle = static_cast<struct uhandle_s *>(xmalloc(sizeof(struct uhandle_s)));
+  /* Own the handle while its sub-buffers are allocated, so that if a later
+     xmalloc fatals (OOM) and unwinds in a library session, unique_exit frees the
+     handle and whatever was already allocated instead of leaking it. The pointer
+     fields are nulled first so unique_exit's null-guarded frees are safe on a
+     partially-built handle. Released to the caller on success. */
+  std::unique_ptr<struct uhandle_s, decltype(&unique_exit)> unique_handle(
+    static_cast<struct uhandle_s *>(xmalloc(sizeof(struct uhandle_s))), &unique_exit);
 
   unique_handle->alloc = initial_allocation;
   unique_handle->size = 0;
   unique_handle->hash_mask = initial_hash_mask;
-  unique_handle->hash = static_cast<struct bucket_s *>(xmalloc(sizeof(struct bucket_s) * initial_allocation));
-  unique_handle->list = static_cast<unsigned int *>(xmalloc(sizeof(unsigned int) * initial_allocation));
-
+  unique_handle->hash = nullptr;
+  unique_handle->list = nullptr;
   unique_handle->bitmap_size = 0;
   unique_handle->bitmap = nullptr;
 
-  return unique_handle;
+  unique_handle->hash = static_cast<struct bucket_s *>(xmalloc(sizeof(struct bucket_s) * initial_allocation));
+  unique_handle->list = static_cast<unsigned int *>(xmalloc(sizeof(unsigned int) * initial_allocation));
+
+  return unique_handle.release();
 }
 
 
