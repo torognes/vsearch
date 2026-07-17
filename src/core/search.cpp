@@ -376,9 +376,11 @@ struct search_batch_context_s {
   int max_results_per_query;
   int * result_counts;
 
-  /* per-thread search state arrays (sized to opt_threads) */
-  struct searchinfo_s * batch_si_plus;
-  struct searchinfo_s * batch_si_minus;  /* nullptr when searching the plus strand only */
+  /* per-thread search state arrays (sized to opt_threads). Owned vectors so a
+     fatal() during per-thread init unwinds them, running each searchinfo_s
+     destructor (freeing partially-initialised handles) and releasing the array. */
+  std::vector<struct searchinfo_s> batch_si_plus;
+  std::vector<struct searchinfo_s> batch_si_minus;  /* empty when searching the plus strand only */
 
   /* run configuration, set in search_batch and read by the workers instead of
      the opt_* globals (E1 shared-infra phase). */
@@ -393,9 +395,9 @@ struct search_batch_context_s {
 static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
                                    uint64_t tid) -> void
 {
-  struct searchinfo_s * my_si_plus = ctx.batch_si_plus + tid;
+  struct searchinfo_s * my_si_plus = &ctx.batch_si_plus[tid];
   struct searchinfo_s * my_si_minus =
-    (ctx.batch_si_minus != nullptr) ? ctx.batch_si_minus + tid : nullptr;
+    (not ctx.batch_si_minus.empty()) ? &ctx.batch_si_minus[tid] : nullptr;
   struct Parameters const & parameters = *ctx.parameters;
 
   /* grab next query */
@@ -542,23 +544,19 @@ auto search_batch(struct Parameters const & parameters,
   ctx.parameters = &parameters;
   ctx.next_query = 0;
 
-  ctx.batch_si_plus = new searchinfo_s[nthreads]{};
+  ctx.batch_si_plus.resize(static_cast<std::size_t>(nthreads));
   if (parameters.opt_strand)
     {
-      ctx.batch_si_minus = new searchinfo_s[nthreads]{};
-    }
-  else
-    {
-      ctx.batch_si_minus = nullptr;
+      ctx.batch_si_minus.resize(static_cast<std::size_t>(nthreads));
     }
 
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(ctx.batch_si_plus + t, seqcount, tophits, parameters, dbindex, db);
-      if (ctx.batch_si_minus != nullptr)
+      search_thread_init(&ctx.batch_si_plus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
+      if (not ctx.batch_si_minus.empty())
         {
-          search_thread_init(ctx.batch_si_minus + t, seqcount, tophits, parameters, dbindex, db);
+          search_thread_init(&ctx.batch_si_minus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
         }
     }
 
@@ -571,19 +569,14 @@ auto search_batch(struct Parameters const & parameters,
     threadrunner.run();
   }
 
-  /* clean up per-thread search state */
+  /* clean up per-thread search state (the vectors also free themselves, and
+     would run these searchinfo_s destructors on an exception unwind). */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_exit(ctx.batch_si_plus + t);
-      if (ctx.batch_si_minus != nullptr)
+      search_thread_exit(&ctx.batch_si_plus[static_cast<std::size_t>(t)]);
+      if (not ctx.batch_si_minus.empty())
         {
-          search_thread_exit(ctx.batch_si_minus + t);
+          search_thread_exit(&ctx.batch_si_minus[static_cast<std::size_t>(t)]);
         }
-    }
-
-  delete [] ctx.batch_si_plus;
-  if (ctx.batch_si_minus != nullptr)
-    {
-      delete [] ctx.batch_si_minus;
     }
 }

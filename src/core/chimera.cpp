@@ -3004,6 +3004,19 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void
 /* === Batch chimera detection API === */
 
 
+/* Deleter for a per-thread chimera_info_s owned via unique_ptr: runs the same
+   teardown as the normal path (chimera_detect_thread_cleanup + chimera_info_free)
+   and is safe on a handle that was allocated but only partially initialised, so
+   a fatal() unwinding mid-init frees every element created so far. noexcept: the
+   teardown frees already-allocated buffers and never fatal()s. */
+struct chimera_info_thread_deleter {
+  auto operator()(struct chimera_info_s * ci) const noexcept -> void
+  {
+    chimera_detect_thread_cleanup(ci);
+    chimera_info_free(ci);
+  }
+};
+
 struct chimera_batch_context_s {
   const char ** query_seqs;
   const char ** query_heads;
@@ -3012,8 +3025,10 @@ struct chimera_batch_context_s {
   int query_count;
   struct chimera_result_s * results;
 
-  /* per-thread chimera state arrays (sized to opt_threads) */
-  struct chimera_info_s ** ci_array;
+  /* per-thread chimera state arrays (sized to opt_threads). Owned unique_ptrs so
+     a fatal() during per-thread init unwinds them, freeing every element built
+     so far and the array itself. */
+  std::vector<std::unique_ptr<struct chimera_info_s, chimera_info_thread_deleter>> ci_array;
 
   /* work-stealing counter */
   std::mutex mutex;
@@ -3024,7 +3039,7 @@ struct chimera_batch_context_s {
 static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
                                     uint64_t tid) -> void
 {
-  struct chimera_info_s * ci = ctx.ci_array[tid];
+  struct chimera_info_s * ci = ctx.ci_array[tid].get();
 
   int qi {0};
 
@@ -3077,13 +3092,14 @@ auto chimera_detect_batch(struct Parameters const & parameters,
   ctx.results = results;
   ctx.next_query = 0;
 
-  ctx.ci_array = static_cast<struct chimera_info_s **>(
-    xmalloc(static_cast<size_t>(nthreads) * sizeof(struct chimera_info_s *)));
+  ctx.ci_array.reserve(static_cast<size_t>(nthreads));
 
   for (int t = 0; t < nthreads; t++)
     {
-      ctx.ci_array[t] = chimera_info_alloc();
-      chimera_detect_thread_init(ctx.ci_array[t], parameters, dbindex, db);
+      /* own the handle before initialising it, so a fatal() in
+         chimera_detect_thread_init frees this element and all prior ones. */
+      ctx.ci_array.emplace_back(chimera_info_alloc());
+      chimera_detect_thread_init(ctx.ci_array[static_cast<size_t>(t)].get(), parameters, dbindex, db);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */
@@ -3095,13 +3111,9 @@ auto chimera_detect_batch(struct Parameters const & parameters,
     threadrunner.run();
   }
 
-  /* Cleanup per-thread state */
-  for (int t = 0; t < nthreads; t++)
-    {
-      chimera_detect_thread_cleanup(ctx.ci_array[t]);
-      chimera_info_free(ctx.ci_array[t]);
-    }
-  xfree(ctx.ci_array);
+  /* Cleanup per-thread state: clearing the vector runs the deleter
+     (chimera_detect_thread_cleanup + chimera_info_free) on each element. */
+  ctx.ci_array.clear();
 
   /* Session-level cleanup */
   chimera_session_cleanup();
