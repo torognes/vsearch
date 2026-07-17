@@ -513,9 +513,8 @@ auto udb_read(const char * filename,
       }
     }
 
-  /* create the unique-kmer finder */
-
-  dbindex.uhandle = unique_init();
+  /* the unique-kmer finder (dbindex.uhandle) is a Uniquer value member, ready to
+     use as default-constructed; the UDB path does not build the index with it */
 
   /* make mapping from indexno to seqno */
 

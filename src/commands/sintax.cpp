@@ -438,7 +438,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
       /* find unique kmers at dbindex.wordlength, the effective index width (set
          by Dbindex::prepare for a FASTA db, or udb_read for a UDB db); reading
          parameters.opt_wordlength would use the wrong width against a UDB index. */
-      unique_count(si->uh.get(), static_cast<int>(si->dbindex->wordlength),
+      si->uh.count(static_cast<int>(si->dbindex->wordlength),
                    si->qseqlen, si->qsequence,
                    &kmersamplecount, &kmersample, Masking::none);
 
@@ -611,7 +611,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &state.db;  /* searchcore reads the sequences through the si */
-  si->uh.reset(unique_init());
+  /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
   si->m = Minheap(state.tophits);
   si->hits = nullptr;
@@ -627,7 +627,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
 static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 {
   /* thread specific clean up */
-  searchinfo->uh.reset();
+  searchinfo->uh = Uniquer();
   searchinfo->m = Minheap();
   xfree(searchinfo->kmers);
   /* query_head is a view; its owned storage query_head_v frees itself */

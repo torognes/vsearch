@@ -58,15 +58,13 @@
 
 */
 
-#include "vsearch.hpp"
+#include "core/unique.hpp"
 #include "vendored/city.h"
-#include "core/mask.hpp"
-#include "os/system.hpp"  // xmalloc, xrealloc, xfree
-#include "utils/maps.hpp"
-#include <algorithm>  // std::min
-#include <cstdint> // uint64_t
-#include <cstring>  // std::memset
-#include <memory>  // std::unique_ptr
+#include "core/mask.hpp"  // Masking
+#include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
+#include <algorithm>  // std::min, std::fill_n
+#include <cstddef>  // std::size_t
+#include <cstdint>  // int64_t, uint64_t
 
 
 /*
@@ -87,118 +85,30 @@ namespace {
   using Hash = decltype(&CityHash64);
   Hash hash_function = CityHash64;
 
-
-  struct bucket_s
-  {
-    unsigned int kmer;
-    unsigned int count;
-  };
-
-
 }  // end of anonymous namespace
 
 
-struct uhandle_s
+auto Uniquer::count_bitmap(int const wordlength,
+                           int const seqlen,
+                           char const * seq,
+                           unsigned int * listlen,
+                           unsigned int const * * list,
+                           Masking const seqmask) -> void
 {
-  struct bucket_s * hash;
-  unsigned int * list;
-  unsigned int hash_mask;
-  // size and alloc are 64-bit: the hash grows to 2 * sequence length, which
-  // exceeds INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise
-  // overflow int before reaching the target). See unique_count_hash().
-  int64_t size;
-  int64_t alloc;
+  /* if necessary, grow the list of unique kmers (at most seqlen entries) */
 
-  uint64_t bitmap_size;
-  uint64_t * bitmap;
-};
-
-
-// forward declaration so unique_init() can use unique_exit() as the RAII guard
-// deleter for the handle it is building (it is defined below).
-auto unique_exit(struct uhandle_s * unique_handle) -> void;
-
-// refactoring: 2025-07-22 failed attempt to eliminate malloc/free,
-// requires major refactoring, see attempt in unique_struct.hpp
-auto unique_init() -> struct uhandle_s *
-{
-  static constexpr auto initial_allocation = 2048;
-  static constexpr auto initial_hash_mask = initial_allocation - 1U;
-  /* Own the handle while its sub-buffers are allocated, so that if a later
-     xmalloc fatals (OOM) and unwinds in a library session, unique_exit frees the
-     handle and whatever was already allocated instead of leaking it. The pointer
-     fields are nulled first so unique_exit's null-guarded frees are safe on a
-     partially-built handle. Released to the caller on success. */
-  std::unique_ptr<struct uhandle_s, decltype(&unique_exit)> unique_handle(
-    static_cast<struct uhandle_s *>(xmalloc(sizeof(struct uhandle_s))), &unique_exit);
-
-  unique_handle->alloc = initial_allocation;
-  unique_handle->size = 0;
-  unique_handle->hash_mask = initial_hash_mask;
-  unique_handle->hash = nullptr;
-  unique_handle->list = nullptr;
-  unique_handle->bitmap_size = 0;
-  unique_handle->bitmap = nullptr;
-
-  unique_handle->hash = static_cast<struct bucket_s *>(xmalloc(sizeof(struct bucket_s) * initial_allocation));
-  unique_handle->list = static_cast<unsigned int *>(xmalloc(sizeof(unsigned int) * initial_allocation));
-
-  return unique_handle.release();
-}
-
-
-auto unique_exit(struct uhandle_s * unique_handle) -> void
-{
-  if (unique_handle->bitmap != nullptr)
+  if (list_.size() < static_cast<std::size_t>(seqlen))
     {
-      xfree(unique_handle->bitmap);
-    }
-  if (unique_handle->hash != nullptr)
-    {
-      xfree(unique_handle->hash);
-    }
-  if (unique_handle->list != nullptr)
-    {
-      xfree(unique_handle->list);
-    }
-  xfree(unique_handle);
-}
-
-
-auto unique_count_bitmap(struct uhandle_s * unique_handle,
-                         int const wordlength,
-                         int const seqlen,
-                         char const * seq,
-                         unsigned int * listlen,
-                         unsigned int const * * list,
-                         Masking const seqmask) -> void
-{
-  /* if necessary, reallocate list of unique kmers */
-
-  if (unique_handle->alloc < seqlen)
-    {
-      while (unique_handle->alloc < seqlen)
-        {
-          unique_handle->alloc *= 2;
-        }
-      // failed refactoring 2025-08-19: unique_handle is passed as
-      // pointer to another struct, ownership is not clear,
-      // multithreading fails
-      unique_handle->list = static_cast<unsigned int *>(
-        xrealloc(unique_handle->list, sizeof(unsigned int) * static_cast<size_t>(unique_handle->alloc)));
+      list_.resize(static_cast<std::size_t>(seqlen));
     }
 
   uint64_t const size = 1ULL << (wordlength << 1ULL);
 
-  /* reallocate bitmap arrays if necessary */
+  /* (re)allocate and clear the bitmap: one bit per possible kmer, packed in
+     64-bit words (size >> 6 of them). assign() reuses the buffer when the word
+     count is unchanged (the common case: it depends only on wordlength). */
 
-  if (unique_handle->bitmap_size < size)
-    {
-      unique_handle->bitmap = static_cast<uint64_t *>(xrealloc(unique_handle->bitmap, size >> 3ULL));
-      unique_handle->bitmap_size = size;
-    }
-
-  std::memset(unique_handle->bitmap, 0, size >> 3ULL);
+  bitmap_.assign(size >> 6ULL, 0);
 
   uint64_t bad = 0;
   uint64_t kmer = 0;
@@ -211,6 +121,9 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
   auto const * mask_map = (seqmask != Masking::none) ?
     chrmap_mask_lower() : chrmap_mask_ambig();
   auto const * two_bit_map = chrmap_2bit();
+
+  auto * const bitmap = bitmap_.data();
+  auto * const list_data = list_.data();
 
   while (s < e1)
     {
@@ -239,57 +152,56 @@ auto unique_count_bitmap(struct uhandle_s * unique_handle,
         {
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if ((unique_handle->bitmap[x] & y) == 0U)
+          if ((bitmap[x] & y) == 0U)
             {
               /* not seen before */
-              unique_handle->list[unique] = static_cast<unsigned int>(kmer);
+              list_data[unique] = static_cast<unsigned int>(kmer);
               ++unique;
-              unique_handle->bitmap[x] |= y;
+              bitmap[x] |= y;
             }
         }
     }
 
   *listlen = static_cast<unsigned int>(unique);
-  *list = unique_handle->list;
+  *list = list_data;
 }
 
 
-auto unique_count_hash(struct uhandle_s * unique_handle,
-                       int const wordlength,
-                       int const seqlen,
-                       char const * seq,
-                       unsigned int * listlen,
-                       unsigned int const * * list,
-                       Masking const seqmask) -> void
+auto Uniquer::count_hash(int const wordlength,
+                         int const seqlen,
+                         char const * seq,
+                         unsigned int * listlen,
+                         unsigned int const * * list,
+                         Masking const seqmask) -> void
 {
-  /* if necessary, reallocate hash table and list of unique kmers */
+  /* size the hash table and the list of unique kmers to the sequence. needed
+     and size are 64-bit: the hash grows to 2 * sequence length, which exceeds
+     INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise overflow
+     int before reaching the target). */
 
   int64_t const needed = 2 * static_cast<int64_t>(seqlen);
-  if (unique_handle->alloc < needed)
+  int64_t size = 1;
+  while (size < needed)
     {
-      while (unique_handle->alloc < needed)
-        {
-          unique_handle->alloc *= 2;
-        }
-      unique_handle->hash = static_cast<struct bucket_s *>(
-        xrealloc(unique_handle->hash, sizeof(struct bucket_s) * static_cast<size_t>(unique_handle->alloc)));
-      unique_handle->list = static_cast<unsigned int *>(
-        xrealloc(unique_handle->list, sizeof(unsigned int) * static_cast<size_t>(unique_handle->alloc)));
+      size *= 2;
     }
+  hash_mask_ = static_cast<unsigned int>(size - 1);
 
-  /* hashtable variant */
+  /* the buffers only grow; the first 'table_size' buckets are cleared each call
+     (the probe never looks past hash_mask_, so any leftover tail is untouched) */
 
-  unique_handle->size = 1;
-  while (unique_handle->size < needed)
+  auto const table_size = static_cast<std::size_t>(size);
+  if (hash_.size() < table_size)
     {
-      unique_handle->size *= 2;
+      hash_.resize(table_size);
     }
-  unique_handle->hash_mask = static_cast<unsigned int>(unique_handle->size - 1);
-
-  std::memset(unique_handle->hash, 0, sizeof(struct bucket_s) * static_cast<size_t>(unique_handle->size));
+  if (list_.size() < table_size)
+    {
+      list_.resize(table_size);
+    }
+  std::fill_n(hash_.begin(), table_size, bucket{});
 
   uint64_t bad = 0;
-  uint64_t j = 0;
   auto kmer = 0U;
   unsigned int const mask = static_cast<unsigned int>((1ULL << (2ULL * static_cast<unsigned int>(wordlength))) - 1ULL);
   auto const * s = seq;
@@ -300,6 +212,9 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
   auto const * mask_map = (seqmask != Masking::none) ?
     chrmap_mask_lower() : chrmap_mask_ambig();
   auto const * two_bit_map = chrmap_2bit();
+
+  auto * const hash = hash_.data();
+  auto * const list_data = list_.data();
 
   while (s < e1)
     {
@@ -327,51 +242,49 @@ auto unique_count_hash(struct uhandle_s * unique_handle,
       if (bad == 0U)
         {
           /* find free appropriate bucket in hash */
-          j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & unique_handle->hash_mask;
-          while ((unique_handle->hash[j].count != 0U) && (unique_handle->hash[j].kmer != kmer))
+          uint64_t j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & hash_mask_;
+          while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
             {
-              j = (j + 1) & unique_handle->hash_mask;
+              j = (j + 1) & hash_mask_;
             }
 
-          if (unique_handle->hash[j].count == 0U)
+          if (hash[j].count == 0U)
             {
               /* not seen before */
-              unique_handle->list[unique] = kmer;
+              list_data[unique] = kmer;
               ++unique;
-              unique_handle->hash[j].kmer = kmer;
-              unique_handle->hash[j].count = 1;
+              hash[j].kmer = kmer;
+              hash[j].count = 1;
             }
         }
     }
 
   *listlen = static_cast<unsigned int>(unique);
-  *list = unique_handle->list;
+  *list = list_data;
 }
 
 
-auto unique_count(struct uhandle_s * unique_handle,
-                  int const wordlength,
-                  int const seqlen,
-                  char const * seq,
-                  unsigned int * listlen,
-                  unsigned int const * * list,
-                  Masking const seqmask) -> void
+auto Uniquer::count(int const wordlength,
+                    int const seqlen,
+                    char const * seq,
+                    unsigned int * listlen,
+                    unsigned int const * * list,
+                    Masking const seqmask) -> void
 {
   if (wordlength < 10)
     {
-      unique_count_bitmap(unique_handle, wordlength, seqlen, seq, listlen, list, seqmask);
+      count_bitmap(wordlength, seqlen, seq, listlen, list, seqmask);
     }
   else
     {
-      unique_count_hash(unique_handle, wordlength, seqlen, seq, listlen, list, seqmask);
+      count_hash(wordlength, seqlen, seq, listlen, list, seqmask);
     }
 }
 
 
-auto unique_count_shared(struct uhandle_s const & unique_handle,
-                        int const wordlength,
-                        int const listlen,
-                        unsigned int const * list) -> unsigned int
+auto Uniquer::count_shared(int const wordlength,
+                           int const listlen,
+                           unsigned int const * list) const noexcept -> unsigned int
 {
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
@@ -379,12 +292,13 @@ auto unique_count_shared(struct uhandle_s const & unique_handle,
   auto count = 0U;
   if (wordlength < 10)
     {
+      auto const * const bitmap = bitmap_.data();
       for (auto i = 0; i < listlen; i++)
         {
           auto const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
-          if ((unique_handle.bitmap[x] & y) != 0U)
+          if ((bitmap[x] & y) != 0U)
             {
               ++count;
             }
@@ -392,15 +306,16 @@ auto unique_count_shared(struct uhandle_s const & unique_handle,
     }
   else
     {
+      auto const * const hash = hash_.data();
       for (auto i = 0; i < listlen; i++)
         {
           auto kmer = list[i];
-          uint64_t j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & unique_handle.hash_mask;
-          while ((unique_handle.hash[j].count != 0U) && (unique_handle.hash[j].kmer != kmer))
+          uint64_t j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & hash_mask_;
+          while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
             {
-              j = (j + 1) & unique_handle.hash_mask;
+              j = (j + 1) & hash_mask_;
             }
-          if (unique_handle.hash[j].count != 0U)
+          if (hash[j].count != 0U)
             {
               ++count;
             }

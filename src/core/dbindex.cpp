@@ -128,9 +128,9 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
 
   unsigned int uniquecount = 0;
   unsigned int const * uniquelist = nullptr;
-  unique_count(uhandle, static_cast<int>(wordlength),
-               static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
-               &uniquecount, &uniquelist, seqmask);
+  uhandle.count(static_cast<int>(wordlength),
+                static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
+                &uniquecount, &uniquelist, seqmask);
   map[count] = seqno;
   for (auto i = 0U; i < uniquecount; i++)
     {
@@ -170,8 +170,6 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
      first call (all members are null) (L2a). */
   clear();
 
-  uhandle = unique_init();
-
   unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
   /* this is the FASTA-database path; the effective index word length is the
      configured one (a UDB database sets wordlength in udb_read instead). */
@@ -189,9 +187,9 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
       {
         unsigned int uniquecount = 0;
         unsigned int const * uniquelist = nullptr;
-        unique_count(uhandle, static_cast<int>(wordlength),
-                     static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
-                     &uniquecount, &uniquelist, seqmask);
+        uhandle.count(static_cast<int>(wordlength),
+                      static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
+                      &uniquecount, &uniquelist, seqmask);
         for (auto i = 0U; i < uniquecount; i++)
           {
             ++kmercount[uniquelist[i]];
@@ -262,8 +260,9 @@ auto Dbindex::clear() -> void
   /* Free and null every owned buffer so the routine is idempotent (a second
      call, or a call before any successful prepare, is a safe no-op) and a
      subsequent prepare() starts from a clean slate. xfree() fatals on
-     a null pointer, so each free is guarded; the bitmap loop and unique handle
-     are likewise guarded because they may not have been allocated yet (L2a). */
+     a null pointer, so each free is guarded; the bitmap loop is likewise guarded
+     because it may not have been allocated yet (L2a). The unique-kmer finder is
+     a Uniquer value member: assigning a fresh one releases its buffers (RAII). */
   if (kmerhash != nullptr) { xfree(kmerhash); kmerhash = nullptr; }
   if (kmerindex != nullptr) { xfree(kmerindex); kmerindex = nullptr; }
   if (kmercount != nullptr) { xfree(kmercount); kmercount = nullptr; }
@@ -282,11 +281,7 @@ auto Dbindex::clear() -> void
       kmerbitmap = nullptr;
     }
 
-  if (uhandle != nullptr)
-    {
-      unique_exit(uhandle);
-      uhandle = nullptr;
-    }
+  uhandle = Uniquer();
 
   hashsize = 0;
   indexsize = 0;

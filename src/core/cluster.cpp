@@ -221,7 +221,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   si->hits_v.resize(static_cast<std::size_t>(tophits));
   si->hits = si->hits_v.data();
 
-  si->uh.reset(unique_init());
+  /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   si->m = Minheap(tophits);
   si->s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
@@ -247,7 +247,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
      also freed by ~searchinfo_s if an exception unwinds before this runs. */
 
   si->s.reset();
-  si->uh.reset();
+  si->uh = Uniquer();
   si->m = Minheap();
 
   /* kmers/hits/qsequence are views into the searchinfo_s vectors
@@ -628,8 +628,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
           /* find the number of shared unique kmers */
           auto const shared
-            = unique_count_shared(*si->uh,
-                                  static_cast<int>(si->dbindex->wordlength),
+            = si->uh.count_shared(static_cast<int>(si->dbindex->wordlength),
                                   static_cast<int>(sic->kmersamplecount),
                                   sic->kmersample);
 

@@ -86,11 +86,12 @@
 #include <vector>
 
 
-// Deleters for the opaque per-query handles owned by searchinfo_s via
-// unique_ptr (declared in searchcore.hpp). unique_ptr only invokes these on a
-// non-null pointer, and the *_exit functions free already-allocated buffers, so
-// they never fatal() — safe to run during unwinding (noexcept).
-auto uhandle_deleter::operator()(uhandle_s * handle) const noexcept -> void { unique_exit(handle); }
+// Deleter for the opaque per-query SIMD aligner handle owned by searchinfo_s via
+// unique_ptr (declared in searchcore.hpp). unique_ptr only invokes it on a
+// non-null pointer, and search16_exit frees already-allocated buffers, so it
+// never fatal()s — safe to run during unwinding (noexcept). The unique kmer
+// finder (searchinfo_s::uh) is now a Uniquer value member (RAII), so it needs no
+// deleter.
 auto s16info_deleter::operator()(s16info_s * handle) const noexcept -> void { search16_exit(handle); }
 
 
@@ -918,9 +919,9 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 
 
   /* extract unique kmer samples from query*/
-  unique_count(searchinfo->uh.get(), static_cast<int>(searchinfo->dbindex->wordlength),
-               searchinfo->qseqlen, searchinfo->qsequence,
-               &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
+  searchinfo->uh.count(static_cast<int>(searchinfo->dbindex->wordlength),
+                       searchinfo->qseqlen, searchinfo->qsequence,
+                       &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 
   /* find database sequences with the most kmer hits */
   search_topscores(searchinfo);

@@ -555,7 +555,7 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
 {
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  si->uh = nullptr;
+  si->uh = Uniquer();
   si->kmers = nullptr;
   si->m = Minheap();
   si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));

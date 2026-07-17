@@ -1906,7 +1906,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   search_info->kmers_v.resize(db.getsequencecount());
   search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
-  search_info->uh.reset(unique_init());
+  /* search_info->uh (a Uniquer value member) is ready to use as default-constructed */
   search_info->s.reset(search16_init(parameters.opt_match,
                                  parameters.opt_mismatch,
                                  parameters.opt_gap_open_query_left,
@@ -1931,7 +1931,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
   /* The handles are also freed by ~searchinfo_s if an exception unwinds
      before this runs. */
   search_info->s.reset();
-  search_info->uh.reset();
+  search_info->uh = Uniquer();
   search_info->m = Minheap();
 
   search_info->qsequence = nullptr;

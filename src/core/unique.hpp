@@ -61,23 +61,52 @@
 #pragma once
 
 #include "core/mask.hpp"  // Masking
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include <cstdint>  // uint64_t
+#include <vector>  // std::vector
 
-struct bucket_s;
-struct uhandle_s;
+/* Finds the unique k-mers (words) in a sequence, reusing its scratch buffers
+   across calls (see unique.cpp for the bitmap and hash variants). Owns those
+   buffers via std::vector (RAII); one instance per thread. */
+class Uniquer
+{
+public:
+  auto count(int wordlength,
+             int seqlen,
+             char const * seq,
+             unsigned int * listlen,
+             unsigned int const * * list,
+             Masking seqmask) -> void;
 
-auto unique_init() -> struct uhandle_s *;
+  // noexcept: reads the already-built hash/bitmap only (no allocation), so it
+  // cannot fatal()/throw, unlike count() which grows its buffers.
+  auto count_shared(int wordlength,
+                    int listlen,
+                    unsigned int const * list) const noexcept -> unsigned int;
 
-auto unique_exit(struct uhandle_s * unique_handle) -> void;
+private:
+  struct bucket
+  {
+    unsigned int kmer;
+    unsigned int count;
+  };
 
-auto unique_count(struct uhandle_s * unique_handle,
-                  int wordlength,
+  auto count_bitmap(int wordlength,
+                    int seqlen,
+                    char const * seq,
+                    unsigned int * listlen,
+                    unsigned int const * * list,
+                    Masking seqmask) -> void;
+
+  auto count_hash(int wordlength,
                   int seqlen,
                   char const * seq,
                   unsigned int * listlen,
                   unsigned int const * * list,
                   Masking seqmask) -> void;
 
-auto unique_count_shared(struct uhandle_s const & unique_handle,
-                         int wordlength,
-                         int listlen,
-                         unsigned int const * list) -> unsigned int;
+  std::vector<bucket, FatalAllocator<bucket>> hash_ {};
+  std::vector<unsigned int, FatalAllocator<unsigned int>> list_ {};
+  std::vector<uint64_t, FatalAllocator<uint64_t>> bitmap_ {};
+  unsigned int hash_mask_ {0};
+};

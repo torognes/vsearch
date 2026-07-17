@@ -63,20 +63,19 @@
 #include "core/linmemalign.hpp"
 #include "core/mask.hpp"  // Masking
 #include "core/minheap.hpp"  // Minheap
+#include "core/unique.hpp"  // Uniquer
 #include <array>
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
 #include <vector>
 
 
-struct uhandle_s;
 struct s16info_s;
 
-/* Deleters so searchinfo_s can own the opaque per-query handles via unique_ptr
-   and free them on unwind (a fatal() thrown in a library session). Their
-   operator()s are defined in searchcore.cpp, where the matching *_exit
-   functions are visible. Stateless, so they add no size to the unique_ptr. */
-struct uhandle_deleter { auto operator()(uhandle_s * handle) const noexcept -> void; };
+/* Deleter so searchinfo_s can own the opaque per-query SIMD aligner handle via
+   unique_ptr and free it on unwind (a fatal() thrown in a library session). Its
+   operator() is defined in searchcore.cpp, where the matching search16_exit
+   function is visible. Stateless, so it adds no size to the unique_ptr. */
 struct s16info_deleter { auto operator()(s16info_s * handle) const noexcept -> void; };
 
 /* the number of alignments that can be delayed */
@@ -159,7 +158,7 @@ struct searchinfo_s
   std::vector<struct hit> hits_v {}; /* vector of hits */
   struct hit * hits = nullptr;            /* list of hits */
   int hit_count = 0;                /* number of hits in the above list */
-  std::unique_ptr<uhandle_s, uhandle_deleter> uh {};  /* unique kmer finder instance (owned) */
+  Uniquer uh {};  /* unique kmer finder instance (owned) */
   std::unique_ptr<s16info_s, s16info_deleter> s {};   /* SIMD aligner instance (owned) */
   struct nwinfo_s * nw = nullptr;         /* NW aligner instance */
   std::unique_ptr<LinearMemoryAligner> lma {};        /* Linear memory aligner instance (owned) */

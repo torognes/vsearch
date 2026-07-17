@@ -132,7 +132,7 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &db;  /* searchcore reads the sequences through the si */
-  si->uh.reset(unique_init());
+  /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   /* kmers/hits/qsequence are backed by the searchinfo_s vectors (RAII), so a
      fatal() unwinding out of a partial init or a query frees them; the raw
      pointers below are views into that owned storage. */
@@ -170,7 +170,7 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
   /* thread specific clean up. The handles are also freed by ~searchinfo_s if an
      exception unwinds before this runs. */
   si->s.reset();
-  si->uh.reset();
+  si->uh = Uniquer();
   si->m = Minheap();
   /* kmers/hits/qsequence and query_head are views into the searchinfo_s vectors
      (kmers_v/hits_v/qsequence_v/query_head_v), which free their own storage. */

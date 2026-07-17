@@ -62,11 +62,11 @@
 
 #include "core/bitmap.hpp"
 #include "core/mask.hpp"  // Masking
+#include "core/unique.hpp"  // Uniquer
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 
 
-struct uhandle_s;
 struct Parameters;
 struct Database;
 
@@ -83,7 +83,7 @@ struct Dbindex
   unsigned int * kmerindex = nullptr; /* the list of matching seqnos for kmers */
   struct bitmap_s * * kmerbitmap = nullptr;
   unsigned int * map = nullptr;  /* mapping from index element number to seqno */
-  uhandle_s * uhandle = nullptr;  /* unique-kmer finder, used while building */
+  Uniquer uhandle {};  /* unique-kmer finder, used while building */
   unsigned int count = 0;  /* number of sequences added to the index */
   unsigned int hashsize = 0;  /* number of kmer slots, i.e. 4^wordlength */
   uint64_t indexsize = 0;  /* total number of entries in kmerindex */

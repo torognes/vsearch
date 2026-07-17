@@ -205,7 +205,7 @@ auto orient(struct Parameters const & parameters) -> void
       dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
     }
 
-  uhandle_s * uh_fwd = unique_init();
+  Uniquer uh_fwd;
 
   std::size_t alloc = 0;
   std::vector<char> qseq_rev;
@@ -231,7 +231,7 @@ auto orient(struct Parameters const & parameters) -> void
         unsigned int const * kmer_list_fwd = nullptr;
 
         /* dbindex.wordlength: the effective index width (see rc_kmer) */
-        unique_count(uh_fwd, static_cast<int>(dbindex.wordlength), qseqlen, qseq_fwd,
+        uh_fwd.count(static_cast<int>(dbindex.wordlength), qseqlen, qseq_fwd,
                      & kmer_count_fwd, & kmer_list_fwd, parameters.opt_qmask);
 
         /* count kmers matching on each strand */
@@ -447,7 +447,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  unique_exit(uh_fwd);
+  /* uh_fwd (a Uniquer) frees its buffers when it goes out of scope (RAII) */
 
   dbindex.clear();
   db.clear();
