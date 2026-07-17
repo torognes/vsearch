@@ -67,6 +67,7 @@
 #include "os/system.hpp"  // xmalloc, xrealloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // log_file::handle
+#include "utils/make_unique.hpp"  // make_unique
 #include "utils/open_file.hpp"  // open_input_file
 #include "utils/span.hpp"
 #include <unistd.h>  // dup, STDOUT_FILENO
@@ -263,7 +264,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   // refactoring: duplicate function to output a struct fastx_s input_handle_s;
   // Held in a unique_ptr so any fatal() below frees the partially-built handle
   // when the stack unwinds (library session); released to the caller on success.
-  std::unique_ptr<fastx_s> input_handle(new fastx_s);
+  auto input_handle = make_unique<fastx_s>();
 
   input_handle->fp = nullptr;
   input_handle->libraries = parameters.dyn_libs;

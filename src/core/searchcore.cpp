@@ -69,6 +69,7 @@
 #include "core/searchcore.hpp"  // struct hit, struct searchinfo_s
 #include "core/unique.hpp"
 #include "os/system.hpp"  // xfree
+#include "utils/make_unique.hpp"  // make_unique
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include "utils/string_alloc.hpp"
@@ -906,7 +907,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
   struct Scoring scoring = scoring_from_options(*searchinfo->parameters);
 
 
-  searchinfo->lma.reset(new LinearMemoryAligner(scoring));
+  searchinfo->lma = make_unique<LinearMemoryAligner>(scoring);
 
 
   /* extract unique kmer samples from query*/
