@@ -167,7 +167,7 @@ auto find_max_insertions_per_position(int const target_count,
     auto position = 0LL;
     auto * cigar_start = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)].cigar;
     auto const cigar_length = std::strlen(cigar_start);
-    auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
+    auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;

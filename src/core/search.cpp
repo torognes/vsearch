@@ -336,11 +336,9 @@ auto search_session_single(struct search_session_s * ss,
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
       for (int i = 0; i < strand_si->hit_count; ++i)
         {
-          if (strand_si->hits[i].aligned &&
-              strand_si->hits[i].nwalignment != nullptr)
+          if (strand_si->hits[i].aligned)
             {
-              xfree(strand_si->hits[i].nwalignment);
-              strand_si->hits[i].nwalignment = nullptr;
+              strand_si->hits[i].nwalignment.clear();  // std::string; free after use
             }
         }
     }
@@ -492,11 +490,9 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
           (s != 0) ? my_si_minus : my_si_plus;
         for (int i = 0; i < strand_si->hit_count; ++i)
           {
-            if (strand_si->hits[i].aligned &&
-                strand_si->hits[i].nwalignment != nullptr)
+            if (strand_si->hits[i].aligned)
               {
-                xfree(strand_si->hits[i].nwalignment);
-                strand_si->hits[i].nwalignment = nullptr;
+                strand_si->hits[i].nwalignment.clear();  // std::string; free after use
               }
           }
       }

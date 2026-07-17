@@ -66,11 +66,11 @@
 
 
 auto get_alignment_qrow(View<char> seq_view,
-                        Span<char> cigar_view,
+                        View<char> cigar_view,
                         int alignlen) -> std::vector<char>;
 
 auto get_alignment_trow(View<char> seq_view,
-                        Span<char> cigar_view,
+                        View<char> cigar_view,
                         int alignlen) -> std::vector<char>;
 
 auto align_show(std::FILE * output_handle,

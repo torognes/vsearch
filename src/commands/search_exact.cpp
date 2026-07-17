@@ -162,7 +162,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
       hp->matches = si->qseqlen;
       hp->mismatches = 0;
 
-      hp->nwalignment = xstrdup((std::to_string(si->qseqlen) + "M").c_str());
+      hp->nwalignment = std::to_string(si->qseqlen) + "M";
 
       hp->internal_alignmentlength = si->qseqlen;
       hp->internal_gaps = 0;
@@ -463,12 +463,7 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
                               parameters.opt_strand ? state.si_minus[t].qsequence : nullptr,
                               state.si_plus[t].qsize);
 
-  /* free memory for alignment strings */
-  for (auto const & hit : hits) {
-    if (hit.aligned) {
-      xfree(hit.nwalignment);
-    }
-  }
+  /* alignment strings (hit.nwalignment) are std::string and free themselves */
 
   return static_cast<int>(hits.size());
 }

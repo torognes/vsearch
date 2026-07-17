@@ -659,10 +659,8 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   /* trash bottom element if no more space */
                   if (si->hit_count >= hit_capacity)
                     {
-                      if (si->hits[si->hit_count-1].aligned)
-                        {
-                          xfree(si->hits[si->hit_count - 1].nwalignment);
-                        }
+                      /* the evicted slot's std::string cigar is freed when the
+                         shift/init below overwrites it */
                       --si->hit_count;
                     }
 
@@ -683,7 +681,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   hit->rejected = false;
                   hit->aligned = false;
                   hit->weak = false;
-                  hit->nwalignment = nullptr;
+                  hit->nwalignment.clear();
 
                   ++added;
                 }
@@ -793,7 +791,15 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   int64_t const nwindels = nwdiff - nwmismatches;
 
                   hit->aligned = true;
-                  hit->nwalignment = nwcigar;
+                  if (nwcigar != nullptr)  // search16 may leave the cigar null
+                    {
+                      hit->nwalignment = nwcigar;  // std::string copies the cigar
+                      xfree(nwcigar);              // free the owned char*
+                    }
+                  else
+                    {
+                      hit->nwalignment.clear();
+                    }
                   hit->nwscore = static_cast<int>(nwscore);
                   hit->nwdiff = static_cast<int>(nwdiff);
                   hit->nwgaps = static_cast<int>(nwgaps);
@@ -846,7 +852,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
               new_hit_count = t;
               if (hit->aligned)
                 {
-                  xfree(hit->nwalignment);
+                  si->hits[t].nwalignment.clear();  // std::string; drop the undetermined alignment
                 }
             }
         }
@@ -861,13 +867,12 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
   /* free alignments */
   for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
-      struct searchinfo_s const * si = (s != 0) ? si_m : si_p;
+      struct searchinfo_s * si = (s != 0) ? si_m : si_p;  // non-const: clear the strings
       for (int j = 0; j < si->hit_count; j++)
         {
-          if ((si->hits[j].aligned) && (si->hits[j].nwalignment != nullptr))
+          if (si->hits[j].aligned)
             {
-              xfree(si->hits[j].nwalignment);
-              si->hits[j].nwalignment = nullptr;
+              si->hits[j].nwalignment.clear();  // std::string; free after use
             }
         }
     }
@@ -986,9 +991,11 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* update cluster info about this sequence */
               state.clusterinfo[myseqno].seqno = myseqno;
               state.clusterinfo[myseqno].clusterno = state.clusterinfo[target].clusterno;
-              state.clusterinfo[myseqno].cigar = best->nwalignment;
+              /* clusterinfo owns its cigar as a char* (freed later); copy the
+                 string out and release the hit's copy */
+              state.clusterinfo[myseqno].cigar = xstrdup(best->nwalignment.c_str());
               state.clusterinfo[myseqno].strand = best->strand;
-              best->nwalignment = nullptr;
+              best->nwalignment.clear();
             }
           else
             {
@@ -1090,9 +1097,11 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
                                    db);
           state.clusterinfo[seqno].seqno = seqno;
           state.clusterinfo[seqno].clusterno = state.clusterinfo[target].clusterno;
-          state.clusterinfo[seqno].cigar = best->nwalignment;
+          /* clusterinfo owns its cigar as a char* (freed later); copy the
+             string out and release the hit's copy */
+          state.clusterinfo[seqno].cigar = xstrdup(best->nwalignment.c_str());
           state.clusterinfo[seqno].strand = best->strand;
-          best->nwalignment = nullptr;
+          best->nwalignment.clear();
         }
       else
         {
@@ -1725,10 +1734,10 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                     "%.*s",
                     static_cast<int>(cs->db->getheaderlen(static_cast<uint64_t>(best->target))),
                     cs->db->getheader(static_cast<uint64_t>(best->target)));
-      if (best->nwalignment != nullptr)
+      if (not best->nwalignment.empty())
         {
           int n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
-                                best->nwalignment);
+                                best->nwalignment.c_str());
           result->cigar_truncated =
             (n >= static_cast<int>(sizeof(result->cigar)));
         }
@@ -1878,11 +1887,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                             "%.*s",
                             static_cast<int>(cs->db->getheaderlen(static_cast<uint64_t>(best->target))),
                             cs->db->getheader(static_cast<uint64_t>(best->target)));
-              if (best->nwalignment != nullptr)
+              if (not best->nwalignment.empty())
                 {
                   int n = std::snprintf(results[ri].cigar,
                                         sizeof(results[ri].cigar),
-                                        "%s", best->nwalignment);
+                                        "%s", best->nwalignment.c_str());
                   results[ri].cigar_truncated =
                     (n >= static_cast<int>(sizeof(results[ri].cigar)));
                 }

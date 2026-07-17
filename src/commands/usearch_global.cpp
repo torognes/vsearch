@@ -415,12 +415,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
                         state.parameters.opt_strand ? si_minus[t].qsequence : nullptr,
                         si_plus[t].qsize);
 
-  /* free memory for alignment strings */
-  for (auto const & hit : hits) {
-    if (hit.aligned) {
-      xfree(hit.nwalignment);
-    }
-  }
+  /* alignment strings (hit.nwalignment) are std::string and free themselves */
 
   return static_cast<int>(hits.size());
 }

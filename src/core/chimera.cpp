@@ -384,7 +384,7 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
 
       auto * cigar_start = chimera_info->nwcigar[static_cast<size_t>(i)];
       auto const cigar_length = std::strlen(cigar_start);
-      auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
+      auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
 
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
@@ -779,7 +779,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
     auto pos = 0LL;
     auto * cigar_start = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
     auto const cigar_length = std::strlen(cigar_start);
-    auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
+    auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
@@ -818,7 +818,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
 
       auto * cigar_start = ci->nwcigar[static_cast<size_t>(cand)];
       auto const cigar_length = std::strlen(cigar_start);
-      auto const cigar_pairs = parse_cigar_string(Span<char>{cigar_start, cigar_length});
+      auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
@@ -2044,11 +2044,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
             else
               {
                 // Unallocate alignments for weak hits
-                if (hit.nwalignment)
-                  {
-                    xfree(hit.nwalignment);
-                    hit.nwalignment = nullptr;
-                  }
+                hit.nwalignment.clear();  // std::string; frees the weak-hit alignment
               }
           }
           hits.clear();
@@ -2076,11 +2072,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
         }
 
       /* deallocate cigar */
-      if (allhits_list[static_cast<size_t>(i)].nwalignment != nullptr)
-        {
-          xfree(allhits_list[static_cast<size_t>(i)].nwalignment);
-          allhits_list[static_cast<size_t>(i)].nwalignment = nullptr;
-        }
+      allhits_list[static_cast<size_t>(i)].nwalignment.clear();  // std::string; frees after use
     }
 
 

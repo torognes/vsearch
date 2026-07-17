@@ -78,6 +78,7 @@
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen
+#include <iterator>  // std::next
 #include <limits>
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>
@@ -501,7 +502,15 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
             hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
               static_cast<double>(nwalignmentlength);
-            hit->nwalignment = nwcigar;
+            if (nwcigar != nullptr)  // search16 may leave the cigar null
+              {
+                hit->nwalignment = nwcigar;  // std::string copies the cigar
+                xfree(nwcigar);              // free the owned char* (xstrdup'd or from pcigar[h])
+              }
+            else
+              {
+                hit->nwalignment.clear();
+              }
             hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
             hit->mismatches = hit->nwdiff - hit->nwindels;
 
@@ -520,13 +529,13 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
               }
           }
 
-        /* sort hits (skip when empty: qsort requires a non-null
-           pointer even for zero elements) */
-        if (searchinfo.accepts > 0)
-          {
-            std::qsort(finalhits.data(), static_cast<std::size_t>(searchinfo.accepts),
-                  sizeof(struct hit), allpairs_hit_compare);
-          }
+        /* sort the accepted hits. std::sort (not std::qsort) because struct hit
+           now owns a std::string cigar and is no longer trivially copyable. */
+        std::sort(finalhits.begin(),
+                  std::next(finalhits.begin(), static_cast<std::ptrdiff_t>(searchinfo.accepts)),
+                  [](struct hit const & lhs, struct hit const & rhs) -> bool {
+                    return allpairs_hit_compare_typed(&lhs, &rhs) < 0;
+                  });
       }
 
     /* lock mutex for update of global data and output */
@@ -553,14 +562,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
     output_lock.unlock();
 
-    /* free memory for alignment strings */
-    for (std::size_t i = 0; i < static_cast<std::size_t>(searchinfo.hit_count); i++)
-      {
-        if (searchinfo.hits_v[i].aligned)
-          {
-            xfree(searchinfo.hits_v[i].nwalignment);
-          }
-      }
+    /* alignment strings (hit.nwalignment) are std::string and free themselves */
   };
 
   run_worker_loop(state.mutex_input, has_work_to_claim, process_query);

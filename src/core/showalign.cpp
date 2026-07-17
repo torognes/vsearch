@@ -148,7 +148,7 @@ namespace {
   }
 
 
-  auto get_alignment_row(View<char> const seq_view, Span<char> const cigar_view,
+  auto get_alignment_row(View<char> const seq_view, View<char> const cigar_view,
                          int const alignlen,
                          Operation const insertion_equivalent) -> std::vector<char> {
     std::vector<char> row(static_cast<size_t>(alignlen) + 1);
@@ -352,7 +352,7 @@ auto align_show(std::FILE * output_handle,
   d_line.resize(static_cast<size_t>(alignment.width) + 1);
 
   // cigar string can be trimmed (left and right): cigarlen maybe != std::strlen(cigar)
-  auto const cigar_pairs = parse_cigar_string(Span<char>{cigar, static_cast<size_t>(cigarlen)});
+  auto const cigar_pairs = parse_cigar_string(View<char>{cigar, static_cast<size_t>(cigarlen)});
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
@@ -367,14 +367,14 @@ auto align_show(std::FILE * output_handle,
 }
 
 
-auto get_alignment_qrow(View<char> const seq_view, Span<char> const cigar_view,
+auto get_alignment_qrow(View<char> const seq_view, View<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
   static constexpr auto insertion_equivalent = adapt_to_viewpoint(Viewpoint::query);
   return get_alignment_row(seq_view, cigar_view, alignlen, insertion_equivalent);
 }
 
 
-auto get_alignment_trow(View<char> const seq_view, Span<char> const cigar_view,
+auto get_alignment_trow(View<char> const seq_view, View<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
   static constexpr auto insertion_equivalent = adapt_to_viewpoint(Viewpoint::target);
   return get_alignment_row(seq_view, cigar_view, alignlen, insertion_equivalent);

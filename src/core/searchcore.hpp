@@ -64,6 +64,7 @@
 #include "core/mask.hpp"  // Masking
 #include <array>
 #include <memory>  // std::unique_ptr
+#include <string>  // std::string
 #include <vector>
 
 
@@ -107,7 +108,7 @@ struct hit
   int nwindels;          /* indels in global alignment */
   int nwalignmentlength; /* length of global alignment */
   double nwid;           /* percent identity of global alignment */
-  char * nwalignment;    /* alignment string (cigar) of global alignment */
+  std::string nwalignment; /* alignment string (cigar) of global alignment (owned) */
   int matches;
   int mismatches;
 

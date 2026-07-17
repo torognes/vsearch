@@ -117,7 +117,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
   auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
   auto const qrow = get_alignment_qrow(View<char>{query, std::strlen(query)},
-                                 Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
+                                 View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
@@ -137,7 +137,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
   auto const target = static_cast<uint64_t>(hits->target);
   auto const trow = get_alignment_trow(View<char>{db.getsequence(target), static_cast<std::size_t>(db.getsequencelen(target))},
-                                 Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
+                                 View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
@@ -312,7 +312,7 @@ auto results_show_uc_one(std::FILE * output_handle,
           qseqlen,
           hits->id,
           (hits->strand != 0) ? '-' : '+',
-          is_perfect_match ? "=" : hits->nwalignment);
+          is_perfect_match ? "=" : hits->nwalignment.c_str());
   auto const target = static_cast<uint64_t>(hits->target);
   header_fprint_strip(output_handle,
                       query_head,
@@ -439,13 +439,13 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 22: /* aln */
           if (hits != nullptr)
             {
-              print_uncompressed_cigar(output_handle, Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)});
+              print_uncompressed_cigar(output_handle, View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()});
             }
           break;
         case 23: /* caln */
           if (hits != nullptr)
             {
-              std::fprintf(output_handle, "%s", hits->nwalignment);
+              std::fprintf(output_handle, "%s", hits->nwalignment.c_str());
             }
           break;
         case 24: /* qstrand */
@@ -465,7 +465,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
             {
               auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
               auto const qrow = get_alignment_qrow(View<char>{query, std::strlen(query)},
-                                             Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
+                                             View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                              hits->nwalignmentlength);
               std::fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
@@ -476,7 +476,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           if (hits != nullptr)
             {
               auto const trow = get_alignment_trow(View<char>{tsequence, std::strlen(tsequence)},
-                                             Span<char>{hits->nwalignment, std::strlen(hits->nwalignment)},
+                                             View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                              hits->nwalignmentlength);
               std::fprintf(output_handle, "%.*s",
                       hits->internal_alignmentlength,
@@ -771,8 +771,8 @@ auto results_show_alnout(std::FILE * output_handle,
                  dseqlen,
                  hp->trim_t_left,
                  "Tgt",
-                 hp->nwalignment + hp->trim_aln_left,
-                 static_cast<int64_t>(std::strlen(hp->nwalignment)
+                 hp->nwalignment.c_str() + hp->trim_aln_left,
+                 static_cast<int64_t>(hp->nwalignment.size()
                  - static_cast<std::size_t>(hp->trim_aln_left) - static_cast<std::size_t>(hp->trim_aln_right)),
                  numwidth,
                  3,
@@ -1037,7 +1037,7 @@ auto results_show_samout(std::FILE * output_handle,
 
       auto const target = static_cast<uint64_t>(hp->target);
       auto const * const query = (hp->strand != 0) ? qsequence_rc : qsequence;
-      build_sam_strings(hp->nwalignment,
+      build_sam_strings(hp->nwalignment.c_str(),
                         query,
                         static_cast<int64_t>(std::strlen(query)),
                         db.getsequence(target),

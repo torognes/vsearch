@@ -131,8 +131,7 @@ namespace {
     if (search_info == nullptr) { return; }
     for (auto & hit : make_hits_span(search_info)) {
       if (not (hit.accepted or hit.weak) and hit.aligned) {
-        xfree(hit.nwalignment);
-        hit.nwalignment = nullptr;
+        hit.nwalignment.clear();  // std::string; drop the rejected alignment
       }
     }
   }
@@ -369,7 +368,8 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
 
   /* left trim alignment */
 
-  auto const * p = hit->nwalignment;
+  auto const * const cigar = hit->nwalignment.c_str();
+  auto const * p = cigar;
   auto op = '\0';
   int64_t run = 0;
   if (*p != 0)
@@ -394,14 +394,14 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
 
   /* right trim alignment */
 
-  auto const * e = hit->nwalignment + std::strlen(hit->nwalignment);
-  if (e > hit->nwalignment)
+  auto const * e = cigar + hit->nwalignment.size();
+  if (e > cigar)
     {
       p = e - 1;
       op = *p;
       if (op != 'M')
         {
-          while ((p > hit->nwalignment) and (*(p - 1) <= '9'))
+          while ((p > cigar) and (*(p - 1) <= '9'))
             {
               --p;
             }
@@ -690,7 +690,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       /* '*' infinite gap penalties forbid a whole gap class (open) or gaps
          longer than one (extension); reject an alignment that used one */
       ((not parameters.opt_gap_penalty_has_infinite) or
-       (not alignment_uses_forbidden_gap(hit->nwalignment, parameters))) and
+       (not alignment_uses_forbidden_gap(hit->nwalignment.c_str(), parameters))) and
       /* mincols */
       (hit->internal_alignmentlength >= parameters.opt_mincols) and
       /* leftjust */
@@ -855,7 +855,15 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               hit->aligned = true;
               hit->shortest = std::min(searchinfo->qseqlen, static_cast<int>(dseqlen));
               hit->longest = std::max(searchinfo->qseqlen, static_cast<int>(dseqlen));
-              hit->nwalignment = nwcigar;
+              if (nwcigar != nullptr)  // search16 may leave the cigar null
+                {
+                  hit->nwalignment = nwcigar;  // std::string copies the cigar
+                  xfree(nwcigar);              // free the owned char* (xstrdup'd or from nwcigar_list[i])
+                }
+              else
+                {
+                  hit->nwalignment.clear();
+                }
               hit->nwscore = static_cast<int>(nwscore);
               hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
               hit->nwgaps = static_cast<int>(nwgaps);
@@ -941,7 +949,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
       hit->accepted = false;
       hit->aligned = false;
       hit->weak = false;
-      hit->nwalignment = nullptr;
+      hit->nwalignment.clear();
 
       /* Test some accept/reject criteria before alignment */
       if (search_acceptable_unaligned(*searchinfo, static_cast<int>(e.seqno)))
@@ -1056,10 +1064,11 @@ auto search_joinhits(struct searchinfo_s const * si_plus,
   free_rejected_alignments(si_plus);
   free_rejected_alignments(si_minus);
 
-  /* last, sort the hits (skip when empty: qsort requires a non-null
-     pointer even for zero elements) */
-  if (counter > 0)
-    {
-      std::qsort(hits.data(), counter, sizeof(struct hit), hit_compare_byid);
-    }
+  /* last, sort the hits. std::sort (not std::qsort) because struct hit now owns
+     a std::string cigar and is no longer trivially copyable — qsort's bitwise
+     element moves would corrupt it. */
+  std::sort(hits.begin(), hits.end(),
+            [](struct hit const & lhs, struct hit const & rhs) -> bool {
+              return hit_compare_byid_typed(&lhs, &rhs) < 0;
+            });
 }

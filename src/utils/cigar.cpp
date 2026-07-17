@@ -60,7 +60,7 @@
 
 #include "cigar_operations.hpp"
 #include "fatal.hpp"
-#include "span.hpp"
+#include "view.hpp"  // View (read-only cigar)
 #include <algorithm>  // std::max
 #include <cassert>
 #include <cstdio>  // std::size_t
@@ -141,26 +141,28 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
 
 
 // refactoring C++23: std::pair generator
-auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<Operation, long long>> {
+auto parse_cigar_string(View<char> const cigar_string) -> std::vector<std::pair<Operation, long long>> {
   std::vector<std::pair<Operation, long long>> parsed_cigar;
 
-  auto * position = cigar_string.begin();
-  auto const * cigar_end = cigar_string.end();
+  auto const * position = cigar_string.begin();
+  auto const * const cigar_end = cigar_string.end();
 
   while (position < cigar_end)
     {
       // Consume digits (if any), return the position of the
       // first char (M, D, or I), store it, move cursor to the next byte.
-      auto ** next_operation = &position;
-      auto const run = find_runlength_of_leftmost_operation(position, next_operation);
+      // next_operation is a separate char* for std::strtoll's endptr (a C-API
+      // out-parameter); it aliases the read-only cigar buffer and is only read.
+      char * next_operation = nullptr;
+      auto const run = find_runlength_of_leftmost_operation(position, &next_operation);
       // do not dereference if outside of cigar_string! (= missing operation!)
-      if (*next_operation >= cigar_end) {
+      if (next_operation >= cigar_end) {
         // fail if ill-formed (ex: '12M1'), we could also silently skip over
         fatal("ill-formed CIGAR string");
       }
       // operations: match (M), insertion (I), or deletion (D)
-      auto const operation = **next_operation;
-      position = std::next(*next_operation);
+      auto const operation = *next_operation;
+      position = std::next(next_operation);
       parsed_cigar.emplace_back(convert_to_operation(operation), run);
     }
   return parsed_cigar;
@@ -170,7 +172,7 @@ auto parse_cigar_string(Span<char> const cigar_string) -> std::vector<std::pair<
 // refactoring: run-length decoding: this is not cigar-specific,
 // extract to its own header? check if I need a run-length encoding
 // function (see swarm:cigar.cc for an example)
-auto print_uncompressed_cigar(std::FILE * output_handle, Span<char> const cigar_string) -> void {
+auto print_uncompressed_cigar(std::FILE * output_handle, View<char> const cigar_string) -> void {
   auto const cigar_pairs = parse_cigar_string(cigar_string);
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = convert_from_operation(a_pair.first);
