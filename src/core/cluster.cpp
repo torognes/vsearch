@@ -90,6 +90,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strcpy, std::strlen
+#include <iterator>  // std::next
 #include <limits>
 #include <map>
 #include <memory>  // std::unique_ptr
@@ -664,11 +665,11 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                       --si->hit_count;
                     }
 
-                  /* move the rest down */
-                  for (int z = si->hit_count; z > x; z--)
-                    {
-                      si->hits[z] = si->hits[z - 1];
-                    }
+                  /* move the rest down: std::move_backward steals each hit's
+                     std::string cigar buffer instead of copying it */
+                  std::move_backward(std::next(si->hits, x),
+                                     std::next(si->hits, si->hit_count),
+                                     std::next(si->hits, si->hit_count + 1));
 
                   /* init new hit */
                   struct hit * hit = si->hits + x;
