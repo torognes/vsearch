@@ -29,7 +29,7 @@ endif
 
 SHELL = /bin/bash
 
-EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo
+EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo example_recover
 
 all: $(EXAMPLES)
 
@@ -58,6 +58,9 @@ example_lifecycle: example_lifecycle.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 example_dbinfo: example_dbinfo.cc $(VSEARCH_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+example_recover: example_recover.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 test: $(EXAMPLES)
@@ -111,6 +114,11 @@ test: $(EXAMPLES)
 	@./example_dbinfo \
 		&& echo "PASS: database query/indexing surface behaves as documented" \
 		|| (echo "FAIL: dbinfo test failed"; exit 1)
+	@echo ""
+	@echo "=== Running example_recover ==="
+	@./example_recover \
+		&& echo "PASS: library recovers from a fatal error and continues" \
+		|| (echo "FAIL: recover-and-continue test failed"; exit 1)
 	@echo ""
 	@echo "All tests passed."
 

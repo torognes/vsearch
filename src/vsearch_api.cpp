@@ -118,11 +118,21 @@ auto vsearch_session_begin(struct Parameters & parameters) -> void
             "vsearch_session_begin() was not paired with vsearch_session_end(). "
             "Call vsearch_session_end() before starting a new session.");
     }
+  /* Now that this thread owns the session, put fatal() into throwing mode so a
+     fatal condition unwinds back to the caller (who can catch VsearchError and
+     recover) instead of killing the process. Set after the lock is held, so a
+     failed try_lock above still exits/throws with the session state intact.
+     Worker threads spawned later never flip this thread_local, so they keep
+     using cooperative abort (an exception must not escape a std::thread). */
+  fatal_detail::throw_on_fatal() = true;
   vsearch_apply_defaults_fixups(parameters);
 }
 
 
 auto vsearch_session_end() -> void
 {
+  /* Leave throwing mode before releasing the lock, so once the session is over
+     fatal() reverts to the std::exit() behaviour (matching a fresh process). */
+  fatal_detail::throw_on_fatal() = false;
   session_mutex.unlock();
 }

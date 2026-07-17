@@ -94,6 +94,16 @@ etc.), quality retrieval, the three `db_sortby*()` ordering contracts, and the
 incremental `dbindex.add_sequence()` primitive checked against
 `dbindex.add_all_sequences()`. Self-validating.
 
+### example_recover
+
+The library recoverable-error channel, which has no CLI equivalent: inside a
+session a fatal condition throws a `VsearchError` instead of calling
+`std::exit()`, so a bad input can be caught and skipped rather than killing the
+host process. Checks that a fatal (a `db.read()` on a missing file) is catchable
+and that a good read afterwards still succeeds, and that a fresh session works
+after a caught fatal (the unwinding `VsearchSession` guard released the lock).
+Self-validating.
+
 ## Test data
 
 All test data uses synthetic 300bp DNA sequences with known properties:
