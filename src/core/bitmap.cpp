@@ -59,56 +59,26 @@
 */
 
 #include "core/bitmap.hpp"
-#include "os/system.hpp"  // xmalloc, xfree
-#include <cstddef>  // std::size_t
-#include <cstring> // std::memset
-#include <utility>  // std::swap
+#include <algorithm>  // std::fill
 
 
 Bitmap::Bitmap(unsigned int const size)
 {
   constexpr auto divider = 8U;
   constexpr auto padding = divider - 1U;
-  bytes_ = (size + padding) / divider;
-  bitmap_ = static_cast<unsigned char *>(xmalloc(bytes_));
-  std::memset(bitmap_, 0, bytes_);
-}
-
-
-Bitmap::~Bitmap()
-{
-  if (bitmap_ != nullptr)
-    {
-      xfree(bitmap_);
-    }
-}
-
-
-Bitmap::Bitmap(Bitmap && other) noexcept
-  : bitmap_(other.bitmap_), bytes_(other.bytes_)
-{
-  other.bitmap_ = nullptr;
-  other.bytes_ = 0;
-}
-
-
-auto Bitmap::operator=(Bitmap && other) noexcept -> Bitmap &
-{
-  std::swap(bitmap_, other.bitmap_);
-  std::swap(bytes_, other.bytes_);
-  return *this;
+  bitmap_.assign((size + padding) / divider, 0U);
 }
 
 
 auto Bitmap::empty() const -> bool
 {
-  return bitmap_ == nullptr;
+  return bitmap_.empty();
 }
 
 
 auto Bitmap::data() const -> unsigned char const *
 {
-  return bitmap_;
+  return bitmap_.data();
 }
 
 
@@ -122,7 +92,7 @@ auto Bitmap::is_set(unsigned int const seed_value) const -> bool
 
 auto Bitmap::reset_all() -> void
 {
-  std::memset(bitmap_, 0, bytes_);
+  std::fill(bitmap_.begin(), bitmap_.end(), 0U);
 }
 
 

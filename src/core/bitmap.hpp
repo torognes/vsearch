@@ -60,25 +60,27 @@
 
 #pragma once
 
-#include <cstddef>  // std::size_t
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include <vector>
 
 
 /* A compact, runtime-sized bit-set: one bit per element, packed 8 bits per
-   byte (bit i lives in byte[i >> 3], position i & 7). Owns its buffer (RAII:
-   released by the destructor) and is move-only. data() exposes the raw bytes
-   so the SIMD counter routines (increment_counters_from_bitmap*) can read them
-   directly; empty() reports the moved-from / default-constructed state, which
-   the k-mer index uses as the "no bitmap for this k-mer" sentinel. */
+   byte (bit i lives in byte[i >> 3], position i & 7). Owns its buffer through a
+   std::vector (RAII), allocated via FatalAllocator so an exhausted allocation
+   ends the program with a clean message instead of throwing (the main build is
+   -fno-exceptions); move-only. data() exposes the raw bytes so the SIMD counter
+   routines (increment_counters_from_bitmap*) can read them directly; empty()
+   reports the moved-from / default-constructed state, which the k-mer index
+   uses as the "no bitmap for this k-mer" sentinel. */
 class Bitmap
 {
 public:
   Bitmap() = default;
   explicit Bitmap(unsigned int size);
-  ~Bitmap();
   Bitmap(Bitmap const &) = delete;
   auto operator=(Bitmap const &) -> Bitmap & = delete;
-  Bitmap(Bitmap && other) noexcept;
-  auto operator=(Bitmap && other) noexcept -> Bitmap &;
+  Bitmap(Bitmap &&) = default;
+  auto operator=(Bitmap &&) -> Bitmap & = default;
 
   auto empty() const -> bool;
   auto data() const -> unsigned char const *;
@@ -87,6 +89,5 @@ public:
   auto reset_all() -> void;
 
 private:
-  unsigned char * bitmap_ = nullptr; /* the actual bitmap */
-  std::size_t bytes_ = 0;            /* size of the buffer in bytes */
+  std::vector<unsigned char, FatalAllocator<unsigned char>> bitmap_ {}; /* the actual bitmap */
 };
