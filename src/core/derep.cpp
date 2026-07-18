@@ -478,7 +478,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
         while ((bp->size != 0U) and
                ((hash != bp->hash) or
-                (seqcmp(seq_up.data(), bp->seq, seqlen) != 0) or
+                (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq, static_cast<std::size_t>(seqlen)}) != 0) or
                 (use_header and (std::strcmp(header, bp->header) != 0))))
           {
             j = (j + 1) & hash_mask;
@@ -497,7 +497,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
             while ((rc_bp->size != 0U)
                    and
                    ((rc_hash != rc_bp->hash) or
-                    (seqcmp(rc_seq_up.data(), rc_bp->seq, seqlen) != 0U) or
+                    (seqcmp(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{rc_bp->seq, static_cast<std::size_t>(seqlen)}) != 0) or
                     (use_header and (std::strcmp(header, rc_bp->header) != 0))))
               {
                 k = (k + 1) & hash_mask;
@@ -1024,7 +1024,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
 
   while ((bp->size != 0U) and
          ((hash != bp->hash) or
-          (seqcmp(ds->seq_up.data(), bp->seq, seqlen) != 0)))
+          (seqcmp(View<char>{ds->seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq, static_cast<std::size_t>(seqlen)}) != 0)))
     {
       j = (j + 1) & ds->hash_mask;
       bp = &ds->hashtable[j];

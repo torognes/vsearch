@@ -58,13 +58,10 @@
 
 */
 
-#include <cstdint>  // uint64_t
+#include "view.hpp"  // View<char>
 
 
-auto seqcmp(char const * lhs, char const * rhs, uint64_t length) -> int;
-
-auto seqcmp(char const * lhs, char const * rhs, unsigned int length) -> int;
-
-auto seqcmp(char const * lhs, char const * rhs, int64_t length) -> int;
-
-auto seqcmp(char const * lhs, char const * rhs, int length) -> int;
+// Compare two equal-length nucleotide sequences (mapped through map_4bit),
+// stopping early at a '\0' in either. Returns 0 if identical, -1 if lhs sorts
+// first (lower alpha-sorting), +1 if rhs sorts first.
+auto seqcmp(View<char> lhs, View<char> rhs) -> int;

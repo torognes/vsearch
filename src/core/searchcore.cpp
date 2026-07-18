@@ -601,14 +601,13 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           /* idprefix */
           ((searchinfo.qseqlen >= parameters.opt_idprefix) and
            (dseqlen >= parameters.opt_idprefix) and
-           (seqcmp(qseq, dseq, parameters.opt_idprefix) == 0))
+           (seqcmp(View<char>{qseq, static_cast<std::size_t>(parameters.opt_idprefix)}, View<char>{dseq, static_cast<std::size_t>(parameters.opt_idprefix)}) == 0))
           and
           /* idsuffix */
           ((searchinfo.qseqlen >= parameters.opt_idsuffix) and
            (dseqlen >= parameters.opt_idsuffix) and
-           (seqcmp(qseq + searchinfo.qseqlen - parameters.opt_idsuffix,
-                    dseq + dseqlen - parameters.opt_idsuffix,
-                    parameters.opt_idsuffix) == 0))
+           (seqcmp(View<char>{qseq, static_cast<std::size_t>(searchinfo.qseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix)),
+                    View<char>{dseq, static_cast<std::size_t>(dseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix))) == 0))
           and
           /* self */
           ((parameters.opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
@@ -616,7 +615,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           /* selfid */
           ((parameters.opt_selfid == 0) or
            (searchinfo.qseqlen != dseqlen) or
-           (seqcmp(qseq, dseq, searchinfo.qseqlen) != 0))
+           (seqcmp(View<char>{qseq, static_cast<std::size_t>(searchinfo.qseqlen)}, View<char>{dseq, static_cast<std::size_t>(searchinfo.qseqlen)}) != 0))
           );
 }
 

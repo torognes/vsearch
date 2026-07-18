@@ -274,7 +274,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                ((bp->deleted) or
                 (bp->hash != hash) or
                 (prefix_len != db.getsequencelen(bp->seqno_first)) or
-                (seqcmp(seq_up.data(), db.getsequence(bp->seqno_first), prefix_len) != 0)))
+                (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(prefix_len)}, View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
           {
             ++bp;
             if (bp > &hashtable.back())
@@ -313,9 +313,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                        ((bp->deleted) or
                         (bp->hash != hash) or
                         (prefix_len != db.getsequencelen(bp->seqno_first)) or
-                        (seqcmp(seq_up.data(),
-                                db.getsequence(bp->seqno_first),
-                                prefix_len) != 0)))
+                        (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(prefix_len)},
+                                View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
                   {
                     ++bp;
                     if (bp > &hashtable.back())

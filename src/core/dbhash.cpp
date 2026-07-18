@@ -123,7 +123,7 @@ auto Dbhash::search_first(char * seq,
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
-          (seqcmp(seq, db.getsequence(bp->seqno), seqlen) != 0)))
+          (seqcmp(View<char>{seq, static_cast<std::size_t>(seqlen)}, View<char>{db.getsequence(bp->seqno), static_cast<std::size_t>(seqlen)}) != 0)))
     {
       index = (index + 1) & mask_;
       bp = &table_[index];
@@ -151,7 +151,7 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
-          (seqcmp(seq, db.getsequence(bp->seqno), seqlen) != 0)))
+          (seqcmp(View<char>{seq, static_cast<std::size_t>(seqlen)}, View<char>{db.getsequence(bp->seqno), static_cast<std::size_t>(seqlen)}) != 0)))
     {
       index = (index + 1) & mask_;
       bp = &table_[index];
