@@ -64,7 +64,6 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
-#include "utils/span.hpp"  // Span<char> (for mutable_sequence)
 #include <algorithm>  // std::min, std::max, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -168,12 +167,6 @@ auto Database::getquality(uint64_t seqno) const -> char const *
       return data_.data() + seqindex_[seqno].qual_p;
     }
   return nullptr;
-}
-
-
-auto Database::mutable_sequence(uint64_t seqno) -> Span<char>
-{
-  return Span<char>{mutatesequence(seqno), getsequencelen(seqno)};
 }
 
 

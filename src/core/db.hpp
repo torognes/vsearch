@@ -60,19 +60,13 @@
 
 #pragma once
 
-#include "utils/view.hpp"  // View<char>
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/span.hpp"  // Span<char>
+#include "utils/view.hpp"  // View<char>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::size_t
 #include <vector>
-
-/* Span is only referenced by the out-of-line mutable_sequence() below, so a
-   forward declaration keeps span.hpp (and its debug-only global helpers) out of
-   this widely-included header; db.cpp includes the full definition. The default
-   template argument is intentionally omitted here — it is declared once, in
-   span.hpp. */
-template <typename Type> class Span;
 
 
 struct seqinfo_s
@@ -261,10 +255,11 @@ public:
 
   /* Writable companion to mutatesequence(): only a non-const Database exposes
      it, so read-only holders (e.g. search worker threads) cannot obtain a
-     mutable window into the stored sequence. Defined out of line in db.cpp to
-     avoid pulling span.hpp into this header (see the Span forward declaration
-     above); the masking write path that uses it is not performance-critical. */
-  auto mutable_sequence(uint64_t seqno) -> Span<char>;
+     mutable window into the stored sequence. */
+  auto mutable_sequence(uint64_t seqno) -> Span<char>
+  {
+    return Span<char>{mutatesequence(seqno), getsequencelen(seqno)};
+  }
 
   auto record(uint64_t seqno) const -> DbRecord
   {
