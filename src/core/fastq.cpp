@@ -721,8 +721,7 @@ auto fastq_print_general(FILE * output_handle,
       auto const xee = parameters.opt_xee || ((parameters.opt_eeout || parameters.opt_fastq_eeout) && (expected_error >= 0.0));
       auto const xlength = parameters.opt_xlength || parameters.opt_lengthout;
       trailing_separator = header_fprint_strip(output_handle,
-                                               header,
-                                               header_len,
+                                               View<char>{header, static_cast<std::size_t>(header_len)},
                                                xsize,
                                                xee,
                                                xlength);

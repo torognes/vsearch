@@ -542,8 +542,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
     {
       std::fprintf(state.fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", state.clusters, qseqlen);
       header_fprint_strip(state.fp_uc,
-                          query_head,
-                          static_cast<int>(std::strlen(query_head)),
+                          View<char>{query_head, std::strlen(query_head)},
                           state.parameters.opt_xsize,
                           state.parameters.opt_xee,
                           state.parameters.opt_xlength);
@@ -1376,8 +1375,7 @@ auto cluster(char const * dbname,
                         clusterno,
                         cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
                 header_fprint_strip(fp_uc,
-                                    state.db.getheader(static_cast<uint64_t>(seqno)),
-                                    static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(seqno))),
+                                    state.db.header_view(static_cast<uint64_t>(seqno)),
                                     parameters.opt_xsize,
                                     parameters.opt_xee,
                                     parameters.opt_xlength);

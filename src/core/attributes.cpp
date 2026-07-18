@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // View<char>
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::swap
 #include <array>
@@ -66,7 +67,6 @@
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::strtoll
-#include <cstring>  // std::strstr, std::strspn
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -107,22 +107,25 @@ namespace {
       If allow_decimal is true, a dot (.) is allowed within the digits.
     */
 
-    const char * digit_chars = "0123456789";
-    const char * digit_chars_decimal = "0123456789.";
-
     if ((header == nullptr) or (attribute.text == nullptr))
       {
         return false;
       }
 
+    auto const * const header_end = header + header_length;
+    auto const * const attribute_text_end = attribute.text + attribute.length;
+
     auto offset = 0;
 
     while (offset < header_length - attribute.length)
       {
-        auto const * first_occurence = std::strstr(header + offset, attribute.text);
+        /* find the next occurrence of the attribute text, bounded by
+           header_length (no dependence on a trailing '\0') */
+        auto const * const first_occurence
+          = std::search(header + offset, header_end, attribute.text, attribute_text_end);
 
         /* no match */
-        if (first_occurence == nullptr)
+        if (first_occurence == header_end)
           {
             break;
           }
@@ -136,9 +139,15 @@ namespace {
             continue;
           }
 
-        auto const digits
-          = static_cast<int>(std::strspn(header + offset + attribute.length,
-                                         (attribute.allow_decimal ? digit_chars_decimal : digit_chars)));
+        /* count the value's digits, likewise bounded by header_length */
+        auto const * value_it = header + offset + attribute.length;
+        while ((value_it < header_end) and
+               (((*value_it >= '0') and (*value_it <= '9')) or
+                (attribute.allow_decimal and (*value_it == '.'))))
+          {
+            ++value_it;
+          }
+        auto const digits = static_cast<int>(value_it - (header + offset + attribute.length));
 
         /* check for at least one digit */
         if (digits == 0)
@@ -231,12 +240,14 @@ auto annotation_separator(bool & trailing_separator) -> char const * {
 
 
 auto header_fprint_strip(std::FILE * output_handle,
-                         char const * header,
-                         int const header_length,
+                         View<char> const header_view,
                          bool const strip_size,
                          bool const strip_ee,
                          bool const strip_length) -> bool
 {
+  auto const * const header = header_view.data();
+  auto const header_length = static_cast<int>(header_view.size());
+
   auto nth_attribute = 0;
   std::array<int, n_expected_attributes> attribute_start {{}};
   std::array<int, n_expected_attributes> attribute_end {{}};

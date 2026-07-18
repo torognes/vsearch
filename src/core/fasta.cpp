@@ -546,8 +546,7 @@ auto fasta_print_general(std::FILE * output_handle,
       bool const strip_ee = parameters.opt_xee or ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (expected_error >= 0.0));
       bool const strip_length = parameters.opt_xlength or parameters.opt_lengthout;
       trailing_separator = header_fprint_strip(output_handle,
-                                               header,
-                                               header_length,
+                                               View<char>{header, static_cast<std::size_t>(header_length)},
                                                strip_size,
                                                strip_ee,
                                                strip_length);

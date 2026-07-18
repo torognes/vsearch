@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "utils/view.hpp"  // View<char>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 
@@ -69,8 +70,7 @@ auto header_get_size(char const * header, int header_length) -> int64_t;
 auto annotation_separator(bool & trailing_separator) -> char const *;
 
 auto header_fprint_strip(std::FILE * output_handle,
-                         char const * header,
-                         int header_length,
+                         View<char> header,
                          bool strip_size,
                          bool strip_ee,
                          bool strip_length) -> bool;

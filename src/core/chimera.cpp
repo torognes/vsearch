@@ -1109,8 +1109,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       std::fprintf(cli->fp_uchimealns, "Query   (%5d nt) ",
                    ci->query_len);
       header_fprint_strip(cli->fp_uchimealns,
-                          ci->query_head.data(),
-                          ci->query_head_len,
+                          View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
@@ -1126,8 +1125,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
                        'A' + f,
                        db.getsequencelen(static_cast<uint64_t>(parent_seqno)));
           header_fprint_strip(cli->fp_uchimealns,
-                              db.getheader(static_cast<uint64_t>(parent_seqno)),
-                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(parent_seqno))),
+                              db.header_view(static_cast<uint64_t>(parent_seqno)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1196,22 +1194,19 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       std::fprintf(cli->fp_uchimeout, "%.4f\t", 99.9999);
 
       header_fprint_strip(cli->fp_uchimeout,
-                          ci->query_head.data(),
-                          ci->query_head_len,
+                          View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       header_fprint_strip(cli->fp_uchimeout,
-                          db.getheader(static_cast<uint64_t>(seqno_a)),
-                          static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
+                          db.header_view(static_cast<uint64_t>(seqno_a)),
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
       std::fprintf(cli->fp_uchimeout, "\t");
       header_fprint_strip(cli->fp_uchimeout,
-                          db.getheader(static_cast<uint64_t>(seqno_b)),
-                          static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
+                          db.header_view(static_cast<uint64_t>(seqno_b)),
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
@@ -1219,8 +1214,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       if (seqno_c >= 0)
         {
           header_fprint_strip(cli->fp_uchimeout,
-                              db.getheader(static_cast<uint64_t>(seqno_c)),
-                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_c))),
+                              db.header_view(static_cast<uint64_t>(seqno_c)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1718,8 +1712,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                   ci->query_len);
 
           header_fprint_strip(cli->fp_uchimealns,
-                              ci->query_head.data(),
-                              ci->query_head_len,
+                              View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1727,8 +1720,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           std::fprintf(cli->fp_uchimealns, "\nParentA (%5" PRIu64 " nt) ",
                   db.getsequencelen(static_cast<uint64_t>(seqno_a)));
           header_fprint_strip(cli->fp_uchimealns,
-                              db.getheader(static_cast<uint64_t>(seqno_a)),
-                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
+                              db.header_view(static_cast<uint64_t>(seqno_a)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1736,8 +1728,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           std::fprintf(cli->fp_uchimealns, "\nParentB (%5" PRIu64 " nt) ",
                   db.getsequencelen(static_cast<uint64_t>(seqno_b)));
           header_fprint_strip(cli->fp_uchimealns,
-                              db.getheader(static_cast<uint64_t>(seqno_b)),
-                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
+                              db.header_view(static_cast<uint64_t>(seqno_b)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1823,22 +1814,19 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           std::fprintf(cli->fp_uchimeout, "%.4f\t", best_h);
 
           header_fprint_strip(cli->fp_uchimeout,
-                              ci->query_head.data(),
-                              ci->query_head_len,
+                              View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
           header_fprint_strip(cli->fp_uchimeout,
-                              db.getheader(static_cast<uint64_t>(seqno_a)),
-                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
+                              db.header_view(static_cast<uint64_t>(seqno_a)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
           std::fprintf(cli->fp_uchimeout, "\t");
           header_fprint_strip(cli->fp_uchimeout,
-                              db.getheader(static_cast<uint64_t>(seqno_b)),
-                              static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
+                              db.header_view(static_cast<uint64_t>(seqno_b)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1849,8 +1837,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
               if (QA >= QB)
                 {
                   header_fprint_strip(cli->fp_uchimeout,
-                                      db.getheader(static_cast<uint64_t>(seqno_a)),
-                                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))),
+                                      db.header_view(static_cast<uint64_t>(seqno_a)),
                                       parameters.opt_xsize,
                                       parameters.opt_xee,
                                       parameters.opt_xlength);
@@ -1858,8 +1845,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
               else
                 {
                   header_fprint_strip(cli->fp_uchimeout,
-                                      db.getheader(static_cast<uint64_t>(seqno_b)),
-                                      static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))),
+                                      db.header_view(static_cast<uint64_t>(seqno_b)),
                                       parameters.opt_xsize,
                                       parameters.opt_xee,
                                       parameters.opt_xlength);
@@ -2327,8 +2313,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             std::fprintf(state.fp_uchimeout, "%.4f\t", ci->best_h);
 
             header_fprint_strip(state.fp_uchimeout,
-                                ci->query_head.data(),
-                                ci->query_head_len,
+                                View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
                                 state.parameters.opt_xsize,
                                 state.parameters.opt_xee,
                                 state.parameters.opt_xlength);

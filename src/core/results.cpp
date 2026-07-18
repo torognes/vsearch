@@ -315,15 +315,13 @@ auto results_show_uc_one(std::FILE * output_handle,
           is_perfect_match ? "=" : hits->nwalignment.c_str());
   auto const target = static_cast<uint64_t>(hits->target);
   header_fprint_strip(output_handle,
-                      query_head,
-                      static_cast<int>(std::strlen(query_head)),
+                      View<char>{query_head, std::strlen(query_head)},
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
   std::fprintf(output_handle, "\t");
   header_fprint_strip(output_handle,
-                      db.getheader(target),
-                      static_cast<int>(db.getheaderlen(target)),
+                      db.header_view(target),
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
