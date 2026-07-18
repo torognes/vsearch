@@ -65,6 +65,7 @@
 #include "utils/maps.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include <algorithm>  // std::transform
 #include <array>
 #include <cctype>  // std::toupper
 #include <cstdint>  // int64_t, uint64_t
@@ -189,9 +190,9 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
 }
 
 
-auto dust(char * seq, int const len, struct Parameters const & parameters) -> void
+auto dust(Span<char> const seq, struct Parameters const & parameters) -> void
 {
-  dust_core(seq, len, parameters.opt_hardmask);
+  dust_core(seq.data(), static_cast<int>(seq.size()), parameters.opt_hardmask);
 }
 
 
@@ -222,9 +223,7 @@ static auto dust_all_worker(struct dust_state_s & state, struct Database & db) -
   };
 
   auto const process_sequence = [&]() {
-    dust(db.mutatesequence(seqno),
-         static_cast<int>(db.getsequencelen(seqno)),
-         *state.parameters);
+    dust(db.mutable_sequence(seqno), *state.parameters);
   };
 
   run_worker_loop(state.mutex, has_work_to_claim, process_sequence);
@@ -246,20 +245,21 @@ auto dust_all(struct Database & db, struct Parameters const & parameters) -> voi
 }
 
 
-auto hardmask(char * seq, int const len) -> void
+auto hardmask(Span<char> const seq) -> void
 {
   /* convert all lower case letters in seq to N */
   // auto const * const end = std::next(seq, len);
   // refactoring: std::transform(seq, end, seq, [](unsigned char nuc){ if (std::islower(nuc) != 0) { return hardmask_char; } return nuc;});
   static constexpr auto check_5th_bit = 32U; // 0x20
   static constexpr auto hardmask_char = 'N';
-  for (auto i = 0; i < len; i++)
-    {
-      if ((static_cast<unsigned int>(static_cast<unsigned char>(seq[i])) & check_5th_bit) != 0U)
-        {
-          seq[i] = hardmask_char;
-        }
-    }
+  std::transform(seq.begin(), seq.end(), seq.begin(),
+                 [](char const nucleotide) -> char {
+                   if ((static_cast<unsigned int>(static_cast<unsigned char>(nucleotide)) & check_5th_bit) != 0U)
+                     {
+                       return hardmask_char;
+                     }
+                   return nucleotide;
+                 });
 }
 
 
@@ -267,7 +267,7 @@ auto hardmask_all(struct Database & db) -> void
 {
   for (uint64_t i = 0; i < db.getsequencecount(); i++)
     {
-      hardmask(db.mutatesequence(i), static_cast<int>(db.getsequencelen(i)));
+      hardmask(db.mutable_sequence(i));
     }
 }
 

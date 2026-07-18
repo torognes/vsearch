@@ -393,11 +393,11 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
       /* mask query */
       if (state.parameters.opt_qmask == Masking::dust)
         {
-          dust(si->qsequence, si->qseqlen, state.parameters);
+          dust(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)}, state.parameters);
         }
       else if ((state.parameters.opt_qmask == Masking::soft) && (state.parameters.opt_hardmask))
         {
-          hardmask(si->qsequence, si->qseqlen);
+          hardmask(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)});
         }
 
       /* perform search */

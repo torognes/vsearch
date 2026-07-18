@@ -441,11 +441,11 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
       /* mask query */
       if (parameters.opt_qmask == Masking::dust)
         {
-          dust(si->qsequence, si->qseqlen, parameters);
+          dust(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)}, parameters);
         }
       else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
         {
-          hardmask(si->qsequence, si->qseqlen);
+          hardmask(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)});
         }
 
       /* perform search */
