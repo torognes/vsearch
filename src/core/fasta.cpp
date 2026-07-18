@@ -640,7 +640,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
-                         DbRecord const & record,
+                         SeqRecord const & record,
                          uint64_t const abundance,
                          int64_t const ordinal,
                          double const expected_error,

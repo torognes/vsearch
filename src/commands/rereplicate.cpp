@@ -102,10 +102,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
             ++n_reads;
             fasta_print_general(output_handle.get(),
                                 nullptr,
-                                fasta_get_sequence(input_handle),
-                                static_cast<int>(fasta_get_sequence_length(input_handle)),
-                                fasta_get_header(input_handle),
-                                static_cast<int>(fasta_get_header_length(input_handle)),
+                                fastx_record(input_handle),
                                 1,
                                 n_reads,
                                 -1.0,

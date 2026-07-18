@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "core/seq_record.hpp"  // SeqRecord (returned by record())
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/span.hpp"  // Span<char>
 #include "utils/view.hpp"  // View<char>
@@ -90,31 +91,6 @@ struct seqinfo_s
 };
 
 using seqinfo_t = struct seqinfo_s;
-
-
-/* A read-only bundle of one database record's three stored strings, returned by
-   Database::record(): the header, the sequence and (FASTQ-only) the quality,
-   each a non-owning View<char> window into the database's shared buffer. The
-   quality view is empty for a FASTA database. It suits the record-emit paths
-   (e.g. FASTA/FASTQ printing) that consume the whole record together; the
-   per-field view accessors remain for callers that need only one.
-
-   Abundance is deliberately not a member: the print helpers that take a
-   DbRecord accept the abundance to display as a separate argument, because most
-   emit a computed value (a match count, a summed cluster size) rather than the
-   record's own getabundance(). Keeping it out means a DbRecord is a purely
-   read-only value that callers never need to mutate.
-
-   It has no default member initializers, so it stays a C++11 aggregate (a
-   brace-or-equal initializer on any member would disqualify it, unlike C++14),
-   letting record() build it with aggregate initialization; View has no default
-   constructor, so a field-less DbRecord cannot be built by accident either. */
-struct DbRecord
-{
-  View<char> header;
-  View<char> sequence;
-  View<char> quality;
-};
 
 
 /* The in-memory sequence database. Owns its two heap buffers (RAII: released by
@@ -265,9 +241,9 @@ public:
     return Span<char>{mutatesequence(seqno), getsequencelen(seqno)};
   }
 
-  auto record(uint64_t seqno) const -> DbRecord
+  auto record(uint64_t seqno) const -> SeqRecord
   {
-    return DbRecord{header_view(seqno), sequence_view(seqno), quality_view(seqno)};
+    return SeqRecord{header_view(seqno), sequence_view(seqno), quality_view(seqno)};
   }
 };
 

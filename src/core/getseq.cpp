@@ -491,16 +491,11 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
             ++discarded;
 
-            int64_t const length = static_cast<int64_t>(fastx_get_sequence_length(h1));
-
             if (parameters.opt_notmatched != nullptr)
               {
                 fasta_print_general(fp_notmatched,
                                     nullptr,
-                                    fastx_get_sequence(h1),
-                                    static_cast<int>(length),
-                                    fastx_get_header(h1),
-                                    static_cast<int>(fastx_get_header_length(h1)),
+                                    fastx_record(h1),
                                     static_cast<uint64_t>(fastx_get_abundance(h1)),
                                     discarded,
                                     -1.0,
@@ -515,11 +510,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             if (parameters.opt_notmatchedfq != nullptr)
               {
                 fastq_print_general(fp_notmatchedfq,
-                                    fastx_get_sequence(h1),
-                                    static_cast<int>(length),
-                                    fastx_get_header(h1),
-                                    static_cast<int>(fastx_get_header_length(h1)),
-                                    fastx_get_quality(h1),
+                                    fastx_record(h1),
                                     static_cast<uint64_t>(fastx_get_abundance(h1)),
                                     discarded,
                                     -1.0,

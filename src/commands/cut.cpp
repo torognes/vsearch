@@ -252,10 +252,7 @@ namespace {
       {
         fasta_print_general(fastaout.discarded.forward.handle.get(),
                             nullptr,
-                            seq,
-                            seq_length,
-                            fasta_get_header(input_handle),
-                            static_cast<int>(fasta_get_header_length(input_handle)),
+                            fastx_record(input_handle),
                             static_cast<uint64_t>(fasta_get_abundance(input_handle)),
                             ++counters.fragment_discarded_no,
                             -1.0,

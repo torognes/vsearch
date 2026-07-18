@@ -151,6 +151,7 @@ core/search.hpp \
 core/search_internal.hpp \
 core/searchcore.hpp \
 commands/search_exact.hpp \
+core/seq_record.hpp \
 commands/sff_convert.hpp \
 core/showalign.hpp \
 vendored/sha1.h \

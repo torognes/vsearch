@@ -60,7 +60,7 @@
 
 #include "vsearch.hpp"
 #include "core/attributes.hpp"
-#include "core/db.hpp"  // struct DbRecord (for the record overload)
+#include "core/seq_record.hpp"  // struct SeqRecord (for the record overload)
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
@@ -789,7 +789,7 @@ auto fastq_print_general(FILE * output_handle,
 
 
 auto fastq_print_general(std::FILE * output_handle,
-                         DbRecord const & record,
+                         SeqRecord const & record,
                          uint64_t const abundance,
                          int64_t const ordinal,
                          double const expected_error,

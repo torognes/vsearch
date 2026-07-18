@@ -886,3 +886,14 @@ auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t
     }
   return fasta_get_abundance(input_handle);
 }
+
+
+auto fastx_record(fastx_handle input_handle) -> SeqRecord
+{
+  auto const sequence_length = fastx_get_sequence_length(input_handle);
+  auto const * quality = fastx_get_quality(input_handle);  // nullptr for FASTA
+  return SeqRecord{
+    View<char>{fastx_get_header(input_handle), fastx_get_header_length(input_handle)},
+    View<char>{fastx_get_sequence(input_handle), sequence_length},
+    View<char>{quality, quality != nullptr ? sequence_length : uint64_t{0}}};
+}

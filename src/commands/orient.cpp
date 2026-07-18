@@ -284,10 +284,7 @@ auto orient(struct Parameters const & parameters) -> void
               {
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    qseq_fwd,
-                                    qseqlen,
-                                    query_head,
-                                    query_head_len,
+                                    fastx_record(query_h),
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,
@@ -302,11 +299,7 @@ auto orient(struct Parameters const & parameters) -> void
             if (parameters.opt_fastqout != nullptr)
               {
                 fastq_print_general(fp_fastqout,
-                                    qseq_fwd,
-                                    qseqlen,
-                                    query_head,
-                                    query_head_len,
-                                    query_qual_fwd,
+                                    fastx_record(query_h),
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,
@@ -397,11 +390,7 @@ auto orient(struct Parameters const & parameters) -> void
                 if (fastx_is_fastq(query_h))
                   {
                     fastq_print_general(fp_notmatched,
-                                        qseq_fwd,
-                                        qseqlen,
-                                        query_head,
-                                        query_head_len,
-                                        query_qual_fwd,
+                                        fastx_record(query_h),
                                         static_cast<uint64_t>(qsize),
                                         notmatched,
                                         -1.0,
@@ -411,10 +400,7 @@ auto orient(struct Parameters const & parameters) -> void
                   {
                     fasta_print_general(fp_notmatched,
                                         nullptr,
-                                        qseq_fwd,
-                                        qseqlen,
-                                        query_head,
-                                        query_head_len,
+                                        fastx_record(query_h),
                                         static_cast<uint64_t>(qsize),
                                         notmatched,
                                         -1.0,

@@ -64,6 +64,7 @@
 #include "config.h"  // HAVE_ZLIB_H, HAVE_BZLIB_H
 #endif
 
+#include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
 #include "utils/view.hpp"  // View
 #include <array>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -196,6 +197,12 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void;
 
 auto fastx_get_quality(struct fastx_s const * input_handle) -> char const *;
 auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t;
+
+// Bundle the current record's header/sequence/quality as a SeqRecord of
+// non-owning views into the reader's buffers (the quality view is empty for a
+// FASTA input), mirroring Database::record(). The views stay valid only until
+// the next fastx_next()/fastx_close() call on this handle.
+auto fastx_record(fastx_handle input_handle) -> SeqRecord;
 
 auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t;
 
