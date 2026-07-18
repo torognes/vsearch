@@ -4,8 +4,8 @@
  * These checks exercise behaviour that is specific to *embedding* vsearch as a
  * library and that the CLI test-suite never reaches: the CLI runs a single
  * operation and exits, so it never frees a null handle, never inspects a
- * return code, never reuses a result struct, and never relies on the
- * zero-initialisation contract of a result. Every check here is
+ * per-call result value, never reuses a merge session across pairs, and never
+ * relies on the empty-on-failure contract of a result. Every check here is
  * self-validating (no comparison against native vsearch output): it verifies
  * the documented memory-ownership, null-safety and error-return contracts from
  * LIBRARY_API.md.
@@ -53,37 +53,37 @@ static bool read_fastq_record(char const * path,
 }
 
 
+/* Build a MergeInput (sequence + equal-length quality) from two strings. */
+static MergeInput as_input(std::string const & sequence, std::string const & quality)
+{
+  return MergeInput{View<char>{sequence.data(), sequence.size()},
+                    View<char>{quality.data(), quality.size()}};
+}
+
+
 /* --- Test 1: every free function is null-safe (documented "null-safe") ---
-   A crash here (segfault) fails the test via a non-zero exit code. */
+   A crash here (segfault) fails the test via a non-zero exit code. The merge
+   API no longer has a free function: MergeResult owns its buffers (RAII). */
 static int test_free_null_safety()
 {
   chimera_info_free(nullptr);
   search_session_free(nullptr);
   cluster_session_free(nullptr);
   derep_session_free(nullptr);
-  merge_result_free(nullptr);
   std::fprintf(stderr, "PASS: all free functions accept nullptr\n");
   return 0;
 }
 
 
-/* --- Test 2: merge_result_free contract ---
-   - a zero-initialised result is a no-op (nothing to free)
-   - after freeing a populated result the pointers are nulled
-   - a second free of the same result is safe (idempotent)         */
-static int test_merge_result_free_contract(QualityTables const & tables,
-                                           struct Parameters const & parameters)
+/* --- Test 2: MergePairs::merge success contract ---
+   A known-overlapping pair merges; the returned MergeResult carries
+   merged == true and sequence/quality strings whose length matches
+   merged_length. The strings own their storage, freed when the result goes
+   out of scope (no caller action). */
+static int test_merge_success_contract(MergePairs const & merger,
+                                       struct Parameters const & parameters)
 {
   int failures = 0;
-
-  /* zero-initialised: no buffers, free must be a harmless no-op */
-  struct merge_result_s empty = {};
-  merge_result_free(&empty);
-  if ((empty.merged_sequence != nullptr) or (empty.merged_quality != nullptr))
-    {
-      std::fprintf(stderr, "FAIL: merge_result_free changed a zero-init result\n");
-      ++failures;
-    }
 
   /* A known-overlapping pair (same reads example_merge merges successfully). */
   std::string fwd_head, fwd_seq, fwd_qual;
@@ -95,50 +95,40 @@ static int test_merge_result_free_contract(QualityTables const & tables,
       return failures + 1;
     }
 
-  struct merge_result_s result = {};
-  int const status = mergepairs_single(tables, parameters,
-                                       fwd_seq.c_str(), fwd_qual.c_str(),
-                                       static_cast<int>(fwd_seq.size()),
-                                       rev_seq.c_str(), rev_qual.c_str(),
-                                       static_cast<int>(rev_seq.size()),
-                                       fwd_head.c_str(), rev_head.c_str(), &result);
-  if ((status != 0) or (not result.merged) or
-      (result.merged_sequence == nullptr) or (result.merged_quality == nullptr))
+  MergeResult const result = merger.merge(parameters,
+                                          as_input(fwd_seq, fwd_qual),
+                                          as_input(rev_seq, rev_qual));
+  if (not result.merged)
     {
-      std::fprintf(stderr, "FAIL: expected overlap pair did not merge (rc=%d)\n", status);
+      std::fprintf(stderr, "FAIL: expected overlap pair did not merge\n");
       ++failures;
     }
-
-  merge_result_free(&result);
-  if ((result.merged_sequence != nullptr) or (result.merged_quality != nullptr))
+  if ((result.sequence.size() != static_cast<std::size_t>(result.merged_length)) or
+      (result.quality.size() != static_cast<std::size_t>(result.merged_length)))
     {
-      std::fprintf(stderr, "FAIL: merge_result_free did not null the buffers\n");
+      std::fprintf(stderr, "FAIL: merged sequence/quality length disagrees with merged_length\n");
       ++failures;
     }
-
-  /* double free must not crash and must leave the pointers null */
-  merge_result_free(&result);
-  if ((result.merged_sequence != nullptr) or (result.merged_quality != nullptr))
+  if (result.merged and result.sequence.empty())
     {
-      std::fprintf(stderr, "FAIL: second merge_result_free disturbed the null buffers\n");
+      std::fprintf(stderr, "FAIL: successful merge produced an empty sequence\n");
       ++failures;
     }
 
   if (failures == 0)
     {
-      std::fprintf(stderr, "PASS: merge_result_free is a no-op on empty, nulls on free, idempotent\n");
+      std::fprintf(stderr, "PASS: a successful merge returns populated, self-owned buffers\n");
     }
   return failures;
 }
 
 
-/* --- Test 3: mergepairs_single failure return contract ---
+/* --- Test 3: MergePairs::merge failure contract ---
    Two sequences that share no overlap must fail to merge: the documented
-   contract is rc == -1, result.merged == false, and both output pointers
-   left at nullptr so the caller can safely skip merge_result_free (though it
-   remains a no-op). This return channel is unique to the library — the CLI
-   simply counts a "not merged" read and moves on. */
-static int test_merge_failure_contract(QualityTables const & tables,
+   contract is result.merged == false with both output strings left empty.
+   This channel is unique to the library — the CLI simply counts a "not
+   merged" read and moves on. */
+static int test_merge_failure_contract(MergePairs const & merger,
                                        struct Parameters const & parameters)
 {
   int failures = 0;
@@ -147,44 +137,34 @@ static int test_merge_failure_contract(QualityTables const & tables,
   std::string const rev_seq(60, 'C');   /* rev-comp is 60x G — cannot overlap 60x A */
   std::string const qual(60, 'I');
 
-  struct merge_result_s result = {};
-  int const status = mergepairs_single(tables, parameters,
-                                       fwd_seq.c_str(), qual.c_str(),
-                                       static_cast<int>(fwd_seq.size()),
-                                       rev_seq.c_str(), qual.c_str(),
-                                       static_cast<int>(rev_seq.size()),
-                                       "fwd", "rev", &result);
-  if (status != -1)
-    {
-      std::fprintf(stderr, "FAIL: non-overlapping merge returned %d (expected -1)\n", status);
-      ++failures;
-    }
+  MergeResult const result = merger.merge(parameters,
+                                          as_input(fwd_seq, qual),
+                                          as_input(rev_seq, qual));
   if (result.merged)
     {
       std::fprintf(stderr, "FAIL: failed merge left result.merged == true\n");
       ++failures;
     }
-  if ((result.merged_sequence != nullptr) or (result.merged_quality != nullptr))
+  if ((not result.sequence.empty()) or (not result.quality.empty()))
     {
-      std::fprintf(stderr, "FAIL: failed merge left non-null output buffers\n");
+      std::fprintf(stderr, "FAIL: failed merge left non-empty output buffers\n");
       ++failures;
     }
-  merge_result_free(&result);   /* must be safe even though nothing was allocated */
 
   if (failures == 0)
     {
-      std::fprintf(stderr, "PASS: non-overlapping merge returns -1 with null buffers\n");
+      std::fprintf(stderr, "PASS: non-overlapping merge returns merged == false with empty buffers\n");
     }
   return failures;
 }
 
 
-/* --- Test 4: result-struct reuse contract ---
-   The docs allow reusing one merge_result_s for successive merges provided
-   merge_result_free() is called between calls. Verify a second merge into the
-   same (freed) struct produces valid buffers again. */
-static int test_result_reuse(QualityTables const & tables,
-                             struct Parameters const & parameters)
+/* --- Test 4: session statelessness ---
+   A single MergePairs session is documented as stateless and reusable across
+   pairs (and shareable across threads). Verify two successive merges of the
+   same pair on one session produce identical results. */
+static int test_session_stateless(MergePairs const & merger,
+                                  struct Parameters const & parameters)
 {
   int failures = 0;
 
@@ -197,27 +177,26 @@ static int test_result_reuse(QualityTables const & tables,
       return failures + 1;
     }
 
-  struct merge_result_s result = {};
-  for (int iteration = 0; iteration < 2; ++iteration)
+  MergeResult const first = merger.merge(parameters,
+                                         as_input(fwd_seq, fwd_qual),
+                                         as_input(rev_seq, rev_qual));
+  MergeResult const second = merger.merge(parameters,
+                                          as_input(fwd_seq, fwd_qual),
+                                          as_input(rev_seq, rev_qual));
+  if ((not first.merged) or (not second.merged))
     {
-      int const status = mergepairs_single(tables, parameters,
-                                           fwd_seq.c_str(), fwd_qual.c_str(),
-                                           static_cast<int>(fwd_seq.size()),
-                                           rev_seq.c_str(), rev_qual.c_str(),
-                                           static_cast<int>(rev_seq.size()),
-                                           fwd_head.c_str(), rev_head.c_str(), &result);
-      if ((status != 0) or (not result.merged) or (result.merged_sequence == nullptr))
-        {
-          std::fprintf(stderr, "FAIL: reuse iteration %d did not merge (rc=%d)\n",
-                       iteration, status);
-          ++failures;
-        }
-      merge_result_free(&result);
+      std::fprintf(stderr, "FAIL: repeated merge on one session did not merge\n");
+      ++failures;
+    }
+  if ((first.sequence != second.sequence) or (first.quality != second.quality))
+    {
+      std::fprintf(stderr, "FAIL: repeated merge on one session gave different results\n");
+      ++failures;
     }
 
   if (failures == 0)
     {
-      std::fprintf(stderr, "PASS: a freed merge_result_s can be reused for another merge\n");
+      std::fprintf(stderr, "PASS: a MergePairs session is stateless across successive merges\n");
     }
   return failures;
 }
@@ -341,12 +320,12 @@ int main()
   struct Parameters parameters;
   parameters.opt_wordlength = 8;
   VsearchSession const session(parameters);
-  QualityTables const tables = mergepairs_init(parameters);
+  MergePairs const merger(parameters);
 
   failures += test_free_null_safety();
-  failures += test_merge_result_free_contract(tables, parameters);
-  failures += test_merge_failure_contract(tables, parameters);
-  failures += test_result_reuse(tables, parameters);
+  failures += test_merge_success_contract(merger, parameters);
+  failures += test_merge_failure_contract(merger, parameters);
+  failures += test_session_stateless(merger, parameters);
   failures += test_nonchimera_result_zeroed(parameters);
   failures += test_dust_hardmask();
 

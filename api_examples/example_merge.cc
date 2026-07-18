@@ -56,9 +56,9 @@ int main() {
     struct Parameters parameters;
     VsearchSession const session(parameters);
 
-    /* 2. Initialize merge quality lookup tables (held by the caller and
-          passed to every mergepairs_single call) */
-    QualityTables const tables = mergepairs_init(parameters);
+    /* 2. Create a merge session (builds the quality lookup tables once;
+          reused for every merge, may be shared across threads) */
+    MergePairs const merger(parameters);
 
     /* 3. Read paired-end reads */
     std::string fwd_header, fwd_seq, fwd_qual;
@@ -73,34 +73,29 @@ int main() {
         return 1;
     }
 
-    /* 4. Merge the pair. The result owns xmalloc'd merged_sequence and
-       merged_quality buffers that must be released with
-       merge_result_free() (no fixed upper bound on merged length). */
-    struct merge_result_s result = {};
-    int rc = mergepairs_single(tables, parameters,
-                               fwd_seq.c_str(), fwd_qual.c_str(),
-                               static_cast<int>(fwd_seq.size()),
-                               rev_seq.c_str(), rev_qual.c_str(),
-                               static_cast<int>(rev_seq.size()),
-                               fwd_header.c_str(), rev_header.c_str(),
-                               &result);
+    /* 4. Merge the pair. The returned MergeResult owns its merged sequence
+       and quality (std::string), freed automatically when it goes out of
+       scope (no fixed upper bound on merged length). */
+    MergeResult const result = merger.merge(
+        parameters,
+        MergeInput{View<char>{fwd_seq.data(), fwd_seq.size()},
+                   View<char>{fwd_qual.data(), fwd_qual.size()}},
+        MergeInput{View<char>{rev_seq.data(), rev_seq.size()},
+                   View<char>{rev_qual.data(), rev_qual.size()}});
 
-    if (rc == 0 && result.merged) {
+    if (result.merged) {
         /* Output in FASTA format matching vsearch --fastaout (80-char lines) */
         std::printf(">%s\n", fwd_header.c_str());
         int len = result.merged_length;
-        const char * seq = result.merged_sequence;
+        const char * seq = result.sequence.c_str();
         for (int i = 0; i < len; i += 80) {
             int chunk = (len - i < 80) ? len - i : 80;
             std::printf("%.*s\n", chunk, seq + i);
         }
     } else {
         std::fprintf(stderr, "Merge failed\n");
-        merge_result_free(&result);
         return 1;
     }
-
-    merge_result_free(&result);
 
     return 0;
 }
