@@ -63,8 +63,6 @@
 #include <cassert>
 
 
-// refactoring: with std::mismatch()? having to check if == '\0' breaks the flow
-
 // Find first position with a difference, if any. Return 0 for
 // identical sequences, -1 if lhs is sorted first (lower
 // alpha-sorting), +1 if rhs is sorted first.
