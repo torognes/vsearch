@@ -1,10 +1,14 @@
 # Remaining global variables: inventory and elimination plan
 
-Status: Phases 1 + 2 DONE, and **Phase 4 fully DONE** (Group A `db.cpp` → the
-owned `Database` class, and Group B `dbhash.cpp` → the owned `Dbhash` class), all
-on branch `tmp_20260713082154` (awaiting human review/merge). Phase 3 (Groups
-C–G) deferred to a later date.
-Date: 2026-07-13.
+Status: Phases 1, 2, and 4 **DONE and merged into `dev`**. Phase 3 is now
+**mostly done**: Group D (`otutable` → the owned `OtuTable` class), the Group C
+quality-score tables (→ the `QualityTables` struct), and all of Group F
+(`hash_function` const-ified + `hashtable`/`hashtablesize` localised) have all
+landed on `dev`. What is left is a small residue of genuinely-mutable file-scope
+state (Groups C-abort, E, G) plus three items a fresh `nm` re-sweep surfaced that
+the original inventory had missed.
+Original inventory: 2026-07-13. This revision: 2026-07-18 (re-swept on `dev` @
+`37c2b5d7`).
 
 Goal (from `CLAUDE.md`): "avoid non const global variables". This document
 inventories every mutable global with static storage duration that remains in
@@ -21,104 +25,177 @@ grep alone misses) against the source declarations. Read-only symbols (`r`/`R`
 sections) and function-local `const` statics were filtered out: they are not
 mutable globals and are left alone.
 
+The 2026-07-18 revision re-ran the same `nm` sweep over the 107 linked object
+files of the current `dev` build. Two useful results: (1) it confirmed that
+every eliminated group is genuinely gone from `.data`/`.bss`, and (2) it caught
+three mutable file-scope symbols the 2026-07-13 pass had not listed (the
+showalign row buffers, `derep_sort_db`, and `unique.cpp`'s `hash_function` — see
+"Surfaced by the re-sweep" below). All remaining mutable symbols now have
+**internal** linkage (lowercase `b`/`d`): the Phase 2 external-linkage leaks
+stay plugged and nothing new leaked an external symbol.
 
-## Inventory: the 34 mutable globals that remain
 
-| Group | File | Variables | Linkage | Notes |
-|-------|------|-----------|---------|-------|
-| **A** | `core/db.cpp` | `datap`, `seqindex` (both `extern` in `db.hpp`), `seqindex_alloc`, `h`, `is_fastq`, `sequences`, `nucleotides`, `longest`, `shortest`, `longestheader`, `dataalloc`, `datalen` — **12** | 2 external, 10 file-static | The in-memory sequence database. Already wrapped by free-function + inline accessors (`db_get*`); **31 TUs** consume it, but only `udb.cpp` touches `datap`/`seqindex` directly. |
-| **B** ✅DONE | `core/dbhash.cpp` | ~~`dbhash_table`, `dbhash_bitmap`, `dbhash_size`, `dbhash_shift`, `dbhash_mask`~~ — **5** | — | DB dedup hash index → owned `Dbhash` class (`dbhash_size` became an open()-local, `dbhash_shift` was dead and dropped). |
-| **C** | `core/mergepairs.cpp` | tables `merge_qual_same`, `merge_qual_diff`, `match_score`, `mism_score`, `q2p` (all external-linkage, no header decl); abort state `merge_abort`, `merge_error_claimed`, `merge_error_reason`, `merge_error_value` — **9** | 5 external-leak, 4 static | Tables filled once from `Parameters` at init; abort state coordinates worker threads (exposed via `request_merge_abort`/`merge_aborted`). |
-| **D** | `core/otutable.cpp` | `otutable` (pointer to heap `otutable_s`) — **1** | static | Singleton; the struct already exists. |
-| **E** | `core/getseq.cpp` | `labels_data` (external, no header decl) — **1** | external-leak | `std::vector<std::vector<char>>`. |
-| **F** | `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp` | `hash_function` ×3; plus `hashtable`, `hashtablesize` (derep_smallmem) — **5** | static | The three `hash_function` pointers are never reassigned -> const-able immediately. |
-| **G** | `utils/random.cpp` | `base_seed` — **1** | static | RNG seed, set from `--randseed` at init, read via `random_base_seed()`. |
+## Progress since the original inventory (34 → 6 of the original set)
 
-### Latent defect worth flagging
+| Group | File | Original count | Now | Landed |
+|-------|------|---------------:|-----|--------|
+| **A** ✅DONE | `core/db.cpp` | 12 | 0 | → owned `Database` class (`02bf3975` … `2ac3f27f`, `c16d80ef`, `782a16fd`); private `std::vector` via `FatalAllocator`, const read API. ABI break → api 0.10.0. |
+| **B** ✅DONE | `core/dbhash.cpp` | 5 | 0 | → owned `Dbhash` class (`9d8d498a`, `2625497b`); threaded into `--search_exact`. Internal-only. |
+| **C** ⚠ partial | `core/mergepairs.cpp` | 9 | 4 | 5 lookup tables → the `QualityTables` struct returned by `mergepairs_init`/`precompute_qual` and passed by `const &` (`d94aa9a7`, api 0.11.0). The 4 abort-state atomics remain — **deliberate** (see below). |
+| **D** ✅DONE | `core/otutable.cpp` | 1 | 0 | The `otutable` singleton pointer → the owned `OtuTable` class (`0dc01686`; name buffers to `std::string` `a4d6b5b3`; stale include dropped `302ac812`). |
+| **E** ⏳ pending | `core/getseq.cpp` | 1 | 1 | `labels_data` (`static std::vector<std::vector<char>>`, getseq.cpp:87) — unchanged. |
+| **F** ✅DONE | `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp` | 5 | 0 | The 3 `hash_function` pointers → `static constexpr` (Phase 1). `hashtable`/`hashtablesize` are now function-locals of `derep_smallmem` (`92e3dc7f` per-invocation struct, `2414ea0e` `std::vector`). |
+| **G** ⏳ pending | `utils/random.cpp` | 1 | 1 | `base_seed` (`static uint64_t`, random.cpp:67) — unchanged. |
 
-The Group C tables, plus `dbhash_table` (B) and `labels_data` (E), have
-**external linkage with no `extern` declaration** anywhere. They pollute the
-global symbol namespace and are one accidental duplicate name away from an
-ODR/link collision — `q2p` in particular already coexists with unrelated
-external `q2p` *functions* in `commands/fastq_stats.cpp` and
-`commands/fastq_eestats2.cpp`. Giving them internal linkage is a correctness
-fix, not just hygiene.
+Of the original 34, **28 are eliminated** and **6 remain** (Group C's 4
+abort-state atomics, Group E, Group G).
+
+
+## Surfaced by the 2026-07-18 re-sweep (not in the original 34)
+
+The fresh `nm` pass listed three mutable file-scope symbols the original sweep
+had not captured. All have internal (anonymous-namespace / `static`) linkage, so
+none is an ODR/link hazard; they are encapsulation candidates, not correctness
+bugs.
+
+- **`core/showalign.cpp`** — `q_line`, `a_line`, `d_line`, three
+  anonymous-namespace `std::vector<char>` row buffers (showalign.cpp:80-82),
+  resized and overwritten per alignment. They pre-date the original inventory
+  (blame: 2025-08-21) but were simply not listed. Internal linkage; single
+  reader (output is single-threaded). Phase-3-style fix: bundle the three into a
+  small `ShowAlign` state object owned by the print entry point, or pass the
+  buffers as parameters. **3 symbols.**
+- **`commands/derep_prefix.cpp`** — `derep_sort_db`, a file-scope
+  `Database const *` (derep_prefix.cpp:129) set to `&db` (line 367) purely so the
+  C-style `std::sort` comparator (line 160) can reach the database. Introduced by
+  the Group A work itself (`9cef6395`, "give derep_prefix its own Database"): the
+  migration removed the global `db` but reintroduced this narrower global bridge.
+  It is the **only** such comparator-bridge global left (searchcore threads its
+  `Database &` through `hit_compare_bysize_typed` as a parameter instead). Fix:
+  replace the free-function comparator + global with a stateful comparator
+  (lambda/functor capturing `db`), the same pattern searchcore already uses.
+  **1 symbol.**
+- **`core/unique.cpp`** — `hash_function` (unique.cpp:86), a non-`const`
+  anonymous-namespace function pointer, never reassigned. The original Group F
+  counted "×3" and missed this fourth one.  **[DONE]** — const-ified in place to
+  `constexpr Hash hash_function = CityHash64;` (a function address is a valid
+  constant-expression initializer; `static` omitted as redundant inside the
+  anonymous namespace). Matches the Group F siblings' `.data.rel.ro`/RELRO
+  placement. cppcheck clean; binary relinks. **1 symbol → 0.**
+
+Adding these, the current mutable-global residue is **10**: Group C-abort (4),
+Group E (1), Group G (1), showalign (3), `derep_sort_db` (1).
+
+
+## Why Group C keeps its 4 abort-state symbols
+
+`merge_abort`, `merge_error_claimed`, `merge_error_reason`, `merge_error_value`
+(mergepairs.cpp:106-109) coordinate the merge worker threads and are exposed via
+`request_merge_abort` / `merge_aborted` / `report_merge_abort`. `merge_abort` and
+`merge_error_claimed` are `std::atomic`; the state is deliberately file-scope so
+that a worker hitting an out-of-range quality value can signal the others without
+racing a `std::exit()` mid-run. Any future `Merge_context` bundling these must
+preserve the atomics and the join happens-before that currently guards that race;
+this is lower-priority and higher-risk than E/G, so it stays last.
 
 
 ## Not targets (documented, left alone)
 
-- `vsearch.cc:session_mutex` — intentional process-wide `std::mutex`
+- `vsearch_api.cpp:session_mutex` — intentional process-wide `std::mutex`
   serialising the C-API `vsearch_session_begin`/`vsearch_session_end`. A
   legitimate singleton.
+- `utils/logfile.cpp:log_handle` — the encapsulated log-file `std::FILE *`
+  (anonymous namespace, reached via `handle()`/`set_handle()`). This is the
+  deliberate end-state of the `fp_log`-global elimination: `fatal()`/`warn()`
+  cannot take a `Parameters`, so the log sink is a single encapsulated
+  process-wide handle behind accessors, analogous to `session_mutex`. Not a
+  target.
+- `fatal_detail::throw_on_fatal()::enabled`, `OtuTable::print_biomout(...)::date`,
+  `fastx.cpp:blanks` — function-local statics (the last two are `const`); local
+  scope, left alone.
 - `default_quality_padding` / `alternative_quality_padding` /
-  `default_sequence_padding` (`vsearch.h`) — `std::string const`, so already
+  `default_sequence_padding` (`vsearch.hpp`) — `std::string const`, so already
   **const** (not mutable). Being `std::string const` in a header gives them
-  internal linkage, i.e. one heap-allocating copy per TU. Converting to
-  `constexpr char[]` is optional hygiene, deferred (touches a widely-included
-  header; not a mutable-global concern).
-- `bz2_libname`/`gz_libname` (const), `userfields_names`/`help_message`
-  (const), `fastx.cpp:blanks` (function-local `const` statics) — all const.
+  internal linkage, i.e. one heap-allocating copy per TU (the many
+  `default_*_padding` rows in the `nm` dump are these per-TU copies, not distinct
+  globals). Converting to `constexpr char[]` is optional hygiene, deferred.
+- `bz2_libname`/`gz_libname`, `userfields_names`/`help_message`,
+  `cli.cc:option_specs` (`constexpr`), `attributes.cpp:attributes` (`constexpr`),
+  `fastx_syncpairs.cpp:default_read_separators` (`const char * const`), the
+  fasta/fastq char maps (`char_actions`, `chrmap_identity`,
+  `char_fq_action_seq`, `char_fq_action_qual`, all `const std::vector`),
+  `compare_strings_nocase.cpp:compare_chars` (a stateless captureless lambda) —
+  all const or stateless.
+
+
+## Resolved: the external-linkage leak (Phase 2)
+
+The original inventory flagged that the Group C tables, `dbhash_table` (B) and
+`labels_data` (E) had **external linkage with no `extern` declaration**, an
+ODR/link hazard (`q2p` in particular coexisted with unrelated external `q2p`
+*functions*). Phase 2 (`2ce96b81`) gave them all internal linkage, and the
+2026-07-18 re-sweep confirms **no mutable global carries external linkage any
+more** — every remaining mutable symbol is lowercase `b`/`d` in `nm`.
 
 
 ## Plan
 
 ### Phase 1 — const-ify the set-once (no ABI impact)  [DONE, commit dc22fb25]
 
-- Group F: the three `hash_function` function pointers are never reassigned ->
-  `static constexpr Hash hash_function = ...` (a function address is a valid
-  constant-expression initializer). Removes them from the mutable-global set.
-  Done in `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp`.
+- Group F: the three `hash_function` function pointers →
+  `static constexpr Hash hash_function = ...` in `core/derep.cpp`,
+  `core/kmerhash.cpp`, `commands/derep_smallmem.cpp`.
+- `core/unique.cpp:hash_function` → `constexpr Hash hash_function = CityHash64;`
+  (2026-07-18 follow-up, closing the "×3 vs ×4" gap).  [DONE]
 
 ### Phase 2 — plug the external-linkage leaks (low risk)  [DONE, commit 2ce96b81]
 
-Gave internal linkage to the file-scope state that leaked external symbols,
-matching the `static` convention already used by sibling declarations in each
-file. Independently commit-worthy; also de-risks Phase 3/4. `nm` confirmed each
-symbol moved from `B` (external) to `b` (local).
+Gave internal linkage to the file-scope state that leaked external symbols. `nm`
+confirmed each symbol moved from `B`/`D` (external) to `b`/`d` (local), and the
+2026-07-18 re-sweep confirms it held.
 
-- `core/mergepairs.cpp`: `static` on `merge_qual_same`, `merge_qual_diff`,
-  `match_score`, `mism_score`, `q2p` (the abort state below them is already
-  `static`).
-- `core/dbhash.cpp`: `static` on `dbhash_table` (siblings already `static`).
-- `core/getseq.cpp`: `static` on `labels_data`.
+### Phase 3 — encapsulate self-contained TU state into per-run structs (medium)
 
-### Phase 3 — encapsulate self-contained TU state into per-run structs (medium)  [deferred]
+The proven `Dbindex`/`Database` RAII-struct playbook: thread an owned instance by
+reference through the relevant functions.
 
-Each is independent and low-blast-radius; thread an owned instance by reference
-through the relevant functions (the proven `Dbindex` RAII-struct playbook).
+- **D** `otutable` → owned `OtuTable` class.  [DONE, `0dc01686`]
+- **C-tables** the 5 lookup tables → `QualityTables`, built by `mergepairs_init`
+  and passed by `const &`.  [DONE, `d94aa9a7`]
+- **F** `hashtable`/`hashtablesize` → folded into the derep_smallmem
+  per-invocation struct.  [DONE, `92e3dc7f`, `2414ea0e`]
+- **E** `labels_data` → thread through the `getseq` functions.  [pending]
+- **G** `base_seed` → a small seed holder threaded to `random_*`.  [pending]
+- **C-abort** bundle the 4 atomics into a `Merge_context` owned by `pair_all()`,
+  preserving the atomics + join happens-before.  [pending, last — highest risk]
+- **showalign** bundle `q_line`/`a_line`/`d_line` into a `ShowAlign` state or
+  pass them as parameters.  [pending, newly listed]
+- **derep_prefix** replace the `derep_sort_db` global + free-function comparator
+  with a stateful comparator capturing `db`.  [pending, newly listed]
 
-- **D** `otutable` -> own an `Otutable` in the command entry point; thread
-  `Otutable&` through the `otutable_*` functions.
-- **C** mergepairs -> bundle tables + abort state into a `Merge_context` owned
-  by `pair_all()`; replace the abort free-functions with methods / parameter
-  passing. Must preserve the atomics and the join happens-before that currently
-  avoid the `std::exit()`-during-worker data race documented in the file.
-- **E** `labels_data` -> thread through the `getseq` functions.
-- **F** `hashtable`/`hashtablesize` -> fold into the derep_smallmem state struct
-  (aligns with the pending derep refactor, `TBD_20260712_derep_refactoring.md`).
-- **G** `base_seed` -> a small seed holder threaded to `random_*`.
-
-### Phase 4 — the DB core (large, ABI-breaking)  [DONE]
+### Phase 4 — the DB core (large, ABI-breaking)  [DONE, merged to `dev`]
 
 Done as two owned classes rather than one combined `Db`:
 - **Group A** → an owned `Database` class (`datap`/`seqindex`/counts +
   `getX()` members), threaded through all 31 TUs + `udb.cpp` + the public API;
   later polished to private `std::vector` (via `FatalAllocator`) storage,
-  `std::sort`, and const-correctness. ABI broken → api 0.10.0. See
-  `TBD_20260713_Database_polish.md`.
+  `std::sort`, and const-correctness. ABI broken → api 0.10.0.
 - **Group B** → an owned `Dbhash` class (`core/dbhash.cpp`), threaded into
   `--search_exact` (the sole consumer). Internal only, so no ABI change.
 
 Both mirror the earlier `Dbindex` refactor. Full CLI suite + release
-`api_examples` + Windows/POWER/mips64el cross-compiles all pass.
+`api_examples` + Windows/POWER/mips64el cross-compiles all passed.
 
 ### Cross-cutting risks
 
 - **Runtime-mutated-globals trap**: DB state is mutated after load by
-  `udb_read` and the `db_sortby*` functions — Phase 4 must keep a *mutable*
-  `Db &` reaching those mutation points, not a `const` snapshot.
+  `udb_read` and the `Database::sortby*` members — Phase 4 kept a *mutable*
+  `Database &` reaching those mutation points, not a `const` snapshot. The same
+  applies to the `derep_sort_db` follow-up: the comparator reads `db` during the
+  sort, so the captured reference must stay valid for the sort's lifetime.
 - **Threading**: Group C's abort state is deliberately atomic file-scope state
   to avoid a `std::exit()`-during-worker data race; any `Merge_context` must
   preserve the atomics and the happens-before on join.
-- Do Phase 4 on its own `tmp_` branch with the full test suite plus a
-  release-build library-API run (debug libs segfault the `api_examples` net).
+- Do the remaining Phase 3 items on a `tmp_` branch with the full test suite
+  plus a release-build library-API run (debug libs segfault the `api_examples`
+  net).
