@@ -69,9 +69,6 @@
 
 #ifndef NDEBUG
 #include <limits>
-// C++17 refactoring: [[maybe_unused]]
-constexpr auto max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
-constexpr auto max_size = std::numeric_limits<std::size_t>::max();
 #endif
 
 
@@ -188,6 +185,16 @@ public:
 private:
   Type * start_ {};
   std::size_t length_ {};
+
+#ifndef NDEBUG
+  // Upper bounds for the debug-build assertions above. Kept private so that
+  // including this header does not export these names into the global
+  // namespace (where they could shadow, or be shadowed by, an unrelated
+  // max_size / max_ptrdiff elsewhere).
+  // C++17 refactoring: [[maybe_unused]]
+  static constexpr std::ptrdiff_t max_ptrdiff = std::numeric_limits<std::ptrdiff_t>::max();
+  static constexpr std::size_t max_size = std::numeric_limits<std::size_t>::max();
+#endif
 };
 
 
