@@ -175,10 +175,9 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
   /* get sequence etc */
   const int seqno = si->query_no;
   auto const useqno = static_cast<uint64_t>(seqno);
-  si->query_head_len = static_cast<int>(db.getheaderlen(useqno));
   /* read-only borrow into the (const) database; query_head is a const view, so
      no copy or cast is needed */
-  si->query_head = db.getheader(useqno);
+  si->query_head = db.header_view(useqno);
   si->qsize = static_cast<int64_t>(db.getabundance(useqno));
   si->qseqlen = static_cast<int>(db.getsequencelen(useqno));
   if (si->strand != 0)
@@ -984,7 +983,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* output intermediate results to uc etc */
               cluster_core_results_hit(state, best,
                                        state.clusterinfo[target].clusterno,
-                                       si_p->query_head,
+                                       si_p->query_head.data(),
                                        si_p->qseqlen,
                                        si_p->qsequence,
                                        (best->strand != 0) ? si_m->qsequence : nullptr,
@@ -1019,7 +1018,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
-                                         si_p->query_head,
+                                         si_p->query_head.data(),
                                          si_p->qseqlen,
                                          si_p->qsequence,
                                          nullptr,
@@ -1092,7 +1091,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           int const target = best->target;
           cluster_core_results_hit(state, best,
                                    state.clusterinfo[target].clusterno,
-                                   si_p[0].query_head,
+                                   si_p[0].query_head.data(),
                                    si_p[0].qseqlen,
                                    si_p[0].qsequence,
                                    (best->strand != 0) ? si_m[0].qsequence : nullptr,
@@ -1114,7 +1113,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.clusterinfo[seqno].strand = 0;
           state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask, db);
           cluster_core_results_nohit(state, state.clusters,
-                                     si_p[0].query_head,
+                                     si_p[0].query_head.data(),
                                      si_p[0].qseqlen,
                                      si_p[0].qsequence,
                                      nullptr,

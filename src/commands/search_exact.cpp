@@ -460,7 +460,7 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
 
   search_exact_output_results(state,
                               hits,
-                              state.si_plus[t].query_head,
+                              state.si_plus[t].query_head.data(),
                               state.si_plus[t].qseqlen,
                               state.si_plus[t].qsequence,
                               parameters.opt_strand ? state.si_minus[t].qsequence : nullptr,
@@ -494,7 +494,6 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       {
         struct searchinfo_s * si = (s != 0) ? state.si_minus + t : state.si_plus + t;
 
-        si->query_head_len = query_head_len;
         si->qseqlen = qseqlen;
         si->query_no = query_no;
         si->qsize = qsize;
@@ -513,7 +512,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     /* plus strand: copy header (into owned storage, view points at it) and sequence */
     state.si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
     std::strcpy(state.si_plus[t].query_head_v.data(), qhead);
-    state.si_plus[t].query_head = state.si_plus[t].query_head_v.data();
+    state.si_plus[t].query_head = View<char>{state.si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
     std::strcpy(state.si_plus[t].qsequence, qseq);
 
     /* get progress as amount of input file read */
@@ -526,7 +525,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     if (parameters.opt_strand)
       {
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
-        state.si_minus[t].query_head = state.si_minus[t].query_head_v.data();
+        state.si_minus[t].query_head = View<char>{state.si_minus[t].query_head_v.data(), state.si_plus[t].query_head.size()};
         reverse_complement(Span<char>{state.si_minus[t].qsequence, static_cast<std::size_t>(state.si_plus[t].qseqlen) + 1},
                            View<char>{state.si_plus[t].qsequence, static_cast<std::size_t>(state.si_plus[t].qseqlen)});
       }
@@ -563,7 +562,7 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
   si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;
-  si->query_head = nullptr;
+  si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
   si->qsequence = nullptr;
   si->nw = nullptr;

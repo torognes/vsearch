@@ -412,7 +412,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
 
   search_output_results(state,
                         hits,
-                        si_plus[t].query_head,
+                        si_plus[t].query_head.data(),
                         si_plus[t].qseqlen,
                         si_plus[t].qsequence,
                         state.parameters.opt_strand ? si_minus[t].qsequence : nullptr,
@@ -468,7 +468,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
     if (state.parameters.opt_strand)
       {
         populate_si(state.si_minus + t,
-                    si_plus[t].query_head,
+                    si_plus[t].query_head.data(),
                     query_head_len,
                     si_plus[t].qsequence,
                     qseqlen,

@@ -1940,8 +1940,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.query_no = chimera_info->query_no;
       search_info.strand = 0;
       search_info.qsize = chimera_info->query_size;
-      search_info.query_head_len = chimera_info->query_head_len;
-      search_info.query_head = chimera_info->query_head.data();
+      search_info.query_head = View<char>{chimera_info->query_head.data(), static_cast<std::size_t>(chimera_info->query_head_len)};
       search_info.qseqlen = length;
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());

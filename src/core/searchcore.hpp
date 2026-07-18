@@ -64,6 +64,7 @@
 #include "core/mask.hpp"  // Masking
 #include "core/minheap.hpp"  // Minheap
 #include "core/unique.hpp"  // Uniquer
+#include "utils/view.hpp"  // View
 #include <array>
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
@@ -143,10 +144,9 @@ struct searchinfo_s
   int query_no = 0;                 /* query number, zero-based */
   int strand = 0;                   /* strand of query being analysed */
   int64_t qsize = 0;                    /* query abundance */
-  int query_head_len = 0;           /* query header length */
   std::vector<char> query_head_v {};  /* owned header storage (the copying paths) */
-  char const * query_head = nullptr;  /* query header: a view into query_head_v, the
-                                         database, or a caller-owned buffer */
+  View<char> query_head {nullptr, 0};  /* query header: a view into query_head_v, the
+                                          database, or a caller-owned buffer */
   int qseqlen = 0;                  /* query length */
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
   std::vector<char> qsequence_v {};  /* vector of query sequence chars */

@@ -416,7 +416,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
   std::array<int, 2> boot_count = {0, 0};
   std::array<unsigned int, 2> best_count = {0, 0};
   int const qseqlen = si_plus[t].qseqlen;
-  char const * query_head = si_plus[t].query_head;
+  char const * query_head = si_plus[t].query_head.data();
 
   /* Per-query RNG: seed from the global base seed and this query's input
      number, so the random subsampling and tie-breaking are reproducible
@@ -552,7 +552,6 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       {
         struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
-        si->query_head_len = query_head_len;
         si->qseqlen = qseqlen;
         si->query_no = query_no;
         si->qsize = qsize;
@@ -571,7 +570,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     /* plus strand: copy header (into owned storage, view points at it) and sequence */
     si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
     std::strcpy(si_plus[t].query_head_v.data(), qhead);
-    si_plus[t].query_head = si_plus[t].query_head_v.data();
+    si_plus[t].query_head = View<char>{si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
     std::strcpy(si_plus[t].qsequence, qseq);
 
     /* get progress as amount of input file read */
@@ -584,7 +583,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     if (state.parameters.opt_strand)
       {
         si_minus[t].query_head_v = si_plus[t].query_head_v;
-        si_minus[t].query_head = si_minus[t].query_head_v.data();
+        si_minus[t].query_head = View<char>{si_minus[t].query_head_v.data(), si_plus[t].query_head.size()};
         reverse_complement(Span<char>{si_minus[t].qsequence, static_cast<std::size_t>(si_plus[t].qseqlen) + 1},
                            View<char>{si_plus[t].qsequence, static_cast<std::size_t>(si_plus[t].qseqlen)});
       }
@@ -613,7 +612,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->m = Minheap(state.tophits);
   si->hits = nullptr;
   si->qsize = 1;
-  si->query_head = nullptr;
+  si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
   si->qsequence = nullptr;
   si->nw = nullptr;

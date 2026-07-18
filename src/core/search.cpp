@@ -91,7 +91,6 @@ auto populate_si(struct searchinfo_s * si,
                  int64_t const qsize,
                  int const strand) -> void
 {
-  si->query_head_len = head_len;
   si->qseqlen = seq_len;
   si->query_no = query_no;
   si->qsize = qsize;
@@ -107,9 +106,9 @@ auto populate_si(struct searchinfo_s * si,
     }
 
   /* copy the header into owned storage, then point the read-only view at it */
-  si->query_head_v.resize(static_cast<std::size_t>(si->query_head_len) + 1);
+  si->query_head_v.resize(static_cast<std::size_t>(head_len) + 1);
   std::strcpy(si->query_head_v.data(), head);
-  si->query_head = si->query_head_v.data();
+  si->query_head = View<char>{si->query_head_v.data(), static_cast<std::size_t>(head_len)};
 
   /* copy or reverse-complement sequence */
   if (strand == 0)
@@ -144,7 +143,7 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
   si->hits = si->hits_v.data();
   si->qsize = 1;
-  si->query_head = nullptr;
+  si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
   si->qsequence = nullptr;
   si->s.reset(search16_init(parameters.opt_match,

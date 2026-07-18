@@ -610,7 +610,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                     View<char>{dseq, static_cast<std::size_t>(dseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix))) == 0))
           and
           /* self */
-          ((parameters.opt_self == 0) or (std::strcmp(searchinfo.query_head, dlabel) != 0))
+          ((parameters.opt_self == 0) or (std::strcmp(searchinfo.query_head.data(), dlabel) != 0))
           and
           /* selfid */
           ((parameters.opt_selfid == 0) or
