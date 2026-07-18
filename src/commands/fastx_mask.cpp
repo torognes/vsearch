@@ -154,6 +154,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                 fasta_print_general(fp_fastaout.get(),
                                     nullptr,
                                     db.record(i),
+                                    db.getabundance(i),
                                     kept,
                                     -1.0,
                                     -1, -1, nullptr, 0.0,
@@ -164,11 +165,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
             if (parameters.opt_fastqout != nullptr)
               {
                 fastq_print_general(fp_fastqout.get(),
-                                    seq,
-                                    len,
-                                    db.getheader(i),
-                                    static_cast<int>(db.getheaderlen(i)),
-                                    db.getquality(i),
+                                    db.record(i),
                                     db.getabundance(i),
                                     kept,
                                     -1.0,

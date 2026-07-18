@@ -112,13 +112,16 @@ auto fasta_print_general(std::FILE * output_handle,
                          uint64_t centroid_size,
                          struct Parameters const & parameters) -> void;
 
-/* Overload emitting a whole database record: the (seq, len, header,
-   header_length, abundance) group of the primary overload is replaced by a
-   single DbRecord (from Database::record()). It forwards to the primary
-   overload, so the output is identical; the two are distinguished by arity. */
+/* Overload emitting a database record: the (seq, len, header, header_length)
+   group of the primary overload is replaced by a single DbRecord (from
+   Database::record()). Abundance stays a separate argument, because callers
+   often display a computed abundance rather than the record's own. It forwards
+   to the primary overload, so the output is identical; the two are
+   distinguished by arity. */
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          DbRecord const & record,
+                         uint64_t abundance,
                          int64_t ordinal,
                          double expected_error,
                          int64_t clustersize,

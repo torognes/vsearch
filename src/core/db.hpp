@@ -92,24 +92,28 @@ struct seqinfo_s
 using seqinfo_t = struct seqinfo_s;
 
 
-/* A read-only bundle of one database record's fields, returned by
-   Database::record(). Groups the header, sequence and (FASTQ-only) quality as
-   non-owning View<char> windows into the database's shared buffer, plus the
-   parsed abundance. It suits the record-emit paths (e.g. FASTA/FASTQ printing)
-   that consume every field of a record together; the per-field view accessors
-   remain for callers that need only one. The quality view is empty for a FASTA
-   database. */
+/* A read-only bundle of one database record's three stored strings, returned by
+   Database::record(): the header, the sequence and (FASTQ-only) the quality,
+   each a non-owning View<char> window into the database's shared buffer. The
+   quality view is empty for a FASTA database. It suits the record-emit paths
+   (e.g. FASTA/FASTQ printing) that consume the whole record together; the
+   per-field view accessors remain for callers that need only one.
+
+   Abundance is deliberately not a member: the print helpers that take a
+   DbRecord accept the abundance to display as a separate argument, because most
+   emit a computed value (a match count, a summed cluster size) rather than the
+   record's own getabundance(). Keeping it out means a DbRecord is a purely
+   read-only value that callers never need to mutate.
+
+   It has no default member initializers, so it stays a C++11 aggregate (a
+   brace-or-equal initializer on any member would disqualify it, unlike C++14),
+   letting record() build it with aggregate initialization; View has no default
+   constructor, so a field-less DbRecord cannot be built by accident either. */
 struct DbRecord
 {
   View<char> header;
   View<char> sequence;
   View<char> quality;
-  // no default member initializer on purpose: it would make DbRecord a
-  // non-aggregate under C++11, breaking the aggregate initialization in
-  // Database::record(). record() always sets every field, so leaving abundance
-  // uninitialized here is safe (and View has no default constructor, so a
-  // fieldless DbRecord cannot be built by accident anyway).
-  uint64_t   abundance;
 };
 
 
@@ -263,8 +267,7 @@ public:
 
   auto record(uint64_t seqno) const -> DbRecord
   {
-    return DbRecord{header_view(seqno), sequence_view(seqno),
-                    quality_view(seqno), getabundance(seqno)};
+    return DbRecord{header_view(seqno), sequence_view(seqno), quality_view(seqno)};
   }
 };
 

@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include "core/attributes.hpp"
+#include "core/db.hpp"  // struct DbRecord (for the record overload)
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
@@ -784,6 +785,26 @@ auto fastq_print_general(FILE * output_handle,
     }
 
   std::fprintf(output_handle, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
+}
+
+
+auto fastq_print_general(std::FILE * output_handle,
+                         DbRecord const & record,
+                         uint64_t const abundance,
+                         int64_t const ordinal,
+                         double const expected_error,
+                         struct Parameters const & parameters) -> void
+{
+  fastq_print_general(output_handle,
+                      record.sequence.data(),
+                      static_cast<int>(record.sequence.size()),
+                      record.header.data(),
+                      static_cast<int>(record.header.size()),
+                      record.quality.data(),
+                      abundance,
+                      ordinal,
+                      expected_error,
+                      parameters);
 }
 
 

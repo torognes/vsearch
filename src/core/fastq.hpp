@@ -64,6 +64,8 @@
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 
+struct DbRecord;
+
 
 auto fastq_open_rest(fastx_handle input_handle) -> void;
 auto fastq_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
@@ -93,6 +95,19 @@ auto fastq_print_general(std::FILE * output_handle,
                          char const * header,
                          int header_len,
                          char const * quality,
+                         uint64_t abundance,
+                         int64_t ordinal,
+                         double expected_error,
+                         struct Parameters const & parameters) -> void;
+
+/* Overload emitting a database record: the (seq, len, header, header_len,
+   quality) group of the primary overload is replaced by a single DbRecord
+   (from Database::record(), whose quality view carries the FASTQ quality).
+   Abundance stays a separate argument, as in the FASTA counterpart. It forwards
+   to the primary overload, so the output is identical; the two are
+   distinguished by arity. */
+auto fastq_print_general(std::FILE * output_handle,
+                         DbRecord const & record,
                          uint64_t abundance,
                          int64_t ordinal,
                          double expected_error,
