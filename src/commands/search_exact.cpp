@@ -844,10 +844,7 @@ auto search_exact(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(state.fp_dbmatched,
                                       nullptr,
-                                      state.db.getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
-                                      state.db.getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
+                                      state.db.record(static_cast<uint64_t>(i)),
                                       state.dbmatched[i],
                                       count_dbmatched,
                                       -1.0,
@@ -863,10 +860,7 @@ auto search_exact(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(state.fp_dbnotmatched,
                                       nullptr,
-                                      state.db.getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
-                                      state.db.getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
+                                      state.db.record(static_cast<uint64_t>(i)),
                                       0,
                                       count_dbnotmatched,
                                       -1.0,

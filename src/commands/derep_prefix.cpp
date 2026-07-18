@@ -450,10 +450,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 ++relabel_count;
                 fasta_print_general(fp_output,
                                     nullptr,
-                                    db.getsequence(bp.seqno_first),
-                                    static_cast<int>(db.getsequencelen(bp.seqno_first)),
-                                    db.getheader(bp.seqno_first),
-                                    static_cast<int>(db.getheaderlen(bp.seqno_first)),
+                                    db.record(bp.seqno_first),
                                     static_cast<uint64_t>(size),
                                     relabel_count,
                                     -1.0,
