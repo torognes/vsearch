@@ -136,7 +136,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       parameters);
 
   auto const target = static_cast<uint64_t>(hits->target);
-  auto const trow = get_alignment_trow(View<char>{db.getsequence(target), static_cast<std::size_t>(db.getsequencelen(target))},
+  auto const trow = get_alignment_trow(db.sequence_view(target),
                                  View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
