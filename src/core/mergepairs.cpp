@@ -66,7 +66,7 @@
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include "utils/view.hpp"  // View<char>
-#include <algorithm>  // std::min, std::max, std::copy
+#include <algorithm>  // std::min, std::max, std::copy_n
 #include <array>
 #include <atomic>  // std::atomic, std::memory_order
 #include <cassert>
@@ -794,13 +794,16 @@ auto MergePairs::merge(struct Parameters const & parameters,
   md.merged_sequence.resize(static_cast<std::size_t>(fwd_len + rev_len + 1));
   md.merged_quality_v.resize(static_cast<std::size_t>(fwd_len + rev_len + 1));
 
-  std::copy(fwd.sequence.begin(), fwd.sequence.end(), md.fwd_sequence.begin());
+  /* Copy exactly the sequence length from each view (quality is one symbol
+     per base); this bounds the copy by the read length, as the previous
+     memcpy(..., len) did, regardless of the views' own extents. */
+  std::copy_n(fwd.sequence.begin(), fwd_len, md.fwd_sequence.begin());
   md.fwd_sequence[static_cast<std::size_t>(fwd_len)] = '\0';
-  std::copy(rev.sequence.begin(), rev.sequence.end(), md.rev_sequence.begin());
+  std::copy_n(rev.sequence.begin(), rev_len, md.rev_sequence.begin());
   md.rev_sequence[static_cast<std::size_t>(rev_len)] = '\0';
-  std::copy(fwd.quality.begin(), fwd.quality.end(), md.fwd_quality.begin());
+  std::copy_n(fwd.quality.begin(), fwd_len, md.fwd_quality.begin());
   md.fwd_quality[static_cast<std::size_t>(fwd_len)] = '\0';
-  std::copy(rev.quality.begin(), rev.quality.end(), md.rev_quality.begin());
+  std::copy_n(rev.quality.begin(), rev_len, md.rev_quality.begin());
   md.rev_quality[static_cast<std::size_t>(rev_len)] = '\0';
 
   /* Run the merge pipeline. The merge core enforces a minimum overlap (see
