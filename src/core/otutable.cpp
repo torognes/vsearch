@@ -64,7 +64,6 @@
 #include "utils/fatal.hpp"
 #include "utils/timestamp.hpp"  // iso8601_local_timestamp
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
-#include <algorithm>  // std::copy
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -75,7 +74,6 @@
 #include <set>
 #include <string>
 #include <utility>  // std::pair
-#include <vector>
 
 // refactoring: is there a reason to prefer regex.h over <regex>?
 #ifdef HAVE_REGEX_H
@@ -152,26 +150,27 @@ auto OtuTable::add(char const * query_header, char const * target_header, int64_
 {
   /* read sample annotation in query */
 
-  std::size_t len_sample = 0;
-  char const * start_sample = query_header;
-  std::vector<char> sample_name;
+  bool const has_sample = (query_header != nullptr);
+  std::string sample_name;
 
-  if (query_header != nullptr)
+  if (has_sample)
     {
+      std::size_t len_sample = 0;
+      char const * start_sample = query_header;
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 5> pmatch_sample {{}};
       if (regexec(&regex_sample_, query_header, 5, pmatch_sample.data(), 0) == 0)
         {
           /* match: use the matching sample name */
           len_sample = static_cast<std::size_t>(pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so);
-          start_sample += pmatch_sample[3].rm_so;
+          start_sample = std::next(query_header, pmatch_sample[3].rm_so);
         }
 #else
       std::cmatch cmatch_sample;
       if (std::regex_search(query_header, cmatch_sample, regex_sample))
         {
           len_sample = static_cast<std::size_t>(cmatch_sample.length(3));
-          start_sample += cmatch_sample.position(3);
+          start_sample = std::next(query_header, cmatch_sample.position(3));
         }
 #endif
       else
@@ -184,34 +183,33 @@ auto OtuTable::add(char const * query_header, char const * target_header, int64_
                               "0123456789");
         }
 
-      sample_name.resize(len_sample + 1);
-      std::copy(start_sample, start_sample + len_sample, sample_name.begin());
-      sample_name[len_sample] = '\0';
+      sample_name.assign(start_sample, len_sample);
     }
 
 
   /* read OTU annotation in target */
 
-  std::size_t len_otu = 0;
-  char const * start_otu = target_header;
-  std::vector<char> otu_name;
+  bool const has_otu = (target_header != nullptr);
+  std::string otu_name;
 
-  if (target_header != nullptr)
+  if (has_otu)
     {
+      std::size_t len_otu = 0;
+      char const * start_otu = target_header;
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 4> pmatch_otu {{}};
       if (regexec(&regex_otu_, target_header, 4, pmatch_otu.data(), 0) == 0)
         {
           /* match: use the matching otu name */
           len_otu = static_cast<std::size_t>(pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so);
-          start_otu += pmatch_otu[2].rm_so;
+          start_otu = std::next(target_header, pmatch_otu[2].rm_so);
         }
 #else
       std::cmatch cmatch_otu;
       if (std::regex_search(target_header, cmatch_otu, regex_otu))
         {
           len_otu = static_cast<std::size_t>(cmatch_otu.length(2));
-          start_otu += cmatch_otu.position(2);
+          start_otu = std::next(target_header, cmatch_otu.position(2));
         }
 #endif
       else
@@ -220,9 +218,7 @@ auto OtuTable::add(char const * query_header, char const * target_header, int64_
           len_otu = std::strcspn(target_header, ";");
         }
 
-      otu_name.resize(len_otu + 1);
-      std::copy(start_otu, start_otu + len_otu, otu_name.begin());
-      otu_name[len_otu] = '\0';
+      otu_name.assign(start_otu, len_otu);
 
       /* read tax annotation in target */
 
@@ -232,37 +228,32 @@ auto OtuTable::add(char const * query_header, char const * target_header, int64_
         {
           /* match: use the matching tax name */
           std::size_t const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
-          char const * start_tax = target_header;
-          start_tax += pmatch_tax[2].rm_so;
-
-          std::vector<char> tax_name(len_tax + 1);
-          std::copy(start_tax, start_tax + len_tax, tax_name.begin());
-          tax_name[len_tax] = '\0';
-          otu_tax_map_[otu_name.data()] = tax_name.data();
+          char const * const start_tax = std::next(target_header, pmatch_tax[2].rm_so);
+          otu_tax_map_[otu_name] = std::string(start_tax, len_tax);
         }
 #else
       std::cmatch cmatch_tax;
       if (std::regex_search(target_header, cmatch_tax, regex_tax))
         {
-          otu_tax_map_[otu_name.data()] = cmatch_tax.str(2);
+          otu_tax_map_[otu_name] = cmatch_tax.str(2);
         }
 #endif
     }
 
   /* store data */
 
-  if (not sample_name.empty()) {
-    sample_set_.insert(sample_name.data());
+  if (has_sample) {
+    sample_set_.insert(sample_name);
   }
 
-  if (not otu_name.empty()) {
-    otu_set_.insert(otu_name.data());
+  if (has_otu) {
+    otu_set_.insert(otu_name);
   }
 
-  if ((not sample_name.empty()) and (not otu_name.empty()) and (abundance != 0))
+  if (has_sample and has_otu and (abundance != 0))
     {
-      sample_otu_count_[string_pair_t(sample_name.data(), otu_name.data())] += static_cast<uint64_t>(abundance);
-      otu_sample_count_[string_pair_t(otu_name.data(), sample_name.data())] += static_cast<uint64_t>(abundance);
+      sample_otu_count_[string_pair_t(sample_name, otu_name)] += static_cast<uint64_t>(abundance);
+      otu_sample_count_[string_pair_t(otu_name, sample_name)] += static_cast<uint64_t>(abundance);
     }
 
 }
