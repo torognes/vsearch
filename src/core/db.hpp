@@ -60,10 +60,19 @@
 
 #pragma once
 
+#include "utils/view.hpp"  // View<char>
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::size_t
 #include <vector>
+
+/* Span is only referenced by the out-of-line mutable_sequence() below, so a
+   forward declaration keeps span.hpp (and its debug-only global helpers) out of
+   this widely-included header; db.cpp includes the full definition. The default
+   template argument is intentionally omitted here — it is declared once, in
+   span.hpp. */
+template <typename Type> class Span;
 
 
 struct seqinfo_s
@@ -87,6 +96,27 @@ struct seqinfo_s
 };
 
 using seqinfo_t = struct seqinfo_s;
+
+
+/* A read-only bundle of one database record's fields, returned by
+   Database::record(). Groups the header, sequence and (FASTQ-only) quality as
+   non-owning View<char> windows into the database's shared buffer, plus the
+   parsed abundance. It suits the record-emit paths (e.g. FASTA/FASTQ printing)
+   that consume every field of a record together; the per-field view accessors
+   remain for callers that need only one. The quality view is empty for a FASTA
+   database. */
+struct DbRecord
+{
+  View<char> header;
+  View<char> sequence;
+  View<char> quality;
+  // no default member initializer on purpose: it would make DbRecord a
+  // non-aggregate under C++11, breaking the aggregate initialization in
+  // Database::record(). record() always sets every field, so leaving abundance
+  // uninitialized here is safe (and View has no default constructor, so a
+  // fieldless DbRecord cannot be built by accident anyway).
+  uint64_t   abundance;
+};
 
 
 /* The in-memory sequence database. Owns its two heap buffers (RAII: released by
@@ -205,6 +235,42 @@ public:
   auto getlongestsequence() const -> uint64_t { return longest; }
   auto getshortestsequence() const -> uint64_t { return shortest; }
   auto is_fastq() const -> bool { return fastq_format; }
+
+  /* View/Span companions to the raw pointer + length accessors above: each
+     bundles a record's interior pointer with its length into a single
+     non-owning window into the shared buffer, so callers no longer thread a
+     (pointer, length) pair. They are header-inline like the raw accessors, so
+     returning the small (16-byte) value costs no more than the bare pointer. */
+  auto sequence_view(uint64_t seqno) const -> View<char>
+  {
+    return View<char>{getsequence(seqno), getsequencelen(seqno)};
+  }
+
+  auto header_view(uint64_t seqno) const -> View<char>
+  {
+    return View<char>{getheader(seqno), getheaderlen(seqno)};
+  }
+
+  /* A FASTA database has no quality, so the view is empty; for FASTQ the
+     quality string has the same length as the sequence. */
+  auto quality_view(uint64_t seqno) const -> View<char>
+  {
+    return View<char>{getquality(seqno),
+                      fastq_format ? getsequencelen(seqno) : uint64_t{0}};
+  }
+
+  /* Writable companion to mutatesequence(): only a non-const Database exposes
+     it, so read-only holders (e.g. search worker threads) cannot obtain a
+     mutable window into the stored sequence. Defined out of line in db.cpp to
+     avoid pulling span.hpp into this header (see the Span forward declaration
+     above); the masking write path that uses it is not performance-critical. */
+  auto mutable_sequence(uint64_t seqno) -> Span<char>;
+
+  auto record(uint64_t seqno) const -> DbRecord
+  {
+    return DbRecord{header_view(seqno), sequence_view(seqno),
+                    quality_view(seqno), getabundance(seqno)};
+  }
 };
 
 
