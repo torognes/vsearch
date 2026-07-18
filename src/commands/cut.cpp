@@ -130,7 +130,7 @@ namespace {
     /* get reverse complement */
     rc_buffer.clear();
     rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
-    reverse_complement(rc_buffer.data(), seq, seq_length);
+    reverse_complement(Span<char>{rc_buffer.data(), static_cast<std::size_t>(seq_length) + 1}, View<char>{seq, static_cast<std::size_t>(seq_length)});
 
     int64_t local_matches = 0;
     int frag_start = 0;

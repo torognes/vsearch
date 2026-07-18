@@ -132,7 +132,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
           }
 
         auto const * p = fastx_get_sequence(input_handle);
-        reverse_complement(seq_buffer.data(), p, static_cast<int64_t>(length));
+        reverse_complement(Span<char>{seq_buffer.data(), static_cast<std::size_t>(length) + 1}, View<char>{p, static_cast<std::size_t>(length)});
 
 
         /* quality values */

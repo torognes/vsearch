@@ -338,7 +338,7 @@ auto orient(struct Parameters const & parameters) -> void
 
             /* get reverse complementary sequence */
 
-            reverse_complement(qseq_rev.data(), qseq_fwd, qseqlen);
+            reverse_complement(Span<char>{qseq_rev.data(), static_cast<std::size_t>(qseqlen) + 1}, View<char>{qseq_fwd, static_cast<std::size_t>(qseqlen)});
 
             if (parameters.opt_fastaout != nullptr)
               {

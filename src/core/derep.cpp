@@ -459,7 +459,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
+            reverse_complement(Span<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
           }
 
         /*

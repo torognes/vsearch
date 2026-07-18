@@ -307,7 +307,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
+            reverse_complement(Span<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
           }
 
         /*
@@ -518,7 +518,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(rc_seq_up.data(), seq_up.data(), seqlen);
+            reverse_complement(Span<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
           }
 
         auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));

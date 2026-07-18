@@ -118,7 +118,7 @@ auto populate_si(struct searchinfo_s * si,
     }
   else
     {
-      reverse_complement(si->qsequence, seq, seq_len);
+      reverse_complement(Span<char>{si->qsequence, static_cast<std::size_t>(seq_len) + 1}, View<char>{seq, static_cast<std::size_t>(seq_len)});
     }
 }
 

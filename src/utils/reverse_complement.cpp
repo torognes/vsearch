@@ -60,8 +60,8 @@
 
 #include "reverse_complement.hpp"
 #include "maps.hpp"  // chrmap_complement
-#include <cstdint>  // int64_t
-#include <iterator>  // std::next
+#include <algorithm>  // std::transform
+#include <cassert>
 
 
 // refactoring: create reverse_complement.hpp, progressive migration
@@ -71,17 +71,17 @@
 // auto complement = [](char nucleotide) -> char { ... };
 // std::transform(destination.begin(), destination.end(), destination.begin(), complement)
 // destination[length] = '\0';
-auto reverse_complement(char * rc_seq, char const * seq, int64_t const len) -> void
+auto reverse_complement(Span<char> const rc_seq, View<char> const seq) -> void
 {
   /* Write the reverse complementary sequence to rc_seq.
      The memory for rc_seq must be long enough for the rc_seq of the sequence
      (identical to the length of seq + 1). */
 
+  assert(rc_seq.size() > seq.size());  // room for the '\0' terminator
   auto const * complement_map = chrmap_complement();
-  for (auto i = 0LL; i < len; ++i) {
-    auto const nucleotide = *std::next(seq, len - 1 - i);
-    auto const complement_char = complement_map[static_cast<unsigned char>(nucleotide)];
-    *std::next(rc_seq, i) = static_cast<char>(complement_char);
-  }
-  *std::next(rc_seq, len) = '\0';
+  std::transform(seq.rbegin(), seq.rend(), rc_seq.begin(),
+                 [complement_map](char const nucleotide) -> char {
+                   return static_cast<char>(complement_map[static_cast<unsigned char>(nucleotide)]);
+                 });
+  rc_seq[seq.size()] = '\0';
 }

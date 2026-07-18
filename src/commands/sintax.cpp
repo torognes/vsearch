@@ -585,9 +585,8 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       {
         si_minus[t].query_head_v = si_plus[t].query_head_v;
         si_minus[t].query_head = si_minus[t].query_head_v.data();
-        reverse_complement(si_minus[t].qsequence,
-                           si_plus[t].qsequence,
-                           si_plus[t].qseqlen);
+        reverse_complement(Span<char>{si_minus[t].qsequence, static_cast<std::size_t>(si_plus[t].qseqlen) + 1},
+                           View<char>{si_plus[t].qsequence, static_cast<std::size_t>(si_plus[t].qseqlen)});
       }
 
     sintax_query(state, t);

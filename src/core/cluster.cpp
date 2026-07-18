@@ -183,7 +183,7 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
   si->qseqlen = static_cast<int>(db.getsequencelen(useqno));
   if (si->strand != 0)
     {
-      reverse_complement(si->qsequence, db.getsequence(useqno), si->qseqlen);
+      reverse_complement(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen) + 1}, db.sequence_view(useqno));
     }
   else
     {

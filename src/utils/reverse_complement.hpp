@@ -60,7 +60,10 @@
 
 #pragma once
 
-#include <cstdint>  // int64_t
+#include "span.hpp"  // Span<char>
+#include "view.hpp"  // View<char>
 
 
-auto reverse_complement(char * rc_seq, char const * seq, int64_t len) -> void;
+// Write the reverse complement of seq into rc_seq, terminating it with a '\0'.
+// rc_seq must have room for seq.size() + 1 characters.
+auto reverse_complement(Span<char> rc_seq, View<char> seq) -> void;

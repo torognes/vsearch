@@ -261,8 +261,8 @@ auto reverse_complement_target_if_need_be(int const strand, int const target_seq
                                           char * rc_buffer, char const * target_seq,
                                           struct Database const & db) -> char const * {
   if (strand == 0) { return target_seq; }
-  reverse_complement(rc_buffer, target_seq,
-                     static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target_seqno))));
+  auto const target_len = db.getsequencelen(static_cast<uint64_t>(target_seqno));
+  reverse_complement(Span<char>{rc_buffer, target_len + 1}, View<char>{target_seq, target_len});
   return rc_buffer;
 }
 

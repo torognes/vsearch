@@ -527,9 +527,8 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       {
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
         state.si_minus[t].query_head = state.si_minus[t].query_head_v.data();
-        reverse_complement(state.si_minus[t].qsequence,
-                           state.si_plus[t].qsequence,
-                           state.si_plus[t].qseqlen);
+        reverse_complement(Span<char>{state.si_minus[t].qsequence, static_cast<std::size_t>(state.si_plus[t].qseqlen) + 1},
+                           View<char>{state.si_plus[t].qsequence, static_cast<std::size_t>(state.si_plus[t].qseqlen)});
       }
 
     int const match = search_exact_query(t, state);
