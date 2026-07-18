@@ -62,10 +62,10 @@
 #include "core/mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
 #include "core/kmerhash.hpp"
-#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
+#include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max, std::copy
 #include <array>
 #include <atomic>  // std::atomic, std::memory_order
@@ -73,8 +73,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <cstdint>  // int64_t, uint64_t
-#include <cstring>  // std::strlen, std::strcpy, std::memcpy
-#include <memory>  // std::unique_ptr
+#include <string>  // std::string
 #include <vector>
 
 
@@ -83,6 +82,11 @@
 constexpr auto k                          = 5;
 constexpr auto merge_dropmax         = 16.0;
 constexpr auto merge_mismatchmax     = -4.0;
+
+/* The merge core requires a minimum overlap of at least this many bases (the
+   CLI path enforces it too). MergePairs::merge() clamps opt_fastq_minovlen up
+   to this floor on a local Parameters copy for library callers (E1). */
+constexpr auto merge_minovlen_floor = 5;
 
 /* static variables */
 
@@ -750,30 +754,30 @@ auto process(merge_data_t & a_read_pair,
 /* === Library API for embedding paired-end merging === */
 
 
-auto mergepairs_init(struct Parameters const & parameters) -> QualityTables
+MergePairs::MergePairs(struct Parameters const & parameters)
+  : tables_(precompute_qual(parameters))
 {
   /* The short-overlap relaxation of the merge-acceptance thresholds is now
-     derived inside optimize() from opt_fastq_minovlen. mergepairs_single()
-     threads a Parameters copy clamped to the >= 5 minimum the merge core
-     requires, so optimize() sees the relaxed thresholds for short overlaps
-     with no tunables to set here (matching the CLI path). */
-  return precompute_qual(parameters);
+     derived inside optimize() from opt_fastq_minovlen. merge() threads a
+     Parameters copy clamped to the minimum overlap the merge core requires, so
+     optimize() sees the relaxed thresholds for short overlaps with no tunables
+     to set here (matching the CLI path). */
 }
 
 
-auto mergepairs_single(QualityTables const & tables,
-                        struct Parameters const & parameters,
-                        const char * fwd_seq,
-                        const char * fwd_qual,
-                        int const fwd_len,
-                        const char * rev_seq,
-                        const char * rev_qual,
-                        int const rev_len,
-                        const char * fwd_header,
-                        const char * rev_header,
-                        struct merge_result_s * result) -> int
+auto MergePairs::merge(struct Parameters const & parameters,
+                       MergeInput const & fwd,
+                       MergeInput const & rev) const -> MergeResult
 {
-  /* Populate merge_data_t from caller's buffers */
+  auto const fwd_len = static_cast<int>(fwd.sequence.size());
+  auto const rev_len = static_cast<int>(rev.sequence.size());
+
+  /* sequence and quality of a read must be the same length (one quality
+     symbol per base); the merge core reads sequence.size() of each. */
+  assert(fwd.quality.size() == fwd.sequence.size());
+  assert(rev.quality.size() == rev.sequence.size());
+
+  /* Populate merge_data_t from the caller's read views. */
   merge_data_t md {};
 
   md.fwd_length = fwd_len;
@@ -781,10 +785,8 @@ auto mergepairs_single(QualityTables const & tables,
   md.fwd_trunc = fwd_len;
   md.rev_trunc = rev_len;
 
-  /* Ensure buffers are large enough */
-  int64_t max_len = std::max(md.fwd_length, md.rev_length);
-  md.fwd_header.resize(std::strlen(fwd_header) + 1);
-  md.rev_header.resize(std::strlen(rev_header) + 1);
+  /* Ensure buffers are large enough (+1 for the terminating NUL). */
+  int64_t const max_len = std::max(md.fwd_length, md.rev_length);
   md.fwd_sequence.resize(static_cast<std::size_t>(max_len + 1));
   md.rev_sequence.resize(static_cast<std::size_t>(max_len + 1));
   md.fwd_quality.resize(static_cast<std::size_t>(max_len + 1));
@@ -792,80 +794,45 @@ auto mergepairs_single(QualityTables const & tables,
   md.merged_sequence.resize(static_cast<std::size_t>(fwd_len + rev_len + 1));
   md.merged_quality_v.resize(static_cast<std::size_t>(fwd_len + rev_len + 1));
 
-  std::strcpy(md.fwd_header.data(), fwd_header);
-  std::strcpy(md.rev_header.data(), rev_header);
-  std::memcpy(md.fwd_sequence.data(), fwd_seq, static_cast<std::size_t>(fwd_len));
+  std::copy(fwd.sequence.begin(), fwd.sequence.end(), md.fwd_sequence.begin());
   md.fwd_sequence[static_cast<std::size_t>(fwd_len)] = '\0';
-  std::memcpy(md.rev_sequence.data(), rev_seq, static_cast<std::size_t>(rev_len));
+  std::copy(rev.sequence.begin(), rev.sequence.end(), md.rev_sequence.begin());
   md.rev_sequence[static_cast<std::size_t>(rev_len)] = '\0';
-  std::memcpy(md.fwd_quality.data(), fwd_qual, static_cast<std::size_t>(fwd_len));
+  std::copy(fwd.quality.begin(), fwd.quality.end(), md.fwd_quality.begin());
   md.fwd_quality[static_cast<std::size_t>(fwd_len)] = '\0';
-  std::memcpy(md.rev_quality.data(), rev_qual, static_cast<std::size_t>(rev_len));
+  std::copy(rev.quality.begin(), rev.quality.end(), md.rev_quality.begin());
   md.rev_quality[static_cast<std::size_t>(rev_len)] = '\0';
 
-  /* Run the merge pipeline. The merge core enforces a minimum overlap of 5
-     (see mergepairs_init); a library caller may pass a smaller value, so thread
+  /* Run the merge pipeline. The merge core enforces a minimum overlap (see
+     merge_minovlen_floor); a library caller may pass a smaller value, so thread
      a clamped local copy rather than mutating the shared config global (E1). */
   struct Parameters clamped = parameters;
-  if (clamped.opt_fastq_minovlen < 5)
+  if (clamped.opt_fastq_minovlen < merge_minovlen_floor)
     {
-      clamped.opt_fastq_minovlen = 5;
+      clamped.opt_fastq_minovlen = merge_minovlen_floor;
     }
   struct kh_handle_s kmerhash;
-  process(md, kmerhash, tables, clamped);
+  process(md, kmerhash, tables_, clamped);
 
-  /* Populate result. Zero all fields including the pointers so that a
-     failed merge leaves nullptr pointers for the caller. On success
-     the buffers are xmalloc'd to the exact merged length; the caller
-     owns them and must release via merge_result_free(). */
-  *result = {};
-  result->merged = md.merged;
+  /* Populate the result. On failure sequence/quality stay empty (default);
+     on success they own copies of the merged read sized to the exact merged
+     length (freed with the MergeResult, no caller action required). */
+  MergeResult result;
+  result.merged = md.merged;
 
   if (md.merged)
     {
-      int const len = static_cast<int>(md.merged_length);
-      /* Hold both buffers in guards while allocating, so that if the second
-         xmalloc fatals (OOM) and unwinds in a library session, the first is
-         freed rather than leaked. Transferred to the caller-owned result only
-         once both succeed (the caller frees them via merge_result_free). */
-      std::unique_ptr<char, decltype(&xfree)> merged_sequence(
-        static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1)), &xfree);
-      std::unique_ptr<char, decltype(&xfree)> merged_quality(
-        static_cast<char *>(xmalloc(static_cast<std::size_t>(len) + 1)), &xfree);
-      std::memcpy(merged_sequence.get(), md.merged_sequence.data(), static_cast<std::size_t>(len));
-      merged_sequence.get()[len] = '\0';
-      std::memcpy(merged_quality.get(), md.merged_quality_v.data(), static_cast<std::size_t>(len));
-      merged_quality.get()[len] = '\0';
-      result->merged_length = len;
-      result->merged_sequence = merged_sequence.release();
-      result->merged_quality = merged_quality.release();
-      result->ee_merged = md.ee_merged;
-      result->ee_fwd = md.ee_fwd;
-      result->ee_rev = md.ee_rev;
-      result->fwd_errors = static_cast<int>(md.fwd_errors);
-      result->rev_errors = static_cast<int>(md.rev_errors);
-      result->overlap_length = static_cast<int>(md.fwd_trunc + md.rev_trunc - md.merged_length);
-      return 0;
+      auto const len = static_cast<std::size_t>(md.merged_length);
+      result.merged_length = static_cast<int>(md.merged_length);
+      result.sequence.assign(md.merged_sequence.data(), len);
+      result.quality.assign(md.merged_quality_v.data(), len);
+      result.ee_merged = md.ee_merged;
+      result.ee_fwd = md.ee_fwd;
+      result.ee_rev = md.ee_rev;
+      result.fwd_errors = static_cast<int>(md.fwd_errors);
+      result.rev_errors = static_cast<int>(md.rev_errors);
+      result.overlap_length = static_cast<int>(md.fwd_trunc + md.rev_trunc - md.merged_length);
     }
 
-  return -1;  /* merge failed */
-}
-
-
-auto merge_result_free(struct merge_result_s * result) -> void
-{
-  if (result == nullptr)
-    {
-      return;
-    }
-  if (result->merged_sequence != nullptr)
-    {
-      xfree(result->merged_sequence);
-      result->merged_sequence = nullptr;
-    }
-  if (result->merged_quality != nullptr)
-    {
-      xfree(result->merged_quality);
-      result->merged_quality = nullptr;
-    }
+  return result;
 }

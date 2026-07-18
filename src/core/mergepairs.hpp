@@ -60,42 +60,41 @@
 
 #pragma once
 
+#include "utils/view.hpp"  // View<char> for read-only sequence/quality inputs
 #include <array>
+#include <string>
 
 /* === Library API for embedding paired-end merging === */
 
-/* Result of merging a single read pair.
+/* Result of merging a single read pair, returned by MergePairs::merge().
 
-   The merged_sequence and merged_quality buffers are allocated by
-   mergepairs_single() with xmalloc (sized to the actual merge length,
-   with no fixed upper bound). The caller owns the allocations and
-   MUST release them with merge_result_free() once done. Both pointers
-   are null when merge_result_s is zero-initialized and when the merge
-   fails. Quality is null-terminated ASCII; sequence is null-terminated
-   DNA. */
-struct merge_result_s {
-  bool merged;                 /* true if merge succeeded */
-  int merged_length;           /* length of merged sequence */
-  char * merged_sequence;      /* xmalloc'd DNA sequence, null-terminated
-                                  (nullptr on failure or before first call) */
-  char * merged_quality;       /* xmalloc'd quality string, null-terminated
-                                  (nullptr on failure or before first call) */
-  double ee_merged;            /* expected errors in merged sequence */
-  double ee_fwd;               /* expected errors from forward read */
-  double ee_rev;               /* expected errors from reverse read */
-  int fwd_errors;              /* mismatches attributed to forward read */
-  int rev_errors;              /* mismatches attributed to reverse read */
-  int overlap_length;          /* length of overlap region */
+   sequence and quality own their storage (std::string), so there is nothing
+   for the caller to release: the buffers are freed automatically when the
+   MergeResult goes out of scope (RAII). Both strings are empty when the merge
+   fails (merged == false). quality holds ASCII-encoded quality symbols;
+   sequence holds the merged DNA. Neither string carries a trailing NUL of its
+   own, but .c_str() null-terminates as usual. */
+struct MergeResult {
+  bool merged = false;         /* true if merge succeeded */
+  int merged_length = 0;       /* length of merged sequence */
+  std::string sequence;        /* merged DNA (empty on failure) */
+  std::string quality;         /* merged quality string, ASCII (empty on failure) */
+  double ee_merged = 0.0;      /* expected errors in merged sequence */
+  double ee_fwd = 0.0;         /* expected errors from forward read */
+  double ee_rev = 0.0;         /* expected errors from reverse read */
+  int fwd_errors = 0;          /* mismatches attributed to forward read */
+  int rev_errors = 0;          /* mismatches attributed to reverse read */
+  int overlap_length = 0;      /* length of overlap region */
 };
 
 /* Number of ASCII quality symbols indexable in the score tables. */
 constexpr auto n_quality_symbols = 128U;
 
-/* Precomputed per-quality-symbol score tables produced by mergepairs_init()
-   from the run's Parameters. Hold the returned value for the lifetime of the
-   merging session and pass it (by const reference) to every mergepairs_single()
-   call. Once returned it is read-only, so a single instance may be shared
-   across threads. Replaces the former file-scope globals in mergepairs.cpp. */
+/* Precomputed per-quality-symbol score tables built by a MergePairs session
+   from the run's Parameters. Held privately by MergePairs; also produced
+   directly by precompute_qual() for the fastq_mergepairs command (see
+   core/mergepairs_internal.hpp). Once built it is read-only. Replaces the
+   former file-scope globals in mergepairs.cpp. */
 struct QualityTables {
   std::array<std::array<char,   n_quality_symbols>, n_quality_symbols> merge_qual_same {{}};
   std::array<std::array<char,   n_quality_symbols>, n_quality_symbols> merge_qual_diff {{}};
@@ -104,38 +103,24 @@ struct QualityTables {
   std::array<double, n_quality_symbols> q2p {{}};
 };
 
-/* Build the quality score lookup tables.
-   Must be called once before mergepairs_single(); the returned QualityTables
-   is passed to every mergepairs_single() call (there is no hidden global
-   state). Reads opt_fastq_ascii, opt_fastq_qmin, opt_fastq_qmax from the
-   passed parameters (configure them before vsearch_session_begin, then pass
-   the same Parameters here). */
-auto mergepairs_init(struct Parameters const & parameters) -> QualityTables;
+/* One read of a pair, passed to MergePairs::merge().
+   sequence and quality are read-only views over caller-owned buffers and MUST
+   have the same length (one quality symbol per base). The views need not be
+   null-terminated; only sequence.size() bases are read. */
+struct MergeInput {
+  View<char> sequence;
+  View<char> quality;
+};
 
-/* Merge a single forward/reverse read pair.
-   tables: the score tables returned by mergepairs_init(); read-only, may be
-     shared across threads.
-   parameters: the configured Parameters (same one passed to
-     mergepairs_init/vsearch_session_begin); supplies the merge tunables.
-   fwd_seq/rev_seq: null-terminated DNA sequences.
-   fwd_qual/rev_qual: null-terminated quality strings (ASCII-encoded).
-   fwd_len/rev_len: sequence lengths.
-   fwd_header/rev_header: null-terminated read headers.
-   result: output struct populated on return. On success the
-     merged_sequence and merged_quality pointers are heap-allocated
-     by this function; the caller MUST release them with
-     merge_result_free() to avoid leaks. Each call overwrites the
-     pointer fields unconditionally, so any previously-allocated
-     buffers in *result are leaked if the caller has not already
-     called merge_result_free(). Reuse the same struct only after
-     calling merge_result_free() between calls.
-   Returns 0 on success (merged), -1 on failure (not merged; pointers
-   are set to nullptr).
+/* A paired-end merging session.
 
-   Thread-safe after mergepairs_init() completes. mergepairs_init()
-   must NOT run concurrently with any mergepairs_single() call.
+   Construct one from a configured Parameters — this builds the quality score
+   lookup tables once — then call merge() for each read pair. merge() is const
+   and keeps no per-call mutable state, so a single MergePairs instance may be
+   shared across threads.
 
-   Relevant opt_* overrides (set on Parameters before vsearch_session_begin):
+   Relevant opt_* overrides (set on Parameters before vsearch_session_begin,
+   then pass the same Parameters to the constructor and to merge()):
      opt_fastq_minovlen   — minimum overlap length (default 10)
      opt_fastq_maxdiffs   — max mismatches in overlap (default 10)
      opt_fastq_maxdiffpct — max mismatch % in overlap (default 100.0)
@@ -144,19 +129,24 @@ auto mergepairs_init(struct Parameters const & parameters) -> QualityTables;
      opt_fastq_maxlen     — max merged length (default unlimited)
      opt_fastq_maxns      — max Ns allowed (default unlimited)
      opt_fastq_ascii      — quality ASCII offset (default 33) */
-auto mergepairs_single(QualityTables const & tables,
-                        struct Parameters const & parameters,
-                        const char * fwd_seq,
-                        const char * fwd_qual,
-                        int fwd_len,
-                        const char * rev_seq,
-                        const char * rev_qual,
-                        int rev_len,
-                        const char * fwd_header,
-                        const char * rev_header,
-                        struct merge_result_s * result) -> int;
+class MergePairs {
+public:
+  explicit MergePairs(struct Parameters const & parameters);
 
-/* Release the merged_sequence and merged_quality buffers owned by
-   *result and set both pointers to nullptr. Null-safe on either field.
-   Leaves the scalar fields (merged_length, ee_*, etc.) untouched. */
-auto merge_result_free(struct merge_result_s * result) -> void;
+  /* Merge a single forward/reverse read pair.
+     parameters: the configured Parameters (same one passed to the
+       constructor / vsearch_session_begin); supplies the merge tunables.
+     fwd/rev: the forward and reverse reads (matching sequence + quality
+       views; see MergeInput).
+     Returns a MergeResult. On success result.merged is true and
+     result.sequence / result.quality hold the merged read, owned by the
+     result. On failure result.merged is false and both strings are empty.
+
+     Thread-safe: a const MergePairs may be shared across threads. */
+  auto merge(struct Parameters const & parameters,
+             MergeInput const & fwd,
+             MergeInput const & rev) const -> MergeResult;
+
+private:
+  QualityTables tables_;
+};
