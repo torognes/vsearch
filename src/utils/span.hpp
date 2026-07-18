@@ -87,6 +87,10 @@
 template <typename Type = char>
 class Span {
 public:
+  // Empty span (null pointer, zero length) via the in-class member initializers;
+  // the explicit constructors below otherwise suppress the implicit default.
+  Span() = default;
+
   explicit Span(Type * start, std::size_t const length)
     : start_ {start},
       length_ {length} {

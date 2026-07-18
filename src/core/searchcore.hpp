@@ -64,6 +64,7 @@
 #include "core/mask.hpp"  // Masking
 #include "core/minheap.hpp"  // Minheap
 #include "core/unique.hpp"  // Uniquer
+#include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
 #include <memory>  // std::unique_ptr
@@ -147,10 +148,11 @@ struct searchinfo_s
   std::vector<char> query_head_v {};  /* owned header storage (the copying paths) */
   View<char> query_head {nullptr, 0};  /* query header: a view into query_head_v, the
                                           database, or a caller-owned buffer */
-  int qseqlen = 0;                  /* query length */
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
   std::vector<char> qsequence_v {};  /* vector of query sequence chars */
-  char * qsequence = nullptr;             /* query sequence */
+  Span<char> qsequence {};          /* query sequence (length == query length):
+                                       a span over qsequence_v, the database, or
+                                       a caller-owned buffer */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
   unsigned int const * kmersample = nullptr;    /* list of kmers sampled from query */
   std::vector<count_t> kmers_v {}; /* vector of kmer counts */

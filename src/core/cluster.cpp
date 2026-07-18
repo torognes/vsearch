@@ -179,15 +179,16 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
      no copy or cast is needed */
   si->query_head = db.header_view(useqno);
   si->qsize = static_cast<int64_t>(db.getabundance(useqno));
-  si->qseqlen = static_cast<int>(db.getsequencelen(useqno));
+  auto const seqlen = db.getsequencelen(useqno);
   if (si->strand != 0)
     {
-      reverse_complement(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen) + 1}, db.sequence_view(useqno));
+      reverse_complement(Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seqlen) + 1}, db.sequence_view(useqno));
     }
   else
     {
-      std::strcpy(si->qsequence, db.getsequence(useqno));
+      std::strcpy(si->qsequence_v.data(), db.getsequence(useqno));
     }
+  si->qsequence = Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seqlen)};
 
   /* perform search */
   search_onequery(si, parameters.opt_qmask);
@@ -216,7 +217,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si->seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
   si->qsequence_v.resize(static_cast<std::size_t>(si->seq_alloc));
-  si->qsequence = si->qsequence_v.data();
+  si->qsequence = Span<char>{si->qsequence_v.data(), 0};
 
   si->kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
   si->kmers_v.resize(static_cast<std::size_t>(seqcount));
@@ -637,7 +638,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           /* check if min number of shared kmers is satisfied */
           if (search_enough_kmers(*si, shared))
             {
-              unsigned int const length = static_cast<unsigned int>(sic->qseqlen);
+              unsigned int const length = static_cast<unsigned int>(sic->qsequence.size());
 
               /* Go through the list of hits and see if the current
                  match is better than any on the list in terms of
@@ -765,13 +766,13 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                           xfree(nwcigar);
                         }
 
-                      nwcigar = xstrdup(lma.align(si->qsequence,
+                      nwcigar = xstrdup(lma.align(si->qsequence.data(),
                                                   tseq,
-                                                  si->qseqlen,
+                                                  static_cast<int>(si->qsequence.size()),
                                                   tseqlen));
 
                       lma.alignstats(nwcigar,
-                                     si->qsequence,
+                                     si->qsequence.data(),
                                      tseq,
                                      & nwscore,
                                      & nwalignmentlength,
@@ -814,8 +815,8 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                     static_cast<double>(nwalignmentlength - hit->nwdiff) /
                     static_cast<double>(nwalignmentlength);
 
-                  hit->shortest = std::min(si->qseqlen, static_cast<int>(tseqlen));
-                  hit->longest = std::max(si->qseqlen, static_cast<int>(tseqlen));
+                  hit->shortest = std::min(static_cast<int>(si->qsequence.size()), static_cast<int>(tseqlen));
+                  hit->longest = std::max(static_cast<int>(si->qsequence.size()), static_cast<int>(tseqlen));
 
                   /* trim alignment and compute numbers
                      excluding terminal gaps */
@@ -984,9 +985,9 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               cluster_core_results_hit(state, best,
                                        state.clusterinfo[target].clusterno,
                                        si_p->query_head.data(),
-                                       si_p->qseqlen,
-                                       si_p->qsequence,
-                                       (best->strand != 0) ? si_m->qsequence : nullptr,
+                                       static_cast<int>(si_p->qsequence.size()),
+                                       si_p->qsequence.data(),
+                                       (best->strand != 0) ? si_m->qsequence.data() : nullptr,
                                        si_p->qsize,
                                        db);
 
@@ -1019,8 +1020,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
                                          si_p->query_head.data(),
-                                         si_p->qseqlen,
-                                         si_p->qsequence,
+                                         static_cast<int>(si_p->qsequence.size()),
+                                         si_p->qsequence.data(),
                                          nullptr,
                                          si_p->qsize);
               ++state.clusters;
@@ -1028,7 +1029,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
           free_hit_alignments(si_p, si_m, state.parameters);
 
-          sum_nucleotides += si_p->qseqlen;
+          sum_nucleotides += static_cast<int>(si_p->qsequence.size());
         }
 
       progress.update(static_cast<uint64_t>(sum_nucleotides));
@@ -1092,9 +1093,9 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           cluster_core_results_hit(state, best,
                                    state.clusterinfo[target].clusterno,
                                    si_p[0].query_head.data(),
-                                   si_p[0].qseqlen,
-                                   si_p[0].qsequence,
-                                   (best->strand != 0) ? si_m[0].qsequence : nullptr,
+                                   static_cast<int>(si_p[0].qsequence.size()),
+                                   si_p[0].qsequence.data(),
+                                   (best->strand != 0) ? si_m[0].qsequence.data() : nullptr,
                                    si_p[0].qsize,
                                    db);
           state.clusterinfo[seqno].seqno = seqno;
@@ -1114,8 +1115,8 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask, db);
           cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head.data(),
-                                     si_p[0].qseqlen,
-                                     si_p[0].qsequence,
+                                     static_cast<int>(si_p[0].qsequence.size()),
+                                     si_p[0].qsequence.data(),
                                      nullptr,
                                      si_p[0].qsize);
           ++state.clusters;

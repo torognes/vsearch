@@ -563,7 +563,8 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   // false: reject
 
   auto const target_seqno = static_cast<uint64_t>(target);
-  auto const * qseq = searchinfo.qsequence;
+  auto const * qseq = searchinfo.qsequence.data();
+  auto const qseqlen = static_cast<int>(searchinfo.qsequence.size());
   auto const * dlabel = searchinfo.db->getheader(target_seqno);
   auto const * dseq = searchinfo.db->getsequence(target_seqno);
   int64_t const dseqlen = static_cast<int64_t>(searchinfo.db->getsequencelen(target_seqno));
@@ -583,30 +584,30 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           (abundance_ratio_cmp(searchinfo.qsize, parameters.opt_maxsizeratio, tsize) <= 0)
           and
           /* minqt */
-          (searchinfo.qseqlen >= parameters.opt_minqt * static_cast<double>(dseqlen))
+          (qseqlen >= parameters.opt_minqt * static_cast<double>(dseqlen))
           and
           /* maxqt */
-          (searchinfo.qseqlen <= parameters.opt_maxqt * static_cast<double>(dseqlen))
+          (qseqlen <= parameters.opt_maxqt * static_cast<double>(dseqlen))
           and
           /* minsl */
-          (searchinfo.qseqlen < dseqlen ?
-           searchinfo.qseqlen >= parameters.opt_minsl * static_cast<double>(dseqlen) :
-           static_cast<double>(dseqlen) >= parameters.opt_minsl * searchinfo.qseqlen)
+          (qseqlen < dseqlen ?
+           qseqlen >= parameters.opt_minsl * static_cast<double>(dseqlen) :
+           static_cast<double>(dseqlen) >= parameters.opt_minsl * qseqlen)
           and
           /* maxsl */
-          (searchinfo.qseqlen < dseqlen ?
-           searchinfo.qseqlen <= parameters.opt_maxsl * static_cast<double>(dseqlen) :
-           static_cast<double>(dseqlen) <= parameters.opt_maxsl * searchinfo.qseqlen)
+          (qseqlen < dseqlen ?
+           qseqlen <= parameters.opt_maxsl * static_cast<double>(dseqlen) :
+           static_cast<double>(dseqlen) <= parameters.opt_maxsl * qseqlen)
           and
           /* idprefix */
-          ((searchinfo.qseqlen >= parameters.opt_idprefix) and
+          ((qseqlen >= parameters.opt_idprefix) and
            (dseqlen >= parameters.opt_idprefix) and
            (seqcmp(View<char>{qseq, static_cast<std::size_t>(parameters.opt_idprefix)}, View<char>{dseq, static_cast<std::size_t>(parameters.opt_idprefix)}) == 0))
           and
           /* idsuffix */
-          ((searchinfo.qseqlen >= parameters.opt_idsuffix) and
+          ((qseqlen >= parameters.opt_idsuffix) and
            (dseqlen >= parameters.opt_idsuffix) and
-           (seqcmp(View<char>{qseq, static_cast<std::size_t>(searchinfo.qseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix)),
+           (seqcmp(View<char>{qseq, static_cast<std::size_t>(qseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix)),
                     View<char>{dseq, static_cast<std::size_t>(dseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix))) == 0))
           and
           /* self */
@@ -614,8 +615,8 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           and
           /* selfid */
           ((parameters.opt_selfid == 0) or
-           (searchinfo.qseqlen != dseqlen) or
-           (seqcmp(View<char>{qseq, static_cast<std::size_t>(searchinfo.qseqlen)}, View<char>{dseq, static_cast<std::size_t>(searchinfo.qseqlen)}) != 0))
+           (qseqlen != dseqlen) or
+           (seqcmp(View<char>{qseq, static_cast<std::size_t>(qseqlen)}, View<char>{dseq, static_cast<std::size_t>(qseqlen)}) != 0))
           );
 }
 
@@ -698,7 +699,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       ((parameters.opt_rightjust == 0) or (hit->trim_q_right +
                             hit->trim_t_right == 0)) and
       /* query_cov */
-      (hit->matches + hit->mismatches >= parameters.opt_query_cov * searchinfo.qseqlen) and
+      (hit->matches + hit->mismatches >= parameters.opt_query_cov * static_cast<int>(searchinfo.qsequence.size())) and
       /* target_cov */
       (hit->matches + hit->mismatches >=
        parameters.opt_target_cov * static_cast<double>(searchinfo.db->getsequencelen(static_cast<uint64_t>(hit->target)))) and
@@ -827,13 +828,13 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                       xfree(nwcigar_list[i]);
                     }
 
-                  nwcigar = xstrdup(searchinfo->lma->align(searchinfo->qsequence,
+                  nwcigar = xstrdup(searchinfo->lma->align(searchinfo->qsequence.data(),
                                                    dseq,
-                                                   searchinfo->qseqlen,
+                                                   static_cast<int>(searchinfo->qsequence.size()),
                                                    dseqlen));
 
                   searchinfo->lma->alignstats(nwcigar,
-                                      searchinfo->qsequence,
+                                      searchinfo->qsequence.data(),
                                       dseq,
                                       & nwscore,
                                       & nwalignmentlength,
@@ -851,8 +852,8 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                 }
 
               hit->aligned = true;
-              hit->shortest = std::min(searchinfo->qseqlen, static_cast<int>(dseqlen));
-              hit->longest = std::max(searchinfo->qseqlen, static_cast<int>(dseqlen));
+              hit->shortest = std::min(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
+              hit->longest = std::max(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
               if (nwcigar != nullptr)  // search16 may leave the cigar null
                 {
                   hit->nwalignment = nwcigar;  // std::string copies the cigar
@@ -908,7 +909,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
      kmers are extracted at searchinfo->dbindex->wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
-  search16_qprep(searchinfo->s.get(), searchinfo->qsequence, searchinfo->qseqlen);
+  search16_qprep(searchinfo->s.get(), searchinfo->qsequence.data(), static_cast<int>(searchinfo->qsequence.size()));
 
   struct Scoring scoring = scoring_from_options(*searchinfo->parameters);
 
@@ -918,7 +919,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 
   /* extract unique kmer samples from query*/
   searchinfo->uh.count(static_cast<int>(searchinfo->dbindex->wordlength),
-                       searchinfo->qseqlen, searchinfo->qsequence,
+                       static_cast<int>(searchinfo->qsequence.size()), searchinfo->qsequence.data(),
                        &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
 
   /* find database sequences with the most kmer hits */

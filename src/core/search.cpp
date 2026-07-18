@@ -91,18 +91,16 @@ auto populate_si(struct searchinfo_s * si,
                  int64_t const qsize,
                  int const strand) -> void
 {
-  si->qseqlen = seq_len;
   si->query_no = query_no;
   si->qsize = qsize;
   si->strand = strand;
 
   /* allocate more memory for the sequence, if necessary */
 
-  if (si->qseqlen + 1 > si->seq_alloc)
+  if (seq_len + 1 > si->seq_alloc)
     {
-      si->seq_alloc = si->qseqlen + buffer_headroom;
+      si->seq_alloc = seq_len + buffer_headroom;
       si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
-      si->qsequence = si->qsequence_v.data();
     }
 
   /* copy the header into owned storage, then point the read-only view at it */
@@ -110,15 +108,17 @@ auto populate_si(struct searchinfo_s * si,
   std::strcpy(si->query_head_v.data(), head);
   si->query_head = View<char>{si->query_head_v.data(), static_cast<std::size_t>(head_len)};
 
-  /* copy or reverse-complement sequence */
+  /* copy or reverse-complement sequence into the owned buffer, then point the
+     span at it (length == seq_len; the NUL at [seq_len] sits just past the span) */
   if (strand == 0)
     {
-      std::strcpy(si->qsequence, seq);
+      std::strcpy(si->qsequence_v.data(), seq);
     }
   else
     {
-      reverse_complement(Span<char>{si->qsequence, static_cast<std::size_t>(seq_len) + 1}, View<char>{seq, static_cast<std::size_t>(seq_len)});
+      reverse_complement(Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seq_len) + 1}, View<char>{seq, static_cast<std::size_t>(seq_len)});
     }
+  si->qsequence = Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seq_len)};
 }
 
 
@@ -145,7 +145,7 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->qsize = 1;
   si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
-  si->qsequence = nullptr;
+  si->qsequence = Span<char>{};
   si->s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
                         parameters.opt_gap_open_query_left,
@@ -288,11 +288,11 @@ auto search_session_single(struct search_session_s * ss,
 
       if (parameters.opt_qmask == Masking::dust)
         {
-          dust(Span<char>{strand_si->qsequence, static_cast<std::size_t>(strand_si->qseqlen)}, parameters);
+          dust(strand_si->qsequence, parameters);
         }
       else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
         {
-          hardmask(Span<char>{strand_si->qsequence, static_cast<std::size_t>(strand_si->qseqlen)});
+          hardmask(strand_si->qsequence);
         }
 
       search_onequery(strand_si, parameters.opt_qmask);
@@ -319,7 +319,7 @@ auto search_session_single(struct search_session_s * ss,
       r.mismatches = h.mismatches;
       r.gaps = h.nwgaps;
       r.alignment_length = h.nwalignmentlength;
-      r.query_length = si->qseqlen;
+      r.query_length = static_cast<int>(si->qsequence.size());
       r.target_length = static_cast<int>(si->db->getsequencelen(static_cast<uint64_t>(h.target)));
       r.accepted = h.accepted;
       r.strand = h.strand;
@@ -441,11 +441,11 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
         if (parameters.opt_qmask == Masking::dust)
           {
-            dust(Span<char>{strand_si->qsequence, static_cast<std::size_t>(strand_si->qseqlen)}, parameters);
+            dust(strand_si->qsequence, parameters);
           }
         else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
           {
-            hardmask(Span<char>{strand_si->qsequence, static_cast<std::size_t>(strand_si->qseqlen)});
+            hardmask(strand_si->qsequence);
           }
 
         search_onequery(strand_si, parameters.opt_qmask);

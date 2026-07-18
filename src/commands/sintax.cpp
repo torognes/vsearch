@@ -415,7 +415,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
   std::array<int, 2> boot_count = {0, 0};
   std::array<unsigned int, 2> best_count = {0, 0};
-  int const qseqlen = si_plus[t].qseqlen;
+  int const qseqlen = static_cast<int>(si_plus[t].qsequence.size());
   char const * query_head = si_plus[t].query_head.data();
 
   /* Per-query RNG: seed from the global base seed and this query's input
@@ -439,7 +439,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
          by Dbindex::prepare for a FASTA db, or udb_read for a UDB db); reading
          parameters.opt_wordlength would use the wrong width against a UDB index. */
       si->uh.count(static_cast<int>(si->dbindex->wordlength),
-                   si->qseqlen, si->qsequence,
+                   static_cast<int>(si->qsequence.size()), si->qsequence.data(),
                    &kmersamplecount, &kmersample, Masking::none);
 
       /* perform 100 bootstraps */
@@ -552,26 +552,25 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       {
         struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
 
-        si->qseqlen = qseqlen;
         si->query_no = query_no;
         si->qsize = qsize;
         si->strand = s;
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (si->qseqlen + 1 > si->seq_alloc)
+        if (qseqlen + 1 > si->seq_alloc)
           {
-            si->seq_alloc = si->qseqlen + buffer_headroom;
-            si->qsequence = static_cast<char *>(
-              xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
+            si->seq_alloc = qseqlen + buffer_headroom;
+            si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
           }
       }
 
-    /* plus strand: copy header (into owned storage, view points at it) and sequence */
+    /* plus strand: copy header and sequence into owned storage, spans point at them */
     si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
     std::strcpy(si_plus[t].query_head_v.data(), qhead);
     si_plus[t].query_head = View<char>{si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
-    std::strcpy(si_plus[t].qsequence, qseq);
+    std::strcpy(si_plus[t].qsequence_v.data(), qseq);
+    si_plus[t].qsequence = Span<char>{si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
 
     /* get progress as amount of input file read */
     progress = fastx_get_position(query_fastx_h);
@@ -584,8 +583,9 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       {
         si_minus[t].query_head_v = si_plus[t].query_head_v;
         si_minus[t].query_head = View<char>{si_minus[t].query_head_v.data(), si_plus[t].query_head.size()};
-        reverse_complement(Span<char>{si_minus[t].qsequence, static_cast<std::size_t>(si_plus[t].qseqlen) + 1},
-                           View<char>{si_plus[t].qsequence, static_cast<std::size_t>(si_plus[t].qseqlen)});
+        reverse_complement(Span<char>{si_minus[t].qsequence_v.data(), si_plus[t].qsequence.size() + 1},
+                           View<char>{si_plus[t].qsequence.data(), si_plus[t].qsequence.size()});
+        si_minus[t].qsequence = Span<char>{si_minus[t].qsequence_v.data(), si_plus[t].qsequence.size()};
       }
 
     sintax_query(state, t);
@@ -614,7 +614,7 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->qsize = 1;
   si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
-  si->qsequence = nullptr;
+  si->qsequence = Span<char>{};
   si->nw = nullptr;
   si->s.reset();
 }
@@ -626,11 +626,8 @@ static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
   searchinfo->uh = Uniquer();
   searchinfo->m = Minheap();
   xfree(searchinfo->kmers);
-  /* query_head is a view; its owned storage query_head_v frees itself */
-  if (searchinfo->qsequence != nullptr)
-    {
-      xfree(searchinfo->qsequence);
-    }
+  /* query_head/qsequence are views; their owned storage (query_head_v/qsequence_v)
+     frees itself */
 }
 
 

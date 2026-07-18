@@ -403,8 +403,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
     searchinfo.query_no = query_no;
     searchinfo.qsize = static_cast<int64_t>(state.db.getabundance(query_no_u));
     searchinfo.query_head = state.db.header_view(query_no_u);
-    searchinfo.qseqlen = static_cast<int>(state.db.getsequencelen(query_no_u));
-    searchinfo.qsequence = state.db.mutatesequence(query_no_u);
+    searchinfo.qsequence = state.db.mutable_sequence(query_no_u);
     searchinfo.rejects = 0;
     searchinfo.accepts = 0;
     searchinfo.hit_count = 0;
@@ -422,7 +421,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
       {
         /* perform alignments */
 
-        search16_qprep(searchinfo.s.get(), searchinfo.qsequence, searchinfo.qseqlen);
+        search16_qprep(searchinfo.s.get(), searchinfo.qsequence.data(), static_cast<int>(searchinfo.qsequence.size()));
 
         search16(searchinfo.s.get(),
                  static_cast<unsigned int>(searchinfo.hit_count),
@@ -463,12 +462,12 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                     xfree(pcigar[h]);
                   }
 
-                nwcigar = xstrdup(lma.align(searchinfo.qsequence,
+                nwcigar = xstrdup(lma.align(searchinfo.qsequence.data(),
                                             tseq,
-                                            searchinfo.qseqlen,
+                                            static_cast<int>(searchinfo.qsequence.size()),
                                             tseqlen));
                 lma.alignstats(nwcigar,
-                               searchinfo.qsequence,
+                               searchinfo.qsequence.data(),
                                tseq,
                                & nwscore,
                                & nwalignmentlength,
@@ -514,8 +513,8 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             hit->mismatches = hit->nwdiff - hit->nwindels;
 
             auto const dseqlen = static_cast<int>(state.db.getsequencelen(target));
-            hit->shortest = std::min(searchinfo.qseqlen, dseqlen);
-            hit->longest = std::max(searchinfo.qseqlen, dseqlen);
+            hit->shortest = std::min(static_cast<int>(searchinfo.qsequence.size()), dseqlen);
+            hit->longest = std::max(static_cast<int>(searchinfo.qsequence.size()), dseqlen);
 
             /* trim alignment, compute numbers excluding terminal gaps */
             align_trim(hit, state.parameters);
@@ -545,8 +544,8 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                             searchinfo.accepts,
                             finalhits.data(),
                             searchinfo.query_head.data(),
-                            searchinfo.qseqlen,
-                            searchinfo.qsequence,
+                            static_cast<int>(searchinfo.qsequence.size()),
+                            searchinfo.qsequence.data(),
                             nullptr);
 
     /* update stats */

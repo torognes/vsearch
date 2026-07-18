@@ -156,18 +156,19 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 
       hp->count = 0;
 
-      hp->nwscore = static_cast<int>(static_cast<int64_t>(si->qseqlen) * si->parameters->opt_match);
+      auto const qseqlen = static_cast<int>(si->qsequence.size());
+      hp->nwscore = static_cast<int>(static_cast<int64_t>(qseqlen) * si->parameters->opt_match);
       hp->nwdiff = 0;
       hp->nwgaps = 0;
       hp->nwindels = 0;
-      hp->nwalignmentlength = si->qseqlen;
+      hp->nwalignmentlength = qseqlen;
       hp->nwid = 100.0;
-      hp->matches = si->qseqlen;
+      hp->matches = qseqlen;
       hp->mismatches = 0;
 
-      hp->nwalignment = std::to_string(si->qseqlen) + "M";
+      hp->nwalignment = std::to_string(qseqlen) + "M";
 
-      hp->internal_alignmentlength = si->qseqlen;
+      hp->internal_alignmentlength = qseqlen;
       hp->internal_gaps = 0;
       hp->internal_indels = 0;
       hp->trim_q_left = 0;
@@ -184,8 +185,8 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
       hp->id3 = 100.0;
       hp->id4 = 100.0;
 
-      hp->shortest = si->qseqlen;
-      hp->longest = si->qseqlen;
+      hp->shortest = qseqlen;
+      hp->longest = qseqlen;
 
       hp->aligned = true;
 
@@ -200,8 +201,8 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 {
   dbhash_search_info_s info;
 
-  char const * seq = si->qsequence;
-  uint64_t const seqlen = static_cast<uint64_t>(si->qseqlen);
+  char const * seq = si->qsequence.data();
+  uint64_t const seqlen = si->qsequence.size();
   std::vector<char> normalized(seqlen + 1);
   string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
@@ -441,11 +442,11 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
       /* mask query */
       if (parameters.opt_qmask == Masking::dust)
         {
-          dust(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)}, parameters);
+          dust(si->qsequence, parameters);
         }
       else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
         {
-          hardmask(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)});
+          hardmask(si->qsequence);
         }
 
       /* perform search */
@@ -461,9 +462,9 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
   search_exact_output_results(state,
                               hits,
                               state.si_plus[t].query_head.data(),
-                              state.si_plus[t].qseqlen,
-                              state.si_plus[t].qsequence,
-                              parameters.opt_strand ? state.si_minus[t].qsequence : nullptr,
+                              static_cast<int>(state.si_plus[t].qsequence.size()),
+                              state.si_plus[t].qsequence.data(),
+                              parameters.opt_strand ? state.si_minus[t].qsequence.data() : nullptr,
                               state.si_plus[t].qsize);
 
   /* alignment strings (hit.nwalignment) are std::string and free themselves */
@@ -494,26 +495,25 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       {
         struct searchinfo_s * si = (s != 0) ? state.si_minus + t : state.si_plus + t;
 
-        si->qseqlen = qseqlen;
         si->query_no = query_no;
         si->qsize = qsize;
         si->strand = s;
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (si->qseqlen + 1 > si->seq_alloc)
+        if (qseqlen + 1 > si->seq_alloc)
           {
-            si->seq_alloc = si->qseqlen + buffer_headroom;
-            si->qsequence = static_cast<char *>(
-              xrealloc(si->qsequence, static_cast<size_t>(si->seq_alloc)));
+            si->seq_alloc = qseqlen + buffer_headroom;
+            si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
           }
       }
 
-    /* plus strand: copy header (into owned storage, view points at it) and sequence */
+    /* plus strand: copy header and sequence into owned storage, spans point at them */
     state.si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
     std::strcpy(state.si_plus[t].query_head_v.data(), qhead);
     state.si_plus[t].query_head = View<char>{state.si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
-    std::strcpy(state.si_plus[t].qsequence, qseq);
+    std::strcpy(state.si_plus[t].qsequence_v.data(), qseq);
+    state.si_plus[t].qsequence = Span<char>{state.si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
 
     /* get progress as amount of input file read */
     progress = fastx_get_position(state.query_fastx_h);
@@ -526,8 +526,9 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       {
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
         state.si_minus[t].query_head = View<char>{state.si_minus[t].query_head_v.data(), state.si_plus[t].query_head.size()};
-        reverse_complement(Span<char>{state.si_minus[t].qsequence, static_cast<std::size_t>(state.si_plus[t].qseqlen) + 1},
-                           View<char>{state.si_plus[t].qsequence, static_cast<std::size_t>(state.si_plus[t].qseqlen)});
+        reverse_complement(Span<char>{state.si_minus[t].qsequence_v.data(), state.si_plus[t].qsequence.size() + 1},
+                           View<char>{state.si_plus[t].qsequence.data(), state.si_plus[t].qsequence.size()});
+        state.si_minus[t].qsequence = Span<char>{state.si_minus[t].qsequence_v.data(), state.si_plus[t].qsequence.size()};
       }
 
     int const match = search_exact_query(t, state);
@@ -564,19 +565,16 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
   si->qsize = 1;
   si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
-  si->qsequence = nullptr;
+  si->qsequence = Span<char>{};
   si->nw = nullptr;
   si->s = nullptr;
 }
 
-auto search_exact_thread_exit(struct searchinfo_s * si) -> void
+auto search_exact_thread_exit(struct searchinfo_s * /* si */) -> void
 {
-  /* thread specific clean up */
-  /* query_head is a view; its owned storage query_head_v frees itself */
-  if (si->qsequence != nullptr)
-    {
-      xfree(si->qsequence);
-    }
+  /* thread specific clean up: query_head/qsequence are views and the hit/kmer
+     buffers are RAII vectors that free themselves, so nothing to release here.
+     Kept for lifecycle symmetry with search_exact_thread_init. */
 }
 
 auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void

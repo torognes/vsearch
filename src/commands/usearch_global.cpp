@@ -393,11 +393,11 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
       /* mask query */
       if (state.parameters.opt_qmask == Masking::dust)
         {
-          dust(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)}, state.parameters);
+          dust(si->qsequence, state.parameters);
         }
       else if ((state.parameters.opt_qmask == Masking::soft) && (state.parameters.opt_hardmask))
         {
-          hardmask(Span<char>{si->qsequence, static_cast<std::size_t>(si->qseqlen)});
+          hardmask(si->qsequence);
         }
 
       /* perform search */
@@ -413,9 +413,9 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
   search_output_results(state,
                         hits,
                         si_plus[t].query_head.data(),
-                        si_plus[t].qseqlen,
-                        si_plus[t].qsequence,
-                        state.parameters.opt_strand ? si_minus[t].qsequence : nullptr,
+                        static_cast<int>(si_plus[t].qsequence.size()),
+                        si_plus[t].qsequence.data(),
+                        state.parameters.opt_strand ? si_minus[t].qsequence.data() : nullptr,
                         si_plus[t].qsize);
 
   /* alignment strings (hit.nwalignment) are std::string and free themselves */
@@ -470,7 +470,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
         populate_si(state.si_minus + t,
                     si_plus[t].query_head.data(),
                     query_head_len,
-                    si_plus[t].qsequence,
+                    si_plus[t].qsequence.data(),
                     qseqlen,
                     query_no,
                     qsize,

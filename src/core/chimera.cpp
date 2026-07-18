@@ -354,7 +354,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
       for (auto & query_info: chimera_info->si)
         {
           query_info.qsequence_v.resize(static_cast<size_t>(maxpartlen) + 1);
-          query_info.qsequence = query_info.qsequence_v.data();
+          query_info.qsequence = Span<char>{query_info.qsequence_v.data(), 0};
         }
       chimera_info->part_alloc = maxpartlen;
     }
@@ -1920,7 +1920,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
   search_info->uh = Uniquer();
   search_info->m = Minheap();
 
-  search_info->qsequence = nullptr;
+  search_info->qsequence = Span<char>{};
   search_info->hits = nullptr;
   search_info->kmers = nullptr;
 }
@@ -1941,10 +1941,10 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.strand = 0;
       search_info.qsize = chimera_info->query_size;
       search_info.query_head = View<char>{chimera_info->query_head.data(), static_cast<std::size_t>(chimera_info->query_head_len)};
-      search_info.qseqlen = length;
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
       search_info.qsequence_v[static_cast<size_t>(length)] = '\0';
+      search_info.qsequence = Span<char>{search_info.qsequence_v.data(), static_cast<std::size_t>(length)};
 
       rest -= length;
       cursor = std::next(cursor, length);
