@@ -76,6 +76,11 @@
 #include <utility>  // std::pair
 
 // refactoring: is there a reason to prefer regex.h over <regex>?
+// - <regex> was introduced in GCC 4.9.0
+// - <regex> was buggy in GCC 4.9.x
+// - <regex> is ok in GCC >= 5
+// - <regex> is still 30% slower in GCC 13.4
+// Use <regex> when GCC requirements are >= 5 or when switching to C++14/17
 #ifdef HAVE_REGEX_H
 #include <regex.h>  // C: regcomp, regexec, regfree (POSIX functions)
 #else
