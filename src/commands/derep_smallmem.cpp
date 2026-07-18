@@ -302,7 +302,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto const * seq = fastx_get_sequence(h);
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
+        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
@@ -513,7 +513,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto const * seq = fastx_get_sequence(h2);
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
+        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)

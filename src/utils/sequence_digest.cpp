@@ -121,7 +121,7 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> 
      S26 in CODE_REVIEW.md. */
 
   std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
-  string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
+  string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
   std::vector<unsigned char> digest(sha1_digest_length);
 
@@ -150,7 +150,7 @@ auto get_hex_seq_digest_md5(char * hex, char const * seq, int const seqlen) -> v
      via an aligned reinterpret, and being per-call it is thread-safe. */
 
   std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
-  string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
+  string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
   std::vector<unsigned char> digest(md5_digest_length);
 

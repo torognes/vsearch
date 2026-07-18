@@ -192,7 +192,7 @@ auto Dbhash::add_all(struct Database const & db, struct Parameters const & param
     {
       auto const * seq = db.getsequence(seqno);
       auto const seqlen = db.getsequencelen(seqno);
-      string_normalize(normalized.data(), seq, static_cast<unsigned int>(seqlen));
+      string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
       add(normalized.data(), seqlen, seqno, db);
       progress.update(seqno + 1);
     }

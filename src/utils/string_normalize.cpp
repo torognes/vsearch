@@ -60,20 +60,18 @@
 
 #include "string_normalize.hpp"
 #include "maps.hpp"  // chrmap_normalize
-#include <iterator>  // std::advance
+#include <algorithm>  // std::transform
+#include <cassert>
 
 
-auto string_normalize(char * normalized, char const * raw_seq, unsigned int const len) -> void
+auto string_normalize(Span<char> const normalized, View<char> const raw_seq) -> void
 {
   /* convert string to upper case and replace U by T */
+  assert(normalized.size() > raw_seq.size());  // room for the '\0' terminator
   auto const * normalize_map = chrmap_normalize();
-  for (auto i = 0U; i < len; ++i)
-    {
-      auto const unsigned_char = static_cast<unsigned char>(*raw_seq);
-      auto const normalized_char = normalize_map[unsigned_char];
-      *normalized = static_cast<char>(normalized_char);
-      std::advance(normalized, 1);
-      std::advance(raw_seq, 1);
-    }
-  *normalized = '\0';
+  std::transform(raw_seq.begin(), raw_seq.end(), normalized.begin(),
+                 [normalize_map](char const nucleotide) -> char {
+                   return static_cast<char>(normalize_map[static_cast<unsigned char>(nucleotide)]);
+                 });
+  normalized[raw_seq.size()] = '\0';
 }

@@ -454,7 +454,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
         auto const * qual = fastx_get_quality(input_handle); // nullptr if FASTA
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(seq_up.data(), seq, static_cast<unsigned int>(seqlen));
+        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
@@ -1006,7 +1006,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
     }
 
   /* Normalize: uppercase, U→T */
-  string_normalize(ds->seq_up.data(), sequence, static_cast<unsigned int>(seqlen));
+  string_normalize(Span<char>{ds->seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{sequence, static_cast<std::size_t>(seqlen)});
 
   /* Rehash if needed */
   if (ds->clusters + 1 > ds->alloc_clusters)

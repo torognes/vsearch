@@ -60,5 +60,10 @@
 
 #pragma once
 
+#include "span.hpp"  // Span<char>
+#include "view.hpp"  // View<char>
 
-auto string_normalize(char * normalized, char const * raw_seq, unsigned int len) -> void;
+
+// Normalize raw_seq (upper-case, U->T) into normalized, terminating it with a
+// '\0'. normalized must have room for raw_seq.size() + 1 characters.
+auto string_normalize(Span<char> normalized, View<char> raw_seq) -> void;

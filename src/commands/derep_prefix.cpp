@@ -236,7 +236,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         auto const * seq = db.getsequence(static_cast<uint64_t>(i));
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(seq_up.data(), seq, seqlen);
+        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         auto const abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
         sumsize += static_cast<int64_t>(abundance);
