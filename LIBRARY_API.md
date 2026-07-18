@@ -718,31 +718,27 @@ consensus sequence with combined quality scores.
 ### Lifecycle
 
 ```cpp
-// Build the quality score lookup tables (once); the caller owns the
-// returned QualityTables and passes it to every mergepairs_single() call.
-QualityTables const tables = mergepairs_init(parameters);
+// Create a merge session (once); it builds and privately holds the quality
+// score lookup tables and is reused for every merge.
+MergePairs const merger(parameters);
 
-// Merge one pair. Zero-initialize so the pointers start at nullptr.
-struct merge_result_s result = {};
-int rc = mergepairs_single(
-    tables, parameters,
-    fwd_seq, fwd_qual, fwd_len,
-    rev_seq, rev_qual, rev_len,
-    fwd_header, rev_header, &result);
+// Merge one pair. sequence and quality are read-only views (same length).
+MergeResult const result = merger.merge(
+    parameters,
+    MergeInput{View<char>{fwd_seq, fwd_len}, View<char>{fwd_qual, fwd_len}},
+    MergeInput{View<char>{rev_seq, rev_len}, View<char>{rev_qual, rev_len}});
 
-if (rc == 0 && result.merged) {
-    // use result.merged_sequence / result.merged_quality
-    //   (null-terminated, length == result.merged_length)
+if (result.merged) {
+    // use result.sequence / result.quality (std::string,
+    //   length == result.merged_length); freed with the result (RAII)
 }
-
-// Release caller-owned buffers before reusing or discarding result
-merge_result_free(&result);
 ```
 
-No per-thread state is needed. The `QualityTables` returned by
-`mergepairs_init()` is read-only, so a single instance can be shared across
-threads; each call to `mergepairs_single()` is fully independent and
-thread-safe.
+No per-thread state is needed. A `MergePairs` session is read-only once
+constructed, so a single instance can be shared across threads; `merge()`
+is `const` and every call is fully independent and thread-safe. The returned
+`MergeResult` owns its buffers and frees them automatically when it goes out
+of scope — there is nothing for the caller to release.
 
 ### Result structure
 
@@ -750,8 +746,8 @@ thread-safe.
 |-------|------|-------------|
 | `merged` | `bool` | `true` if merge succeeded. |
 | `merged_length` | `int` | Length of merged sequence. |
-| `merged_sequence` | `char *` | `xmalloc`'d merged DNA (null-terminated), sized to `merged_length + 1`. `nullptr` on failure or before first call. Caller must release via `merge_result_free()`. |
-| `merged_quality` | `char *` | `xmalloc`'d quality (null-terminated). Ownership matches `merged_sequence`. |
+| `sequence` | `std::string` | Merged DNA, `merged_length` characters. Empty on failure. |
+| `quality` | `std::string` | Merged quality (ASCII). Empty on failure. Same length as `sequence`. |
 | `ee_merged` | `double` | Expected errors in merged sequence. |
 | `ee_fwd` | `double` | Expected errors from forward read. |
 | `ee_rev` | `double` | Expected errors from reverse read. |
@@ -759,10 +755,9 @@ thread-safe.
 | `rev_errors` | `int` | Mismatches attributed to reverse read. |
 | `overlap_length` | `int` | Length of overlap region. |
 
-Buffers grow as needed — there is no fixed upper bound on merged
-length. Each call to `mergepairs_single()` overwrites the pointer
-fields without freeing them, so reuse the same struct only after
-calling `merge_result_free()` between calls.
+The strings grow as needed — there is no fixed upper bound on merged
+length — and are freed with the `MergeResult` (RAII). `merge()` returns a
+fresh result by value each call, so results are always independent.
 
 ### Key options
 
@@ -781,9 +776,9 @@ calling `merge_result_free()` between calls.
 
 | Function | Description |
 |----------|-------------|
-| `mergepairs_init(parameters)` | Build the quality lookup tables. Call once before any merging; returns a `QualityTables` the caller holds and passes to `mergepairs_single()`. |
-| `mergepairs_single(tables, parameters, fwd_s, fwd_q, fwd_l, rev_s, rev_q, rev_l, fwd_h, rev_h, result)` | Merge one pair. Allocates `result->merged_sequence` / `merged_quality` via xmalloc. Returns 0 on success, -1 on failure. Thread-safe. |
-| `merge_result_free(result)` | Free the merged sequence/quality buffers and null the pointers. Null-safe on either field. |
+| `MergePairs(parameters)` | Construct a merge session. Builds the quality lookup tables once and holds them privately; reuse the session for every merge. |
+| `MergePairs::merge(parameters, fwd, rev)` | Merge one pair (`fwd`/`rev` are `MergeInput` = sequence + equal-length quality `View<char>`). Returns a `MergeResult` by value; on failure `result.merged` is `false` and the strings are empty. `const`, thread-safe. |
+| `MergeInput{sequence, quality}` | One read: two read-only `View<char>` of equal length (one quality symbol per base). |
 
 ---
 
@@ -971,7 +966,7 @@ are ordinary, non-fatal outcomes):
 | Function | Success | Failure |
 |----------|---------|---------|
 | `chimera_detect_single()` | 0 | (throws `VsearchError` on internal error) |
-| `mergepairs_single()` | 0 | -1 (merge failed; result.merged = false) |
+| `MergePairs::merge()` | `result.merged == true` | `result.merged == false` (merge failed; strings empty) |
 | All other functions | void | (throws `VsearchError` on error) |
 
 **Recommendations for embedding:**
@@ -1032,9 +1027,8 @@ Several result structs still use fixed-size character buffers:
 | `cluster_result_s.centroid_label` | 1024 chars | Silent truncation. |
 | `cluster_result_s.cigar` | 4096 chars | Truncation flagged via `cigar_truncated`. |
 
-`merge_result_s.merged_sequence` / `merged_quality` are dynamically
-allocated by `mergepairs_single()` and owned by the caller — release
-with `merge_result_free()`. `search_result_s` no longer carries a
+`MergeResult.sequence` / `quality` are `std::string`s owned by the result
+(RAII) — no caller-side release. `search_result_s` no longer carries a
 target header copy; look it up with `db.getheader(result.target)`.
 
 ### Database pointers
@@ -1084,8 +1078,8 @@ previous allocation. No action is required from the caller.
    state dependencies and can be used concurrently across sessions
    (each with its own instance).
 
-5. **Merging is stateless.** After `mergepairs_init()`, calls to
-   `mergepairs_single()` are fully independent and thread-safe.
+5. **Merging is stateless.** Once a `MergePairs` session is constructed,
+   `merge()` is `const`; calls are fully independent and thread-safe.
 
 6. **Masking:** `dust_single()` is thread-safe. `dust_all()` operates
    on the database and is single-threaded.
@@ -1149,7 +1143,7 @@ cleanup.
 | `example_merge.cc` | Paired-end merging | FASTQ quality handling, stateless API |
 | `example_dust.cc` | DUST masking | Standalone per-sequence, no init needed |
 | `example_reinit.cc` | Re-initialization | Multi-session, multi-handle, gap penalty regression |
-| `example_lifecycle.cc` | API memory/error contracts | Free null-safety, `merge_result_free` idempotency, `mergepairs_single` -1 return, result reuse |
+| `example_lifecycle.cc` | API memory/error contracts | Free null-safety, `MergeResult` RAII success/failure contracts, `MergePairs` session statelessness |
 | `example_dbinfo.cc` | Database query/indexing surface | `db.read`, statistical accessors, quality, sort ordering, incremental `dbindex.add_sequence` |
 
 ### Building examples
