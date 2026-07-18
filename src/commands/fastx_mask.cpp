@@ -153,11 +153,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
               {
                 fasta_print_general(fp_fastaout.get(),
                                     nullptr,
-                                    seq,
-                                    len,
-                                    db.getheader(i),
-                                    static_cast<int>(db.getheaderlen(i)),
-                                    db.getabundance(i),
+                                    db.record(i),
                                     kept,
                                     -1.0,
                                     -1, -1, nullptr, 0.0,

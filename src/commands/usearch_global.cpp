@@ -820,11 +820,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
                 {
                   fasta_print_general(fp_dbnotmatched.get(),
                                       nullptr,
-                                      state.db.getsequence(static_cast<uint64_t>(i)),
-                                      static_cast<int>(state.db.getsequencelen(static_cast<uint64_t>(i))),
-                                      state.db.getheader(static_cast<uint64_t>(i)),
-                                      static_cast<int>(state.db.getheaderlen(static_cast<uint64_t>(i))),
-                                      state.db.getabundance(static_cast<uint64_t>(i)),
+                                      state.db.record(static_cast<uint64_t>(i)),
                                       count_dbnotmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
