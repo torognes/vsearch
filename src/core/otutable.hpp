@@ -58,13 +58,58 @@
 
 */
 
+#pragma once
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"  // HAVE_REGEX_H
+#endif
+
 #include <cstdio>  // std::FILE
-#include <cstdint>  // int64_t
+#include <cstdint>  // int64_t, uint64_t
+#include <map>
+#include <set>
+#include <string>
+#include <utility>  // std::pair
+
+#ifdef HAVE_REGEX_H
+#include <regex.h>  // regex_t
+#endif
 
 
-auto otutable_init() -> void;
-auto otutable_done() -> void;
-auto otutable_add(char const * query_header, char const * target_header, int64_t abundance) -> void;
-auto otutable_print_otutabout(std::FILE * output_handle, struct Parameters const & parameters) -> void;
-auto otutable_print_mothur_shared_out(std::FILE * output_handle, struct Parameters const & parameters) -> void;
-auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const & parameters) -> void;
+// Identify sample and OTU identifiers in sequence headers and accumulate the
+// abundance of each sample in the different OTUs, then write the result as a
+// classic OTU table, a mothur shared file, or a biom 1.0 document. A single
+// instance owns the compiled matchers (RAII) and the accumulated counts. add()
+// mutates shared state and is not thread-safe; its callers serialize access.
+
+class OtuTable
+{
+public:
+  OtuTable();
+  ~OtuTable();
+  OtuTable(OtuTable const &) = delete;
+  auto operator=(OtuTable const &) -> OtuTable & = delete;
+
+  auto add(char const * query_header, char const * target_header, int64_t abundance) -> void;
+  auto print_otutabout(std::FILE * output_handle, struct Parameters const & parameters) const -> void;
+  auto print_mothur_shared_out(std::FILE * output_handle, struct Parameters const & parameters) const -> void;
+  auto print_biomout(std::FILE * output_handle, struct Parameters const & parameters) const -> void;
+
+private:
+  using string_set_t = std::set<std::string>;
+  using string_pair_t = std::pair<std::string, std::string>;
+  using string_pair_map_t = std::map<string_pair_t, uint64_t>;
+  using otu_tax_map_t = std::map<std::string, std::string>;
+
+#ifdef HAVE_REGEX_H
+  regex_t regex_sample_ {};
+  regex_t regex_otu_ {};
+  regex_t regex_tax_ {};
+#endif
+
+  string_set_t otu_set_;
+  string_set_t sample_set_;
+  string_pair_map_t sample_otu_count_;
+  string_pair_map_t otu_sample_count_;
+  otu_tax_map_t otu_tax_map_;
+};

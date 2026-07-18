@@ -149,6 +149,10 @@ struct cluster_cli_state_s
   std::FILE * fp_otutabout = nullptr;
   std::FILE * fp_mothur_shared_out = nullptr;
   std::FILE * fp_biomout = nullptr;
+  /* accumulates the OTU table for the outputs above; populated by add() from
+     the single-threaded results-emission loop, replacing the former
+     file-static singleton */
+  OtuTable otutable;
   std::FILE * fp_qsegout = nullptr;
   std::FILE * fp_tsegout = nullptr;
 
@@ -408,12 +412,12 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                      db.getsequence(static_cast<uint64_t>(best->target)),
                                      static_cast<int>(db.getsequencelen(static_cast<uint64_t>(best->target))),
                                      state.parameters);
-          otutable_add(query_head, label, qsize);
+          state.otutable.add(query_head, label, qsize);
           xfree(label);
         }
       else
         {
-          otutable_add(query_head,
+          state.otutable.add(query_head,
                        db.getheader(static_cast<uint64_t>(best->target)),
                        qsize);
         }
@@ -525,12 +529,12 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
           char * label = relabel_otu(clusterno, qsequence, qseqlen, state.parameters);
-          otutable_add(query_head, label, qsize);
+          state.otutable.add(query_head, label, qsize);
           xfree(label);
         }
       else
         {
-          otutable_add(query_head, query_head, qsize);
+          state.otutable.add(query_head, query_head, qsize);
         }
     }
 
@@ -1191,8 +1195,6 @@ auto cluster(char const * dbname,
 
   state.db.read(dbname, 0, parameters);
 
-  otutable_init();
-
   results_show_samheader(fp_samout, dbname, state.db, parameters);
 
   if (parameters.opt_qmask == Masking::dust)
@@ -1562,23 +1564,21 @@ auto cluster(char const * dbname,
 
   if (fp_biomout != nullptr)
     {
-      otutable_print_biomout(fp_biomout, parameters);
+      state.otutable.print_biomout(fp_biomout, parameters);
       biomout_handle.reset();
     }
 
   if (fp_otutabout != nullptr)
     {
-      otutable_print_otutabout(fp_otutabout, parameters);
+      state.otutable.print_otutabout(fp_otutabout, parameters);
       otutabout_handle.reset();
     }
 
   if (fp_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(fp_mothur_shared_out, parameters);
+      state.otutable.print_mothur_shared_out(fp_mothur_shared_out, parameters);
       mothur_shared_out_handle.reset();
     }
-
-  otutable_done();
 
   /* reset() is a no-op on an empty handle, so unopened outputs need
      no guard; only userout carries extra teardown. */

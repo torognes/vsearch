@@ -141,6 +141,9 @@ struct search_cli_state_s
   OutputFileHandle fp_otutabout;
   OutputFileHandle fp_mothur_shared_out;
   OutputFileHandle fp_biomout;
+  /* accumulates the OTU table for the outputs above; the workers mutate it via
+     add() under mutex_output, replacing the former file-static singleton */
+  OtuTable otutable;
   OutputFileHandle fp_lcaout;
   OutputFileHandle fp_qsegout;
   OutputFileHandle fp_tsegout;
@@ -205,7 +208,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
-          otutable_add(query_head,
+          state.otutable.add(query_head,
                        state.db.getheader(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
@@ -289,7 +292,7 @@ static auto search_output_results(struct search_cli_state_s & state,
     {
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
-          otutable_add(query_head,
+          state.otutable.add(query_head,
                        nullptr,
                        qsize);
         }
@@ -665,8 +668,6 @@ auto usearch_global(struct Parameters const & parameters) -> void
   dbmatched = static_cast<uint64_t *>(xmalloc(static_cast<size_t>(seqcount) * sizeof(uint64_t)));
   std::memset(dbmatched, 0, static_cast<size_t>(seqcount) * sizeof(uint64_t));
 
-  otutable_init();
-
   /* prepare reading of queries */
   qmatches = 0;
   qmatches_abundance = 0;
@@ -763,30 +764,28 @@ auto usearch_global(struct Parameters const & parameters) -> void
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < seqcount; i++) {
       if (dbmatched[i] == 0U) {
-        otutable_add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
+        state.otutable.add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
       }
     }
   }
 
   if (parameters.opt_biomout != nullptr)
     {
-      otutable_print_biomout(state.fp_biomout.get(), state.parameters);
+      state.otutable.print_biomout(state.fp_biomout.get(), state.parameters);
       state.fp_biomout.reset();
     }
 
   if (parameters.opt_otutabout != nullptr)
     {
-      otutable_print_otutabout(state.fp_otutabout.get(), state.parameters);
+      state.otutable.print_otutabout(state.fp_otutabout.get(), state.parameters);
       state.fp_otutabout.reset();
     }
 
   if (parameters.opt_mothur_shared_out != nullptr)
     {
-      otutable_print_mothur_shared_out(state.fp_mothur_shared_out.get(), state.parameters);
+      state.otutable.print_mothur_shared_out(state.fp_mothur_shared_out.get(), state.parameters);
       state.fp_mothur_shared_out.reset();
     }
-
-  otutable_done();
 
   if ((parameters.opt_dbmatched != nullptr) || (parameters.opt_dbnotmatched != nullptr))
     {

@@ -58,6 +58,7 @@
 
 */
 
+#include "otutable.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
@@ -106,51 +107,28 @@ const std::regex regex_tax("(^|;)tax=([^;]*)($|;)",
                            std::regex::extended);
 #endif
 
-using string_set_t = std::set<std::string>;
-using string_pair_t = std::pair<std::string, std::string>;
-using string_pair_map_t = std::map<string_pair_t, uint64_t>;
-using otu_tax_map_t = std::map<std::string, std::string>;
 using string_no_map_t = std::map<std::string, uint64_t>;
 
-struct otutable_s
+
+OtuTable::OtuTable()
 {
-#ifdef HAVE_REGEX_H
-  regex_t regex_sample;
-  regex_t regex_otu;
-  regex_t regex_tax;
-#endif
-
-  string_set_t otu_set;
-  string_set_t sample_set;
-  string_pair_map_t sample_otu_count;
-  string_pair_map_t otu_sample_count;
-  otu_tax_map_t otu_tax_map;
-};
-
-static otutable_s * otutable;
-
-
-auto otutable_init() -> void
-{
-  otutable = new otutable_s;
-
 #ifdef HAVE_REGEX_H
   /* compile regular expression matchers */
-  if (regcomp(&otutable->regex_sample,
+  if (regcomp(&regex_sample_,
               "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
               REG_EXTENDED) != 0)
     {
       fatal("Compilation of regular expression for sample annotation failed");
     }
 
-  if (regcomp(&otutable->regex_otu,
+  if (regcomp(&regex_otu_,
               "(^|;)otu=([^;]*)($|;)",
               REG_EXTENDED) != 0)
     {
       fatal("Compilation of regular expression for otu annotation failed");
     }
 
-  if (regcomp(&otutable->regex_tax,
+  if (regcomp(&regex_tax_,
               "(^|;)tax=([^;]*)($|;)",
               REG_EXTENDED) != 0)
     {
@@ -160,23 +138,17 @@ auto otutable_init() -> void
 }
 
 
-auto otutable_done() -> void
+OtuTable::~OtuTable()
 {
 #ifdef HAVE_REGEX_H
-  regfree(&otutable->regex_sample);
-  regfree(&otutable->regex_otu);
-  regfree(&otutable->regex_tax);
+  regfree(&regex_sample_);
+  regfree(&regex_otu_);
+  regfree(&regex_tax_);
 #endif
-
-  otutable->otu_set.clear();
-  otutable->sample_set.clear();
-  otutable->sample_otu_count.clear();
-  otutable->otu_sample_count.clear();
-  delete otutable;
 }
 
 
-auto otutable_add(char const * query_header, char const * target_header, int64_t const abundance) -> void
+auto OtuTable::add(char const * query_header, char const * target_header, int64_t const abundance) -> void
 {
   /* read sample annotation in query */
 
@@ -188,7 +160,7 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
     {
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 5> pmatch_sample {{}};
-      if (regexec(&otutable->regex_sample, query_header, 5, pmatch_sample.data(), 0) == 0)
+      if (regexec(&regex_sample_, query_header, 5, pmatch_sample.data(), 0) == 0)
         {
           /* match: use the matching sample name */
           len_sample = static_cast<std::size_t>(pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so);
@@ -228,7 +200,7 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
     {
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 4> pmatch_otu {{}};
-      if (regexec(&otutable->regex_otu, target_header, 4, pmatch_otu.data(), 0) == 0)
+      if (regexec(&regex_otu_, target_header, 4, pmatch_otu.data(), 0) == 0)
         {
           /* match: use the matching otu name */
           len_otu = static_cast<std::size_t>(pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so);
@@ -256,7 +228,7 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
 
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 4> pmatch_tax {{}};
-      if (regexec(&otutable->regex_tax, target_header, 4, pmatch_tax.data(), 0) == 0)
+      if (regexec(&regex_tax_, target_header, 4, pmatch_tax.data(), 0) == 0)
         {
           /* match: use the matching tax name */
           std::size_t const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
@@ -266,13 +238,13 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
           std::vector<char> tax_name(len_tax + 1);
           std::copy(start_tax, start_tax + len_tax, tax_name.begin());
           tax_name[len_tax] = '\0';
-          otutable->otu_tax_map[otu_name.data()] = tax_name.data();
+          otu_tax_map_[otu_name.data()] = tax_name.data();
         }
 #else
       std::cmatch cmatch_tax;
       if (std::regex_search(target_header, cmatch_tax, regex_tax))
         {
-          otutable->otu_tax_map[otu_name.data()] = cmatch_tax.str(2);
+          otu_tax_map_[otu_name.data()] = cmatch_tax.str(2);
         }
 #endif
     }
@@ -280,51 +252,51 @@ auto otutable_add(char const * query_header, char const * target_header, int64_t
   /* store data */
 
   if (not sample_name.empty()) {
-    otutable->sample_set.insert(sample_name.data());
+    sample_set_.insert(sample_name.data());
   }
 
   if (not otu_name.empty()) {
-    otutable->otu_set.insert(otu_name.data());
+    otu_set_.insert(otu_name.data());
   }
 
   if ((not sample_name.empty()) and (not otu_name.empty()) and (abundance != 0))
     {
-      otutable->sample_otu_count[string_pair_t(sample_name.data(), otu_name.data())] += static_cast<uint64_t>(abundance);
-      otutable->otu_sample_count[string_pair_t(otu_name.data(), sample_name.data())] += static_cast<uint64_t>(abundance);
+      sample_otu_count_[string_pair_t(sample_name.data(), otu_name.data())] += static_cast<uint64_t>(abundance);
+      otu_sample_count_[string_pair_t(otu_name.data(), sample_name.data())] += static_cast<uint64_t>(abundance);
     }
 
 }
 
 
-auto otutable_print_otutabout(std::FILE * output_handle, struct Parameters const & parameters) -> void
+auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters const & parameters) const -> void
 {
   int64_t progress = 0;
-  Progress progress_bar("Writing OTU table (classic)", otutable->otu_set.size(), parameters);
+  Progress progress_bar("Writing OTU table (classic)", otu_set_.size(), parameters);
 
   std::fprintf(output_handle, "#OTU ID");
-  for (auto const & it_sample : otutable->sample_set)
+  for (auto const & it_sample : sample_set_)
     {
       std::fprintf(output_handle, "\t%s", it_sample.c_str());
     }
-  if (not otutable->otu_tax_map.empty())
+  if (not otu_tax_map_.empty())
     {
       std::fprintf(output_handle, "\ttaxonomy");
     }
   std::fprintf(output_handle, "\n");
 
-  auto it_map = otutable->otu_sample_count.begin();
-  for (auto it_otu = otutable->otu_set.begin();
-       it_otu != otutable->otu_set.end();
+  auto it_map = otu_sample_count_.begin();
+  for (auto it_otu = otu_set_.begin();
+       it_otu != otu_set_.end();
        ++it_otu)
     {
       std::fprintf(output_handle, "%s", it_otu->c_str());
 
-      for (auto it_sample = otutable->sample_set.begin();
-           it_sample != otutable->sample_set.end();
+      for (auto it_sample = sample_set_.begin();
+           it_sample != sample_set_.end();
            ++it_sample)
         {
           uint64_t a = 0;
-          if ((it_map != otutable->otu_sample_count.end()) and
+          if ((it_map != otu_sample_count_.end()) and
               (it_map->first.first == *it_otu) and
               (it_map->first.second == *it_sample))
             {
@@ -333,12 +305,12 @@ auto otutable_print_otutabout(std::FILE * output_handle, struct Parameters const
             }
           std::fprintf(output_handle, "\t%" PRIu64, a);
         }
-      if (not otutable->otu_tax_map.empty())
+      if (not otu_tax_map_.empty())
         {
           std::fprintf(output_handle, "\t");
           auto it
-            = otutable->otu_tax_map.find(*it_otu);
-          if (it != otutable->otu_tax_map.end())
+            = otu_tax_map_.find(*it_otu);
+          if (it != otu_tax_map_.end())
             {
               std::fprintf(output_handle, "%s", it->second.c_str());
             }
@@ -349,14 +321,14 @@ auto otutable_print_otutabout(std::FILE * output_handle, struct Parameters const
 }
 
 
-auto otutable_print_mothur_shared_out(std::FILE * output_handle, struct Parameters const & parameters) -> void
+auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Parameters const & parameters) const -> void
 {
   int64_t progress = 0;
-  Progress progress_bar("Writing OTU table (mothur)", otutable->sample_set.size(), parameters);
+  Progress progress_bar("Writing OTU table (mothur)", sample_set_.size(), parameters);
 
   std::fprintf(output_handle, "label\tGroup\tnumOtus");
   int64_t numotus = 0;
-  for (auto const & it_otu : otutable->otu_set)
+  for (auto const & it_otu : otu_set_)
     {
       char const * otu_name = it_otu.c_str();
       std::fprintf(output_handle, "\t%s", otu_name);
@@ -364,20 +336,20 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle, struct Paramete
     }
   std::fprintf(output_handle, "\n");
 
-  auto it_map = otutable->sample_otu_count.begin();
+  auto it_map = sample_otu_count_.begin();
 
-  for (auto it_sample = otutable->sample_set.begin();
-       it_sample != otutable->sample_set.end();
+  for (auto it_sample = sample_set_.begin();
+       it_sample != sample_set_.end();
        ++it_sample)
     {
       std::fprintf(output_handle, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
 
-      for (auto it_otu = otutable->otu_set.begin();
-           it_otu != otutable->otu_set.end();
+      for (auto it_otu = otu_set_.begin();
+           it_otu != otu_set_.end();
            ++it_otu)
         {
           uint64_t a = 0;
-          if ((it_map != otutable->sample_otu_count.end()) and
+          if ((it_map != sample_otu_count_.end()) and
               (it_map->first.first == *it_sample) and
               (it_map->first.second == *it_otu))
             {
@@ -393,13 +365,13 @@ auto otutable_print_mothur_shared_out(std::FILE * output_handle, struct Paramete
 }
 
 
-auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const & parameters) -> void
+auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const & parameters) const -> void
 {
   int64_t progress = 0;
-  Progress progress_bar("Writing OTU table (biom 1.0)", otutable->otu_sample_count.size(), parameters);
+  Progress progress_bar("Writing OTU table (biom 1.0)", otu_sample_count_.size(), parameters);
 
-  int64_t const rows = static_cast<int64_t>(otutable->otu_set.size());
-  int64_t const columns = static_cast<int64_t>(otutable->sample_set.size());
+  int64_t const rows = static_cast<int64_t>(otu_set_.size());
+  int64_t const columns = static_cast<int64_t>(sample_set_.size());
 
   static std::string const date = iso8601_local_timestamp();
 
@@ -424,25 +396,25 @@ auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const &
   uint64_t otu_no = 0;
 
   std::fprintf(output_handle, "\t\"rows\":[");
-  for (auto it_otu = otutable->otu_set.begin();
-       it_otu != otutable->otu_set.end();
+  for (auto it_otu = otu_set_.begin();
+       it_otu != otu_set_.end();
        ++it_otu)
     {
-      if (it_otu != otutable->otu_set.begin())
+      if (it_otu != otu_set_.begin())
         {
           std::fprintf(output_handle, ",");
         }
       char const * otu_name = it_otu->c_str();
       std::fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
-      if (otutable->otu_tax_map.empty())
+      if (otu_tax_map_.empty())
         {
           std::fprintf(output_handle, "null");
         }
       else
         {
           std::fprintf(output_handle, R"({"taxonomy":")");
-          auto it = otutable->otu_tax_map.find(otu_name);
-          if (it != otutable->otu_tax_map.end())
+          auto it = otu_tax_map_.find(otu_name);
+          if (it != otu_tax_map_.end())
             {
               fprintf(output_handle, "%s", it->second.c_str());
             }
@@ -459,11 +431,11 @@ auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const &
   uint64_t sample_no = 0;
 
   std::fprintf(output_handle, "\t\"columns\":[");
-  for (auto it_sample = otutable->sample_set.begin();
-       it_sample != otutable->sample_set.end();
+  for (auto it_sample = sample_set_.begin();
+       it_sample != sample_set_.end();
        ++it_sample)
     {
-      if (it_sample != otutable->sample_set.begin())
+      if (it_sample != sample_set_.begin())
         {
           std::fprintf(output_handle, ",");
         }
@@ -475,7 +447,7 @@ auto otutable_print_biomout(std::FILE * output_handle, struct Parameters const &
   auto first = true;
   std::fprintf(output_handle, "\t\"data\": [");
 
-  for (auto const & it_map : otutable->otu_sample_count)
+  for (auto const & it_map : otu_sample_count_)
     {
       if (not first)
         {
