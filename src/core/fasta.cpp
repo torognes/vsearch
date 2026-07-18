@@ -638,6 +638,36 @@ auto fasta_print_general(std::FILE * output_handle,
 }
 
 
+auto fasta_print_general(std::FILE * output_handle,
+                         char const * prefix,
+                         DbRecord const & record,
+                         int64_t const ordinal,
+                         double const expected_error,
+                         int64_t const clustersize,
+                         int const clusterid,
+                         char const * score_name,
+                         double const score,
+                         uint64_t const centroid_size,
+                         struct Parameters const & parameters) -> void
+{
+  fasta_print_general(output_handle,
+                      prefix,
+                      record.sequence.data(),
+                      static_cast<int>(record.sequence.size()),
+                      record.header.data(),
+                      static_cast<int>(record.header.size()),
+                      record.abundance,
+                      ordinal,
+                      expected_error,
+                      clustersize,
+                      clusterid,
+                      score_name,
+                      score,
+                      centroid_size,
+                      parameters);
+}
+
+
 // A single uint64_t ordinal parameter: it is the widest unsigned type, so
 // every caller (passing int, size_t or uint64_t, all non-negative 1-based
 // counters) converts without narrowing or sign-change. Two overloads taking
@@ -651,11 +681,7 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
 {
   fasta_print_general(output_handle,
                       nullptr,
-                      db.getsequence(seqno),
-                      static_cast<int>(db.getsequencelen(seqno)),
-                      db.getheader(seqno),
-                      static_cast<int>(db.getheaderlen(seqno)),
-                      db.getabundance(seqno),
+                      db.record(seqno),
                       static_cast<int64_t>(ordinal),
                       -1.0,
                       -1, -1,
@@ -671,11 +697,7 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t const seqno,
 {
   fasta_print_general(output_handle,
                       nullptr,
-                      db.getsequence(seqno),
-                      static_cast<int>(db.getsequencelen(seqno)),
-                      db.getheader(seqno),
-                      static_cast<int>(db.getheaderlen(seqno)),
-                      db.getabundance(seqno),
+                      db.record(seqno),
                       0,
                       -1.0,
                       -1, -1,
