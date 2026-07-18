@@ -65,7 +65,6 @@
 #include "core/dbindex.hpp"
 #include "core/linmemalign.hpp"
 #include "core/minheap.hpp"
-#include "core/otutable.hpp"
 #include "core/searchcore.hpp"  // struct hit, struct searchinfo_s
 #include "core/unique.hpp"
 #include "os/system.hpp"  // xfree
