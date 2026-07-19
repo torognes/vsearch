@@ -188,7 +188,6 @@ utils/reverse_complement.hpp \
 utils/seqcmp.hpp \
 utils/sequence_digest.hpp \
 utils/span.hpp \
-utils/string_alloc.hpp \
 utils/string_normalize.hpp \
 utils/taxonomic_fields.h \
 utils/threads.hpp \
@@ -367,7 +366,6 @@ utils/cityhash.cpp \
 utils/random.cpp \
 utils/reverse_complement.cpp \
 utils/sequence_digest.cpp \
-utils/string_alloc.cpp \
 utils/string_normalize.cpp \
 commands/version.cpp
 
