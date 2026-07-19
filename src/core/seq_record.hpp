@@ -66,7 +66,7 @@
 /* A read-only bundle of one sequence record's three stored strings: the header,
    the sequence and (FASTQ-only) the quality, each a non-owning View<char> into a
    shared buffer -- the in-memory Database (Database::record()) or a fastx reader
-   handle (fastx_record()). The quality view is empty for a FASTA record. It suits
+   handle (fastx_s::record()). The quality view is empty for a FASTA record. It suits
    the record-emit paths (e.g. FASTA/FASTQ printing) that consume the whole record
    together; the per-field view accessors remain for callers that need only one.
 
@@ -78,9 +78,9 @@
 
    It has no default member initializers, so it stays a C++11 aggregate (a
    brace-or-equal initializer on any member would disqualify it, unlike C++14),
-   letting record()/fastx_record() build it with aggregate initialization; View
-   has no default constructor, so a field-less SeqRecord cannot be built by
-   accident either. */
+   letting Database::record()/fastx_s::record() build it with aggregate
+   initialization. View is default-constructible (yielding an empty view), so a
+   FASTA record's absent quality field can be written as `{}`. */
 struct SeqRecord
 {
   View<char> header;

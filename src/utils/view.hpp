@@ -79,6 +79,10 @@
 template <typename Type = char>
 class View {
 public:
+  // Empty view (null pointer, zero length) via the in-class member initializers;
+  // the explicit constructor below otherwise suppresses the implicit default.
+  View() noexcept = default;
+
   explicit View(Type const * start, std::size_t const length) noexcept
     : start_ {start},
       length_ {length} {
