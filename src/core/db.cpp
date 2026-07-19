@@ -171,16 +171,16 @@ auto Database::getquality(uint64_t seqno) const -> char const *
 
 
 auto Database::add(bool const is_fastq_record,
-                   char const * header,
-                   char const * sequence,
-                   char const * quality,
-                   size_t const headerlength,
-                   size_t const sequencelength,
+                   SeqRecord const & record,
                    int64_t const abundance) -> void
 {
   /* Add a sequence to the database. Assumes that the database has been initialized. */
 
-  /* grow space for data, if necessary (memchunk-stepped, as the raw buffer was) */
+  auto const headerlength = record.header.size();
+  auto const sequencelength = record.sequence.size();
+
+  /* grow space for data, if necessary (memchunk-stepped, as the raw buffer was);
+     each stored string is followed by a terminating NUL, hence the +1s. */
   size_t needed = data_.size() + headerlength + 1 + sequencelength + 1;
   if (is_fastq_record)
     {
@@ -188,19 +188,23 @@ auto Database::add(bool const is_fastq_record,
     }
   reserve_in_chunks(data_, needed);
 
-  /* store the header */
+  /* store the header, then a terminating NUL (the views need not be
+     NUL-terminated, so add() appends the terminator itself) */
   size_t const header_p = data_.size();
-  data_.insert(data_.end(), header, header + headerlength + 1);
+  data_.insert(data_.end(), record.header.begin(), record.header.end());
+  data_.push_back('\0');
 
-  /* store sequence */
+  /* store the sequence, then a terminating NUL */
   size_t const sequence_p = data_.size();
-  data_.insert(data_.end(), sequence, sequence + sequencelength + 1);
+  data_.insert(data_.end(), record.sequence.begin(), record.sequence.end());
+  data_.push_back('\0');
 
   size_t const quality_p = data_.size();
   if (is_fastq_record)
     {
-      /* store quality */
-      data_.insert(data_.end(), quality, quality + sequencelength + 1);
+      /* store the quality, then a terminating NUL */
+      data_.insert(data_.end(), record.quality.begin(), record.quality.end());
+      data_.push_back('\0');
 
       /* A FASTQ record makes this a FASTQ database. read() sets the is_fastq
          flag itself before adding records, but callers that build a database
@@ -211,14 +215,14 @@ auto Database::add(bool const is_fastq_record,
 
   /* grow space for the index, if necessary, then append the entry */
   reserve_in_chunks(seqindex_, seqindex_.size() + 1);
-  seqinfo_t record;
-  record.headerlen = static_cast<unsigned int>(headerlength);
-  record.seqlen = static_cast<unsigned int>(sequencelength);
-  record.header_p = header_p;
-  record.seq_p = sequence_p;
-  record.qual_p = quality_p;
-  record.size = static_cast<uint64_t>(abundance);
-  seqindex_.push_back(record);
+  seqinfo_t entry;
+  entry.headerlen = static_cast<unsigned int>(headerlength);
+  entry.seqlen = static_cast<unsigned int>(sequencelength);
+  entry.header_p = header_p;
+  entry.seq_p = sequence_p;
+  entry.qual_p = quality_p;
+  entry.size = static_cast<uint64_t>(abundance);
+  seqindex_.push_back(entry);
 
   /* update statistics */
   ++sequences;
@@ -286,13 +290,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
           }
         else
           {
-            add(fastq_format,
-                input_handle->get_header(),
-                input_handle->get_sequence(),
-                fastq_format ? input_handle->get_quality() : nullptr,
-                input_handle->get_header_length(),
-                sequencelength,
-                abundance);
+            add(fastq_format, input_handle->record(), abundance);
           }
         progress.update(input_handle->get_position());
       }

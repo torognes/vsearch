@@ -136,13 +136,13 @@ public:
 
   auto init() -> void;
 
-  auto add(bool is_fastq_record,
-           char const * header,
-           char const * sequence,
-           char const * quality,
-           std::size_t headerlength,
-           std::size_t sequencelength,
-           int64_t abundance) -> void;
+  /* Append one record to the database. The header/sequence/(FASTQ) quality are
+     bundled as a SeqRecord of non-owning views (from a reader's record() or
+     built by a library caller); is_fastq_record says whether the quality view
+     carries a quality string (an empty quality view otherwise). The views need
+     not be NUL-terminated: add() copies exactly each view's size() bytes and
+     appends its own terminator. */
+  auto add(bool is_fastq_record, SeqRecord const & record, int64_t abundance) -> void;
 
   auto read(char const * filename, int upcase, struct Parameters const & parameters) -> void;
   auto clear() -> void;
