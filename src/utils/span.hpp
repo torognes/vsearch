@@ -75,7 +75,6 @@
 // TODO:
 //  - add friend function for custom hashing,
 //  - goal is to be able to build std::map and std::set of Span<char>
-//  - mark member functions as noexcept, use gcc -Wnoexcept to catch mismatches
 
 
 // simple version of std::span (C++20)
