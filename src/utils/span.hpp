@@ -88,9 +88,9 @@ class Span {
 public:
   // Empty span (null pointer, zero length) via the in-class member initializers;
   // the explicit constructors below otherwise suppress the implicit default.
-  Span() = default;
+  Span() noexcept = default;
 
-  explicit Span(Type * start, std::size_t const length)
+  explicit Span(Type * start, std::size_t const length) noexcept
     : start_ {start},
       length_ {length} {
     assert((start != nullptr) or (length == 0));
@@ -109,69 +109,69 @@ public:
   }
 
   // Iterators
-  auto begin() const -> Type * { return data(); }
-  auto cbegin() const -> Type const * { return data(); }
-  auto end() const -> Type * {
+  auto begin() const noexcept -> Type * { return data(); }
+  auto cbegin() const noexcept -> Type const * { return data(); }
+  auto end() const noexcept -> Type * {
     auto const distance = static_cast<std::ptrdiff_t>(size());
     return std::next(data(), distance);
   }
-  auto cend() const -> Type const * {
+  auto cend() const noexcept -> Type const * {
     return end();
   }
-  auto rbegin() const -> std::reverse_iterator<Type *> {
+  auto rbegin() const noexcept -> std::reverse_iterator<Type *> {
     return std::reverse_iterator<Type *>(end());
   }
-  auto crbegin() const -> std::reverse_iterator<Type const *> {
+  auto crbegin() const noexcept -> std::reverse_iterator<Type const *> {
     return std::reverse_iterator<Type const *>(cend());
   }
-  auto rend() const -> std::reverse_iterator<Type *> {
+  auto rend() const noexcept -> std::reverse_iterator<Type *> {
     return std::reverse_iterator<Type *>(begin());
   }
-  auto crend() const -> std::reverse_iterator<Type const *> {
+  auto crend() const noexcept -> std::reverse_iterator<Type const *> {
     return std::reverse_iterator<Type const *>(cbegin());
   }
 
   // Element access
   // C++17 refactoring: [[nodiscard]]
-  auto front() const -> Type const & {
+  auto front() const noexcept -> Type const & {
     assert(not empty());
     return *data();
   }
-  auto back() const -> Type const & {
+  auto back() const noexcept -> Type const & {
     assert(not empty());
     return *std::prev(end());
   }
-  auto data() const -> Type * { return start_; }
-  auto operator[](std::size_t const index) const -> Type & {
+  auto data() const noexcept -> Type * { return start_; }
+  auto operator[](std::size_t const index) const noexcept -> Type & {
     assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
     return *std::next(data(), distance);
   }
 
   // Observers
-  auto size() const -> std::size_t { return length_; }
-  auto size_bytes() const -> std::size_t {
+  auto size() const noexcept -> std::size_t { return length_; }
+  auto size_bytes() const noexcept -> std::size_t {
     assert(size() <= (max_size / sizeof(Type)));
     return size() * sizeof(Type);
   }
-  auto empty() const -> bool { return size() == 0; }
+  auto empty() const noexcept -> bool { return size() == 0; }
 
   // Subviews
-  auto subspan(std::size_t const offset, std::size_t const count) const -> Span {
+  auto subspan(std::size_t const offset, std::size_t const count) const noexcept -> Span {
     assert(offset <= size());
     assert(count <= size() - offset);
     auto const distance = static_cast<std::ptrdiff_t>(offset);
     auto * new_start = std::next(data(), distance);
     return Span{new_start, count};
   }
-  auto first(std::size_t const count) const -> Span {
+  auto first(std::size_t const count) const noexcept -> Span {
     return subspan(0, count);
   }
-  auto last(std::size_t const count) const -> Span {
+  auto last(std::size_t const count) const noexcept -> Span {
     assert(count <= size());
     return subspan(size() - count, count);
   }
-  auto drop(std::size_t const count) const -> Span {
+  auto drop(std::size_t const count) const noexcept -> Span {
     // drop n first items, return empty if n is >= size()
     auto const offset = std::min(count, size());
     assert(offset <= size());
