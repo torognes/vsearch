@@ -98,13 +98,6 @@ public:
     assert(length <= max_ptrdiff);
   }
 
-  explicit Span(Type const * start, std::size_t const length)
-    : start_ {const_cast<Type *>(start)},
-      length_ {length} {
-    assert((start != nullptr) or (length == 0));
-    assert(length <= max_ptrdiff);
-  }
-
   // Operators
   auto operator==(Span<Type> const & other) const -> bool {
     return size() == other.size()
