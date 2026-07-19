@@ -76,6 +76,7 @@
 #include "core/unique.hpp"
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
+#include "utils/make_unique.hpp"  // make_unique
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/span.hpp"
@@ -2841,7 +2842,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
   ci->api_allhits_list.resize(maxcandidates);
 
   struct Scoring scoring = scoring_from_options(parameters);
-  ci->api_lma_ptr.reset(new LinearMemoryAligner(scoring));
+  ci->api_lma_ptr = make_unique<LinearMemoryAligner>(scoring);
 }
 
 

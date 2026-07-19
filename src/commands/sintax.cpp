@@ -107,6 +107,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <cstring>  // std::memset, std::strncmp, std::strcpy
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
+#include <vector>  // std::vector
 
 
 constexpr auto subset_size = 32;
@@ -124,8 +125,8 @@ struct sintax_state_s
   struct Parameters const & parameters;
   struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
-  struct searchinfo_s * si_plus = nullptr;
-  struct searchinfo_s * si_minus = nullptr;
+  std::vector<searchinfo_s> si_plus;
+  std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
   fastx_handle query_fastx_h = nullptr;
@@ -410,8 +411,8 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
 static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> void
 {
-  struct searchinfo_s * const si_plus = state.si_plus;
-  struct searchinfo_s * const si_minus = state.si_minus;
+  struct searchinfo_s * const si_plus = state.si_plus.data();
+  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
 
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
   std::array<int, 2> boot_count = {0, 0};
@@ -525,8 +526,8 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
   std::mutex & mutex_input = state.mutex_input;
   std::mutex & mutex_output = state.mutex_output;
   fastx_handle const query_fastx_h = state.query_fastx_h;
-  struct searchinfo_s * const si_plus = state.si_plus;
-  struct searchinfo_s * const si_minus = state.si_minus;
+  struct searchinfo_s * const si_plus = state.si_plus.data();
+  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
 
   uint64_t progress = 0;
 
@@ -639,8 +640,8 @@ static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 
 static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
 {
-  struct searchinfo_s * const si_plus = state.si_plus;
-  struct searchinfo_s * const si_minus = state.si_minus;
+  struct searchinfo_s * const si_plus = state.si_plus.data();
+  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
 
   /* init per-thread search state before the workers start */
   for (auto t = 0; t < state.parameters.opt_threads; t++)
@@ -735,14 +736,10 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* allocate memory for thread info */
 
-  si_plus = new searchinfo_s[parameters.opt_threads]{};
+  si_plus.resize(static_cast<std::size_t>(parameters.opt_threads));
   if (parameters.opt_strand)
     {
-      si_minus = new searchinfo_s[parameters.opt_threads]{};
-    }
-  else
-    {
-      si_minus = nullptr;
+      si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
     }
 
   /* run */
@@ -783,11 +780,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* clean up */
 
-  delete [] si_plus;
-  if (si_minus != nullptr)
-    {
-      delete [] si_minus;
-    }
+  /* si_plus/si_minus are std::vector members of state (RAII) */
 
   query_fastx_h->report_stripped_warning(parameters);
 

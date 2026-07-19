@@ -113,8 +113,8 @@ struct search_cli_state_s
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   int tophits = 0;   /* the maximum number of hits to keep */
   int seqcount = 0;  /* number of database sequences */
-  struct searchinfo_s * si_plus = nullptr;
-  struct searchinfo_s * si_minus = nullptr;
+  std::vector<searchinfo_s> si_plus;
+  std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
   fastx_handle query_fastx_h = nullptr;
   std::mutex mutex_input;   /* serializes query reads */
   std::mutex mutex_output;  /* serializes output + counter updates */
@@ -383,8 +383,8 @@ static auto search_output_results(struct search_cli_state_s & state,
 
 static auto search_query(struct search_cli_state_s & state, uint64_t const t) -> int
 {
-  struct searchinfo_s * const si_plus = state.si_plus;
-  struct searchinfo_s * const si_minus = state.si_minus;
+  struct searchinfo_s * const si_plus = state.si_plus.data();
+  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
 
   for (int s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
     {
@@ -427,7 +427,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
 static auto search_thread_run(struct search_cli_state_s & state, uint64_t const t) -> void
 {
   auto const query_fastx_h = state.query_fastx_h;
-  struct searchinfo_s * const si_plus = state.si_plus;
+  struct searchinfo_s * const si_plus = state.si_plus.data();
 
   int query_head_len = 0;
   int qseqlen = 0;
@@ -467,7 +467,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
   auto const process_query = [&]() {
     if (state.parameters.opt_strand)
       {
-        populate_si(state.si_minus + t,
+        populate_si(state.si_minus.data() + t,
                     si_plus[t].query_head.data(),
                     query_head_len,
                     si_plus[t].qsequence.data(),
@@ -502,8 +502,8 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
 
 static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
 {
-  struct searchinfo_s * const si_plus = state.si_plus;
-  struct searchinfo_s * const si_minus = state.si_minus;
+  struct searchinfo_s * const si_plus = state.si_plus.data();
+  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
   int const seqcount = state.seqcount;
   int const tophits = state.tophits;
 
@@ -681,14 +681,10 @@ auto usearch_global(struct Parameters const & parameters) -> void
   query_fastx_h->enable_deferred_errors();
 
   /* allocate memory for thread info */
-  si_plus = new searchinfo_s[parameters.opt_threads]{};
+  si_plus.resize(static_cast<std::size_t>(parameters.opt_threads));
   if (parameters.opt_strand)
     {
-      si_minus = new searchinfo_s[parameters.opt_threads]{};
-    }
-  else
-    {
-      si_minus = nullptr;
+      si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
     }
 
   {
@@ -704,11 +700,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
       fatal("%s", query_fastx_h->get_errmsg());
     }
 
-  delete [] si_plus;
-  if (si_minus != nullptr)
-    {
-      delete [] si_minus;
-    }
+  /* si_plus/si_minus are std::vector members of state (RAII) */
 
   query_fastx_h->report_stripped_warning(parameters);
 
