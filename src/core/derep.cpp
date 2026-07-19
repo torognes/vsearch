@@ -65,14 +65,12 @@
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
-#include "os/system.hpp"  // xfree
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/cityhash.hpp"
 #include "utils/reverse_complement.hpp"
-#include "utils/string_alloc.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::count_if, std::min, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -80,9 +78,10 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::ldiv
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstring>  // std::strlen, std::strcmp
+#include <cstring>  // std::strcmp
 #include <limits>
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 
@@ -107,9 +106,9 @@ namespace {
     unsigned int count = 0;
     unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
     bool deleted = false;
-    char * header = nullptr;
-    char * seq = nullptr;
-    char * qual = nullptr;
+    std::string header;
+    std::string seq;
+    std::string qual;  /* empty when FASTA (no quality) */
   };
 }
 
@@ -121,14 +120,15 @@ static auto rehash(std::vector<struct bucket> & hashtable) -> void
   uint64_t const new_hash_mask = new_hashtable_size - 1;
   std::vector<struct bucket> new_hashtable(new_hashtable_size);
 
-  // rehash all entries from the old to the new table
-  for (auto const & old_bucket : hashtable) {
+  // rehash all entries from the old to the new table (move, not copy, so the
+  // std::string members are not deep-copied on every rehash)
+  for (auto & old_bucket : hashtable) {
     if (old_bucket.size != 0U) {
       auto new_index = old_bucket.hash & new_hash_mask;
       while (new_hashtable[new_index].size != 0U) {
         new_index = (new_index + 1) & new_hash_mask;
       }
-      new_hashtable[new_index] = old_bucket;
+      new_hashtable[new_index] = std::move(old_bucket);
     }
   }
   hashtable.swap(new_hashtable);
@@ -236,7 +236,7 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
     {
       return false;
     }
-  auto const result = std::strcmp(lhs.header, rhs.header);
+  auto const result = std::strcmp(lhs.header.c_str(), rhs.header.c_str());
   if (result != 0)
     {
       return result < 0;
@@ -480,8 +480,8 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
         while ((bp->size != 0U) and
                ((hash != bp->hash) or
-                (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq, static_cast<std::size_t>(seqlen)}) != 0) or
-                (use_header and (std::strcmp(header, bp->header) != 0))))
+                (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
+                (use_header and (std::strcmp(header, bp->header.c_str()) != 0))))
           {
             j = (j + 1) & hash_mask;
             bp = &hashtable[j];
@@ -499,8 +499,8 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
             while ((rc_bp->size != 0U)
                    and
                    ((rc_hash != rc_bp->hash) or
-                    (seqcmp(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{rc_bp->seq, static_cast<std::size_t>(seqlen)}) != 0) or
-                    (use_header and (std::strcmp(header, rc_bp->header) != 0))))
+                    (seqcmp(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{rc_bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
+                    (use_header and (std::strcmp(header, rc_bp->header.c_str()) != 0))))
               {
                 k = (k + 1) & hash_mask;
                 rc_bp = &hashtable[k];
@@ -540,7 +540,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
                 /* update quality scores */
                 for (int i = 0; i < seqlen; i++)
                   {
-                    int const q1 = bp->qual[i];
+                    int const q1 = bp->qual[static_cast<std::size_t>(i)];
                     int const q2 = qual[i];
                     auto const p1 = convert_quality_symbol_to_probability(q1, parameters);
                     auto const p2 = convert_quality_symbol_to_probability(q2, parameters);
@@ -586,7 +586,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
                     // p3 = 0.0;
 
                     int const q3 = convert_probability_to_quality_symbol(p3, parameters);
-                    bp->qual[i] = static_cast<char>(q3);
+                    bp->qual[static_cast<std::size_t>(i)] = static_cast<char>(q3);
                   }
               }
 
@@ -600,13 +600,13 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
             bp->hash = hash;
             bp->seqno_first = static_cast<unsigned int>(sequencecount);
             bp->seqno_last = static_cast<unsigned int>(sequencecount);
-            bp->seq = xstrdup(seq);
-            bp->header = xstrdup(header);
+            bp->seq = seq;
+            bp->header = header;
             bp->count = 1;
             if (qual != nullptr) {
-              bp->qual = xstrdup(qual);
+              bp->qual = qual;
             } else {
-              bp->qual = nullptr;
+              bp->qual.clear();
             }
             ++clusters;
           }
@@ -763,10 +763,10 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
                 ++relabel_count;
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    cluster.seq,
-                                    static_cast<int>(std::strlen(cluster.seq)),
-                                    cluster.header,
-                                    static_cast<int>(std::strlen(cluster.header)),
+                                    cluster.seq.c_str(),
+                                    static_cast<int>(cluster.seq.size()),
+                                    cluster.header.c_str(),
+                                    static_cast<int>(cluster.header.size()),
                                     static_cast<uint64_t>(size),
                                     relabel_count,
                                     -1.0,
@@ -799,11 +799,11 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
               {
                 ++relabel_count;
                 fastq_print_general(fp_fastqout,
-                                    cluster.seq,
-                                    static_cast<int>(std::strlen(cluster.seq)),
-                                    cluster.header,
-                                    static_cast<int>(std::strlen(cluster.header)),
-                                    cluster.qual,
+                                    cluster.seq.c_str(),
+                                    static_cast<int>(cluster.seq.size()),
+                                    cluster.header.c_str(),
+                                    static_cast<int>(cluster.header.size()),
+                                    cluster.qual.c_str(),
                                     static_cast<uint64_t>(size),
                                     relabel_count,
                                     -1.0,
@@ -827,10 +827,10 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
         for (uint64_t i = 0; i < clusters; ++i)
           {
             auto const & cluster = hashtable[i];
-            int64_t const len = static_cast<int64_t>(std::strlen(cluster.seq));
+            int64_t const len = static_cast<int64_t>(cluster.seq.size());
 
             std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, len, cluster.header);
+                    i, len, cluster.header.c_str());
 
             for (auto next = nextseqtab[cluster.seqno_first];
                  next != terminal;
@@ -840,7 +840,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
                         "H\t%" PRIu64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
                         i, len, 100.0,
                         ((match_strand[next] != 0) ? "-" : "+"),
-                        headertab[next].c_str(), cluster.header);
+                        headertab[next].c_str(), cluster.header.c_str());
               }
 
             progress.update(i);
@@ -853,7 +853,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
           {
             auto const & cluster = hashtable[i];
             std::fprintf(fp_uc, "C\t%" PRIu64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, cluster.size, cluster.header);
+                    i, cluster.size, cluster.header.c_str());
             progress.update(i);
           }
         uc_handle.reset();
@@ -871,10 +871,10 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
             if (parameters.opt_relabel != nullptr) {
               std::fprintf(fp_tabbedout,
                       "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                      cluster.header, parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
+                      cluster.header.c_str(), parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
             } else {
               std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                      cluster.header, cluster.header, i, static_cast<uint64_t>(0), cluster.count, cluster.header);
+                      cluster.header.c_str(), cluster.header.c_str(), i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
             }
 
             uint64_t j = 1;
@@ -885,11 +885,11 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
                 if (parameters.opt_relabel != nullptr) {
                   std::fprintf(fp_tabbedout,
                           "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                          headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header);
+                          headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header.c_str());
                 } else {
                   std::fprintf(fp_tabbedout,
                           "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                          headertab[next].c_str(), cluster.header, i, j, cluster.count, cluster.header);
+                          headertab[next].c_str(), cluster.header.c_str(), i, j, cluster.count, cluster.header.c_str());
                 }
                 ++j;
               }
@@ -922,16 +922,8 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
         }
     }
 
-  /* Free all seqs and headers */
-
-  for (auto const & bucket : hashtable) {
-    if (bucket.size == 0U) { continue; }
-    xfree(bucket.seq);
-    xfree(bucket.header);
-    if (bucket.qual != nullptr) {
-      xfree(bucket.qual);
-    }
-  }
+  /* the buckets own their seq/header/qual as std::string; the hashtable's
+     destruction releases them (RAII) */
 }
 
 
@@ -967,11 +959,11 @@ auto derep_session_free(struct derep_session_s * ds) -> void
 
 auto derep_session_init(struct derep_session_s * ds) -> void
 {
-  /* Release any state from a previous session on the same handle first. The
-     hashtable buckets own xstrdup'd seq/header strings that a bare resize()
-     would neither free nor reuse, so an init -> add* -> get_results -> init
-     reuse would leak every prior string. derep_session_cleanup() is idempotent
-     and a no-op on a freshly allocated (empty) session (L2e). */
+  /* Release any state from a previous session on the same handle first, so an
+     init -> add* -> get_results -> init reuse starts from a clean slate. The
+     buckets own their seq/header/qual as std::string (RAII), so cleanup just
+     clears the hashtable and resets the counters. derep_session_cleanup() is
+     idempotent and a no-op on a freshly allocated (empty) session (L2e). */
   derep_session_cleanup(ds);
 
   ds->alloc_clusters = 1024;
@@ -1026,7 +1018,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
 
   while ((bp->size != 0U) and
          ((hash != bp->hash) or
-          (seqcmp(View<char>{ds->seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq, static_cast<std::size_t>(seqlen)}) != 0)))
+          (seqcmp(View<char>{ds->seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0)))
     {
       j = (j + 1) & ds->hash_mask;
       bp = &ds->hashtable[j];
@@ -1043,11 +1035,11 @@ auto derep_add_sequence(struct derep_session_s * ds,
       /* New unique sequence */
       bp->size = static_cast<unsigned int>(abundance);
       bp->hash = hash;
-      bp->seq = xstrdup(ds->seq_up.data());
-      bp->header = xstrdup(header);
+      bp->seq = ds->seq_up.data();
+      bp->header = header;
       bp->count = 1;
       bp->seqlen = static_cast<unsigned int>(seqlen);
-      bp->qual = nullptr;
+      bp->qual.clear();
       bp->seqno_first = ds->next_seqno;
       bp->seqno_last = ds->next_seqno;
       ++ds->clusters;
@@ -1087,8 +1079,8 @@ auto derep_get_results(struct derep_session_s * ds,
         {
           break;  /* sorted: all empty buckets are at the end */
         }
-      results[count].header = b.header;
-      results[count].sequence = b.seq;
+      results[count].header = b.header.c_str();
+      results[count].sequence = b.seq.c_str();
       results[count].abundance = b.size;
       results[count].seqlen = b.seqlen;
       results[count].count = static_cast<int>(b.count);
@@ -1100,23 +1092,8 @@ auto derep_get_results(struct derep_session_s * ds,
 
 auto derep_session_cleanup(struct derep_session_s * ds) -> void
 {
-  for (auto & b : ds->hashtable)
-    {
-      if (b.size == 0U)
-        {
-          continue;
-        }
-      if (b.seq != nullptr)
-        {
-          xfree(b.seq);
-          b.seq = nullptr;
-        }
-      if (b.header != nullptr)
-        {
-          xfree(b.header);
-          b.header = nullptr;
-        }
-    }
+  /* the buckets own their seq/header/qual as std::string; clearing the
+     hashtable destroys them (RAII) */
   ds->hashtable.clear();
   ds->clusters = 0;
   ds->finalized = false;
