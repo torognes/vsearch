@@ -64,7 +64,7 @@
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "os/dynlibs.hpp"
-#include "os/system.hpp"  // xmalloc, xrealloc, xfree
+#include "os/system.hpp"  // xstat_t, xfstat, xlseek, xftello, S_ISREG
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // log_file::handle
 #include "utils/make_unique.hpp"  // make_unique
@@ -104,55 +104,42 @@ constexpr std::array<unsigned char, 2> magic_gzip = {0x1f, 0x8b};
 constexpr std::array<unsigned char, 2> magic_bzip = {'B', 'Z'};
 
 
-auto buffer_init(struct fastx_buffer_s * buffer) -> void
+auto FastxBuffer::init() -> void
 {
-  buffer->alloc = fastx_buffer_alloc;
-  buffer->data = static_cast<char *>(xmalloc(buffer->alloc));
-  buffer->data[0] = 0;
-  buffer->length = 0;
-  buffer->position = 0;
+  /* one block, holding an empty NUL-terminated string; resize() (not reserve())
+     so data() is valid across the whole block, matching the former xmalloc. */
+  storage_.resize(fastx_buffer_alloc);
+  storage_[0] = 0;
+  length = 0;
+  position = 0;
 }
 
 
-auto buffer_free(struct fastx_buffer_s * buffer) -> void
+auto FastxBuffer::makespace(uint64_t const size) -> void
 {
-  if (buffer->data != nullptr)
+  /* make sure there is space for 'size' more chars in the buffer */
+
+  if (length + size > alloc())
     {
-      xfree(buffer->data);
-    }
-  buffer->data = nullptr;
-  buffer->alloc = 0;
-  buffer->length = 0;
-  buffer->position = 0;
-}
-
-
-auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t const size) -> void
-{
-  /* make sure there is space for x more chars in buffer */
-
-  if (buffer->length + size > buffer->alloc)
-    {
-      /* alloc space for x more characters,
-         but round up to nearest block size */
-      buffer->alloc =
-        ((buffer->length + size + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
+      /* grow to fit 'size' more characters, rounding the allocation up to the
+         nearest block, as the former xrealloc-based growth did. resize()
+         preserves the bytes already in use and zero-fills the new tail (which
+         extend() overwrites); it never shrinks here because makespace() only
+         runs when the requested total exceeds the current capacity. */
+      auto const new_alloc =
+        ((length + size + fastx_buffer_alloc - 1) / fastx_buffer_alloc)
         * fastx_buffer_alloc;
-      buffer->data = static_cast<char *>(xrealloc(buffer->data, buffer->alloc));
+      storage_.resize(static_cast<std::size_t>(new_alloc));
     }
 }
 
 
-auto buffer_extend(struct fastx_buffer_s * dest_buffer,
-                   char const * source_buf,
-                   uint64_t const len) -> void
+auto FastxBuffer::extend(char const * const source, uint64_t const len) -> void
 {
-  buffer_makespace(dest_buffer, len + 1);
-  std::memcpy(dest_buffer->data + dest_buffer->length,
-         source_buf,
-         len);
-  dest_buffer->length += len;
-  dest_buffer->data[dest_buffer->length] = 0;
+  makespace(len + 1);
+  std::memcpy(data() + length, source, len);
+  length += len;
+  data()[length] = 0;
 }
 
 
@@ -195,7 +182,7 @@ auto warn(char const * const message) -> void {
 
 auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
   // truncate header (in-place)
-  auto raw_header = Span<char>{input_handle->header_buffer.data, input_handle->header_buffer.length};
+  auto raw_header = Span<char>{input_handle->header_buffer.data(), input_handle->header_buffer.length};
   auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
   input_handle->header_buffer.length = count;
 
@@ -421,7 +408,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   input_handle->file_position = 0;
 
-  buffer_init(& input_handle->file_buffer);
+  input_handle->file_buffer.init();
 
   /* start filling up file buffer */
 
@@ -437,7 +424,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
     {
       input_handle->is_empty = false;
 
-      auto const * first = input_handle->file_buffer.data;
+      auto const * first = input_handle->file_buffer.data();
 
       if (*first == '>')
         {
@@ -498,10 +485,10 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   /* more initialization */
 
-  buffer_init(& input_handle->header_buffer);
-  buffer_init(& input_handle->sequence_buffer);
-  buffer_init(& input_handle->plusline_buffer);
-  buffer_init(& input_handle->quality_buffer);
+  input_handle->header_buffer.init();
+  input_handle->sequence_buffer.init();
+  input_handle->plusline_buffer.init();
+  input_handle->quality_buffer.init();
 
   input_handle->stripped_all = 0;
 
@@ -532,12 +519,13 @@ auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool
 }
 
 
-/* Release the owned resources: the compression handle (if any), the underlying
-   file, and the five buffers. Runs on delete, including during stack unwinding
-   when fatal() throws in a library session, so it must not throw: it never
-   calls fatal() (the "Internal error" default of the old fastx_close switch is
-   dropped — format is always plain/gzip/bzip here) and null-guards every member
-   so a handle abandoned part-way through fastx_open() is torn down safely. */
+/* Release the owned resources: the compression handle (if any) and the
+   underlying file. The five FastxBuffer members free their own storage (RAII).
+   Runs on delete, including during stack unwinding when fatal() throws in a
+   library session, so it must not throw: it never calls fatal() (the "Internal
+   error" default of the old fastx_close switch is dropped — format is always
+   plain/gzip/bzip here) and null-guards every member so a handle abandoned
+   part-way through fastx_open() is torn down safely. */
 fastx_s::~fastx_s()
 {
   switch (format)
@@ -569,12 +557,6 @@ fastx_s::~fastx_s()
     {
       std::fclose(fp);
     }
-
-  buffer_free(& file_buffer);
-  buffer_free(& header_buffer);
-  buffer_free(& sequence_buffer);
-  buffer_free(& plusline_buffer);
-  buffer_free(& quality_buffer);
 }
 
 
@@ -625,14 +607,14 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       return rest;
     }
 
-  uint64_t space = input_handle->file_buffer.alloc - input_handle->file_buffer.length;
+  uint64_t space = input_handle->file_buffer.alloc() - input_handle->file_buffer.length;
 
   if (space == 0)
     {
       /* back to beginning of buffer */
       input_handle->file_buffer.position = 0;
       input_handle->file_buffer.length = 0;
-      space = input_handle->file_buffer.alloc;
+      space = input_handle->file_buffer.alloc();
     }
 
   int bytes_read = 0;
@@ -644,7 +626,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
   switch (input_handle->format)
     {
     case Format::plain:
-      bytes_read = static_cast<int>(std::fread(input_handle->file_buffer.data
+      bytes_read = static_cast<int>(std::fread(input_handle->file_buffer.data()
                          + input_handle->file_buffer.position,
                          1,
                          space,
@@ -654,7 +636,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
     case Format::gzip:
 #ifdef HAVE_ZLIB_H
       bytes_read = input_handle->libraries->gzread(input_handle->fp_gz,
-                               input_handle->file_buffer.data
+                               input_handle->file_buffer.data()
                                + input_handle->file_buffer.position,
                                static_cast<unsigned int>(space));
       if (bytes_read < 0)
@@ -668,7 +650,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 #ifdef HAVE_BZLIB_H
       bytes_read = input_handle->libraries->bz_read(& bzError,
                                    input_handle->fp_bz,
-                                   input_handle->file_buffer.data
+                                   input_handle->file_buffer.data()
                                    + input_handle->file_buffer.position,
                                    static_cast<int>(space));
       if ((bytes_read < 0) or

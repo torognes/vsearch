@@ -203,7 +203,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
 
-  auto * source = input_handle->sequence_buffer.data;
+  auto * source = input_handle->sequence_buffer.data();
   auto * dest = source;
 
   while (*source != '\0')
@@ -262,7 +262,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
   /* add nullchar after sequence */
   *dest = '\0';
-  input_handle->sequence_buffer.length = static_cast<uint64_t>(dest - input_handle->sequence_buffer.data);
+  input_handle->sequence_buffer.length = static_cast<uint64_t>(dest - input_handle->sequence_buffer.data());
 }
 
 
@@ -273,9 +273,9 @@ auto fasta_next(fastx_handle input_handle,
   input_handle->lineno_start = input_handle->lineno;
 
   input_handle->header_buffer.length = 0;
-  input_handle->header_buffer.data[0] = 0;
+  input_handle->header_buffer.data()[0] = 0;
   input_handle->sequence_buffer.length = 0;
-  input_handle->sequence_buffer.data[0] = 0;
+  input_handle->sequence_buffer.data()[0] = 0;
 
   std::size_t rest = fastx_file_fill_buffer(input_handle);
 
@@ -288,14 +288,14 @@ auto fasta_next(fastx_handle input_handle,
 
   /* check initial > character */
 
-  if (input_handle->file_buffer.data[input_handle->file_buffer.position] != '>')
+  if (input_handle->file_buffer.data()[input_handle->file_buffer.position] != '>')
     {
       if (input_handle->defer_errors)
         {
           fastx_set_deferred_error(input_handle, "Invalid FASTA - header must start with > character");
           return false;
         }
-      std::fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data[input_handle->file_buffer.position]));
+      std::fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data()[input_handle->file_buffer.position]));
       fatal("Invalid FASTA - header must start with > character");
     }
   ++input_handle->file_buffer.position;
@@ -317,9 +317,8 @@ auto fasta_next(fastx_handle input_handle,
 
       /* copy to header buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      buffer_extend(& input_handle->header_buffer,
-                    fragment.view.data(),
-                    fragment.view.size());
+      input_handle->header_buffer.extend(fragment.view.data(),
+                                         fragment.view.size());
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -344,15 +343,14 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* end if new sequence starts */
-      if (previous_line_complete and (input_handle->file_buffer.data[input_handle->file_buffer.position] == '>'))
+      if (previous_line_complete and (input_handle->file_buffer.data()[input_handle->file_buffer.position] == '>'))
         {
           break;
         }
 
       auto const fragment = scan_line_fragment(input_handle);
-      buffer_extend(& input_handle->sequence_buffer,
-                    fragment.view.data(),
-                    fragment.view.size());
+      input_handle->sequence_buffer.extend(fragment.view.data(),
+                                           fragment.view.size());
       consume_fragment(input_handle, fragment);
       previous_line_complete = fragment.has_newline;
     }
@@ -370,7 +368,7 @@ auto fasta_next(fastx_handle input_handle,
 auto fasta_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   // return 1 if not present
-  auto const size = header_get_size(input_handle->header_buffer.data,
+  auto const size = header_get_size(input_handle->header_buffer.data(),
                                  static_cast<int>(input_handle->header_buffer.length));
   if (size > 0)
     {
@@ -383,7 +381,7 @@ auto fasta_get_abundance(struct fastx_s const * input_handle) -> int64_t
 auto fasta_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t
 {
   // return 0 if not present
-  return header_get_size(input_handle->header_buffer.data, static_cast<int>(input_handle->header_buffer.length));
+  return header_get_size(input_handle->header_buffer.data(), static_cast<int>(input_handle->header_buffer.length));
 }
 
 
@@ -425,13 +423,13 @@ auto fasta_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
 
 auto fasta_get_header(struct fastx_s const * input_handle) -> char const *
 {
-  return input_handle->header_buffer.data;
+  return input_handle->header_buffer.data();
 }
 
 
 auto fasta_get_sequence(struct fastx_s const * input_handle) -> char const *
 {
-  return input_handle->sequence_buffer.data;
+  return input_handle->sequence_buffer.data();
 }
 
 

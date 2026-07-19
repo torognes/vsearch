@@ -231,7 +231,7 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * 
 
 
 auto buffer_filter_extend(fastx_handle input_handle,
-                          struct fastx_buffer_s * dest_buffer,
+                          FastxBuffer & dest_buffer,
                           char const * source_buf,
                           uint64_t const len,
                           Action const * char_action,
@@ -239,13 +239,13 @@ auto buffer_filter_extend(fastx_handle input_handle,
                           bool * ok,
                           char * illegal_char) -> void
 {
-  buffer_makespace(dest_buffer, len + 1);
+  dest_buffer.makespace(len + 1);
 
   /* Strip unwanted characters from the string and raise warnings or
      errors on certain characters. */
 
   auto const * p = source_buf;
-  auto * d = dest_buffer->data + dest_buffer->length;
+  auto * d = dest_buffer.data() + dest_buffer.length;
   auto * q = d;
   *ok = true;
 
@@ -298,7 +298,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
 
   /* add zero after sequence */
   *q = 0;
-  dest_buffer->length += static_cast<uint64_t>(q - d);
+  dest_buffer.length += static_cast<uint64_t>(q - d);
 }
 
 
@@ -329,13 +329,13 @@ auto fastq_next(fastx_handle input_handle,
                 const unsigned char * char_mapping) -> bool
 {
   input_handle->header_buffer.length = 0;
-  input_handle->header_buffer.data[0] = 0;
+  input_handle->header_buffer.data()[0] = 0;
   input_handle->sequence_buffer.length = 0;
-  input_handle->sequence_buffer.data[0] = 0;
+  input_handle->sequence_buffer.data()[0] = 0;
   input_handle->plusline_buffer.length = 0;
-  input_handle->plusline_buffer.data[0] = 0;
+  input_handle->plusline_buffer.data()[0] = 0;
   input_handle->quality_buffer.length = 0;
-  input_handle->quality_buffer.data[0] = 0;
+  input_handle->quality_buffer.data()[0] = 0;
 
   input_handle->lineno_start = input_handle->lineno;
 
@@ -357,7 +357,7 @@ auto fastq_next(fastx_handle input_handle,
 
   /* check initial @ character */
 
-  if (input_handle->file_buffer.data[input_handle->file_buffer.position] != '@')
+  if (input_handle->file_buffer.data()[input_handle->file_buffer.position] != '@')
     {
       fastq_fatal(input_handle, input_handle->lineno, "Header line must start with '@' character");
       return false;
@@ -377,9 +377,8 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to header buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      buffer_extend(&input_handle->header_buffer,
-                    fragment.view.data(),
-                    fragment.view.size());
+      input_handle->header_buffer.extend(fragment.view.data(),
+                                         fragment.view.size());
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -403,7 +402,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end when new line starting with + is seen */
-      if (previous_line_complete && (input_handle->file_buffer.data[input_handle->file_buffer.position] == '+'))
+      if (previous_line_complete && (input_handle->file_buffer.data()[input_handle->file_buffer.position] == '+'))
         {
           break;
         }
@@ -411,7 +410,7 @@ auto fastq_next(fastx_handle input_handle,
       /* copy to sequence buffer */
       auto const fragment = scan_line_fragment(input_handle);
       buffer_filter_extend(input_handle,
-                           &input_handle->sequence_buffer,
+                           input_handle->sequence_buffer,
                            fragment.view.data(),
                            fragment.view.size(),
                            char_fq_action_seq.data(), char_mapping,
@@ -464,9 +463,8 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to plusline buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      buffer_extend(&input_handle->plusline_buffer,
-                    fragment.view.data(),
-                    fragment.view.size());
+      input_handle->plusline_buffer.extend(fragment.view.data(),
+                                           fragment.view.size());
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -480,8 +478,8 @@ auto fastq_next(fastx_handle input_handle,
   auto plusline_invalid = false;
   if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
     {
-      if ((std::memcmp(input_handle->header_buffer.data,
-                 input_handle->plusline_buffer.data,
+      if ((std::memcmp(input_handle->header_buffer.data(),
+                 input_handle->plusline_buffer.data(),
                   input_handle->header_buffer.length) != 0))
         {
           plusline_invalid = true;
@@ -490,7 +488,7 @@ auto fastq_next(fastx_handle input_handle,
   else
     {
       if ((input_handle->plusline_buffer.length > 2) ||
-          ((input_handle->plusline_buffer.length == 2) && (input_handle->plusline_buffer.data[0] != '\r')))
+          ((input_handle->plusline_buffer.length == 2) && (input_handle->plusline_buffer.data()[0] != '\r')))
         {
           plusline_invalid = true;
         }
@@ -520,7 +518,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* end if next entry starts : LF + '@' + correct length */
       if (last_line_complete &&
-          (input_handle->file_buffer.data[input_handle->file_buffer.position] == '@') &&
+          (input_handle->file_buffer.data()[input_handle->file_buffer.position] == '@') &&
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
           break;
@@ -529,7 +527,7 @@ auto fastq_next(fastx_handle input_handle,
       /* copy to quality buffer */
       auto const fragment = scan_line_fragment(input_handle);
       buffer_filter_extend(input_handle,
-                           &input_handle->quality_buffer,
+                           input_handle->quality_buffer,
                            fragment.view.data(),
                            fragment.view.size(),
                            char_fq_action_qual.data(), chrmap_identity.data(),
@@ -586,7 +584,7 @@ auto fastq_next(fastx_handle input_handle,
 
 auto fastq_get_quality(struct fastx_s const * input_handle) -> char const *
 {
-  return input_handle->quality_buffer.data;
+  return input_handle->quality_buffer.data();
 }
 
 
@@ -634,20 +632,20 @@ auto fastq_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
 
 auto fastq_get_header(struct fastx_s const * input_handle) -> char const *
 {
-  return input_handle->header_buffer.data;
+  return input_handle->header_buffer.data();
 }
 
 
 auto fastq_get_sequence(struct fastx_s const * input_handle) -> char const *
 {
-  return input_handle->sequence_buffer.data;
+  return input_handle->sequence_buffer.data();
 }
 
 
 auto fastq_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
   // return 1 if not present
-  auto const size = header_get_size(input_handle->header_buffer.data,
+  auto const size = header_get_size(input_handle->header_buffer.data(),
                                  static_cast<int>(input_handle->header_buffer.length));
   if (size > 0)
     {
@@ -660,7 +658,7 @@ auto fastq_get_abundance(struct fastx_s const * input_handle) -> int64_t
 auto fastq_get_abundance_and_presence(struct fastx_s const * input_handle) -> int64_t
 {
   // return 0 if not present
-  return header_get_size(input_handle->header_buffer.data, static_cast<int>(input_handle->header_buffer.length));
+  return header_get_size(input_handle->header_buffer.data(), static_cast<int>(input_handle->header_buffer.length));
 }
 
 

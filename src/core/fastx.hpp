@@ -65,6 +65,7 @@
 #endif
 
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/view.hpp"  // View
 #include <array>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -72,6 +73,7 @@
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memchr
 #include <iterator>  // std::next, std::distance
+#include <vector>
 
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>  // gzFile
@@ -83,20 +85,41 @@
 
 constexpr auto byte_range = 256U;
 
-struct fastx_buffer_s
-{
-  char * data = nullptr;
-  uint64_t length = 0;
-  uint64_t alloc = 0;
-  uint64_t position = 0;
-};
+/* One growable byte buffer used by the streaming FASTA/FASTQ reader: the file
+   refill buffer and the four per-record buffers (header, sequence, plusline,
+   quality). It owns its storage through a std::vector using FatalAllocator, so
+   an out-of-memory condition ends the program through fatal() -- exactly as the
+   former xmalloc/xrealloc buffers did -- and the storage is released
+   automatically when the owning fastx_s is destroyed, so no explicit free is
+   needed (RAII). This mirrors how Database owns its packed buffers.
 
-auto buffer_init(struct fastx_buffer_s * buffer) -> void;
-auto buffer_free(struct fastx_buffer_s * buffer) -> void;
-auto buffer_extend(struct fastx_buffer_s * dest_buffer,
-                   char const * source_buf,
-                   uint64_t len) -> void;
-auto buffer_makespace(struct fastx_buffer_s * buffer, uint64_t size) -> void;
+   'length' is the logical number of bytes in use (extend() always keeps them
+   NUL-terminated); 'position' is the read cursor into the file refill buffer
+   (the per-record buffers leave it at zero). Both are public because the parser
+   hot loops in fasta.cpp / fastq.cpp advance and test them directly. data()
+   hands out the owned storage and alloc() its current capacity. */
+class FastxBuffer
+{
+public:
+  uint64_t length = 0;
+  uint64_t position = 0;
+
+  auto data() noexcept -> char * { return storage_.data(); }
+  auto data() const noexcept -> char const * { return storage_.data(); }
+  auto alloc() const noexcept -> uint64_t { return storage_.size(); }
+
+  /* Reset to a single empty, NUL-terminated block (former buffer_init). */
+  auto init() -> void;
+  /* Ensure at least 'size' more bytes fit after 'length', rounding the
+     allocation up to the nearest block (former buffer_makespace). */
+  auto makespace(uint64_t size) -> void;
+  /* Append 'len' bytes from 'source', then a terminating NUL (former
+     buffer_extend). */
+  auto extend(char const * source, uint64_t len) -> void;
+
+private:
+  std::vector<char, FatalAllocator<char>> storage_;
+};
 
 enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
@@ -122,12 +145,12 @@ struct fastx_s
   BZFILE * fp_bz = nullptr;
 #endif
 
-  struct fastx_buffer_s file_buffer;
+  FastxBuffer file_buffer;
 
-  struct fastx_buffer_s header_buffer;
-  struct fastx_buffer_s sequence_buffer;
-  struct fastx_buffer_s plusline_buffer;
-  struct fastx_buffer_s quality_buffer;
+  FastxBuffer header_buffer;
+  FastxBuffer sequence_buffer;
+  FastxBuffer plusline_buffer;
+  FastxBuffer quality_buffer;
 
   uint64_t file_size = 0;
   uint64_t file_position = 0;
@@ -238,7 +261,7 @@ inline auto scan_line_fragment(fastx_handle input_handle) -> Line_fragment
 {
   auto & file_buffer = input_handle->file_buffer;
   auto const rest = file_buffer.length - file_buffer.position;
-  auto * const start = std::next(file_buffer.data,
+  auto * const start = std::next(file_buffer.data(),
                                  static_cast<std::ptrdiff_t>(file_buffer.position));
   auto * const line_end = static_cast<char *>(std::memchr(start, '\n', rest));
   auto const has_newline = (line_end != nullptr);
