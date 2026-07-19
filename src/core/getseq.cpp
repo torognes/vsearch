@@ -72,7 +72,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
-#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
 #include <array>
 #include <cassert>
@@ -183,7 +183,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
   char const * header = fastx_get_header(input_handle);
   auto const header_length = fastx_get_header_length(input_handle);
   auto const hlen = static_cast<std::size_t>(header_length);
-  auto const header_view = Span<char>{header, header_length};
+  auto const header_view = View<char>{header, header_length};
   auto const longest_label = find_length_longest_label(labels_data);
   std::vector<char> field_buffer;
   std::size_t field_len = 0;
@@ -205,7 +205,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
 
   if (parameters.opt_label != nullptr)
     {
-      auto const needle_view = Span<char>{parameters.opt_label, std::strlen(parameters.opt_label)};
+      auto const needle_view = View<char>{parameters.opt_label, std::strlen(parameters.opt_label)};
       if (parameters.opt_label_substr_match)
         {
           return (contains_substring(header_view, needle_view));
@@ -217,7 +217,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
       if (parameters.opt_label_substr_match)
         {
           for (auto & label: labels_data) {
-            auto const label_view = Span<char>{label.data(), label.size()};
+            auto const label_view = View<char>{label.data(), label.size()};
             if (contains_substring(header_view, label_view)) {
               return true;
             }

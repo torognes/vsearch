@@ -58,7 +58,7 @@
 
 */
 
-#include "span.hpp"
+#include "view.hpp"
 #include <algorithm>  // std::search, std::equal
 #include <cassert>
 #include <cctype>  // std::toupper
@@ -80,7 +80,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto contains_substring(Span<char> const haystack, Span<char> const needle) -> bool {
+auto contains_substring(View<char> const haystack, View<char> const needle) -> bool {
   // case insensitive
   auto * const hit = std::search(haystack.begin(), haystack.end(),
                                  needle.begin(), needle.end(),
@@ -89,7 +89,7 @@ auto contains_substring(Span<char> const haystack, Span<char> const needle) -> b
 }
 
 
-auto are_same_string(Span<char> const haystack, std::vector<char> const & needle) -> bool {
+auto are_same_string(View<char> const haystack, std::vector<char> const & needle) -> bool {
   // case insensitive
   if (haystack.size() != needle.size()) {
     return false;
@@ -99,7 +99,7 @@ auto are_same_string(Span<char> const haystack, std::vector<char> const & needle
 }
 
 
-auto are_same_string(Span<char> const haystack, Span<char> const needle) -> bool {
+auto are_same_string(View<char> const haystack, View<char> const needle) -> bool {
   // case insensitive
   if (haystack.size() != needle.size()) {
     return false;
@@ -111,8 +111,8 @@ auto are_same_string(Span<char> const haystack, Span<char> const needle) -> bool
 
 auto are_same_string(char const * haystack_str, char const * needle_str) -> bool {
   // case insensitive
-  auto const haystack = Span<char>{haystack_str, std::strlen(haystack_str)};
-  auto const needle = Span<char>{needle_str, std::strlen(needle_str)};
+  auto const haystack = View<char>{haystack_str, std::strlen(haystack_str)};
+  auto const needle = View<char>{needle_str, std::strlen(needle_str)};
   if (haystack.size() != needle.size()) {
     return false;
   }
