@@ -560,24 +560,6 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 }
 
 
-auto fastx_is_fastq(struct fastx_s const * input_handle) -> bool
-{
-  return input_handle->is_fastq_input();
-}
-
-
-auto fastx_is_empty(struct fastx_s const * input_handle) -> bool
-{
-  return input_handle->is_empty_input();
-}
-
-
-auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool
-{
-  return input_handle->is_pipe_input();
-}
-
-
 /* Release the owned resources: the compression handle (if any) and the
    underlying file. The five FastxBuffer members free their own storage (RAII).
    Runs on delete, including during stack unwinding when fatal() throws in a
@@ -748,32 +730,6 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 }
 
 
-auto fastx_next(fastx_handle input_handle,
-                bool const truncateatspace,
-                const unsigned char * char_mapping) -> bool
-{
-  return input_handle->next(truncateatspace, char_mapping);
-}
-
-
-auto fastx_get_error(struct fastx_s const * input_handle) -> bool
-{
-  return input_handle->get_error();
-}
-
-
-auto fastx_get_errmsg(struct fastx_s const * input_handle) -> char const *
-{
-  return input_handle->get_errmsg();
-}
-
-
-auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -> void
-{
-  input_handle->set_deferred_error(message);
-}
-
-
 auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
 {
   /* Reject a sequence too long for the int sequence-length bookkeeping used
@@ -807,67 +763,3 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
 }
 
 
-auto fastx_get_position(struct fastx_s const * input_handle) -> uint64_t
-{
-  return input_handle->get_position();
-}
-
-
-auto fastx_get_size(struct fastx_s const * input_handle) -> uint64_t
-{
-  return input_handle->get_size();
-}
-
-
-auto fastx_get_lineno(struct fastx_s const * input_handle) -> uint64_t
-{
-  return input_handle->get_lineno();
-}
-
-
-auto fastx_get_seqno(struct fastx_s const * input_handle) -> uint64_t
-{
-  return input_handle->get_seqno();
-}
-
-
-auto fastx_get_header(struct fastx_s const * input_handle) -> char const *
-{
-  return input_handle->get_header();
-}
-
-
-auto fastx_get_sequence(struct fastx_s const * input_handle) -> char const *
-{
-  return input_handle->get_sequence();
-}
-
-
-auto fastx_get_header_length(struct fastx_s const * input_handle) -> uint64_t
-{
-  return input_handle->get_header_length();
-}
-
-
-auto fastx_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
-{
-  return input_handle->get_sequence_length();
-}
-
-
-auto fastx_get_quality(struct fastx_s const * input_handle) -> char const *
-{
-  return input_handle->get_quality();
-}
-
-
-auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t
-{
-  return input_handle->get_abundance();
-}
-
-
-auto fastx_record(fastx_handle input_handle) -> SeqRecord
-{
-  return input_handle->record();
-}

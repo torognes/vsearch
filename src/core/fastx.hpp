@@ -253,26 +253,14 @@ using fastx_handle = struct fastx_s *;
 
 /* fastx input */
 
-auto fastx_is_fastq(struct fastx_s const * input_handle) -> bool;
-auto fastx_is_empty(struct fastx_s const * input_handle) -> bool;
-auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool;
+/* The record read API (get_header/get_sequence/get_quality/..., record(),
+   is_fastq_input(), next(), the deferred-error protocol) is now a member set on
+   fastx_s above, mirroring Database. These remaining free functions are the
+   ones that are not simple accessors: the lifecycle (open/close) and the two
+   in-parser filters. */
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void;
-auto fastx_get_error(struct fastx_s const * input_handle) -> bool;
-auto fastx_get_errmsg(struct fastx_s const * input_handle) -> char const *;
-auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -> void;
 auto fastx_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
 auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters) -> void;
-auto fastx_next(fastx_handle input_handle,
-                bool truncateatspace,
-                const unsigned char * char_mapping) -> bool;
-auto fastx_get_position(struct fastx_s const * input_handle) -> uint64_t;
-auto fastx_get_size(struct fastx_s const * input_handle) -> uint64_t;
-auto fastx_get_lineno(struct fastx_s const * input_handle) -> uint64_t;
-auto fastx_get_seqno(struct fastx_s const * input_handle) -> uint64_t;
-auto fastx_get_header(struct fastx_s const * input_handle) -> char const *;
-auto fastx_get_sequence(struct fastx_s const * input_handle) -> char const *;
-auto fastx_get_header_length(struct fastx_s const * input_handle) -> uint64_t;
-auto fastx_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t;
 
 // Reject a sequence too long for the int length bookkeeping used downstream.
 // Called from fasta_next/fastx_next so every read is bounded at one choke
@@ -280,15 +268,6 @@ auto fastx_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t;
 // sequence records a deferred error (reported from the main thread), otherwise
 // it is fatal.
 auto fastx_filter_sequence_length(fastx_handle input_handle) -> void;
-
-auto fastx_get_quality(struct fastx_s const * input_handle) -> char const *;
-auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t;
-
-// Bundle the current record's header/sequence/quality as a SeqRecord of
-// non-owning views into the reader's buffers (the quality view is empty for a
-// FASTA input), mirroring Database::record(). The views stay valid only until
-// the next fastx_next()/fastx_close() call on this handle.
-auto fastx_record(fastx_handle input_handle) -> SeqRecord;
 
 auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t;
 
