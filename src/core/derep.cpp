@@ -139,6 +139,9 @@ static auto rehash(std::vector<struct bucket> & hashtable) -> void
 namespace {
 
 
+  constexpr auto terminal = std::numeric_limits<unsigned int>::max();
+
+
   auto count_selected(std::vector<struct bucket> const & hashtable,
                       struct Parameters const & parameters) -> uint64_t {
     auto size_in_range = [&](struct bucket const & bucket) -> bool {
@@ -255,6 +258,217 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
 }
 
 
+// output writers: one per format, each iterating the sorted clusters. Placed
+// in an anonymous namespace (internal linkage) like the other file-local
+// helpers, and called through output_results() below.
+namespace {
+
+  auto write_fasta_output(std::FILE * fp_fastaout,
+                          std::vector<struct bucket> const & hashtable,
+                          uint64_t const clusters,
+                          struct Parameters const & parameters) -> void
+  {
+    {
+      Progress progress("Writing FASTA output file", clusters, parameters);
+      int64_t relabel_count = 0;
+      for (uint64_t i = 0; i < clusters; ++i)
+        {
+          auto const & cluster = hashtable[i];
+          int64_t const size = cluster.size;
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
+            {
+              ++relabel_count;
+              fasta_print_general(fp_fastaout,
+                                  nullptr,
+                                  cluster.seq.c_str(),
+                                  static_cast<int>(cluster.seq.size()),
+                                  cluster.header.c_str(),
+                                  static_cast<int>(cluster.header.size()),
+                                  static_cast<uint64_t>(size),
+                                  relabel_count,
+                                  -1.0,
+                                  -1, -1, nullptr, 0.0,
+                                  0,
+                                  parameters);
+              if (relabel_count == parameters.opt_topn)
+                {
+                  break;
+                }
+            }
+          progress.update(i);
+        }
+    }
+  }
+
+
+  auto write_fastq_output(std::FILE * fp_fastqout,
+                          std::vector<struct bucket> const & hashtable,
+                          uint64_t const clusters,
+                          struct Parameters const & parameters) -> void
+  {
+    {
+      Progress progress("Writing FASTQ output file", clusters, parameters);
+      int64_t relabel_count = 0;
+      for (uint64_t i = 0; i < clusters; ++i)
+        {
+          auto const & cluster = hashtable[i];
+          int64_t const size = cluster.size;
+          if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
+            {
+              ++relabel_count;
+              fastq_print_general(fp_fastqout,
+                                  cluster.seq.c_str(),
+                                  static_cast<int>(cluster.seq.size()),
+                                  cluster.header.c_str(),
+                                  static_cast<int>(cluster.header.size()),
+                                  cluster.qual.c_str(),
+                                  static_cast<uint64_t>(size),
+                                  relabel_count,
+                                  -1.0,
+                                  parameters);
+              if (relabel_count == parameters.opt_topn)
+                {
+                  break;
+                }
+            }
+          progress.update(i);
+        }
+    }
+  }
+
+
+  auto write_uc_output(std::FILE * fp_uc,
+                       std::vector<struct bucket> const & hashtable,
+                       uint64_t const clusters,
+                       std::vector<unsigned int> const & nextseqtab,
+                       std::vector<std::string> const & headertab,
+                       std::vector<char> const & match_strand,
+                       struct Parameters const & parameters) -> void
+  {
+    {
+      Progress progress("Writing uc file, first part", clusters, parameters);
+      for (uint64_t i = 0; i < clusters; ++i)
+        {
+          auto const & cluster = hashtable[i];
+          int64_t const len = static_cast<int64_t>(cluster.seq.size());
+
+          std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
+                  i, len, cluster.header.c_str());
+
+          for (auto next = nextseqtab[cluster.seqno_first];
+               next != terminal;
+               next = nextseqtab[next])
+            {
+              std::fprintf(fp_uc,
+                      "H\t%" PRIu64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
+                      i, len, 100.0,
+                      ((match_strand[next] != 0) ? "-" : "+"),
+                      headertab[next].c_str(), cluster.header.c_str());
+            }
+
+          progress.update(i);
+        }
+    }
+
+    {
+      Progress progress("Writing uc file, second part", clusters, parameters);
+      for (uint64_t i = 0; i < clusters; ++i)
+        {
+          auto const & cluster = hashtable[i];
+          std::fprintf(fp_uc, "C\t%" PRIu64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+                  i, cluster.size, cluster.header.c_str());
+          progress.update(i);
+        }
+    }
+  }
+
+
+  auto write_tabbedout_output(std::FILE * fp_tabbedout,
+                              std::vector<struct bucket> const & hashtable,
+                              uint64_t const clusters,
+                              std::vector<unsigned int> const & nextseqtab,
+                              std::vector<std::string> const & headertab,
+                              struct Parameters const & parameters) -> void
+  {
+    {
+      Progress progress("Writing tab separated file", clusters, parameters);
+      for (uint64_t i = 0; i < clusters; ++i)
+        {
+          auto const & cluster = hashtable[i];
+
+          if (parameters.opt_relabel != nullptr) {
+            std::fprintf(fp_tabbedout,
+                    "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                    cluster.header.c_str(), parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
+          } else {
+            std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                    cluster.header.c_str(), cluster.header.c_str(), i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
+          }
+
+          uint64_t j = 1;
+          for (auto next = nextseqtab[cluster.seqno_first];
+               next != terminal;
+               next = nextseqtab[next])
+            {
+              if (parameters.opt_relabel != nullptr) {
+                std::fprintf(fp_tabbedout,
+                        "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header.c_str());
+              } else {
+                std::fprintf(fp_tabbedout,
+                        "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
+                        headertab[next].c_str(), cluster.header.c_str(), i, j, cluster.count, cluster.header.c_str());
+              }
+              ++j;
+            }
+
+          progress.update(i);
+        }
+    }
+  }
+
+
+  // dispatcher: write every requested output format, closing each handle
+  // immediately after its writer (RAII handles are owned by derep()).
+  auto output_results(struct Parameters const & parameters,
+                      std::vector<struct bucket> const & hashtable,
+                      uint64_t const clusters,
+                      std::vector<unsigned int> const & nextseqtab,
+                      std::vector<std::string> const & headertab,
+                      std::vector<char> const & match_strand,
+                      OutputFileHandle & fastaout_handle,
+                      OutputFileHandle & fastqout_handle,
+                      OutputFileHandle & uc_handle,
+                      OutputFileHandle & tabbedout_handle) -> void
+  {
+    if ((parameters.opt_output != nullptr) or (parameters.opt_fastaout != nullptr))
+      {
+        write_fasta_output(fastaout_handle.get(), hashtable, clusters, parameters);
+        fastaout_handle.reset();
+      }
+
+    if (parameters.opt_fastqout != nullptr)
+      {
+        write_fastq_output(fastqout_handle.get(), hashtable, clusters, parameters);
+        fastqout_handle.reset();
+      }
+
+    if (parameters.opt_uc != nullptr)
+      {
+        write_uc_output(uc_handle.get(), hashtable, clusters, nextseqtab, headertab, match_strand, parameters);
+        uc_handle.reset();
+      }
+
+    if (parameters.opt_tabbedout != nullptr)
+      {
+        write_tabbedout_output(tabbedout_handle.get(), hashtable, clusters, nextseqtab, headertab, parameters);
+        tabbedout_handle.reset();
+      }
+  }
+
+}  // end of anonymous namespace (output writers)
+
+
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
 auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void
 {
@@ -296,10 +510,6 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
   OutputFileHandle fastqout_handle;
   OutputFileHandle uc_handle;
   OutputFileHandle tabbedout_handle;
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout = nullptr;
-  std::FILE * fp_uc = nullptr;
-  std::FILE * fp_tabbedout = nullptr;
 
   if (mode == Derep_mode::uniques)
     {
@@ -317,20 +527,15 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
   if (mode == Derep_mode::uniques)
     {
       fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-      fp_fastaout = fastaout_handle.get();
       fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-      fp_fastqout = fastqout_handle.get();
       tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
-      fp_tabbedout = tabbedout_handle.get();
     }
   else
     {
       fastaout_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
-      fp_fastaout = fastaout_handle.get();
     }
 
   uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
-  fp_uc = uc_handle.get();
 
   auto const filesize = input_handle->get_size();
 
@@ -348,7 +553,6 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   // memory-intensive: the hash table has been allocated
 
-  constexpr auto terminal = std::numeric_limits<unsigned int>::max();
   std::vector<unsigned int> nextseqtab;
   std::vector<std::string> headertab;
   std::vector<char> match_strand;
@@ -748,157 +952,9 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   /* write output */
 
-  if ((parameters.opt_output != nullptr) or (parameters.opt_fastaout != nullptr))
-    {
-
-      int64_t relabel_count = 0;
-      {
-        Progress progress("Writing FASTA output file", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; ++i)
-          {
-            auto const & cluster = hashtable[i];
-            int64_t const size = cluster.size;
-            if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-              {
-                ++relabel_count;
-                fasta_print_general(fp_fastaout,
-                                    nullptr,
-                                    cluster.seq.c_str(),
-                                    static_cast<int>(cluster.seq.size()),
-                                    cluster.header.c_str(),
-                                    static_cast<int>(cluster.header.size()),
-                                    static_cast<uint64_t>(size),
-                                    relabel_count,
-                                    -1.0,
-                                    -1, -1, nullptr, 0.0,
-                                    0,
-                                    parameters);
-                if (relabel_count == parameters.opt_topn)
-                  {
-                    break;
-                  }
-              }
-            progress.update(i);
-          }
-      }
-
-      fastaout_handle.reset();
-    }
-
-  if (parameters.opt_fastqout != nullptr)
-    {
-
-      int64_t relabel_count = 0;
-      {
-        Progress progress("Writing FASTQ output file", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; ++i)
-          {
-            auto const & cluster = hashtable[i];
-            int64_t const size = cluster.size;
-            if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
-              {
-                ++relabel_count;
-                fastq_print_general(fp_fastqout,
-                                    cluster.seq.c_str(),
-                                    static_cast<int>(cluster.seq.size()),
-                                    cluster.header.c_str(),
-                                    static_cast<int>(cluster.header.size()),
-                                    cluster.qual.c_str(),
-                                    static_cast<uint64_t>(size),
-                                    relabel_count,
-                                    -1.0,
-                                    parameters);
-                if (relabel_count == parameters.opt_topn)
-                  {
-                    break;
-                  }
-              }
-            progress.update(i);
-          }
-      }
-
-      fastqout_handle.reset();
-    }
-
-  if (parameters.opt_uc != nullptr)
-    {
-      {
-        Progress progress("Writing uc file, first part", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; ++i)
-          {
-            auto const & cluster = hashtable[i];
-            int64_t const len = static_cast<int64_t>(cluster.seq.size());
-
-            std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, len, cluster.header.c_str());
-
-            for (auto next = nextseqtab[cluster.seqno_first];
-                 next != terminal;
-                 next = nextseqtab[next])
-              {
-                std::fprintf(fp_uc,
-                        "H\t%" PRIu64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
-                        i, len, 100.0,
-                        ((match_strand[next] != 0) ? "-" : "+"),
-                        headertab[next].c_str(), cluster.header.c_str());
-              }
-
-            progress.update(i);
-          }
-      }
-
-      {
-        Progress progress("Writing uc file, second part", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; ++i)
-          {
-            auto const & cluster = hashtable[i];
-            std::fprintf(fp_uc, "C\t%" PRIu64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, cluster.size, cluster.header.c_str());
-            progress.update(i);
-          }
-        uc_handle.reset();
-      }
-    }
-
-  if (parameters.opt_tabbedout != nullptr)
-    {
-      {
-        Progress progress("Writing tab separated file", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; ++i)
-          {
-            auto const & cluster = hashtable[i];
-
-            if (parameters.opt_relabel != nullptr) {
-              std::fprintf(fp_tabbedout,
-                      "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                      cluster.header.c_str(), parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
-            } else {
-              std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                      cluster.header.c_str(), cluster.header.c_str(), i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
-            }
-
-            uint64_t j = 1;
-            for (auto next = nextseqtab[cluster.seqno_first];
-                 next != terminal;
-                 next = nextseqtab[next])
-              {
-                if (parameters.opt_relabel != nullptr) {
-                  std::fprintf(fp_tabbedout,
-                          "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                          headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header.c_str());
-                } else {
-                  std::fprintf(fp_tabbedout,
-                          "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                          headertab[next].c_str(), cluster.header.c_str(), i, j, cluster.count, cluster.header.c_str());
-                }
-                ++j;
-              }
-
-            progress.update(i);
-          }
-        tabbedout_handle.reset();
-      }
-    }
+  output_results(parameters, hashtable, clusters,
+                 nextseqtab, headertab, match_strand,
+                 fastaout_handle, fastqout_handle, uc_handle, tabbedout_handle);
 
 
   if (selected < clusters)
