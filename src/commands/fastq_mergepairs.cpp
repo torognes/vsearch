@@ -70,7 +70,7 @@
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
-#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
 #include <array>
@@ -460,34 +460,34 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       /* make local copies of the seq, header and qual */
 
-      auto const fwd_header_view = Span<char> {
+      auto const fwd_header_view = View<char> {
         fastq_get_header(fastq_fwd),
         fastq_get_header_length(fastq_fwd)};
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
       a_read_pair.fwd_header[fwd_header_view.size()] = '\0';  // fix issue when reusing allocated mem
 
-      auto const rev_header_view = Span<char> {
+      auto const rev_header_view = View<char> {
         fastq_get_header(fastq_rev),
         fastq_get_header_length(fastq_rev)};
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
       a_read_pair.rev_header[rev_header_view.size()] = '\0';  // fix issue when reusing allocated mem
 
-      auto const fwd_sequence_view = Span<char> {
+      auto const fwd_sequence_view = View<char> {
         fastq_get_sequence(fastq_fwd),
         fastq_get_sequence_length(fastq_fwd)};
       std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair.fwd_sequence.begin());
 
-      auto const rev_sequence_view = Span<char> {
+      auto const rev_sequence_view = View<char> {
         fastq_get_sequence(fastq_rev),
         fastq_get_sequence_length(fastq_rev)};
       std::copy(rev_sequence_view.cbegin(), rev_sequence_view.cend(), a_read_pair.rev_sequence.begin());
 
-      auto const fwd_quality_view = Span<char> {
+      auto const fwd_quality_view = View<char> {
         fastq_get_quality(fastq_fwd),
         fastq_get_quality_length(fastq_fwd)};
       std::copy(fwd_quality_view.cbegin(), fwd_quality_view.cend(), a_read_pair.fwd_quality.begin());
 
-      auto const rev_quality_view = Span<char> {
+      auto const rev_quality_view = View<char> {
         fastq_get_quality(fastq_rev),
         fastq_get_quality_length(fastq_rev)};
       std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair.rev_quality.begin());
