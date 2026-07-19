@@ -62,8 +62,8 @@
 #include "arch/intrinsics.hpp"
 #include "core/align_simd.hpp"
 #include "core/db.hpp"
-#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/fatal.hpp"
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
@@ -74,6 +74,7 @@
 #include <iterator>  // std::next
 #include <limits>
 #include <string>  // std::string, std::to_string
+#include <vector>  // std::vector
 
 
 /*
@@ -414,15 +415,18 @@ inline auto cast_vector16(CELL const * ptr) -> VECTOR_SHORT const * {
 struct s16info_s
 {
   std::array<VECTOR_SHORT, 32> matrix {{}};
-  VECTOR_SHORT * hearray = nullptr;
-  VECTOR_SHORT * dprofile = nullptr;
-  VECTOR_SHORT ** qtable = nullptr;
-  unsigned short * dir = nullptr;
-  char * qseq = nullptr;
+  /* owned SIMD scratch buffers (RAII): FatalAllocator keeps xmalloc's clean
+     out-of-memory fatal and its 16-byte alignment, which the aligned vector
+     loads/stores in the kernel require. */
+  std::vector<VECTOR_SHORT, FatalAllocator<VECTOR_SHORT>> hearray;
+  std::vector<VECTOR_SHORT, FatalAllocator<VECTOR_SHORT>> dprofile;
+  std::vector<VECTOR_SHORT *, FatalAllocator<VECTOR_SHORT *>> qtable;  /* each entry points into dprofile (fixed size) */
+  std::vector<unsigned short, FatalAllocator<unsigned short>> dir;
+  char * qseq = nullptr;  /* borrowed query (not owned) */
   uint64_t diralloc = 0;
 
-  char * cigar = nullptr;
-  char * cigarend = nullptr;
+  std::vector<char, FatalAllocator<char>> cigar;
+  char * cigarend = nullptr;  /* working pointer into cigar (not owned) */
   int64_t cigaralloc = 0;
   int opcount = 0;
   char op = '\0';
@@ -1062,7 +1066,7 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pmismatches,
                  unsigned short * pgaps) -> void
 {
-  unsigned short * dirbuffer = s->dir;
+  unsigned short * dirbuffer = s->dir.data();
   uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * static_cast<uint64_t>(s->maxdlen) * 4;
   uint64_t const qlen = static_cast<uint64_t>(s->qlen);
   char const * qseq = s->qseq;
@@ -1140,7 +1144,7 @@ auto backtrack16(s16info_s * s,
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
 
-  s->cigarend = s->cigar + s->qlen + s->maxdlen + 1;
+  s->cigarend = s->cigar.data() + s->qlen + s->maxdlen + 1;
   s->op = 0;
   s->opcount = 1;
 
@@ -1238,8 +1242,8 @@ auto backtrack16(s16info_s * s,
   finishop(s);
 
   /* move cigar to beginning of allocated memory area */
-  int const cigarlen = static_cast<int>(s->cigar + s->qlen + s->maxdlen - s->cigarend);
-  std::memmove(s->cigar, s->cigarend, static_cast<size_t>(cigarlen + 1));
+  int const cigarlen = static_cast<int>(s->cigar.data() + s->qlen + s->maxdlen - s->cigarend);
+  std::memmove(s->cigar.data(), s->cigarend, static_cast<size_t>(cigarlen + 1));
 
   * paligned = aligned;
   * pmatches = matches;
@@ -1298,22 +1302,13 @@ auto search16_init(int64_t const score_match,
                    int64_t const penalty_gap_extension_target_right,
                    bool const score_n_mismatch) -> struct s16info_s *
 {
-  /* prepare alloc of qtable, dprofile, hearray, dir */
-  auto * s = static_cast<struct s16info_s *>(
-    xmalloc(sizeof(struct s16info_s)));
+  /* prepare alloc of qtable, dprofile, hearray, dir. The owned buffers are
+     std::vector members (default-constructed empty); the scalar/view fields
+     take their in-class initializers, so only the two below need setting. */
+  auto * s = new s16info_s{};
 
   s->n_mismatch = score_n_mismatch;
-  s->dprofile = static_cast<VECTOR_SHORT *>(xmalloc(2 * 4 * 8 * 16));
-  s->qlen = 0;
-  s->qseq = nullptr;
-  s->maxdlen = 0;
-  s->dir = nullptr;
-  s->diralloc = 0;
-  s->hearray = nullptr;
-  s->qtable = nullptr;
-  s->cigar = nullptr;
-  s->cigarend = nullptr;
-  s->cigaralloc = 0;
+  s->dprofile.resize(2 * 4 * 8 * 16 / sizeof(VECTOR_SHORT));  // 1024 bytes, as before
 
   bool needs_fallback = false;
   CELL const match = clamp_to_cell(score_match, score_cell_limit, needs_fallback);
@@ -1381,28 +1376,8 @@ auto search16_init(int64_t const score_match,
 
 auto search16_exit(s16info_s * s) -> void
 {
-  /* free mem for dprofile, hearray, dir, qtable */
-  if (s->dir != nullptr)
-    {
-      xfree(s->dir);
-    }
-  if (s->hearray != nullptr)
-    {
-      xfree(s->hearray);
-    }
-  if (s->dprofile != nullptr)
-    {
-      xfree(s->dprofile);
-    }
-  if (s->qtable != nullptr)
-    {
-      xfree(s->qtable);
-    }
-  if (s->cigar != nullptr)
-    {
-      xfree(s->cigar);
-    }
-  xfree(s);
+  /* the SIMD scratch buffers are std::vector members, released by ~s16info_s */
+  delete s;
 }
 
 
@@ -1411,22 +1386,14 @@ auto search16_qprep(s16info_s * s, char * qseq, int const qlen) -> void
   s->qlen = qlen;
   s->qseq = qseq;
 
-  if (s->hearray != nullptr)
-    {
-      xfree(s->hearray);
-    }
-  s->hearray = static_cast<VECTOR_SHORT *>(xmalloc(2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT)));
-  std::memset(s->hearray, 0, 2 * static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT));
+  s->hearray.resize(2 * static_cast<std::size_t>(s->qlen));
+  std::memset(s->hearray.data(), 0, s->hearray.size() * sizeof(VECTOR_SHORT));
 
-  if (s->qtable != nullptr)
-    {
-      xfree(s->qtable);
-    }
-  s->qtable = static_cast<VECTOR_SHORT **>(xmalloc(static_cast<uint64_t>(s->qlen) * sizeof(VECTOR_SHORT*)));
+  s->qtable.resize(static_cast<std::size_t>(s->qlen));
 
   for (int i = 0; i < qlen; i++)
     {
-      s->qtable[i] = s->dprofile + (4 * map_4bit(qseq[i]));
+      s->qtable[static_cast<std::size_t>(i)] = s->dprofile.data() + (4 * map_4bit(qseq[i]));
     }
 }
 
@@ -1458,9 +1425,9 @@ auto search16(s16info_s * s,
               std::string * pcigar,
               struct Database const & db) -> void
 {
-  CELL ** q_start = reinterpret_cast<CELL **>(s->qtable);
-  CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile);
-  CELL * hearray = reinterpret_cast<CELL *>(s->hearray);
+  CELL ** q_start = reinterpret_cast<CELL **>(s->qtable.data());
+  CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile.data());
+  CELL * hearray = reinterpret_cast<CELL *>(s->hearray.data());
   uint64_t const qlen = static_cast<uint64_t>(s->qlen);
 
   if (s->force_scalar_fallback)
@@ -1552,24 +1519,15 @@ auto search16(s16info_s * s,
   if (dirbuffersize > s->diralloc)
     {
       s->diralloc = dirbuffersize;
-      if (s->dir != nullptr)
-        {
-          xfree(s->dir);
-        }
-      s->dir = static_cast<unsigned short*>(xmalloc(dirbuffersize *
-                                         sizeof(unsigned short)));
+      s->dir.resize(dirbuffersize);
     }
 
-  unsigned short * dirbuffer = s->dir;
+  unsigned short * dirbuffer = s->dir.data();
 
   if (s->qlen + s->maxdlen + 1 > s->cigaralloc)
     {
       s->cigaralloc = s->qlen + s->maxdlen + 1;
-      if (s->cigar != nullptr)
-        {
-          xfree(s->cigar);
-        }
-      s->cigar = static_cast<char *>(xmalloc(static_cast<size_t>(s->cigaralloc)));
+      s->cigar.resize(static_cast<size_t>(s->cigaralloc));
     }
 
   VECTOR_SHORT M;
@@ -1848,7 +1806,7 @@ auto search16(s16info_s * s,
                                       pmatches + cand_id,
                                       pmismatches + cand_id,
                                       pgaps + cand_id);
-                          pcigar[cand_id].assign(s->cigar);
+                          pcigar[cand_id].assign(s->cigar.data());
                         }
 
                       done++;
