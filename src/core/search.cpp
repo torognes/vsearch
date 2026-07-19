@@ -69,7 +69,7 @@
 #include "core/mask.hpp"
 #include "core/minheap.hpp"
 #include "core/unique.hpp"
-#include "os/system.hpp"  // xmalloc, xrealloc, xfree
+#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/make_unique.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/threads.hpp"

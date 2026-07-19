@@ -80,7 +80,6 @@ auto system_get_memused() -> uint64_t;
 auto system_get_memtotal() -> uint64_t;
 auto system_get_cores() -> long;
 auto xmalloc(std::size_t size) -> void *;
-auto xrealloc(void * ptr, std::size_t size) -> void *;
 auto xfree(void * ptr) -> void;
 
 auto xfstat(int file_descriptor, xstat_t * buf) -> int;
