@@ -80,6 +80,7 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strcmp
 #include <limits>
+#include <memory>  // std::unique_ptr
 #include <string>
 #include <utility>  // std::move
 #include <vector>
@@ -469,76 +470,42 @@ namespace {
 }  // end of anonymous namespace (output writers)
 
 
-// used by --derep_fulllength, --derep_id, and --fastx_uniques
-auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void
-{
-  /* dereplicate full length sequences, optionally require identical headers */
+namespace {
+  struct Derep_stats
+  {
+    uint64_t sequencecount = 0;
+    uint64_t nucleotidecount = 0;
+    int64_t shortest = std::numeric_limits<int64_t>::max();
+    int64_t longest = 0;
+    uint64_t discarded_short = 0;
+    uint64_t discarded_long = 0;
+    uint64_t clusters = 0;
+    int64_t sumsize = 0;
+    uint64_t maxsize = 0;
+  };
+}  // end of anonymous namespace
 
+
+// streams every input record and builds the cluster hash table: normalize,
+// find-or-create the cluster, accumulate abundance (and merge FASTQ quality).
+// Grows the table and side tables as needed. Returns the run statistics; the
+// filled hashtable and side tables are left in the caller-owned arguments.
+// static because it takes the anonymous-namespace bucket type, like rehash().
+// Not noexcept: it reads input, allocates, and may call fatal().
+static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
+                          struct Parameters const & parameters,
+                          Derep_mode const mode,
+                          char const * input_filename,
+                          std::vector<struct bucket> & hashtable,
+                          std::vector<unsigned int> & nextseqtab,
+                          std::vector<std::string> & headertab,
+                          std::vector<char> & match_strand) -> Derep_stats
+{
   /* derep_id is the only command that also requires identical headers to
      collapse two sequences into one */
   bool const use_header = (mode == Derep_mode::id);
 
-  /*
-    derep_fulllength output options: --output, --uc (only FASTA, depreciated)
-    fastx_uniques output options: --fastaout, --fastqout, --uc, --tabbedout
-  */
-
-  auto input_handle = fastx_open(input_filename, parameters);
-
-  if (not input_handle->is_empty_input())
-    {
-      if (input_handle->is_fastq_input())
-        {
-          if (mode != Derep_mode::uniques) {
-            fatal("FASTQ input is only allowed with the fastx_uniques command");
-          }
-        }
-      else
-        {
-          if (parameters.opt_fastqout != nullptr) {
-            fatal("Cannot write FASTQ output when input file is not in FASTQ "
-                  "format");
-          }
-          if (parameters.opt_tabbedout != nullptr) {
-            fatal("Cannot write tab separated output file when input file is "
-                  "not in FASTQ format");
-          }
-        }
-    }
-
-  OutputFileHandle fastaout_handle;
-  OutputFileHandle fastqout_handle;
-  OutputFileHandle uc_handle;
-  OutputFileHandle tabbedout_handle;
-
-  if (mode == Derep_mode::uniques)
-    {
-      if ((parameters.opt_uc == nullptr) and (parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr) and (parameters.opt_tabbedout == nullptr)) {
-        fatal("Output file for dereplication with fastx_uniques must be "
-              "specified with --fastaout, --fastqout, --tabbedout, or --uc");
-      }
-    } else {
-    if ((parameters.opt_output == nullptr) and (parameters.opt_uc == nullptr)) {
-      fatal("Output file for dereplication must be specified with --output "
-            "or --uc");
-    }
-  }
-
-  if (mode == Derep_mode::uniques)
-    {
-      fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-      fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-      tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
-    }
-  else
-    {
-      fastaout_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
-    }
-
-  uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
-
   auto const filesize = input_handle->get_size();
-
 
   /* allocate initial memory for 1024 clusters
      with sequences of length 1023 */
@@ -549,13 +516,9 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   uint64_t hashtablesize = 2 * alloc_clusters;
   uint64_t hash_mask = hashtablesize - 1;
-  std::vector<struct bucket> hashtable(hashtablesize);
+  hashtable.resize(hashtablesize);
 
   // memory-intensive: the hash table has been allocated
-
-  std::vector<unsigned int> nextseqtab;
-  std::vector<std::string> headertab;
-  std::vector<char> match_strand;
 
   auto const extra_info = (parameters.opt_uc != nullptr) or (parameters.opt_tabbedout != nullptr);
 
@@ -591,7 +554,6 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
   uint64_t clusters = 0;
   int64_t sumsize = 0;
   uint64_t maxsize = 0;
-  auto average = 0.0;
 
   {
     Progress progress(prompt.c_str(), filesize, parameters);
@@ -822,7 +784,105 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
         progress.update(input_handle->get_position());
       }
   }
+
+  Derep_stats stats;
+  stats.sequencecount = sequencecount;
+  stats.nucleotidecount = nucleotidecount;
+  stats.shortest = shortest;
+  stats.longest = longest;
+  stats.discarded_short = discarded_short;
+  stats.discarded_long = discarded_long;
+  stats.clusters = clusters;
+  stats.sumsize = sumsize;
+  stats.maxsize = maxsize;
+  return stats;
+}
+
+
+// used by --derep_fulllength, --derep_id, and --fastx_uniques
+auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void
+{
+  /* dereplicate full length sequences, optionally require identical headers */
+
+  /*
+    derep_fulllength output options: --output, --uc (only FASTA, depreciated)
+    fastx_uniques output options: --fastaout, --fastqout, --uc, --tabbedout
+  */
+
+  auto input_handle = fastx_open(input_filename, parameters);
+
+  if (not input_handle->is_empty_input())
+    {
+      if (input_handle->is_fastq_input())
+        {
+          if (mode != Derep_mode::uniques) {
+            fatal("FASTQ input is only allowed with the fastx_uniques command");
+          }
+        }
+      else
+        {
+          if (parameters.opt_fastqout != nullptr) {
+            fatal("Cannot write FASTQ output when input file is not in FASTQ "
+                  "format");
+          }
+          if (parameters.opt_tabbedout != nullptr) {
+            fatal("Cannot write tab separated output file when input file is "
+                  "not in FASTQ format");
+          }
+        }
+    }
+
+  OutputFileHandle fastaout_handle;
+  OutputFileHandle fastqout_handle;
+  OutputFileHandle uc_handle;
+  OutputFileHandle tabbedout_handle;
+
+  if (mode == Derep_mode::uniques)
+    {
+      if ((parameters.opt_uc == nullptr) and (parameters.opt_fastaout == nullptr) and (parameters.opt_fastqout == nullptr) and (parameters.opt_tabbedout == nullptr)) {
+        fatal("Output file for dereplication with fastx_uniques must be "
+              "specified with --fastaout, --fastqout, --tabbedout, or --uc");
+      }
+    } else {
+    if ((parameters.opt_output == nullptr) and (parameters.opt_uc == nullptr)) {
+      fatal("Output file for dereplication must be specified with --output "
+            "or --uc");
+    }
+  }
+
+  if (mode == Derep_mode::uniques)
+    {
+      fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+      fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+      tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
+    }
+  else
+    {
+      fastaout_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
+    }
+
+  uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
+
+
+  std::vector<struct bucket> hashtable;
+  std::vector<unsigned int> nextseqtab;
+  std::vector<std::string> headertab;
+  std::vector<char> match_strand;
+
+  auto const stats = dereplicating(input_handle, parameters, mode, input_filename,
+                                   hashtable, nextseqtab, headertab, match_strand);
   input_handle->report_stripped_warning(parameters);
+
+  auto const sequencecount = stats.sequencecount;
+  auto const nucleotidecount = stats.nucleotidecount;
+  auto const shortest = stats.shortest;
+  auto const longest = stats.longest;
+  auto const discarded_short = stats.discarded_short;
+  auto const discarded_long = stats.discarded_long;
+  auto const clusters = stats.clusters;
+  auto const sumsize = stats.sumsize;
+  auto const maxsize = stats.maxsize;
+  auto average = 0.0;
 
   if (not parameters.opt_quiet)
     {
