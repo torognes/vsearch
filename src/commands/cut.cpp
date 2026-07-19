@@ -121,8 +121,8 @@ namespace {
                       struct Parameters const & parameters) -> void
   {
     auto const pattern_length = static_cast<int>(restriction.pattern.size());
-    char const * seq = fasta_get_sequence(input_handle);
-    auto const seq_length = static_cast<int>(fasta_get_sequence_length(input_handle));
+    char const * seq = input_handle->get_sequence();
+    auto const seq_length = static_cast<int>(input_handle->get_sequence_length());
     // failed refactoring: use transform to create a coded std::string
     // and find() to search for pattern occurrences, IUPAC chars make it
     // harder to compare sequences
@@ -162,9 +162,9 @@ namespace {
                                 nullptr,
                                 std::next(seq, frag_start),
                                 frag_length,
-                                fasta_get_header(input_handle),
-                                static_cast<int>(fasta_get_header_length(input_handle)),
-                                static_cast<uint64_t>(fasta_get_abundance(input_handle)),
+                                input_handle->get_header(),
+                                static_cast<int>(input_handle->get_header_length()),
+                                static_cast<uint64_t>(input_handle->get_abundance()),
                                 ++counters.fragment_no,
                                 -1.0,
                                 -1,
@@ -181,9 +181,9 @@ namespace {
                                 nullptr,
                                 &rc_buffer[static_cast<std::size_t>(rc_start)],
                                 rc_length,
-                                fasta_get_header(input_handle),
-                                static_cast<int>(fasta_get_header_length(input_handle)),
-                                static_cast<uint64_t>(fasta_get_abundance(input_handle)),
+                                input_handle->get_header(),
+                                static_cast<int>(input_handle->get_header_length()),
+                                static_cast<uint64_t>(input_handle->get_abundance()),
                                 ++counters.fragment_rev_no,
                                 -1.0,
                                 -1,
@@ -211,9 +211,9 @@ namespace {
                             nullptr,
                             std::next(seq, frag_start),
                             frag_length,
-                            fasta_get_header(input_handle),
-                            static_cast<int>(fasta_get_header_length(input_handle)),
-                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
+                            input_handle->get_header(),
+                            static_cast<int>(input_handle->get_header_length()),
+                            static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_no,
                             -1.0,
                             -1,
@@ -230,9 +230,9 @@ namespace {
                             nullptr,
                             &rc_buffer[static_cast<std::size_t>(rc_start)],
                             rc_length,
-                            fasta_get_header(input_handle),
-                            static_cast<int>(fasta_get_header_length(input_handle)),
-                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
+                            input_handle->get_header(),
+                            static_cast<int>(input_handle->get_header_length()),
+                            static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_rev_no,
                             -1.0,
                             -1,
@@ -252,8 +252,8 @@ namespace {
       {
         fasta_print_general(fastaout.discarded.forward.handle.get(),
                             nullptr,
-                            fastx_record(input_handle),
-                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
+                            input_handle->record(),
+                            static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_discarded_no,
                             -1.0,
                             -1,
@@ -270,9 +270,9 @@ namespace {
                             nullptr,
                             rc_buffer.data(),
                             seq_length,
-                            fasta_get_header(input_handle),
-                            static_cast<int>(fasta_get_header_length(input_handle)),
-                            static_cast<uint64_t>(fasta_get_abundance(input_handle)),
+                            input_handle->get_header(),
+                            static_cast<int>(input_handle->get_header_length()),
+                            static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_discarded_rev_no,
                             -1.0,
                             -1,
@@ -446,16 +446,16 @@ auto cut(struct Parameters const & parameters) -> void {
   check_if_pattern_is_empty(restriction.pattern);
   search_illegal_characters(restriction.pattern);
 
-  auto const filesize = fasta_get_size(input_handle);
+  auto const filesize = input_handle->get_size();
   Progress progress("Cutting sequences", filesize, parameters);
 
   struct statistics counters;
   std::vector<char> rc_buffer;
-  while (fasta_next(input_handle, false, chrmap_no_change()))
+  while (input_handle->next(false, chrmap_no_change()))
     {
       cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer, parameters);
 
-      progress.update(fasta_get_position(input_handle));
+      progress.update(input_handle->get_position());
     }
 
   output_stats_message(parameters, counters);

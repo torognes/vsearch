@@ -80,7 +80,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
   auto * input_handle = fastq_open(parameters.opt_fastq_convert, parameters);
 
-  auto const filesize = fastq_get_size(input_handle);
+  auto const filesize = input_handle->get_size();
 
   auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
   std::FILE * const fp_fastqout = fastqout_handle.get();
@@ -91,17 +91,17 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(input_handle, false, chrmap_no_change()))
+    while (input_handle->next(false, chrmap_no_change()))
       {
         /* header */
 
-        auto const * header = fastq_get_header(input_handle);
-        auto const abundance = fastq_get_abundance(input_handle);
+        auto const * header = input_handle->get_header();
+        auto const abundance = input_handle->get_abundance();
 
         /* sequence */
 
-        auto const length = fastq_get_sequence_length(input_handle);
-        auto const * sequence = fastq_get_sequence(input_handle);
+        auto const length = input_handle->get_sequence_length();
+        auto const * sequence = input_handle->get_sequence();
 
         /* convert quality values */
 
@@ -112,7 +112,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
         // - add parameters.opt_fastq_asciiout
         // - clamp 33 < x < 126
         normalized_quality.resize(length + 1);
-        auto const * quality = fastq_get_quality(input_handle);
+        auto const * quality = input_handle->get_quality();
         for (uint64_t i = 0; i < length; i++)
           {
             int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
@@ -124,8 +124,8 @@ auto fastq_convert(struct Parameters const & parameters) -> void
                         " starting on line %" PRIu64 "\n",
                         q,
                         parameters.opt_fastq_qmin,
-                        fastq_get_seqno(input_handle) + 1,
-                        fastq_get_lineno(input_handle));
+                        input_handle->get_seqno() + 1,
+                        input_handle->get_lineno());
                 fatal("FASTQ quality score too low");
               }
             if (q > parameters.opt_fastq_qmax)
@@ -136,8 +136,8 @@ auto fastq_convert(struct Parameters const & parameters) -> void
                         " starting on line %" PRIu64 "\n",
                         q,
                         parameters.opt_fastq_qmax,
-                        fastq_get_seqno(input_handle) + 1,
-                        fastq_get_lineno(input_handle));
+                        input_handle->get_seqno() + 1,
+                        input_handle->get_lineno());
                 fatal("FASTQ quality score too high");
               }
             q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));
@@ -148,7 +148,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
             normalized_quality[i] = static_cast<char>(q);
           }
 
-        int const hlen = static_cast<int>(fastq_get_header_length(input_handle));
+        int const hlen = static_cast<int>(input_handle->get_header_length());
         fastq_print_general(fp_fastqout,
                             sequence,
                             static_cast<int>(length),
@@ -162,7 +162,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
         ++n_entries;
         normalized_quality.clear();
-        progress.update(fastq_get_position(input_handle));
+        progress.update(input_handle->get_position());
       }
   }
 

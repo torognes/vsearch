@@ -2190,21 +2190,21 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
     if (state.parameters.opt_uchime_ref != nullptr)
       {
-        if (fasta_next(state.query_fasta_h, (not state.parameters.opt_notrunclabels),
+        if (state.query_fasta_h->next((not state.parameters.opt_notrunclabels),
                        chrmap_no_change()))
           {
-            ci->query_head_len = static_cast<int>(fasta_get_header_length(state.query_fasta_h));
-            ci->query_len = static_cast<int>(fasta_get_sequence_length(state.query_fasta_h));
-            ci->query_no = static_cast<int>(fasta_get_seqno(state.query_fasta_h));
-            ci->query_size = fasta_get_abundance(state.query_fasta_h);
+            ci->query_head_len = static_cast<int>(state.query_fasta_h->get_header_length());
+            ci->query_len = static_cast<int>(state.query_fasta_h->get_sequence_length());
+            ci->query_no = static_cast<int>(state.query_fasta_h->get_seqno());
+            ci->query_size = state.query_fasta_h->get_abundance();
 
             /* if necessary expand memory for arrays based on query length */
             realloc_arrays(ci, db);
 
             /* copy the data locally (query seq, head) */
-            std::strcpy(ci->query_head.data(), fasta_get_header(state.query_fasta_h));
-            std::strcpy(ci->query_seq.data(), fasta_get_sequence(state.query_fasta_h));
-            query_position = fasta_get_position(state.query_fasta_h);
+            std::strcpy(ci->query_head.data(), state.query_fasta_h->get_header());
+            std::strcpy(ci->query_seq.data(), state.query_fasta_h->get_sequence());
+            query_position = state.query_fasta_h->get_position();
           }
         else
           {
@@ -2500,7 +2500,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
-      progress_total = fasta_get_size(state.query_fasta_h);
+      progress_total = state.query_fasta_h->get_size();
 
       /* The query file is parsed inside the worker threads
          (chimera_thread_core). Defer parse errors so a malformed query
@@ -2589,9 +2589,9 @@ auto chimera(struct Parameters const & parameters) -> void
 
   /* all workers joined; report a deferred query parse error (CC3, uchime_ref
      only) from the main thread so it does not race a worker's output */
-  if ((parameters.opt_uchime_ref != nullptr) and fastx_get_error(state.query_fasta_h))
+  if ((parameters.opt_uchime_ref != nullptr) and state.query_fasta_h->get_error())
     {
-      fatal("%s", fastx_get_errmsg(state.query_fasta_h));
+      fatal("%s", state.query_fasta_h->get_errmsg());
     }
 
   if (not parameters.opt_quiet)

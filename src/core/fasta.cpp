@@ -150,7 +150,7 @@ namespace {
     /* deferred-error mode (see fastx.h): record and return instead of
        exiting, so a worker thread does not std::exit() with siblings live */
     if (input_handle->defer_errors) {
-      fastx_set_deferred_error(input_handle, msg.data());
+      input_handle->set_deferred_error(msg.data());
       return;
     }
     fatal(msg.data());
@@ -166,7 +166,7 @@ namespace {
         symbol,
         line_number));
     if (input_handle->defer_errors) {
-      fastx_set_deferred_error(input_handle, msg.data());
+      input_handle->set_deferred_error(msg.data());
       return;
     }
     fatal(msg.data());
@@ -181,7 +181,7 @@ auto fasta_open(const char * filename, struct Parameters const & parameters) -> 
   // (library session); released to the caller on the success path.
   std::unique_ptr<fastx_s> input_handle(fastx_open(filename, parameters));
 
-  if (fastx_is_fastq(input_handle.get()) and not input_handle->is_empty)
+  if (input_handle->is_fastq_input() and not input_handle->is_empty_input())
     {
       fatal("FASTA file expected, FASTQ file found (%s)", filename);
     }
@@ -292,7 +292,7 @@ auto fasta_next(fastx_handle input_handle,
     {
       if (input_handle->defer_errors)
         {
-          fastx_set_deferred_error(input_handle, "Invalid FASTA - header must start with > character");
+          input_handle->set_deferred_error("Invalid FASTA - header must start with > character");
           return false;
         }
       std::fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data()[input_handle->file_buffer.position]));
@@ -309,7 +309,7 @@ auto fasta_next(fastx_handle input_handle,
         {
           if (input_handle->defer_errors)
             {
-              fastx_set_deferred_error(input_handle, "Invalid FASTA - header must be terminated with newline");
+              input_handle->set_deferred_error("Invalid FASTA - header must be terminated with newline");
               return false;
             }
           fatal("Invalid FASTA - header must be terminated with newline");

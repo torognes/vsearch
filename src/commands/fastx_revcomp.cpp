@@ -98,7 +98,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
 
-  auto const filesize = fastx_get_size(input_handle);
+  auto const filesize = input_handle->get_size();
 
   auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
   auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
@@ -109,20 +109,20 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   {
     Progress progress(input_handle->is_fastq ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
-    while (fastx_next(input_handle, false, chrmap_no_change()))
+    while (input_handle->next(false, chrmap_no_change()))
       {
         ++count;
 
         /* header */
 
-        auto const hlen = fastx_get_header_length(input_handle);
-        auto const * header = fastx_get_header(input_handle);
-        auto const abundance = fastx_get_abundance(input_handle);
+        auto const hlen = input_handle->get_header_length();
+        auto const * header = input_handle->get_header();
+        auto const abundance = input_handle->get_abundance();
 
 
         /* sequence */
 
-        auto const length = fastx_get_sequence_length(input_handle);
+        auto const length = input_handle->get_sequence_length();
 
         if (length + 1 > buffer_alloc)
           {
@@ -131,15 +131,15 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
             qual_buffer.resize(buffer_alloc);
           }
 
-        auto const * p = fastx_get_sequence(input_handle);
+        auto const * p = input_handle->get_sequence();
         reverse_complement(Span<char>{seq_buffer.data(), static_cast<std::size_t>(length) + 1}, View<char>{p, static_cast<std::size_t>(length)});
 
 
         /* quality values */
 
-        auto const * q = fastx_get_quality(input_handle);
+        auto const * q = input_handle->get_quality();
 
-        if (fastx_is_fastq(input_handle))
+        if (input_handle->is_fastq_input())
           {
             /* reverse quality values */
             for (uint64_t i = 0; i < length; i++)
@@ -179,7 +179,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
                                 parameters);
           }
 
-        progress.update(fastx_get_position(input_handle));
+        progress.update(input_handle->get_position());
       }
   }
 

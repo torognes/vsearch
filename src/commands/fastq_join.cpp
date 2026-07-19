@@ -197,7 +197,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   /* main */
 
-  auto const filesize = fastq_get_size(infiles.forward.handle);
+  auto const filesize = infiles.forward.handle->get_size();
 
   /* do it */
 
@@ -215,9 +215,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Joining reads", filesize, parameters);
-    while (fastq_next(infiles.forward.handle, false, chrmap_no_change()))
+    while (infiles.forward.handle->next(false, chrmap_no_change()))
       {
-        if (not fastq_next(infiles.reverse.handle, false, chrmap_no_change()))
+        if (not infiles.reverse.handle->next(false, chrmap_no_change()))
           {
             fatal("More forward reads than reverse reads");
           }
@@ -227,8 +227,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
         reverse_sequence.clear();
         reverse_quality.clear();
 
-        auto const fwd_seq_length = fastq_get_sequence_length(infiles.forward.handle);
-        auto const rev_seq_length = fastq_get_sequence_length(infiles.reverse.handle);
+        auto const fwd_seq_length = infiles.forward.handle->get_sequence_length();
+        auto const rev_seq_length = infiles.reverse.handle->get_sequence_length();
         auto const needed = fwd_seq_length + padlen + rev_seq_length;
 
         /* allocate enough memory */
@@ -244,7 +244,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
         /* reverse read: reverse-complement sequence */
 
-        reverse_sequence.assign(fastq_get_sequence(infiles.reverse.handle), rev_seq_length);
+        reverse_sequence.assign(infiles.reverse.handle->get_sequence(), rev_seq_length);
         std::reverse(reverse_sequence.begin(), reverse_sequence.end());
         std::transform(reverse_sequence.begin(),
                        reverse_sequence.end(),
@@ -255,13 +255,13 @@ auto fastq_join(struct Parameters const & parameters) -> void
 
         /* reverse read: reverse quality */
 
-        reverse_quality.assign(fastq_get_quality(infiles.reverse.handle), rev_seq_length);
+        reverse_quality.assign(infiles.reverse.handle->get_quality(), rev_seq_length);
         std::reverse(reverse_quality.begin(), reverse_quality.end());
 
         /* join them */
 
-        final_sequence = std::string{fastq_get_sequence(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgap + reverse_sequence;
-        final_quality = std::string{fastq_get_quality(infiles.forward.handle), fwd_seq_length} + parameters.opt_join_padgapq + reverse_quality;
+        final_sequence = std::string{infiles.forward.handle->get_sequence(), fwd_seq_length} + parameters.opt_join_padgap + reverse_sequence;
+        final_quality = std::string{infiles.forward.handle->get_quality(), fwd_seq_length} + parameters.opt_join_padgapq + reverse_quality;
 
         /* write output */
 
@@ -270,10 +270,10 @@ auto fastq_join(struct Parameters const & parameters) -> void
             fastq_print_general(outfiles.fastq.handle.get(),
                                 final_sequence.c_str(),
                                 static_cast<int>(needed),
-                                fastq_get_header(infiles.forward.handle),
-                                static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
+                                infiles.forward.handle->get_header(),
+                                static_cast<int>(infiles.forward.handle->get_header_length()),
                                 final_quality.c_str(),
-                                static_cast<uint64_t>(fastq_get_abundance(infiles.forward.handle)),
+                                static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
                                 static_cast<int>(total + 1),
                                 -1.0,
                                 parameters);
@@ -285,9 +285,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
                                 nullptr,
                                 final_sequence.c_str(),
                                 static_cast<int>(needed),
-                                fastq_get_header(infiles.forward.handle),
-                                static_cast<int>(fastq_get_header_length(infiles.forward.handle)),
-                                static_cast<uint64_t>(fasta_get_abundance(infiles.forward.handle)),
+                                infiles.forward.handle->get_header(),
+                                static_cast<int>(infiles.forward.handle->get_header_length()),
+                                static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
                                 static_cast<int>(total + 1),
                                 -1.0,
                                 -1,
@@ -299,11 +299,11 @@ auto fastq_join(struct Parameters const & parameters) -> void
           }
 
         ++total;
-        progress.update(fastq_get_position(infiles.forward.handle));
+        progress.update(infiles.forward.handle->get_position());
       }
   }
 
-  if (fastq_next(infiles.reverse.handle, false, chrmap_no_change()))
+  if (infiles.reverse.handle->next(false, chrmap_no_change()))
     {
       fatal("More reverse reads than forward reads");
     }

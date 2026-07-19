@@ -201,12 +201,12 @@ namespace {
 
   auto store_record(fastx_handle handle, bool const is_fastq) -> read_record {
     read_record record;
-    record.header.assign(fastx_get_header(handle), fastx_get_header_length(handle));
-    record.sequence.assign(fastx_get_sequence(handle), fastx_get_sequence_length(handle));
+    record.header.assign(handle->get_header(), handle->get_header_length());
+    record.sequence.assign(handle->get_sequence(), handle->get_sequence_length());
     if (is_fastq) {
-      record.quality.assign(fastx_get_quality(handle), fastx_get_sequence_length(handle));
+      record.quality.assign(handle->get_quality(), handle->get_sequence_length());
     }
-    record.abundance = fastx_get_abundance(handle);
+    record.abundance = handle->get_abundance();
     return record;
   }
 
@@ -257,10 +257,10 @@ namespace {
                      std::vector<read_record> & records,
                      read_index & index,
                      struct Parameters const & parameters) -> void {
-    Progress progress("Indexing reverse reads", fastx_get_size(reverse_handle), parameters);
-    while (fastx_next(reverse_handle, false, chrmap_no_change())) {
-      auto key = matching_key(fastx_get_header(reverse_handle),
-                              fastx_get_header_length(reverse_handle),
+    Progress progress("Indexing reverse reads", reverse_handle->get_size(), parameters);
+    while (reverse_handle->next(false, chrmap_no_change())) {
+      auto key = matching_key(reverse_handle->get_header(),
+                              reverse_handle->get_header_length(),
                               separators);
       auto const position = records.size();
       auto const inserted = index.emplace(std::move(key), position);
@@ -268,7 +268,7 @@ namespace {
         fatal("Duplicate read label in reverse file");
       }
       records.push_back(store_record(reverse_handle, is_fastq));
-      progress.update(fastx_get_position(reverse_handle));
+      progress.update(reverse_handle->get_position());
     }
   }
 
@@ -298,10 +298,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   auto * forward_handle = fastx_open(parameters.opt_fastx_syncpairs, parameters);
   auto * reverse_handle = fastx_open(parameters.opt_reverse, parameters);
 
-  auto const forward_empty = fastx_is_empty(forward_handle);
-  auto const reverse_empty = fastx_is_empty(reverse_handle);
-  auto const forward_is_fastq = fastx_is_fastq(forward_handle);
-  auto const reverse_is_fastq = fastx_is_fastq(reverse_handle);
+  auto const forward_empty = forward_handle->is_empty_input();
+  auto const reverse_empty = reverse_handle->is_empty_input();
+  auto const forward_is_fastq = forward_handle->is_fastq_input();
+  auto const reverse_is_fastq = reverse_handle->is_fastq_input();
 
   if ((not forward_empty) and (not reverse_empty) and
       (forward_is_fastq != reverse_is_fastq)) {
@@ -336,10 +336,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   uint64_t orphans_fwd = 0;
 
   {
-    Progress progress("Synchronizing reads", fastx_get_size(forward_handle), parameters);
-    while (fastx_next(forward_handle, false, chrmap_no_change())) {
-      auto const key = matching_key(fastx_get_header(forward_handle),
-                                    fastx_get_header_length(forward_handle),
+    Progress progress("Synchronizing reads", forward_handle->get_size(), parameters);
+    while (forward_handle->next(false, chrmap_no_change())) {
+      auto const key = matching_key(forward_handle->get_header(),
+                                    forward_handle->get_header_length(),
                                     separators);
       auto const match = reverse_index.find(key);
       if (match == reverse_index.end()) {
@@ -363,7 +363,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
         write_record(outfiles.synced_rev, reverse_records[position],
                      static_cast<int64_t>(pairs), parameters);
       }
-      progress.update(fastx_get_position(forward_handle));
+      progress.update(forward_handle->get_position());
     }
   }
 

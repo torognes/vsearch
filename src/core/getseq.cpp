@@ -180,8 +180,8 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
 
 auto test_label_match(fastx_handle input_handle, struct Parameters const & parameters) -> bool
 {
-  char const * header = fastx_get_header(input_handle);
-  auto const header_length = fastx_get_header_length(input_handle);
+  char const * header = input_handle->get_header();
+  auto const header_length = input_handle->get_header_length();
   auto const hlen = static_cast<std::size_t>(header_length);
   auto const header_view = View<char>{header, header_length};
   auto const longest_label = find_length_longest_label(labels_data);
@@ -404,7 +404,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       fatal("Cannot write FASTQ output from FASTA input");
     }
 
-  uint64_t const filesize = fastx_get_size(h1);
+  uint64_t const filesize = h1->get_size();
 
   auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
   auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
@@ -420,7 +420,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   {
     Progress progress("Extracting sequences", filesize, parameters);
-    while (fastx_next(h1, not parameters.opt_notrunclabels, chrmap_no_change()))
+    while (h1->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
         bool const match = test_label_match(h1, parameters);
 
@@ -431,7 +431,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             ++kept;
 
             int64_t start = 1;
-            int64_t end = static_cast<int64_t>(fastx_get_sequence_length(h1));
+            int64_t end = static_cast<int64_t>(h1->get_sequence_length());
             if (parameters.opt_fastx_getsubseq != nullptr)
               {
                 start = std::max(parameters.opt_subseq_start, start);
@@ -454,11 +454,11 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
               {
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    fastx_get_sequence(h1) + offset,
+                                    h1->get_sequence() + offset,
                                     static_cast<int>(length),
-                                    fastx_get_header(h1),
-                                    static_cast<int>(fastx_get_header_length(h1)),
-                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    h1->get_header(),
+                                    static_cast<int>(h1->get_header_length()),
+                                    static_cast<uint64_t>(h1->get_abundance()),
                                     kept,
                                     -1.0,
                                     -1,
@@ -472,12 +472,12 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             if (parameters.opt_fastqout != nullptr)
               {
                 fastq_print_general(fp_fastqout,
-                                    fastx_get_sequence(h1) + offset,
+                                    h1->get_sequence() + offset,
                                     static_cast<int>(length),
-                                    fastx_get_header(h1),
-                                    static_cast<int>(fastx_get_header_length(h1)),
-                                    fastx_get_quality(h1) + offset,
-                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    h1->get_header(),
+                                    static_cast<int>(h1->get_header_length()),
+                                    h1->get_quality() + offset,
+                                    static_cast<uint64_t>(h1->get_abundance()),
                                     kept,
                                     -1.0,
                                     parameters);
@@ -495,8 +495,8 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
               {
                 fasta_print_general(fp_notmatched,
                                     nullptr,
-                                    fastx_record(h1),
-                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    h1->record(),
+                                    static_cast<uint64_t>(h1->get_abundance()),
                                     discarded,
                                     -1.0,
                                     -1,
@@ -510,15 +510,15 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             if (parameters.opt_notmatchedfq != nullptr)
               {
                 fastq_print_general(fp_notmatchedfq,
-                                    fastx_record(h1),
-                                    static_cast<uint64_t>(fastx_get_abundance(h1)),
+                                    h1->record(),
+                                    static_cast<uint64_t>(h1->get_abundance()),
                                     discarded,
                                     -1.0,
                                     parameters);
               }
           }
 
-        progress.update(fastx_get_position(h1));
+        progress.update(h1->get_position());
       }
   }
 

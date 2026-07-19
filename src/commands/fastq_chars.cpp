@@ -293,16 +293,16 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
   auto * fastq_handle = fastq_open(parameters.opt_fastq_chars, parameters);
 
-  auto const filesize = fastq_get_size(fastq_handle);
+  auto const filesize = fastq_handle->get_size();
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
 
-    while (fastq_next(fastq_handle, false, chrmap_upcase()))
+    while (fastq_handle->next(false, chrmap_upcase()))
       {
-        auto const seq_length = fastq_get_sequence_length(fastq_handle);
-        auto const * seq_ptr = fastq_get_sequence(fastq_handle);
-        auto const * qual_ptr = fastq_get_quality(fastq_handle);
+        auto const seq_length = fastq_handle->get_sequence_length();
+        auto const * seq_ptr = fastq_handle->get_sequence();
+        auto const * qual_ptr = fastq_handle->get_quality();
 
         ++stats.seq_count;
         stats.total_chars += seq_length;
@@ -340,13 +340,13 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
         // search for trailing homopolymers in quality strings
         auto const tail_char =
-          search_trailing_homopolymers(View<char>{fastq_get_quality(fastq_handle), seq_length},
+          search_trailing_homopolymers(View<char>{fastq_handle->get_quality(), seq_length},
                                        parameters.opt_fastq_tail);
         if (tail_char != '\0') {
           ++stats.tail_chars[static_cast<unsigned char>(tail_char)];
         }
 
-        progress.update(fastq_get_position(fastq_handle));
+        progress.update(fastq_handle->get_position());
       }
   }
 

@@ -436,19 +436,19 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
   uint64_t progress = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
-    if (not fastx_next(query_fastx_h,
+    if (not query_fastx_h->next(
                        (not state.parameters.opt_notrunclabels),
                        chrmap_no_change()))
       {
         return false;
       }
 
-    char const * qhead = fastx_get_header(query_fastx_h);
-    query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
-    char const * qseq = fastx_get_sequence(query_fastx_h);
-    qseqlen = static_cast<int>(fastx_get_sequence_length(query_fastx_h));
-    query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
-    qsize = fastx_get_abundance(query_fastx_h);
+    char const * qhead = query_fastx_h->get_header();
+    query_head_len = static_cast<int>(query_fastx_h->get_header_length());
+    char const * qseq = query_fastx_h->get_sequence();
+    qseqlen = static_cast<int>(query_fastx_h->get_sequence_length());
+    query_no = static_cast<int>(query_fastx_h->get_seqno());
+    qsize = query_fastx_h->get_abundance();
 
     populate_si(si_plus + t,
                 qhead,
@@ -460,7 +460,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
                 0);
 
     /* get progress as amount of input file read */
-    progress = fastx_get_position(query_fastx_h);
+    progress = query_fastx_h->get_position();
     return true;
   };
 
@@ -693,16 +693,16 @@ auto usearch_global(struct Parameters const & parameters) -> void
     }
 
   {
-    Progress progress("Searching", fastx_get_size(query_fastx_h), parameters);
+    Progress progress("Searching", query_fastx_h->get_size(), parameters);
     state.progress = &progress;
     search_thread_worker_run(state);
   }
 
   /* all workers joined; report a deferred query parse error (CC3) from the
      main thread so it does not race a worker's output */
-  if (fastx_get_error(query_fastx_h))
+  if (query_fastx_h->get_error())
     {
-      fatal("%s", fastx_get_errmsg(query_fastx_h));
+      fatal("%s", query_fastx_h->get_errmsg());
     }
 
   delete [] si_plus;

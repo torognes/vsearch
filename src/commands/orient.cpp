@@ -159,7 +159,7 @@ auto orient(struct Parameters const & parameters) -> void
 
   if (parameters.opt_fastqout != nullptr)
     {
-      if (not fastx_is_fastq(query_h))
+      if (not query_h->is_fastq_input())
         {
           fatal("Cannot write FASTQ output with FASTA input");
         }
@@ -212,18 +212,18 @@ auto orient(struct Parameters const & parameters) -> void
   std::vector<char> query_qual_rev;
 
   {
-    Progress progress_bar("Orienting sequences", fasta_get_size(query_h), parameters);
+    Progress progress_bar("Orienting sequences", query_h->get_size(), parameters);
 
-    while (fastx_next(query_h,
+    while (query_h->next(
                       (not parameters.opt_notrunclabels),
                       chrmap_no_change()))
       {
-        char const * query_head = fastx_get_header(query_h);
-        int const query_head_len = static_cast<int>(fastx_get_header_length(query_h));
-        char const * qseq_fwd = fastx_get_sequence(query_h);
-        int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_h));
-        int64_t const qsize = fastx_get_abundance(query_h);
-        char const * query_qual_fwd = fastx_get_quality(query_h);
+        char const * query_head = query_h->get_header();
+        int const query_head_len = static_cast<int>(query_h->get_header_length());
+        char const * qseq_fwd = query_h->get_sequence();
+        int const qseqlen = static_cast<int>(query_h->get_sequence_length());
+        int64_t const qsize = query_h->get_abundance();
+        char const * query_qual_fwd = query_h->get_quality();
 
         /* find kmers in query sequence */
 
@@ -262,7 +262,7 @@ auto orient(struct Parameters const & parameters) -> void
 
         /* get progress as amount of input file read */
 
-        auto const progress = fasta_get_position(query_h);
+        auto const progress = query_h->get_position();
 
         /* update stats */
 
@@ -284,7 +284,7 @@ auto orient(struct Parameters const & parameters) -> void
               {
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    fastx_record(query_h),
+                                    query_h->record(),
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,
@@ -299,7 +299,7 @@ auto orient(struct Parameters const & parameters) -> void
             if (parameters.opt_fastqout != nullptr)
               {
                 fastq_print_general(fp_fastqout,
-                                    fastx_record(query_h),
+                                    query_h->record(),
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,
@@ -323,7 +323,7 @@ auto orient(struct Parameters const & parameters) -> void
               {
                 alloc = requirements;
                 qseq_rev.resize(alloc);
-                if (fastx_is_fastq(query_h))
+                if (query_h->is_fastq_input())
                   {
                     query_qual_rev.resize(alloc);
                   }
@@ -356,7 +356,7 @@ auto orient(struct Parameters const & parameters) -> void
               {
                 /* reverse quality scores */
 
-                if (fastx_is_fastq(query_h))
+                if (query_h->is_fastq_input())
                   {
                     // copy query string in reverse order
                     for (int i = 0; i < qseqlen; i++)
@@ -387,10 +387,10 @@ auto orient(struct Parameters const & parameters) -> void
 
             if (parameters.opt_notmatched != nullptr)
               {
-                if (fastx_is_fastq(query_h))
+                if (query_h->is_fastq_input())
                   {
                     fastq_print_general(fp_notmatched,
-                                        fastx_record(query_h),
+                                        query_h->record(),
                                         static_cast<uint64_t>(qsize),
                                         notmatched,
                                         -1.0,
@@ -400,7 +400,7 @@ auto orient(struct Parameters const & parameters) -> void
                   {
                     fasta_print_general(fp_notmatched,
                                         nullptr,
-                                        fastx_record(query_h),
+                                        query_h->record(),
                                         static_cast<uint64_t>(qsize),
                                         notmatched,
                                         -1.0,

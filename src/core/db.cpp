@@ -238,9 +238,9 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
      fastx_close() below (which also emits the stripped-character warning). */
   std::unique_ptr<fastx_s> handle_guard(h);
 
-  fastq_format = fastx_is_fastq(h);
+  fastq_format = h->is_fastq_input();
 
-  int64_t const filesize = static_cast<int64_t>(fastx_get_size(h));
+  int64_t const filesize = static_cast<int64_t>(h->get_size());
 
   std::string const prompt = std::string("Reading file ") + filename;
 
@@ -260,12 +260,12 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 
   {
     Progress progress(prompt.c_str(), static_cast<uint64_t>(filesize), parameters);
-    while (fastx_next(h,
+    while (h->next(
                      not parameters.opt_notrunclabels,
                       (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))
       {
-        size_t const sequencelength = fastx_get_sequence_length(h);
-        int64_t const abundance = fastx_get_abundance(h);
+        size_t const sequencelength = h->get_sequence_length();
+        int64_t const abundance = h->get_abundance();
 
         /* opt_minseqlength defaults to the -1 "unset" sentinel, which the CLI
            resolves to a command-specific value (1 or 32) before read() runs.
@@ -288,14 +288,14 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
         else
           {
             add(fastq_format,
-                fastx_get_header(h),
-                fastx_get_sequence(h),
-                fastq_format ? fastx_get_quality(h) : nullptr,
-                fastx_get_header_length(h),
+                h->get_header(),
+                h->get_sequence(),
+                fastq_format ? h->get_quality() : nullptr,
+                h->get_header_length(),
                 sequencelength,
                 abundance);
           }
-        progress.update(fastx_get_position(h));
+        progress.update(h->get_position());
       }
   }
   static_cast<void>(handle_guard.release());  // normal path: hand the handle to fastx_close()

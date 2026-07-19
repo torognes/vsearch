@@ -530,7 +530,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
   uint64_t progress = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
-    if (not fastx_next(query_fastx_h,
+    if (not query_fastx_h->next(
                        not state.parameters.opt_notrunclabels,
                        chrmap_no_change()))
       {
@@ -541,12 +541,12 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
         return false;
       }
 
-    auto const * qhead = fastx_get_header(query_fastx_h);
-    int const query_head_len = static_cast<int>(fastx_get_header_length(query_fastx_h));
-    auto const * qseq = fastx_get_sequence(query_fastx_h);
-    int const qseqlen = static_cast<int>(fastx_get_sequence_length(query_fastx_h));
-    int const query_no = static_cast<int>(fastx_get_seqno(query_fastx_h));
-    int64_t const qsize = fastx_get_abundance(query_fastx_h);
+    auto const * qhead = query_fastx_h->get_header();
+    int const query_head_len = static_cast<int>(query_fastx_h->get_header_length());
+    auto const * qseq = query_fastx_h->get_sequence();
+    int const qseqlen = static_cast<int>(query_fastx_h->get_sequence_length());
+    int const query_no = static_cast<int>(query_fastx_h->get_seqno());
+    int64_t const qsize = query_fastx_h->get_abundance();
 
     for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
       {
@@ -573,7 +573,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     si_plus[t].qsequence = Span<char>{si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
 
     /* get progress as amount of input file read */
-    progress = fastx_get_position(query_fastx_h);
+    progress = query_fastx_h->get_position();
     return true;
   };
 
@@ -742,7 +742,7 @@ auto sintax(struct Parameters const & parameters) -> void
   /* run */
 
   {
-    Progress progress("Classifying sequences", fastx_get_size(query_fastx_h), parameters);
+    Progress progress("Classifying sequences", query_fastx_h->get_size(), parameters);
     state.progress = &progress;
     sintax_thread_worker_run(state);
   }
@@ -750,9 +750,9 @@ auto sintax(struct Parameters const & parameters) -> void
   /* All workers have joined. If one hit a malformed query, report it now
      from the main thread (single-threaded) so the message is emitted and
      the process exits without racing any worker (CC3). */
-  if (fastx_get_error(query_fastx_h))
+  if (query_fastx_h->get_error())
     {
-      fatal("%s", fastx_get_errmsg(query_fastx_h));
+      fatal("%s", query_fastx_h->get_errmsg());
     }
 
   if (! parameters.opt_quiet)

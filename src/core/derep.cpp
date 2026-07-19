@@ -269,9 +269,9 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   auto * input_handle = fastx_open(input_filename, parameters);
 
-  if (not fastx_is_empty(input_handle))
+  if (not input_handle->is_empty_input())
     {
-      if (fastx_is_fastq(input_handle))
+      if (input_handle->is_fastq_input())
         {
           if (mode != Derep_mode::uniques) {
             fatal("FASTQ input is only allowed with the fastx_uniques command");
@@ -330,7 +330,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
   uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
   fp_uc = uc_handle.get();
 
-  auto const filesize = fastx_get_size(input_handle);
+  auto const filesize = input_handle->get_size();
 
 
   /* allocate initial memory for 1024 clusters
@@ -389,9 +389,9 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   {
     Progress progress(prompt.c_str(), filesize, parameters);
-    while (fastx_next(input_handle, not parameters.opt_notrunclabels, chrmap_no_change()))
+    while (input_handle->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(input_handle));
+        int64_t const seqlen = static_cast<int64_t>(input_handle->get_sequence_length());
 
         if (seqlen < parameters.opt_minseqlength)
           {
@@ -448,10 +448,10 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
             // memory-intensive: the hash table has been resized (rehash)
           }
 
-        auto const * seq = fastx_get_sequence(input_handle);
-        auto const * header = fastx_get_header(input_handle);
-        auto const headerlen = fastx_get_header_length(input_handle);
-        auto const * qual = fastx_get_quality(input_handle); // nullptr if FASTA
+        auto const * seq = input_handle->get_sequence();
+        auto const * header = input_handle->get_header();
+        auto const headerlen = input_handle->get_header_length();
+        auto const * qual = input_handle->get_quality(); // nullptr if FASTA
 
         /* normalize sequence: uppercase and replace U by T  */
         string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
@@ -515,7 +515,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
               }
           }
 
-        auto const abundance = parameters.opt_sizein ? fastx_get_abundance(input_handle) : int64_t{1};
+        auto const abundance = parameters.opt_sizein ? input_handle->get_abundance() : int64_t{1};
         sumsize += abundance;
 
         if (bp->size != 0U)
@@ -613,7 +613,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
         ++sequencecount;
 
-        progress.update(fastx_get_position(input_handle));
+        progress.update(input_handle->get_position());
       }
   }
   fastx_close(input_handle, parameters);

@@ -230,7 +230,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   auto const output_handle = open_mandatory_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
   std::FILE * const fp_fastaout = output_handle.get();
 
-  auto const filesize = fastx_get_size(h);
+  auto const filesize = h->get_size();
 
   /* allocate initial memory for sequences of length up to 1023 chars */
   int64_t alloc_seqlen = 1024;
@@ -261,9 +261,9 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress(prompt.c_str(), filesize, parameters);
-    while (fastx_next(h, not parameters.opt_notrunclabels, chrmap_no_change()))
+    while (h->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h));
+        int64_t const seqlen = static_cast<int64_t>(h->get_sequence_length());
 
         if (seqlen < parameters.opt_minseqlength)
           {
@@ -299,7 +299,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             // memory-intensive: the hash table has been resized (rehash)
           }
 
-        auto const * seq = fastx_get_sequence(h);
+        auto const * seq = h->get_sequence();
 
         /* normalize sequence: uppercase and replace U by T  */
         string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
@@ -351,7 +351,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
               }
           }
 
-        int64_t const abundance = fastx_get_abundance(h);
+        int64_t const abundance = h->get_abundance();
         int64_t const ab = parameters.opt_sizein ? abundance : 1;
         sumsize += ab;
 
@@ -371,7 +371,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         maxsize = std::max(bp->size, maxsize);
 
         ++sequencecount;
-        progress.update(fastx_get_position(h));
+        progress.update(h->get_position());
       }
   }
   fastx_close(h, parameters);
@@ -501,16 +501,16 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Writing FASTA output file", filesize, parameters);
-    while (fastx_next(h2, not parameters.opt_notrunclabels, chrmap_no_change()))
+    while (h2->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        int64_t const seqlen = static_cast<int64_t>(fastx_get_sequence_length(h2));
+        int64_t const seqlen = static_cast<int64_t>(h2->get_sequence_length());
 
         if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
           {
             continue;
           }
 
-        auto const * seq = fastx_get_sequence(h2);
+        auto const * seq = h2->get_sequence();
 
         /* normalize sequence: uppercase and replace U by T  */
         string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
@@ -559,8 +559,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           {
             /* print sequence */
 
-            auto const * header = fastx_get_header(h2);
-            int const headerlen = static_cast<int>(fastx_get_header_length(h2));
+            auto const * header = h2->get_header();
+            int const headerlen = static_cast<int>(h2->get_header_length());
 
             if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
               {
@@ -581,7 +581,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             bp->size = static_cast<uint64_t>(-1);
           }
 
-        progress.update(fastx_get_position(h2));
+        progress.update(h2->get_position());
       }
   }
   fastx_close(h2, parameters);

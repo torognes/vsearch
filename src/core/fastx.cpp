@@ -263,7 +263,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
                   static_cast<uint64_t>(count), input_handle->lineno_start,
                   static_cast<uint64_t>(max_header_length));
     if (input_handle->defer_errors) {
-      fastx_set_deferred_error(input_handle, message.data());
+      input_handle->set_deferred_error(message.data());
       return;
     }
     fatal(message.data());
@@ -284,7 +284,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
                       "Illegal character encountered in FASTA/FASTQ header.\n"
                       "Unprintable ASCII character no %d on line %" PRIu64 ".",
                       symbol, input_handle->lineno_start);
-        fastx_set_deferred_error(input_handle, message.data());
+        input_handle->set_deferred_error(message.data());
         return;
       }
       fatal("Illegal character encountered in FASTA/FASTQ header.\n"
@@ -800,7 +800,7 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
                 length, input_handle->lineno_start, max_sequence_length);
   if (input_handle->defer_errors)
     {
-      fastx_set_deferred_error(input_handle, message.data());
+      input_handle->set_deferred_error(message.data());
       return;
     }
   fatal(message.data());

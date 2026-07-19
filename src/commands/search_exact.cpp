@@ -479,17 +479,17 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
   uint64_t progress = 0;
 
   auto const has_work_to_claim = [&]() -> bool {
-    if (not fastx_next(state.query_fastx_h, (not parameters.opt_notrunclabels), chrmap_no_change()))
+    if (not state.query_fastx_h->next((not parameters.opt_notrunclabels), chrmap_no_change()))
       {
         return false;
       }
 
-    char const * qhead = fastx_get_header(state.query_fastx_h);
-    int const query_head_len = static_cast<int>(fastx_get_header_length(state.query_fastx_h));
-    char const * qseq = fastx_get_sequence(state.query_fastx_h);
-    int const qseqlen = static_cast<int>(fastx_get_sequence_length(state.query_fastx_h));
-    int const query_no = static_cast<int>(fastx_get_seqno(state.query_fastx_h));
-    qsize = fastx_get_abundance(state.query_fastx_h);
+    char const * qhead = state.query_fastx_h->get_header();
+    int const query_head_len = static_cast<int>(state.query_fastx_h->get_header_length());
+    char const * qseq = state.query_fastx_h->get_sequence();
+    int const qseqlen = static_cast<int>(state.query_fastx_h->get_sequence_length());
+    int const query_no = static_cast<int>(state.query_fastx_h->get_seqno());
+    qsize = state.query_fastx_h->get_abundance();
 
     for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
       {
@@ -516,7 +516,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     state.si_plus[t].qsequence = Span<char>{state.si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
 
     /* get progress as amount of input file read */
-    progress = fastx_get_position(state.query_fastx_h);
+    progress = state.query_fastx_h->get_position();
     return true;
   };
 
@@ -735,16 +735,16 @@ auto search_exact(struct Parameters const & parameters) -> void
     }
 
   {
-    Progress progress_bar("Searching", fastx_get_size(state.query_fastx_h), parameters);
+    Progress progress_bar("Searching", state.query_fastx_h->get_size(), parameters);
     state.progress = &progress_bar;
     search_exact_thread_worker_run(state);
   }
 
   /* all workers joined; report a deferred query parse error (CC3) from the
      main thread so it does not race a worker's output */
-  if (fastx_get_error(state.query_fastx_h))
+  if (state.query_fastx_h->get_error())
     {
-      fatal("%s", fastx_get_errmsg(state.query_fastx_h));
+      fatal("%s", state.query_fastx_h->get_errmsg());
     }
 
   // si_plus not used below that point

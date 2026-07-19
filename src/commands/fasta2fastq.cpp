@@ -84,15 +84,15 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   std::vector<char> quality(initial_length, max_ascii_value);
 
   Progress progress("Converting FASTA file to FASTQ",
-                    fasta_get_size(fp_input),
+                    fp_input->get_size(),
                     parameters);
 
   auto counter = 0;
-  while (fasta_next(fp_input, false, chrmap_no_change()))
+  while (fp_input->next(false, chrmap_no_change()))
     {
       /* get sequence length and allocate more mem if necessary */
 
-      auto const length = fastq_get_sequence_length(fp_input);
+      auto const length = fp_input->get_sequence_length();
 
       if (quality.size() < length + 1)
         {
@@ -106,17 +106,17 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
 
       /* write to fastq file */
       fastq_print_general(output_handle.get(),
-                          fastq_get_sequence(fp_input),
+                          fp_input->get_sequence(),
                           static_cast<int>(length),
-                          fasta_get_header(fp_input),
-                          static_cast<int>(fasta_get_header_length(fp_input)),
+                          fp_input->get_header(),
+                          static_cast<int>(fp_input->get_header_length()),
                           quality.data(),
-                          static_cast<uint64_t>(fastq_get_abundance(fp_input)),
+                          static_cast<uint64_t>(fp_input->get_abundance()),
                           counter,
                           -1.0,
                           parameters);
 
-      progress.update(fasta_get_position(fp_input));
+      progress.update(fp_input->get_position());
     }
 
   fasta_close(fp_input, parameters);

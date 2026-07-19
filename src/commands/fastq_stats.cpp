@@ -510,7 +510,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   constexpr std::array<double, 4> ee_thresholds = { 1.0, 0.5, 0.25, 0.1 };
   auto * input_handle = fastq_open(parameters.opt_fastq_stats, parameters);
 
-  auto const filesize = fastq_get_size(input_handle);
+  auto const filesize = input_handle->get_size();
 
 
   auto const symbol_to_score = precompute_quality_scores(parameters);
@@ -525,12 +525,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   // note: fastq parsing represents 99% of total wallclock time
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(input_handle, false, chrmap_upcase()))
+    while (input_handle->next(false, chrmap_upcase()))
       {
 
         /* update length statistics */
 
-        auto const length = fastq_get_sequence_length(input_handle);
+        auto const length = input_handle->get_sequence_length();
 
         if (length + 1 > read_length_table.size())
           {
@@ -546,7 +546,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
         /* update quality statistics */
 
-        auto const * quality_symbols = fastq_get_quality(input_handle);
+        auto const * quality_symbols = input_handle->get_quality();
         auto expected_error = 0.0;
         auto qmin = std::numeric_limits<uint64_t>::max();  // lowest Q value observed so far in this read
 
@@ -594,7 +594,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
                            });
           }
 
-        progress.update(fastq_get_position(input_handle));
+        progress.update(input_handle->get_position());
       }
   }
   fastq_close(input_handle, parameters);

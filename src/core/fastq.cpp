@@ -223,7 +223,7 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * 
      after this call. */
   if (input_handle->defer_errors)
     {
-      fastx_set_deferred_error(input_handle, message.c_str());
+      input_handle->set_deferred_error(message.c_str());
       return;
     }
   fatal(message.c_str());
@@ -308,7 +308,7 @@ auto fastq_open(const char * filename, struct Parameters const & parameters) -> 
   // (library session); released to the caller on the success path.
   std::unique_ptr<fastx_s> input_handle(fastx_open(filename, parameters));
 
-  if (not fastx_is_fastq(input_handle.get()))
+  if (not input_handle->is_fastq_input())
     {
       fatal("FASTQ file expected, FASTA file found (%s)", filename);
     }

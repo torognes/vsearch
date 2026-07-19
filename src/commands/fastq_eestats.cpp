@@ -84,7 +84,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   fastx_handle h = fastq_open(parameters.opt_fastq_eestats, parameters);
 
-  uint64_t const filesize = fastq_get_size(h);
+  uint64_t const filesize = h->get_size();
 
   auto const output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
   std::FILE * const fp_output = output_handle.get();
@@ -116,12 +116,12 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
-    while (fastq_next(h, false, chrmap_upcase()))
+    while (h->next(false, chrmap_upcase()))
       {
         ++seq_count;
 
-        int64_t const len = static_cast<int64_t>(fastq_get_sequence_length(h));
-        char const * q = fastq_get_quality(h);
+        int64_t const len = static_cast<int64_t>(h->get_sequence_length());
+        char const * q = h->get_quality();
 
         /* update length statistics */
 
@@ -170,7 +170,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
             sum_ee_length_table[static_cast<size_t>(i)] += ee;
           }
-        progress.update(fastq_get_position(h));
+        progress.update(h->get_position());
       }
   }
 

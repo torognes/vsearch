@@ -79,7 +79,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
 {
   auto const output_handle = open_mandatory_output_file(parameters.opt_output, OutputOption{"--output"});
   auto * input_handle = fasta_open(parameters.opt_rereplicate, parameters);
-  auto const filesize = static_cast<int64_t>(fasta_get_size(input_handle));
+  auto const filesize = static_cast<int64_t>(input_handle->get_size());
 
   int64_t n_amplicons = 0;
   auto missing_abundance = false;
@@ -87,10 +87,10 @@ auto rereplicate(struct Parameters const & parameters) -> void
   auto const truncateatspace = not parameters.opt_notrunclabels;
   {
     Progress progress("Rereplicating", static_cast<uint64_t>(filesize), parameters);
-    while (fasta_next(input_handle, truncateatspace, chrmap_no_change()))
+    while (input_handle->next(truncateatspace, chrmap_no_change()))
       {
         ++n_amplicons;
-        auto abundance = fasta_get_abundance_and_presence(input_handle);
+        auto abundance = input_handle->get_abundance_and_presence();
         if (abundance == 0)
           {
             missing_abundance = true;
@@ -102,7 +102,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
             ++n_reads;
             fasta_print_general(output_handle.get(),
                                 nullptr,
-                                fastx_record(input_handle),
+                                input_handle->record(),
                                 1,
                                 n_reads,
                                 -1.0,
@@ -111,7 +111,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
                                 parameters);
           }
 
-        progress.update(fasta_get_position(input_handle));
+        progress.update(input_handle->get_position());
       }
   }
 
