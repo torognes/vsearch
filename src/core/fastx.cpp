@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // header_get_size
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
@@ -140,6 +141,64 @@ auto FastxBuffer::extend(char const * const source, uint64_t const len) -> void
   std::memcpy(data() + length, source, len);
   length += len;
   data()[length] = 0;
+}
+
+
+/* fastx_s member functions that are too large to inline in the header (they
+   pull in header_get_size, the format dispatch, or the error buffer). The
+   trivial record accessors are inline in fastx.hpp. */
+
+auto fastx_s::get_abundance() const -> int64_t
+{
+  // return 1 if the ;size= annotation is not present
+  auto const size = header_get_size(header_buffer.data(),
+                                    static_cast<int>(header_buffer.length));
+  if (size > 0)
+    {
+      return size;
+    }
+  return 1;
+}
+
+
+auto fastx_s::get_abundance_and_presence() const -> int64_t
+{
+  // return 0 if the ;size= annotation is not present
+  return header_get_size(header_buffer.data(), static_cast<int>(header_buffer.length));
+}
+
+
+auto fastx_s::set_deferred_error(char const * const message) -> void
+{
+  /* record the first deferred parse error and flag the handle (see the
+     deferred-error note in fastx.hpp). First error wins; later ones are
+     ignored so the message reflects the earliest failure. */
+  if (not error)
+    {
+      std::snprintf(errmsg.data(), errmsg.size(), "%s", message);
+      error = true;
+    }
+}
+
+
+auto fastx_s::next(bool const truncateatspace, unsigned char const * char_mapping) -> bool
+{
+  /* deferred-error mode (see fastx.hpp): if a previous call already recorded a
+     parse error, report no further records so every worker stops; and if the
+     current record triggered a deferred error, treat it as unusable (return
+     false) rather than handing back a bogus record. */
+  if (error)
+    {
+      return false;
+    }
+  bool const got_record = is_fastq
+    ? fastq_next(this, truncateatspace, char_mapping)
+    : fasta_next(this, truncateatspace, char_mapping);
+  if (error)
+    {
+      return false;
+    }
+  return got_record;
 }
 
 
@@ -503,19 +562,19 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
 auto fastx_is_fastq(struct fastx_s const * input_handle) -> bool
 {
-  return input_handle->is_fastq or input_handle->is_empty;
+  return input_handle->is_fastq_input();
 }
 
 
 auto fastx_is_empty(struct fastx_s const * input_handle) -> bool
 {
-  return input_handle->is_empty;
+  return input_handle->is_empty_input();
 }
 
 
 auto fastx_is_pipe(struct fastx_s const * input_handle) -> bool
 {
-  return input_handle->is_pipe;
+  return input_handle->is_pipe_input();
 }
 
 
@@ -693,47 +752,25 @@ auto fastx_next(fastx_handle input_handle,
                 bool const truncateatspace,
                 const unsigned char * char_mapping) -> bool
 {
-  /* deferred-error mode (see fastx.h): if a previous call already
-     recorded a parse error, report no further records so every worker
-     stops; and if the current record triggered a deferred error, treat
-     it as unusable (return false) rather than handing back a bogus record */
-  if (input_handle->error)
-    {
-      return false;
-    }
-  bool const got_record = input_handle->is_fastq
-    ? fastq_next(input_handle, truncateatspace, char_mapping)
-    : fasta_next(input_handle, truncateatspace, char_mapping);
-  if (input_handle->error)
-    {
-      return false;
-    }
-  return got_record;
+  return input_handle->next(truncateatspace, char_mapping);
 }
 
 
 auto fastx_get_error(struct fastx_s const * input_handle) -> bool
 {
-  return input_handle->error;
+  return input_handle->get_error();
 }
 
 
 auto fastx_get_errmsg(struct fastx_s const * input_handle) -> char const *
 {
-  return input_handle->errmsg.data();
+  return input_handle->get_errmsg();
 }
 
 
 auto fastx_set_deferred_error(fastx_handle input_handle, char const * message) -> void
 {
-  /* record the first deferred parse error and flag the handle (see the
-     deferred-error note in fastx.h). First error wins; later ones are
-     ignored so the message reflects the earliest failure. */
-  if (not input_handle->error)
-    {
-      std::snprintf(input_handle->errmsg.data(), input_handle->errmsg.size(), "%s", message);
-      input_handle->error = true;
-    }
+  input_handle->set_deferred_error(message);
 }
 
 
@@ -772,110 +809,65 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
 
 auto fastx_get_position(struct fastx_s const * input_handle) -> uint64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_position(input_handle);
-    }
-  return fasta_get_position(input_handle);
+  return input_handle->get_position();
 }
 
 
 auto fastx_get_size(struct fastx_s const * input_handle) -> uint64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_size(input_handle);
-    }
-  return fasta_get_size(input_handle);
+  return input_handle->get_size();
 }
 
 
 auto fastx_get_lineno(struct fastx_s const * input_handle) -> uint64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_lineno(input_handle);
-    }
-  return fasta_get_lineno(input_handle);
+  return input_handle->get_lineno();
 }
 
 
 auto fastx_get_seqno(struct fastx_s const * input_handle) -> uint64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_seqno(input_handle);
-    }
-  return fasta_get_seqno(input_handle);
+  return input_handle->get_seqno();
 }
 
 
 auto fastx_get_header(struct fastx_s const * input_handle) -> char const *
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_header(input_handle);
-    }
-  return fasta_get_header(input_handle);
+  return input_handle->get_header();
 }
 
 
 auto fastx_get_sequence(struct fastx_s const * input_handle) -> char const *
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_sequence(input_handle);
-    }
-  return fasta_get_sequence(input_handle);
+  return input_handle->get_sequence();
 }
 
 
 auto fastx_get_header_length(struct fastx_s const * input_handle) -> uint64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_header_length(input_handle);
-    }
-  return fasta_get_header_length(input_handle);
+  return input_handle->get_header_length();
 }
 
 
 auto fastx_get_sequence_length(struct fastx_s const * input_handle) -> uint64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_sequence_length(input_handle);
-    }
-  return fasta_get_sequence_length(input_handle);
+  return input_handle->get_sequence_length();
 }
 
 
 auto fastx_get_quality(struct fastx_s const * input_handle) -> char const *
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_quality(input_handle);
-    }
-  return nullptr;
+  return input_handle->get_quality();
 }
 
 
 auto fastx_get_abundance(struct fastx_s const * input_handle) -> int64_t
 {
-  if (input_handle->is_fastq)
-    {
-      return fastq_get_abundance(input_handle);
-    }
-  return fasta_get_abundance(input_handle);
+  return input_handle->get_abundance();
 }
 
 
 auto fastx_record(fastx_handle input_handle) -> SeqRecord
 {
-  auto const sequence_length = fastx_get_sequence_length(input_handle);
-  auto const * quality = fastx_get_quality(input_handle);  // nullptr for FASTA
-  return SeqRecord{
-    View<char>{fastx_get_header(input_handle), fastx_get_header_length(input_handle)},
-    View<char>{fastx_get_sequence(input_handle), sequence_length},
-    View<char>{quality, quality != nullptr ? sequence_length : uint64_t{0}}};
+  return input_handle->record();
 }

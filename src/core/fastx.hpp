@@ -176,6 +176,69 @@ struct fastx_s
   bool error = false;
   std::array<char, 512> errmsg {{}};
 
+  /* Read API, mirroring Database's accessors. The former fastx_get_, fasta_get_
+     and fastq_get_ free functions were three near-identical families dispatching
+     on the format; they collapse into this single member set (the FASTA/FASTQ
+     difference is confined to get_quality/quality_view). The trivial accessors
+     are inline here, exactly as Database inlines its getters, so returning a
+     record field stays as cheap as the former free function. */
+
+  // Format of the input. An empty input is accepted as FASTQ, preserving the
+  // historical fastx_is_fastq() behaviour.
+  auto is_fastq_input() const noexcept -> bool { return is_fastq or is_empty; }
+  auto is_empty_input() const noexcept -> bool { return is_empty; }
+  auto is_pipe_input() const noexcept -> bool { return is_pipe; }
+
+  // Current record; the returned pointers/views stay valid only until the next
+  // next()/close() call on this handle.
+  auto get_header() const noexcept -> char const * { return header_buffer.data(); }
+  auto get_sequence() const noexcept -> char const * { return sequence_buffer.data(); }
+  auto get_header_length() const noexcept -> uint64_t { return header_buffer.length; }
+  auto get_sequence_length() const noexcept -> uint64_t { return sequence_buffer.length; }
+  // Quality is meaningful only for FASTQ; a FASTA record reports none (nullptr),
+  // matching the former fastx_get_quality().
+  auto get_quality() const noexcept -> char const *
+  {
+    return is_fastq ? quality_buffer.data() : nullptr;
+  }
+  auto get_quality_length() const noexcept -> uint64_t { return quality_buffer.length; }
+  auto get_abundance() const -> int64_t;               // 1 when ;size= is absent
+  auto get_abundance_and_presence() const -> int64_t;  // 0 when ;size= is absent
+
+  // View/SeqRecord companions, mirroring Database::sequence_view()/record().
+  auto header_view() const noexcept -> View<char>
+  {
+    return View<char>{get_header(), get_header_length()};
+  }
+  auto sequence_view() const noexcept -> View<char>
+  {
+    return View<char>{get_sequence(), get_sequence_length()};
+  }
+  auto quality_view() const noexcept -> View<char>
+  {
+    return View<char>{is_fastq ? quality_buffer.data() : nullptr,
+                      is_fastq ? get_sequence_length() : uint64_t{0}};
+  }
+  auto record() const -> SeqRecord
+  {
+    return SeqRecord{header_view(), sequence_view(), quality_view()};
+  }
+
+  // Stream position, total size and running counters.
+  auto get_position() const noexcept -> uint64_t { return file_position; }
+  auto get_size() const noexcept -> uint64_t { return file_size; }
+  auto get_lineno() const noexcept -> uint64_t { return lineno_start; }
+  auto get_seqno() const noexcept -> uint64_t { return static_cast<uint64_t>(seqno); }
+
+  // Deferred-error protocol (see the defer_errors note above).
+  auto get_error() const noexcept -> bool { return error; }
+  auto get_errmsg() const noexcept -> char const * { return errmsg.data(); }
+  auto set_deferred_error(char const * message) -> void;
+
+  // Advance to the next record, dispatching to the FASTA or FASTQ parser by
+  // format. Returns false at end of input or on a deferred parse error.
+  auto next(bool truncateatspace, unsigned char const * char_mapping) -> bool;
+
   /* Frees the owned resources (open files and buffers). Having it here means a
      fastx_s held in a std::unique_ptr is cleaned up automatically when the
      stack unwinds — e.g. when fatal() throws in a library session part-way
