@@ -63,6 +63,7 @@
 
 #include "core/getseq.hpp"
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -395,7 +396,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
         }
     }
 
-  fastx_handle h1 = nullptr;
+  std::unique_ptr<fastx_s> h1;
 
   h1 = fastx_open(filename, parameters);
 
@@ -422,7 +423,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
     Progress progress("Extracting sequences", filesize, parameters);
     while (h1->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        bool const match = test_label_match(h1, parameters);
+        bool const match = test_label_match(h1.get(), parameters);
 
         if (match)
           {
@@ -572,5 +573,5 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       notmatchedfq_handle.reset();
     }
 
-  fastx_close(h1, parameters);
+  h1->report_stripped_warning(parameters);
 }

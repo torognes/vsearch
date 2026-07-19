@@ -63,13 +63,13 @@
 #include "core/fastx.hpp"  // fastx_handle, struct fastx_s
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <memory>  // std::unique_ptr
 
 struct SeqRecord;
 
 
 auto fastq_open_rest(fastx_handle input_handle) -> void;
-auto fastq_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
-auto fastq_close(fastx_handle input_handle, struct Parameters const & parameters) -> void;
+auto fastq_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 auto fastq_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;

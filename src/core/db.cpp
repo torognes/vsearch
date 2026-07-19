@@ -231,16 +231,15 @@ auto Database::add(bool const is_fastq_record,
 
 auto Database::read(const char * filename, int upcase, struct Parameters const & parameters) -> void
 {
-  fastx_handle h = fastx_open(filename, parameters);
-  /* Own the handle for the duration of the read loop: fastx_next() can fatal()
-     on a malformed record, which unwinds in a library session. The guard frees
-     the handle on that path; on the normal path it is released to the explicit
-     fastx_close() below (which also emits the stripped-character warning). */
-  std::unique_ptr<fastx_s> handle_guard(h);
+  /* fastx_open hands back an owning unique_ptr, so the handle is freed
+     automatically both when next() fatal()s on a malformed record (the stack
+     unwinds in a library session) and on the normal path at the end of this
+     function. */
+  auto const input_handle = fastx_open(filename, parameters);
 
-  fastq_format = h->is_fastq_input();
+  fastq_format = input_handle->is_fastq_input();
 
-  int64_t const filesize = static_cast<int64_t>(h->get_size());
+  int64_t const filesize = static_cast<int64_t>(input_handle->get_size());
 
   std::string const prompt = std::string("Reading file ") + filename;
 
@@ -260,12 +259,12 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 
   {
     Progress progress(prompt.c_str(), static_cast<uint64_t>(filesize), parameters);
-    while (h->next(
+    while (input_handle->next(
                      not parameters.opt_notrunclabels,
                       (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))
       {
-        size_t const sequencelength = h->get_sequence_length();
-        int64_t const abundance = h->get_abundance();
+        size_t const sequencelength = input_handle->get_sequence_length();
+        int64_t const abundance = input_handle->get_abundance();
 
         /* opt_minseqlength defaults to the -1 "unset" sentinel, which the CLI
            resolves to a command-specific value (1 or 32) before read() runs.
@@ -288,18 +287,18 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
         else
           {
             add(fastq_format,
-                h->get_header(),
-                h->get_sequence(),
-                fastq_format ? h->get_quality() : nullptr,
-                h->get_header_length(),
+                input_handle->get_header(),
+                input_handle->get_sequence(),
+                fastq_format ? input_handle->get_quality() : nullptr,
+                input_handle->get_header_length(),
                 sequencelength,
                 abundance);
           }
-        progress.update(h->get_position());
+        progress.update(input_handle->get_position());
       }
   }
-  static_cast<void>(handle_guard.release());  // normal path: hand the handle to fastx_close()
-  fastx_close(h, parameters);
+  input_handle->report_stripped_warning(parameters);
+  // input_handle (unique_ptr) frees the reader as this function returns
 
   if (not parameters.opt_quiet)
     {

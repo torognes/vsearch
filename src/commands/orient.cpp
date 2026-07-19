@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "utils/progress.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
@@ -119,7 +120,7 @@ auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned
 
 auto orient(struct Parameters const & parameters) -> void
 {
-  fastx_handle query_h = nullptr;
+  std::unique_ptr<fastx_s> query_h;
   // refactoring: use struct, like in subsample
   OutputFileHandle fastaout_handle;
   OutputFileHandle fastqout_handle;
@@ -455,7 +456,7 @@ auto orient(struct Parameters const & parameters) -> void
       fastaout_handle.reset();
     }
 
-  fasta_close(query_h, parameters);
+  query_h->report_stripped_warning(parameters);
 
   if (not parameters.opt_quiet)
     {

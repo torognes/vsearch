@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_handle
@@ -295,8 +296,8 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   /* open and check input files */
 
-  auto * forward_handle = fastx_open(parameters.opt_fastx_syncpairs, parameters);
-  auto * reverse_handle = fastx_open(parameters.opt_reverse, parameters);
+  auto forward_handle = fastx_open(parameters.opt_fastx_syncpairs, parameters);
+  auto reverse_handle = fastx_open(parameters.opt_reverse, parameters);
 
   auto const forward_empty = forward_handle->is_empty_input();
   auto const reverse_empty = reverse_handle->is_empty_input();
@@ -327,7 +328,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   std::vector<read_record> reverse_records;
   read_index reverse_index;
-  index_reverse(reverse_handle, is_fastq, separators, reverse_records, reverse_index, parameters);
+  index_reverse(reverse_handle.get(), is_fastq, separators, reverse_records, reverse_index, parameters);
 
   /* stream the forward file, emitting synced pairs in forward order */
 
@@ -343,7 +344,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
                                     separators);
       auto const match = reverse_index.find(key);
       if (match == reverse_index.end()) {
-        write_record(outfiles.orphans_fwd, store_record(forward_handle, is_fastq),
+        write_record(outfiles.orphans_fwd, store_record(forward_handle.get(), is_fastq),
                      static_cast<int64_t>(orphans_fwd + 1), parameters);
         ++orphans_fwd;
       }
@@ -358,7 +359,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
         }
         reverse_used[position] = true;
         ++pairs;
-        write_record(outfiles.synced_fwd, store_record(forward_handle, is_fastq),
+        write_record(outfiles.synced_fwd, store_record(forward_handle.get(), is_fastq),
                      static_cast<int64_t>(pairs), parameters);
         write_record(outfiles.synced_rev, reverse_records[position],
                      static_cast<int64_t>(pairs), parameters);
@@ -390,6 +391,6 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   /* clean up */
 
   close_output_files(outfiles);
-  fastx_close(forward_handle, parameters);
-  fastx_close(reverse_handle, parameters);
+  forward_handle->report_stripped_warning(parameters);
+  reverse_handle->report_stripped_warning(parameters);
 }

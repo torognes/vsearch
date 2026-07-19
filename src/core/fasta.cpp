@@ -175,11 +175,12 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto fasta_open(const char * filename, struct Parameters const & parameters) -> fastx_handle
+auto fasta_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
 {
-  // unique_ptr so the open handle is freed if the fatal() below unwinds
-  // (library session); released to the caller on the success path.
-  std::unique_ptr<fastx_s> input_handle(fastx_open(filename, parameters));
+  // fastx_open hands back an owning unique_ptr; on the fatal() path below it
+  // frees the handle as the stack unwinds (library session), otherwise it is
+  // moved out to the caller, which owns the reader by RAII.
+  auto input_handle = fastx_open(filename, parameters);
 
   if (input_handle->is_fastq_input() and not input_handle->is_empty_input())
     {
@@ -187,13 +188,7 @@ auto fasta_open(const char * filename, struct Parameters const & parameters) -> 
     }
 
   assert(input_handle != nullptr);
-  return input_handle.release();
-}
-
-
-auto fasta_close(fastx_handle input_handle, struct Parameters const & parameters) -> void
-{
-  fastx_close(input_handle, parameters);
+  return input_handle;
 }
 
 

@@ -86,7 +86,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
     fatal("No output files specified");
   }
 
-  auto * input_handle = fastx_open(parameters.opt_fastx_revcomp, parameters);
+  auto input_handle = fastx_open(parameters.opt_fastx_revcomp, parameters);
 
   // if (input_handle == nullptr)
   //   {
@@ -193,5 +193,5 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
       fastqout_handle.reset();
     }
 
-  fastx_close(input_handle, parameters);
+  input_handle->report_stripped_warning(parameters);
 }

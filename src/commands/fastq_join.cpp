@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "core/fasta.hpp"  // fasta_print_general, fasta_get_abundance
 #include "core/fastq.hpp"  // fastq_open, fastq_get_sequence, fastq_get_quality
 #include "core/fastx.hpp"  // fastx_handle
@@ -78,7 +79,7 @@ namespace {
 
   struct input_file {
     char * name = nullptr;
-    fastx_handle handle = nullptr;
+    std::unique_ptr<fastx_s> handle;
   };
 
   struct input_files {
@@ -145,10 +146,13 @@ namespace {
 
 
   auto close_input_files(struct input_files const & infiles, struct Parameters const & parameters) -> void {
-    for (auto * fp_inputfile : {infiles.forward.handle, infiles.reverse.handle}) {
-      if (fp_inputfile != nullptr) {
-        fastq_close(fp_inputfile, parameters);
-      }
+    /* emit the stripped-character warning for each open input; the handles
+       themselves are released when 'infiles' (which owns them) is destroyed. */
+    if (infiles.forward.handle != nullptr) {
+      infiles.forward.handle->report_stripped_warning(parameters);
+    }
+    if (infiles.reverse.handle != nullptr) {
+      infiles.reverse.handle->report_stripped_warning(parameters);
     }
   }
 

@@ -267,7 +267,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
     fastx_uniques output options: --fastaout, --fastqout, --uc, --tabbedout
   */
 
-  auto * input_handle = fastx_open(input_filename, parameters);
+  auto input_handle = fastx_open(input_filename, parameters);
 
   if (not input_handle->is_empty_input())
     {
@@ -616,7 +616,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
         progress.update(input_handle->get_position());
       }
   }
-  fastx_close(input_handle, parameters);
+  input_handle->report_stripped_warning(parameters);
 
   if (not parameters.opt_quiet)
     {

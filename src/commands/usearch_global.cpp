@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "commands/usearch_global.hpp"
 #include "core/db.hpp"
 #include "core/fasta.hpp"
@@ -650,7 +651,6 @@ auto usearch_global(struct Parameters const & parameters) -> void
   struct search_cli_state_s state(parameters);
   auto & si_plus = state.si_plus;
   auto & si_minus = state.si_minus;
-  auto & query_fastx_h = state.query_fastx_h;
   auto & seqcount = state.seqcount;
   auto & qmatches = state.qmatches;
   auto & qmatches_abundance = state.qmatches_abundance;
@@ -673,7 +673,8 @@ auto usearch_global(struct Parameters const & parameters) -> void
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  query_fastx_h = fastx_open(parameters.opt_usearch_global, parameters);
+  auto const query_fastx_h = fastx_open(parameters.opt_usearch_global, parameters);
+  state.query_fastx_h = query_fastx_h.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads (search_thread_run).
      Defer parse errors so a malformed query stops the pool cooperatively
@@ -711,7 +712,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
       delete [] si_minus;
     }
 
-  fastx_close(query_fastx_h, parameters);
+  query_fastx_h->report_stripped_warning(parameters);
 
   if (! parameters.opt_quiet)
     {

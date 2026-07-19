@@ -425,7 +425,7 @@ namespace {
 auto cut(struct Parameters const & parameters) -> void {
   ckeck_if_output_is_set(parameters);
 
-  auto * input_handle = fasta_open(parameters.opt_cut, parameters);
+  auto input_handle = fasta_open(parameters.opt_cut, parameters);
   assert(input_handle != nullptr);  // verified by fasta_open()
 
   auto fastaout = open_output_files(parameters);
@@ -453,7 +453,7 @@ auto cut(struct Parameters const & parameters) -> void {
   std::vector<char> rc_buffer;
   while (input_handle->next(false, chrmap_no_change()))
     {
-      cut_a_sequence(input_handle, restriction, fastaout, counters, rc_buffer, parameters);
+      cut_a_sequence(input_handle.get(), restriction, fastaout, counters, rc_buffer, parameters);
 
       progress.update(input_handle->get_position());
     }
@@ -462,5 +462,5 @@ auto cut(struct Parameters const & parameters) -> void {
   output_stats_message(parameters, counters, parameters.opt_log);
 
   close_output_files(fastaout);
-  fasta_close(input_handle, parameters);
+  input_handle->report_stripped_warning(parameters);
 }

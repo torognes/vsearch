@@ -78,6 +78,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "core/db.hpp"
 #include "core/fastx.hpp"
 #include "core/searchcore.hpp"
@@ -676,7 +677,6 @@ auto sintax(struct Parameters const & parameters) -> void
   auto & si_minus = state.si_minus;
   auto & tophits = state.tophits;
   auto & seqcount = state.seqcount;
-  auto & query_fastx_h = state.query_fastx_h;
   int & queries = state.queries;
   int & classified = state.classified;
 
@@ -717,7 +717,8 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* prepare reading of queries */
 
-  query_fastx_h = fastx_open(parameters.opt_sintax, parameters);
+  auto const query_fastx_h = fastx_open(parameters.opt_sintax, parameters);
+  state.query_fastx_h = query_fastx_h.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads (see
      sintax_thread_run). Enable deferred error reporting so a malformed
@@ -783,7 +784,7 @@ auto sintax(struct Parameters const & parameters) -> void
       delete [] si_minus;
     }
 
-  fastx_close(query_fastx_h, parameters);
+  query_fastx_h->report_stripped_warning(parameters);
 
   state.dbindex.clear();
   state.db.clear();

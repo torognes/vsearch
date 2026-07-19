@@ -220,7 +220,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   */
 
   auto * input_filename = parameters.opt_derep_smallmem;
-  auto * h = fastx_open(input_filename, parameters);
+  auto h = fastx_open(input_filename, parameters);
 
   if (h->is_pipe)
     {
@@ -374,7 +374,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         progress.update(h->get_position());
       }
   }
-  fastx_close(h, parameters);
+  h->report_stripped_warning(parameters);
 
   if (not parameters.opt_quiet)
     {
@@ -494,7 +494,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   /* second pass with output */
 
-  auto * h2 = fastx_open(input_filename, parameters);
+  auto h2 = fastx_open(input_filename, parameters);
 
 
   uint64_t selected = 0;
@@ -584,7 +584,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         progress.update(h2->get_position());
       }
   }
-  fastx_close(h2, parameters);
+  h2->report_stripped_warning(parameters);
 
   if (selected < clusters)
     {

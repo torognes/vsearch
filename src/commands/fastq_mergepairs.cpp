@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "utils/progress.hpp"
 #include "commands/fastq_mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
@@ -136,8 +137,8 @@ struct mergepairs_cli_state_s
   std::FILE * fp_fastaout_notmerged_rev = nullptr;
   std::FILE * fp_eetabbedout = nullptr;
 
-  fastx_handle fastq_fwd = nullptr;
-  fastx_handle fastq_rev = nullptr;
+  std::unique_ptr<fastx_s> fastq_fwd;
+  std::unique_ptr<fastx_s> fastq_rev;
 
   int64_t merged = 0;
   int64_t notmerged = 0;
@@ -406,8 +407,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
 
 auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair) -> bool
 {
-  auto const fastq_fwd = state.fastq_fwd;
-  auto const fastq_rev = state.fastq_rev;
+  auto * const fastq_fwd = state.fastq_fwd.get();
+  auto * const fastq_rev = state.fastq_rev.get();
 
   if (fastq_fwd->next(false, chrmap_upcase()))
     {
@@ -1084,8 +1085,8 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   fastaout_handle.reset();
   fastqout_handle.reset();
 
-  fastq_close(fastq_rev, parameters);
+  fastq_rev->report_stripped_warning(parameters);
   fastq_rev = nullptr;
-  fastq_close(fastq_fwd, parameters);
+  fastq_fwd->report_stripped_warning(parameters);
   fastq_fwd = nullptr;
 }

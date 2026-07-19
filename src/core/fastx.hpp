@@ -73,6 +73,7 @@
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::memchr
 #include <iterator>  // std::next, std::distance
+#include <memory>  // std::unique_ptr
 #include <vector>
 
 #ifdef HAVE_ZLIB_H
@@ -239,6 +240,12 @@ struct fastx_s
   // format. Returns false at end of input or on a deferred parse error.
   auto next(bool truncateatspace, unsigned char const * char_mapping) -> bool;
 
+  // Emit the end-of-input warning about invalid characters stripped from the
+  // input (to stderr and, when open, the log file). This is the user-facing
+  // half of the former fastx_close(); the handle's storage is now released by
+  // its owning std::unique_ptr, so there is no separate close/delete step.
+  auto report_stripped_warning(struct Parameters const & parameters) const -> void;
+
   /* Frees the owned resources (open files and buffers). Having it here means a
      fastx_s held in a std::unique_ptr is cleaned up automatically when the
      stack unwinds — e.g. when fatal() throws in a library session part-way
@@ -254,13 +261,14 @@ using fastx_handle = struct fastx_s *;
 /* fastx input */
 
 /* The record read API (get_header/get_sequence/get_quality/..., record(),
-   is_fastq_input(), next(), the deferred-error protocol) is now a member set on
-   fastx_s above, mirroring Database. These remaining free functions are the
-   ones that are not simple accessors: the lifecycle (open/close) and the two
-   in-parser filters. */
+   is_fastq_input(), next(), report_stripped_warning(), the deferred-error
+   protocol) is now a member set on fastx_s above, mirroring Database. fastx_open
+   returns a std::unique_ptr<fastx_s> that owns the handle (RAII: closed and
+   freed when it goes out of scope), so there is no fastx_close free function.
+   These remaining free functions are not simple accessors: the opener and the
+   two in-parser filters. */
 auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> void;
-auto fastx_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
-auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters) -> void;
+auto fastx_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 
 // Reject a sequence too long for the int length bookkeeping used downstream.
 // Called from fasta_next/fastx_next so every read is bounded at one choke

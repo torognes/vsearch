@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "core/db.hpp"
 #include "core/dbhash.hpp"
 #include "core/fasta.hpp"
@@ -715,7 +716,8 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.qmatches_abundance = 0;
   state.queries = 0;
   state.queries_abundance = 0;
-  state.query_fastx_h = fastx_open(parameters.opt_search_exact, parameters);
+  auto const query_owner = fastx_open(parameters.opt_search_exact, parameters);
+  state.query_fastx_h = query_owner.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads
      (search_exact_thread_run). Defer parse errors so a malformed query
@@ -751,7 +753,7 @@ auto search_exact(struct Parameters const & parameters) -> void
   // si_minus not used below that point
 
 
-  fastx_close(state.query_fastx_h, parameters);
+  query_owner->report_stripped_warning(parameters);  // query_owner (unique_ptr) frees the reader on return
 
   if (! parameters.opt_quiet)
     {

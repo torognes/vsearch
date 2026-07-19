@@ -305,11 +305,12 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
 }
 
 
-auto fastx_open(char const * filename, struct Parameters const & parameters) -> fastx_handle
+auto fastx_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
 {
-  // refactoring: duplicate function to output a struct fastx_s input_handle_s;
   // Held in a unique_ptr so any fatal() below frees the partially-built handle
-  // when the stack unwinds (library session); released to the caller on success.
+  // when the stack unwinds (library session), and so the caller owns the handle
+  // by RAII: it is closed and freed when the returned unique_ptr goes out of
+  // scope, with no explicit close/delete step.
   auto input_handle = make_unique<fastx_s>();
 
   input_handle->fp = nullptr;
@@ -556,7 +557,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   input_handle->seqno = -1;
 
   assert(input_handle != nullptr);
-  return input_handle.release();
+  return input_handle;
 }
 
 
@@ -601,18 +602,18 @@ fastx_s::~fastx_s()
 }
 
 
-auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters) -> void
+auto fastx_s::report_stripped_warning(struct Parameters const & parameters) const -> void
 {
   /* Warn about stripped chars */
 
-  if (input_handle->stripped_all != 0U)
+  if (stripped_all != 0U)
     {
-      std::fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
+      std::fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", stripped_all, (is_fastq ? "FASTQ" : "FASTA"));
       for (int i = 0; i < 256; i++)
         {
-          if (input_handle->stripped[static_cast<std::size_t>(i)] != 0U)
+          if (stripped[static_cast<std::size_t>(i)] != 0U)
             {
-              std::fprintf(stderr, " %c(%" PRIu64 ")", i, input_handle->stripped[static_cast<std::size_t>(i)]);
+              std::fprintf(stderr, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
             }
         }
       std::fprintf(stderr, "\n");
@@ -620,21 +621,18 @@ auto fastx_close(fastx_handle input_handle, struct Parameters const & parameters
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", input_handle->stripped_all, (input_handle->is_fastq ? "FASTQ" : "FASTA"));
+          std::fprintf(parameters.fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", stripped_all, (is_fastq ? "FASTQ" : "FASTA"));
           for (int i = 0; i < 256; i++)
             {
-              if (input_handle->stripped[static_cast<std::size_t>(i)] != 0U)
+              if (stripped[static_cast<std::size_t>(i)] != 0U)
                 {
-                  std::fprintf(parameters.fp_log, " %c(%" PRIu64 ")", i, input_handle->stripped[static_cast<std::size_t>(i)]);
+                  std::fprintf(parameters.fp_log, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
                 }
             }
           std::fprintf(parameters.fp_log, "\n");
           std::fprintf(parameters.fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }
     }
-
-  /* ~fastx_s closes the files and frees the buffers. */
-  delete input_handle;
 }
 
 

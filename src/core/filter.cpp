@@ -60,6 +60,7 @@
 
 #include "core/filter.hpp"
 #include "vsearch.hpp"
+#include <memory>  // std::unique_ptr
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -261,8 +262,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fatal("No output files specified");
     }
 
-  auto * forward_handle = fastx_open(filename, parameters);
-  fastx_handle reverse_handle = nullptr;  // refactoring: direct initialization
+  auto forward_handle = fastx_open(filename, parameters);
+  std::unique_ptr<fastx_s> reverse_handle;  // refactoring: direct initialization
 
   if (not (forward_handle->is_fastq or forward_handle->is_empty))
     {
@@ -338,10 +339,10 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
         res1.ee = 0.0;
         struct analysis_res res2;
 
-        res1 = analyse(forward_handle, parameters);
+        res1 = analyse(forward_handle.get(), parameters);
         if (reverse_handle != nullptr)
           {
-            res2 = analyse(reverse_handle, parameters);
+            res2 = analyse(reverse_handle.get(), parameters);
           }
 
         if (res1.discarded or res2.discarded)
@@ -549,7 +550,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
           fp_fastqout_discarded_rev.reset();
         }
 
-      fastx_close(reverse_handle, parameters);
+      reverse_handle->report_stripped_warning(parameters);
     }
 
   if (parameters.opt_fastaout != nullptr)
@@ -572,7 +573,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fp_fastqout_discarded.reset();
     }
 
-  fastx_close(forward_handle, parameters);
+  forward_handle->report_stripped_warning(parameters);
 }
 
 

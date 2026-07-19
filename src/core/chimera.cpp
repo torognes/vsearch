@@ -246,7 +246,7 @@ struct chimera_cli_state_s
   std::mutex mutex_output;  /* serializes all CLI output + stats updates */
   std::FILE * fp_uchimealns = nullptr;
   std::FILE * fp_uchimeout = nullptr;
-  fastx_handle query_fasta_h = nullptr;
+  std::unique_ptr<fastx_s> query_fasta_h;
   unsigned int seqno = 0;
   uint64_t progress = 0;
   int chimera_count = 0;
@@ -2746,7 +2746,7 @@ auto chimera(struct Parameters const & parameters) -> void
 
   if (parameters.opt_uchime_ref != nullptr)
     {
-      fasta_close(state.query_fasta_h, parameters);
+      state.query_fasta_h->report_stripped_warning(parameters);
     }
 
   state.dbindex.clear();

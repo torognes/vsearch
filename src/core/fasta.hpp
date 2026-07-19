@@ -63,6 +63,7 @@
 #include "core/fastx.hpp"  // fastx_handle, struct fastx_s
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
+#include <memory>  // std::unique_ptr
 
 
 struct Database;
@@ -72,8 +73,7 @@ struct SeqRecord;
 /* fasta input */
 
 auto fasta_open_rest(fastx_handle input_handle) -> void;
-auto fasta_open(const char * filename, struct Parameters const & parameters) -> fastx_handle;
-auto fasta_close(fastx_handle input_handle, struct Parameters const & parameters) -> void;
+auto fasta_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 auto fasta_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;
