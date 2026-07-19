@@ -74,11 +74,11 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_alloc.hpp"
 #include "utils/string_normalize.hpp"
-#include <algorithm>  // std::count_if, std::min
+#include <algorithm>  // std::count_if, std::min, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdlib>  // std::qsort
+#include <cstdlib>  // std::ldiv
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen, std::strcmp
 #include <limits>
@@ -205,51 +205,53 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto derep_compare_full(void const * void_lhs, void const * void_rhs) -> int
+// strict-weak-ordering predicate for std::sort: true iff lhs sorts before rhs.
+// A faithful translation of the former derep_compare_full C-comparator
+// (positive -> lhs after -> false; negative -> lhs before -> true; zero ->
+// equivalent -> fall through). static because it takes the anonymous-namespace
+// bucket type by reference, like rehash().
+static auto derep_bucket_before(struct bucket const & lhs, struct bucket const & rhs) -> bool
 {
-  auto const * lhs = static_cast<struct bucket const *>(void_lhs);
-  auto const * rhs = static_cast<struct bucket const *>(void_rhs);
-
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (lhs->deleted and not rhs->deleted)  // refactoring: deleted is always set to false for derep_fulllength
+  if (lhs.deleted and not rhs.deleted)  // refactoring: deleted is always set to false for derep_fulllength
     {
-      return +1;
+      return false;
     }
-  if (not lhs->deleted and rhs->deleted)  // refactoring: deleted is always set to false for derep_fulllength
+  if (not lhs.deleted and rhs.deleted)  // refactoring: deleted is always set to false for derep_fulllength
     {
-      return -1;
+      return true;
     }
   // same status
-  if (lhs->size < rhs->size)
+  if (lhs.size < rhs.size)
     {
-      return +1;
+      return false;
     }
-  if (lhs->size > rhs->size)
+  if (lhs.size > rhs.size)
     {
-      return -1;
+      return true;
     }
   // same abundance
-  if (lhs->size == 0)
+  if (lhs.size == 0)
     {
-      return 0;
+      return false;
     }
-  auto const result = std::strcmp(lhs->header, rhs->header);
+  auto const result = std::strcmp(lhs.header, rhs.header);
   if (result != 0)
     {
-      return result;
+      return result < 0;
     }
   // same header (label)
-  if (lhs->seqno_first < rhs->seqno_first)
+  if (lhs.seqno_first < rhs.seqno_first)
     {
-      return -1;
+      return true;
     }
-  if (lhs->seqno_first > rhs->seqno_first)
+  if (lhs.seqno_first > rhs.seqno_first)
     {
-      return +1;
+      return false;
     }
   // same ordinal value (impossible)
-  return 0;  // unreachable
+  return false;  // unreachable
 }
 
 
@@ -700,7 +702,7 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   {
     Progress const progress("Sorting", 1, parameters);
-    std::qsort(hashtable.data(), hashtablesize, sizeof(struct bucket), derep_compare_full);
+    std::sort(hashtable.begin(), hashtable.end(), derep_bucket_before);
   }
 
   auto const median = find_median_size(hashtable, clusters);
@@ -1073,8 +1075,7 @@ auto derep_get_results(struct derep_session_s * ds,
   if (!ds->finalized)
     {
       /* Sort the hashtable — same comparator as CLI */
-      std::qsort(ds->hashtable.data(), ds->hashtablesize,
-                  sizeof(struct bucket), derep_compare_full);
+      std::sort(ds->hashtable.begin(), ds->hashtable.end(), derep_bucket_before);
       ds->finalized = true;
     }
 
