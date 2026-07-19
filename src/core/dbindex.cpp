@@ -63,13 +63,11 @@
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
-#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <array>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::memset
 #include <iterator>  // std::next
 
 
@@ -89,19 +87,19 @@ auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char const *
 
 auto Dbindex::getmatchcount(unsigned int const kmer) const -> unsigned int
 {
-  return *std::next(kmercount, kmer);
+  return kmercount[kmer];
 }
 
 
-auto Dbindex::getmatchlist(unsigned int const kmer) const -> unsigned int *
+auto Dbindex::getmatchlist(unsigned int const kmer) const -> unsigned int const *
 {
-  return std::next(kmerindex, static_cast<std::iterator_traits<unsigned int *>::difference_type>(*std::next(kmerhash, kmer)));
+  return std::next(kmerindex.data(), static_cast<std::iterator_traits<unsigned int const *>::difference_type>(kmerhash[kmer]));
 }
 
 
 auto Dbindex::getmapping(unsigned int const index) const -> unsigned int
 {
-  return *std::next(map, index);
+  return map[index];
 }
 
 
@@ -177,8 +175,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   hashsize = 1U << (2 * wordlength);
 
   /* allocate memory for kmer count array */
-  kmercount = static_cast<unsigned int *>(xmalloc(hashsize * sizeof(unsigned int)));
-  std::memset(kmercount, 0, hashsize * sizeof(unsigned int));
+  kmercount.assign(hashsize, 0U);
 
   /* first scan, just count occurences */
   {
@@ -216,7 +213,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
-  kmerhash = static_cast<uint64_t *>(xmalloc((hashsize + 1) * sizeof(uint64_t)));
+  kmerhash.resize(hashsize + 1);
   uint64_t sum = 0;
   for (auto i = 0U; i < hashsize; i++)
     {
@@ -239,13 +236,13 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
 #endif
 
   /* reset counts */
-  std::memset(kmercount, 0, hashsize * sizeof(unsigned int));
+  kmercount.assign(hashsize, 0U);
 
   /* allocate space for actual data */
-  kmerindex = static_cast<unsigned int *>(xmalloc(indexsize * sizeof(unsigned int)));
+  kmerindex.resize(indexsize);
 
   /* allocate space for mapping from indexno to seqno */
-  map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
+  map.resize(seqcount);
 
   count = 0;
 
@@ -255,16 +252,17 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
 
 auto Dbindex::clear() -> void
 {
-  /* Free and null every owned buffer so the routine is idempotent (a second
-     call, or a call before any successful prepare, is a safe no-op) and a
-     subsequent prepare() starts from a clean slate. xfree() fatals on
-     a null pointer, so each free is guarded. The k-mer bitmaps and the
-     unique-kmer finder are value members (a std::vector<Bitmap> and a Uniquer):
-     releasing them frees their buffers (RAII). */
-  if (kmerhash != nullptr) { xfree(kmerhash); kmerhash = nullptr; }
-  if (kmerindex != nullptr) { xfree(kmerindex); kmerindex = nullptr; }
-  if (kmercount != nullptr) { xfree(kmercount); kmercount = nullptr; }
-  if (map != nullptr) { xfree(map); map = nullptr; }
+  /* Release every owned buffer so the routine is idempotent (a second call, or
+     a call before any successful prepare, is a safe no-op) and a subsequent
+     prepare() starts from a clean slate. Every buffer is now a RAII value
+     member: the k-mer arrays and bitmaps are std::vector, and the unique-kmer
+     finder is a Uniquer. clear() drops the contents and shrink_to_fit() returns
+     the capacity to the allocator, so a rebuild does not carry the previous
+     index's peak memory. */
+  kmerhash.clear();   kmerhash.shrink_to_fit();
+  kmerindex.clear();  kmerindex.shrink_to_fit();
+  kmercount.clear();  kmercount.shrink_to_fit();
+  map.clear();        map.shrink_to_fit();
 
   kmerbitmap.clear();
   kmerbitmap.shrink_to_fit();

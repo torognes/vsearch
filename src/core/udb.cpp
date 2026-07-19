@@ -66,7 +66,7 @@
 #include "core/db.hpp"  // Database, seqinfo_t
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
-#include "os/system.hpp"  // xstat_t, xstat, xfstat, xmalloc, S_ISREG, S_ISFIFO
+#include "os/system.hpp"  // xstat_t, xstat, xfstat, S_ISREG, S_ISFIFO
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::min, std::max
@@ -293,11 +293,11 @@ auto udb_read(const char * filename,
     /* word match counts */
 
     dbindex.hashsize = 1U << (2 * udb_wordlength);
-    dbindex.kmercount = static_cast<unsigned int *>(xmalloc(dbindex.hashsize * sizeof(unsigned int)));
-    dbindex.kmerhash = static_cast<uint64_t *>(xmalloc(dbindex.hashsize * sizeof(uint64_t)));
+    dbindex.kmercount.resize(dbindex.hashsize);
+    dbindex.kmerhash.resize(dbindex.hashsize);
     dbindex.kmerbitmap = std::vector<Bitmap>(dbindex.hashsize);
 
-    pos += largeread(in_stream, dbindex.kmercount, 4 * dbindex.hashsize, pos, progress_bar);
+    pos += largeread(in_stream, dbindex.kmercount.data(), 4 * dbindex.hashsize, pos, progress_bar);
 
     dbindex.indexsize = 0;
     for (uint64_t i = 0; i < dbindex.hashsize; i++)
@@ -326,9 +326,9 @@ auto udb_read(const char * filename,
 
     /* sequence numbers for word matches */
 
-    dbindex.kmerindex = static_cast<unsigned int *>(xmalloc(dbindex.indexsize * 4));
+    dbindex.kmerindex.resize(dbindex.indexsize);
 
-    pos += largeread(in_stream, dbindex.kmerindex, 4 * dbindex.indexsize, pos, progress_bar);
+    pos += largeread(in_stream, dbindex.kmerindex.data(), 4 * dbindex.indexsize, pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (Bitmap::set writes bitmap[value >> 3], no bounds
@@ -515,7 +515,7 @@ auto udb_read(const char * filename,
 
   /* make mapping from indexno to seqno */
 
-  dbindex.map = static_cast<unsigned int *>(xmalloc(seqcount * sizeof(unsigned int)));
+  dbindex.map.resize(seqcount);
   dbindex.count = seqcount;
 
   for (auto i = 0U; i < seqcount; i++)

@@ -63,6 +63,7 @@
 #include "core/bitmap.hpp"
 #include "core/mask.hpp"  // Masking
 #include "core/unique.hpp"  // Uniquer
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <vector>  // std::vector
@@ -79,11 +80,11 @@ struct Database;
    or by udb_read() straight from a UDB file. */
 struct Dbindex
 {
-  unsigned int * kmercount = nullptr; /* number of matching seqnos for each kmer */
-  uint64_t * kmerhash = nullptr;  /* index into the list below for each kmer */
-  unsigned int * kmerindex = nullptr; /* the list of matching seqnos for kmers */
+  std::vector<unsigned int, FatalAllocator<unsigned int>> kmercount; /* number of matching seqnos for each kmer */
+  std::vector<uint64_t, FatalAllocator<uint64_t>> kmerhash;  /* index into the list below for each kmer */
+  std::vector<unsigned int, FatalAllocator<unsigned int>> kmerindex; /* the list of matching seqnos for kmers */
   std::vector<Bitmap> kmerbitmap;  /* one bit-set per kmer; an empty() slot means the kmer uses the list form (kmerindex) instead */
-  unsigned int * map = nullptr;  /* mapping from index element number to seqno */
+  std::vector<unsigned int, FatalAllocator<unsigned int>> map;  /* mapping from index element number to seqno */
   Uniquer uhandle {};  /* unique-kmer finder, used while building */
   unsigned int count = 0;  /* number of sequences added to the index */
   unsigned int hashsize = 0;  /* number of kmer slots, i.e. 4^wordlength */
@@ -115,7 +116,7 @@ struct Dbindex
 
   auto getbitmap(unsigned int kmer) const -> unsigned char const *;
   auto getmatchcount(unsigned int kmer) const -> unsigned int;
-  auto getmatchlist(unsigned int kmer) const -> unsigned int *;
+  auto getmatchlist(unsigned int kmer) const -> unsigned int const *;
   auto getmapping(unsigned int index) const -> unsigned int;
   auto getcount() const -> unsigned int;
 };

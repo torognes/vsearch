@@ -181,7 +181,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     pos += largewrite(out_stream, buffer.data(), 50 * 4, 0, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
-    pos += largewrite(out_stream, dbindex.kmercount, 4 * kmerhash_entries, pos, progress_bar);
+    pos += largewrite(out_stream, dbindex.kmercount.data(), 4 * kmerhash_entries, pos, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
@@ -208,7 +208,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
             if (dbindex.kmercount[i] > 0)
               {
                 pos += largewrite(out_stream,
-                                  dbindex.kmerindex + dbindex.kmerhash[i],
+                                  dbindex.kmerindex.data() + dbindex.kmerhash[i],
                                   4 * dbindex.kmercount[i],
                                   pos,
                                   progress_bar);
