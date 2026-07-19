@@ -799,6 +799,133 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 }
 
 
+// statistics / summary reporting: each helper folds the former
+// stderr-then-log duplicate blocks. The message text is written verbatim to
+// stderr and, when --log is in effect, to the log; the log copy is followed
+// by the extra blank line the original code emitted (the "\n\n" endings).
+namespace {
+
+  auto report_input_stats(Derep_stats const & stats,
+                          struct Parameters const & parameters) -> void
+  {
+    auto emit = [&](std::FILE * fp) -> void {
+      if (stats.sequencecount > 0)
+        {
+          std::fprintf(fp,
+                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
+                  ", max %" PRId64 ", avg %.0f\n",
+                  stats.nucleotidecount,
+                  stats.sequencecount,
+                  stats.shortest,
+                  stats.longest,
+                  static_cast<double>(stats.nucleotidecount) * 1.0 / static_cast<double>(stats.sequencecount));
+        }
+      else
+        {
+          std::fprintf(fp,
+                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
+                  stats.nucleotidecount,
+                  stats.sequencecount);
+        }
+    };
+    if (not parameters.opt_quiet)
+      {
+        emit(stderr);
+      }
+    if (parameters.opt_log != nullptr)
+      {
+        emit(parameters.fp_log);
+      }
+  }
+
+
+  auto report_length_filtered(struct Parameters const & parameters,
+                              char const * option_name,
+                              int64_t const length_limit,
+                              uint64_t const discarded) -> void
+  {
+    if (discarded == 0U)
+      {
+        return;
+      }
+    auto emit = [&](std::FILE * fp) -> void {
+      std::fprintf(fp,
+              "%s %" PRId64 ": %" PRIu64 " %s discarded.\n",
+              option_name,
+              length_limit,
+              discarded,
+              (discarded == 1 ? "sequence" : "sequences"));
+    };
+    emit(stderr);
+    if (parameters.opt_log != nullptr)
+      {
+        emit(parameters.fp_log);
+        std::fputc('\n', parameters.fp_log);
+      }
+  }
+
+
+  auto report_unique_summary(Derep_stats const & stats,
+                             double const average,
+                             double const median,
+                             struct Parameters const & parameters) -> void
+  {
+    auto emit = [&](std::FILE * fp) -> void {
+      if (stats.clusters < 1)
+        {
+          std::fprintf(fp,
+                  "0 unique sequences\n");
+        }
+      else
+        {
+          std::fprintf(fp,
+                  "%" PRIu64
+                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
+                  PRIu64 "\n",
+                  stats.clusters, average, median, stats.maxsize);
+        }
+    };
+    if (not parameters.opt_quiet)
+      {
+        emit(stderr);
+      }
+    if (parameters.opt_log != nullptr)
+      {
+        emit(parameters.fp_log);
+        std::fputc('\n', parameters.fp_log);
+      }
+  }
+
+
+  auto report_selected(uint64_t const selected,
+                       Derep_stats const & stats,
+                       struct Parameters const & parameters) -> void
+  {
+    if (selected >= stats.clusters)
+      {
+        return;
+      }
+    auto emit = [&](std::FILE * fp) -> void {
+      std::fprintf(fp,
+              "%" PRIu64 " uniques written, %"
+              PRIu64 " clusters discarded (%.1f%%)\n",
+              selected, stats.clusters - selected,
+              100.0 * static_cast<double>(stats.clusters - selected) / static_cast<double>(stats.clusters));
+    };
+    if (not parameters.opt_quiet)
+      {
+        emit(stderr);
+      }
+    if (parameters.opt_log != nullptr)
+      {
+        emit(parameters.fp_log);
+        std::fputc('\n', parameters.fp_log);
+      }
+  }
+
+}  // end of anonymous namespace (statistics reporting)
+
+
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
 auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void
 {
@@ -873,138 +1000,18 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
                                    hashtable, nextseqtab, headertab, match_strand);
   input_handle->report_stripped_warning(parameters);
 
-  auto const sequencecount = stats.sequencecount;
-  auto const nucleotidecount = stats.nucleotidecount;
-  auto const shortest = stats.shortest;
-  auto const longest = stats.longest;
-  auto const discarded_short = stats.discarded_short;
-  auto const discarded_long = stats.discarded_long;
-  auto const clusters = stats.clusters;
-  auto const sumsize = stats.sumsize;
-  auto const maxsize = stats.maxsize;
-  auto average = 0.0;
-
-  if (not parameters.opt_quiet)
-    {
-      if (sequencecount > 0)
-        {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
-                  ", max %" PRId64 ", avg %.0f\n",
-                  nucleotidecount,
-                  sequencecount,
-                  shortest,
-                  longest,
-                  static_cast<double>(nucleotidecount) * 1.0 / static_cast<double>(sequencecount));
-        }
-      else
-        {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  nucleotidecount,
-                  sequencecount);
-        }
-    }
-
-  if (parameters.opt_log != nullptr)
-    {
-      if (sequencecount > 0)
-        {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
-                  ", max %" PRId64 ", avg %.0f\n",
-                  nucleotidecount,
-                  sequencecount,
-                  shortest,
-                  longest,
-                  static_cast<double>(nucleotidecount) * 1.0 / static_cast<double>(sequencecount));
-        }
-      else
-        {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  nucleotidecount,
-                  sequencecount);
-        }
-    }
-
-  if (discarded_short != 0U)
-    {
-      std::fprintf(stderr,
-              "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n",
-              parameters.opt_minseqlength,
-              discarded_short,
-              (discarded_short == 1 ? "sequence" : "sequences"));
-
-      if (parameters.opt_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
-                  parameters.opt_minseqlength,
-                  discarded_short,
-                  (discarded_short == 1 ? "sequence" : "sequences"));
-        }
-    }
-
-  if (discarded_long != 0U)
-    {
-      std::fprintf(stderr,
-              "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n",
-              parameters.opt_maxseqlength,
-              discarded_long,
-              (discarded_long == 1 ? "sequence" : "sequences"));
-
-      if (parameters.opt_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
-                  parameters.opt_maxseqlength,
-                  discarded_long,
-                  (discarded_long == 1 ? "sequence" : "sequences"));
-        }
-    }
+  report_input_stats(stats, parameters);
+  report_length_filtered(parameters, "minseqlength", parameters.opt_minseqlength, stats.discarded_short);
+  report_length_filtered(parameters, "maxseqlength", parameters.opt_maxseqlength, stats.discarded_long);
 
   {
     Progress const progress("Sorting", 1, parameters);
     std::sort(hashtable.begin(), hashtable.end(), derep_bucket_before);
   }
 
-  auto const median = find_median_size(hashtable, clusters);
-
-  average = 1.0 * static_cast<double>(sumsize) / static_cast<double>(clusters);
-
-  if (clusters < 1)
-    {
-      if (not parameters.opt_quiet)
-        {
-          std::fprintf(stderr,
-                  "0 unique sequences\n");
-        }
-      if (parameters.opt_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "0 unique sequences\n\n");
-        }
-    }
-  else
-    {
-      if (not parameters.opt_quiet)
-        {
-          std::fprintf(stderr,
-                  "%" PRIu64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n",
-                  clusters, average, median, maxsize);
-        }
-      if (parameters.opt_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n\n",
-                  clusters, average, median, maxsize);
-        }
-    }
+  auto const median = find_median_size(hashtable, stats.clusters);
+  auto const average = 1.0 * static_cast<double>(stats.sumsize) / static_cast<double>(stats.clusters);
+  report_unique_summary(stats, average, median, parameters);
 
   /* count selected */
 
@@ -1012,31 +1019,11 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
 
   /* write output */
 
-  output_results(parameters, hashtable, clusters,
+  output_results(parameters, hashtable, stats.clusters,
                  nextseqtab, headertab, match_strand,
                  fastaout_handle, fastqout_handle, uc_handle, tabbedout_handle);
 
-
-  if (selected < clusters)
-    {
-      if (not parameters.opt_quiet)
-        {
-          std::fprintf(stderr,
-                  "%" PRIu64 " uniques written, %"
-                  PRIu64 " clusters discarded (%.1f%%)\n",
-                  selected, clusters - selected,
-                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
-        }
-
-      if (parameters.opt_log != nullptr)
-        {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " uniques written, %"
-                  PRIu64 " clusters discarded (%.1f%%)\n\n",
-                  selected, clusters - selected,
-                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
-        }
-    }
+  report_selected(selected, stats, parameters);
 
   /* the buckets own their seq/header/qual as std::string; the hashtable's
      destruction releases them (RAII) */
