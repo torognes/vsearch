@@ -726,7 +726,7 @@ auto sintax(struct Parameters const & parameters) -> void
      calling fatal()/std::exit() from a worker thread while siblings are
      still writing output (CC3). The error is reported below, from the
      main thread, after the pool has joined. */
-  query_fastx_h->defer_errors = true;
+  query_fastx_h->enable_deferred_errors();
 
   /* allocate memory for thread info */
 

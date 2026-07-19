@@ -724,7 +724,7 @@ auto search_exact(struct Parameters const & parameters) -> void
      stops the pool cooperatively instead of calling fatal()/std::exit()
      from a worker while siblings are writing output (CC3); reported below
      from the main thread after join. */
-  state.query_fastx_h->defer_errors = true;
+  state.query_fastx_h->enable_deferred_errors();
 
   /* allocate memory for thread info */
   std::vector<struct searchinfo_s> si_plus_v(static_cast<std::size_t>(parameters.opt_threads));

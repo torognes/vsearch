@@ -1054,7 +1054,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
     Progress progress("Merging reads", filesize, parameters);
     state.progress = &progress;
 
-    if (not fastq_fwd->is_empty)
+    if (not fastq_fwd->is_empty_input())
       {
         pair_all(state);
       }

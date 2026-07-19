@@ -221,7 +221,7 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * 
      so the worker can stop cooperatively instead of std::exit()-ing
      from a worker thread. The caller (fastq_next) returns false right
      after this call. */
-  if (input_handle->defer_errors)
+  if (input_handle->defers_errors())
     {
       input_handle->set_deferred_error(message.c_str());
       return;
@@ -268,8 +268,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
             {
             case Action::warn:
               /* stripped */
-              input_handle->stripped_all++;
-              input_handle->stripped[static_cast<unsigned char>(c)]++;
+              input_handle->record_stripped(static_cast<unsigned char>(c));
               break;
 
             case Action::reject:

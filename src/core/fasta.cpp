@@ -149,7 +149,7 @@ namespace {
         line_number));
     /* deferred-error mode (see fastx.h): record and return instead of
        exiting, so a worker thread does not std::exit() with siblings live */
-    if (input_handle->defer_errors) {
+    if (input_handle->defers_errors()) {
       input_handle->set_deferred_error(msg.data());
       return;
     }
@@ -165,7 +165,7 @@ namespace {
         "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
         symbol,
         line_number));
-    if (input_handle->defer_errors) {
+    if (input_handle->defers_errors()) {
       input_handle->set_deferred_error(msg.data());
       return;
     }
@@ -222,8 +222,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
             {
             case Action::warn:
               /* stripped */
-              ++input_handle->stripped_all;
-              ++input_handle->stripped[current_char];
+              input_handle->record_stripped(current_char);
               break;
 
             case Action::reject:
@@ -285,7 +284,7 @@ auto fasta_next(fastx_handle input_handle,
 
   if (input_handle->file_buffer.data()[input_handle->file_buffer.position] != '>')
     {
-      if (input_handle->defer_errors)
+      if (input_handle->defers_errors())
         {
           input_handle->set_deferred_error("Invalid FASTA - header must start with > character");
           return false;
@@ -302,7 +301,7 @@ auto fasta_next(fastx_handle input_handle,
       rest = fastx_file_fill_buffer(input_handle);
       if (rest == 0)
         {
-          if (input_handle->defer_errors)
+          if (input_handle->defers_errors())
             {
               input_handle->set_deferred_error("Invalid FASTA - header must be terminated with newline");
               return false;

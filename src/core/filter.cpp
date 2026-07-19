@@ -153,7 +153,7 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
       res.length = std::min(res.length, fastq_trunclen_keep);
     }
 
-  if (input_handle->is_fastq)
+  if (input_handle->is_fastq_format())
     {
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
@@ -265,7 +265,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   auto forward_handle = fastx_open(filename, parameters);
   std::unique_ptr<fastx_s> reverse_handle;  // refactoring: direct initialization
 
-  if (not (forward_handle->is_fastq or forward_handle->is_empty))
+  if (not forward_handle->is_fastq_input())
     {
       if (fastq_only)
         {
@@ -293,7 +293,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
     {
       reverse_handle = fastx_open(parameters.opt_reverse, parameters);
 
-      if (forward_handle->is_fastq != reverse_handle->is_fastq)
+      if (forward_handle->is_fastq_format() != reverse_handle->is_fastq_format())
         {
           fatal("The forward and reverse input sequence must in the same format, either FASTA or FASTQ");
         }

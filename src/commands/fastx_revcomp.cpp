@@ -93,7 +93,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
   //     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
   //   }
 
-  if ((parameters.opt_fastqout != nullptr) && ! (input_handle->is_fastq || input_handle->is_empty))
+  if ((parameters.opt_fastqout != nullptr) && ! input_handle->is_fastq_input())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -108,7 +108,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
   auto count = 0;
 
   {
-    Progress progress(input_handle->is_fastq ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
+    Progress progress(input_handle->is_fastq_format() ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
     while (input_handle->next(false, chrmap_no_change()))
       {
         ++count;

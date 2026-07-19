@@ -680,7 +680,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
      Defer parse errors so a malformed query stops the pool cooperatively
      instead of calling fatal()/std::exit() from a worker while siblings are
      writing output (CC3); reported below from the main thread after join. */
-  query_fastx_h->defer_errors = true;
+  query_fastx_h->enable_deferred_errors();
 
   /* allocate memory for thread info */
   si_plus = new searchinfo_s[parameters.opt_threads]{};

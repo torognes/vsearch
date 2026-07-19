@@ -400,7 +400,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   h1 = fastx_open(filename, parameters);
 
-  if (((parameters.opt_fastqout != nullptr) or (parameters.opt_notmatchedfq != nullptr)) and not (h1->is_fastq or h1->is_empty))
+  if (((parameters.opt_fastqout != nullptr) or (parameters.opt_notmatchedfq != nullptr)) and not h1->is_fastq_input())
     {
       fatal("Cannot write FASTQ output from FASTA input");
     }

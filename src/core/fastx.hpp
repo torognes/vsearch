@@ -126,8 +126,26 @@ enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
 class DynamicLibraries;  // set from parameters.dyn_libs in fastx_open()
 
+struct Line_fragment;  // defined below; named by the friend declarations
+
 struct fastx_s
 {
+private:
+  /* The data members are private: commands reach the reader only through the
+     member accessors below (mirroring Database). The free functions that make
+     up the reader's implementation -- the opener, the FASTA/FASTQ record
+     parsers and the shared line/buffer primitives, all split across fastx.cpp,
+     fasta.cpp and fastq.cpp -- are granted access as friends. */
+  friend auto fastx_open(char const * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
+  friend auto fastx_file_fill_buffer(fastx_s * input_handle) -> uint64_t;
+  friend auto fastx_filter_header(fastx_s * input_handle, bool truncateatspace) -> void;
+  friend auto fastx_filter_sequence_length(fastx_s * input_handle) -> void;
+  friend auto fasta_next(fastx_s * input_handle, bool truncateatspace, unsigned char const * char_mapping) -> bool;
+  friend auto fasta_filter_sequence(fastx_s * input_handle, unsigned char const * char_mapping) -> void;
+  friend auto fastq_next(fastx_s * input_handle, bool truncateatspace, unsigned char const * char_mapping) -> bool;
+  friend auto scan_line_fragment(fastx_s * input_handle) -> Line_fragment;
+  friend auto consume_fragment(fastx_s * input_handle, Line_fragment const & fragment) -> void;
+
   bool is_pipe = false;
   bool is_fastq = false;
   bool is_empty = false;
@@ -177,6 +195,7 @@ struct fastx_s
   bool error = false;
   std::array<char, 512> errmsg {{}};
 
+public:
   /* Read API, mirroring Database's accessors. The former fastx_get_, fasta_get_
      and fastq_get_ free functions were three near-identical families dispatching
      on the format; they collapse into this single member set (the FASTA/FASTQ
@@ -189,6 +208,24 @@ struct fastx_s
   auto is_fastq_input() const noexcept -> bool { return is_fastq or is_empty; }
   auto is_empty_input() const noexcept -> bool { return is_empty; }
   auto is_pipe_input() const noexcept -> bool { return is_pipe; }
+  // The detected format is FASTQ (first byte '@'); false for FASTA and for an
+  // empty input. Unlike is_fastq_input(), an empty input reports false here.
+  auto is_fastq_format() const noexcept -> bool { return is_fastq; }
+
+  // Deferred-error mode: a caller reading this handle from worker threads turns
+  // it on so a parse error is recorded (see set_deferred_error) instead of
+  // calling fatal() from a worker; defers_errors() reads the flag.
+  auto enable_deferred_errors() noexcept -> void { defer_errors = true; }
+  auto defers_errors() const noexcept -> bool { return defer_errors; }
+
+  // Count one invalid character stripped from the input (for the end-of-input
+  // report_stripped_warning()). Used by the FASTA/FASTQ sequence/quality
+  // filters, which run over every input byte.
+  auto record_stripped(unsigned char symbol) noexcept -> void
+  {
+    ++stripped_all;
+    ++stripped[symbol];
+  }
 
   // Current record; the returned pointers/views stay valid only until the next
   // next()/close() call on this handle.

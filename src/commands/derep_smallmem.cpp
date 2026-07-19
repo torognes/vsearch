@@ -222,7 +222,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   auto * input_filename = parameters.opt_derep_smallmem;
   auto h = fastx_open(input_filename, parameters);
 
-  if (h->is_pipe)
+  if (h->is_pipe_input())
     {
       fatal("The derep_smallmem command does not support input from a pipe.");
     }

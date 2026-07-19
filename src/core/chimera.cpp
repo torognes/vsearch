@@ -2507,7 +2507,7 @@ auto chimera(struct Parameters const & parameters) -> void
          stops the pool cooperatively instead of calling fatal()/std::exit()
          from a worker while siblings are writing output (CC3); reported
          after the pool joins, below, from the main thread. */
-      state.query_fasta_h->defer_errors = true;
+      state.query_fasta_h->enable_deferred_errors();
     }
   else
     {
