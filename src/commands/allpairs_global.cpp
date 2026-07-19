@@ -67,12 +67,10 @@
 #include "core/fasta.hpp"
 #include "core/results.hpp"
 #include "core/searchcore.hpp"
-#include "os/system.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
@@ -80,6 +78,7 @@
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
+#include <utility>  // std::move
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>
 
@@ -385,7 +384,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
   std::vector<unsigned short> pmatches(maxhits);
   std::vector<unsigned short> pmismatches(maxhits);
   std::vector<unsigned short> pgaps(maxhits);
-  std::vector<char *> pcigar(maxhits);
+  std::vector<std::string> pcigar(maxhits);
   std::vector<struct hit> finalhits(maxhits);
 
   int query_no = 0;
@@ -442,7 +441,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             unsigned int const target = pseqnos[h];
             int64_t nwscore = pscores[h];
 
-            char * nwcigar {nullptr};
+            std::string nwcigar;
             int64_t nwalignmentlength {0};
             int64_t nwmatches {0};
             int64_t nwmismatches {0};
@@ -457,16 +456,11 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                 char const * tseq = state.db.getsequence(target);
                 int64_t const tseqlen = static_cast<int64_t>(state.db.getsequencelen(target));
 
-                if (pcigar[h] != nullptr)
-                  {
-                    xfree(pcigar[h]);
-                  }
-
-                nwcigar = xstrdup(lma.align(searchinfo.qsequence.data(),
-                                            tseq,
-                                            static_cast<int>(searchinfo.qsequence.size()),
-                                            tseqlen));
-                lma.alignstats(nwcigar,
+                nwcigar = lma.align(searchinfo.qsequence.data(),
+                                    tseq,
+                                    static_cast<int>(searchinfo.qsequence.size()),
+                                    tseqlen);
+                lma.alignstats(nwcigar.c_str(),
                                searchinfo.qsequence.data(),
                                tseq,
                                & nwscore,
@@ -477,7 +471,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
               }
             else
               {
-                nwcigar = pcigar[h];
+                nwcigar = std::move(pcigar[h]);
                 nwalignmentlength = paligned[h];
                 nwmatches = pmatches[h];
                 nwmismatches = pmismatches[h];
@@ -500,15 +494,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
             hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
               static_cast<double>(nwalignmentlength);
-            if (nwcigar != nullptr)  // search16 may leave the cigar null
-              {
-                hit->nwalignment = nwcigar;  // std::string copies the cigar
-                xfree(nwcigar);              // free the owned char* (xstrdup'd or from pcigar[h])
-              }
-            else
-              {
-                hit->nwalignment.clear();
-              }
+            hit->nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
             hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
             hit->mismatches = hit->nwdiff - hit->nwindels;
 

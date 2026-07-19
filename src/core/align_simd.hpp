@@ -61,6 +61,7 @@
 #pragma once
 
 #include <cstdint>  // int64_t
+#include <string>  // std::string
 
 using CELL = signed short;
 using WORD = unsigned short;
@@ -104,5 +105,5 @@ auto search16(s16info_s * searchinfo,
               unsigned short * pmatches,
               unsigned short * pmismatches,
               unsigned short * pgaps,
-              char * * pcigar,
+              std::string * pcigar,
               struct Database const & db) -> void;

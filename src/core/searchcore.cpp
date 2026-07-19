@@ -67,11 +67,9 @@
 #include "core/minheap.hpp"
 #include "core/searchcore.hpp"  // struct hit, struct searchinfo_s
 #include "core/unique.hpp"
-#include "os/system.hpp"  // xfree
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::count_if, std::min, std::max
 #include <array>
 #include <cassert>
@@ -82,6 +80,7 @@
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen, std::memset, std::strcmp
 #include <limits>
+#include <utility>  // std::move
 #include <vector>
 
 
@@ -762,7 +761,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
   std::array<unsigned short, MAXDELAYED> nwmatches_list {{}};
   std::array<unsigned short, MAXDELAYED> nwmismatches_list {{}};
   std::array<unsigned short, MAXDELAYED> nwgaps_list {{}};
-  std::array<char *, MAXDELAYED> nwcigar_list {{}};
+  std::array<std::string, MAXDELAYED> nwcigar_list {};
 
   unsigned int target_count = 0;
 
@@ -807,7 +806,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               int64_t const target = hit->target;
               int64_t nwscore = nwscore_list[i];
 
-              char * nwcigar = nullptr;
+              std::string nwcigar;
               int64_t nwalignmentlength = 0;
               int64_t nwmatches = 0;
               int64_t nwmismatches = 0;
@@ -823,17 +822,12 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
                   char const * dseq = searchinfo->db->getsequence(static_cast<uint64_t>(target));
 
-                  if (nwcigar_list[i] != nullptr)
-                    {
-                      xfree(nwcigar_list[i]);
-                    }
-
-                  nwcigar = xstrdup(searchinfo->lma->align(searchinfo->qsequence.data(),
+                  nwcigar = searchinfo->lma->align(searchinfo->qsequence.data(),
                                                    dseq,
                                                    static_cast<int>(searchinfo->qsequence.size()),
-                                                   dseqlen));
+                                                   dseqlen);
 
-                  searchinfo->lma->alignstats(nwcigar,
+                  searchinfo->lma->alignstats(nwcigar.c_str(),
                                       searchinfo->qsequence.data(),
                                       dseq,
                                       & nwscore,
@@ -848,21 +842,13 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                   nwmatches = nwmatches_list[i];
                   nwmismatches = nwmismatches_list[i];
                   nwgaps = nwgaps_list[i];
-                  nwcigar = nwcigar_list[i];
+                  nwcigar = std::move(nwcigar_list[i]);
                 }
 
               hit->aligned = true;
               hit->shortest = std::min(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
               hit->longest = std::max(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
-              if (nwcigar != nullptr)  // search16 may leave the cigar null
-                {
-                  hit->nwalignment = nwcigar;  // std::string copies the cigar
-                  xfree(nwcigar);              // free the owned char* (xstrdup'd or from nwcigar_list[i])
-                }
-              else
-                {
-                  hit->nwalignment.clear();
-                }
+              hit->nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
               hit->nwscore = static_cast<int>(nwscore);
               hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
               hit->nwgaps = static_cast<int>(nwgaps);
@@ -889,12 +875,6 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               ++i;
             }
         }
-    }
-
-  /* free ignored alignments */
-  while (i < target_count)
-    {
-      xfree(nwcigar_list[i++]);
     }
 
   searchinfo->finalized = searchinfo->hit_count;

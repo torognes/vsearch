@@ -65,13 +65,12 @@
 #include "os/system.hpp"  // xmalloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cinttypes>  // macro PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
-#include <cstring>  // std::memcpy, std::memmove, std::memset, std::strcpy, std::strlen
+#include <cstring>  // std::memcpy, std::memmove, std::memset
 #include <iterator>  // std::next
 #include <limits>
 #include <string>  // std::string, std::to_string
@@ -1456,7 +1455,7 @@ auto search16(s16info_s * s,
               unsigned short * pmatches,
               unsigned short * pmismatches,
               unsigned short * pgaps,
-              char ** pcigar,
+              std::string * pcigar,
               struct Database const & db) -> void
 {
   CELL ** q_start = reinterpret_cast<CELL **>(s->qtable);
@@ -1477,7 +1476,7 @@ auto search16(s16info_s * s,
           pmatches[cand_id] = 0;
           pmismatches[cand_id] = 0;
           pgaps[cand_id] = 0;
-          pcigar[cand_id] = xstrdup("");
+          pcigar[cand_id].clear();
         }
       return;
     }
@@ -1501,7 +1500,7 @@ auto search16(s16info_s * s,
               pmatches[cand_id] = 0;
               pmismatches[cand_id] = 0;
               pgaps[cand_id] = 0;
-              pcigar[cand_id] = xstrdup("");
+              pcigar[cand_id].clear();
               continue;
             }
 
@@ -1523,17 +1522,14 @@ auto search16(s16info_s * s,
                     (length * s->penalty_gap_extension_target_right)));
             }
 
-          char * cigar = nullptr;
           if (length > 0)
             {
-              cigar = xstrdup((std::to_string(length) + "I").c_str());
+              pcigar[cand_id] = std::to_string(length) + "I";
             }
           else
             {
-              cigar = static_cast<char *>(xmalloc(1));
-              cigar[0] = 0;
+              pcigar[cand_id].clear();
             }
-          pcigar[cand_id] = cigar;
         }
       return;
     }
@@ -1842,7 +1838,7 @@ auto search16(s16info_s * s,
                           pmatches[cand_id] = 0;
                           pmismatches[cand_id] = 0;
                           pgaps[cand_id] = 0;
-                          pcigar[cand_id] = xstrdup("");
+                          pcigar[cand_id].clear();
                         }
                       else
                         {
@@ -1852,9 +1848,7 @@ auto search16(s16info_s * s,
                                       pmatches + cand_id,
                                       pmismatches + cand_id,
                                       pgaps + cand_id);
-                          pcigar[cand_id] =
-                            static_cast<char *>(xmalloc(std::strlen(s->cigar)+1));
-                          std::strcpy(pcigar[cand_id], s->cigar);
+                          pcigar[cand_id].assign(s->cigar);
                         }
 
                       done++;
@@ -1875,7 +1869,7 @@ auto search16(s16info_s * s,
                           pmatches[cand_id] = 0;
                           pmismatches[cand_id] = 0;
                           pgaps[cand_id] = 0;
-                          pcigar[cand_id] = xstrdup("");
+                          pcigar[cand_id].clear();
                           length = 0;
                           done++;
                         }

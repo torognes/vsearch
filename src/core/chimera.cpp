@@ -81,7 +81,6 @@
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
 #include <cassert>
@@ -96,6 +95,8 @@
 #include <memory>
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <numeric>  // std::accumulate
+#include <string>  // std::string
+#include <utility>  // std::move
 #include <vector>
 
 
@@ -176,7 +177,7 @@ struct chimera_info_s
   std::array<int64_t, maxcandidates> nwmatches {{}};
   std::array<int64_t, maxcandidates> nwmismatches {{}};
   std::array<int64_t, maxcandidates> nwgaps {{}};
-  std::vector<char *> nwcigar = std::vector<char *>(maxcandidates);
+  std::vector<std::string> nwcigar = std::vector<std::string>(maxcandidates);
 
   int match_size = 0;
   std::vector<int> match;
@@ -382,7 +383,7 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
       auto qpos = 0;
       auto tpos = 0;
 
-      auto * cigar_start = chimera_info->nwcigar[static_cast<size_t>(i)];
+      auto const * cigar_start = chimera_info->nwcigar[static_cast<size_t>(i)].c_str();
       auto const cigar_length = std::strlen(cigar_start);
       auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
 
@@ -777,7 +778,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
   auto const best_parents_view = Span<int>{chimera_info->best_parents.data(), count};
   for (auto const best_parent : best_parents_view) {
     auto pos = 0LL;
-    auto * cigar_start = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
+    auto const * cigar_start = chimera_info->nwcigar[static_cast<size_t>(best_parent)].c_str();
     auto const cigar_length = std::strlen(cigar_start);
     auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
 
@@ -816,7 +817,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
       int tpos = 0;
       int alnpos = 0;
 
-      auto * cigar_start = ci->nwcigar[static_cast<size_t>(cand)];
+      auto const * cigar_start = ci->nwcigar[static_cast<size_t>(cand)].c_str();
       auto const cigar_length = std::strlen(cigar_start);
       auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
       for (auto const & a_pair: cigar_pairs) {
@@ -2080,7 +2081,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
     {
       int64_t const target = ci->cand_list[static_cast<size_t>(i)];
       int64_t nwscore = ci->snwscore[static_cast<size_t>(i)];
-      char * nwcigar = nullptr;
+      std::string nwcigar;
       int64_t nwalignmentlength = 0;
       int64_t nwmatches = 0;
       int64_t nwmismatches = 0;
@@ -2095,16 +2096,11 @@ static auto chimera_process_query(struct chimera_info_s * ci,
           auto const * tseq = db.getsequence(static_cast<uint64_t>(target));
           int64_t const tseqlen = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target)));
 
-          if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
-            {
-              xfree(ci->nwcigar[static_cast<size_t>(i)]);
-            }
-
-          nwcigar = xstrdup(lma.align(ci->query_seq.data(),
-                                      tseq,
-                                      ci->query_len,
-                                      tseqlen));
-          lma.alignstats(nwcigar,
+          nwcigar = lma.align(ci->query_seq.data(),
+                              tseq,
+                              ci->query_len,
+                              tseqlen);
+          lma.alignstats(nwcigar.c_str(),
                          ci->query_seq.data(),
                          tseq,
                          & nwscore,
@@ -2113,7 +2109,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
                          & nwmismatches,
                          & nwgaps);
 
-          ci->nwcigar[static_cast<size_t>(i)] = nwcigar;
+          ci->nwcigar[static_cast<size_t>(i)] = std::move(nwcigar);
           ci->nwscore[static_cast<size_t>(i)] = nwscore;
           ci->nwalignmentlength[static_cast<size_t>(i)] = nwalignmentlength;
           ci->nwmatches[static_cast<size_t>(i)] = nwmatches;
@@ -2357,14 +2353,6 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         if ((state.parameters.opt_uchime_denovo != nullptr) or (state.parameters.opt_uchime2_denovo != nullptr) or (state.parameters.opt_uchime3_denovo != nullptr) or (state.parameters.opt_chimeras_denovo != nullptr))
           {
             state.dbindex.add_sequence(state.seqno, state.parameters.opt_qmask, db);
-          }
-      }
-
-    for (auto i = 0; i < ci->cand_count; ++i)
-      {
-        if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
-          {
-            xfree(ci->nwcigar[static_cast<size_t>(i)]);
           }
       }
 
@@ -2930,16 +2918,6 @@ auto chimera_detect_single(struct chimera_info_s * ci,
       result->flag = 'N';
     }
 
-  /* Free CIGAR strings from this detection */
-  for (auto i = 0; i < ci->cand_count; ++i)
-    {
-      if (ci->nwcigar[static_cast<size_t>(i)] != nullptr)
-        {
-          xfree(ci->nwcigar[static_cast<size_t>(i)]);
-          ci->nwcigar[static_cast<size_t>(i)] = nullptr;
-        }
-    }
-
   ci->result_out = nullptr;
   return 0;
 }
@@ -2949,14 +2927,8 @@ auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void
   /* Per-thread cleanup: frees all resources allocated by
      chimera_detect_thread_init (SIMD aligners, unique k-mer finders,
      minheaps, CIGAR strings, linear memory aligner). */
-  for (auto & p : ci->nwcigar)
-    {
-      if (p != nullptr)
-        {
-          xfree(p);
-          p = nullptr;
-        }
-    }
+  ci->nwcigar.clear();
+  ci->nwcigar.shrink_to_fit();
   chimera_thread_exit(ci);
 
   /* Release API working state */

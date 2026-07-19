@@ -731,7 +731,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   int64_t nwmatches = 0;
                   int64_t nwmismatches = 0;
                   int64_t nwgaps = 0;
-                  char * nwcigar = nullptr;
+                  std::string nwcigar;
 
                   /* short variants for simd aligner */
                   CELL snwscore = 0;
@@ -761,17 +761,12 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
                       char const * tseq = db.getsequence(target);
 
-                      if (nwcigar != nullptr)
-                        {
-                          xfree(nwcigar);
-                        }
+                      nwcigar = lma.align(si->qsequence.data(),
+                                          tseq,
+                                          static_cast<int>(si->qsequence.size()),
+                                          tseqlen);
 
-                      nwcigar = xstrdup(lma.align(si->qsequence.data(),
-                                                  tseq,
-                                                  static_cast<int>(si->qsequence.size()),
-                                                  tseqlen));
-
-                      lma.alignstats(nwcigar,
+                      lma.alignstats(nwcigar.c_str(),
                                      si->qsequence.data(),
                                      tseq,
                                      & nwscore,
@@ -794,15 +789,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   int64_t const nwindels = nwdiff - nwmismatches;
 
                   hit->aligned = true;
-                  if (nwcigar != nullptr)  // search16 may leave the cigar null
-                    {
-                      hit->nwalignment = nwcigar;  // std::string copies the cigar
-                      xfree(nwcigar);              // free the owned char*
-                    }
-                  else
-                    {
-                      hit->nwalignment.clear();
-                    }
+                  hit->nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
                   hit->nwscore = static_cast<int>(nwscore);
                   hit->nwdiff = static_cast<int>(nwdiff);
                   hit->nwgaps = static_cast<int>(nwgaps);
