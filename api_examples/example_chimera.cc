@@ -70,8 +70,9 @@ static int run_chimera_tsv() {
     Database db;
     db.init();
     for (size_t i = 0; i < ref_labels.size(); i++) {
-        db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
-               nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
+        db.add(false, SeqRecord{View<char>{ref_labels[i].c_str(), ref_labels[i].size()},
+                                View<char>{ref_seqs[i].c_str(), ref_seqs[i].size()},
+                                View<char>{}}, 1);
     }
     dust_all(db, parameters);
     Dbindex dbindex;
@@ -143,8 +144,9 @@ static int run_batch_tests()
   db.init();
   for (size_t i = 0; i < ref_labels.size(); i++)
     {
-      db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
-             nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
+      db.add(false, SeqRecord{View<char>{ref_labels[i].c_str(), ref_labels[i].size()},
+                              View<char>{ref_seqs[i].c_str(), ref_seqs[i].size()},
+                              View<char>{}}, 1);
     }
   dust_all(db, parameters);
   Dbindex dbindex;

@@ -284,16 +284,21 @@ Database db;
 // Reset database state (also frees any previous data)
 db.init();
 
-// Add sequences one at a time
+// Add sequences one at a time. The header/sequence/quality are passed as a
+// SeqRecord of non-owning View<char> windows (pointer + length); the views need
+// not be NUL-terminated. For FASTA the quality view is empty ({}).
 for (int i = 0; i < n_seqs; i++) {
     db.add(false,             // is_fastq: false for FASTA
-           headers[i],        // null-terminated header string
-           sequences[i],      // null-terminated DNA sequence (ACGT, uppercase)
-           nullptr,           // quality string (nullptr for FASTA)
-           strlen(headers[i]),
-           strlen(sequences[i]),
+           SeqRecord{View<char>{headers[i], strlen(headers[i])},
+                     View<char>{sequences[i], strlen(sequences[i])},
+                     View<char>{}},   // quality view empty for FASTA
            abundance);        // size annotation (1 for uniform abundance)
 }
+// A FASTQ record passes a non-empty quality view (same length as the sequence)
+// and is_fastq = true:
+//     db.add(true, SeqRecord{View<char>{header, hlen},
+//                            View<char>{seq, slen},
+//                            View<char>{qual, slen}}, abundance);
 ```
 
 **Requirements:**
@@ -348,7 +353,7 @@ db.clear();
 | Function | Description |
 |----------|-------------|
 | `db.init()` | Reset database state. Call before `db.add()`. |
-| `db.add(is_fastq, header, seq, qual, hlen, slen, abund)` | Add one sequence. |
+| `db.add(is_fastq, SeqRecord{header, seq, qual}, abund)` | Add one sequence (header/seq/qual as View<char> windows; empty quality view for FASTA). |
 | `db.read(filename, upcase, parameters)` | Load sequences from file. |
 | `db.clear()` | Free all database memory (also done automatically by the destructor). |
 | `db.getsequencecount()` | Number of loaded sequences. |

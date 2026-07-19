@@ -172,8 +172,9 @@ static int test_db_add_fastq_quality()
   char const * const header = "read1";
   char const * const sequence = "ACGTACGTACGT";
   char const * const quality  = "IIIIIIIIIIII";
-  db.add(true, header, sequence, quality,
-         std::strlen(header), std::strlen(sequence), 1);
+  db.add(true, SeqRecord{View<char>{header, std::strlen(header)},
+                         View<char>{sequence, std::strlen(sequence)},
+                         View<char>{quality, std::strlen(sequence)}}, 1);
 
   if (not db.is_fastq())
     {
@@ -231,8 +232,9 @@ static void load_records(Database & db, std::vector<record_s> const & records)
   db.init();
   for (auto const & record : records)
     {
-      db.add(false, record.header.c_str(), record.sequence.c_str(), nullptr,
-             record.header.size(), record.sequence.size(), record.abundance);
+      db.add(false, SeqRecord{View<char>{record.header.c_str(), record.header.size()},
+                              View<char>{record.sequence.c_str(), record.sequence.size()},
+                              View<char>{}}, record.abundance);
     }
 }
 
@@ -459,8 +461,9 @@ static int test_incremental_indexing()
     db.init();
     for (size_t idx = 0; idx < ref_labels.size(); ++idx)
       {
-        db.add(false, ref_labels[idx].c_str(), ref_seqs[idx].c_str(), nullptr,
-               ref_labels[idx].size(), ref_seqs[idx].size(), 1);
+        db.add(false, SeqRecord{View<char>{ref_labels[idx].c_str(), ref_labels[idx].size()},
+                                View<char>{ref_seqs[idx].c_str(), ref_seqs[idx].size()},
+                                View<char>{}}, 1);
       }
     dust_all(db, parameters);
   };

@@ -59,8 +59,9 @@ static int run_cluster_uc() {
     Database db;
     db.init();
     for (size_t i = 0; i < labels.size(); i++) {
-        db.add(false, labels[i].c_str(), seqs[i].c_str(),
-               nullptr, labels[i].size(), seqs[i].size(), 1);
+        db.add(false, SeqRecord{View<char>{labels[i].c_str(), labels[i].size()},
+                                View<char>{seqs[i].c_str(), seqs[i].size()},
+                                View<char>{}}, 1);
     }
     dust_all(db, parameters);
     db.sortbylength(parameters);
@@ -140,8 +141,9 @@ static int run_batch_tests()
   db.init();
   for (size_t i = 0; i < labels.size(); i++)
     {
-      db.add(false, labels[i].c_str(), seqs[i].c_str(),
-             nullptr, labels[i].size(), seqs[i].size(), 1);
+      db.add(false, SeqRecord{View<char>{labels[i].c_str(), labels[i].size()},
+                              View<char>{seqs[i].c_str(), seqs[i].size()},
+                              View<char>{}}, 1);
     }
   dust_all(db, parameters);
   db.sortbylength(parameters);

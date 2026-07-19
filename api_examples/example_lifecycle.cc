@@ -217,8 +217,9 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
   char const * const header = "ref1";
   char const * const sequence =
     "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT";
-  db.add(false, header, sequence, nullptr,
-         std::strlen(header), std::strlen(sequence), 1);
+  db.add(false, SeqRecord{View<char>{header, std::strlen(header)},
+                          View<char>{sequence, std::strlen(sequence)},
+                          View<char>{}}, 1);
   dust_all(db, parameters);
   Dbindex dbindex;
   dbindex.prepare(1, parameters.opt_dbmask, db, parameters);

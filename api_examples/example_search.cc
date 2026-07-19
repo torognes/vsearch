@@ -82,8 +82,9 @@ static int run_search_tsv() {
     Database db;
     db.init();
     for (size_t i = 0; i < ref_labels.size(); i++) {
-        db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
-               nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
+        db.add(false, SeqRecord{View<char>{ref_labels[i].c_str(), ref_labels[i].size()},
+                                View<char>{ref_seqs[i].c_str(), ref_seqs[i].size()},
+                                View<char>{}}, 1);
     }
     dust_all(db, parameters);
     Dbindex dbindex;
@@ -146,8 +147,9 @@ static int run_batch_tests()
   db.init();
   for (size_t i = 0; i < ref_labels.size(); i++)
     {
-      db.add(false, ref_labels[i].c_str(), ref_seqs[i].c_str(),
-             nullptr, ref_labels[i].size(), ref_seqs[i].size(), 1);
+      db.add(false, SeqRecord{View<char>{ref_labels[i].c_str(), ref_labels[i].size()},
+                              View<char>{ref_seqs[i].c_str(), ref_seqs[i].size()},
+                              View<char>{}}, 1);
     }
   dust_all(db, parameters);
   Dbindex dbindex;
@@ -260,8 +262,9 @@ static bool search_rc_finds_hit(const std::string & fwd,
 
   Database db;
   db.init();
-  db.add(false, "fwd", fwd.c_str(), nullptr,
-         3, static_cast<int>(fwd.size()), 1);
+  db.add(false, SeqRecord{View<char>{"fwd", 3},
+                          View<char>{fwd.c_str(), fwd.size()},
+                          View<char>{}}, 1);
   dust_all(db, parameters);
   Dbindex dbindex;
   dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
