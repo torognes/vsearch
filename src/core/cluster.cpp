@@ -75,7 +75,6 @@
 #include "core/otutable.hpp"
 #include "core/results.hpp"
 #include "core/unique.hpp"
-#include "os/system.hpp"  // xmalloc, xfree
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/open_file.hpp"
@@ -83,7 +82,6 @@
 #include "utils/threads.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
-#include "utils/string_alloc.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -103,7 +101,7 @@ struct clusterinfo_s
 {
   int seqno;
   int clusterno;
-  char * cigar;
+  std::string cigar;
   int strand;
 };
 
@@ -363,32 +361,29 @@ struct cluster_work_pool_s
 };
 
 
-auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, struct Parameters const & parameters) -> char *
+auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, struct Parameters const & parameters) -> std::string
 {
-  char * label = nullptr;
   if (parameters.opt_relabel != nullptr)
     {
-      int const size = static_cast<int>(std::strlen(parameters.opt_relabel)) + 21;
-      label = static_cast<char *>(xmalloc(static_cast<std::size_t>(size)));
-      std::snprintf(label, static_cast<std::size_t>(size), "%s%d", parameters.opt_relabel, clusterno + 1);
+      return std::string(parameters.opt_relabel) + std::to_string(clusterno + 1);
     }
-  else if (parameters.opt_relabel_self)
+  if (parameters.opt_relabel_self)
     {
-      int const size = seqlen + 1;
-      label = static_cast<char *>(xmalloc(static_cast<std::size_t>(size)));
-      std::snprintf(label, static_cast<std::size_t>(size), "%.*s", seqlen, sequence);
+      return std::string(sequence, static_cast<std::size_t>(seqlen));
     }
-  else if (parameters.opt_relabel_sha1)
+  if (parameters.opt_relabel_sha1)
     {
-      label = static_cast<char *>(xmalloc(len_hex_dig_sha1));
-      get_hex_seq_digest_sha1(label, sequence, seqlen);
+      std::array<char, len_hex_dig_sha1> digest {{}};
+      get_hex_seq_digest_sha1(digest.data(), sequence, seqlen);
+      return std::string(digest.data());
     }
-  else if (parameters.opt_relabel_md5)
+  if (parameters.opt_relabel_md5)
     {
-      label = static_cast<char *>(xmalloc(len_hex_dig_md5));
-      get_hex_seq_digest_md5(label, sequence, seqlen);
+      std::array<char, len_hex_dig_md5> digest {{}};
+      get_hex_seq_digest_md5(digest.data(), sequence, seqlen);
+      return std::string(digest.data());
     }
-  return label;
+  return {};
 }
 
 
@@ -408,12 +403,11 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
-          char * label = relabel_otu(clusterno,
-                                     db.getsequence(static_cast<uint64_t>(best->target)),
-                                     static_cast<int>(db.getsequencelen(static_cast<uint64_t>(best->target))),
-                                     state.parameters);
-          state.otutable.add(query_head, label, qsize);
-          xfree(label);
+          std::string const label = relabel_otu(clusterno,
+                                                 db.getsequence(static_cast<uint64_t>(best->target)),
+                                                 static_cast<int>(db.getsequencelen(static_cast<uint64_t>(best->target))),
+                                                 state.parameters);
+          state.otutable.add(query_head, label.c_str(), qsize);
         }
       else
         {
@@ -528,9 +522,8 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
-          char * label = relabel_otu(clusterno, qsequence, qseqlen, state.parameters);
-          state.otutable.add(query_head, label, qsize);
-          xfree(label);
+          std::string const label = relabel_otu(clusterno, qsequence, qseqlen, state.parameters);
+          state.otutable.add(query_head, label.c_str(), qsize);
         }
       else
         {
@@ -981,9 +974,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* update cluster info about this sequence */
               state.clusterinfo[myseqno].seqno = myseqno;
               state.clusterinfo[myseqno].clusterno = state.clusterinfo[target].clusterno;
-              /* clusterinfo owns its cigar as a char* (freed later); copy the
-                 string out and release the hit's copy */
-              state.clusterinfo[myseqno].cigar = xstrdup(best->nwalignment.c_str());
+              /* move the hit's owned cigar into the clusterinfo (both std::string) */
+              state.clusterinfo[myseqno].cigar = std::move(best->nwalignment);
               state.clusterinfo[myseqno].strand = best->strand;
               best->nwalignment.clear();
             }
@@ -998,7 +990,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* update cluster info about this sequence */
               state.clusterinfo[myseqno].seqno = myseqno;
               state.clusterinfo[myseqno].clusterno = state.clusters;
-              state.clusterinfo[myseqno].cigar = nullptr;
+              state.clusterinfo[myseqno].cigar.clear();
               state.clusterinfo[myseqno].strand = 0;
 
               /* add current sequence to database */
@@ -1087,9 +1079,8 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
                                    db);
           state.clusterinfo[seqno].seqno = seqno;
           state.clusterinfo[seqno].clusterno = state.clusterinfo[target].clusterno;
-          /* clusterinfo owns its cigar as a char* (freed later); copy the
-             string out and release the hit's copy */
-          state.clusterinfo[seqno].cigar = xstrdup(best->nwalignment.c_str());
+          /* move the hit's owned cigar into the clusterinfo (both std::string) */
+          state.clusterinfo[seqno].cigar = std::move(best->nwalignment);
           state.clusterinfo[seqno].strand = best->strand;
           best->nwalignment.clear();
         }
@@ -1097,7 +1088,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
         {
           state.clusterinfo[seqno].seqno = seqno;
           state.clusterinfo[seqno].clusterno = state.clusters;
-          state.clusterinfo[seqno].cigar = nullptr;
+          state.clusterinfo[seqno].cigar.clear();
           state.clusterinfo[seqno].strand = 0;
           state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask, db);
           cluster_core_results_nohit(state, state.clusters,
@@ -1482,7 +1473,11 @@ auto cluster(char const * dbname,
           {
             int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
             int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
-            char * cigar = clusterinfo_v[static_cast<std::size_t>(i)].cigar;
+            /* msa_target_list_v[].cigar is a non-owning char* view; borrow a
+               pointer into the clusterinfo std::string, which outlives the
+               msa() calls below (the seed's empty cigar sits at index 0, which
+               msa() never parses) */
+            char * cigar = &clusterinfo_v[static_cast<std::size_t>(i)].cigar[0];
             int const strand = clusterinfo_v[static_cast<std::size_t>(i)].strand;
 
             if (clusterno != lastcluster)
@@ -1532,15 +1527,6 @@ auto cluster(char const * dbname,
 
   // cluster_abundance not used below that point
   // cluster_size not used below that point
-
-  /* free cigar strings for all aligned sequences */
-
-  for (auto const & cluster_entry : clusterinfo_v) {
-    if (cluster_entry.cigar != nullptr)
-      {
-        xfree(cluster_entry.cigar);
-      }
-  }
 
   // clusterinfo not used after this point
 
