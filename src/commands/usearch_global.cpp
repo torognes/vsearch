@@ -65,7 +65,6 @@
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"
 #include "core/results.hpp"
-#include "os/system.hpp"
 #include "core/search_internal.hpp"
 #include "utils/progress.hpp"
 #include "core/searchcore.hpp"
@@ -74,6 +73,7 @@
 #include "core/otutable.hpp"
 #include "core/udb.hpp"
 #include "utils/fatal.hpp"
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
@@ -83,7 +83,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::memset
 #include <mutex>  // std::mutex, std::lock_guard
 #include <vector>
 
@@ -123,7 +122,7 @@ struct search_cli_state_s
   uint64_t qmatches_abundance = 0;
   int queries = 0;
   uint64_t queries_abundance = 0;
-  uint64_t * dbmatched = nullptr;
+  std::vector<uint64_t, FatalAllocator<uint64_t>> dbmatched;
   /* RAII output handles; the workers read the raw FILE * via .get() under
      mutex_output. Closed explicitly with reset() in a fixed order (see
      search_done and the OTU/db blocks in usearch_global) so streams sharing
@@ -376,7 +375,7 @@ static auto search_output_results(struct search_cli_state_s & state,
   /* update matching db sequences */
   for (auto const & hit : hits) {
     if (hit.accepted or hit.weak) {
-      state.dbmatched[hit.target] += state.parameters.opt_sizein ? static_cast<uint64_t>(qsize) : 1;
+      state.dbmatched[static_cast<std::size_t>(hit.target)] += state.parameters.opt_sizein ? static_cast<uint64_t>(qsize) : 1;
     }
   }
 }
@@ -665,8 +664,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
   fp_dbmatched = open_optional_output_file(parameters.opt_dbmatched, OutputOption{"--dbmatched"});
   fp_dbnotmatched = open_optional_output_file(parameters.opt_dbnotmatched, OutputOption{"--dbnotmatched"});
 
-  dbmatched = static_cast<uint64_t *>(xmalloc(static_cast<size_t>(seqcount) * sizeof(uint64_t)));
-  std::memset(dbmatched, 0, static_cast<size_t>(seqcount) * sizeof(uint64_t));
+  dbmatched.assign(static_cast<size_t>(seqcount), 0);
 
   /* prepare reading of queries */
   qmatches = 0;
@@ -764,7 +762,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
   // Add OTUs with no matches to OTU table
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < seqcount; i++) {
-      if (dbmatched[i] == 0U) {
+      if (dbmatched[static_cast<std::size_t>(i)] == 0U) {
         state.otutable.add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
       }
     }
@@ -795,7 +793,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
       for (int64_t i = 0; i < seqcount; i++)
         {
-          if (dbmatched[i] != 0U)
+          if (dbmatched[static_cast<std::size_t>(i)] != 0U)
             {
               count_dbmatched++;
               if (parameters.opt_dbmatched != nullptr)
@@ -803,7 +801,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
                   fasta_print_general(fp_dbmatched.get(),
                                       nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
-                                      dbmatched[i],
+                                      dbmatched[static_cast<std::size_t>(i)],
                                       count_dbmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,
@@ -829,8 +827,6 @@ auto usearch_global(struct Parameters const & parameters) -> void
             }
         }
     }
-
-  xfree(dbmatched);
 
   fp_dbmatched.reset();
   fp_dbnotmatched.reset();

@@ -71,6 +71,7 @@
 #include "core/mask.hpp"
 #include "core/otutable.hpp"
 #include "utils/fatal.hpp"
+#include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
@@ -83,7 +84,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
-#include <cstring>  // std::strlen, std::memset, std::strcpy
+#include <cstring>  // std::strlen, std::strcpy
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -116,7 +117,7 @@ struct search_exact_state_s
   uint64_t qmatches_abundance = 0;
   int queries = 0;
   uint64_t queries_abundance = 0;
-  uint64_t * dbmatched = nullptr;
+  std::vector<uint64_t, FatalAllocator<uint64_t>> dbmatched;
   FILE * fp_samout = nullptr;
   FILE * fp_alnout = nullptr;
   FILE * fp_userout = nullptr;
@@ -428,7 +429,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
   /* update matching db sequences */
     for (auto const & hit : hits) {
       if (hit.accepted) {
-        state.dbmatched[hit.target] += static_cast<uint64_t>(parameters.opt_sizein ? qsize : 1);
+        state.dbmatched[static_cast<std::size_t>(hit.target)] += static_cast<uint64_t>(parameters.opt_sizein ? qsize : 1);
       }
     }
 }
@@ -649,8 +650,7 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
   /* tophits = the maximum number of hits we need to store */
   state.tophits = state.seqcount;
 
-  state.dbmatched = static_cast<uint64_t *>(xmalloc(static_cast<size_t>(state.seqcount) * sizeof(uint64_t)));
-  std::memset(state.dbmatched, 0, static_cast<size_t>(state.seqcount) * sizeof(uint64_t));
+  state.dbmatched.assign(static_cast<size_t>(state.seqcount), 0);
 
   state.dbhash.open(static_cast<uint64_t>(state.seqcount));
   state.dbhash.add_all(state.db, parameters);
@@ -663,7 +663,8 @@ auto search_exact_done(struct search_exact_state_s & state) -> void
   state.dbhash.clear();
 
   state.db.clear();
-  xfree(state.dbmatched);
+  state.dbmatched.clear();
+  state.dbmatched.shrink_to_fit();
 }
 
 
@@ -804,7 +805,7 @@ auto search_exact(struct Parameters const & parameters) -> void
   // Add OTUs with no matches to OTU table
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < state.seqcount; i++) {
-      if (state.dbmatched[i] == 0U) {
+      if (state.dbmatched[static_cast<std::size_t>(i)] == 0U) {
         state.otutable.add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
       }
     }
@@ -835,7 +836,7 @@ auto search_exact(struct Parameters const & parameters) -> void
 
       for (int64_t i = 0; i < state.seqcount; i++)
         {
-          if (state.dbmatched[i] != 0U)
+          if (state.dbmatched[static_cast<std::size_t>(i)] != 0U)
             {
               ++count_dbmatched;
               if (parameters.opt_dbmatched != nullptr)
@@ -843,7 +844,7 @@ auto search_exact(struct Parameters const & parameters) -> void
                   fasta_print_general(state.fp_dbmatched,
                                       nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
-                                      state.dbmatched[i],
+                                      state.dbmatched[static_cast<std::size_t>(i)],
                                       count_dbmatched,
                                       -1.0,
                                       -1, -1, nullptr, 0.0,

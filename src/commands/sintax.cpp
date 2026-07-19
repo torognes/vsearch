@@ -609,7 +609,13 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &state.db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
-  si->kmers = static_cast<count_t *>(xmalloc((static_cast<size_t>(state.seqcount) * sizeof(count_t)) + 32));
+  /* kmers is a view into the searchinfo_s kmers_v vector (RAII), matching
+     search/cluster; the reserve headroom keeps the SIMD counter stores that
+     may run past the logical end in bounds. */
+  static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
+  si->kmers_v.reserve(static_cast<size_t>(state.seqcount) + overflow_padding);
+  si->kmers_v.resize(static_cast<size_t>(state.seqcount));
+  si->kmers = si->kmers_v.data();
   si->m = Minheap(state.tophits);
   si->hits = nullptr;
   si->qsize = 1;
@@ -626,9 +632,8 @@ static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
   /* thread specific clean up */
   searchinfo->uh = Uniquer();
   searchinfo->m = Minheap();
-  xfree(searchinfo->kmers);
-  /* query_head/qsequence are views; their owned storage (query_head_v/qsequence_v)
-     frees itself */
+  /* kmers/query_head/qsequence are views; their owned storage
+     (kmers_v/query_head_v/qsequence_v) frees itself */
 }
 
 
