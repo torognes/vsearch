@@ -263,7 +263,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
     }
 
   auto forward_handle = fastx_open(filename, parameters);
-  std::unique_ptr<fastx_s> reverse_handle;  // refactoring: direct initialization
+  std::unique_ptr<fastx_s> reverse_handle;
 
   if (not forward_handle->is_fastq_input())
     {

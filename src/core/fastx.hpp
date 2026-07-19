@@ -308,7 +308,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool truncateatspace) -> voi
 auto fastx_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>;
 
 // Reject a sequence too long for the int length bookkeeping used downstream.
-// Called from fasta_next/fastx_next so every read is bounded at one choke
+// Called from fasta_next/fastq_next so every read is bounded at one choke
 // point, symmetric with fastx_filter_header. On a worker thread an over-long
 // sequence records a deferred error (reported from the main thread), otherwise
 // it is fatal.
