@@ -61,15 +61,15 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"  // Database
 #include "utils/taxonomic_fields.h"
+#include "utils/view.hpp"  // View
 #include <algorithm>  // std::find, std::search
 #include <cctype>  // std::tolower
-#include <cstring>  // std::strlen
 #include <iterator>  // std::distance
+#include <string>  // std::string
 
 
 // very similar to header_find_attribute() in attributes.cc
-auto tax_parse(char const * header,
-               int const header_length,
+auto tax_parse(View<char> const header,
                int * tax_start,
                int * tax_end) -> bool
 {
@@ -77,32 +77,33 @@ auto tax_parse(char const * header,
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
   */
 
-  if (header == nullptr)
+  if (header.data() == nullptr)
     {
       return false;
     }
 
-  auto const * attribute = "tax=";
+  std::string const attribute {"tax="};
 
-  auto const attribute_length = static_cast<int>(std::strlen(attribute));
+  auto const attribute_length = static_cast<int>(attribute.size());
+  auto const header_length = static_cast<int>(header.size());
 
   auto offset = 0;
 
   while (offset < header_length - attribute_length)
     {
-      auto const * const first_occurence = std::search(header + offset, header + header_length,
-                                                        attribute, attribute + attribute_length);
+      auto const * const first_occurence = std::search(header.begin() + offset, header.end(),
+                                                        attribute.begin(), attribute.end());
 
       /* no match */
-      if (first_occurence == header + header_length)
+      if (first_occurence == header.end())
         {
           break;
         }
 
-      offset = static_cast<int>(std::distance(header, first_occurence));
+      offset = static_cast<int>(std::distance(header.begin(), first_occurence));
 
       /* check for ';' in front */
-      if ((offset > 0) and (header[offset - 1] != ';'))
+      if ((offset > 0) and (header.data()[offset - 1] != ';'))
         {
           offset += attribute_length + 1;
           continue;
@@ -111,14 +112,14 @@ auto tax_parse(char const * header,
       *tax_start = offset;
 
       /* find end (semicolon or end of header) */
-      auto const * const terminus = std::find(header + offset + attribute_length, header + header_length, ';');
-      if (terminus == header + header_length)
+      auto const * const terminus = std::find(header.begin() + offset + attribute_length, header.end(), ';');
+      if (terminus == header.end())
         {
           *tax_end = header_length;
         }
       else
         {
-          *tax_end = static_cast<int>(std::distance(header, terminus));
+          *tax_end = static_cast<int>(std::distance(header.begin(), terminus));
         }
 
       return true;
@@ -143,29 +144,28 @@ auto tax_split(int const seqno, int * level_start, int * level_len, struct Datab
   static constexpr auto length_of_attribute_name = 4;  // "tax=" -> 4 letters
   auto tax_start = 0;
   auto tax_end = 0;
-  auto const * const header = db.getheader(static_cast<uint64_t>(seqno));
-  auto const header_length = static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno)));
-  auto const attribute_is_present = tax_parse(header, header_length, & tax_start, & tax_end);
+  auto const header = db.header_view(static_cast<uint64_t>(seqno));
+  auto const attribute_is_present = tax_parse(header, & tax_start, & tax_end);
   if (not attribute_is_present) { return; }
   auto offset = tax_start + length_of_attribute_name;
 
   while (offset < tax_end)
     {
       /* Is the next char a recognized tax level letter? */
-      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), std::tolower(header[offset]));
+      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), std::tolower(header.data()[offset]));
       if (next_level != taxonomic_fields.end())
         {
           int const level = static_cast<int>(std::distance(taxonomic_fields.data(), next_level));
 
           /* Is there a colon after it? */
-          if (header[offset + 1] == ':')
+          if (header.data()[offset + 1] == ':')
             {
               level_start[level] = offset + 2;
 
-              auto const * const next_comma = std::find(header + offset + 2, header + header_length, ',');
-              if (next_comma != header + header_length)
+              auto const * const next_comma = std::find(header.begin() + offset + 2, header.end(), ',');
+              if (next_comma != header.end())
                 {
-                  level_len[level] = static_cast<int>(std::distance(header, next_comma)) - offset - 2;
+                  level_len[level] = static_cast<int>(std::distance(header.begin(), next_comma)) - offset - 2;
                 }
               else
                 {
@@ -175,10 +175,10 @@ auto tax_split(int const seqno, int * level_start, int * level_len, struct Datab
         }
 
       /* skip past next comma */
-      auto const * const next_comma_bis = std::find(header + offset, header + header_length, ',');
-      if (next_comma_bis != header + header_length)
+      auto const * const next_comma_bis = std::find(header.begin() + offset, header.end(), ',');
+      if (next_comma_bis != header.end())
         {
-          offset = static_cast<int>(std::distance(header, next_comma_bis)) + 1;
+          offset = static_cast<int>(std::distance(header.begin(), next_comma_bis)) + 1;
         }
       else
         {
