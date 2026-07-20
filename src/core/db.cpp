@@ -64,11 +64,11 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
-#include <algorithm>  // std::min, std::max, std::sort
+#include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
-#include <cstring>  // std::memcpy, std::strcmp
+#include <cstring>  // std::strcmp
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
@@ -141,7 +141,7 @@ auto Database::udb_finalize(uint64_t const count,
         auto const old_p = seqindex_[i].seq_p;
         auto const new_p = seqindex_[i].seq_p + i;
         auto const len   = seqindex_[i].seqlen;
-        std::memmove(buffer + new_p, buffer + old_p, len);
+        std::copy_backward(buffer + old_p, buffer + old_p + len, buffer + new_p + len);
         *(buffer + new_p + len) = 0;
         seqindex_[i].seq_p = new_p;
         progress.update(count - i);
