@@ -83,6 +83,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf
+#include <cstring>  // std::strlen
 #include <mutex>  // std::mutex, std::lock_guard
 #include <vector>
 

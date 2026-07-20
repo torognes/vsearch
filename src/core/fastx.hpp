@@ -71,9 +71,9 @@
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
-#include <cstring>  // std::memchr
 #include <iterator>  // std::next, std::distance
 #include <memory>  // std::unique_ptr
+#include <string>  // std::char_traits
 #include <vector>
 
 #ifdef HAVE_ZLIB_H
@@ -350,10 +350,10 @@ inline auto scan_line_fragment(fastx_handle input_handle) -> Line_fragment
   auto const rest = file_buffer.length - file_buffer.position;
   auto * const start = std::next(file_buffer.data(),
                                  static_cast<std::ptrdiff_t>(file_buffer.position));
-  auto * const line_end = static_cast<char *>(std::memchr(start, '\n', rest));
+  auto const * const line_end = std::char_traits<char>::find(start, rest, '\n');
   auto const has_newline = (line_end != nullptr);
   auto const length = has_newline
-    ? static_cast<std::size_t>(std::distance(start, line_end)) + 1
+    ? static_cast<std::size_t>(line_end - start) + 1
     : static_cast<std::size_t>(rest);
   return Line_fragment{View<char>{start, length}, has_newline};
 }
