@@ -60,8 +60,9 @@
 
 #include "userfields.hpp"
 #include "vsearch.hpp"  // struct Parameters
+#include <algorithm>  // std::find
 #include <cstdint>  // uint64_t
-#include <cstring>  // std::strcmp, std::strchr, std::strlen
+#include <cstring>  // std::strcmp, std::strlen
 #include <vector>  // std::vector::clear, push_back
 
 
@@ -130,11 +131,7 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
 
   while (true)
     {
-      next_separator = std::strchr(ptr, separator);
-      if (next_separator == nullptr)
-        {
-          next_separator = end_of_string;
-        }
+      next_separator = std::find(ptr, end_of_string, separator);
 
       auto const field_length = static_cast<uint64_t>(next_separator - ptr);
 
