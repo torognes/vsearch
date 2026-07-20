@@ -213,9 +213,9 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
       auto const needle_view = View<char>{parameters.opt_label, std::strlen(parameters.opt_label)};
       if (parameters.opt_label_substr_match)
         {
-          return (contains_substring(header_view, needle_view));
+          return contains_substring(header_view, needle_view);
         }
-      return (are_same_string(header_view, needle_view));
+      return are_same_string(header_view, needle_view);
     }
   if (parameters.opt_labels != nullptr)
     {

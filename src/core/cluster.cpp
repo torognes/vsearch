@@ -1172,7 +1172,7 @@ auto cluster(char const * dbname,
     {
       dust_all(state.db, parameters);
     }
-  else if ((parameters.opt_qmask == Masking::soft) and (parameters.opt_hardmask))
+  else if ((parameters.opt_qmask == Masking::soft) and parameters.opt_hardmask)
     {
       hardmask_all(state.db);
     }

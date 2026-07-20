@@ -311,7 +311,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
 
           if (state.fp_uc != nullptr)
             {
-              if ((t == 0) || (parameters.opt_uc_allhits))
+              if ((t == 0) || parameters.opt_uc_allhits)
                 {
                   results_show_uc_one(state.fp_uc,
                                       &hit,
@@ -449,7 +449,7 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
         {
           dust(si->qsequence, parameters);
         }
-      else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
+      else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
         {
           hardmask(si->qsequence);
         }
@@ -641,7 +641,7 @@ auto search_exact_prep(struct search_exact_state_s & state) -> void
     {
       dust_all(state.db, parameters);
     }
-  else if ((parameters.opt_dbmask == Masking::soft) && (parameters.opt_hardmask))
+  else if ((parameters.opt_dbmask == Masking::soft) && parameters.opt_hardmask)
     {
       hardmask_all(state.db);
     }

@@ -257,7 +257,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
           if (state.fp_uc != nullptr)
             {
-              if ((t==0) || (state.parameters.opt_uc_allhits))
+              if ((t==0) || state.parameters.opt_uc_allhits)
                 {
                   results_show_uc_one(state.fp_uc.get(),
                                       hp,
@@ -398,7 +398,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
         {
           dust(si->qsequence, state.parameters);
         }
-      else if ((state.parameters.opt_qmask == Masking::soft) && (state.parameters.opt_hardmask))
+      else if ((state.parameters.opt_qmask == Masking::soft) && state.parameters.opt_hardmask)
         {
           hardmask(si->qsequence);
         }
@@ -584,7 +584,7 @@ static auto search_prep(struct search_cli_state_s & state) -> void
         {
           dust_all(state.db, state.parameters);
         }
-      else if ((state.parameters.opt_dbmask == Masking::soft) && (state.parameters.opt_hardmask))
+      else if ((state.parameters.opt_dbmask == Masking::soft) && state.parameters.opt_hardmask)
         {
           hardmask_all(state.db);
         }

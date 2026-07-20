@@ -2464,7 +2464,7 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               dust_all(state.db, parameters);
             }
-          else if ((parameters.opt_dbmask == Masking::soft) and (parameters.opt_hardmask))
+          else if ((parameters.opt_dbmask == Masking::soft) and parameters.opt_hardmask)
             {
               hardmask_all(state.db);
             }
@@ -2511,7 +2511,7 @@ auto chimera(struct Parameters const & parameters) -> void
         {
           dust_all(state.db, parameters);
         }
-      else if ((parameters.opt_qmask == Masking::soft) and (parameters.opt_hardmask))
+      else if ((parameters.opt_qmask == Masking::soft) and parameters.opt_hardmask)
         {
           hardmask_all(state.db);
         }

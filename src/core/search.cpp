@@ -292,7 +292,7 @@ auto search_session_single(struct search_session_s * ss,
         {
           dust(strand_si->qsequence, parameters);
         }
-      else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
+      else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
         {
           hardmask(strand_si->qsequence);
         }
@@ -445,7 +445,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
           {
             dust(strand_si->qsequence, parameters);
           }
-        else if ((parameters.opt_qmask == Masking::soft) && (parameters.opt_hardmask))
+        else if ((parameters.opt_qmask == Masking::soft) && parameters.opt_hardmask)
           {
             hardmask(strand_si->qsequence);
           }

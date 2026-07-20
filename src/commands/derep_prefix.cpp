@@ -216,7 +216,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         auto * bp = &hashtable[hash & hash_mask];
 
         while ((bp->size != 0U) and
-               ((bp->deleted) or
+               (bp->deleted or
                 (bp->hash != hash) or
                 (prefix_len != db.getsequencelen(bp->seqno_first)) or
                 (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(prefix_len)}, View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
@@ -255,7 +255,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 bp = &hashtable[hash & hash_mask];
 
                 while ((bp->size != 0U) and
-                       ((bp->deleted) or
+                       (bp->deleted or
                         (bp->hash != hash) or
                         (prefix_len != db.getsequencelen(bp->seqno_first)) or
                         (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(prefix_len)},

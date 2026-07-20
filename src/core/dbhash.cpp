@@ -121,7 +121,7 @@ auto Dbhash::search_first(char * seq,
   auto index = hash & mask_;
   auto const * bp = &table_[index];
 
-  while ((bitmap_.is_set(static_cast<unsigned int>(index)))
+  while (bitmap_.is_set(static_cast<unsigned int>(index))
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or
@@ -149,7 +149,7 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
   auto index = (info->index + 1) & mask_;
   auto const * bp = &table_[index];
 
-  while ((bitmap_.is_set(static_cast<unsigned int>(index)))
+  while (bitmap_.is_set(static_cast<unsigned int>(index))
          and
          ((bp->hash != hash) or
           (seqlen != db.getsequencelen(bp->seqno)) or

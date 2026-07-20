@@ -132,7 +132,7 @@ private:
   
   // Helper functions
   auto check_if_visible() const -> bool {
-    return (stderr_is_tty_)
+    return stderr_is_tty_
       and (not is_quiet_)
       and (not no_progress_);
   };
