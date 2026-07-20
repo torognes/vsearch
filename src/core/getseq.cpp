@@ -242,7 +242,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
       char const * needle = parameters.opt_label_word;
       if (parameters.opt_label_field != nullptr)
         {
-          std::strcpy(&field_buffer[field_len + 1], needle);
+          std::copy_n(needle, std::strlen(needle) + 1, &field_buffer[field_len + 1]);
           needle = field_buffer.data();
         }
       auto const wlen = std::strlen(needle);
