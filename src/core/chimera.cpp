@@ -82,13 +82,12 @@
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
-#include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::transform
+#include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
 #include <array>
 #include <cassert>
 #include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::sscanf
 #include <cstring>  // std::strlen, std::strcpy
 #include <iterator>  // std::next
@@ -427,21 +426,6 @@ struct parents_info_s
 };
 
 
-auto compare_positions(const void * a, const void * b) -> int
-{
-  const int lhs = static_cast<parents_info_s const *>(a)->start;
-  const int rhs = static_cast<parents_info_s const *>(b)->start;
-
-  if (lhs < rhs) {
-    return -1;
-  }
-  if (lhs > rhs) {
-    return +1;
-  }
-  return 0;
-}
-
-
 auto scan_matches(struct chimera_info_s * ci,
                   int const * matches,
                   int const len,
@@ -604,15 +588,11 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
       }
     }
 
-  /* sort parents by position (skip when empty: qsort requires a
-     non-null pointer even for zero elements) */
-  if (parents_found > 0)
-    {
-      std::qsort(best_parents.data(),
-                 static_cast<size_t>(parents_found),
-                 sizeof(struct parents_info_s),
-                 compare_positions);
-    }
+  /* sort parents by position */
+  std::sort(best_parents.begin(),
+            best_parents.begin() + parents_found,
+            [](parents_info_s const & lhs, parents_info_s const & rhs) -> bool
+            { return lhs.start < rhs.start; });
 
   ci->parents_found = parents_found;
 
