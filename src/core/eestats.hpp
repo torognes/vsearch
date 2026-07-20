@@ -62,5 +62,5 @@
    commands. fastq_get_qual_eestats decodes and range-checks one FASTQ
    quality symbol (fatal on out-of-range); q2p converts a Phred quality
    value to its error probability. */
-auto fastq_get_qual_eestats(char const q, struct Parameters const & parameters) -> int;
-auto q2p(int const quality_value) -> double;
+auto fastq_get_qual_eestats(char q, struct Parameters const & parameters) -> int;
+auto q2p(int quality_value) -> double;

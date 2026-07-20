@@ -76,7 +76,7 @@ auto populate_si(struct searchinfo_s * si,
                  int64_t qsize,
                  int strand) -> void;
 
-auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits,
+auto search_thread_init(struct searchinfo_s * si, int seqcount, int tophits,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex,
                         struct Database const & db) -> void;

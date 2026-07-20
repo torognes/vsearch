@@ -73,4 +73,4 @@
 enum struct Derep_mode : std::uint8_t { fulllength, id, uniques };
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
-auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void;
+auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode mode) -> void;
