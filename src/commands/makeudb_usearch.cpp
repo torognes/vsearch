@@ -68,7 +68,6 @@
 #include "utils/progress.hpp"
 #include <algorithm>  // std::max
 #include <cstdint>  // uint64_t
-#include <cstring>  // std::memset
 #include <fstream>  // std::ofstream
 #include <ostream>  // std::ostream
 #include <vector>
@@ -192,7 +191,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
       {
         if (not dbindex.kmerbitmap[i].empty())
           {
-            std::memset(buffer.data(), 0, 4 * dbindex.kmercount[i]);
+            std::fill_n(buffer.data(), dbindex.kmercount[i], 0U);
             auto elements = 0U;
             for (auto j = 0U; j < seqcount; j++)
               {

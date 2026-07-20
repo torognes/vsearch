@@ -78,7 +78,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::sscanf, std::size_t
 #include <cstdlib>  // std::qsort
-#include <cstring>  // std::strlen, std::memset, std::strcmp
+#include <cstring>  // std::strcmp
 #include <limits>
 #include <utility>  // std::move
 #include <vector>
@@ -281,7 +281,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
 
   /* zero counts */
-  std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
+  std::fill_n(searchinfo->kmers, indexed_count, count_t{0});
 
   searchinfo->m.clear();
 

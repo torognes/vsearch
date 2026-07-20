@@ -1842,7 +1842,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
           int const myseqno = si_p->query_no;
           int const ri = myseqno - start_seqno;
-          std::memset(&results[ri], 0, sizeof(results[ri]));
+          results[ri] = {};
 
           if (best != nullptr)
             {

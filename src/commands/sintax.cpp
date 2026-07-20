@@ -105,7 +105,6 @@
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
-#include <cstring>  // std::memset
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
 
@@ -321,7 +320,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
 
   /* zero counts */
-  std::memset(searchinfo->kmers, 0, indexed_count * sizeof(count_t));
+  std::fill_n(searchinfo->kmers, indexed_count, count_t{0});
 
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
