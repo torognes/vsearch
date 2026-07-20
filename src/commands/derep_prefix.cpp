@@ -67,10 +67,9 @@
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
 #include "utils/string_normalize.hpp"
-#include <algorithm>  // std::max, std::transform
+#include <algorithm>  // std::max, std::sort, std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdlib>  // std::qsort
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strcmp
 #include <iterator>  // std::next
@@ -117,63 +116,6 @@ auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
                  sequence.cend(),
                  std::next(prefix_hashes.begin()),
                  incremental_hash);
-}
-
-
-/* The std::qsort comparator below needs the database to compare header strings,
-   but a C comparator is a plain function pointer that cannot capture it
-   (qsort_r, which passes context, is non-portable). derep_prefix() sets this
-   file-scope pointer to its Database immediately before the qsort; the sort is
-   single-threaded, so the transient sharing is safe. */
-namespace {
-  Database const * derep_sort_db = nullptr;
-}
-
-
-auto derep_compare_prefix(const void * a, const void * b) -> int
-{
-  auto const * lhs = static_cast<struct bucket const *>(a);
-  auto const * rhs = static_cast<struct bucket const *>(b);
-
-  /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
-
-  if (static_cast<int>(lhs->deleted) > static_cast<int>(rhs->deleted))
-    {
-      return +1;
-    }
-  if (static_cast<int>(lhs->deleted) < static_cast<int>(rhs->deleted))
-    {
-      return -1;
-    }
-
-  // both are deleted, compare abundances
-  if (lhs->size < rhs->size)
-    {
-      return +1;
-    }
-  if (lhs->size > rhs->size)
-    {
-      return -1;
-    }
-
-  // both are deleted, same abundances, compare sequence headers
-  auto const result = std::strcmp(derep_sort_db->getheader(lhs->seqno_first),
-                                  derep_sort_db->getheader(rhs->seqno_first));
-  if (result != 0)
-    {
-      return result;
-    }
-
-  // both are deleted, same abundances, same sequence headers, compare input order
-  if (lhs->seqno_first < rhs->seqno_first)
-    {
-      return -1;
-    }
-  if (lhs->seqno_first > rhs->seqno_first)
-    {
-      return +1;
-    }
-  return 0;
 }
 
 
@@ -363,8 +305,39 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   {
     Progress const progress("Sorting", 1, parameters);
-    derep_sort_db = &db;
-    std::qsort(hashtable.data(), static_cast<size_t>(hashtablesize), sizeof(struct bucket), derep_compare_prefix);
+
+    /* deleted(?) first, then by highest abundance, then by label, otherwise keep order */
+    auto const compare_prefix = [&db](struct bucket const & lhs, struct bucket const & rhs) -> bool
+    {
+      if (static_cast<int>(lhs.deleted) != static_cast<int>(rhs.deleted))
+        {
+          return static_cast<int>(lhs.deleted) < static_cast<int>(rhs.deleted);
+        }
+
+      // both are deleted, compare abundances
+      if (lhs.size != rhs.size)
+        {
+          return lhs.size > rhs.size;
+        }
+
+      // both are deleted, same abundances, compare sequence headers
+      auto const result = std::strcmp(db.getheader(lhs.seqno_first),
+                                      db.getheader(rhs.seqno_first));
+      if (result != 0)
+        {
+          return result < 0;
+        }
+
+      // both are deleted, same abundances, same sequence headers, compare input order
+      return lhs.seqno_first < rhs.seqno_first;
+    };
+
+    /* skip when the database is empty: the lone empty bucket has no valid
+       header for the comparator to dereference */
+    if (dbsequencecount > 0)
+      {
+        std::sort(hashtable.begin(), hashtable.end(), compare_prefix);
+      }
   }
 
   if (clusters > 0)
