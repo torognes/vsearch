@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "core/msa.hpp"
 #include "core/db.hpp"

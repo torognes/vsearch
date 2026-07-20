@@ -60,6 +60,8 @@
 
 #include "reverse_complement.hpp"
 #include "maps.hpp"  // chrmap_complement
+#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::transform
 #include <cassert>
 

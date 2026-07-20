@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/align_simd.hpp"

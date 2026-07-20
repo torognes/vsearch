@@ -66,7 +66,6 @@
 #include <algorithm>  // std::max, std::min, std::sort
 #include <cinttypes>  // macro PRIu64
 #include <cmath>  // std::lround
-#include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
 #include <vector>
 

@@ -63,6 +63,8 @@
 
 #include "core/getseq.hpp"
 #include "vsearch.hpp"
+#include <iterator>
+#include <cstddef>
 #include <memory>  // std::unique_ptr
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
@@ -82,6 +84,7 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
 #include <cstring>  // std::strlen, std::strcpy, std::strstr
+#include <sys/stat.h>
 #include <vector>
 
 

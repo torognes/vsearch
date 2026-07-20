@@ -61,11 +61,11 @@
 #include "vsearch.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
-#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <cassert>
+#include <cstdint>
 #include <cstdio>  // std::FILE, std::size_t, std::fclose
 #include <vector>
 

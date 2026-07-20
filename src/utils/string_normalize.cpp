@@ -60,6 +60,8 @@
 
 #include "string_normalize.hpp"
 #include "maps.hpp"  // chrmap_normalize
+#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::transform
 #include <cassert>
 

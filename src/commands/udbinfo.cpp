@@ -66,6 +66,8 @@
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
 #include <fstream>  // std::ifstream
+#include <sys/stat.h>
+#include <ios>
 
 
 auto udbinfo(struct Parameters const & parameters) -> void

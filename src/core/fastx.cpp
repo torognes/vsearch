@@ -71,6 +71,8 @@
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/open_file.hpp"  // open_input_file
 #include "utils/span.hpp"
+#include <sys/stat.h>
+#include <bzlib.h>
 #include <unistd.h>  // dup, STDOUT_FILENO
 #include <algorithm>  // std::copy_n, std::equal, std::find_first_of
 #include <array>

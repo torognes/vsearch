@@ -60,7 +60,6 @@
 
 #include "cli.h"
 #include "vsearch.hpp"
-#include "vsearch_api.h"
 #include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
@@ -71,6 +70,7 @@
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset
 #include <algorithm>  // std::count, std::any_of
 #include <array>
+#include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct option
 #include <cerrno>  // errno, ERANGE
 #include <cinttypes>  // macro SCNd64
 #include <cmath>  // std::isfinite
@@ -79,8 +79,7 @@
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <string>  // std::to_string
-#include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
-                     // option (no_argument, required_argument)
+                    // option (no_argument, required_argument)
 #ifdef __NetBSD__
 /* Alters behavior, but NetBSD 7 does not have getopt_long_only() */
 #define getopt_long_only getopt_long

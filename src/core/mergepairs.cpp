@@ -70,9 +70,10 @@
 #include <array>
 #include <atomic>  // std::atomic, std::memory_order
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
+#include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
+#include <cstdlib>
 #include <string>  // std::string
 #include <vector>
 

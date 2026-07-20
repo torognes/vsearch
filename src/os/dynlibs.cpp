@@ -62,8 +62,10 @@
 #include "os/dynlibs.hpp"
 #include "utils/dynlib_loader.hpp"
 #include "utils/fatal.hpp"
+#include <bzlib.h>
 #include <cstdio>  // std::FILE
 #include <string>
+#include <zlib.h>
 
 
 #ifdef HAVE_ZLIB_H

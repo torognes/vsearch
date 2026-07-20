@@ -62,7 +62,6 @@
 #include <memory>  // std::unique_ptr
 #include "core/fasta.hpp"
 #include "utils/progress.hpp"
-#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <cinttypes> // macros PRIu64 and PRId64

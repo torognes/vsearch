@@ -58,6 +58,8 @@
 
 */
 
+#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/align_simd.hpp"
@@ -92,6 +94,7 @@
 #include <limits>
 #include <map>
 #include <memory>  // std::unique_ptr
+#include <string>
 #include <utility>  // std::get
 #include <vector>
 

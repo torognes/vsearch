@@ -58,6 +58,8 @@
 
 */
 
+#include "utils/view.hpp"
+#include "core/seq_record.hpp"
 #include "vsearch.hpp"
 #include "core/attributes.hpp"
 #include "core/db.hpp"

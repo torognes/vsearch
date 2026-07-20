@@ -62,13 +62,13 @@
 #include "commands/makeudb_usearch.hpp"
 #include "core/db.hpp"
 #include "core/mask.hpp"
-#include "core/bitmap.hpp"
 #include "core/dbindex.hpp"
 #include "utils/fatal.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::max
 #include <cstdint>  // uint64_t
 #include <fstream>  // std::ofstream
+#include <ios>
 #include <ostream>  // std::ostream
 #include <vector>
 

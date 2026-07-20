@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "commands/usearch_global.hpp"

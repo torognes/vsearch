@@ -67,17 +67,18 @@
 #include "core/fasta.hpp"
 #include "core/results.hpp"
 #include "core/searchcore.hpp"
-#include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min, std::max
+#include <cstddef>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
 #include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
+#include <string>
 #include <utility>  // std::move
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>

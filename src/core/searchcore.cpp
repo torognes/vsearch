@@ -58,6 +58,8 @@
 
 */
 
+#include "utils/view.hpp"
+#include "core/mask.hpp"
 #include "vsearch.hpp"
 #include "arch/increment_counters.hpp"  // increment_counters_from_bitmap*
 #include "core/align_simd.hpp"

@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "core/attributes.hpp"
 #include "core/seq_record.hpp"  // struct SeqRecord (for the record overload)

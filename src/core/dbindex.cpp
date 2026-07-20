@@ -58,17 +58,18 @@
 
 */
 
+#include "core/mask.hpp"
 #include "vsearch.hpp"
 #include "core/bitmap.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
-#include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <array>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
+#include <vector>
 
 
 constexpr unsigned int bitmap_threshold = 8;

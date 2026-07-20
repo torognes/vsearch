@@ -58,6 +58,8 @@
 
 */
 
+#include "utils/view.hpp"
+#include "utils/span.hpp"
 #include "vsearch.hpp"
 #include "core/buffer_headroom.hpp"
 #include "core/db.hpp"  // Database

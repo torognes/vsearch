@@ -60,9 +60,7 @@
 
 #include "vsearch.hpp"
 #include "utils/cigar.hpp"
-#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include "utils/span.hpp"
 #include "utils/view.hpp"
 #include <algorithm>  // std::copy, std::fill_n, std::min
 #include <cassert>

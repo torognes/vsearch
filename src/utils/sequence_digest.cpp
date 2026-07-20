@@ -61,6 +61,8 @@
 #include "sequence_digest.hpp"
 #include "fatal.hpp"  // fatal
 #include "string_normalize.hpp"  // string_normalize
+#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
 #include "vendored/sha1.h"  // SHA1_CTX, SHA1_Init, SHA1_Update, SHA1_Final
 #include <array>  // std::array

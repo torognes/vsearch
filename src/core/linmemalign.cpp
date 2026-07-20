@@ -67,6 +67,7 @@
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::printf, std::size_t, std::snprintf, std::sscanf
 #include <limits>
+#include <vector>
 // #include <vector>
 
 

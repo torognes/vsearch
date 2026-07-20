@@ -58,12 +58,12 @@
 
 */
 
+#include "core/mergepairs.hpp"
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "utils/progress.hpp"
 #include "commands/fastq_mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
-#include "core/kmerhash.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -74,7 +74,6 @@
 #include "utils/view.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
-#include <array>
 #include <atomic>  // std::atomic
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64

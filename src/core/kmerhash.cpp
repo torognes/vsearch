@@ -58,11 +58,11 @@
 
 */
 
-#include "vsearch.hpp"
 #include "vendored/city.h"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
-#include <algorithm>  // std::max
+#include <cstddef>
+#include <cstdint>
 #include <vector>
 
 

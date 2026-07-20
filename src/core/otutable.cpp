@@ -59,6 +59,7 @@
 */
 
 #include "otutable.hpp"
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
@@ -73,7 +74,6 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
 #include <map>
-#include <set>
 #include <string>
 #include <utility>  // std::pair
 

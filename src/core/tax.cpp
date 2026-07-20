@@ -58,12 +58,12 @@
 
 */
 
-#include "vsearch.hpp"
 #include "core/db.hpp"  // Database
 #include "utils/taxonomic_fields.h"
 #include "utils/view.hpp"  // View
 #include <algorithm>  // std::find, std::search
 #include <cctype>  // std::tolower
+#include <cstdint>
 #include <iterator>  // std::distance
 #include <string>  // std::string
 

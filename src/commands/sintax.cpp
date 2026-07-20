@@ -77,6 +77,8 @@
 
 */
 
+#include "utils/view.hpp"
+#include "utils/span.hpp"
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "core/db.hpp"

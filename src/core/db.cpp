@@ -58,10 +58,10 @@
 
 */
 
+#include "core/seq_record.hpp"
 #include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fastx.hpp"
-#include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort

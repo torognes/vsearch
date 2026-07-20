@@ -62,9 +62,9 @@
 #include "core/db.hpp"
 #include "core/fasta.hpp"
 #include "utils/progress.hpp"
-#include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/random.hpp"
+#include <cstdint>
 #include <cstdio>  // std::FILE, std::size_t
 #include <numeric>  // std::iota
 #include <random>  // std::mt19937_64

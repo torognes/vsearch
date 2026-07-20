@@ -58,16 +58,13 @@
 
 */
 
-#include "vsearch.hpp"
-#include "arch/intrinsics.hpp"
 #include "core/align_simd.hpp"
+#include "arch/intrinsics.hpp"  // SIMD intrinsics (__m128i / VECTOR_SHORT, _mm_*)
 #include "core/db.hpp"
-#include "utils/fatal.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"
 #include <algorithm>  // std::min, std::max
 #include <array>
-#include <cinttypes>  // macro PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset

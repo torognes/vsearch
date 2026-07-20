@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/span.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/mask.hpp"
@@ -68,6 +69,7 @@
 #include <algorithm>  // std::transform
 #include <array>
 #include <cctype>  // std::toupper
+#include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
 #include <mutex>  // std::mutex, std::unique_lock
 // #include <string>

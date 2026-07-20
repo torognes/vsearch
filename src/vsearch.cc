@@ -119,17 +119,12 @@
 #include "utils/random.hpp"
 #include <array>
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macros PRIu64 and PRId64
-#include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf, std::printf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
-#include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct
-                     // option (no_argument, required_argument)
 #include <new>  // std::set_new_handler
 #include <string>
 #include <unistd.h>  // write, _exit, STDERR_FILENO
-#include <vector>
 
 
 /* Standalone CLI entry point: main(), the command dispatcher, and their

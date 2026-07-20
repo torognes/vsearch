@@ -58,6 +58,8 @@
 
 */
 
+#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"

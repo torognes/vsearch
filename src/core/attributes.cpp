@@ -58,7 +58,7 @@
 
 */
 
-#include "vsearch.hpp"
+#include "utils/view.hpp"
 #include "core/attributes.hpp"  // View<char>
 #include "utils/fatal.hpp"
 #include <algorithm>  // std::swap

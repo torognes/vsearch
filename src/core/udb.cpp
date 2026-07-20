@@ -65,7 +65,6 @@
 #include "core/bitmap.hpp"
 #include "core/db.hpp"  // Database, seqinfo_t
 #include "core/dbindex.hpp"
-#include "core/unique.hpp"
 #include "os/system.hpp"  // xstat_t, xstat, xfstat, S_ISREG, S_ISFIFO
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
@@ -76,9 +75,11 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstring>  // std::memset
 #include <fstream>  // std::ifstream
+#include <ios>
 #include <istream>  // std::istream
 #include <limits>
 #include <string>  // std::string
+#include <sys/stat.h>
 #include <vector>
 
 

@@ -58,6 +58,8 @@
 
 */
 
+#include "utils/view.hpp"
+#include "utils/span.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/bitmap.hpp"
