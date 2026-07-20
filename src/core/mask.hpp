@@ -61,10 +61,11 @@
 #pragma once
 
 #include "utils/span.hpp"  // Span<char>
+#include <cstdint>  // std::int8_t
 
 struct Database;
 
-enum struct Masking : int { error = -1, none = 0, dust = 1, soft = 2 };
+enum struct Masking : std::int8_t { error = -1, none = 0, dust = 1, soft = 2 };
 
 
 auto dust(Span<char> seq, struct Parameters const & parameters) -> void;

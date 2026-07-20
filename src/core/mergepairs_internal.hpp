@@ -73,7 +73,7 @@
 #include <cstdint>  // int64_t
 #include <vector>
 
-enum class MergeAbortReason { quality_below_qmin, quality_above_qmax, more_fwd_than_rev };
+enum class MergeAbortReason : std::uint8_t { quality_below_qmin, quality_above_qmax, more_fwd_than_rev };
 
 
 /* reasons for not merging:

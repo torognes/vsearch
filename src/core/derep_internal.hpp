@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include <cstdint>  // std::uint8_t
+
 /* Internal seam between the CLI dereplication engine (core/derep.cpp) and
    its three thin command wrappers (commands/derep_fulllength.cpp,
    commands/derep_id.cpp, commands/fastx_uniques.cpp). Not part of the public
@@ -68,7 +70,7 @@
 // Selects which of the three dereplication commands the shared engine
 // runs as. Previously inferred implicitly from which option pointer was
 // non-null (opt_fastx_uniques) plus a use_header bool.
-enum struct Derep_mode { fulllength, id, uniques };
+enum struct Derep_mode : std::uint8_t { fulllength, id, uniques };
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
 auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void;
