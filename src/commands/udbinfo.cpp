@@ -102,7 +102,7 @@ auto udbinfo(struct Parameters const & parameters) -> void
       fatal("Unable to open UDB file for reading");
     }
 
-  in_stream.read(static_cast<char *>(static_cast<void *>(buffer.data())), 4 * 50);
+  in_stream.read(reinterpret_cast<char *>(buffer.data()), 4 * 50);
   if (static_cast<uint64_t>(in_stream.gcount()) != 4 * 50)
     {
       fatal("Unable to read from UDB file or invalid UDB file");

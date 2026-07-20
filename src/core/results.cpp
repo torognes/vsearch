@@ -481,8 +481,6 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
             }
           break;
         case 28: /* qframe */
-          std::fprintf(output_handle, "+0");
-          break;
         case 29: /* tframe */
           std::fprintf(output_handle, "+0");
           break;
@@ -912,6 +910,8 @@ auto build_sam_strings(char const * alignment,
             }
           flag = false;
           break;
+        default:
+          fatal("Invalid CIGAR string: unknown operation");
         }
     }
 

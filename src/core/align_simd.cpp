@@ -479,7 +479,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto _mm_print(VECTOR_SHORT const x) -> void
+auto mm_print(VECTOR_SHORT const x) -> void
 {
   auto const * y = reinterpret_cast<unsigned short const *>(&x);
   for (int i = 0; i < 8; i++)
@@ -489,7 +489,7 @@ auto _mm_print(VECTOR_SHORT const x) -> void
 }
 
 
-auto _mm_print2(VECTOR_SHORT const x) -> void
+auto mm_print2(VECTOR_SHORT const x) -> void
 {
   auto const * y = reinterpret_cast<signed short const *>(&x);
   for (int i = 0; i < 8; i++)

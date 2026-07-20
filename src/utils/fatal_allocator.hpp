@@ -92,7 +92,7 @@ struct FatalAllocator
 
   auto deallocate(Element * const pointer, std::size_t const /*count*/) noexcept -> void
   {
-    xfree(pointer);
+    xfree(static_cast<void *>(pointer));
   }
 };
 

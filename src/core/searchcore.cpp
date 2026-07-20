@@ -469,6 +469,8 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
     case 4:
       hit->id = hit->id4;
       break;
+    default:
+      break;
     }
 }
 

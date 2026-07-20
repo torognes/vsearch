@@ -799,6 +799,8 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
           nwalignmentlength += runlength;
           a_pos += runlength;
           break;
+        default:
+          break;
         }  // end of switch
     }  // end of cigar parsing
 
