@@ -383,9 +383,8 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
       auto qpos = 0;
       auto tpos = 0;
 
-      auto const * cigar_start = chimera_info->nwcigar[static_cast<size_t>(i)].c_str();
-      auto const cigar_length = std::strlen(cigar_start);
-      auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
+      auto const & cigar = chimera_info->nwcigar[static_cast<size_t>(i)];
+      auto const cigar_pairs = parse_cigar_string(View<char>{cigar.c_str(), cigar.size()});
 
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
@@ -759,9 +758,8 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
   auto const best_parents_view = Span<int>{chimera_info->best_parents.data(), count};
   for (auto const best_parent : best_parents_view) {
     auto pos = 0LL;
-    auto const * cigar_start = chimera_info->nwcigar[static_cast<size_t>(best_parent)].c_str();
-    auto const cigar_length = std::strlen(cigar_start);
-    auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
+    auto const & cigar = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
+    auto const cigar_pairs = parse_cigar_string(View<char>{cigar.c_str(), cigar.size()});
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
@@ -798,9 +796,8 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
       int tpos = 0;
       int alnpos = 0;
 
-      auto const * cigar_start = ci->nwcigar[static_cast<size_t>(cand)].c_str();
-      auto const cigar_length = std::strlen(cigar_start);
-      auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
+      auto const & cigar = ci->nwcigar[static_cast<size_t>(cand)];
+      auto const cigar_pairs = parse_cigar_string(View<char>{cigar.c_str(), cigar.size()});
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;
