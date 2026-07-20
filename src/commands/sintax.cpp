@@ -526,7 +526,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 {
   std::mutex & mutex_input = state.mutex_input;
   std::mutex & mutex_output = state.mutex_output;
-  fastx_handle const query_fastx_h = state.query_fastx_h;
+  struct fastx_s * const query_fastx_h = state.query_fastx_h;
   struct searchinfo_s * const si_plus = state.si_plus.data();
   struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
 
