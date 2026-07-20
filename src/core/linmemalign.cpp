@@ -722,7 +722,7 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
   int64_t a_pos = 0;
   int64_t b_pos = 0;
 
-  auto * p = cigar;
+  auto const * p = cigar;
 
   int64_t g = 0;
 

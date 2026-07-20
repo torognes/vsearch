@@ -328,7 +328,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
       unsigned int const kmer = searchinfo->kmersample[i];
-      auto * bitmap = searchinfo->dbindex->getbitmap(kmer);
+      auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
         {

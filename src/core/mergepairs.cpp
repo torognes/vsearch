@@ -817,10 +817,7 @@ auto MergePairs::merge(struct Parameters const & parameters,
      merge_minovlen_floor); a library caller may pass a smaller value, so thread
      a clamped local copy rather than mutating the shared config global (E1). */
   struct Parameters clamped = parameters;
-  if (clamped.opt_fastq_minovlen < merge_minovlen_floor)
-    {
-      clamped.opt_fastq_minovlen = merge_minovlen_floor;
-    }
+  clamped.opt_fastq_minovlen = std::max<int64_t>(clamped.opt_fastq_minovlen, merge_minovlen_floor);
   struct kh_handle_s kmerhash;
   process(md, kmerhash, tables_, clamped);
 

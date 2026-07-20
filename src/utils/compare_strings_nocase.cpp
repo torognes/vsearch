@@ -82,7 +82,7 @@ namespace {
 
 auto contains_substring(View<char> const haystack, View<char> const needle) -> bool {
   // case insensitive
-  auto * const hit = std::search(haystack.begin(), haystack.end(),
+  auto const * const hit = std::search(haystack.begin(), haystack.end(),
                                  needle.begin(), needle.end(),
                                  compare_chars);
   return (hit != haystack.end());

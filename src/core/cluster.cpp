@@ -1593,10 +1593,7 @@ auto cluster_session_alloc() -> struct cluster_session_s *
 
 auto cluster_session_free(struct cluster_session_s * cs) -> void
 {
-  if (cs != nullptr)
-    {
-      delete cs;
-    }
+  delete cs;
 }
 
 
@@ -1629,10 +1626,7 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
      si->parameters (set in cluster_query_init) carries the same. */
   cs->seqcount = static_cast<int>(db.getsequencecount());
   cs->tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
-  if (cs->tophits > cs->seqcount)
-    {
-      cs->tophits = cs->seqcount;
-    }
+  cs->tophits = std::min(cs->tophits, cs->seqcount);
 
   cs->si = make_unique<searchinfo_s>();
   cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);

@@ -230,10 +230,7 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
      search_prep does), so the sizing uses the configured values from
      parameters; si->parameters (set in search_thread_init) carries the same. */
   ss->tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
-  if (ss->tophits > ss->seqcount)
-    {
-      ss->tophits = ss->seqcount;
-    }
+  ss->tophits = std::min(ss->tophits, ss->seqcount);
 
   ss->si_plus = make_unique<searchinfo_s>();
   search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
@@ -461,7 +458,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
     /* Populate results for this query */
     struct search_result_s * qresults =
-      ctx.results + qi * ctx.max_results_per_query;
+      ctx.results + (qi * ctx.max_results_per_query);
     int count = 0;
     for (auto const & h : hits)
       {
@@ -521,10 +518,7 @@ auto search_batch(struct Parameters const & parameters,
      parameters; si->parameters (set in search_thread_init) carries the same. */
   int const seqcount = static_cast<int>(db.getsequencecount());
   int tophits = static_cast<int>(parameters.opt_maxaccepts + parameters.opt_maxrejects + MAXDELAYED);
-  if (tophits > seqcount)
-    {
-      tophits = seqcount;
-    }
+  tophits = std::min(tophits, seqcount);
 
   int const nthreads = static_cast<int>(parameters.opt_threads);
 

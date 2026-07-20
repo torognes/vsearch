@@ -429,7 +429,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
 
 static auto search_thread_run(struct search_cli_state_s & state, uint64_t const t) -> void
 {
-  auto const query_fastx_h = state.query_fastx_h;
+  auto * const query_fastx_h = state.query_fastx_h;
   struct searchinfo_s * const si_plus = state.si_plus.data();
 
   int query_head_len = 0;

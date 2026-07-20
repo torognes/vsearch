@@ -2121,22 +2121,13 @@ static auto chimera_process_query(struct chimera_info_s * ci,
         {
           return eval_parents_long(ci, cli, db);
         }
-      else
-        {
-          return Status::no_parents;
-        }
+      return Status::no_parents;
     }
-  else
+  if (find_best_parents(ci) != 0)
     {
-      if (find_best_parents(ci) != 0)
-        {
-          return eval_parents(ci, cli, db);
-        }
-      else
-        {
-          return Status::no_parents;
-        }
+      return eval_parents(ci, cli, db);
     }
+  return Status::no_parents;
 }
 
 
@@ -2742,10 +2733,7 @@ auto chimera_info_alloc() -> struct chimera_info_s *
 
 auto chimera_info_free(struct chimera_info_s * ci) -> void
 {
-  if (ci != nullptr)
-    {
-      delete ci;
-    }
+  delete ci;
 }
 
 /* Build the chimera-detection configuration shared by the CLI (chimera()) and

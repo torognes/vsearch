@@ -286,7 +286,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
       auto const kmer = searchinfo->kmersample[i];
-      auto * bitmap = searchinfo->dbindex->getbitmap(kmer);
+      auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
         {

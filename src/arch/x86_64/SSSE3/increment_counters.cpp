@@ -98,7 +98,7 @@ void increment_counters_from_bitmap_ssse3(count_t * counters,
   const auto c2 = _mm_set_epi32(mask1, mask2, mask1, mask2);
   const auto c3 = _mm_set_epi32(all_ones, all_ones, all_ones, all_ones);
 
-  auto * p = reinterpret_cast<unsigned short const *>(bitmap);
+  auto const * p = reinterpret_cast<unsigned short const *>(bitmap);
   auto * q = reinterpret_cast<__m128i *>(counters);
   const auto r = (totalbits + 15) / 16;
 
