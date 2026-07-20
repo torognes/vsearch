@@ -189,8 +189,8 @@ namespace {
      silently and corrupt alignments, so they are rejected at parse time. The
      '*' (infinite) gap penalty is a documented sentinel and is left untouched
      here; its handling in the SIMD path is addressed separately. */
-  static constexpr auto max_alignment_score = int64_t{32767};  // SHRT_MAX
-  static constexpr auto max_gap_penalty = int64_t{32767 / (1 + 4)};  // SHRT_MAX / (1 + CDEPTH)
+  constexpr auto max_alignment_score = int64_t{32767};  // SHRT_MAX
+  constexpr auto max_gap_penalty = int64_t{32767 / (1 + 4)};  // SHRT_MAX / (1 + CDEPTH)
 
 
   auto args_get_gap_penalty_string(char * arg, bool const is_open, struct Parameters & parameters) -> void
@@ -435,9 +435,9 @@ namespace {
   }
 
 
-  static constexpr auto number_of_commands = std::size_t{51};
-  static constexpr auto number_of_options = std::size_t{254};
-  static constexpr auto max_number_of_options_per_command = std::size_t{100};
+  constexpr auto number_of_commands = std::size_t{51};
+  constexpr auto number_of_options = std::size_t{254};
+  constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
     {
@@ -714,7 +714,7 @@ namespace {
     bool needs_arg;
   };
 
-  static constexpr std::array<OptionSpec, option_count> option_specs =
+  constexpr std::array<OptionSpec, option_count> option_specs =
     {{
       {"abskew",                     true },
       {"acceptall",                  false },
@@ -999,7 +999,7 @@ namespace {
     is the single source for the command list.
   */
 
-  static constexpr std::array<std::array<int, max_number_of_options_per_command>, number_of_commands> valid_options =
+  constexpr std::array<std::array<int, max_number_of_options_per_command>, number_of_commands> valid_options =
     {{
       {
         option_allpairs_global,
@@ -2898,7 +2898,7 @@ namespace {
     validate_option_tables() startup check guards the invariants a positional
     array cannot express on its own (see below).
   */
-  static constexpr std::array<Command, number_of_commands> command_of_row =
+  constexpr std::array<Command, number_of_commands> command_of_row =
     {{
       Command::allpairs_global,   // option_allpairs_global
       Command::chimeras_denovo,   // option_chimeras_denovo
