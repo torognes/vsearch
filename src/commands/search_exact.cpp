@@ -219,7 +219,7 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 
 auto search_exact_output_results(struct search_exact_state_s & state,
                                  std::vector<struct hit> const & hits,
-                                 char const * query_head,
+                                 View<char> const query_head_view,
                                  int const qseqlen,
                                  char * qsequence,
                                  char * qsequence_rc,
@@ -227,6 +227,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
 {
   struct Parameters const & parameters = state.parameters;
   std::lock_guard<std::mutex> const lock(state.mutex_output);
+  auto const * const query_head = query_head_view.data();
 
   /* show results */
   auto const n_results_to_report = std::min(parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
@@ -261,8 +262,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
 
       if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head,
-                       state.db.getheader(static_cast<uint64_t>(hits[0].target)),
+          state.otutable.add(query_head_view,
+                       state.db.header_view(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
 
@@ -345,8 +346,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     {
       if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head,
-                       nullptr,
+          state.otutable.add(query_head_view,
+                       View<char>{},
                        qsize);
         }
 
@@ -462,7 +463,7 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
 
   search_exact_output_results(state,
                               hits,
-                              state.si_plus[t].query_head.data(),
+                              state.si_plus[t].query_head,
                               static_cast<int>(state.si_plus[t].qsequence.size()),
                               state.si_plus[t].qsequence.data(),
                               parameters.opt_strand ? state.si_minus[t].qsequence.data() : nullptr,
@@ -805,7 +806,7 @@ auto search_exact(struct Parameters const & parameters) -> void
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < state.seqcount; i++) {
       if (state.dbmatched[static_cast<std::size_t>(i)] == 0U) {
-        state.otutable.add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
+        state.otutable.add(View<char>{}, state.db.header_view(static_cast<uint64_t>(i)), 0);
       }
     }
   }

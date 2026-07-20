@@ -64,6 +64,7 @@
 #include "config.h"  // HAVE_REGEX_H
 #endif
 
+#include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // int64_t, uint64_t
 #include <map>
@@ -90,7 +91,7 @@ public:
   OtuTable(OtuTable const &) = delete;
   auto operator=(OtuTable const &) -> OtuTable & = delete;
 
-  auto add(char const * query_header, char const * target_header, int64_t abundance) -> void;
+  auto add(View<char> query_header, View<char> target_header, int64_t abundance) -> void;
   auto print_otutabout(std::FILE * output_handle, struct Parameters const & parameters) const -> void;
   auto print_mothur_shared_out(std::FILE * output_handle, struct Parameters const & parameters) const -> void;
   auto print_biomout(std::FILE * output_handle, struct Parameters const & parameters) const -> void;

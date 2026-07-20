@@ -64,11 +64,13 @@
 #include "utils/fatal.hpp"
 #include "utils/timestamp.hpp"  // iso8601_local_timestamp
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
+#include <algorithm>  // std::find, std::find_if
 #include <array>
+#include <cassert>  // assert
+#include <cctype>  // std::isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::strcspn, std::strspn
 #include <iterator>  // std::next
 #include <map>
 #include <set>
@@ -151,41 +153,48 @@ OtuTable::~OtuTable()
 }
 
 
-auto OtuTable::add(char const * query_header, char const * target_header, int64_t const abundance) -> void
+auto OtuTable::add(View<char> const query_header, View<char> const target_header, int64_t const abundance) -> void
 {
+  /* The POSIX regexec() path below requires a NUL-terminated string, so each
+     non-empty header must view NUL-terminated storage: the byte at end() (one
+     past the last viewed character, i.e. data()[size()]) is the terminator.
+     All callers satisfy this (a database/fastx header or a std::string);
+     assert it so a future caller passing a bare (pointer, length) slice is
+     caught in debug builds. */
+  assert((query_header.data() == nullptr) or (query_header.data()[query_header.size()] == '\0'));
+  assert((target_header.data() == nullptr) or (target_header.data()[target_header.size()] == '\0'));
+
   /* read sample annotation in query */
 
-  bool const has_sample = (query_header != nullptr);
+  bool const has_sample = (query_header.data() != nullptr);
   std::string sample_name;
 
   if (has_sample)
     {
       std::size_t len_sample = 0;
-      char const * start_sample = query_header;
+      char const * start_sample = query_header.data();
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 5> pmatch_sample {{}};
-      if (regexec(&regex_sample_, query_header, 5, pmatch_sample.data(), 0) == 0)
+      if (regexec(&regex_sample_, query_header.data(), 5, pmatch_sample.data(), 0) == 0)
         {
           /* match: use the matching sample name */
           len_sample = static_cast<std::size_t>(pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so);
-          start_sample = std::next(query_header, pmatch_sample[3].rm_so);
+          start_sample = std::next(query_header.data(), pmatch_sample[3].rm_so);
         }
 #else
       std::cmatch cmatch_sample;
-      if (std::regex_search(query_header, cmatch_sample, regex_sample))
+      if (std::regex_search(query_header.begin(), query_header.end(), cmatch_sample, regex_sample))
         {
           len_sample = static_cast<std::size_t>(cmatch_sample.length(3));
-          start_sample = std::next(query_header, cmatch_sample.position(3));
+          start_sample = std::next(query_header.data(), cmatch_sample.position(3));
         }
 #endif
       else
         {
           /* no match: use first name in header with A-Za-z0-9_ */
-          len_sample = std::strspn(query_header,
-                              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                              "abcdefghijklmnopqrstuvwxyz"
-                              "_"
-                              "0123456789");
+          auto const * const first_other = std::find_if(query_header.begin(), query_header.end(),
+              [](char const chr) -> bool { return (std::isalnum(static_cast<unsigned char>(chr)) == 0) and (chr != '_'); });
+          len_sample = static_cast<std::size_t>(std::distance(query_header.begin(), first_other));
         }
 
       sample_name.assign(start_sample, len_sample);
@@ -194,33 +203,34 @@ auto OtuTable::add(char const * query_header, char const * target_header, int64_
 
   /* read OTU annotation in target */
 
-  bool const has_otu = (target_header != nullptr);
+  bool const has_otu = (target_header.data() != nullptr);
   std::string otu_name;
 
   if (has_otu)
     {
       std::size_t len_otu = 0;
-      char const * start_otu = target_header;
+      char const * start_otu = target_header.data();
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 4> pmatch_otu {{}};
-      if (regexec(&regex_otu_, target_header, 4, pmatch_otu.data(), 0) == 0)
+      if (regexec(&regex_otu_, target_header.data(), 4, pmatch_otu.data(), 0) == 0)
         {
           /* match: use the matching otu name */
           len_otu = static_cast<std::size_t>(pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so);
-          start_otu = std::next(target_header, pmatch_otu[2].rm_so);
+          start_otu = std::next(target_header.data(), pmatch_otu[2].rm_so);
         }
 #else
       std::cmatch cmatch_otu;
-      if (std::regex_search(target_header, cmatch_otu, regex_otu))
+      if (std::regex_search(target_header.begin(), target_header.end(), cmatch_otu, regex_otu))
         {
           len_otu = static_cast<std::size_t>(cmatch_otu.length(2));
-          start_otu = std::next(target_header, cmatch_otu.position(2));
+          start_otu = std::next(target_header.data(), cmatch_otu.position(2));
         }
 #endif
       else
         {
           /* no match: use first name in header up to ; */
-          len_otu = std::strcspn(target_header, ";");
+          auto const * const first_semicolon = std::find(target_header.begin(), target_header.end(), ';');
+          len_otu = static_cast<std::size_t>(std::distance(target_header.begin(), first_semicolon));
         }
 
       otu_name.assign(start_otu, len_otu);
@@ -229,16 +239,16 @@ auto OtuTable::add(char const * query_header, char const * target_header, int64_
 
 #ifdef HAVE_REGEX_H
       std::array<regmatch_t, 4> pmatch_tax {{}};
-      if (regexec(&regex_tax_, target_header, 4, pmatch_tax.data(), 0) == 0)
+      if (regexec(&regex_tax_, target_header.data(), 4, pmatch_tax.data(), 0) == 0)
         {
           /* match: use the matching tax name */
           std::size_t const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
-          char const * const start_tax = std::next(target_header, pmatch_tax[2].rm_so);
+          char const * const start_tax = std::next(target_header.data(), pmatch_tax[2].rm_so);
           otu_tax_map_[otu_name] = std::string(start_tax, len_tax);
         }
 #else
       std::cmatch cmatch_tax;
-      if (std::regex_search(target_header, cmatch_tax, regex_tax))
+      if (std::regex_search(target_header.begin(), target_header.end(), cmatch_tax, regex_tax))
         {
           otu_tax_map_[otu_name] = cmatch_tax.str(2);
         }

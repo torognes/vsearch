@@ -157,13 +157,14 @@ struct search_cli_state_s
 
 static auto search_output_results(struct search_cli_state_s & state,
                            std::vector<struct hit> const & hits,
-                           char const * query_head,
+                           View<char> const query_head_view,
                            int const qseqlen,
                            char const * qsequence,
                            char const * qsequence_rc,
                            int64_t const qsize) -> void
 {
   std::lock_guard<std::mutex> const lock(state.mutex_output);
+  auto const * const query_head = query_head_view.data();
 
   /* show results */
   auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
@@ -208,8 +209,8 @@ static auto search_output_results(struct search_cli_state_s & state,
 
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head,
-                       state.db.getheader(static_cast<uint64_t>(hits[0].target)),
+          state.otutable.add(query_head_view,
+                       state.db.header_view(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
 
@@ -292,8 +293,8 @@ static auto search_output_results(struct search_cli_state_s & state,
     {
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head,
-                       nullptr,
+          state.otutable.add(query_head_view,
+                       View<char>{},
                        qsize);
         }
 
@@ -412,7 +413,7 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
 
   search_output_results(state,
                         hits,
-                        si_plus[t].query_head.data(),
+                        si_plus[t].query_head,
                         static_cast<int>(si_plus[t].qsequence.size()),
                         si_plus[t].qsequence.data(),
                         state.parameters.opt_strand ? si_minus[t].qsequence.data() : nullptr,
@@ -755,7 +756,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
   if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr)) {
     for (int64_t i = 0; i < seqcount; i++) {
       if (dbmatched[static_cast<std::size_t>(i)] == 0U) {
-        state.otutable.add(nullptr, state.db.getheader(static_cast<uint64_t>(i)), 0);
+        state.otutable.add(View<char>{}, state.db.header_view(static_cast<uint64_t>(i)), 0);
       }
     }
   }
