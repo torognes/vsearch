@@ -242,7 +242,7 @@ auto OtuTable::add(View<char> const query_header, View<char> const target_header
       if (regexec(&regex_tax_, target_header.data(), 4, pmatch_tax.data(), 0) == 0)
         {
           /* match: use the matching tax name */
-          std::size_t const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
+          auto const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
           char const * const start_tax = std::next(target_header.data(), pmatch_tax[2].rm_so);
           otu_tax_map_[otu_name] = std::string(start_tax, len_tax);
         }
@@ -376,8 +376,8 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
   int64_t progress = 0;
   Progress progress_bar("Writing OTU table (biom 1.0)", otu_sample_count_.size(), parameters);
 
-  int64_t const rows = static_cast<int64_t>(otu_set_.size());
-  int64_t const columns = static_cast<int64_t>(sample_set_.size());
+  auto const rows = static_cast<int64_t>(otu_set_.size());
+  auto const columns = static_cast<int64_t>(sample_set_.size());
 
   static std::string const date = iso8601_local_timestamp();
 

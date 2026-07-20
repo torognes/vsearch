@@ -525,7 +525,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     return true;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     /* minus strand: copy header and reverse complementary sequence */
     if (parameters.opt_strand)
       {
@@ -610,7 +610,7 @@ auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void
   /* run the worker pool over the input file */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
-                              [&state](uint64_t const t)
+                              [&state](uint64_t const t) -> void
                               { search_exact_thread_run(t, state); });
     threadrunner.run();
   }

@@ -2024,7 +2024,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   for (auto i = 0; i < allhits_count; ++i)
     {
-      unsigned int const target = static_cast<unsigned int>(allhits_list[static_cast<size_t>(i)].target);
+      auto const target = static_cast<unsigned int>(allhits_list[static_cast<size_t>(i)].target);
 
       /* skip duplicates */
       auto k = 0;
@@ -2079,7 +2079,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              linear memory aligner */
 
           auto const * tseq = db.getsequence(static_cast<uint64_t>(target));
-          int64_t const tseqlen = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target)));
+          auto const tseqlen = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target)));
 
           nwcigar = lma.align(ci->query_seq.data(),
                               tseq,
@@ -2216,7 +2216,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
     return true;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     auto const status = chimera_process_query(ci, allhits_list, lma, &state, db);
 
     /* output results */
@@ -2374,7 +2374,7 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
-                            [&state, &mutex_input](uint64_t nth_thread) {
+                            [&state, &mutex_input](uint64_t nth_thread) -> void {
                               chimera_thread_core(state, state.cia + nth_thread, mutex_input, state.db);
                             });
   threadrunner.run();
@@ -2981,7 +2981,7 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
     return qi < ctx.query_count;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     chimera_detect_single(ci,
                           ctx.query_seqs[qi],
                           ctx.query_heads[qi],
@@ -3038,7 +3038,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
   /* run all queries through the worker pool (work-stealing on next_query) */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
-                              [&ctx](uint64_t tid) {
+                              [&ctx](uint64_t tid) -> void {
                                 chimera_batch_worker_fn(ctx, tid);
                               });
     threadrunner.run();

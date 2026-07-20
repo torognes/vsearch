@@ -467,7 +467,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
     return true;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     if (state.parameters.opt_strand)
       {
         populate_si(state.si_minus.data() + t,
@@ -523,7 +523,7 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* run the worker pool over the input file */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
-                              [&state](uint64_t const t)
+                              [&state](uint64_t const t) -> void
                               { search_thread_run(state, t); });
     threadrunner.run();
   }

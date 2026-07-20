@@ -92,7 +92,7 @@ auto udbinfo(struct Parameters const & parameters) -> void
       fatal("Cannot read UDB file from a pipe");
     }
 
-  uint64_t const filesize = static_cast<uint64_t>(fs.st_size);
+  auto const filesize = static_cast<uint64_t>(fs.st_size);
 
   std::array<unsigned int, 50> buffer {{}};
 

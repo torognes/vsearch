@@ -225,7 +225,7 @@ static auto dust_all_worker(struct dust_state_s & state, struct Database & db) -
     return true;
   };
 
-  auto const process_sequence = [&]() {
+  auto const process_sequence = [&]() -> void {
     dust(db.mutable_sequence(seqno), *state.parameters);
   };
 
@@ -242,7 +242,7 @@ auto dust_all(struct Database & db, struct Parameters const & parameters) -> voi
   state.progress = &progress;
 
   ThreadRunner threadrunner(static_cast<std::size_t>(parameters.opt_threads),
-                            [&state, &db](uint64_t /*nth_thread*/)
+                            [&state, &db](uint64_t /*nth_thread*/) -> void
                             { dust_all_worker(state, db); });
   threadrunner.run();
 }

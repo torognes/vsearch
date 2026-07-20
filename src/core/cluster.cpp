@@ -307,7 +307,7 @@ struct cluster_work_pool_s
         si.strand = 1;
       }
     runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
-                                       [this](uint64_t const t) { worker(t); });
+                                       [this](uint64_t const t) -> void { worker(t); });
   }
 
   ~cluster_work_pool_s()
@@ -375,19 +375,19 @@ auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, s
     }
   if (parameters.opt_relabel_self)
     {
-      return std::string(sequence, static_cast<std::size_t>(seqlen));
+      return {sequence, static_cast<std::size_t>(seqlen)};
     }
   if (parameters.opt_relabel_sha1)
     {
       std::array<char, len_hex_dig_sha1> digest {{}};
       get_hex_seq_digest_sha1(digest.data(), sequence, seqlen);
-      return std::string(digest.data());
+      return {digest.data()};
     }
   if (parameters.opt_relabel_md5)
     {
       std::array<char, len_hex_dig_md5> digest {{}};
       get_hex_seq_digest_md5(digest.data(), sequence, seqlen);
-      return std::string(digest.data());
+      return {digest.data()};
     }
   return {};
 }
@@ -584,23 +584,6 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                           state.parameters);
     }
 }
-
-
-auto compare_kmersample(const void * a, const void * b) -> int
-{
-  unsigned int const lhs = * static_cast<unsigned int const *>(a);
-  unsigned int const rhs = * static_cast<unsigned int const *>(b);
-
-  if (lhs < rhs)
-    {
-      return -1;
-    }
-  if (lhs > rhs)
-    {
-      return +1;
-    }
-  return 0;
-}
 }  // anonymous namespace
 
 static auto evaluate_extra_hits(struct searchinfo_s * si,
@@ -640,7 +623,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           /* check if min number of shared kmers is satisfied */
           if (search_enough_kmers(*si, shared))
             {
-              unsigned int const length = static_cast<unsigned int>(sic->qsequence.size());
+              auto const length = static_cast<unsigned int>(sic->qsequence.size());
 
               /* Go through the list of hits and see if the current
                  match is better than any on the list in terms of
@@ -720,7 +703,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           if (not hit->aligned)
             {
               /* Test accept/reject criteria before alignment */
-              unsigned int const target = static_cast<unsigned int>(hit->target);
+              auto const target = static_cast<unsigned int>(hit->target);
               if (search_acceptable_unaligned(*si, static_cast<int>(target)))
                 {
                   /* perform vectorized alignment */
@@ -753,7 +736,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                            & nwcigar,
                            db);
 
-                  int64_t const tseqlen = static_cast<int64_t>(db.getsequencelen(target));
+                  auto const tseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
                   if (snwscore == std::numeric_limits<short>::max())
                     {

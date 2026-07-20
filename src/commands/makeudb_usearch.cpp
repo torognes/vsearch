@@ -131,7 +131,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
   dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
   dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
-  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
+  auto const seqcount = static_cast<unsigned int>(db.getsequencecount());
   auto const ntcount = db.getnucleotidecount();
 
   uint64_t header_characters = 0;
@@ -243,7 +243,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     /* headers (ascii, zero terminated, not padded) */
     for (auto i = 0U; i < seqcount; i++)
       {
-        unsigned int const len = static_cast<unsigned int>(db.getheaderlen(i));
+        auto const len = static_cast<unsigned int>(db.getheaderlen(i));
         pos += largewrite(out_stream, db.getheader(i), len + 1, pos, progress_bar);
       }
 
@@ -257,7 +257,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)
       {
-        unsigned int const len = static_cast<unsigned int>(db.getsequencelen(i));
+        auto const len = static_cast<unsigned int>(db.getsequencelen(i));
         pos += largewrite(out_stream, db.getsequence(i), len, pos, progress_bar);
       }
 

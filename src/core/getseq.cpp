@@ -437,7 +437,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             ++kept;
 
             int64_t start = 1;
-            int64_t end = static_cast<int64_t>(h1->get_sequence_length());
+            auto end = static_cast<int64_t>(h1->get_sequence_length());
             if (parameters.opt_fastx_getsubseq != nullptr)
               {
                 start = std::max(parameters.opt_subseq_start, start);

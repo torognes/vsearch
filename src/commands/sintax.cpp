@@ -369,7 +369,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
     {
       count_t const count = searchinfo->kmers[i];
       auto const seqno = searchinfo->dbindex->getmapping(i);
-      unsigned int const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
+      auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
       if (count > best.count)
         {
@@ -459,7 +459,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
               b.reset_all();
               for (auto j = 0; j < subset_size ; j++)
                 {
-                  int64_t const x = static_cast<int64_t>(random_bounded(rng, kmersamplecount));
+                  auto const x = static_cast<int64_t>(random_bounded(rng, kmersamplecount));
                   if (not b.is_set(static_cast<unsigned int>(x)))
                     {
                       kmersample_subset[static_cast<std::size_t>(subsamples++)] = kmersample[x];
@@ -582,7 +582,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     return true;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     /* minus strand: copy header and reverse complementary sequence */
     if (state.parameters.opt_strand)
       {
@@ -659,7 +659,7 @@ static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
   /* run the worker pool over the input file */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
-                              [&state](uint64_t const t)
+                              [&state](uint64_t const t) -> void
                               { sintax_thread_run(state, t); });
     threadrunner.run();
   }

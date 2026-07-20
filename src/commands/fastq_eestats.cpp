@@ -120,7 +120,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       {
         ++seq_count;
 
-        int64_t const len = static_cast<int64_t>(h->get_sequence_length());
+        auto const len = static_cast<int64_t>(h->get_sequence_length());
         char const * q = h->get_quality();
 
         /* update length statistics */
@@ -182,7 +182,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   for (int64_t i = 0; i < len_max; i++)
     {
-      int64_t const reads = static_cast<int64_t>(read_length_table[static_cast<size_t>(i)]);
+      auto const reads = static_cast<int64_t>(read_length_table[static_cast<size_t>(i)]);
       double const pctrecs = 100.0 * static_cast<double>(reads) / static_cast<double>(seq_count);
 
 
@@ -198,7 +198,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       double n = 0;
       for (int q = 0; q <= max_quality; q++)
         {
-          double const x = static_cast<double>(qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + q)]);
+          auto const x = static_cast<double>(qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + q)]);
 
           if (x > 0)
             {
@@ -244,7 +244,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       n = 0;
       for (int q = max_quality; q >= 0; q--)
         {
-          double const x = static_cast<double>(qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + q)]);
+          auto const x = static_cast<double>(qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + q)]);
 
           if (x > 0)
             {

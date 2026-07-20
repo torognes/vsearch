@@ -151,7 +151,7 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
 
 auto Dbindex::add_all_sequences(Masking const seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
-  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
+  auto const seqcount = static_cast<unsigned int>(db.getsequencecount());
   Progress progress("Creating k-mer index", seqcount, parameters);
   for (auto seqno = 0U; seqno < seqcount ; seqno++)
     {
@@ -169,7 +169,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
      first call (all members are null) (L2a). */
   clear();
 
-  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
+  auto const seqcount = static_cast<unsigned int>(db.getsequencecount());
   /* this is the FASTA-database path; the effective index word length is the
      configured one (a UDB database sets wordlength in udb_read instead). */
   wordlength = static_cast<unsigned int>(parameters.opt_wordlength);

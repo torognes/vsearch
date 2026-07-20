@@ -143,12 +143,6 @@ inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const 
     }
   return 0;
 }
-
-
-auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
-{
-  return allpairs_hit_compare_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
-}
 }  // anonymous namespace
 
 
@@ -399,7 +393,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
     return true;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     /* init search info */
     auto const query_no_u = static_cast<uint64_t>(query_no);
     searchinfo.query_no = query_no;
@@ -457,7 +451,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                    linear memory aligner */
 
                 char const * tseq = state.db.getsequence(target);
-                int64_t const tseqlen = static_cast<int64_t>(state.db.getsequencelen(target));
+                auto const tseqlen = static_cast<int64_t>(state.db.getsequencelen(target));
 
                 nwcigar = lma.align(searchinfo.qsequence.data(),
                                     tseq,
@@ -563,7 +557,7 @@ static auto allpairs_thread_worker_run(struct allpairs_state_s & state) -> void
   /* run the worker pool; each worker keeps its own search state and
      processes queries until the shared counter is exhausted */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
-                            [&state](uint64_t const t)
+                            [&state](uint64_t const t) -> void
                             { allpairs_thread_run(state, t); });
   threadrunner.run();
 }

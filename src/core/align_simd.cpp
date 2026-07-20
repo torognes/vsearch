@@ -1065,7 +1065,7 @@ auto backtrack16(s16info_s * s,
 {
   unsigned short const * dirbuffer = s->dir.data();
   uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * static_cast<uint64_t>(s->maxdlen) * 4;
-  uint64_t const qlen = static_cast<uint64_t>(s->qlen);
+  auto const qlen = static_cast<uint64_t>(s->qlen);
   char const * qseq = s->qseq;
 
   uint64_t const maskup      = 3ULL << ((2 * channel) + 0);
@@ -1425,7 +1425,7 @@ auto search16(s16info_s * s,
   CELL ** q_start = reinterpret_cast<CELL **>(s->qtable.data());
   CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile.data());
   CELL * hearray = reinterpret_cast<CELL *>(s->hearray.data());
-  uint64_t const qlen = static_cast<uint64_t>(s->qlen);
+  auto const qlen = static_cast<uint64_t>(s->qlen);
 
   if (s->force_scalar_fallback)
     {
@@ -1450,7 +1450,7 @@ auto search16(s16info_s * s,
       for (auto cand_id = 0U; cand_id < sequences; cand_id++)
         {
           auto const seqno = seqnos[cand_id];
-          int64_t const length = static_cast<int64_t>(db.getsequencelen(seqno));
+          auto const length = static_cast<int64_t>(db.getsequencelen(seqno));
 
           /* An empty query aligns to the target as one insertion of 'length'
              residues, so aligned == gaps == length. When that exceeds the
@@ -1748,7 +1748,7 @@ auto search16(s16info_s * s,
           VECTOR_SHORT T = T0;
           for (int c = 0; c < CHANNELS; c++)
             {
-              size_t const cc = static_cast<size_t>(c);
+              auto const cc = static_cast<size_t>(c);
               if (d_begin[cc] < d_end[cc])
                 {
                   /* this channel has more sequence */
@@ -1782,7 +1782,7 @@ auto search16(s16info_s * s,
                       /* save score */
 
                       char const * dbseq = reinterpret_cast<char const *>(d_address[cc]);
-                      int64_t const dbseqlen = static_cast<int64_t>(d_length[cc]);
+                      auto const dbseqlen = static_cast<int64_t>(d_length[cc]);
                       int64_t const z = (dbseqlen + 3) % 4;
                       int64_t const score = get_channel(S[static_cast<size_t>(z)], c);
 

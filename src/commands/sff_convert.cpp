@@ -145,7 +145,7 @@ auto round_up_to_8(uint16_t const n_bytes) -> uint16_t {
   // add stub to guarantee overflow into the next bucket, then zero
   // out the remainder bits
   static constexpr uint16_t stub = 8 - 1;     // ... 00000111
-  static constexpr uint16_t bitmask = static_cast<uint16_t>(~stub);  // ... 11111000
+  static constexpr auto bitmask = static_cast<uint16_t>(~stub);  // ... 11111000
   /* Validation, not an invariant: a near-max length would overflow uint16_t
      when rounded up. This must stay a runtime check — asserts are compiled out
      of release builds (NDEBUG). */
@@ -465,7 +465,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto const key_sequence = read_a_string(fp_sff.get(), sff_header.key_length, "key sequence");
   filepos += sff_header.key_length;
 
-  uint32_t const padding_length = static_cast<uint32_t>(sff_header.header_length - n_bytes_in_header - sff_header.flows_per_read - sff_header.key_length);
+  auto const padding_length = static_cast<uint32_t>(sff_header.header_length - n_bytes_in_header - sff_header.flows_per_read - sff_header.key_length);
   skip_sff_section(fp_sff.get(), padding_length, "read padding");
   filepos += padding_length;
 
@@ -536,7 +536,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
         auto read_name = read_a_string(fp_sff.get(), read_header.name_length, "read name");  // refactoring: reserve memory only once, clear and resize if need be
         filepos += read_header.name_length;
 
-        uint32_t const read_header_padding_length = static_cast<uint32_t>(read_header.read_header_length - read_header.name_length - n_bytes_in_read_header);
+        auto const read_header_padding_length = static_cast<uint32_t>(read_header.read_header_length - read_header.name_length - n_bytes_in_read_header);
         skip_sff_section(fp_sff.get(), read_header_padding_length, "read header padding");
         filepos += read_header_padding_length;
 

@@ -353,7 +353,7 @@ namespace {
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & cluster = hashtable[i];
-          int64_t const len = static_cast<int64_t>(cluster.seq.size());
+          auto const len = static_cast<int64_t>(cluster.seq.size());
 
           std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, len, cluster.header.c_str());
@@ -561,7 +561,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
     Progress progress(prompt.c_str(), filesize, parameters);
     while (input_handle->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        int64_t const seqlen = static_cast<int64_t>(input_handle->get_sequence_length());
+        auto const seqlen = static_cast<int64_t>(input_handle->get_sequence_length());
 
         if (seqlen < parameters.opt_minseqlength)
           {

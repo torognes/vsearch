@@ -423,8 +423,8 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       /* allocate more memory if necessary */
 
-      int64_t const fwd_header_len = static_cast<int64_t>(fastq_fwd->get_header_length());
-      int64_t const rev_header_len = static_cast<int64_t>(fastq_rev->get_header_length());
+      auto const fwd_header_len = static_cast<int64_t>(fastq_fwd->get_header_length());
+      auto const rev_header_len = static_cast<int64_t>(fastq_rev->get_header_length());
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > a_read_pair.header_alloc)
@@ -769,7 +769,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      cond_chunks until all chunks have been read, processed and written */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
-                              [&state, &mutex_chunks, &cond_chunks](uint64_t nth_thread) {
+                              [&state, &mutex_chunks, &cond_chunks](uint64_t nth_thread) -> void {
                                 pair_worker(state, nth_thread, mutex_chunks, cond_chunks);
                               });
     threadrunner.run();

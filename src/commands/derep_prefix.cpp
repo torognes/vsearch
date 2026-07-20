@@ -141,7 +141,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   // memory-intensive: the entire database is now held in memory
 
-  int64_t const dbsequencecount = static_cast<int64_t>(db.getsequencecount());
+  auto const dbsequencecount = static_cast<int64_t>(db.getsequencecount());
 
   /* adjust size of hash table for 2/3 fill rate */
 
@@ -150,7 +150,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       hashtablesize <<= 1U;
     }
-  uint64_t const hash_mask = static_cast<uint64_t>(hashtablesize - 1);
+  auto const hash_mask = static_cast<uint64_t>(hashtablesize - 1);
 
   std::vector<struct bucket> hashtable(static_cast<std::vector<struct bucket>::size_type>(hashtablesize));
 
@@ -169,15 +169,15 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* make table of hash values of prefixes */
 
-  unsigned int const len_longest = static_cast<unsigned int>(db.getlongestsequence());
-  unsigned int const len_shortest = static_cast<unsigned int>(db.getshortestsequence());
+  auto const len_longest = static_cast<unsigned int>(db.getlongestsequence());
+  auto const len_shortest = static_cast<unsigned int>(db.getshortestsequence());
   std::vector<uint64_t> prefix_hashes(len_longest + 1);
 
   {
     Progress progress("Dereplicating", static_cast<uint64_t>(dbsequencecount), parameters);
     for (int64_t i = 0; i < dbsequencecount; i++)
       {
-        unsigned int const seqlen = static_cast<unsigned int>(db.getsequencelen(static_cast<uint64_t>(i)));
+        auto const seqlen = static_cast<unsigned int>(db.getsequencelen(static_cast<uint64_t>(i)));
         auto const * seq = db.getsequence(static_cast<uint64_t>(i));
 
         /* normalize sequence: uppercase and replace U by T  */
@@ -452,7 +452,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             auto const * h =  db.getheader(bp.seqno_first);
-            int64_t const len = static_cast<int64_t>(db.getsequencelen(bp.seqno_first));
+            auto const len = static_cast<int64_t>(db.getsequencelen(bp.seqno_first));
 
             std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                     i, len, h);

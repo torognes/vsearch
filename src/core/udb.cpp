@@ -231,7 +231,7 @@ auto udb_read(const char * filename,
 
   /* get file size */
 
-  uint64_t const filesize = static_cast<uint64_t>(fs.st_size);
+  auto const filesize = static_cast<uint64_t>(fs.st_size);
 
   /* open UDB file */
 

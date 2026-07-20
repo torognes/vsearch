@@ -407,7 +407,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     return qi < ctx.query_count;
   };
 
-  auto const process_query = [&]() {
+  auto const process_query = [&]() -> void {
     char const * qseq = ctx.query_seqs[qi];
     char const * qhead = ctx.query_heads[qi];
     int const qlen = ctx.query_lens[qi];
@@ -560,7 +560,7 @@ auto search_batch(struct Parameters const & parameters,
   /* run all queries through the worker pool (work-stealing on next_query) */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
-                              [&ctx](uint64_t tid) {
+                              [&ctx](uint64_t tid) -> void {
                                 search_batch_worker_fn(ctx, tid);
                               });
     threadrunner.run();

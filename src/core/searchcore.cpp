@@ -254,12 +254,6 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
     }
   return 0;
 }
-
-
-auto hit_compare_byid(const void * lhs, const void * rhs) -> int
-{
-  return hit_compare_byid_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
-}
 }  // anonymous namespace
 
 
@@ -339,7 +333,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
       if (count >= minmatches)
         {
           auto const seqno = searchinfo->dbindex->getmapping(i);
-          unsigned int const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
+          auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
           elem_t novel;
           novel.count = count;
@@ -481,7 +475,7 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
 
 namespace {
   // 128-bit unsigned helper type; __extension__ silences -Wpedantic in C++11.
-  __extension__ typedef unsigned __int128 uint128_t;
+  __extension__ using uint128_t = unsigned __int128;
 
   /* Compare an abundance against `ratio * reference` without the precision
      loss that converting 64-bit abundances to double incurs above 2^53.
@@ -514,7 +508,7 @@ namespace {
     if ((value < exact_double_limit) and (reference < exact_double_limit))
       {
         double const product = ratio * static_cast<double>(reference);
-        double const value_d = static_cast<double>(value);
+        auto const value_d = static_cast<double>(value);
         if (value_d < product) { return -1; }
         if (value_d > product) { return 1; }
         return 0;
@@ -570,8 +564,8 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   auto const qseqlen = static_cast<int>(searchinfo.qsequence.size());
   auto const * dlabel = searchinfo.db->getheader(target_seqno);
   auto const * dseq = searchinfo.db->getsequence(target_seqno);
-  int64_t const dseqlen = static_cast<int64_t>(searchinfo.db->getsequencelen(target_seqno));
-  int64_t const tsize = static_cast<int64_t>(searchinfo.db->getabundance(target_seqno));
+  auto const dseqlen = static_cast<int64_t>(searchinfo.db->getsequencelen(target_seqno));
+  auto const tsize = static_cast<int64_t>(searchinfo.db->getabundance(target_seqno));
 
   return (
           /* maxqsize */
@@ -817,7 +811,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               int64_t nwmismatches = 0;
               int64_t nwgaps = 0;
 
-              int64_t const dseqlen = static_cast<int64_t>(searchinfo->db->getsequencelen(static_cast<uint64_t>(target)));
+              auto const dseqlen = static_cast<int64_t>(searchinfo->db->getsequencelen(static_cast<uint64_t>(target)));
 
               if (nwscore == std::numeric_limits<short>::max())
                 {

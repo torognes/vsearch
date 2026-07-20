@@ -511,8 +511,8 @@ auto optimize(merge_data_t & a_read_pair,
               auto const fwd_sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
               auto const rev_sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
 
-              unsigned int const fwd_qual = static_cast<unsigned int>(a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)]);
-              unsigned int const rev_qual = static_cast<unsigned int>(a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)]);
+              auto const fwd_qual = static_cast<unsigned int>(a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)]);
+              auto const rev_qual = static_cast<unsigned int>(a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)]);
 
               --fwd_pos;
               ++rev_pos;

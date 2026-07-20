@@ -109,9 +109,9 @@ auto find_median(std::vector<struct sm_bucket> const & hashtable) -> double
       uint64_t below_count = 0; /* number of clusters with smaller size than cand */
       uint64_t above_count = 0; /* number of clusters with larger size than cand */
 
-      for (uint64_t i = 0; i < hashtable.size(); i++)
+      for (auto const & bucket : hashtable)
         {
-          auto const v = hashtable[i].size;
+          auto const v = bucket.size;
           if (v > 0)
             {
               if (v > cand)
@@ -266,7 +266,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     Progress progress(prompt.c_str(), filesize, parameters);
     while (h->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        int64_t const seqlen = static_cast<int64_t>(h->get_sequence_length());
+        auto const seqlen = static_cast<int64_t>(h->get_sequence_length());
 
         if (seqlen < parameters.opt_minseqlength)
           {
@@ -506,7 +506,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     Progress progress("Writing FASTA output file", filesize, parameters);
     while (h2->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        int64_t const seqlen = static_cast<int64_t>(h2->get_sequence_length());
+        auto const seqlen = static_cast<int64_t>(h2->get_sequence_length());
 
         if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
           {
@@ -556,7 +556,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
               }
           }
 
-        int64_t const size = static_cast<int64_t>(bp->size);
+        auto const size = static_cast<int64_t>(bp->size);
 
         if (size > 0)
           {

@@ -203,7 +203,7 @@ auto Uniquer::count_hash(int const wordlength,
 
   uint64_t bad = 0;
   auto kmer = 0U;
-  unsigned int const mask = static_cast<unsigned int>((1ULL << (2ULL * static_cast<unsigned int>(wordlength))) - 1ULL);
+  auto const mask = static_cast<unsigned int>((1ULL << (2ULL * static_cast<unsigned int>(wordlength))) - 1ULL);
   auto const * s = seq;
   auto const * e1 = s + wordlength - 1;
   auto const * e2 = s + seqlen;

@@ -145,7 +145,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
             for (int x = 0; x < len_steps; x++)
               {
-                uint64_t const len_cutoff = static_cast<uint64_t>(parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment));
+                auto const len_cutoff = static_cast<uint64_t>(parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment));
                 if (i + 1 == len_cutoff)
                   {
                     for (int y = 0; y < ee_cutoffs_count; y++)

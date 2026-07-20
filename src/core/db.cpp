@@ -243,7 +243,7 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 
   fastq_format = input_handle->is_fastq_input();
 
-  int64_t const filesize = static_cast<int64_t>(input_handle->get_size());
+  auto const filesize = static_cast<int64_t>(input_handle->get_size());
 
   std::string const prompt = std::string("Reading file ") + filename;
 

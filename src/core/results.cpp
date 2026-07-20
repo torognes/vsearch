@@ -746,7 +746,7 @@ auto results_show_alnout(std::FILE * output_handle,
 
       auto const target = static_cast<uint64_t>(hp->target);
       auto const * dseq = db.getsequence(target);
-      int64_t const dseqlen = static_cast<int64_t>(db.getsequencelen(target));
+      auto const dseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
       auto const qlenlen = std::to_string(qseqlen).size();
       auto const tlenlen = std::to_string(dseqlen).size();

@@ -104,7 +104,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
 auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> void
 {
   int const kmers = 1U << (2U * static_cast<unsigned int>(k_offset));
-  unsigned int const kmer_mask = static_cast<unsigned int>(kmers - 1);
+  auto const kmer_mask = static_cast<unsigned int>(kmers - 1);
 
   reset_buckets(kmer_hash.hash);
 
@@ -166,7 +166,7 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
 {
 
   int const kmers = 1U << (2U * static_cast<unsigned int>(k_offset));
-  unsigned int const kmer_mask = static_cast<unsigned int>(kmers - 1);
+  auto const kmer_mask = static_cast<unsigned int>(kmers - 1);
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
@@ -190,7 +190,7 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          unsigned int j = static_cast<unsigned int>(hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask);
+          auto j = static_cast<unsigned int>(hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask);
           while (kmer_hash.hash[j].pos != 0U)
             {
               if (kmer_hash.hash[j].kmer == kmer)

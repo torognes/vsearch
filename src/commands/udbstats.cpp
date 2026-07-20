@@ -125,7 +125,7 @@ auto udbstats(struct Parameters const & parameters) -> void
   auto const wcmedian = ( freqtable[(dbindex.hashsize / 2) - 1].count +
                             freqtable[dbindex.hashsize / 2].count ) / 2;
 
-  unsigned int const seqcount = static_cast<unsigned int>(db.getsequencecount());
+  auto const seqcount = static_cast<unsigned int>(db.getsequencecount());
   auto const nt = db.getnucleotidecount();
 
   /* show stats */

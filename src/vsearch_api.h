@@ -217,5 +217,5 @@ public:
   explicit VsearchSession(struct Parameters & parameters) { vsearch_session_begin(parameters); }
   ~VsearchSession() { vsearch_session_end(); }
   VsearchSession(VsearchSession const &) = delete;
-  VsearchSession & operator=(VsearchSession const &) = delete;
+  auto operator=(VsearchSession const &) -> VsearchSession & = delete;
 };
