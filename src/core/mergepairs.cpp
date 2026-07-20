@@ -179,6 +179,7 @@ auto report_merge_abort(struct Parameters const & parameters) -> void
 }
 
 
+namespace {
 inline auto get_qual(char const quality_symbol, struct Parameters const & parameters) -> int
 {
   assert(quality_symbol >= 33);
@@ -217,6 +218,7 @@ inline auto q_to_p(int const quality_symbol, struct Parameters const & parameter
   // probability = 10^-(quality / 10)
   return std::pow(power_base, -quality_value / quality_divider);
 }
+}  // anonymous namespace
 
 
 auto precompute_qual(struct Parameters const & parameters) -> QualityTables
@@ -276,6 +278,7 @@ auto precompute_qual(struct Parameters const & parameters) -> QualityTables
 }
 
 
+namespace {
 auto merge_sym(char * sym,       char * qual,
                char const fwd_sym,     char const rev_sym,
                char const fwd_qual,    char const rev_qual,
@@ -312,6 +315,7 @@ auto merge_sym(char * sym,       char * qual,
         }
     }
 }
+}  // anonymous namespace
 
 
 auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
@@ -436,6 +440,7 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
 }
 
 
+namespace {
 auto optimize(merge_data_t & a_read_pair,
               struct kh_handle_s & kmerhash,
               QualityTables const & tables,
@@ -608,6 +613,7 @@ auto optimize(merge_data_t & a_read_pair,
 
   return best_i;
 }
+}  // anonymous namespace
 
 
 auto process(merge_data_t & a_read_pair,

@@ -101,6 +101,7 @@ namespace {
 // (designed for fast hash-table and checksum, not crypto). The
 // function below might be redundant with std?
 
+namespace {
 auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
                                     Span<char> const sequence) -> void {
   // Fowler-Noll-Vo (FNV-1A) hash function
@@ -118,6 +119,7 @@ auto compute_hashes_of_all_prefixes(std::vector<uint64_t> & prefix_hashes,
                  std::next(prefix_hashes.begin()),
                  incremental_hash);
 }
+}  // anonymous namespace
 
 
 auto derep_prefix(struct Parameters const & parameters) -> void

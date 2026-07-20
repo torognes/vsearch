@@ -147,6 +147,7 @@ struct search_exact_state_s
 };
 
 
+namespace {
 auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 {
   if (search_acceptable_unaligned(*si, static_cast<int>(seqno)))
@@ -668,6 +669,7 @@ auto search_exact_done(struct search_exact_state_s & state) -> void
   state.dbmatched.clear();
   state.dbmatched.shrink_to_fit();
 }
+}  // anonymous namespace
 
 
 auto search_exact(struct Parameters const & parameters) -> void

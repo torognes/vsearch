@@ -69,6 +69,7 @@
 
 
 // very similar to header_find_attribute() in attributes.cc
+namespace {
 auto tax_parse(View<char> const header,
                int * tax_start,
                int * tax_end) -> bool
@@ -126,6 +127,7 @@ auto tax_parse(View<char> const header,
     }
   return false;
 }
+}  // anonymous namespace
 
 
 auto tax_split(int const seqno, int * level_start, int * level_len, struct Database const & db) -> void

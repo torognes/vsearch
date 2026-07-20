@@ -142,6 +142,7 @@ namespace {
 
 /* per thread data */
 
+namespace {
 inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rhs) -> int
 {
   /*
@@ -259,6 +260,7 @@ auto hit_compare_byid(const void * lhs, const void * rhs) -> int
 {
   return hit_compare_byid_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
+}  // anonymous namespace
 
 
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,
@@ -750,6 +752,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
 }
 
 
+namespace {
 auto align_delayed(struct searchinfo_s * searchinfo) -> void
 {
   /* opt_maxaccepts/opt_maxrejects are read through searchinfo->parameters: each
@@ -881,6 +884,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
   searchinfo->finalized = searchinfo->hit_count;
 }
+}  // anonymous namespace
 
 
 auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) -> void

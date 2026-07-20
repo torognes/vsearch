@@ -106,6 +106,7 @@ namespace {
 }  // end of anonymous namespace
 
 
+namespace {
 auto read_labels_file(char const * filename, struct Parameters const & parameters) -> void
 {
   auto labels_alloc = 0U;
@@ -329,6 +330,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
     }
   return false;
 }
+}  // anonymous namespace
 
 
 auto getseq(struct Parameters const & parameters, char const * filename) -> void

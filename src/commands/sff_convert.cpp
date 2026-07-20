@@ -157,6 +157,7 @@ auto round_up_to_8(uint16_t const n_bytes) -> uint16_t {
 }
 
 
+namespace {
 auto fskip(std::FILE * file_handle, uint64_t const length) -> uint64_t
 {
   /* read given amount of data from a stream and ignore it */
@@ -434,6 +435,7 @@ auto write_report(std::FILE * output_stream,
                average_read_length,
                sff_stats.maximum);
 }
+}  // anonymous namespace
 
 
 auto sff_convert(struct Parameters const & parameters) -> void

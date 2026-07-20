@@ -79,6 +79,7 @@
 constexpr int dust_window = 64;
 
 
+namespace {
 auto wo(int const len, const char *s, int *beg, int *end) -> int
 {
   static constexpr auto dust_word = 3;
@@ -135,6 +136,7 @@ auto wo(int const len, const char *s, int *beg, int *end) -> int
 
   return bestv;
 }
+}  // anonymous namespace
 
 
 /* Core DUST implementation with explicit hardmask parameter.

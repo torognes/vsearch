@@ -94,6 +94,7 @@
 // 0b011110 -> 0b010010
 // 0b101010 -> 0b010101
 // 0b010101 -> 0b101010
+namespace {
 auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned int
 {
   /* reverse complement a kmer where k = wordlength */
@@ -118,6 +119,7 @@ auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned
 
   return rev;
 }
+}  // anonymous namespace
 
 
 auto orient(struct Parameters const & parameters) -> void

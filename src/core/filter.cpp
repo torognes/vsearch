@@ -77,6 +77,7 @@
 #include <string>  // std::string, std::to_string
 
 
+namespace {
 inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters) -> int
 {
   int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
@@ -99,6 +100,7 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
     }
   return quality_score;
 }
+}  // anonymous namespace
 
 
 struct analysis_res
@@ -111,6 +113,7 @@ struct analysis_res
 };
 
 
+namespace {
 auto analyse(fastx_handle input_handle, struct Parameters const & parameters) -> struct analysis_res
 {
   auto const fastq_trunclen = static_cast<int>(parameters.opt_fastq_trunclen);
@@ -236,6 +239,7 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
 
   return res;
 }
+}  // anonymous namespace
 
 
 // anonymous namespace: limit visibility and usage to this translation unit

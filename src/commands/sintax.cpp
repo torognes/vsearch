@@ -304,6 +304,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
 }
 
 
+namespace {
 auto sintax_search_topscores(struct searchinfo_s * searchinfo,
                              SplitMix64 & rng,
                              struct Parameters const & parameters) -> void
@@ -408,6 +409,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
     searchinfo->m.add(best);
   }
 }
+}  // anonymous namespace
 
 
 static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> void

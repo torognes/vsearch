@@ -94,6 +94,7 @@ struct sm_bucket
 };
 
 
+namespace {
 auto find_median(std::vector<struct sm_bucket> const & hashtable) -> double
 {
   /* find the median size, based on an iterative search starting at e.g. 1 */
@@ -211,6 +212,7 @@ auto rehash_smallmem(std::vector<struct sm_bucket> & hashtable) -> void
 
   hashtable.swap(new_hashtable);
 }
+}  // anonymous namespace
 
 
 auto derep_smallmem(struct Parameters const & parameters) -> void

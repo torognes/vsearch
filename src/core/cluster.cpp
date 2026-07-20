@@ -169,6 +169,7 @@ struct thread_work_s
 };
 
 
+namespace {
 inline auto cluster_query_core(struct searchinfo_s * si, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* the main core function for clustering */
@@ -258,6 +259,7 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
   /* kmers/hits/qsequence are views into the searchinfo_s vectors
      (kmers_v/hits_v/qsequence_v), which free their own storage. */
 }
+}  // anonymous namespace
 
 
 /* Self-contained per-invocation worker pool for the clustering search phase.
@@ -364,6 +366,7 @@ struct cluster_work_pool_s
 };
 
 
+namespace {
 auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, struct Parameters const & parameters) -> std::string
 {
   if (parameters.opt_relabel != nullptr)
@@ -598,6 +601,7 @@ auto compare_kmersample(const void * a, const void * b) -> int
     }
   return 0;
 }
+}  // anonymous namespace
 
 static auto evaluate_extra_hits(struct searchinfo_s * si,
                                 struct searchinfo_s const * si_plus,
@@ -866,6 +870,7 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
     }
 }
 
+namespace {
 auto cluster_core_parallel(struct cluster_cli_state_s & state,
                            int const seqcount, int const tophits,
                            struct Database const & db) -> void
@@ -1116,6 +1121,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
       cluster_query_exit(si_m.data());
     }
 }
+}  // anonymous namespace
 
 
 auto cluster(char const * dbname,

@@ -91,6 +91,7 @@ using prof_type = std::uint64_t;
 constexpr auto profsize = 6;
 
 
+namespace {
 auto update_profile(char const nucleotide,
                     int const position_in_alignment,
                     prof_type const abundance,
@@ -146,6 +147,7 @@ auto update_msa(char const nucleotide, int &position_in_alignment,
   alignment[static_cast<std::vector<char>::size_type>(position_in_alignment)] = nucleotide;
   ++position_in_alignment;
 }
+}  // anonymous namespace
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -154,6 +156,7 @@ namespace {
 }  // end of anonymous namespace
 
 
+namespace {
 auto find_max_insertions_per_position(int const target_count,
                                       std::vector<struct msa_target_s> const & target_list_v,
                                       int const centroid_len) -> std::vector<int> {
@@ -567,6 +570,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
     }
   static_cast<void>(std::fprintf(fp_profile, "\n"));
 }
+}  // anonymous namespace
 
 
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,

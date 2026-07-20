@@ -285,6 +285,7 @@ namespace {
 }  // end of anonymous namespace
 
 
+namespace {
 auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const & db) -> void
 {
   struct Parameters const & parameters = *chimera_info->parameters;
@@ -416,6 +417,7 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
       }
     }
 }
+}  // anonymous namespace
 
 
 struct parents_info_s
@@ -426,6 +428,7 @@ struct parents_info_s
 };
 
 
+namespace {
 auto scan_matches(struct chimera_info_s * ci,
                   int const * matches,
                   int const len,
@@ -1855,6 +1858,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
   return status;
 }
+}  // anonymous namespace
 
 
 static auto query_init(struct searchinfo_s * search_info, int const tophits,
@@ -1892,6 +1896,7 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
 }
 
 
+namespace {
 auto query_exit(struct searchinfo_s * search_info) -> void
 {
   /* The handles are also freed by ~searchinfo_s if an exception unwinds
@@ -1971,6 +1976,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
     query_exit(&a_search_info);
   }
 }
+}  // anonymous namespace
 
 
 /* Process a single query that has already been loaded into ci.

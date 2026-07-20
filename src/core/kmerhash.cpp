@@ -82,6 +82,7 @@ namespace {
 }  // end of anonymous namespace
 
 
+namespace {
 inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
                            int const k_offset,
                            unsigned int const kmer,
@@ -97,6 +98,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
   kmer_hash.hash[bucket].kmer = kmer;
   kmer_hash.hash[bucket].pos = pos;
 }
+}  // anonymous namespace
 
 
 auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> void

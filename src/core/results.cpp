@@ -789,6 +789,7 @@ auto results_show_alnout(std::FILE * output_handle,
 }
 
 
+namespace {
 auto build_sam_strings(char const * alignment,
                        char const * queryseq,
                        int64_t const queryseqlen,
@@ -919,6 +920,7 @@ auto build_sam_strings(char const * alignment,
       md += std::to_string(matched);
     }
 }
+}  // anonymous namespace
 
 auto results_show_samheader(std::FILE * output_handle,
                             char const * dbname,

@@ -214,6 +214,7 @@ namespace {
 }  // end of anonymous namespace
 
 
+namespace {
 auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * msg) -> void
 {
   std::string const message = "Invalid line " + std::to_string(lineno)
@@ -301,6 +302,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
   *q = 0;
   dest_buffer.length += static_cast<uint64_t>(q - d);
 }
+}  // anonymous namespace
 
 
 auto fastq_open(const char * filename, struct Parameters const & parameters) -> std::unique_ptr<fastx_s>
@@ -578,6 +580,7 @@ auto fastq_next(fastx_handle input_handle,
 }
 
 
+namespace {
 inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
 {
   /* no FASTQ caller passes a null seq today, but guard defensively to
@@ -587,6 +590,7 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
   /* normalize first? */
   std::fprintf(output_handle, "%.*s", len, seq);
 }
+}  // anonymous namespace
 
 
 // NOTE: the sequence length `len` is carried as int and used directly in the

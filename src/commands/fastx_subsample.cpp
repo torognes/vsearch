@@ -144,6 +144,7 @@ struct file_types {
 //  maybe they use a better approach than the std::discrete_distribution?
 
 
+namespace {
 auto open_output_files(struct file_types & ouput_files) -> void {
   ouput_files.fasta.kept.handle = open_optional_output_file(ouput_files.fasta.kept.name, OutputOption{"--fastaout"});
   ouput_files.fasta.lost.handle = open_optional_output_file(ouput_files.fasta.lost.name, OutputOption{"--fastaout_discarded"});
@@ -160,6 +161,7 @@ auto abort_if_fastq_out_of_fasta(struct file_types const & ouput_files, Database
     fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
   }
 }
+}  // anonymous namespace
 
 
 namespace {
@@ -180,6 +182,7 @@ namespace {
 }
 
 
+namespace {
 auto write_original_stats(std::vector<uint64_t> const & deck,
                           uint64_t const mass_total,
                           struct Parameters const & parameters) -> void {
@@ -345,6 +348,7 @@ auto close_output_files(struct file_types & ouput_files) -> void {
   ouput_files.fasta.lost.handle.reset();
   ouput_files.fastq.lost.handle.reset();
 }
+}  // anonymous namespace
 
 
 auto subsample(struct Parameters const & parameters) -> void {

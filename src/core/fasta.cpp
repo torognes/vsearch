@@ -363,6 +363,7 @@ auto fasta_next(fastx_handle input_handle,
 
 /* fasta output */
 
+namespace {
 auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t const len, int const width) -> void
 {
   /*
@@ -391,6 +392,7 @@ auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t 
         }
     }
 }
+}  // anonymous namespace
 
 
 auto fasta_print(std::FILE * output_handle, char const * header,
@@ -402,6 +404,7 @@ auto fasta_print(std::FILE * output_handle, char const * header,
 }
 
 
+namespace {
 inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
 {
   /* profile/consensus output (see msa.cc) has no centroid sequence and
@@ -411,6 +414,7 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
   /* normalize first? */
   std::fprintf(output_handle, "%.*s", len, seq);
 }
+}  // anonymous namespace
 
 
 // NOTE: the sequence length `len` is still carried as int here and used for

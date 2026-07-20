@@ -119,6 +119,7 @@ struct allpairs_state_s
 };
 
 
+namespace {
 inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const * rhs) -> int
 {
   // high id, then low id
@@ -148,6 +149,7 @@ auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 {
   return allpairs_hit_compare_typed(static_cast<struct hit const *>(lhs), static_cast<struct hit const *>(rhs));
 }
+}  // anonymous namespace
 
 
 static auto allpairs_output_results(struct allpairs_state_s & state,

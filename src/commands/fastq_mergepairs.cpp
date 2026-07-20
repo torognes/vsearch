@@ -185,6 +185,7 @@ struct mergepairs_cli_state_s
 };
 
 
+namespace {
 auto fprintf_ee_value(std::FILE * output_handle, double const expected_error) -> void
 {
   /* mirror the variable-precision format used in fasta/fastq output
@@ -991,6 +992,7 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
               1.0 * static_cast<double>(sum_errors_fwd + sum_errors_rev) / static_cast<double>(merged));
     }
 }
+}  // anonymous namespace
 
 
 auto fastq_mergepairs(struct Parameters const & parameters) -> void
