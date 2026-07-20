@@ -62,7 +62,7 @@
 #include "vsearch.hpp"  // struct Parameters
 #include <algorithm>  // std::equal, std::find
 #include <cstdint>  // uint64_t
-#include <cstring>  // std::strcmp, std::strlen
+#include <cstring>  // std::strlen
 #include <vector>  // std::vector::clear, push_back
 
 
