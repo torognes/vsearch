@@ -60,7 +60,7 @@
 
 #include "userfields.hpp"
 #include "vsearch.hpp"  // struct Parameters
-#include <algorithm>  // std::find
+#include <algorithm>  // std::equal, std::find
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::strcmp, std::strlen
 #include <vector>  // std::vector::clear, push_back
@@ -146,7 +146,7 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
 
       while (*valid_userfield != nullptr)
         {
-          if ((std::strncmp(ptr, *valid_userfield, field_length) == 0) and (std::strlen(*valid_userfield) == field_length))
+          if ((std::strlen(*valid_userfield) == field_length) and std::equal(ptr, ptr + field_length, *valid_userfield))
             {
               break;
             }
