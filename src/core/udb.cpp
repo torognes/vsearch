@@ -165,12 +165,7 @@ auto udb_detect_isudb(const char * filename) -> bool
   unsigned int magic = 0;
   auto const bytesread = std::fread(& magic, 1, static_cast<std::size_t>(expected_n_bytes), input.get());
 
-  if ((static_cast<uint64_t>(bytesread) == expected_n_bytes) and (magic == udb_file_signature))
-    {
-      return true;
-    }
-
-  return false;
+  return (static_cast<uint64_t>(bytesread) == expected_n_bytes) and (magic == udb_file_signature);
 }
 
 

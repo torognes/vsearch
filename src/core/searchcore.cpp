@@ -152,23 +152,23 @@ inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rh
     early target, then late target
   */
 
-  if (lhs->rejected < rhs->rejected)
+  if ((not lhs->rejected) and rhs->rejected)
     {
       return -1;
     }
-  if (lhs->rejected > rhs->rejected)
+  if (lhs->rejected and (not rhs->rejected))
     {
       return +1;
     }
-  if (lhs->aligned > rhs->aligned)
+  if (lhs->aligned and (not rhs->aligned))
     {
       return -1;
     }
-  if (lhs->aligned < rhs->aligned)
+  if ((not lhs->aligned) and rhs->aligned)
     {
       return +1;
     }
-  if (lhs->aligned == 0)
+  if (not lhs->aligned)
     {
       return 0;
     }
@@ -198,28 +198,28 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
   // high id, then low id
   // early target, then late target
 
-  if (lhs->rejected < rhs->rejected)
+  if ((not lhs->rejected) and rhs->rejected)
     {
       return -1;
     }
-  if (lhs->rejected > rhs->rejected)
+  if (lhs->rejected and (not rhs->rejected))
     {
       return +1;
     }
-  if (lhs->rejected == 1)
+  if (lhs->rejected)
     {
       return 0;
     }
 
-  if (lhs->aligned > rhs->aligned)
+  if (lhs->aligned and (not rhs->aligned))
     {
       return -1;
     }
-  if (lhs->aligned < rhs->aligned)
+  if ((not lhs->aligned) and rhs->aligned)
     {
       return +1;
     }
-  if (lhs->aligned == 0)
+  if (not lhs->aligned)
     {
       return 0;
     }
