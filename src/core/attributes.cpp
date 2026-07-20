@@ -209,6 +209,7 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
   }
 
   char * next_character = nullptr;
+  // C++17 refactoring: replace strtoll with std::from_chars
   auto const abundance = std::strtoll(header + start + attributes.size.length, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 
