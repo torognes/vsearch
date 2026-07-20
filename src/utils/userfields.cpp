@@ -112,7 +112,7 @@ static const char * userfields_names[] =
     "qihi",
     "tilo",
     "tihi",   // 42
-    nullptr
+    nullptr,
   };
 
 auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> bool

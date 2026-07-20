@@ -694,7 +694,7 @@ namespace {
       option_xlength,
       option_xn,
       option_xsize,
-      option_count  // number of options; keep last (sizes option_specs below)
+      option_count,  // number of options; keep last (sizes option_specs below)
     };
 
   /*
@@ -969,7 +969,7 @@ namespace {
       {"xlength",                    false },
       {"xn",                         true },
       {"xsize",                      false },
-      }};
+      },};
 
   static_assert(option_specs.size() + 1 == number_of_options,
                 "number_of_options must be the option count plus the getopt sentinel");
@@ -1086,7 +1086,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_chimeras_denovo,
         option_abskew,
@@ -1127,7 +1127,7 @@ namespace {
         option_xlength,
         option_xn,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_cluster_fast,
         option_alnout,
@@ -1226,7 +1226,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_cluster_size,
         option_alnout,
@@ -1325,7 +1325,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_cluster_smallmem,
         option_alnout,
@@ -1425,7 +1425,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_cluster_unoise,
         option_alnout,
@@ -1526,7 +1526,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_cut,
         option_bzip2_decompress,
@@ -1554,7 +1554,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_derep_fulllength,
         option_bzip2_decompress,
@@ -1585,7 +1585,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_derep_id,
         option_bzip2_decompress,
@@ -1617,7 +1617,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_derep_prefix,
         option_bzip2_decompress,
@@ -1649,7 +1649,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_derep_smallmem,
         option_bzip2_decompress,
@@ -1682,7 +1682,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fasta2fastq,
         option_bzip2_decompress,
@@ -1707,7 +1707,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastq_chars,
         option_bzip2_decompress,
@@ -1717,7 +1717,7 @@ namespace {
         option_no_progress,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_fastq_convert,
         option_bzip2_decompress,
@@ -1746,7 +1746,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastq_eestats,
         option_bzip2_decompress,
@@ -1759,7 +1759,7 @@ namespace {
         option_output,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_fastq_eestats2,
         option_bzip2_decompress,
@@ -1774,7 +1774,7 @@ namespace {
         option_output,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_fastq_filter,
         option_bzip2_decompress,
@@ -1826,7 +1826,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastq_join,
         option_bzip2_decompress,
@@ -1856,7 +1856,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastq_mergepairs,
         option_bzip2_decompress,
@@ -1906,7 +1906,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastq_stats,
         option_bzip2_decompress,
@@ -1918,7 +1918,7 @@ namespace {
         option_no_progress,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_fastx_filter,
         option_bzip2_decompress,
@@ -1971,7 +1971,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_getseq,
         option_bzip2_decompress,
@@ -2004,7 +2004,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_getseqs,
         option_bzip2_decompress,
@@ -2041,7 +2041,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_getsubseq,
         option_bzip2_decompress,
@@ -2076,7 +2076,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_mask,
         option_bzip2_decompress,
@@ -2109,7 +2109,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_revcomp,
         option_bzip2_decompress,
@@ -2138,7 +2138,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_subsample,
         option_bzip2_decompress,
@@ -2172,7 +2172,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_fastx_syncpairs,
         option_bzip2_decompress,
@@ -2195,7 +2195,7 @@ namespace {
         option_read_separators,
         option_reverse,
         option_threads,
-        -1 },
+        -1, },
 
       { option_fastx_uniques,
         option_bzip2_decompress,
@@ -2236,19 +2236,19 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_h,
         option_log,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_help,
         option_log,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_makeudb_usearch,
         option_bzip2_decompress,
@@ -2264,7 +2264,7 @@ namespace {
         option_quiet,
         option_threads,
         option_wordlength,
-        -1 },
+        -1, },
 
       { option_maskfasta,
         option_bzip2_decompress,
@@ -2295,7 +2295,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_orient,
         option_bzip2_decompress,
@@ -2328,7 +2328,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_rereplicate,
         option_bzip2_decompress,
@@ -2353,7 +2353,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_search_exact,
         option_alnout,
@@ -2420,7 +2420,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_sff_convert,
         option_fastq_asciiout,
@@ -2441,7 +2441,7 @@ namespace {
         option_sff_clip,
         option_sizeout,
         option_threads,
-        -1 },
+        -1, },
 
       { option_shuffle,
         option_bzip2_decompress,
@@ -2473,7 +2473,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_sintax,
         option_bzip2_decompress,
@@ -2497,7 +2497,7 @@ namespace {
         option_tabbedout,
         option_threads,
         option_wordlength,
-        -1 },
+        -1, },
 
       { option_sortbylength,
         option_bzip2_decompress,
@@ -2528,7 +2528,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_sortbysize,
         option_bzip2_decompress,
@@ -2561,7 +2561,7 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_uchime2_denovo,
         option_abskew,
@@ -2605,7 +2605,7 @@ namespace {
         option_xlength,
         option_xn,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_uchime3_denovo,
         option_abskew,
@@ -2649,7 +2649,7 @@ namespace {
         option_xlength,
         option_xn,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_uchime_denovo,
         option_abskew,
@@ -2693,7 +2693,7 @@ namespace {
         option_xlength,
         option_xn,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_uchime_ref,
         option_abskew,
@@ -2742,7 +2742,7 @@ namespace {
         option_xlength,
         option_xn,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_udb2fasta,
         option_fasta_width,
@@ -2764,20 +2764,20 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_udbinfo,
         option_log,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_udbstats,
         option_log,
         option_no_progress,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_usearch_global,
         option_alnout,
@@ -2873,20 +2873,20 @@ namespace {
         option_xee,
         option_xlength,
         option_xsize,
-        -1 },
+        -1, },
 
       { option_v,
         option_log,
         option_quiet,
         option_threads,
-        -1 },
+        -1, },
 
       { option_version,
         option_log,
         option_quiet,
         option_threads,
-        -1 }
-      }};
+        -1, },
+      },};
 
   /*
     The command each valid_options row selects, in the same order as the rows
@@ -2950,8 +2950,8 @@ namespace {
       Command::udbstats,          // option_udbstats
       Command::usearch_global,    // option_usearch_global
       Command::version,           // option_v
-      Command::version            // option_version
-    }};
+      Command::version,            // option_version
+    },};
 
   /*
     Startup consistency check for the option metadata that must stay in sync:

@@ -1404,7 +1404,7 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
       alignment.penalty_gap_open_query_right + alignment.penalty_gap_extension_query_right,
       alignment.penalty_gap_open_target_left + alignment.penalty_gap_extension_target_left,
       alignment.penalty_gap_open_target_interior + alignment.penalty_gap_extension_target_interior,
-      alignment.penalty_gap_open_target_right + alignment.penalty_gap_extension_target_right
+      alignment.penalty_gap_open_target_right + alignment.penalty_gap_extension_target_right,
     });
 
   return static_cast<short>(std::numeric_limits<short>::min() + gap_penalty_max);

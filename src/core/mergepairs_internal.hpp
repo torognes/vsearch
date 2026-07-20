@@ -111,14 +111,14 @@ enum struct Reason : char {
   maxmergelen,
   maxee,
   minscore,
-  nokmers
+  nokmers,
 };
 
 enum struct State: char {
   empty,
   filled,
   inprogress,
-  processed
+  processed,
 };
 
 struct merge_data_s

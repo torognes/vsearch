@@ -611,7 +611,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0})),
     compute_cumulative_sum(read_length_table),
     compute_distribution_of_quality_symbols(qual_length_table),
-    compute_distributions(static_cast<unsigned int>(find_largest(read_length_table)), qual_length_table, sumee_length_table, parameters)
+    compute_distributions(static_cast<unsigned int>(find_largest(read_length_table)), qual_length_table, sumee_length_table, parameters),
   };
 
 

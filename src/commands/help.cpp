@@ -563,7 +563,7 @@
       "  --wordlength INT            length of words for database index 3-15 (8)\n",
       " Output\n",
       "  --output FILENAME           UDB or FASTA output file\n",
-    }};
+    },};
 
 
 auto help(struct Parameters const & parameters) -> void {

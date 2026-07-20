@@ -443,7 +443,7 @@ auto cut(struct Parameters const & parameters) -> void {
     remove_restriction_sites(raw_pattern),
     reencode_restriction_pattern(raw_pattern),
     locate_forward_restriction_site(raw_pattern),
-    locate_reverse_restriction_site(raw_pattern)
+    locate_reverse_restriction_site(raw_pattern),
   };
   check_if_pattern_is_empty(restriction.pattern);
   search_illegal_characters(restriction.pattern);

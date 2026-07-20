@@ -82,7 +82,7 @@ namespace {
 
   enum struct Viewpoint : char {
     target,
-    query
+    query,
   };
 
 

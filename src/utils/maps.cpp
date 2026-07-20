@@ -114,8 +114,8 @@ namespace {
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-    }};
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    },};
 
 
   constexpr std::array<unsigned char, 256> chrmap_complement_vector =
@@ -146,8 +146,8 @@ namespace {
       'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
       'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
       'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-    }};
+      'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+    },};
 
 
   constexpr std::array<unsigned int, 256> chrmap_2bit_vector =
@@ -181,8 +181,8 @@ namespace {
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-    }};
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    },};
 
 
   constexpr std::array<bool, 16> chrmap_ambiguous_4bit = {{
@@ -201,8 +201,8 @@ namespace {
     true,
     true,
     true,
-    true
-  }};
+    true,
+  },};
 
 
   constexpr std::array<unsigned int, 256> chrmap_mask_ambig_vector =
@@ -231,8 +231,8 @@ namespace {
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
-    }};
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+    },};
 
 
   constexpr std::array<unsigned int, 256> chrmap_mask_lower_vector =
@@ -262,8 +262,8 @@ namespace {
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
       1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
-      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1
-    }};
+      1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+    },};
 
 
 constexpr std::array<unsigned char, 256> chrmap_no_change_vector = {{
@@ -297,7 +297,7 @@ constexpr std::array<unsigned char, 256> chrmap_no_change_vector = {{
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
     'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
-    'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'}};
+    'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',},};
 
 
 constexpr std::array<unsigned char, 256> chrmap_normalize_vector =
@@ -329,8 +329,8 @@ constexpr std::array<unsigned char, 256> chrmap_normalize_vector =
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  }};
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+  },};
 
 
 constexpr std::array<unsigned char, 256> chrmap_upcase_vector =
@@ -362,8 +362,8 @@ constexpr std::array<unsigned char, 256> chrmap_upcase_vector =
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
     'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
-    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N'
-  }};
+    'N','N','N','N','N','N','N','N','N','N','N','N','N','N','N','N',
+  },};
 
 
 }  // end of anonymous namespace

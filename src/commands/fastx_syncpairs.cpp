@@ -166,7 +166,7 @@ namespace {
     /* reset in this fixed order (scope-exit destruction runs in reverse) so
        that any streams sharing stdout flush as they did before RAII */
     for (auto * pair : {& outfiles.synced_fwd, & outfiles.synced_rev,
-                        & outfiles.orphans_fwd, & outfiles.orphans_rev}) {
+                        & outfiles.orphans_fwd, & outfiles.orphans_rev,}) {
       pair->fasta.handle.reset();
       pair->fastq.handle.reset();
     }

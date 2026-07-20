@@ -124,7 +124,7 @@ enum struct Command : int
     makeudb_usearch,
     udb2fasta,
     udbinfo,
-    udbstats
+    udbstats,
   };
 
 // Parse the command line, set the matching fields in parameters, validate the

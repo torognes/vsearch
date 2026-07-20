@@ -275,7 +275,7 @@ enum struct Status : unsigned char {
   no_alignment, // (1) score < 0, non-chimeric
   low_score,    // (2) score < minh, non-chimeric
   suspicious,   // (3) score >= minh, not available with uchime2_denovo and uchime3_denovo
-  chimeric      // (4) score >= minh && divdiff >= opt_mindiv && ...
+  chimeric,      // (4) score >= minh && divdiff >= opt_mindiv && ...
 };
 
 
