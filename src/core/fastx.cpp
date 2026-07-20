@@ -72,14 +72,14 @@
 #include "utils/open_file.hpp"  // open_input_file
 #include "utils/span.hpp"
 #include <unistd.h>  // dup, STDOUT_FILENO
-#include <algorithm>  // std::find_first_of
+#include <algorithm>  // std::copy_n, std::equal, std::find_first_of
 #include <array>
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::memcpy, std::memcmp, std::strcmp
+#include <cstring>  // std::memcmp, std::strcmp
 #include <iterator> // std::distance
 #include <limits>  // std::numeric_limits
 #include <memory>  // std::unique_ptr
@@ -138,7 +138,7 @@ auto FastxBuffer::makespace(uint64_t const size) -> void
 auto FastxBuffer::extend(char const * const source, uint64_t const len) -> void
 {
   makespace(len + 1);
-  std::memcpy(data() + length, source, len);
+  std::copy_n(source, len, data() + length);
   length += len;
   data()[length] = 0;
 }
@@ -401,11 +401,11 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
       if (bytes_read >= 2)
         {
-          if (std::memcmp(magic.data(), magic_gzip.data(), 2) == 0)
+          if (std::equal(magic.begin(), magic.end(), magic_gzip.begin()))
             {
               input_handle->format = Format::gzip;
             }
-          else if (std::memcmp(magic.data(), magic_bzip.data(), 2) == 0)
+          else if (std::equal(magic.begin(), magic.end(), magic_bzip.begin()))
             {
               input_handle->format = Format::bzip;
             }

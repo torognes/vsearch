@@ -65,11 +65,12 @@
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
 #include <array>
+#include <algorithm>  // std::equal
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
-#include <cstring>  // std::memcmp, std::memchr, std::strlen
+#include <cstring>  // std::strlen
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -472,9 +473,9 @@ auto fastq_next(fastx_handle input_handle,
   auto plusline_invalid = false;
   if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
     {
-      if ((std::memcmp(input_handle->header_buffer.data(),
-                 input_handle->plusline_buffer.data(),
-                  input_handle->header_buffer.length) != 0))
+      if (not std::equal(input_handle->header_buffer.data(),
+                 input_handle->header_buffer.data() + input_handle->header_buffer.length,
+                  input_handle->plusline_buffer.data()))
         {
           plusline_invalid = true;
         }
