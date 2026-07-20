@@ -89,7 +89,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::sscanf
-#include <cstring>  // std::strlen, std::strcpy
+#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
 #include <memory>
@@ -2179,8 +2179,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             realloc_arrays(ci, db);
 
             /* copy the data locally (query seq, head) */
-            std::strcpy(ci->query_head.data(), state.query_fasta_h->get_header());
-            std::strcpy(ci->query_seq.data(), state.query_fasta_h->get_sequence());
+            std::copy_n(state.query_fasta_h->get_header(), static_cast<std::size_t>(ci->query_head_len) + 1, ci->query_head.data());
+            std::copy_n(state.query_fasta_h->get_sequence(), static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
             query_position = state.query_fasta_h->get_position();
           }
         else
@@ -2200,8 +2200,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             /* if necessary expand memory for arrays based on query length */
             realloc_arrays(ci, db);
 
-            std::strcpy(ci->query_head.data(), db.getheader(state.seqno));
-            std::strcpy(ci->query_seq.data(), db.getsequence(state.seqno));
+            std::copy_n(db.getheader(state.seqno), static_cast<std::size_t>(ci->query_head_len) + 1, ci->query_head.data());
+            std::copy_n(db.getsequence(state.seqno), static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
           }
         else
           {
@@ -2877,8 +2877,8 @@ auto chimera_detect_single(struct chimera_info_s * ci,
 
   realloc_arrays(ci, *ci->db);
 
-  std::strcpy(ci->query_head.data(), query_head);
-  std::strcpy(ci->query_seq.data(), query_seq);
+  std::copy_n(query_head, static_cast<std::size_t>(ci->query_head_len) + 1, ci->query_head.data());
+  std::copy_n(query_seq, static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
 
   /* Clear result. Non-chimeric results will have only query_label and
      flag='N' populated; all other fields remain zero. */
