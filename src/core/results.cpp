@@ -73,12 +73,12 @@
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
-#include <algorithm>  // std::max
+#include <algorithm>  // std::equal, std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::sscanf
-#include <cstring>  // std::strlen, std::strncmp
+#include <cstring>  // std::strlen
 #include <string>  // std::string, std::to_string
 
 
@@ -608,10 +608,10 @@ auto results_show_lcaout(std::FILE * output_handle,
               auto match = true;
               for (std::size_t j = 0; j <= k; ++j)
                 {
+                  auto const * const cand_level = db.getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j];
+                  auto const * const query_level = db.getheader(static_cast<uint64_t>(seqno)) + new_level_start[j];
                   if ((new_level_len[j] != cand_level_len[k][j]) or
-                      (std::strncmp(db.getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j],
-                               db.getheader(static_cast<uint64_t>(seqno)) + new_level_start[j],
-                               static_cast<std::size_t>(new_level_len[j])) != 0))
+                      (not std::equal(cand_level, cand_level + new_level_len[j], query_level)))
                     {
                       match = false;
                       break;
@@ -643,10 +643,10 @@ auto results_show_lcaout(std::FILE * output_handle,
           auto match = true;
           for (std::size_t j = 0; j <= k; ++j)
             {
+              auto const * const cand_level = db.getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j];
+              auto const * const query_level = db.getheader(static_cast<uint64_t>(seqno)) + new_level_start[j];
               if ((new_level_len[j] != cand_level_len[k][j]) or
-                  (std::strncmp(db.getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j],
-                           db.getheader(static_cast<uint64_t>(seqno)) + new_level_start[j],
-                           static_cast<std::size_t>(new_level_len[j])) != 0))
+                  (not std::equal(cand_level, cand_level + new_level_len[j], query_level)))
                 {
                   match = false;
                   break;

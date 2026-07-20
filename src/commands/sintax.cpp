@@ -101,11 +101,11 @@
 #include "utils/worker_loop.hpp"
 #include "utils/random.hpp"
 #include "utils/reverse_complement.hpp"
-#include <algorithm>  // std::min, std::max
+#include <algorithm>  // std::equal, std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
-#include <cstring>  // std::memset, std::strncmp
+#include <cstring>  // std::memset
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
 
@@ -204,9 +204,9 @@ static auto sintax_analyse(struct sintax_state_s & state,
                   {
                     /* check match at current level */
                     if ((cand_level_name_len[cand_i][level] == cand_level_name_len[cand_j][level]) &&
-                        (std::strncmp(cand_level_name_start[cand_i][level],
-                                           cand_level_name_start[cand_j][level],
-                                           static_cast<std::size_t>(cand_level_name_len[cand_i][level])) == 0))
+                        std::equal(cand_level_name_start[cand_i][level],
+                                   cand_level_name_start[cand_i][level] + cand_level_name_len[cand_i][level],
+                                   cand_level_name_start[cand_j][level]))
                       {
                         cand_match[cand_i] = j;
                         cand_matchcount[cand_j]++;
