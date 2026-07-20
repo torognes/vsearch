@@ -249,7 +249,7 @@ auto udb_read(const char * filename,
   auto longest = 0U;
   {
     Progress progress_bar(prompt.c_str(), filesize, parameters);
-    pos += largeread(in_stream, buffer.data(), 4 * 50, pos, progress_bar);
+    pos += largeread(in_stream, buffer.data(), uint64_t{4} * 50, pos, progress_bar);
 
     if ((buffer[0]  != 0x55444246) or
         (buffer[2] != 32) or
@@ -293,7 +293,7 @@ auto udb_read(const char * filename,
     dbindex.kmerhash.resize(dbindex.hashsize);
     dbindex.kmerbitmap = std::vector<Bitmap>(dbindex.hashsize);
 
-    pos += largeread(in_stream, dbindex.kmercount.data(), 4 * dbindex.hashsize, pos, progress_bar);
+    pos += largeread(in_stream, dbindex.kmercount.data(), uint64_t{4} * dbindex.hashsize, pos, progress_bar);
 
     dbindex.indexsize = 0;
     for (uint64_t i = 0; i < dbindex.hashsize; i++)
@@ -342,7 +342,7 @@ auto udb_read(const char * filename,
 
     /* new header */
 
-    pos += largeread(in_stream, buffer.data(), 4 * 8, pos, progress_bar);
+    pos += largeread(in_stream, buffer.data(), uint64_t{4} * 8, pos, progress_bar);
 
     if ((buffer[0] != 0x55444234) or
         (buffer[1] != 0x005e0db3) or
@@ -367,7 +367,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> header_index(seqcount + 1);
 
-    pos += largeread(in_stream, header_index.data(), 4 * seqcount, pos, progress_bar);
+    pos += largeread(in_stream, header_index.data(), uint64_t{4} * seqcount, pos, progress_bar);
 
     header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
 
@@ -409,7 +409,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> sequence_lengths(seqcount);
 
-    pos += largeread(in_stream, sequence_lengths.data(), 4 * seqcount, pos, progress_bar);
+    pos += largeread(in_stream, sequence_lengths.data(), uint64_t{4} * seqcount, pos, progress_bar);
 
     uint64_t sum = 0;
 

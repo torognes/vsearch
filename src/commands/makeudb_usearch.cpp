@@ -151,14 +151,14 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
 
   uint64_t pos = 0;
   uint64_t const progress_all =
-    (4 * 50) +
+    (uint64_t{4} * 50) +
     (4 * kmerhash_entries) +
-    (4 * 1) +
+    (uint64_t{4} * 1) +
     (4 * wordmatches) +
-    (4 * 8) +
-    (4 * seqcount) +
+    (uint64_t{4} * 8) +
+    (uint64_t{4} * seqcount) +
     header_characters +
-    (4 * seqcount) +
+    (uint64_t{4} * seqcount) +
     ntcount;
 
 
@@ -177,14 +177,14 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
   buffer[49] = 0x55444266; /* fBDU UDBf */
   {
     Progress progress_bar("Writing UDB file", progress_all, parameters);
-    pos += largewrite(out_stream, buffer.data(), 50 * 4, 0, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), uint64_t{50} * 4, 0, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
     pos += largewrite(out_stream, dbindex.kmercount.data(), 4 * kmerhash_entries, pos, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
-    pos += largewrite(out_stream, buffer.data(), 1 * 4, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), uint64_t{1} * 4, pos, progress_bar);
 
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
@@ -200,7 +200,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
                     buffer[elements++] = j;
                   }
               }
-            pos += largewrite(out_stream, buffer.data(), 4 * elements, pos, progress_bar);
+            pos += largewrite(out_stream, buffer.data(), uint64_t{4} * elements, pos, progress_bar);
           }
         else
           {
@@ -208,7 +208,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
               {
                 pos += largewrite(out_stream,
                                   dbindex.kmerindex.data() + dbindex.kmerhash[i],
-                                  4 * dbindex.kmercount[i],
+                                  uint64_t{4} * dbindex.kmercount[i],
                                   pos,
                                   progress_bar);
               }
@@ -229,7 +229,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
     /* 0x005e0db4 */
     buffer[7] = 0x005e0db4;
-    pos += largewrite(out_stream, buffer.data(), 4 * 8, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), uint64_t{4} * 8, pos, progress_bar);
 
     /* indices to headers (uint32_t) */
     auto sum = 0U;
@@ -238,7 +238,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
         buffer[i] = sum;
         sum += static_cast<unsigned int>(db.getheaderlen(i) + 1);
       }
-    pos += largewrite(out_stream, buffer.data(), 4 * seqcount, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), uint64_t{4} * seqcount, pos, progress_bar);
 
     /* headers (ascii, zero terminated, not padded) */
     for (auto i = 0U; i < seqcount; i++)
@@ -252,7 +252,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
       {
         buffer[i] = static_cast<unsigned int>(db.getsequencelen(i));
       }
-    pos += largewrite(out_stream, buffer.data(), 4 * seqcount, pos, progress_bar);
+    pos += largewrite(out_stream, buffer.data(), uint64_t{4} * seqcount, pos, progress_bar);
 
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)

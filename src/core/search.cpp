@@ -458,7 +458,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
     /* Populate results for this query */
     struct search_result_s * qresults =
-      ctx.results + (qi * ctx.max_results_per_query);
+      ctx.results + (static_cast<std::ptrdiff_t>(qi) * ctx.max_results_per_query);
     int count = 0;
     for (auto const & h : hits)
       {
