@@ -61,9 +61,9 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"  // Database
 #include "utils/taxonomic_fields.h"
-#include <algorithm>  // std::find
+#include <algorithm>  // std::find, std::search
 #include <cctype>  // std::tolower
-#include <cstring>  // std::strlen, std::strstr, std::strchr
+#include <cstring>  // std::strlen
 #include <iterator>  // std::distance
 
 
@@ -90,10 +90,11 @@ auto tax_parse(char const * header,
 
   while (offset < header_length - attribute_length)
     {
-      auto const * first_occurence = std::strstr(header + offset, attribute);
+      auto const * const first_occurence = std::search(header + offset, header + header_length,
+                                                        attribute, attribute + attribute_length);
 
       /* no match */
-      if (first_occurence == nullptr)
+      if (first_occurence == header + header_length)
         {
           break;
         }
@@ -110,8 +111,8 @@ auto tax_parse(char const * header,
       *tax_start = offset;
 
       /* find end (semicolon or end of header) */
-      auto const * terminus = std::strchr(header + offset + attribute_length, ';');
-      if (terminus == nullptr)
+      auto const * const terminus = std::find(header + offset + attribute_length, header + header_length, ';');
+      if (terminus == header + header_length)
         {
           *tax_end = header_length;
         }
@@ -161,8 +162,8 @@ auto tax_split(int const seqno, int * level_start, int * level_len, struct Datab
             {
               level_start[level] = offset + 2;
 
-              auto const * next_comma = std::strchr(header + offset + 2, ',');
-              if (next_comma != nullptr)
+              auto const * const next_comma = std::find(header + offset + 2, header + header_length, ',');
+              if (next_comma != header + header_length)
                 {
                   level_len[level] = static_cast<int>(std::distance(header, next_comma)) - offset - 2;
                 }
@@ -174,8 +175,8 @@ auto tax_split(int const seqno, int * level_start, int * level_len, struct Datab
         }
 
       /* skip past next comma */
-      auto const * next_comma_bis = std::strchr(header + offset, ',');
-      if (next_comma_bis != nullptr)
+      auto const * const next_comma_bis = std::find(header + offset, header + header_length, ',');
+      if (next_comma_bis != header + header_length)
         {
           offset = static_cast<int>(std::distance(header, next_comma_bis)) + 1;
         }
