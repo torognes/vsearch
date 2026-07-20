@@ -87,7 +87,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstring>  // std::strcpy, std::strlen
+#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
 #include <map>
@@ -184,7 +184,7 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
     }
   else
     {
-      std::strcpy(si->qsequence_v.data(), db.getsequence(useqno));
+      std::copy_n(db.getsequence(useqno), static_cast<std::size_t>(seqlen) + 1, si->qsequence_v.data());
     }
   si->qsequence = Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seqlen)};
 

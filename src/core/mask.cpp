@@ -69,7 +69,6 @@
 #include <array>
 #include <cctype>  // std::toupper
 #include <cstdint>  // int64_t, uint64_t
-#include <cstring>  // std::strcpy
 #include <mutex>  // std::mutex, std::unique_lock
 // #include <string>
 #include <vector>
@@ -147,7 +146,7 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
 
   /* make a local copy of the original sequence */
   std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
-  std::strcpy(local_seq.data(), seq);
+  std::copy_n(seq, static_cast<std::size_t>(len) + 1, local_seq.data());
 
   if (!use_hardmask)
     {
