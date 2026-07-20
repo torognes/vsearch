@@ -74,8 +74,9 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include "utils/reverse_complement.hpp"
+#include <algorithm>  // std::copy_n
 #include <cstdint>  // uint64_t, int64_t
-#include <cstring>  // std::strlen, std::strcpy
+#include <cstring>  // std::strlen
 #include <memory>  // std::unique_ptr
 #include <mutex>  // std::mutex
 #include <vector>
@@ -104,14 +105,14 @@ auto populate_si(struct searchinfo_s * si,
 
   /* copy the header into owned storage, then point the read-only view at it */
   si->query_head_v.resize(static_cast<std::size_t>(head_len) + 1);
-  std::strcpy(si->query_head_v.data(), head);
+  std::copy_n(head, static_cast<std::size_t>(head_len) + 1, si->query_head_v.data());
   si->query_head = View<char>{si->query_head_v.data(), static_cast<std::size_t>(head_len)};
 
   /* copy or reverse-complement sequence into the owned buffer, then point the
      span at it (length == seq_len; the NUL at [seq_len] sits just past the span) */
   if (strand == 0)
     {
-      std::strcpy(si->qsequence_v.data(), seq);
+      std::copy_n(seq, static_cast<std::size_t>(seq_len) + 1, si->qsequence_v.data());
     }
   else
     {

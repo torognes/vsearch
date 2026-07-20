@@ -83,7 +83,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
-#include <cstring>  // std::strlen, std::strcpy
+#include <cstring>  // std::strlen
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -512,9 +512,9 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
     state.si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
-    std::strcpy(state.si_plus[t].query_head_v.data(), qhead);
+    std::copy_n(qhead, static_cast<std::size_t>(query_head_len) + 1, state.si_plus[t].query_head_v.data());
     state.si_plus[t].query_head = View<char>{state.si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
-    std::strcpy(state.si_plus[t].qsequence_v.data(), qseq);
+    std::copy_n(qseq, static_cast<std::size_t>(qseqlen) + 1, state.si_plus[t].qsequence_v.data());
     state.si_plus[t].qsequence = Span<char>{state.si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
 
     /* get progress as amount of input file read */

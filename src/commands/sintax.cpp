@@ -105,7 +105,7 @@
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
-#include <cstring>  // std::memset, std::strncmp, std::strcpy
+#include <cstring>  // std::memset, std::strncmp
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
 
@@ -569,9 +569,9 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
     si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
-    std::strcpy(si_plus[t].query_head_v.data(), qhead);
+    std::copy_n(qhead, static_cast<std::size_t>(query_head_len) + 1, si_plus[t].query_head_v.data());
     si_plus[t].query_head = View<char>{si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
-    std::strcpy(si_plus[t].qsequence_v.data(), qseq);
+    std::copy_n(qseq, static_cast<std::size_t>(qseqlen) + 1, si_plus[t].qsequence_v.data());
     si_plus[t].qsequence = Span<char>{si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
 
     /* get progress as amount of input file read */
