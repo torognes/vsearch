@@ -63,12 +63,11 @@
 #include "core/db.hpp"
 #include "core/udb.hpp"
 #include "core/dbindex.hpp"
-#include <algorithm>  // std::max, std::min
+#include <algorithm>  // std::max, std::min, std::sort
 #include <cinttypes>  // macro PRIu64
 #include <cmath>  // std::lround
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
-#include <cstdlib>  // std::qsort
 #include <vector>
 
 
@@ -84,28 +83,13 @@ namespace {
   using wordfreq_t = struct wordfreq;
 
 
-  auto wc_compare(const void * a, const void * b) -> int
+  auto wc_compare(wordfreq_t const & lhs, wordfreq_t const & rhs) -> bool
   {
-    auto const * lhs = static_cast<wordfreq_t const *>(a);
-    auto const * rhs = static_cast<wordfreq_t const *>(b);
-    if (lhs->count < rhs->count)
+    if (lhs.count != rhs.count)
       {
-        return -1;
+        return lhs.count < rhs.count;
       }
-    if (lhs->count > rhs->count)
-      {
-        return +1;
-      }
-
-    if (lhs->kmer < rhs->kmer)
-      {
-        return +1;
-      }
-    if (lhs->kmer > rhs->kmer)
-      {
-        return -1;
-      }
-    return 0;
+    return lhs.kmer > rhs.kmer;
   }
 
 }  // end of anonymous namespace
@@ -136,7 +120,7 @@ auto udbstats(struct Parameters const & parameters) -> void
       freqtable[i].count = dbindex.kmercount[i];
     }
 
-  std::qsort(freqtable.data(), dbindex.hashsize, sizeof(wordfreq_t), wc_compare);
+  std::sort(freqtable.begin(), freqtable.end(), wc_compare);
 
   auto const wcmax = freqtable[dbindex.hashsize-1].count;
   auto const wcmedian = ( freqtable[(dbindex.hashsize / 2) - 1].count +
