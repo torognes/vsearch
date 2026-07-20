@@ -708,8 +708,8 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                 /* update quality scores */
                 for (int i = 0; i < seqlen; i++)
                   {
-                    int const q1 = bp->qual[static_cast<std::size_t>(i)];
-                    int const q2 = qual[i];
+                    int const q1 = static_cast<unsigned char>(bp->qual[static_cast<std::size_t>(i)]);
+                    int const q2 = static_cast<unsigned char>(qual[i]);
                     auto const p1 = convert_quality_symbol_to_probability(q1, parameters);
                     auto const p2 = convert_quality_symbol_to_probability(q2, parameters);
                     auto p3 = 0.0;

@@ -180,7 +180,7 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
             {
               for (auto j = a + i; j <= b + i; j++)
                 {
-                  seq[j] = local_seq[static_cast<std::size_t>(j)] | 32U;  // check_5th_bit (0x20)
+                  seq[j] = static_cast<char>(local_seq[static_cast<std::size_t>(j)] | 32U);  // check_5th_bit (0x20)
                 }
             }
 

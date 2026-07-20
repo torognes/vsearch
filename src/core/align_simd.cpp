@@ -1579,23 +1579,23 @@ auto search16(s16info_s * s,
 
   R_query_left = v_dup(s->penalty_gap_extension_query_left);
 
-  QR_query_interior = v_dup((s->penalty_gap_open_query_interior +
+  QR_query_interior = v_dup(static_cast<short>(s->penalty_gap_open_query_interior +
                              s->penalty_gap_extension_query_interior));
   R_query_interior  = v_dup(s->penalty_gap_extension_query_interior);
 
-  QR_query_right  = v_dup((s->penalty_gap_open_query_right +
+  QR_query_right  = v_dup(static_cast<short>(s->penalty_gap_open_query_right +
                            s->penalty_gap_extension_query_right));
   R_query_right  = v_dup(s->penalty_gap_extension_query_right);
 
-  QR_target_left  = v_dup((s->penalty_gap_open_target_left +
+  QR_target_left  = v_dup(static_cast<short>(s->penalty_gap_open_target_left +
                            s->penalty_gap_extension_target_left));
   R_target_left  = v_dup(s->penalty_gap_extension_target_left);
 
-  QR_target_interior = v_dup((s->penalty_gap_open_target_interior +
+  QR_target_interior = v_dup(static_cast<short>(s->penalty_gap_open_target_interior +
                               s->penalty_gap_extension_target_interior));
   R_target_interior = v_dup(s->penalty_gap_extension_target_interior);
 
-  QR_target_right  = v_dup((s->penalty_gap_open_target_right +
+  QR_target_right  = v_dup(static_cast<short>(s->penalty_gap_open_target_right +
                             s->penalty_gap_extension_target_right));
   R_target_right  = v_dup(s->penalty_gap_extension_target_right);
 #pragma GCC diagnostic pop

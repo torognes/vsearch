@@ -298,7 +298,7 @@ auto merge_sym(char * sym,       char * qual,
     {
       /* agreement */
       * sym = fwd_sym;
-      * qual = tables.merge_qual_same[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
+      * qual = tables.merge_qual_same[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))][static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
     }
   else
     {
@@ -306,12 +306,12 @@ auto merge_sym(char * sym,       char * qual,
       if (fwd_qual > rev_qual)
         {
           * sym = fwd_sym;
-          * qual = tables.merge_qual_diff[static_cast<std::size_t>(fwd_qual)][static_cast<std::size_t>(rev_qual)];
+          * qual = tables.merge_qual_diff[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))][static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
         }
       else
         {
           * sym = rev_sym;
-          * qual = tables.merge_qual_diff[static_cast<std::size_t>(rev_qual)][static_cast<std::size_t>(fwd_qual)];
+          * qual = tables.merge_qual_diff[static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))][static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))];
         }
     }
 }
@@ -354,7 +354,7 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
       a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
       a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
 
-      ee = tables.q2p[static_cast<std::size_t>(qual)];
+      ee = tables.q2p[static_cast<std::size_t>(static_cast<unsigned char>(qual))];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_fwd += ee;
 
@@ -395,9 +395,9 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
 
       a_read_pair.merged_sequence[static_cast<std::size_t>(merged_pos)] = sym;
       a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
-      a_read_pair.ee_merged += tables.q2p[static_cast<std::size_t>(qual)];
-      a_read_pair.ee_fwd += tables.q2p[static_cast<std::size_t>(fwd_qual)];
-      a_read_pair.ee_rev += tables.q2p[static_cast<std::size_t>(rev_qual)];
+      a_read_pair.ee_merged += tables.q2p[static_cast<std::size_t>(static_cast<unsigned char>(qual))];
+      a_read_pair.ee_fwd += tables.q2p[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))];
+      a_read_pair.ee_rev += tables.q2p[static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
 
       ++fwd_pos;
       --rev_pos;
@@ -415,7 +415,7 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
       a_read_pair.merged_quality_v[static_cast<std::size_t>(merged_pos)] = qual;
       ++merged_pos;
 
-      ee = tables.q2p[static_cast<std::size_t>(qual)];
+      ee = tables.q2p[static_cast<std::size_t>(static_cast<unsigned char>(qual))];
       a_read_pair.ee_merged += ee;
       a_read_pair.ee_rev += ee;
 
@@ -511,8 +511,8 @@ auto optimize(merge_data_t & a_read_pair,
               auto const fwd_sym = a_read_pair.fwd_sequence[static_cast<std::size_t>(fwd_pos)];
               auto const rev_sym = map_complement(a_read_pair.rev_sequence[static_cast<std::size_t>(rev_pos)]);
 
-              auto const fwd_qual = static_cast<unsigned int>(a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)]);
-              auto const rev_qual = static_cast<unsigned int>(a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)]);
+              auto const fwd_qual = static_cast<unsigned int>(static_cast<unsigned char>(a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)]));
+              auto const rev_qual = static_cast<unsigned int>(static_cast<unsigned char>(a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)]));
 
               --fwd_pos;
               ++rev_pos;
