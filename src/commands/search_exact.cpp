@@ -221,8 +221,8 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                  std::vector<struct hit> const & hits,
                                  View<char> const query_head_view,
                                  int const qseqlen,
-                                 char * qsequence,
-                                 char * qsequence_rc,
+                                 char const * qsequence,
+                                 char const * qsequence_rc,
                                  int64_t const qsize) -> void
 {
   struct Parameters const & parameters = state.parameters;

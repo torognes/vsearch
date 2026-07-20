@@ -142,7 +142,7 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
           return false;
         }
 
-      char const ** valid_userfield = userfields_names;
+      char const * const * valid_userfield = userfields_names;
 
       while (*valid_userfield != nullptr)
         {

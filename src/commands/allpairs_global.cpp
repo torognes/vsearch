@@ -151,7 +151,7 @@ auto allpairs_hit_compare(const void * lhs, const void * rhs) -> int
 
 static auto allpairs_output_results(struct allpairs_state_s & state,
                              int const hit_count,
-                             struct hit * hits,
+                             struct hit const * hits,
                              char const * query_head,
                              int const qseqlen,
                              char const * qsequence,
@@ -370,7 +370,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                         state.parameters.opt_n_mismatch));
 
 
-  struct Scoring scoring = scoring_from_options(state.parameters);
+  struct Scoring const scoring = scoring_from_options(state.parameters);
 
 
   LinearMemoryAligner lma(scoring);

@@ -719,7 +719,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   /* perform vectorized alignment */
                   /* but only using 1 sequence ! */
 
-                  unsigned int nwtarget = target;
+                  unsigned int const nwtarget = target;
 
                   int64_t nwscore = 0;
                   int64_t nwalignmentlength = 0;
@@ -879,7 +879,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
   std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
 
-  struct Scoring scoring = scoring_from_options(state.parameters);
+  struct Scoring const scoring = scoring_from_options(state.parameters);
 
 
   LinearMemoryAligner lma(scoring);
@@ -1706,7 +1706,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
                     cs->db->getheader(static_cast<uint64_t>(best->target)));
       if (not best->nwalignment.empty())
         {
-          int n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
+          int const n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
                                 best->nwalignment.c_str());
           result->cigar_truncated =
             (n >= static_cast<int>(sizeof(result->cigar)));
@@ -1778,7 +1778,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
   searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
 
   /* Scoring for intra-batch fixup alignment */
-  struct Scoring scoring = scoring_from_options(parameters);
+  struct Scoring const scoring = scoring_from_options(parameters);
 
   LinearMemoryAligner lma(scoring);
 
@@ -1859,7 +1859,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                             cs->db->getheader(static_cast<uint64_t>(best->target)));
               if (not best->nwalignment.empty())
                 {
-                  int n = std::snprintf(results[ri].cigar,
+                  int const n = std::snprintf(results[ri].cigar,
                                         sizeof(results[ri].cigar),
                                         "%s", best->nwalignment.c_str());
                   results[ri].cigar_truncated =

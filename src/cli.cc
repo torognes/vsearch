@@ -220,7 +220,7 @@ namespace {
     */
     static constexpr auto max_penality = std::numeric_limits<int>::max();
 
-    char * cursor = arg;
+    char const * cursor = arg;
 
     while (*cursor != '\0')
       {

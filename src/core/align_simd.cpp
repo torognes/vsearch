@@ -789,7 +789,7 @@ inline auto onestep(VECTOR_SHORT & H,
 
 auto aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT * hep,
-                        VECTOR_SHORT ** qp,
+                        VECTOR_SHORT * const * qp,
                         VECTOR_SHORT QR_q_i,
                         VECTOR_SHORT R_q_i,
                         VECTOR_SHORT QR_q_r,
@@ -919,7 +919,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 
 auto aligncolumns_rest(VECTOR_SHORT * Sm,
                        VECTOR_SHORT * hep,
-                       VECTOR_SHORT ** qp,
+                       VECTOR_SHORT * const * qp,
                        VECTOR_SHORT QR_q_i,
                        VECTOR_SHORT R_q_i,
                        VECTOR_SHORT QR_q_r,
@@ -1066,7 +1066,7 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pmismatches,
                  unsigned short * pgaps) -> void
 {
-  unsigned short * dirbuffer = s->dir.data();
+  unsigned short const * dirbuffer = s->dir.data();
   uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * static_cast<uint64_t>(s->maxdlen) * 4;
   uint64_t const qlen = static_cast<uint64_t>(s->qlen);
   char const * qseq = s->qseq;
@@ -1084,7 +1084,7 @@ auto backtrack16(s16info_s * s,
     {
       for (uint64_t j = 0; j < dlen; j++)
         {
-          uint64_t d = *((uint64_t *) (dirbuffer +
+          uint64_t d = *((uint64_t const *) (dirbuffer +
                                        (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskup)
@@ -1112,7 +1112,7 @@ auto backtrack16(s16info_s * s,
     {
       for (uint64_t j = 0; j < dlen; j++)
         {
-          uint64_t d = *((uint64_t *) (dirbuffer +
+          uint64_t d = *((uint64_t const *) (dirbuffer +
                                        (offset + matrix_size * qlen * (j / 4) +
                                         matrix_size * i + 4 * (j & 3)) % dirbuffersize));
           if (d & maskextup)
@@ -1567,7 +1567,7 @@ auto search16(s16info_s * s,
   std::array<VECTOR_SHORT, 4> S {{}};
 
   BYTE * dseq = reinterpret_cast<BYTE *>(dseqalloc.data());
-  BYTE zero = 0;
+  BYTE const zero = 0;
 
   uint64_t next_id = 0;
   uint64_t done = 0;

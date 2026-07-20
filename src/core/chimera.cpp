@@ -524,7 +524,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
           int j = 0;
           while (j < ci->query_len)
             {
-              int start = j;
+              int const start = j;
               int len = 0;
               while ((j < ci->query_len) &&
                      (not position_used[static_cast<size_t>(j)]) &&
@@ -2147,7 +2147,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
   std::vector<struct hit> allhits_list(maxcandidates);
 
-  struct Scoring scoring = scoring_from_options(state.parameters);
+  struct Scoring const scoring = scoring_from_options(state.parameters);
 
   LinearMemoryAligner lma(scoring);
 
@@ -2818,7 +2818,7 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
      across calls to chimera_detect_single. */
   ci->api_allhits_list.resize(maxcandidates);
 
-  struct Scoring scoring = scoring_from_options(parameters);
+  struct Scoring const scoring = scoring_from_options(parameters);
   ci->api_lma_ptr = make_unique<LinearMemoryAligner>(scoring);
 }
 

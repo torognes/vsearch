@@ -682,8 +682,8 @@ auto sintax(struct Parameters const & parameters) -> void
   auto & si_minus = state.si_minus;
   auto & tophits = state.tophits;
   auto & seqcount = state.seqcount;
-  int & queries = state.queries;
-  int & classified = state.classified;
+  int const & queries = state.queries;
+  int const & classified = state.classified;
 
   /* tophits = the maximum number of hits we need to store */
 

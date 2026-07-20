@@ -256,7 +256,7 @@ auto search_session_single(struct search_session_s * ss,
                            int * result_count) -> void
 {
   int const head_len = static_cast<int>(std::strlen(query_head));
-  struct searchinfo_s * si = ss->si_plus.get();
+  struct searchinfo_s const * si = ss->si_plus.get();
   struct Parameters const & parameters = *ss->parameters;
 
   populate_si(ss->si_plus.get(),

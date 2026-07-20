@@ -891,7 +891,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 
   search16_qprep(searchinfo->s.get(), searchinfo->qsequence.data(), static_cast<int>(searchinfo->qsequence.size()));
 
-  struct Scoring scoring = scoring_from_options(*searchinfo->parameters);
+  struct Scoring const scoring = scoring_from_options(*searchinfo->parameters);
 
 
   searchinfo->lma = make_unique<LinearMemoryAligner>(scoring);

@@ -196,7 +196,7 @@ auto fill_prog_header(struct Parameters & parameters) -> void
 }
 
 
-auto getentirecommandline(int argc, char** argv) -> std::string
+auto getentirecommandline(int argc, char * const * argv) -> std::string
 {
   std::string command_line;
   if (argc <= 0)
