@@ -105,8 +105,8 @@ private:
                   unsigned int const * * list,
                   Masking seqmask) -> void;
 
-  std::vector<bucket, FatalAllocator<bucket>> hash_ {};
-  std::vector<unsigned int, FatalAllocator<unsigned int>> list_ {};
-  std::vector<uint64_t, FatalAllocator<uint64_t>> bitmap_ {};
+  std::vector<bucket, FatalAllocator<bucket>> hash_;
+  std::vector<unsigned int, FatalAllocator<unsigned int>> list_;
+  std::vector<uint64_t, FatalAllocator<uint64_t>> bitmap_;
   unsigned int hash_mask_ {0};
 };

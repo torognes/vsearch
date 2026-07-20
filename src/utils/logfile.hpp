@@ -99,5 +99,5 @@ public:
 
 private:
   OutputFileHandle handle;
-  std::chrono::steady_clock::time_point start_time {};
+  std::chrono::steady_clock::time_point start_time;
 };

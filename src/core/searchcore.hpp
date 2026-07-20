@@ -145,28 +145,28 @@ struct searchinfo_s
   int query_no = 0;                 /* query number, zero-based */
   int strand = 0;                   /* strand of query being analysed */
   int64_t qsize = 0;                    /* query abundance */
-  std::vector<char> query_head_v {};  /* owned header storage (the copying paths) */
+  std::vector<char> query_head_v;  /* owned header storage (the copying paths) */
   View<char> query_head {nullptr, 0};  /* query header: a view into query_head_v, the
                                           database, or a caller-owned buffer */
   int seq_alloc = 0;                /* bytes allocated for the query sequence */
-  std::vector<char> qsequence_v {};  /* vector of query sequence chars */
-  Span<char> qsequence {};          /* query sequence (length == query length):
+  std::vector<char> qsequence_v;  /* vector of query sequence chars */
+  Span<char> qsequence;          /* query sequence (length == query length):
                                        a span over qsequence_v, the database, or
                                        a caller-owned buffer */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
   unsigned int const * kmersample = nullptr;    /* list of kmers sampled from query */
-  std::vector<count_t> kmers_v {}; /* vector of kmer counts */
+  std::vector<count_t> kmers_v; /* vector of kmer counts */
   count_t * kmers = nullptr;              /* list of kmer counts for each db seq */
-  std::vector<struct hit> hits_v {}; /* vector of hits */
+  std::vector<struct hit> hits_v; /* vector of hits */
   struct hit * hits = nullptr;            /* list of hits */
   int hit_count = 0;                /* number of hits in the above list */
   Uniquer uh {};  /* unique kmer finder instance (owned) */
-  std::unique_ptr<s16info_s, s16info_deleter> s {};   /* SIMD aligner instance (owned) */
+  std::unique_ptr<s16info_s, s16info_deleter> s;   /* SIMD aligner instance (owned) */
   struct nwinfo_s * nw = nullptr;         /* NW aligner instance */
-  std::unique_ptr<LinearMemoryAligner> lma {};        /* Linear memory aligner instance (owned) */
+  std::unique_ptr<LinearMemoryAligner> lma;        /* Linear memory aligner instance (owned) */
   int accepts = 0;                  /* number of accepts */
   int rejects = 0;                  /* number of rejects */
-  Minheap m {};                     /* min heap with the top kmer db seqs (owned) */
+  Minheap m;                     /* min heap with the top kmer db seqs (owned) */
   int finalized = 0;
   /* run configuration, set by the per-thread init at each call site (E1
      shared-infra phase). A pointer (default null) so searchinfo_s stays

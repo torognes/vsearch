@@ -89,5 +89,5 @@ public:
   auto reset_all() -> void;
 
 private:
-  std::vector<unsigned char, FatalAllocator<unsigned char>> bitmap_ {}; /* the actual bitmap */
+  std::vector<unsigned char, FatalAllocator<unsigned char>> bitmap_; /* the actual bitmap */
 };

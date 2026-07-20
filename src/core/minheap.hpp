@@ -91,5 +91,5 @@ private:
   auto replace_root(elem_t tmp) -> void;
 
   std::size_t capacity_ {0};
-  std::vector<elem_t, FatalAllocator<elem_t>> array_ {};
+  std::vector<elem_t, FatalAllocator<elem_t>> array_;
 };

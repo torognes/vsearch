@@ -94,8 +94,8 @@ private:
   static constexpr int64_t default_max_quality = 41;
 
 public:
-  std::string prog_header {};
-  std::string command_line {};
+  std::string prog_header;
+  std::string command_line;
 
   /* CPU features detected at startup (see utils/cpu_features) */
   int64_t altivec_present {0};  // unused
@@ -117,7 +117,7 @@ public:
   char * opt_cluster_smallmem = nullptr;
   char * opt_cluster_unoise = nullptr;
   char * opt_cut = nullptr;
-  std::string opt_cut_pattern {};
+  std::string opt_cut_pattern;
   char * opt_db = nullptr;
   char * opt_dbmatched = nullptr;
   char * opt_dbnotmatched = nullptr;
@@ -402,7 +402,7 @@ public:
   bool      opt_n_mismatch                   = false;
 
   std::vector<double> opt_ee_cutoffs = {0.5, 1.0, 2.0};  // was opt_ee_cutoffs_values/_count
-  std::vector<int> opt_userfields {};  // was userfields_requested/_count (globals)
+  std::vector<int> opt_userfields;  // was userfields_requested/_count (globals)
 
   /* Internal state (not an option): guards the once-only gap-open penalty
      adjustment in vsearch_apply_defaults_fixups() so a repeated call on the
