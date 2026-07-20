@@ -224,18 +224,15 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        state.parameters);
             }
 
-          if (state.fp_uc != nullptr)
+          if ((state.fp_uc != nullptr) and ((t == 0) or state.parameters.opt_uc_allhits))
             {
-              if ((t == 0) or state.parameters.opt_uc_allhits)
-                {
-                  results_show_uc_one(state.fp_uc,
-                                      hp,
-                                      query_head,
-                                      qseqlen,
-                                      hp->target,
-                                      state.db,
-                                      state.parameters);
-                }
+              results_show_uc_one(state.fp_uc,
+                                  hp,
+                                  query_head,
+                                  qseqlen,
+                                  hp->target,
+                                  state.db,
+                                  state.parameters);
             }
 
           if (state.fp_userout != nullptr)

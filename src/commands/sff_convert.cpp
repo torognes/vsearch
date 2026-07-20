@@ -630,35 +630,32 @@ auto sff_convert(struct Parameters const & parameters) -> void
   }
   /* check if the index block is here */
 
-  if (not index_is_done)
+  if ((not index_is_done) and (filepos == sff_header.index_offset))
     {
-      if (filepos == sff_header.index_offset)
+      if (std::fread(index_kind.data(), byte_size, 8, fp_sff.get()) < 8)
         {
-          if (std::fread(index_kind.data(), byte_size, 8, fp_sff.get()) < 8)
-            {
-              fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
-            }
-          filepos += 8;
-          index_kind[8] = 0;
+          fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
+        }
+      filepos += 8;
+      index_kind[8] = 0;
 
-          uint64_t const index_size = sff_header.index_length - 8;
-          if (fskip(fp_sff.get(), index_size) != index_size)
-            {
-              fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
-            }
+      uint64_t const index_size = sff_header.index_length - 8;
+      if (fskip(fp_sff.get(), index_size) != index_size)
+        {
+          fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
+        }
 
-          filepos += index_size;
-          index_is_done = true;
+      filepos += index_size;
+      index_is_done = true;
 
-          /* try to skip padding, if any */
-          // refactoring: should skip index_data + index padding in one go? or do not reject SFF files just because index padding is missing?
-          if (index_padding > 0)
+      /* try to skip padding, if any */
+      // refactoring: should skip index_data + index padding in one go? or do not reject SFF files just because index padding is missing?
+      if (index_padding > 0)
+        {
+          uint64_t const got = fskip(fp_sff.get(), index_padding);
+          if ((got < index_padding) and (got != 0))
             {
-              uint64_t const got = fskip(fp_sff.get(), index_padding);
-              if ((got < index_padding) and (got != 0))
-                {
-                  std::fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
-                }
+              std::fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
             }
         }
     }

@@ -546,14 +546,11 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                                    len,
                                    parameters.opt_chimeras_diff_pct,
                                    & scan_best_start,
-                                   & scan_best_len))
+                                   & scan_best_len) and (scan_best_len > best_len))
                     {
-                      if (scan_best_len > best_len)
-                        {
-                          best_cand = i;
-                          best_start = start + scan_best_start;
-                          best_len = scan_best_len;
-                        }
+                      best_cand = i;
+                      best_start = start + scan_best_start;
+                      best_len = scan_best_len;
                     }
                 }
               ++j;

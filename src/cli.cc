@@ -4536,12 +4536,9 @@ namespace {
         fatal(message.data());
       }
 
-    if (parameters.opt_chimeras_denovo != nullptr)
+    if ((parameters.opt_chimeras_denovo != nullptr) and (not options_selected[option_alignwidth]))
       {
-        if (not options_selected[option_alignwidth])
-          {
-            parameters.opt_alignwidth = 60;
-          }
+        parameters.opt_alignwidth = 60;
       }
   }
 
@@ -4804,12 +4801,9 @@ namespace {
             fatal("No output files specified");
           }
 
-        if (parameters.opt_cluster_unoise == nullptr)
+        if ((parameters.opt_cluster_unoise == nullptr) and ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0)))
           {
-            if ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0))
-              {
-                fatal("Identity between 0.0 and 1.0 must be specified with --id");
-              }
+            fatal("Identity between 0.0 and 1.0 must be specified with --id");
           }
       }
 

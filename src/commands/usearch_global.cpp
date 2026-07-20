@@ -255,18 +255,15 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        state.parameters);
             }
 
-          if (state.fp_uc != nullptr)
+          if ((state.fp_uc != nullptr) && ((t==0) || state.parameters.opt_uc_allhits))
             {
-              if ((t==0) || state.parameters.opt_uc_allhits)
-                {
-                  results_show_uc_one(state.fp_uc.get(),
-                                      hp,
-                                      query_head,
-                                      qseqlen,
-                                      hp->target,
-                                      state.db,
-                                      state.parameters);
-                }
+              results_show_uc_one(state.fp_uc.get(),
+                                  hp,
+                                  query_head,
+                                  qseqlen,
+                                  hp->target,
+                                  state.db,
+                                  state.parameters);
             }
 
           if (state.fp_userout != nullptr)

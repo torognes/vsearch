@@ -309,18 +309,15 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        parameters);
             }
 
-          if (state.fp_uc != nullptr)
+          if ((state.fp_uc != nullptr) && ((t == 0) || parameters.opt_uc_allhits))
             {
-              if ((t == 0) || parameters.opt_uc_allhits)
-                {
-                  results_show_uc_one(state.fp_uc,
-                                      &hit,
-                                      query_head,
-                                      qseqlen,
-                                      hit.target,
-                                      state.db,
-                                      parameters);
-                }
+              results_show_uc_one(state.fp_uc,
+                                  &hit,
+                                  query_head,
+                                  qseqlen,
+                                  hit.target,
+                                  state.db,
+                                  parameters);
             }
 
           if (state.fp_userout != nullptr)
