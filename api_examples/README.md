@@ -69,7 +69,7 @@ vsearch --cluster_fast data/chimera_ref.fasta \
 
 ### example_merge
 
-Paired-end read merging using `mergepairs_single()`.
+Paired-end read merging using `MergePairs::merge()`.
 
 Equivalent to:
 ```bash
@@ -91,16 +91,17 @@ comparison).
 ### example_lifecycle
 
 Library API contract checks that have no CLI equivalent: null-safety of every
-free function, the `merge_result_free()` no-op/idempotency contract, the
-`mergepairs_single()` `-1` failure return with null buffers, result-struct
-reuse, the non-chimeric result zeroing contract, and the `dust_single()`
-hardmask parameter. Self-validating (no ground-truth comparison).
+free function (the merge API no longer has one — `MergeResult` owns its buffers,
+RAII), the `MergePairs::merge()` success and failure contracts (self-owned
+buffers on success; `merged == false` with empty strings on failure), merge
+session statelessness, the non-chimeric result zeroing contract, and the
+`dust_single()` hardmask parameter. Self-validating (no ground-truth comparison).
 
 ### example_dbinfo
 
-Database query and indexing surface: `db_read()` for FASTA and FASTQ, all
-statistical accessors (`db_getnucleotidecount()`, `db_getlongestsequence()`,
-etc.), quality retrieval, the three `db_sortby*()` ordering contracts, and the
+Database query and indexing surface: `db.read()` for FASTA and FASTQ, all
+statistical accessors (`db.getnucleotidecount()`, `db.getlongestsequence()`,
+etc.), quality retrieval, the three `db.sortby*()` ordering contracts, and the
 incremental `dbindex.add_sequence()` primitive checked against
 `dbindex.add_all_sequences()`. Self-validating.
 
