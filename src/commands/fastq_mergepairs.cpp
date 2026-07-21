@@ -84,6 +84,7 @@
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <mutex>  // std::mutex, std::unique_lock
+#include <string>  // std::to_string
 #include <vector>
 
 
@@ -101,6 +102,75 @@ struct chunk_s
 };
 
 
+/* Cooperative abort for the worker pool. A worker must never call std::exit()
+   (e.g. via fatal()) while sibling workers are still running: std::exit() flushes
+   and closes the shared output streams and runs static destructors concurrently
+   with threads still writing to them — a data race that intermittently corrupts
+   libc state and crashes (observed as SIGILL on FreeBSD). Instead, a worker that
+   hits an out-of-range FASTQ quality value (recorded by the merge core on the
+   read pair) or a fwd/rev count mismatch records the error here and requests an
+   abort; every worker then unwinds its loop and pair_all() reports it and
+   std::exit()s from the main thread, after all workers have joined. The error is
+   written once (first worker to claim wins, then a release store on abort_) and
+   read after the join, which establishes the needed happens-before. Owned per run
+   by mergepairs_cli_state_s, so there is no cross-session state to reset. */
+class MergeAbort {
+public:
+  /* Record the first error seen and signal every worker to stop. Callable from
+     any worker thread. */
+  auto request(MergeAbortReason const reason, int const value) -> void
+  {
+    if (not error_claimed_.exchange(true))
+      {
+        reason_ = reason;
+        value_ = value;
+      }
+    abort_.store(true, std::memory_order_release);
+  }
+
+  /* Poll the abort flag. Relaxed by default (matches the worker-loop hint
+     checks); the post-join reader in pair_all() passes a stronger order. */
+  auto aborted(std::memory_order const order = std::memory_order_relaxed) const -> bool
+  {
+    return abort_.load(order);
+  }
+
+  /* Report the recorded error and terminate. Main thread only, after join. */
+  auto report(struct Parameters const & parameters) const -> void
+  {
+    switch (reason_)
+      {
+      // route through fatal() (which writes stderr and the --log file; the printed
+      // text is unchanged). Called on the main thread after the worker pool has
+      // joined, so throwing in a library session is safe.
+      case MergeAbortReason::quality_below_qmin:
+        fatal(("FASTQ quality value (" + std::to_string(value_) + ") below qmin ("
+               + std::to_string(parameters.opt_fastq_qmin) + ")").c_str());
+        break;
+
+      case MergeAbortReason::quality_above_qmax:
+        fatal(("FASTQ quality value (" + std::to_string(value_) + ") above qmax ("
+               + std::to_string(parameters.opt_fastq_qmax) + ")\n"
+               "By default, quality values range from 0 to 41.\n"
+               "To allow higher quality values, "
+               "please use the option --fastq_qmax " + std::to_string(value_)).c_str());
+        break;
+
+      case MergeAbortReason::more_fwd_than_rev:
+        fatal("More forward reads than reverse reads");
+        break;
+      }
+    std::exit(EXIT_FAILURE);  // unreachable: every case above fatal()s (noreturn)
+  }
+
+private:
+  std::atomic<bool> abort_{false};
+  std::atomic<bool> error_claimed_{false};
+  MergeAbortReason  reason_{MergeAbortReason::quality_below_qmin};
+  int               value_{0};
+};
+
+
 /* Per-invocation state for a fastq_mergepairs run — previously the file-static
    output/input handles, the statistics counters, and the worker-pool chunk
    coordination block. Folding them into a struct that fastq_mergepairs() owns
@@ -110,8 +180,10 @@ struct chunk_s
    (mergepairs_single) runs a single pair through the shared merge core
    (process) and writes into a caller-owned merge_result_s, so it uses none of
    this struct. The merge-acceptance thresholds are derived inside optimize()
-   from the threaded Parameters; only the quality lookup tables and the
-   cooperative-abort atomics remain shared file-static state read by that core. */
+   from the threaded Parameters. No shared file-static state remains: the quality
+   lookup tables and the cooperative-abort object are both members of this struct,
+   owned per run; the merge core stays pool-agnostic (it records an out-of-range
+   quality on the read pair rather than touching the abort object). */
 struct mergepairs_cli_state_s
 {
   /* the run configuration, threaded through the CLI-path helpers instead of the
@@ -127,6 +199,11 @@ struct mergepairs_cli_state_s
      by every process() call; owned here instead of the former file-static
      globals in mergepairs.cpp (see core/mergepairs.hpp). */
   QualityTables tables;
+
+  /* cooperative worker-pool abort; owned per run (replaces the former file-static
+     atomics in mergepairs.cpp). Workers signal via abort.request(); pair_all()
+     polls and reports after join. */
+  MergeAbort abort;
 
   std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_fastaout = nullptr;
@@ -417,7 +494,7 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
           /* runs in a worker thread with the chunk lock released; request
              a cooperative abort instead of exiting here, and stop reading
              (pair_all() reports it from the main thread after join) */
-          request_merge_abort(MergeAbortReason::more_fwd_than_rev, 0);
+          state.abort.request(MergeAbortReason::more_fwd_than_rev, 0);
           return false;
         }
 
@@ -593,11 +670,18 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
       lock.unlock();
       for (auto i = 0; i < state.chunks[static_cast<std::size_t>(chunk_current)].size; i++)
         {
-          if (merge_aborted())
+          if (state.abort.aborted())
             {
               break;
             }
-          process(state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)], kmerhash, state.tables, state.parameters);
+          auto & a_read_pair = state.chunks[static_cast<std::size_t>(chunk_current)].merge_data[static_cast<std::size_t>(i)];
+          process(a_read_pair, kmerhash, state.tables, state.parameters);
+          /* the merge core flags an out-of-range FASTQ quality on the pair rather
+             than touching pool state; turn it into a cooperative abort here */
+          if (a_read_pair.quality_out_of_range)
+            {
+              state.abort.request(a_read_pair.abort_reason, a_read_pair.abort_value);
+            }
         }
       lock.lock();
       state.chunks[static_cast<std::size_t>(chunk_current)].state = State::processed;
@@ -623,7 +707,7 @@ auto pair_worker(struct mergepairs_cli_state_s & state,
          finished_all is set under the lock so the wait predicates below
          (which test it) release, and notify_all wakes any sleepers. The
          error is reported from the main thread in pair_all() after join. */
-      if (merge_aborted())
+      if (state.abort.aborted())
         {
           state.finished_all = true;
           cond_chunks.notify_all();
@@ -750,16 +834,15 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
   state.chunk_process_next = 0;
   state.chunk_write_next = 0;
 
-  /* reset the cooperative-abort state (file statics persist across
-     library-API sessions) */
-  merge_abort_reset();
+  /* state.abort starts cleared (fresh per-run member), so there is no
+     cross-session abort state to reset here. */
 
   state.chunks.resize(static_cast<std::size_t>(state.chunk_count));
 
   /* The chunk mutex and condition variable are locals (not file scope) so
      their lifetime is scoped to the worker pool. Combined with the
-     cooperative abort (see merge_abort), no worker ever calls std::exit():
-     the only exit happens in report_merge_abort() on the main thread after
+     cooperative abort (see MergeAbort), no worker ever calls std::exit():
+     the only exit happens in state.abort.report() on the main thread after
      ThreadRunner has joined every worker, so the condition variable is
      never destroyed (or left) with waiters present. */
   std::mutex mutex_chunks;
@@ -779,9 +862,9 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      report it and exit now, single-threaded, so the message reliably
      reaches stderr and the --log file and no stdio teardown races a live
      worker thread */
-  if (merge_aborted(std::memory_order_seq_cst))
+  if (state.abort.aborted(std::memory_order_seq_cst))
     {
-      report_merge_abort(state.parameters);
+      state.abort.report(state.parameters);
     }
 }
 

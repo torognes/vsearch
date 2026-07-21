@@ -68,12 +68,10 @@
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max, std::copy_n
 #include <array>
-#include <atomic>  // std::atomic, std::memory_order
 #include <cassert>
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdlib>
 #include <string>  // std::string
 #include <vector>
 
@@ -96,104 +94,43 @@ constexpr auto merge_minovlen_floor = 5;
    and threaded by const reference through process(); see core/mergepairs.hpp. */
 
 
-/* A worker must never call std::exit() (e.g. via fatal()) while sibling
-   workers are still running: std::exit() flushes and closes the shared
-   output streams and runs static destructors concurrently with threads
-   that are still writing to those streams, which is a data race that
-   intermittently corrupts libc state and crashes (observed as SIGILL on
-   FreeBSD). Instead, an out-of-range FASTQ quality value records the
-   error here and requests a cooperative abort; every worker then unwinds
-   its loop and pair_all() reports the error and exits from the main
-   thread, after all workers have joined. The error details are written
-   once (first worker to claim wins) and read by pair_all() after the
-   join, which establishes the needed happens-before. */
-
-static std::atomic<bool> merge_abort {false};
-static std::atomic<bool> merge_error_claimed {false};
-static MergeAbortReason merge_error_reason = MergeAbortReason::quality_below_qmin;
-static int merge_error_value = 0;
+/* The merge core is pool-agnostic. It never calls std::exit()/fatal() from a
+   worker context and never touches shared abort state: an out-of-range FASTQ
+   quality value is recorded on the read pair (merge_data_t::quality_out_of_range,
+   set in get_qual) and surfaced to the caller, which decides what to do. The CLI
+   worker pool turns it into a cooperative abort reported from the main thread
+   after join (see MergeAbort in commands/fastq_mergepairs.cpp, whose comment
+   records why a worker must never std::exit() mid-run: the FreeBSD SIGILL
+   stdio-teardown race); the library entry (mergepairs_single) just returns an
+   unmerged result. */
 
 /* mutex_chunks and cond_chunks are owned as locals in pair_all(), not at
    file scope; see the comment there. */
 
 
-/* Request a cooperative abort from a worker thread. Records the first
-   error seen and signals every worker to stop; the actual message and
-   std::exit() happen in pair_all() on the main thread after all workers
-   have joined (see merge_abort above). */
-auto request_merge_abort(MergeAbortReason const reason, int const value) -> void
-{
-  if (not merge_error_claimed.exchange(true))
-    {
-      merge_error_reason = reason;
-      merge_error_value = value;
-    }
-  merge_abort.store(true, std::memory_order_release);
-}
-
-
-/* Poll the cooperative-abort flag. The default relaxed order matches the
-   worker-loop hint checks; callers that need to synchronise with the recorded
-   error (e.g. the post-join check in pair_all) pass a stronger order. */
-auto merge_aborted(std::memory_order const order) -> bool
-{
-  return merge_abort.load(order);
-}
-
-
-/* Clear the cooperative-abort state before a run. */
-auto merge_abort_reset() -> void
-{
-  merge_abort.store(false);
-  merge_error_claimed.store(false);
-}
-
-
-/* Report the recorded worker error and terminate. Must be called from the
-   main thread only, after all workers have joined. */
-auto report_merge_abort(struct Parameters const & parameters) -> void
-{
-  switch (merge_error_reason)
-    {
-    // route through fatal() (which writes stderr and the --log file; the printed
-    // text is unchanged). Called on the main thread after the worker pool has
-    // joined, so throwing in a library session is safe.
-    case MergeAbortReason::quality_below_qmin:
-      fatal(("FASTQ quality value (" + std::to_string(merge_error_value) + ") below qmin ("
-             + std::to_string(parameters.opt_fastq_qmin) + ")").c_str());
-      break;
-
-    case MergeAbortReason::quality_above_qmax:
-      fatal(("FASTQ quality value (" + std::to_string(merge_error_value) + ") above qmax ("
-             + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-             "By default, quality values range from 0 to 41.\n"
-             "To allow higher quality values, "
-             "please use the option --fastq_qmax " + std::to_string(merge_error_value)).c_str());
-      break;
-
-    case MergeAbortReason::more_fwd_than_rev:
-      fatal("More forward reads than reverse reads");
-      break;
-    }
-  std::exit(EXIT_FAILURE);  // unreachable: every case above fatal()s (noreturn)
-}
-
-
 namespace {
-inline auto get_qual(char const quality_symbol, struct Parameters const & parameters) -> int
+inline auto get_qual(char const quality_symbol, struct Parameters const & parameters,
+                     merge_data_t & a_read_pair) -> int
 {
   assert(quality_symbol >= 33);
   assert(quality_symbol <= 126);
 
   auto const quality_value = static_cast<int>(quality_symbol - parameters.opt_fastq_ascii);
 
+  /* An out-of-range value is recorded on the read pair (not signalled to any
+     shared state); the caller stops processing this pair and, on the CLI path,
+     turns it into a cooperative pool abort. */
   if (quality_value < parameters.opt_fastq_qmin)
     {
-      request_merge_abort(MergeAbortReason::quality_below_qmin, quality_value);
+      a_read_pair.quality_out_of_range = true;
+      a_read_pair.abort_reason = MergeAbortReason::quality_below_qmin;
+      a_read_pair.abort_value = quality_value;
     }
   else if (quality_value > parameters.opt_fastq_qmax)
     {
-      request_merge_abort(MergeAbortReason::quality_above_qmax, quality_value);
+      a_read_pair.quality_out_of_range = true;
+      a_read_pair.abort_reason = MergeAbortReason::quality_above_qmax;
+      a_read_pair.abort_value = quality_value;
     }
   return quality_value;
 }
@@ -622,13 +559,7 @@ auto process(merge_data_t & a_read_pair,
              struct Parameters const & parameters) -> void
 {
   a_read_pair.merged = false;
-
-  /* another worker may have hit an out-of-range quality value and
-     requested a cooperative abort; stop doing work in that case */
-  if (merge_abort.load(std::memory_order_acquire))
-    {
-      return;
-    }
+  a_read_pair.quality_out_of_range = false;
 
   auto skip = false;
 
@@ -656,8 +587,8 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.fwd_length; i++)
         {
-          auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)], parameters);
-          if (merge_abort.load(std::memory_order_relaxed))
+          auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
+          if (a_read_pair.quality_out_of_range)
             {
               return;
             }
@@ -682,8 +613,8 @@ auto process(merge_data_t & a_read_pair,
     {
       for (int64_t i = 0; i < a_read_pair.rev_length; i++)
         {
-          auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)], parameters);
-          if (merge_abort.load(std::memory_order_relaxed))
+          auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
+          if (a_read_pair.quality_out_of_range)
             {
               return;
             }

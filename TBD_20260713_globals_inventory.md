@@ -1,20 +1,21 @@
 # Remaining global variables: inventory and elimination plan
 
-Status: Phases 1, 2, and 4 **DONE and merged into `dev`**. Phase 3 is now
-**mostly done**: Group D (`otutable` → the owned `OtuTable` class), the Group C
-quality-score tables (→ the `QualityTables` struct), and all of Group F
-(`hash_function` const-ified + `hashtable`/`hashtablesize` localised) have all
-landed on `dev`. What is left is a small residue of genuinely-mutable file-scope
-state: **only Group C-abort** (the 4 merge worker-coordination atomics). Groups E
-and G from the original set and all three re-sweep additions (showalign buffers,
-`derep_sort_db`, `unique.cpp`'s `hash_function`) have since been eliminated.
+Status: **COMPLETE.** Phases 1, 2, and 4 are DONE and merged into `dev`. Phase 3
+is now finished too: Group D (`otutable` → `OtuTable`), the Group C quality-score
+tables (→ `QualityTables`) and Group F landed on `dev`; Groups E, G, the re-sweep
+items (showalign, `derep_sort_db`, `unique.cpp` hash), and finally Group C-abort
+were completed 2026-07-21 on branch `tmp_20260720075325` (pending review/merge).
+**Nothing is left: every mutable file-scope global identified by this inventory
+has been eliminated.**
 Original inventory: 2026-07-13. Revised 2026-07-18 (re-swept on `dev` @
-`37c2b5d7`). Revised 2026-07-21: `derep_sort_db` eliminated (commit `090751fe`),
-Group G (`base_seed`) eliminated via the owned `RandomSeed` class, then Group E
-(`labels_data`) and the showalign row buffers eliminated (threaded as a local /
-bundled into an `AlignmentRows` struct). An `nm` re-sweep over the current build
-confirms the mutable-global residue is now **4** with no new mutable global
-having appeared.
+`37c2b5d7`). Revised 2026-07-21, in order: `derep_sort_db` eliminated (commit
+`090751fe`); Group G (`base_seed`) via the owned `RandomSeed` class; Group E
+(`labels_data`) threaded as a local; the showalign row buffers bundled into an
+`AlignmentRows` struct; and finally Group C-abort (the 4 merge atomics) via
+Plan C — the merge core was made pool-agnostic (it records an out-of-range
+quality on the read pair) and a per-run `MergeAbort` object in the CLI driver now
+owns all abort signalling/reporting. An `nm` re-sweep over the current build
+confirms the mutable-global residue is now **0**.
 
 Goal (from `CLAUDE.md`): "avoid non const global variables". This document
 inventories every mutable global with static storage duration that remains in
@@ -41,20 +42,20 @@ showalign row buffers, `derep_sort_db`, and `unique.cpp`'s `hash_function` — s
 stay plugged and nothing new leaked an external symbol.
 
 
-## Progress since the original inventory (34 → 4 of the original set)
+## Progress since the original inventory (34 → 0 of the original set)
 
 | Group | File | Original count | Now | Landed |
 |-------|------|---------------:|-----|--------|
 | **A** ✅DONE | `core/db.cpp` | 12 | 0 | → owned `Database` class (`02bf3975` … `2ac3f27f`, `c16d80ef`, `782a16fd`); private `std::vector` via `FatalAllocator`, const read API. ABI break → api 0.10.0. |
 | **B** ✅DONE | `core/dbhash.cpp` | 5 | 0 | → owned `Dbhash` class (`9d8d498a`, `2625497b`); threaded into `--search_exact`. Internal-only. |
-| **C** ⚠ partial | `core/mergepairs.cpp` | 9 | 4 | 5 lookup tables → the `QualityTables` struct returned by `mergepairs_init`/`precompute_qual` and passed by `const &` (`d94aa9a7`, api 0.11.0). The 4 abort-state atomics remain — **deliberate** (see below). |
+| **C** ✅DONE | `core/mergepairs.cpp` | 9 | 0 | 5 lookup tables → the `QualityTables` struct (`d94aa9a7`, api 0.11.0). The 4 abort-state atomics → a per-run `MergeAbort` object owned by the CLI driver (Plan C, 2026-07-21): the merge core no longer touches shared state (it records an out-of-range quality on the read pair via `merge_data_t::quality_out_of_range`); the worker turns that into `abort.request()`, `pair_all()` polls/reports after join. Also fixed a latent leak: the old file-statics persisted across library `mergepairs_single()` calls. |
 | **D** ✅DONE | `core/otutable.cpp` | 1 | 0 | The `otutable` singleton pointer → the owned `OtuTable` class (`0dc01686`; name buffers to `std::string` `a4d6b5b3`; stale include dropped `302ac812`). |
 | **E** ✅DONE | `core/getseq.cpp` | 1 | 0 | `labels_data` → a local `std::vector<std::vector<char>>` in `getseq()`, passed by ref to `read_labels_file()` (fill) and `test_label_match()` (`const &`, match). File-local functions only; no header/ABI change. |
 | **F** ✅DONE | `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp` | 5 | 0 | The 3 `hash_function` pointers → `static constexpr` (Phase 1). `hashtable`/`hashtablesize` are now function-locals of `derep_smallmem` (`92e3dc7f` per-invocation struct, `2414ea0e` `std::vector`). |
 | **G** ✅DONE | `utils/random.cpp` | 1 | 0 | `base_seed` + `random_init()` + `random_base_seed()` → the owned `RandomSeed` class (ctor resolves the seed from `Parameters`, `value()`/`substream()` read it; both `noexcept`, ctor not — `std::random_device` may throw). Constructed per consuming command (shuffle/fastx_subsample locals, sintax a `sintax_state_s` member read lock-free by workers); `random_init` call dropped from `vsearch.cc`. `random_substream_seed` moved to an anonymous namespace (internal linkage). Internal-only, no ABI change. |
 
-Of the original 34, **30 are eliminated** and **4 remain** (only Group C's 4
-abort-state atomics; Groups E and G were both eliminated 2026-07-21).
+Of the original 34, **all 34 are eliminated** (0 remain). Group C's 4 abort-state
+atomics — the last and highest-risk — were removed 2026-07-21 via Plan C.
 
 
 ## Surfaced by the 2026-07-18 re-sweep (not in the original 34)
@@ -93,21 +94,32 @@ bugs.
   anonymous namespace). Matches the Group F siblings' `.data.rel.ro`/RELRO
   placement. cppcheck clean; binary relinks. **1 symbol → 0.**
 
-Adding these, the current mutable-global residue is **4**: Group C-abort (4) only.
-(`derep_sort_db`, Group G's `base_seed`, Group E's `labels_data`, and the three
-showalign buffers were all eliminated on 2026-07-21 — see their bullets/rows above.)
+Adding these, the current mutable-global residue is **0** — everything the
+re-sweep surfaced (showalign buffers, `derep_sort_db`, `unique.cpp`'s
+`hash_function`) has been eliminated, along with all of the original 34.
 
 
-## Why Group C keeps its 4 abort-state symbols
+## Group C's 4 abort-state symbols — how they were eliminated (Plan C)
 
 `merge_abort`, `merge_error_claimed`, `merge_error_reason`, `merge_error_value`
-(mergepairs.cpp:111-114) coordinate the merge worker threads and are exposed via
-`request_merge_abort` / `merge_aborted` / `report_merge_abort`. `merge_abort` and
-`merge_error_claimed` are `std::atomic`; the state is deliberately file-scope so
-that a worker hitting an out-of-range quality value can signal the others without
-racing a `std::exit()` mid-run. Any future `Merge_context` bundling these must
-preserve the atomics and the join happens-before that currently guards that race;
-this is lower-priority and higher-risk than E/G, so it stays last.
+coordinated the merge worker threads: a worker hitting an out-of-range quality
+value signalled the others without racing a `std::exit()` mid-run (the FreeBSD
+SIGILL stdio-teardown race). They were the last and highest-risk residue because
+the trigger (`get_qual`) sits deep in the per-base hot path, the state spanned two
+TUs (shared core + CLI driver), and the memory-ordering/join happens-before had to
+be preserved exactly.
+
+Rather than a shared `Merge_context`, **Plan C decoupled the core**: `get_qual`
+now records an out-of-range quality on the read pair (`merge_data_t`), touching no
+shared state, so the merge core is fully reentrant. A per-run `MergeAbort` class
+(2 atomics + reason/value, same memory orders as before) is owned by the CLI
+driver's `mergepairs_cli_state_s`; the worker calls `abort.request()` when it sees
+the flagged pair, and `pair_all()` polls and reports after join. Per-run ownership
+removes the `merge_abort_reset()` call and fixes a latent leak (the old
+file-statics persisted across library `mergepairs_single()` calls). Verified: the
+cooperative abort still fires correctly under 4 threads for all three reasons, the
+full suite passes, and hyperfine shows the change is performance-neutral (a hair
+faster single-threaded — one fewer atomic load per base).
 
 
 ## Not targets (documented, left alone)
@@ -181,8 +193,11 @@ reference through the relevant functions.
   `value()`/`substream()`), constructed per consuming command; `random_init()`/
   `random_base_seed()` removed, `random_substream_seed` made file-local.
   [DONE, 2026-07-21]
-- **C-abort** bundle the 4 atomics into a `Merge_context` owned by `pair_all()`,
-  preserving the atomics + join happens-before.  [pending, last — highest risk]
+- **C-abort** the 4 atomics.  [DONE, 2026-07-21, Plan C — merge core made
+  pool-agnostic (records out-of-range on the read pair); per-run `MergeAbort`
+  object owns the atomics + reporting in the CLI driver. See the Group C section
+  above. Chose Plan C over the `Merge_context` bundling to keep the core reentrant
+  and decoupled from the pool.]
 - **showalign** bundle `q_line`/`a_line`/`d_line` into a `ShowAlign` state or
   pass them as parameters.  [DONE, 2026-07-21 — `AlignmentRows` struct owned by
   `align_show()`, threaded by ref through `putop`/`putop_final`/`print_alignment_block`]

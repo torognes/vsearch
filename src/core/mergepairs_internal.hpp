@@ -69,7 +69,6 @@
    Not part of the public library API (that is core/mergepairs.hpp). */
 
 #include "core/mergepairs.hpp"  // QualityTables (shared with the merge engine)
-#include <atomic>  // std::memory_order
 #include <cstdint>  // int64_t
 #include <vector>
 
@@ -150,18 +149,25 @@ struct merge_data_s
   int64_t offset = 0;
   bool merged = false;
   Reason reason = Reason::undefined;
+  /* Set by the merge core (process/get_qual) when a FASTQ quality value falls
+     outside [qmin, qmax]. The core stays pool-agnostic: it records the condition
+     here instead of touching any shared abort state. The CLI worker turns this
+     into a cooperative pool abort (see MergeAbort in fastq_mergepairs.cpp); the
+     library caller (mergepairs_single) just sees an unmerged result. */
+  bool quality_out_of_range = false;
+  MergeAbortReason abort_reason = MergeAbortReason::quality_below_qmin;
+  int abort_value = 0;
   State state = State::empty;
 };
 
 using merge_data_t = struct merge_data_s;
 
 
-/* Cooperative-abort control. The state lives in core/mergepairs.cpp; the
-   merge engine (get_qual/process) and the CLI worker loop both signal/poll it. */
-auto request_merge_abort(MergeAbortReason reason, int value) -> void;
-auto merge_aborted(std::memory_order order = std::memory_order_relaxed) -> bool;
-auto merge_abort_reset() -> void;
-auto report_merge_abort(struct Parameters const & parameters) -> void;
+/* Cooperative-abort control now lives entirely in the CLI driver (MergeAbort in
+   commands/fastq_mergepairs.cpp). The merge engine below is pool-agnostic: it
+   records an out-of-range quality on the read pair (merge_data_t::quality_out_of_range)
+   rather than signalling any shared state, so it is reentrant and safe to reuse
+   from the single-threaded library entry. */
 
 /* Merge engine entry points driven by both the CLI command and the library API. */
 auto precompute_qual(struct Parameters const & parameters) -> QualityTables;
