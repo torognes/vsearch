@@ -88,9 +88,6 @@
 #include <vector>
 
 
-static std::vector<std::vector<char>> labels_data;
-
-
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
@@ -107,7 +104,8 @@ namespace {
 
 
 namespace {
-auto read_labels_file(char const * filename, struct Parameters const & parameters) -> void
+auto read_labels_file(char const * filename, struct Parameters const & parameters,
+                      std::vector<std::vector<char>> & labels_data) -> void
 {
   auto labels_alloc = 0U;
   auto labels_count = 0U;
@@ -183,7 +181,8 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
 }
 
 
-auto test_label_match(fastx_handle input_handle, struct Parameters const & parameters) -> bool
+auto test_label_match(fastx_handle input_handle, struct Parameters const & parameters,
+                      std::vector<std::vector<char>> const & labels_data) -> bool
 {
   char const * header = input_handle->get_header();
   auto const header_length = input_handle->get_header_length();
@@ -221,7 +220,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
     {
       if (parameters.opt_label_substr_match)
         {
-          for (auto & label: labels_data) {
+          for (auto const & label: labels_data) {
             auto const label_view = View<char>{label.data(), label.size()};
             if (contains_substring(header_view, label_view)) {
               return true;
@@ -341,6 +340,11 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       fatal("No output files specified");
     }
 
+  /* labels for --labels / --label_words, read from file below (stays empty for
+     the other selection modes); filled by read_labels_file() and matched
+     against by test_label_match() */
+  std::vector<std::vector<char>> labels_data;
+
   if (parameters.opt_fastx_getseq != nullptr)
     {
       if (parameters.opt_label == nullptr)
@@ -392,12 +396,12 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
       if (parameters.opt_labels != nullptr)
         {
-          read_labels_file(parameters.opt_labels, parameters);
+          read_labels_file(parameters.opt_labels, parameters, labels_data);
         }
 
       if (parameters.opt_label_words != nullptr)
         {
-          read_labels_file(parameters.opt_label_words, parameters);
+          read_labels_file(parameters.opt_label_words, parameters, labels_data);
         }
     }
 
@@ -428,7 +432,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
     Progress progress("Extracting sequences", filesize, parameters);
     while (h1->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        bool const match = test_label_match(h1.get(), parameters);
+        bool const match = test_label_match(h1.get(), parameters, labels_data);
 
         if (match)
           {
