@@ -78,6 +78,16 @@ vsearch --fastq_mergepairs data/merge_fwd.fastq \
   --fastaout output.fasta
 ```
 
+### example_merge_error
+
+Telling a hard input error apart from an ordinary non-merge, using the
+`MergeResult::error` / `error_value` fields added in API 0.16.0. An out-of-range
+FASTQ quality value (outside `[fastq_qmin, fastq_qmax]`) is reported on the result
+— `quality_above_qmax` or `quality_below_qmin`, with the offending value — instead
+of being indistinguishable from a poor-overlap non-merge, and without throwing
+(the CLI treats the same condition as fatal). Self-validating (no ground-truth
+comparison).
+
 ### example_lifecycle
 
 Library API contract checks that have no CLI equivalent: null-safety of every

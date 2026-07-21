@@ -29,7 +29,7 @@ endif
 
 SHELL = /bin/bash
 
-EXAMPLES = example_chimera example_search example_merge example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo example_recover
+EXAMPLES = example_chimera example_search example_merge example_merge_error example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo example_recover
 
 all: $(EXAMPLES)
 
@@ -40,6 +40,9 @@ example_search: example_search.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 example_merge: example_merge.cc $(VSEARCH_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
+
+example_merge_error: example_merge_error.cc $(VSEARCH_LIB)
 	$(CXX) $(CXXFLAGS) -o $@ $< $(LDFLAGS)
 
 example_cluster: example_cluster.cc $(VSEARCH_LIB)
@@ -87,6 +90,11 @@ test: $(EXAMPLES)
 	@diff /tmp/test_merge.fasta data/expected_merge.fasta \
 		&& echo "PASS: merge output matches vsearch" \
 		|| (echo "FAIL: merge output differs"; diff /tmp/test_merge.fasta data/expected_merge.fasta | head -20; exit 1)
+	@echo ""
+	@echo "=== Running example_merge_error ==="
+	@./example_merge_error \
+		&& echo "PASS: merge error-signal contract holds" \
+		|| (echo "FAIL: merge error-signal test failed"; exit 1)
 	@echo ""
 	@echo "=== Running example_dust ==="
 	@./example_dust > /tmp/test_dust.fasta || { echo "FAIL: example_dust exited non-zero (crash or sanitizer error)"; exit 1; }
