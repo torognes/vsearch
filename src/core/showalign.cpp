@@ -75,9 +75,15 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  std::vector<char> q_line;  // query
-  std::vector<char> a_line;  // alignment symbols (|)
-  std::vector<char> d_line;  // target
+  // The three rows of a printed alignment block, each sized to the alignment
+  // width (+1 for the NUL terminator). Owned by align_show() and threaded
+  // through putop()/putop_final()/print_alignment_block() (formerly the
+  // file-scope q_line/a_line/d_line buffers).
+  struct AlignmentRows {
+    std::vector<char> query;    // query
+    std::vector<char> symbols;  // alignment symbols (|)
+    std::vector<char> target;   // target
+  };
 
 
   enum struct Viewpoint : char {
@@ -188,7 +194,8 @@ namespace {
   }
 
 
-  auto print_alignment_block(Alignment const & alignment, Position const & position) -> void {
+  auto print_alignment_block(Alignment const & alignment, Position const & position,
+                             AlignmentRows const & rows) -> void {
     // current query and target starting and ending positions
     auto const query_start = std::min(position.query_start + 1, alignment.query.length);
     auto const query_end = alignment.is_reverse_strand ? position.query + 2 : position.query;
@@ -203,7 +210,7 @@ namespace {
                  alignment.poswidth,
                  query_start,
                  alignment.is_reverse_strand ? '-' : '+',
-                 q_line.data(),
+                 rows.query.data(),
                  query_end));
     static_cast<void>(
     std::fprintf(alignment.output_handle,
@@ -212,7 +219,7 @@ namespace {
                  "",
                  alignment.poswidth,
                  "",
-                 a_line.data()));
+                 rows.symbols.data()));
     static_cast<void>(
     std::fprintf(alignment.output_handle,
                  "%*s %*" PRId64 " %c %s %" PRId64 "\n",
@@ -221,12 +228,13 @@ namespace {
                  alignment.poswidth,
                  target_start,
                  '+',
-                 d_line.data(),
+                 rows.target.data(),
                  target_end));
   }
 
 
-  inline auto putop(Alignment const & alignment, Position & position, Operation const operation, int64_t const runlength) -> void {
+  inline auto putop(Alignment const & alignment, Position & position, AlignmentRows & rows,
+                    Operation const operation, int64_t const runlength) -> void {
     int64_t const delta = alignment.is_reverse_strand ? -1 : +1;
 
     for (auto count = runlength; count != 0; --count) {
@@ -245,25 +253,25 @@ namespace {
       case Operation::match:
         position.query += delta;
         position.target += 1;
-        q_line[line_index] = query_nuc;
-        a_line[line_index] = get_aligment_symbol(query_nuc, target_nuc, alignment.n_mismatch);
-        d_line[line_index] = target_nuc;
+        rows.query[line_index] = query_nuc;
+        rows.symbols[line_index] = get_aligment_symbol(query_nuc, target_nuc, alignment.n_mismatch);
+        rows.target[line_index] = target_nuc;
         ++position.line;
         break;
 
       case Operation::deletion:  // gap in target (insertion in query)
         position.query += delta;
-        q_line[line_index] = query_nuc;
-        a_line[line_index] = ' ';
-        d_line[line_index] = '-';
+        rows.query[line_index] = query_nuc;
+        rows.symbols[line_index] = ' ';
+        rows.target[line_index] = '-';
         ++position.line;
         break;
 
       case Operation::insertion:  // insertion in target (gap in query)
         position.target += 1;
-        q_line[line_index] = '-';
-        a_line[line_index] = ' ';
-        d_line[line_index] = target_nuc;
+        rows.query[line_index] = '-';
+        rows.symbols[line_index] = ' ';
+        rows.target[line_index] = target_nuc;
         ++position.line;
         break;
       }
@@ -271,23 +279,24 @@ namespace {
       if (position.line == alignment.width) {
         // maximal alignment width is reached, print alignment block
         auto const terminator_index = static_cast<size_t>(position.line);
-        q_line[terminator_index] = '\0';
-        a_line[terminator_index] = '\0';
-        d_line[terminator_index] = '\0';
-        print_alignment_block(alignment, position);
+        rows.query[terminator_index] = '\0';
+        rows.symbols[terminator_index] = '\0';
+        rows.target[terminator_index] = '\0';
+        print_alignment_block(alignment, position, rows);
         position.line = 0;  // needed to avoid out-of-bounds
       }
     }
   }
 
 
-  auto putop_final(Alignment const & alignment, Position const & position) -> void {
+  auto putop_final(Alignment const & alignment, Position const & position,
+                   AlignmentRows & rows) -> void {
     if (position.line == 0) { return; }  // final block already printed
     auto const terminator_index = static_cast<size_t>(position.line);
-    q_line[terminator_index] = '\0';
-    a_line[terminator_index] = '\0';
-    d_line[terminator_index] = '\0';
-    print_alignment_block(alignment, position);
+    rows.query[terminator_index] = '\0';
+    rows.symbols[terminator_index] = '\0';
+    rows.target[terminator_index] = '\0';
+    print_alignment_block(alignment, position, rows);
   }
 
 }  // end of anonymous namespace
@@ -345,23 +354,20 @@ auto align_show(std::FILE * output_handle,
   position.query_start = position.query;
   position.target_start = position.target;
 
-  q_line.resize(static_cast<size_t>(alignment.width) + 1);
-  a_line.resize(static_cast<size_t>(alignment.width) + 1);
-  d_line.resize(static_cast<size_t>(alignment.width) + 1);
+  AlignmentRows rows;
+  rows.query.resize(static_cast<size_t>(alignment.width) + 1);
+  rows.symbols.resize(static_cast<size_t>(alignment.width) + 1);
+  rows.target.resize(static_cast<size_t>(alignment.width) + 1);
 
   // cigar string can be trimmed (left and right): cigarlen maybe != std::strlen(cigar)
   auto const cigar_pairs = parse_cigar_string(View<char>{cigar, static_cast<size_t>(cigarlen)});
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;
-    putop(alignment, position, operation, runlength);
+    putop(alignment, position, rows, operation, runlength);
   }
 
-  putop_final(alignment, position);
-
-  q_line.clear();
-  a_line.clear();
-  d_line.clear();
+  putop_final(alignment, position, rows);
 }
 
 

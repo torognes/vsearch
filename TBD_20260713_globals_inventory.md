@@ -5,14 +5,16 @@ Status: Phases 1, 2, and 4 **DONE and merged into `dev`**. Phase 3 is now
 quality-score tables (→ the `QualityTables` struct), and all of Group F
 (`hash_function` const-ified + `hashtable`/`hashtablesize` localised) have all
 landed on `dev`. What is left is a small residue of genuinely-mutable file-scope
-state: Groups C-abort and E from the original set, plus the showalign row
-buffers surfaced by the re-sweep. (Of the three re-sweep additions, `unique.cpp`'s
-`hash_function` and `derep_sort_db` have since been eliminated.)
+state: **only Group C-abort** (the 4 merge worker-coordination atomics). Groups E
+and G from the original set and all three re-sweep additions (showalign buffers,
+`derep_sort_db`, `unique.cpp`'s `hash_function`) have since been eliminated.
 Original inventory: 2026-07-13. Revised 2026-07-18 (re-swept on `dev` @
-`37c2b5d7`). Revised 2026-07-21: `derep_sort_db` eliminated (commit `090751fe`);
-then Group G (`base_seed`) eliminated the same day via the owned `RandomSeed`
-class (see its row below). An `nm` re-sweep over the current build confirms the
-mutable-global residue is now **8** with no new mutable global having appeared.
+`37c2b5d7`). Revised 2026-07-21: `derep_sort_db` eliminated (commit `090751fe`),
+Group G (`base_seed`) eliminated via the owned `RandomSeed` class, then Group E
+(`labels_data`) and the showalign row buffers eliminated (threaded as a local /
+bundled into an `AlignmentRows` struct). An `nm` re-sweep over the current build
+confirms the mutable-global residue is now **4** with no new mutable global
+having appeared.
 
 Goal (from `CLAUDE.md`): "avoid non const global variables". This document
 inventories every mutable global with static storage duration that remains in
@@ -39,7 +41,7 @@ showalign row buffers, `derep_sort_db`, and `unique.cpp`'s `hash_function` — s
 stay plugged and nothing new leaked an external symbol.
 
 
-## Progress since the original inventory (34 → 5 of the original set)
+## Progress since the original inventory (34 → 4 of the original set)
 
 | Group | File | Original count | Now | Landed |
 |-------|------|---------------:|-----|--------|
@@ -47,12 +49,12 @@ stay plugged and nothing new leaked an external symbol.
 | **B** ✅DONE | `core/dbhash.cpp` | 5 | 0 | → owned `Dbhash` class (`9d8d498a`, `2625497b`); threaded into `--search_exact`. Internal-only. |
 | **C** ⚠ partial | `core/mergepairs.cpp` | 9 | 4 | 5 lookup tables → the `QualityTables` struct returned by `mergepairs_init`/`precompute_qual` and passed by `const &` (`d94aa9a7`, api 0.11.0). The 4 abort-state atomics remain — **deliberate** (see below). |
 | **D** ✅DONE | `core/otutable.cpp` | 1 | 0 | The `otutable` singleton pointer → the owned `OtuTable` class (`0dc01686`; name buffers to `std::string` `a4d6b5b3`; stale include dropped `302ac812`). |
-| **E** ⏳ pending | `core/getseq.cpp` | 1 | 1 | `labels_data` (`static std::vector<std::vector<char>>`, getseq.cpp:91) — unchanged. |
+| **E** ✅DONE | `core/getseq.cpp` | 1 | 0 | `labels_data` → a local `std::vector<std::vector<char>>` in `getseq()`, passed by ref to `read_labels_file()` (fill) and `test_label_match()` (`const &`, match). File-local functions only; no header/ABI change. |
 | **F** ✅DONE | `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp` | 5 | 0 | The 3 `hash_function` pointers → `static constexpr` (Phase 1). `hashtable`/`hashtablesize` are now function-locals of `derep_smallmem` (`92e3dc7f` per-invocation struct, `2414ea0e` `std::vector`). |
 | **G** ✅DONE | `utils/random.cpp` | 1 | 0 | `base_seed` + `random_init()` + `random_base_seed()` → the owned `RandomSeed` class (ctor resolves the seed from `Parameters`, `value()`/`substream()` read it; both `noexcept`, ctor not — `std::random_device` may throw). Constructed per consuming command (shuffle/fastx_subsample locals, sintax a `sintax_state_s` member read lock-free by workers); `random_init` call dropped from `vsearch.cc`. `random_substream_seed` moved to an anonymous namespace (internal linkage). Internal-only, no ABI change. |
 
-Of the original 34, **29 are eliminated** and **5 remain** (Group C's 4
-abort-state atomics and Group E; Group G was eliminated 2026-07-21).
+Of the original 34, **30 are eliminated** and **4 remain** (only Group C's 4
+abort-state atomics; Groups E and G were both eliminated 2026-07-21).
 
 
 ## Surfaced by the 2026-07-18 re-sweep (not in the original 34)
@@ -66,9 +68,11 @@ bugs.
   anonymous-namespace `std::vector<char>` row buffers
   (showalign.cpp:78-80) resized and overwritten per alignment. They pre-date the
   original inventory (blame: 2025-08-21) but were simply not listed. Internal
-  linkage; single reader (output is single-threaded). Phase-3-style fix: bundle
-  the three into a small `ShowAlign` state object owned by the print entry point,
-  or pass the buffers as parameters. **3 symbols.**
+  linkage; single reader (output is single-threaded). **[DONE, 2026-07-21]** —
+  bundled into an `AlignmentRows` struct (members `query`/`symbols`/`target`)
+  owned as a local by `align_show()` and threaded by reference through
+  `putop()`/`putop_final()`/`print_alignment_block()`; the manual `clear()` calls
+  are gone (RAII). **3 symbols → 0.**
 - **`commands/derep_prefix.cpp`** — `derep_sort_db`, a file-scope
   `Database const *` set to `&db` purely so the C-style `std::sort` comparator
   could reach the database. Introduced by the Group A work itself (`9cef6395`,
@@ -89,9 +93,9 @@ bugs.
   anonymous namespace). Matches the Group F siblings' `.data.rel.ro`/RELRO
   placement. cppcheck clean; binary relinks. **1 symbol → 0.**
 
-Adding these, the current mutable-global residue is **8**: Group C-abort (4),
-Group E (1), showalign (3). (`derep_sort_db` and Group G's `base_seed` were both
-eliminated on 2026-07-21 — see the derep_prefix bullet above and the Group G row.)
+Adding these, the current mutable-global residue is **4**: Group C-abort (4) only.
+(`derep_sort_db`, Group G's `base_seed`, Group E's `labels_data`, and the three
+showalign buffers were all eliminated on 2026-07-21 — see their bullets/rows above.)
 
 
 ## Why Group C keeps its 4 abort-state symbols
@@ -171,7 +175,8 @@ reference through the relevant functions.
   and passed by `const &`.  [DONE, `d94aa9a7`]
 - **F** `hashtable`/`hashtablesize` → folded into the derep_smallmem
   per-invocation struct.  [DONE, `92e3dc7f`, `2414ea0e`]
-- **E** `labels_data` → thread through the `getseq` functions.  [pending]
+- **E** `labels_data` → thread through the `getseq` functions.  [DONE, 2026-07-21
+  — local in `getseq()`, passed by ref to `read_labels_file`/`test_label_match`]
 - **G** `base_seed` → the owned `RandomSeed` class (ctor from `Parameters`,
   `value()`/`substream()`), constructed per consuming command; `random_init()`/
   `random_base_seed()` removed, `random_substream_seed` made file-local.
@@ -179,7 +184,8 @@ reference through the relevant functions.
 - **C-abort** bundle the 4 atomics into a `Merge_context` owned by `pair_all()`,
   preserving the atomics + join happens-before.  [pending, last — highest risk]
 - **showalign** bundle `q_line`/`a_line`/`d_line` into a `ShowAlign` state or
-  pass them as parameters.  [pending, newly listed]
+  pass them as parameters.  [DONE, 2026-07-21 — `AlignmentRows` struct owned by
+  `align_show()`, threaded by ref through `putop`/`putop_final`/`print_alignment_block`]
 - **derep_prefix** replace the `derep_sort_db` global + free-function comparator
   with a stateful comparator capturing `db`.  [DONE, `090751fe` — `compare_prefix`
   lambda captures `&db`, passed to `std::sort`; landed with the `std::qsort` →
