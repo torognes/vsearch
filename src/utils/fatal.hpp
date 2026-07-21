@@ -82,7 +82,7 @@ namespace fatal_detail {
   // the thread that opened the library session flips it to true, so
   // fatal() throws solely on that thread; worker threads keep it false and
   // keep using cooperative abort (a C++ exception must never escape a
-  // std::thread body). See vsearch_session_begin/end.
+  // std::thread body). See the VsearchSession ctor/dtor.
   auto throw_on_fatal() -> bool &;
 
   // The "exit or throw" tail of fatal(), split out of fatal.cpp so the throw

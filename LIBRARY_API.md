@@ -140,21 +140,30 @@ higher).
 vsearch was designed as a CLI tool with roughly 200 options. Configuration
 now lives entirely in a `Parameters` struct threaded through the API — there
 are no `opt_*` configuration globals. The sequence database and k-mer index
-are now caller-owned objects (`Database` and `Dbindex`) rather than process
-globals. Some lower-level compute state is still process-global (e.g. the
-`showalign` alignment row buffers and the `derep_prefix` sort comparator
-bridge), so there is not yet a full per-session context object and only
-one session may be active at a time.
+are caller-owned objects (`Database` and `Dbindex`) rather than process
+globals, and every remaining mutable process-global has since been eliminated:
+all compute state is now either caller-owned or per-run, with nothing shared
+implicitly between sessions. A session is therefore just an ordinary
+caller-owned object — there is no process-wide lock and no `begin`/`end` pair
+to keep in sync.
 
 **Consequences:**
 
-- Only one session can be active per process at a time
-- Initialization and configuration are not thread-safe
-- Each session is configured by a fresh `Parameters` struct
+- Independent sessions may run concurrently in different threads, each owning
+  its own `Parameters`, `Database`, `Dbindex` and `VsearchSession` (as well as
+  its own per-subsystem session objects). There is no "one session per process"
+  rule.
+- A single session or one of its objects must still not be *shared* across
+  threads: drive each session (its setup, configuration and cleanup) from one
+  thread, and give each worker thread its own per-thread compute state (see
+  Per-thread working state and Thread safety below).
+- Each session is configured by a fresh `Parameters` struct.
 
-A session mutex serializes access: `vsearch_session_begin()` acquires
-it, `vsearch_session_end()` releases it. A second `vsearch_session_begin()`
-while a session is active fails with a fatal diagnostic (it does not block).
+Opening a session is just constructing a `VsearchSession` (see Initialization):
+its constructor resolves the configuration and enables the recoverable-error
+mode on the calling thread, and its destructor restores the thread's previous
+mode. The recoverable-error mode is per-thread, so construct the `VsearchSession`
+on the thread that will catch `VsearchError`.
 
 ### Per-thread working state
 
@@ -177,7 +186,7 @@ under default settings. The caller has full control over I/O.
 
 ### Required sequence
 
-Every session must follow this protocol:
+Every session follows this protocol:
 
 ```cpp
 #include "vsearch_api.h"
@@ -189,9 +198,10 @@ struct Parameters parameters;
 parameters.opt_wordlength = 8;
 parameters.opt_id = 0.97;
 
-// 3. Begin the session: acquires the session mutex (fatal if one is already
-//    active), resolves sentinel values, and applies the configuration.
-vsearch_session_begin(parameters);
+// 3. Open the session: the VsearchSession constructor resolves sentinel
+//    values, applies the configuration, and enables the recoverable-error
+//    mode on this thread. The session ends automatically at scope exit.
+VsearchSession const session(parameters);
 
 // 4. An owned, empty database (RAII; frees itself at scope exit). Populate it
 //    with db.read(file, ...) or db.init() + db.add(), then mask and index it.
@@ -200,11 +210,10 @@ Database db;
 // 5-N. Use the library (load DB, run operations, etc.)
 // ...
 
-// Final. Release the session mutex.
-vsearch_session_end();
+// The session, database and index each release themselves at scope exit (RAII).
 ```
 
-`vsearch_session_begin()` resolves sentinel values that depend on other
+The `VsearchSession` constructor resolves sentinel values that depend on other
 options (via `vsearch_apply_defaults_fixups(parameters)`):
 
 - `opt_maxhits`: 0 → `INT64_MAX`
@@ -218,14 +227,14 @@ You configure only the fields you care about; the rest keep their library
 defaults. The `Parameters` struct is the single configuration source — the
 compute engines read it directly, so there are no `opt_*` globals to set.
 
-### RAII session guard (C++)
+### Session lifetime (`VsearchSession`)
 
-C++ callers can replace the explicit `vsearch_session_begin()` /
-`vsearch_session_end()` pair with the `VsearchSession` guard declared in
-`vsearch_api.h`: its constructor begins the session and its destructor ends
-it, so the session is released automatically at scope exit — including on an
-early `return`. It is non-copyable and non-movable (a session is a single
-process-wide resource).
+`VsearchSession` is the session object. Its constructor opens the session
+(resolves the configuration and enables the recoverable-error mode on the
+calling thread) and its destructor closes it (restores the thread's previous
+mode), so the session is released automatically at scope exit — including on an
+early `return` or while an exception unwinds. It is non-copyable and
+non-movable.
 
 ```cpp
 #include "vsearch_api.h"
@@ -235,26 +244,25 @@ parameters.opt_wordlength = 8;
 parameters.opt_id = 0.97;
 
 {
-  VsearchSession const session(parameters);   // begins the session here
+  VsearchSession const session(parameters);   // opens the session here
 
   Database db;
   // ... configure, load, and use the library ...
 
-}  // session ends here: vsearch_session_end() runs in the destructor
+}  // the session ends here, in the destructor
 ```
 
-The guard is a thin convenience wrapper; the two functions remain the primary
-interface, so code that needs an unscoped begin/end pair (or a C-style
-interface) can keep calling them directly. Most programs in `api_examples/`
-use the guard; `example_reinit.cc` uses the explicit calls.
+There is no process-wide lock and no `begin`/`end` pair: independent sessions
+may run concurrently in different threads (each owning its own objects), and
+nested sessions on one thread compose (the previous recoverable-error mode is
+saved and restored). Every program in `api_examples/` uses `VsearchSession`.
 
 ### Re-initialization
 
 Multiple sequential sessions in the same process are supported.
-Repeat the full sequence (fresh `Parameters` → configure →
-`vsearch_session_begin` → work → cleanup → `vsearch_session_end`) for each
-session. Each fresh struct re-applies the gap penalty adjustments from raw
-defaults.
+Repeat the full sequence (fresh `Parameters` → configure → construct a
+`VsearchSession` → work → let it all leave scope) for each session. Each fresh
+struct re-applies the gap penalty adjustments from raw defaults.
 
 See `api_examples/example_reinit.cc` for a tested multi-session example.
 
@@ -262,10 +270,8 @@ See `api_examples/example_reinit.cc` for a tested multi-session example.
 
 | Function | Description |
 |----------|-------------|
-| `vsearch_session_begin(Parameters &)` | Acquire session mutex, resolve sentinels, apply config. Call once after configuring. |
-| `vsearch_apply_defaults_fixups(Parameters &)` | Resolve a struct's sentinel values (called by session_begin; exposed for inspection). |
-| `vsearch_session_end()` | Release session mutex. Call after all cleanup. |
-| `VsearchSession session(Parameters &)` | RAII guard (C++): begins the session in its constructor, ends it in its destructor at scope exit. Optional convenience over the two functions above; non-copyable and non-movable. |
+| `VsearchSession session(Parameters &)` | Open a session (C++ RAII): the constructor resolves sentinels, applies the config, and enables the recoverable-error mode on the calling thread; the destructor restores the previous mode at scope exit. Non-copyable and non-movable. |
+| `vsearch_apply_defaults_fixups(Parameters &)` | Resolve a struct's sentinel values (called by the `VsearchSession` constructor; exposed for inspection). |
 
 ---
 
@@ -481,7 +487,7 @@ De novo mode is inherently sequential (single-threaded).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `opt_wordlength` | `int64_t` | 8 | K-mer length. Set before `vsearch_session_begin()`. |
+| `opt_wordlength` | `int64_t` | 8 | K-mer length. Set before opening the `VsearchSession`. |
 | `opt_minh` | `double` | 0.28 | Minimum h-score for chimera classification. |
 | `opt_xn` | `double` | 8.0 | Weight of no votes. |
 | `opt_dn` | `double` | 1.4 | Pseudo-count prior for votes. |
@@ -513,12 +519,12 @@ above a minimum identity threshold.
 ### Lifecycle
 
 ```cpp
-// Configure search parameters on the struct, before vsearch_session_begin()
+// Configure search parameters on the struct, before opening the VsearchSession
 parameters.opt_id = 0.97;           // minimum 97% identity
 parameters.opt_maxaccepts = 3;      // return up to 3 hits
 parameters.opt_maxrejects = 16;     // give up after 16 rejects
 parameters.opt_strand = true;       // optional: search both strands
-// ... vsearch_session_begin(parameters), load and index the DB ...
+// ... open the VsearchSession, load and index the DB ...
 
 // Allocate and initialize the session
 struct search_session_s * ss = search_session_alloc();
@@ -589,7 +595,7 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 | `search_session_alloc()` | Allocate opaque session state. |
 | `search_session_free(ss)` | Free session state. Null-safe (cleanup is implicit). |
 | `search_session_init(ss, parameters, dbindex, db)` | Initialize session. Call after DB indexed. Respects `opt_strand`. Stores a reference to `dbindex`, which must outlive the session. |
-| `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand` is true). One session per process; do not share across threads. |
+| `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand` is true). Do not share a search session across threads (give each thread its own). |
 | `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
 | `search_batch(parameters, dbindex, db, seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search of `dbindex`. Internally uses `opt_threads`. |
 
@@ -842,7 +848,7 @@ argument is parsed; it is not a valid masking mode.)
 ## Configuration reference
 
 All configuration is done by setting `opt_*` fields on a `Parameters` struct
-before `vsearch_session_begin()`. The full set of ~200 options is defined in
+before opening the `VsearchSession`. The full set of ~200 options is defined in
 the `Parameters` struct in `vsearch.hpp`. The tables below list them by option
 name (accessed as `parameters.opt_name`), grouped by subsystem.
 
@@ -862,7 +868,7 @@ name (accessed as `parameters.opt_name`), grouped by subsystem.
 Target-side gap penalties mirror query-side with `_target_` in the name.
 Defaults are identical.
 
-Gap open penalties are stored as raw values. `vsearch_session_begin()`
+Gap open penalties are stored as raw values. The `VsearchSession` constructor
 subtracts the corresponding extension penalty (e.g., 20 - 2 = 18 for
 interior). This matches the internal scoring convention.
 
@@ -920,12 +926,12 @@ struct VsearchError {   // declared in utils/fatal.hpp, included by vsearch_api.
 };
 ```
 
-Throwing mode is enabled by `vsearch_session_begin()` and cleared by
-`vsearch_session_end()` (so the `VsearchSession` guard turns it on for
-its scope). It is a thread-local flag set only on the thread that opened
-the session: worker threads spawned by the compute engines never throw
-(they stop cooperatively and the main thread reports the error after
-joining), because a C++ exception must not escape a `std::thread`.
+Throwing mode is turned on by the `VsearchSession` constructor and restored
+to its previous state by the destructor, so it is active for the session's
+scope. It is a thread-local flag set only on the thread that opened the
+session: worker threads spawned by the compute engines never throw (they stop
+cooperatively and the main thread reports the error after joining), because a
+C++ exception must not escape a `std::thread`.
 
 Known error triggers include:
 
@@ -959,10 +965,9 @@ Recovery relies on stack unwinding running destructors, so **own every
 resource with RAII** (`VsearchSession`, `Database`, `Dbindex`, the
 `OutputFileHandle` openers, the `*_session`/`*_info` handles via their
 free functions or a `unique_ptr` wrapper). A `fatal()` caught this way
-runs those destructors on the way out. If you drive the session with the
-bare `vsearch_session_begin()` / `vsearch_session_end()` pair instead of
-the guard, you must call `vsearch_session_end()` yourself in the catch
-block before starting another session.
+runs those destructors on the way out — including the `VsearchSession`
+destructor, which restores the thread's previous fatal-mode, so a fresh
+session in the same process starts cleanly.
 
 > **Resource cleanup on recovery.** A caught `VsearchError` unwinds
 > cleanly: the engines' owning resources are RAII-managed (open files,
@@ -1055,9 +1060,9 @@ only while the database is loaded (until `db.clear()` is called or the
 
 ### Internal allocations
 
-`vsearch_session_begin()` derives the internal `opt_ee_cutoffs_values` array
-from `parameters.opt_ee_cutoffs`, allocating it via `xmalloc` and freeing any
-previous allocation. No action is required from the caller.
+The `VsearchSession` constructor derives the internal `opt_ee_cutoffs_values`
+array from `parameters.opt_ee_cutoffs`, allocating it via `xmalloc` and freeing
+any previous allocation. No action is required from the caller.
 
 ---
 
@@ -1067,9 +1072,9 @@ previous allocation. No action is required from the caller.
 
 | Phase | Thread safety |
 |-------|---------------|
-| Configuring `Parameters` (`parameters.opt_* = ...`) | Single-threaded. |
-| `vsearch_session_begin()` | Single-threaded. Acquires session mutex. |
-| Database loading (`db.init`, `db.add`, `dust_all`) | Single-threaded. |
+| Configuring `Parameters` (`parameters.opt_* = ...`) | Single-threaded (per session). |
+| Opening the `VsearchSession` | Single-threaded (per session). No process-wide lock. |
+| Database loading (`db.init`, `db.add`, `dust_all`) | Single-threaded (per session). |
 | Index building (`dbindex.prepare`, `dbindex.add_all_sequences`) | Single-threaded. |
 | Session init (`chimera_session_init`, etc.) | Single-threaded. |
 | Per-thread init (`chimera_detect_thread_init`, etc.) | Safe for different instances. |
@@ -1078,8 +1083,10 @@ previous allocation. No action is required from the caller.
 
 ### Rules
 
-1. **One session at a time.** The session mutex prevents concurrent
-   initialization but does not protect against misuse within a session.
+1. **Drive each session from one thread.** A session's setup, configuration
+   and cleanup are single-threaded. There is no process-wide lock, so
+   independent sessions — each with its own `Parameters`, `Database`,
+   `Dbindex` and `VsearchSession` — may run concurrently in different threads.
 
 2. **Each thread gets its own state object.** Never share
    `chimera_info_s`, `search_session_s`, or `cluster_session_s` across
@@ -1183,7 +1190,7 @@ int main() {
     parameters.opt_wordlength = 8;
     parameters.opt_id = 0.97;
     parameters.opt_maxaccepts = 1;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     // Load database
     Database db;
@@ -1216,6 +1223,6 @@ int main() {
     search_session_free(ss);
     dbindex.clear();  // (also freed automatically at scope exit)
     db.clear();
-    vsearch_session_end();
+    // the VsearchSession ends automatically at scope exit
 }
 ```

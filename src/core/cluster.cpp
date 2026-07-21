@@ -1602,7 +1602,7 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
 {
   /* Initialize clustering session for library use.
      Reads configuration from the passed parameters (same one given to
-     vsearch_session_begin); assumes the database is already set up
+     the VsearchSession constructor); assumes the database is already set up
      (sequences loaded, masked, and dbindex.prepare called with
      bitmap=1 but WITHOUT add_all_sequences — centroids are indexed
      incrementally as they are discovered, into the passed dbindex). The

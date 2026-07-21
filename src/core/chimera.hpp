@@ -165,8 +165,8 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
    chimera_session_init/cleanup around this function.
    NOT safe to call concurrently with any other chimera API call.
    Creates and destroys a thread pool per call.
-   Requires: parameters configured (same one passed to vsearch_session_begin),
-   database loaded and indexed.
+   Requires: parameters configured (same one passed to the VsearchSession
+   constructor), database loaded and indexed.
    results: caller-allocated array of query_count elements. */
 auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,

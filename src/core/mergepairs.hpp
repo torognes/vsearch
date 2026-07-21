@@ -137,7 +137,7 @@ struct MergeInput {
    and keeps no per-call mutable state, so a single MergePairs instance may be
    shared across threads.
 
-   Relevant opt_* overrides (set on Parameters before vsearch_session_begin,
+   Relevant opt_* overrides (set on Parameters before opening a VsearchSession,
    then pass the same Parameters to the constructor and to merge()):
      opt_fastq_minovlen   — minimum overlap length (default 10)
      opt_fastq_maxdiffs   — max mismatches in overlap (default 10)
@@ -152,8 +152,9 @@ public:
   explicit MergePairs(struct Parameters const & parameters);
 
   /* Merge a single forward/reverse read pair.
-     parameters: the configured Parameters (same one passed to the
-       constructor / vsearch_session_begin); supplies the merge tunables.
+     parameters: the configured Parameters (same one passed to the MergePairs
+       constructor and used to open the VsearchSession); supplies the merge
+       tunables.
      fwd/rev: the forward and reverse reads (matching sequence + quality
        views; see MergeInput).
      Returns a MergeResult. On success result.merged is true and

@@ -1,9 +1,9 @@
 /*
  * example_reinit.cc — Regression test for library API re-initialization.
  *
- * Verifies that beginning a session with vsearch_session_begin(Parameters &)
- * multiple times in the same process produces correct gap penalties and
- * identical chimera detection results each time.
+ * Verifies that opening a session with VsearchSession(Parameters &) multiple
+ * times in the same process produces correct gap penalties and identical
+ * chimera detection results each time.
  *
  * This test catches the bug where a static bool in the fixups step
  * permanently prevented gap-open penalty adjustment after the first call.
@@ -76,10 +76,10 @@ static session_results run_session(
     /* Initialize */
     struct Parameters parameters;
     parameters.opt_wordlength = 8;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
-    /* Record gap penalties after fixups (vsearch_session_begin resolved them
-       in place on the passed struct) */
+    /* Record gap penalties after fixups (the VsearchSession constructor
+       resolved them in place on the passed struct) */
     results.gap_open_query_interior = parameters.opt_gap_open_query_interior;
     results.gap_open_query_left = parameters.opt_gap_open_query_left;
     results.gap_open_query_right = parameters.opt_gap_open_query_right;
@@ -118,7 +118,7 @@ static session_results run_session(
     chimera_info_free(ci);
     dbindex.clear();
     db.clear();
-    vsearch_session_end();
+    /* the VsearchSession ends here as `session` leaves scope */
 
     return results;
 }
@@ -216,7 +216,7 @@ int main() {
 
     struct Parameters parameters;
     parameters.opt_wordlength = 8;
-    vsearch_session_begin(parameters);
+    VsearchSession const session(parameters);
 
     Database db;
     db.init();
@@ -279,7 +279,7 @@ int main() {
 
     dbindex.clear();
     db.clear();
-    vsearch_session_end();
+    /* the VsearchSession ends when `session` leaves main() at scope exit */
 
     std::fprintf(stderr,
         "PASS: multi-handle detection, %zu queries identical across 2 handles\n",

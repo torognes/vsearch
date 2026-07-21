@@ -250,7 +250,8 @@ public:
   /* Options migrated from the opt_* globals (E1/F1). Types match the globals
      and the default values are the canonical library defaults, so a
      default-constructed Parameters is a fully-defaulted configuration that
-     vsearch_session_begin() then derives the globals from. */
+     the VsearchSession constructor then resolves (via
+     vsearch_apply_defaults_fixups). */
   char *    opt_alnout                       = nullptr;
   char *    opt_biomout                      = nullptr;
   char *    opt_blast6out                    = nullptr;

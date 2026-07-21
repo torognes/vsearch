@@ -66,8 +66,8 @@
 #include <string>  // std::string (VsearchError payload)
 
 // fatal_detail::throw_on_fatal() is defined in vsearch_api.cpp, next to the
-// session begin/end that are its only mutators. Only this translation unit
-// reads it.
+// VsearchSession ctor/dtor that are its only mutators. Only this translation
+// unit reads it.
 
 
 namespace {

@@ -90,10 +90,10 @@ auto search_session_free(struct search_session_s * ss) -> void;
 
 /* Initialize search session for library use.
    Respects parameters.opt_strand: allocates minus-strand state when it is true.
-   Requires: parameters configured (same one passed to vsearch_session_begin),
-   database loaded and indexed. The session stores a reference to parameters,
-   which must outlive the session. One active session at a time per process.
-   Do NOT share a session across threads. */
+   Requires: parameters configured (same one passed to the VsearchSession
+   constructor), database loaded and indexed. The session stores a reference to
+   parameters, which must outlive the session. Do NOT share a search session
+   across threads. */
 auto search_session_init(struct search_session_s * ss, struct Parameters const & parameters,
                          struct Dbindex const & dbindex,
                          struct Database const & db) -> void;
@@ -122,8 +122,8 @@ auto search_session_cleanup(struct search_session_s * ss) -> void;
 
 /* Search a batch of queries against the global database.
    Internally parallelizes across parameters.opt_threads.
-   Requires: parameters configured (same one passed to vsearch_session_begin),
-   database loaded and indexed.
+   Requires: parameters configured (same one passed to the VsearchSession
+   constructor), database loaded and indexed.
    NOT safe to call concurrently with any other search/session/init call.
    Creates and destroys a thread pool per call; callers processing a
    stream of queries should submit large batches to amortize this cost.

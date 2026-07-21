@@ -115,10 +115,9 @@ time: a missing file (fails at open), a malformed FASTQ (fails mid-read, so the
 unwind frees an open handle and a partially-loaded database), and an
 engine-internal fatal from `chimera_detect_single()` (unwinds through live
 per-thread state, which must stay usable afterwards). Also pins the session
-contracts: the `VsearchError::message` carries the fatal text, a nested
-`vsearch_session_begin()` is a catchable fatal, a fresh session works after a
-caught fatal, and recovery works via the explicit `vsearch_session_begin()` /
-`vsearch_session_end()` pair (not just the RAII guard). Self-validating.
+contracts: the `VsearchError::message` carries the fatal text, and a fresh
+`VsearchSession` works after a caught fatal (proving the destructor restored
+the thread's fatal-mode as it left scope). Self-validating.
 
 ## Test data
 

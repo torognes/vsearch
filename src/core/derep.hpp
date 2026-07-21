@@ -79,7 +79,7 @@ auto derep_session_free(struct derep_session_s * ds) -> void;
 
 /* Initialize a dereplication session.
    Does NOT require a loaded database — sequences are added via derep_add_sequence.
-   Call vsearch_session_begin(Parameters&) before this. */
+   Open a VsearchSession (from your Parameters) before this. */
 auto derep_session_init(struct derep_session_s * ds) -> void;
 
 /* Add a single sequence to the dereplication session.

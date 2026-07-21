@@ -59,12 +59,11 @@
 */
 
 // Shared parameter normalization and validation: resolves the sentinel and
-// range values of a Parameters struct (vsearch_apply_defaults_fixups) and
-// manages the library-session lifecycle (vsearch_session_begin/end). This
+// range values of a Parameters struct (vsearch_apply_defaults_fixups). This
 // logic is common to both the command-line front-end (cli.cc) and the library
-// API (vsearch_api.h), so it lives in its own translation unit rather than in
-// the argument parser or in main(). validate_thread_count() lives here too,
-// next to its fixups caller.
+// API (the VsearchSession constructor calls vsearch_apply_defaults_fixups), so
+// it lives in its own translation unit rather than in the argument parser or in
+// main(). validate_thread_count() lives here too, next to its fixups caller.
 
 #include "parameters.hpp"  // validate_thread_count, parameters_resolve_derived, parameters_validate, vsearch_apply_defaults_fixups
 #include "vsearch.hpp"  // struct Parameters
@@ -98,8 +97,8 @@ auto validate_thread_count(int64_t const threads) -> void
 /* Sentinel/range resolution operating on a Parameters struct: resolves the
    values the parser (or a library caller) left as sentinels, applies the
    default thread count, and range-checks a few options. Shared by the CLI
-   (apply_command_defaults) and the library session (vsearch_session_begin).
-   The gap-open adjustment is guarded by the struct's own
+   (apply_command_defaults) and the library session (the VsearchSession
+   constructor). The gap-open adjustment is guarded by the struct's own
    gap_penalties_adjusted so a repeated call stays idempotent. */
 auto parameters_resolve_derived(struct Parameters & parameters) -> void
 {

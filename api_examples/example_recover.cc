@@ -11,8 +11,8 @@
  * increasing depth — a missing file (fails at open), a malformed file (fails
  * mid-read, with a partially-loaded database and an open handle to unwind),
  * and a compute-engine entry point (chimera_detect_single) — plus the session
- * contracts (message content, nested begin, and the explicit begin/end
- * recovery path).
+ * contracts (the VsearchError message content and session reuse after a caught
+ * fatal).
  *
  * Build:  g++ -std=c++11 -O3 -I../src -o example_recover example_recover.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_recover
@@ -239,11 +239,11 @@ static int test_recover_from_engine_fatal(struct Parameters const & parameters)
 
 /* --- Test 4: sessions stay reusable after a caught fatal ---
    A fatal that unwinds must run the RAII cleanup on its way out — in
-   particular the VsearchSession guard, whose destructor calls
-   vsearch_session_end() to clear throwing mode and release the session lock.
-   Verify that by ending the first session (with the guard leaving scope during
-   the unwind), then beginning a fresh one and doing real work: if the lock had
-   been left held, vsearch_session_begin() below would itself fatally fail. */
+   particular the VsearchSession object, whose destructor restores the thread's
+   previous fatal-mode as it leaves scope. Verify that by letting the first
+   session end during the unwind, then constructing a fresh one and doing real
+   work: if the fatal-mode had been left enabled (or wrongly cleared), this
+   second session would misbehave. */
 static int test_session_reuse_after_recover()
 {
   int failures = 0;
@@ -285,114 +285,11 @@ static int test_session_reuse_after_recover()
 }
 
 
-/* --- Test 5: a nested vsearch_session_begin() is a catchable fatal ---
-   The session lock is taken with try_lock(), so a second begin while a session
-   is active does not block: it raises a fatal diagnostic. On the
-   session-owning thread throwing mode is already on, so that fatal surfaces as
-   a catchable VsearchError rather than killing the process. The failed begin
-   never acquired the lock, so the original session is intact and a single
-   vsearch_session_end() releases it. */
-static int test_double_begin_is_fatal()
-{
-  int failures = 0;
-
-  struct Parameters first;
-  vsearch_session_begin(first);
-
-  bool caught = false;
-  try
-    {
-      struct Parameters second;
-      vsearch_session_begin(second);
-      std::fprintf(stderr, "FAIL: a nested vsearch_session_begin() did not raise VsearchError\n");
-      ++failures;
-    }
-  catch (VsearchError const &)
-    {
-      caught = true;
-    }
-
-  /* The first session still holds the (once-taken) lock; release it once. */
-  vsearch_session_end();
-
-  if (caught)
-    {
-      std::fprintf(stderr, "PASS: a nested vsearch_session_begin() is a catchable fatal\n");
-    }
-  else
-    {
-      ++failures;
-    }
-
-  /* A fresh session after the caught nested-begin must start cleanly, proving
-     the lock was released exactly once (not double-unlocked). */
-  struct Parameters again;
-  vsearch_session_begin(again);
-  vsearch_session_end();
-
-  return failures;
-}
-
-
-/* --- Test 6: recovery via the explicit vsearch_session_begin/end pair ---
-   Every recover test above uses the VsearchSession RAII guard, whose destructor
-   ends the session during the unwind. LIBRARY_API.md documents an alternative:
-   a caller driving the bare begin/end pair must call vsearch_session_end()
-   itself in the catch block before starting another session. This exercises
-   that manual path — a fatal is caught, the session is ended by hand, and a
-   fresh explicit session then does real work. */
-static int test_recover_with_explicit_session()
-{
-  int failures = 0;
-
-  struct Parameters parameters;
-  vsearch_session_begin(parameters);
-  bool caught = false;
-  try
-    {
-      Database bad;
-      bad.read("data/this_file_does_not_exist.fasta", 0, parameters);
-    }
-  catch (VsearchError const &)
-    {
-      caught = true;
-    }
-  vsearch_session_end();   /* manual: the RAII guard is not in play here */
-
-  if (not caught)
-    {
-      std::fprintf(stderr, "FAIL: explicit-session read of a missing file did not raise VsearchError\n");
-      ++failures;
-    }
-
-  /* A fresh explicit session in the same process must work after the manual end
-     above released the lock. */
-  struct Parameters again;
-  vsearch_session_begin(again);
-  Database db;
-  db.read("data/chimera_ref.fasta", 0, again);
-  if (db.getsequencecount() != 6)
-    {
-      std::fprintf(stderr, "FAIL: explicit fresh session got %lu sequences, expected 6\n",
-                   (unsigned long) db.getsequencecount());
-      ++failures;
-    }
-  else
-    {
-      std::fprintf(stderr, "PASS: recovery via the explicit begin/end pair works\n");
-    }
-  db.clear();
-  vsearch_session_end();
-
-  return failures;
-}
-
-
 int main()
 {
   int failures = 0;
 
-  /* Tests 1-3 each run inside their own single session. */
+  /* Tests 1-3 each run inside their own session. */
   {
     struct Parameters parameters;
     VsearchSession const session(parameters);
@@ -412,10 +309,8 @@ int main()
     failures += test_recover_from_engine_fatal(parameters);
   }
 
-  /* Tests 4-6 manage their own (sequential) sessions. */
+  /* Test 4 manages its own (sequential) sessions. */
   failures += test_session_reuse_after_recover();
-  failures += test_double_begin_is_fatal();
-  failures += test_recover_with_explicit_session();
 
   return failures == 0 ? 0 : 1;
 }

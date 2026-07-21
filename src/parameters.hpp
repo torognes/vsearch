@@ -62,11 +62,11 @@
 
 // Declarations for the internal functions defined in parameters.cpp:
 // thread-count validation and Parameters sentinel/range resolution. The
-// library-session entry points (vsearch_session_begin/vsearch_session_end),
-// also defined in parameters.cpp, are public API and are declared in the
-// public header vsearch_api.h instead. struct Parameters is (for now) still
-// defined in vsearch.hpp; the functions that take it do so by reference, so a
-// forward declaration suffices.
+// library session lifecycle (the VsearchSession ctor/dtor, which calls
+// vsearch_apply_defaults_fixups below) is public API defined in vsearch_api.cpp
+// and declared in the public header vsearch_api.h instead. struct Parameters is
+// (for now) still defined in vsearch.hpp; the functions that take it do so by
+// reference, so a forward declaration suffices.
 
 #include <cstdint>  // int64_t (validate_thread_count)
 
@@ -91,7 +91,7 @@ auto parameters_validate(struct Parameters const & parameters) -> void;
 /* Apply every default fix-up to a Parameters in the order the compute engines
    expect: parameters_resolve_derived(), then the command-agnostic sentinel
    defaults (weak_id clamp, threads, maxrejects, wordlength), then
-   parameters_validate(). The library's single entry point (called by
-   vsearch_session_begin()); the CLI supplies its own command-aware defaults
+   parameters_validate(). The library's single entry point (called by the
+   VsearchSession constructor); the CLI supplies its own command-aware defaults
    and calls the two helpers above directly. Idempotent per struct. */
 auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void;
