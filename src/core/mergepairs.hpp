@@ -66,6 +66,18 @@
 
 /* === Library API for embedding paired-end merging === */
 
+/* A hard input error that made merge() reject the pair, distinct from an
+   ordinary "did not overlap well enough" non-merge: a FASTQ quality symbol
+   outside [fastq_qmin, fastq_qmax]. The CLI treats this as fatal; a library
+   caller can inspect MergeResult::error and choose to skip the pair or abort its
+   own run. (more_fwd_than_rev, the CLI reader's fwd/rev count mismatch, cannot
+   occur on the single-pair path and so is not represented here.) */
+enum struct MergeError {
+  none,                 /* successful merge, or an ordinary non-merge */
+  quality_below_qmin,
+  quality_above_qmax,
+};
+
 /* Result of merging a single read pair, returned by MergePairs::merge().
 
    sequence and quality own their storage (std::string), so there is nothing
@@ -73,7 +85,11 @@
    MergeResult goes out of scope (RAII). Both strings are empty when the merge
    fails (merged == false). quality holds ASCII-encoded quality symbols;
    sequence holds the merged DNA. Neither string carries a trailing NUL of its
-   own, but .c_str() null-terminates as usual. */
+   own, but .c_str() null-terminates as usual.
+
+   A non-merge is ordinary (poor overlap, too many differences, ...) unless
+   error != MergeError::none, which flags a hard input error (an out-of-range
+   FASTQ quality value; error_value carries the offending value). */
 struct MergeResult {
   bool merged = false;         /* true if merge succeeded */
   int merged_length = 0;       /* length of merged sequence */
@@ -85,6 +101,8 @@ struct MergeResult {
   int fwd_errors = 0;          /* mismatches attributed to forward read */
   int rev_errors = 0;          /* mismatches attributed to reverse read */
   int overlap_length = 0;      /* length of overlap region */
+  MergeError error = MergeError::none;  /* hard input error, if any (see MergeError) */
+  int error_value = 0;         /* the offending quality value when error != none */
 };
 
 /* Number of ASCII quality symbols indexable in the score tables. */
@@ -140,7 +158,11 @@ public:
        views; see MergeInput).
      Returns a MergeResult. On success result.merged is true and
      result.sequence / result.quality hold the merged read, owned by the
-     result. On failure result.merged is false and both strings are empty.
+     result. On failure result.merged is false and both strings are empty; if
+     the failure was a hard input error (a FASTQ quality value outside
+     [fastq_qmin, fastq_qmax]) result.error says which and result.error_value
+     carries the offending value, letting the caller distinguish it from an
+     ordinary non-merge. Does not throw on an out-of-range quality.
 
      Thread-safe: a const MergePairs may be shared across threads. */
   auto merge(struct Parameters const & parameters,

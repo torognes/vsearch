@@ -760,10 +760,19 @@ of scope — there is nothing for the caller to release.
 | `fwd_errors` | `int` | Mismatches attributed to forward read. |
 | `rev_errors` | `int` | Mismatches attributed to reverse read. |
 | `overlap_length` | `int` | Length of overlap region. |
+| `error` | `MergeError` | Hard input error, if any: `none` (success or ordinary non-merge), `quality_below_qmin`, or `quality_above_qmax`. Added in API 0.16.0. |
+| `error_value` | `int` | The offending FASTQ quality value when `error != none`. Added in API 0.16.0. |
 
 The strings grow as needed — there is no fixed upper bound on merged
 length — and are freed with the `MergeResult` (RAII). `merge()` returns a
 fresh result by value each call, so results are always independent.
+
+A non-merge (`merged == false`) is ordinary — poor overlap, too many
+differences, etc. — unless `error != MergeError::none`, which flags a hard
+input error: a FASTQ quality value outside `[fastq_qmin, fastq_qmax]`
+(`error_value` carries it). The CLI treats that as fatal; the library reports
+it on the result instead of throwing, so a caller can skip the pair or stop the
+batch as it chooses.
 
 ### Key options
 
@@ -783,7 +792,7 @@ fresh result by value each call, so results are always independent.
 | Function | Description |
 |----------|-------------|
 | `MergePairs(parameters)` | Construct a merge session. Builds the quality lookup tables once and holds them privately; reuse the session for every merge. |
-| `MergePairs::merge(parameters, fwd, rev)` | Merge one pair (`fwd`/`rev` are `MergeInput` = sequence + equal-length quality `View<char>`). Returns a `MergeResult` by value; on failure `result.merged` is `false` and the strings are empty. `const`, thread-safe. |
+| `MergePairs::merge(parameters, fwd, rev)` | Merge one pair (`fwd`/`rev` are `MergeInput` = sequence + equal-length quality `View<char>`). Returns a `MergeResult` by value; on failure `result.merged` is `false` and the strings are empty (`result.error` distinguishes an out-of-range quality from an ordinary non-merge). `const`, thread-safe. |
 | `MergeInput{sequence, quality}` | One read: two read-only `View<char>` of equal length (one quality symbol per base). |
 
 ---

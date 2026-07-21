@@ -758,6 +758,20 @@ auto MergePairs::merge(struct Parameters const & parameters,
   MergeResult result;
   result.merged = md.merged;
 
+  /* Surface an out-of-range FASTQ quality (recorded by the merge core on the
+     read pair) as a hard error the caller can tell apart from an ordinary
+     non-merge. Only the two quality reasons can occur here; more_fwd_than_rev is
+     a CLI-reader condition, never reached on the single-pair path. This maps the
+     internal MergeAbortReason to the public MergeError (keeping the internal enum
+     out of the library header). */
+  if (md.quality_out_of_range)
+    {
+      result.error = (md.abort_reason == MergeAbortReason::quality_above_qmax)
+                       ? MergeError::quality_above_qmax
+                       : MergeError::quality_below_qmin;
+      result.error_value = md.abort_value;
+    }
+
   if (md.merged)
     {
       auto const len = static_cast<std::size_t>(md.merged_length);
