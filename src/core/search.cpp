@@ -77,6 +77,7 @@
 #include "utils/worker_loop.hpp"
 #include "utils/reverse_complement.hpp"
 #include <algorithm>  // std::copy_n
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // uint64_t, int64_t
 #include <cstring>  // std::strlen
 #include <memory>  // std::unique_ptr

@@ -193,7 +193,7 @@ namespace {
   constexpr auto max_gap_penalty = int64_t{32767 / (1 + 4)};  // SHRT_MAX / (1 + CDEPTH)
 
 
-  auto args_get_gap_penalty_string(char * arg, bool const is_open, struct Parameters & parameters) -> void
+  auto args_get_gap_penalty_string(char const * arg, bool const is_open, struct Parameters & parameters) -> void
   {
     /* See http://www.drive5.com/usearch/manual/aln_params.html
 
