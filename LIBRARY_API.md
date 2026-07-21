@@ -1197,11 +1197,13 @@ int main() {
     db.init();
     const char * h = "ref1";
     const char * s = "ACGTACGTACGTACGTACGT";
-    db.add(false, h, s, nullptr, strlen(h), strlen(s), 1);
+    db.add(false, SeqRecord{View<char>{h, std::strlen(h)},
+                            View<char>{s, std::strlen(s)},
+                            View<char>{}}, 1);
     dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, opt_dbmask, db, parameters);
-    dbindex.add_all_sequences(opt_dbmask, db, parameters);
+    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     // Search
     struct search_session_s * ss = search_session_alloc();
@@ -1210,12 +1212,13 @@ int main() {
     const char * qh = "query1";
     const char * qs = "ACGTACGTACGTACGTACGT";
     struct search_result_s results[5];
-    int count;
-    search_session_single(ss, qs, qh, strlen(qs), 1, results, 5, &count);
+    int count = 0;
+    search_session_single(ss, qs, qh, static_cast<int>(std::strlen(qs)), 1,
+                          results, 5, &count);
 
     for (int i = 0; i < count; i++) {
-        printf("%s\t%s\t%.1f%%\n",
-               qh, db.getheader(results[i].target), results[i].id);
+        std::printf("%s\t%s\t%.1f%%\n",
+                    qh, db.getheader(results[i].target), results[i].id);
     }
 
     // Cleanup
