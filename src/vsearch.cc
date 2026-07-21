@@ -116,7 +116,6 @@
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
-#include "utils/random.hpp"
 #include <array>
 #include <cerrno>  // errno, ERANGE
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf, std::printf
@@ -348,8 +347,6 @@ auto main(int argc, char** argv) -> int
      check below, matching the original ordering. */
   {
     LogFile const log_file(parameters);
-
-    random_init(parameters);
 
     show_header(parameters);
 

@@ -5,10 +5,14 @@ Status: Phases 1, 2, and 4 **DONE and merged into `dev`**. Phase 3 is now
 quality-score tables (→ the `QualityTables` struct), and all of Group F
 (`hash_function` const-ified + `hashtable`/`hashtablesize` localised) have all
 landed on `dev`. What is left is a small residue of genuinely-mutable file-scope
-state (Groups C-abort, E, G) plus three items a fresh `nm` re-sweep surfaced that
-the original inventory had missed.
-Original inventory: 2026-07-13. This revision: 2026-07-18 (re-swept on `dev` @
-`37c2b5d7`).
+state: Groups C-abort and E from the original set, plus the showalign row
+buffers surfaced by the re-sweep. (Of the three re-sweep additions, `unique.cpp`'s
+`hash_function` and `derep_sort_db` have since been eliminated.)
+Original inventory: 2026-07-13. Revised 2026-07-18 (re-swept on `dev` @
+`37c2b5d7`). Revised 2026-07-21: `derep_sort_db` eliminated (commit `090751fe`);
+then Group G (`base_seed`) eliminated the same day via the owned `RandomSeed`
+class (see its row below). An `nm` re-sweep over the current build confirms the
+mutable-global residue is now **8** with no new mutable global having appeared.
 
 Goal (from `CLAUDE.md`): "avoid non const global variables". This document
 inventories every mutable global with static storage duration that remains in
@@ -35,7 +39,7 @@ showalign row buffers, `derep_sort_db`, and `unique.cpp`'s `hash_function` — s
 stay plugged and nothing new leaked an external symbol.
 
 
-## Progress since the original inventory (34 → 6 of the original set)
+## Progress since the original inventory (34 → 5 of the original set)
 
 | Group | File | Original count | Now | Landed |
 |-------|------|---------------:|-----|--------|
@@ -43,12 +47,12 @@ stay plugged and nothing new leaked an external symbol.
 | **B** ✅DONE | `core/dbhash.cpp` | 5 | 0 | → owned `Dbhash` class (`9d8d498a`, `2625497b`); threaded into `--search_exact`. Internal-only. |
 | **C** ⚠ partial | `core/mergepairs.cpp` | 9 | 4 | 5 lookup tables → the `QualityTables` struct returned by `mergepairs_init`/`precompute_qual` and passed by `const &` (`d94aa9a7`, api 0.11.0). The 4 abort-state atomics remain — **deliberate** (see below). |
 | **D** ✅DONE | `core/otutable.cpp` | 1 | 0 | The `otutable` singleton pointer → the owned `OtuTable` class (`0dc01686`; name buffers to `std::string` `a4d6b5b3`; stale include dropped `302ac812`). |
-| **E** ⏳ pending | `core/getseq.cpp` | 1 | 1 | `labels_data` (`static std::vector<std::vector<char>>`, getseq.cpp:87) — unchanged. |
+| **E** ⏳ pending | `core/getseq.cpp` | 1 | 1 | `labels_data` (`static std::vector<std::vector<char>>`, getseq.cpp:91) — unchanged. |
 | **F** ✅DONE | `core/derep.cpp`, `core/kmerhash.cpp`, `commands/derep_smallmem.cpp` | 5 | 0 | The 3 `hash_function` pointers → `static constexpr` (Phase 1). `hashtable`/`hashtablesize` are now function-locals of `derep_smallmem` (`92e3dc7f` per-invocation struct, `2414ea0e` `std::vector`). |
-| **G** ⏳ pending | `utils/random.cpp` | 1 | 1 | `base_seed` (`static uint64_t`, random.cpp:67) — unchanged. |
+| **G** ✅DONE | `utils/random.cpp` | 1 | 0 | `base_seed` + `random_init()` + `random_base_seed()` → the owned `RandomSeed` class (ctor resolves the seed from `Parameters`, `value()`/`substream()` read it; both `noexcept`, ctor not — `std::random_device` may throw). Constructed per consuming command (shuffle/fastx_subsample locals, sintax a `sintax_state_s` member read lock-free by workers); `random_init` call dropped from `vsearch.cc`. `random_substream_seed` moved to an anonymous namespace (internal linkage). Internal-only, no ABI change. |
 
-Of the original 34, **28 are eliminated** and **6 remain** (Group C's 4
-abort-state atomics, Group E, Group G).
+Of the original 34, **29 are eliminated** and **5 remain** (Group C's 4
+abort-state atomics and Group E; Group G was eliminated 2026-07-21).
 
 
 ## Surfaced by the 2026-07-18 re-sweep (not in the original 34)
@@ -59,22 +63,24 @@ none is an ODR/link hazard; they are encapsulation candidates, not correctness
 bugs.
 
 - **`core/showalign.cpp`** — `q_line`, `a_line`, `d_line`, three
-  anonymous-namespace `std::vector<char>` row buffers (showalign.cpp:80-82),
-  resized and overwritten per alignment. They pre-date the original inventory
-  (blame: 2025-08-21) but were simply not listed. Internal linkage; single
-  reader (output is single-threaded). Phase-3-style fix: bundle the three into a
-  small `ShowAlign` state object owned by the print entry point, or pass the
-  buffers as parameters. **3 symbols.**
+  anonymous-namespace `std::vector<char>` row buffers
+  (showalign.cpp:78-80) resized and overwritten per alignment. They pre-date the
+  original inventory (blame: 2025-08-21) but were simply not listed. Internal
+  linkage; single reader (output is single-threaded). Phase-3-style fix: bundle
+  the three into a small `ShowAlign` state object owned by the print entry point,
+  or pass the buffers as parameters. **3 symbols.**
 - **`commands/derep_prefix.cpp`** — `derep_sort_db`, a file-scope
-  `Database const *` (derep_prefix.cpp:129) set to `&db` (line 367) purely so the
-  C-style `std::sort` comparator (line 160) can reach the database. Introduced by
-  the Group A work itself (`9cef6395`, "give derep_prefix its own Database"): the
-  migration removed the global `db` but reintroduced this narrower global bridge.
-  It is the **only** such comparator-bridge global left (searchcore threads its
-  `Database &` through `hit_compare_bysize_typed` as a parameter instead). Fix:
-  replace the free-function comparator + global with a stateful comparator
-  (lambda/functor capturing `db`), the same pattern searchcore already uses.
-  **1 symbol.**
+  `Database const *` set to `&db` purely so the C-style `std::sort` comparator
+  could reach the database. Introduced by the Group A work itself (`9cef6395`,
+  "give derep_prefix its own Database"): that migration removed the global `db`
+  but reintroduced this narrower global bridge. It was the **only** such
+  comparator-bridge global left (searchcore threads its `Database &` through
+  `hit_compare_bysize_typed` as a parameter instead). **[DONE]** — eliminated in
+  commit `090751fe` exactly as planned: the free-function comparator + global were
+  replaced by a stateful `compare_prefix` lambda capturing `&db`
+  (derep_prefix.cpp:313), passed to `std::sort` (line 342), done alongside the
+  `std::qsort` → `std::sort` conversion. Verified absent from the source and from
+  `.data`/`.bss` in the 2026-07-21 `nm` re-sweep. **1 symbol → 0.**
 - **`core/unique.cpp`** — `hash_function` (unique.cpp:86), a non-`const`
   anonymous-namespace function pointer, never reassigned. The original Group F
   counted "×3" and missed this fourth one.  **[DONE]** — const-ified in place to
@@ -83,14 +89,15 @@ bugs.
   anonymous namespace). Matches the Group F siblings' `.data.rel.ro`/RELRO
   placement. cppcheck clean; binary relinks. **1 symbol → 0.**
 
-Adding these, the current mutable-global residue is **10**: Group C-abort (4),
-Group E (1), Group G (1), showalign (3), `derep_sort_db` (1).
+Adding these, the current mutable-global residue is **8**: Group C-abort (4),
+Group E (1), showalign (3). (`derep_sort_db` and Group G's `base_seed` were both
+eliminated on 2026-07-21 — see the derep_prefix bullet above and the Group G row.)
 
 
 ## Why Group C keeps its 4 abort-state symbols
 
 `merge_abort`, `merge_error_claimed`, `merge_error_reason`, `merge_error_value`
-(mergepairs.cpp:106-109) coordinate the merge worker threads and are exposed via
+(mergepairs.cpp:111-114) coordinate the merge worker threads and are exposed via
 `request_merge_abort` / `merge_aborted` / `report_merge_abort`. `merge_abort` and
 `merge_error_claimed` are `std::atomic`; the state is deliberately file-scope so
 that a worker hitting an out-of-range quality value can signal the others without
@@ -165,13 +172,18 @@ reference through the relevant functions.
 - **F** `hashtable`/`hashtablesize` → folded into the derep_smallmem
   per-invocation struct.  [DONE, `92e3dc7f`, `2414ea0e`]
 - **E** `labels_data` → thread through the `getseq` functions.  [pending]
-- **G** `base_seed` → a small seed holder threaded to `random_*`.  [pending]
+- **G** `base_seed` → the owned `RandomSeed` class (ctor from `Parameters`,
+  `value()`/`substream()`), constructed per consuming command; `random_init()`/
+  `random_base_seed()` removed, `random_substream_seed` made file-local.
+  [DONE, 2026-07-21]
 - **C-abort** bundle the 4 atomics into a `Merge_context` owned by `pair_all()`,
   preserving the atomics + join happens-before.  [pending, last — highest risk]
 - **showalign** bundle `q_line`/`a_line`/`d_line` into a `ShowAlign` state or
   pass them as parameters.  [pending, newly listed]
 - **derep_prefix** replace the `derep_sort_db` global + free-function comparator
-  with a stateful comparator capturing `db`.  [pending, newly listed]
+  with a stateful comparator capturing `db`.  [DONE, `090751fe` — `compare_prefix`
+  lambda captures `&db`, passed to `std::sort`; landed with the `std::qsort` →
+  `std::sort` conversion]
 
 ### Phase 4 — the DB core (large, ABI-breaking)  [DONE, merged to `dev`]
 
@@ -190,9 +202,10 @@ Both mirror the earlier `Dbindex` refactor. Full CLI suite + release
 
 - **Runtime-mutated-globals trap**: DB state is mutated after load by
   `udb_read` and the `Database::sortby*` members — Phase 4 kept a *mutable*
-  `Database &` reaching those mutation points, not a `const` snapshot. The same
-  applies to the `derep_sort_db` follow-up: the comparator reads `db` during the
-  sort, so the captured reference must stay valid for the sort's lifetime.
+  `Database &` reaching those mutation points, not a `const` snapshot. This also
+  applied to the (now-completed) `derep_sort_db` removal: `compare_prefix` reads
+  `db` during the sort, so it captures `db` by reference and the sort runs before
+  `db.clear()`, keeping the reference valid for the sort's lifetime.
 - **Threading**: Group C's abort state is deliberately atomic file-scope state
   to avoid a `std::exit()`-during-worker data race; any `Merge_context` must
   preserve the atomics and the happens-before on join.

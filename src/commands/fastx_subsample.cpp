@@ -232,7 +232,8 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
   auto amplicon_mass = sizein_requested ? db.getabundance(0) : 1;
 
   /* reproducible across platforms and seeds (see util.h) */
-  std::mt19937_64 generator(random_base_seed());
+  RandomSeed const seed(parameters);
+  std::mt19937_64 generator(seed.value());
 
   // refactoring C++17: std::sample()
   Progress progress("Subsampling", mass_total, parameters);

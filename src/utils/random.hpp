@@ -67,8 +67,6 @@
 #include "fatal.hpp" // fatal() (used by the templates below)
 
 
-auto random_init(struct Parameters const & parameters) -> void;
-
 /* ---- Cross-platform reproducible RNG ------------------------------------
 
    All of the pieces below produce bit-identical results on every platform
@@ -96,14 +94,24 @@ private:
   uint64_t state_;
 };
 
-/* The process-wide 64-bit base seed, established once by random_init():
-   opt_randseed if non-zero (full 64 bits, no truncation), otherwise a value
-   from the operating system. */
-auto random_base_seed() -> uint64_t;
-
-/* Derive a well-separated sub-stream seed from a base seed and an index
-   (e.g. base = random_base_seed(), index = query number). */
-auto random_substream_seed(uint64_t base, uint64_t index) -> uint64_t;
+/* The per-run 64-bit base seed for the reproducible RNG. Constructed once from
+   the run configuration (opt_randseed if non-zero — full 64 bits, no truncation
+   — otherwise a value drawn once from the operating system) and read-only
+   thereafter, so worker threads can share one instance and read value()
+   lock-free. Owned by the command that needs randomness; replaces the former
+   process-wide base_seed global together with random_init()/random_base_seed(). */
+class RandomSeed {
+public:
+  /* Not noexcept: the opt_randseed == 0 branch uses std::random_device, whose
+     construction and operator() may throw when no entropy source is available. */
+  explicit RandomSeed(struct Parameters const & parameters);
+  auto value() const noexcept -> uint64_t { return seed_; }
+  /* Well-separated sub-stream seed for the given index (e.g. a query number),
+     so per-index streams are reproducible regardless of thread count/order. */
+  auto substream(uint64_t index) const noexcept -> uint64_t;
+private:
+  uint64_t seed_ {};
+};
 
 /* Unbiased integer in [0, range), range > 0 (fatal otherwise). Lemire's
    multiply-shift method with rejection; falls back to rejection on the

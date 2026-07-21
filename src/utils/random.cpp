@@ -64,9 +64,6 @@
 #include <random>  // std::random_device
 
 
-static uint64_t base_seed = 0;
-
-
 auto SplitMix64::operator()() -> uint64_t
 {
   uint64_t z = (state_ += 0x9E3779B97F4A7C15ULL);
@@ -76,33 +73,37 @@ auto SplitMix64::operator()() -> uint64_t
 }
 
 
-auto random_base_seed() -> uint64_t
-{
-  return base_seed;
-}
-
-
-auto random_substream_seed(uint64_t const base, uint64_t const index) -> uint64_t
+namespace {
+/* Derive a well-separated sub-stream seed from a base seed and an index (e.g. a
+   query number). File-local: the sole caller is RandomSeed::substream() below. */
+auto random_substream_seed(uint64_t const base, uint64_t const index) noexcept -> uint64_t
 {
   /* one SplitMix64 hashing step so adjacent indices give well-separated
      streams (SplitMix64 is the recommended mixer for seeding generators) */
   SplitMix64 mixer(base ^ (index * 0x9E3779B97F4A7C15ULL));
   return mixer();
 }
+}  // namespace
 
 
-auto random_init(struct Parameters const & parameters) -> void
+RandomSeed::RandomSeed(struct Parameters const & parameters)
 {
   /* 64-bit base seed for the reproducible RNG (SplitMix64/mt19937_64).
      opt_randseed is used in full when non-zero (no 32-bit truncation);
      otherwise a non-deterministic value is taken from the OS. */
   if (parameters.opt_randseed != 0)
     {
-      base_seed = static_cast<uint64_t>(parameters.opt_randseed);
+      seed_ = static_cast<uint64_t>(parameters.opt_randseed);
     }
   else
     {
       std::random_device device;
-      base_seed = (static_cast<uint64_t>(device()) << 32U) ^ device();
+      seed_ = (static_cast<uint64_t>(device()) << 32U) ^ device();
     }
+}
+
+
+auto RandomSeed::substream(uint64_t const index) const noexcept -> uint64_t
+{
+  return random_substream_seed(seed_, index);
 }

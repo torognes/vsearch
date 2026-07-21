@@ -124,6 +124,8 @@ struct sintax_state_s
   /* the run configuration, threaded through the helpers instead of the
      opt_* globals (E1/F3); set once at construction, read-only thereafter */
   struct Parameters const & parameters;
+  RandomSeed seed;  /* per-run base seed for the reproducible per-query RNG;
+                       resolved once here, read lock-free by every worker */
   struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   struct Dbindex dbindex;  /* the k-mer index this run owns (RAII); si->dbindex points here */
   std::vector<searchinfo_s> si_plus;
@@ -139,7 +141,7 @@ struct sintax_state_s
 
   Progress * progress = nullptr;  /* owner progress bar; worker updates it under the output lock */
 
-  explicit sintax_state_s(struct Parameters const & params) : parameters(params) {}
+  explicit sintax_state_s(struct Parameters const & params) : parameters(params), seed(params) {}
 };
 
 
@@ -423,11 +425,10 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
   int const qseqlen = static_cast<int>(si_plus[t].qsequence.size());
   char const * query_head = si_plus[t].query_head.data();
 
-  /* Per-query RNG: seed from the global base seed and this query's input
+  /* Per-query RNG: seed from the run's base seed and this query's input
      number, so the random subsampling and tie-breaking are reproducible
      regardless of how many threads process the queries or in what order. */
-  SplitMix64 rng(random_substream_seed(random_base_seed(),
-                                       static_cast<uint64_t>(si_plus[t].query_no)));
+  SplitMix64 rng(state.seed.substream(static_cast<uint64_t>(si_plus[t].query_no)));
 
   Bitmap b(static_cast<unsigned int>(qseqlen));
 

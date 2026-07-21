@@ -85,10 +85,11 @@ namespace {
   auto shuffle_deck(std::vector<int> & deck, struct Parameters const & parameters) -> void {
     static constexpr auto one_hundred_percent = 100ULL;
     Progress const progress("Shuffling", one_hundred_percent, parameters);
-    /* random_base_seed() carries the full 64-bit --randseed (or an OS value
+    /* the RandomSeed carries the full 64-bit --randseed (or an OS value
        when 0); random_shuffle() is a portable Fisher-Yates so the order is
        identical across platforms for a given seed (see util.h) */
-    std::mt19937_64 uniform_generator(random_base_seed());
+    RandomSeed const seed(parameters);
+    std::mt19937_64 uniform_generator(seed.value());
     random_shuffle(deck.data(), deck.size(), uniform_generator);
   }
 
