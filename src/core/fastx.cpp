@@ -72,7 +72,9 @@
 #include "utils/open_file.hpp"  // open_input_file
 #include "utils/span.hpp"
 #include <sys/stat.h>
-#include <bzlib.h>
+#ifdef HAVE_BZLIB_H
+#include <bzlib.h>  // BZ_OK, BZ_STREAM_END, BZ_SEQUENCE_ERROR
+#endif
 #include <unistd.h>  // dup, STDOUT_FILENO
 #include <algorithm>  // std::copy_n, std::equal, std::find_first_of
 #include <array>
