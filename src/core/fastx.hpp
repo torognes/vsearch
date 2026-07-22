@@ -115,6 +115,27 @@ enum struct Format : unsigned char { undefined, plain, bzip, gzip };
 
 class DynamicLibraries;  // set from parameters.dyn_libs in fastx_open()
 
+/* Deleter that closes an open gzip/bzip2 stream through the borrowed
+   DynamicLibraries facade, routing to the matching close function by Format.
+   operator() is defined in fastx.cpp, where DynamicLibraries is complete. */
+struct CompressedStreamDeleter
+{
+  DynamicLibraries const * libraries = nullptr;
+  Format format = Format::undefined;
+
+  CompressedStreamDeleter() = default;  // empty handle: never invoked
+  CompressedStreamDeleter(DynamicLibraries const * libs, Format fmt) noexcept
+    : libraries(libs), format(fmt) {}
+
+  auto operator()(void * stream) const noexcept -> void;
+};
+
+/* Owning handle for an open compressed stream: reset()/destruction closes it
+   through the deleter. Empty (and a no-op to destroy) for a plain file. The
+   handle is type-erased to void* so this header needs neither zlib.h nor
+   bzlib.h; the real gzFile/BZFILE types stay inside DynamicLibraries. */
+using CompressedStream = std::unique_ptr<void, CompressedStreamDeleter>;
+
 struct Line_fragment;  // defined below; named by the friend declarations
 
 struct fastx_s
@@ -145,10 +166,10 @@ private:
      DynamicLibraries instance in main(); nullptr in library-only builds */
   DynamicLibraries const * libraries = nullptr;
 
-  /* borrowed handle for the active compressed stream (gzip or bzip2), owned
-     by the zlib/bzip2 library; nullptr for a plain file. Type-erased to void*
-     so this header needs neither zlib.h nor bzlib.h (see DynamicLibraries). */
-  void * compressed_stream = nullptr;
+  /* the active compressed stream (gzip or bzip2), or empty for a plain file;
+     an RAII handle that closes the stream on reset()/destruction (see
+     CompressedStream / CompressedStreamDeleter above). */
+  CompressedStream compressed_stream;
 
   FastxBuffer file_buffer;
 

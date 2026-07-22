@@ -306,7 +306,6 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   input_handle->fp = nullptr;
   input_handle->libraries = parameters.dyn_libs;
-  input_handle->compressed_stream = nullptr;
 
   input_handle->fp = open_input_file(filename).release();
   if (input_handle->fp == nullptr)
@@ -417,7 +416,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
         {
           fatal("Files compressed with gzip are not supported");
         }
-      input_handle->compressed_stream = input_handle->libraries->gz_open(fileno(input_handle->fp));
+      input_handle->compressed_stream = CompressedStream(
+          input_handle->libraries->gz_open(fileno(input_handle->fp)),
+          CompressedStreamDeleter{input_handle->libraries, Format::gzip});
       if (input_handle->compressed_stream == nullptr)
         { // dup?
           fatal("Unable to open gzip compressed file (%s)", filename);
@@ -432,7 +433,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
         {
           fatal("Files compressed with bzip2 are not supported");
         }
-      input_handle->compressed_stream = input_handle->libraries->bz_open(input_handle->fp);
+      input_handle->compressed_stream = CompressedStream(
+          input_handle->libraries->bz_open(input_handle->fp),
+          CompressedStreamDeleter{input_handle->libraries, Format::bzip});
       if (input_handle->compressed_stream == nullptr)
         {
           fatal("Unable to open bzip2 compressed file (%s)", filename);
@@ -475,24 +478,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
         {
           /* close files if unrecognized file type */
 
-          switch (input_handle->format)
-            {
-            case Format::plain:
-              break;
-
-            case Format::gzip:
-              input_handle->libraries->gz_close(input_handle->compressed_stream);
-              input_handle->compressed_stream = nullptr;
-              break;
-
-            case Format::bzip:
-              input_handle->libraries->bz_close(input_handle->compressed_stream);
-              input_handle->compressed_stream = nullptr;
-              break;
-
-            default:
-              fatal("Internal error");
-            }
+          input_handle->compressed_stream.reset();
 
           std::fclose(input_handle->fp);
           input_handle->fp = nullptr;
@@ -532,34 +518,34 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 }
 
 
-/* Release the owned resources: the compression handle (if any) and the
-   underlying file. The five FastxBuffer members free their own storage (RAII).
-   Runs on delete, including during stack unwinding when fatal() throws in a
-   library session, so it must not throw: it never calls fatal() (the "Internal
-   error" default of the old fastx_close switch is dropped — format is always
-   plain/gzip/bzip here) and null-guards every member so a handle abandoned
-   part-way through fastx_open() is torn down safely. */
+auto CompressedStreamDeleter::operator()(void * const stream) const noexcept -> void
+{
+  if ((libraries == nullptr) or (stream == nullptr))
+    {
+      return;
+    }
+  if (format == Format::gzip)
+    {
+      libraries->gz_close(stream);
+    }
+  else if (format == Format::bzip)
+    {
+      libraries->bz_close(stream);
+    }
+}
+
+
+/* Release the owned resources: the compressed stream (if any) and the
+   underlying file. compressed_stream is an RAII handle, so reset() closes any
+   open gzip/bzip2 stream through its deleter; the five FastxBuffer members
+   free their own storage. The stream is closed before fclose(fp) because the
+   library stream wraps fp's descriptor. Runs on delete, including during stack
+   unwinding when fatal() throws in a library session, so it must not throw: it
+   calls no fatal() and null-guards fp, and the deleter no-ops on the empty
+   handle of a reader abandoned part-way through fastx_open(). */
 fastx_s::~fastx_s()
 {
-  switch (format)
-    {
-    case Format::gzip:
-      if ((libraries != nullptr) and (compressed_stream != nullptr))
-        {
-          libraries->gz_close(compressed_stream);
-        }
-      break;
-
-    case Format::bzip:
-      if ((libraries != nullptr) and (compressed_stream != nullptr))
-        {
-          libraries->bz_close(compressed_stream);
-        }
-      break;
-
-    default:
-      break;
-    }
+  compressed_stream.reset();
 
   if (fp != nullptr)
     {
@@ -635,7 +621,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       break;
 
     case Format::gzip:
-      bytes_read = input_handle->libraries->gz_read(input_handle->compressed_stream,
+      bytes_read = input_handle->libraries->gz_read(input_handle->compressed_stream.get(),
                                input_handle->file_buffer.data()
                                + input_handle->file_buffer.position,
                                static_cast<unsigned int>(space));
@@ -646,7 +632,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       break;
 
     case Format::bzip:
-      bytes_read = input_handle->libraries->bz_read(input_handle->compressed_stream,
+      bytes_read = input_handle->libraries->bz_read(input_handle->compressed_stream.get(),
                                    input_handle->file_buffer.data()
                                    + input_handle->file_buffer.position,
                                    static_cast<int>(space));
