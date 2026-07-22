@@ -80,42 +80,48 @@ auto version(struct Parameters const & parameters) -> void
 
   show_publication();
 
-#ifdef HAVE_ZLIB_H
-  std::printf("Compiled with support for gzip-compressed files,");
-  if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->gzip_available())
+  if (compression::gzip_supported)
     {
-      std::printf(" and the library is loaded.\n");
-
-      char const * const gz_version = parameters.dyn_libs->gzip_version();
-      unsigned long const flags = parameters.dyn_libs->gzip_compile_flags();
-
-      std::printf("zlib version %s, compile flags %lx", gz_version, flags);
-      static constexpr auto check_10th_bit = 1024U; // 0x0400
-      if ((flags & check_10th_bit) != 0U)
+      std::printf("Compiled with support for gzip-compressed files,");
+      if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->gzip_available())
         {
-          std::printf(" (ZLIB_WINAPI)");
-        }
-      std::printf("\n");
-    }
-  else
-    {
-      std::printf(" but the library was not found.\n");
-    }
-#else
-  std::printf("Compiled without support for gzip-compressed files.\n");
-#endif
+          std::printf(" and the library is loaded.\n");
 
-#ifdef HAVE_BZLIB_H
-  std::printf("Compiled with support for bzip2-compressed files,");
-  if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->bzip2_available())
-    {
-      std::printf(" and the library is loaded.\n");
+          char const * const gz_version = parameters.dyn_libs->gzip_version();
+          unsigned long const flags = parameters.dyn_libs->gzip_compile_flags();
+
+          std::printf("zlib version %s, compile flags %lx", gz_version, flags);
+          static constexpr auto check_10th_bit = 1024U; // 0x0400
+          if ((flags & check_10th_bit) != 0U)
+            {
+              std::printf(" (ZLIB_WINAPI)");
+            }
+          std::printf("\n");
+        }
+      else
+        {
+          std::printf(" but the library was not found.\n");
+        }
     }
   else
     {
-      std::printf(" but the library was not found.\n");
+      std::printf("Compiled without support for gzip-compressed files.\n");
     }
-#else
-  std::printf("Compiled without support for bzip2-compressed files.\n");
-#endif
+
+  if (compression::bzip2_supported)
+    {
+      std::printf("Compiled with support for bzip2-compressed files,");
+      if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->bzip2_available())
+        {
+          std::printf(" and the library is loaded.\n");
+        }
+      else
+        {
+          std::printf(" but the library was not found.\n");
+        }
+    }
+  else
+    {
+      std::printf("Compiled without support for bzip2-compressed files.\n");
+    }
 }

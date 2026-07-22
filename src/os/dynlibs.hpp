@@ -65,22 +65,38 @@
   at runtime and resolves the handful of symbols vsearch needs. The
   constructor opens the libraries and the destructor closes them (RAII),
   so a single instance owned by main() replaces the former file-scope
-  globals and the manual dynlibs_open()/dynlibs_close() pair. The thin
-  accessors forward to the resolved function pointers; keeping them in the
-  header lets the compiler inline the calls in the read hot loop. The
-  gzFile/BZFILE types come from zlib.h/bzlib.h, which this header includes
-  directly (under the same HAVE_* guards).
+  globals and the manual dynlibs_open()/dynlibs_close() pair. The
+  accessors forward to the resolved function pointers. They take and
+  return type-erased void* handles and are defined out of line in
+  dynlibs.cpp, so this header pulls in neither zlib.h nor bzlib.h: the
+  real gzFile/BZFILE types and the HAVE_*_H guards are confined to that
+  single translation unit. Callers test compression::gzip_supported /
+  compression::bzip2_supported (below) at run time instead of guarding
+  with #ifdef.
 */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"  // HAVE_ZLIB_H, HAVE_BZLIB_H
 #endif
+#include <cstdio>  // std::FILE
+
+namespace compression
+{
+  /* Whether support for each optional compression library was compiled in.
+     These constants are the single source of truth for the HAVE_*_H feature
+     tests: callers branch on them at run time (the compiler elides the dead
+     branch) instead of scattering #ifdef guards throughout the code base. */
 #ifdef HAVE_ZLIB_H
-#include <zlib.h>  // gzFile
+  constexpr bool gzip_supported = true;
+#else
+  constexpr bool gzip_supported = false;
 #endif
 #ifdef HAVE_BZLIB_H
-#include <bzlib.h>  // BZFILE
+  constexpr bool bzip2_supported = true;
+#else
+  constexpr bool bzip2_supported = false;
 #endif
+}
 
 class DynamicLibraries
 {
@@ -94,39 +110,33 @@ public:
   DynamicLibraries(DynamicLibraries &&) = delete;
   auto operator=(DynamicLibraries &&) -> DynamicLibraries & = delete;
 
-#ifdef HAVE_ZLIB_H
+  // gzip: handles are the opaque zlib gzFile, exposed here as void*
   auto gzip_available() const noexcept -> bool { return gz_lib != nullptr; }
-  auto gzdopen(int file_descriptor, char const * mode) const noexcept -> gzFile
-  { return gzdopen_p(file_descriptor, mode); }
-  auto gzclose(gzFile file) const noexcept -> int { return gzclose_p(file); }
-  auto gzread(gzFile file, void * buffer, unsigned length) const noexcept -> int
-  { return gzread_p(file, buffer, length); }
+  auto gz_open(int file_descriptor) const noexcept -> void *;
+  auto gz_close(void * stream) const noexcept -> int;
+  auto gz_read(void * stream, void * buffer, unsigned length) const noexcept -> int;
   auto gzip_version() const noexcept -> char const *;
   auto gzip_compile_flags() const noexcept -> unsigned long;
-#endif
 
-#ifdef HAVE_BZLIB_H
+  // bzip2: handles are the opaque BZFILE, exposed here as void*. bz_read
+  // returns the byte count, or a negative value on a genuine read error
+  // (the BZ_* status codes are interpreted in dynlibs.cpp, not leaked out).
   auto bzip2_available() const noexcept -> bool { return bz2_lib != nullptr; }
-  auto bz_read_open(int * bzerror, FILE * file, int verbosity, int use_small,
-                    void * unused, int unused_length) const noexcept -> BZFILE *
-  { return BZ2_bzReadOpen_p(bzerror, file, verbosity, use_small, unused, unused_length); }
-  auto bz_read_close(int * bzerror, BZFILE * file) const noexcept -> void
-  { BZ2_bzReadClose_p(bzerror, file); }
-  auto bz_read(int * bzerror, BZFILE * file, void * buffer, int length) const noexcept -> int
-  { return BZ2_bzRead_p(bzerror, file, buffer, length); }
-#endif
+  auto bz_open(std::FILE * file) const noexcept -> void *;
+  auto bz_close(void * stream) const noexcept -> void;
+  auto bz_read(void * stream, void * buffer, int length) const noexcept -> int;
 
 private:
-#ifdef HAVE_ZLIB_H
   void * gz_lib = nullptr;
-  gzFile ZEXPORT (*gzdopen_p) OF((int, char const *)) = nullptr;
-  int ZEXPORT (*gzclose_p) OF((gzFile)) = nullptr;
-  int ZEXPORT (*gzread_p) OF((gzFile, void *, unsigned)) = nullptr;
-#endif
-#ifdef HAVE_BZLIB_H
   void * bz2_lib = nullptr;
-  BZFILE * (*BZ2_bzReadOpen_p)(int *, FILE *, int, int, void *, int) = nullptr;
-  void (*BZ2_bzReadClose_p)(int *, BZFILE *) = nullptr;
-  int (*BZ2_bzRead_p)(int *, BZFILE *, void *, int) = nullptr;
-#endif
+
+  /* zlib/bzip2 entry points, resolved at construction and stored type-erased
+     as a generic function-pointer type; dynlibs.cpp casts each back to its
+     real signature at the call site, exactly as dynlib::symbol() is cast. */
+  void (*gzdopen_p)() = nullptr;
+  void (*gzclose_p)() = nullptr;
+  void (*gzread_p)() = nullptr;
+  void (*bz_read_open_p)() = nullptr;
+  void (*bz_read_close_p)() = nullptr;
+  void (*bz_read_p)() = nullptr;
 };

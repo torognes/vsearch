@@ -72,9 +72,6 @@
 #include "utils/open_file.hpp"  // open_input_file
 #include "utils/span.hpp"
 #include <sys/stat.h>
-#ifdef HAVE_BZLIB_H
-#include <bzlib.h>  // BZ_OK, BZ_STREAM_END, BZ_SEQUENCE_ERROR
-#endif
 #include <unistd.h>  // dup, STDOUT_FILENO
 #include <algorithm>  // std::copy_n, std::equal, std::find_first_of
 #include <array>
@@ -94,16 +91,6 @@
 /* basic file buffering function for fastq and fastx parsers */
 
 constexpr uint64_t fastx_buffer_alloc = 8192;
-
-#ifdef HAVE_BZLIB_H
-constexpr auto BZ_VERBOSE_0 = 0;
-// constexpr auto BZ_VERBOSE_1 = 1;
-// constexpr auto BZ_VERBOSE_2 = 2;
-// constexpr auto BZ_VERBOSE_3 = 3;
-// constexpr auto BZ_VERBOSE_4 = 4;
-constexpr auto BZ_MORE_MEM = 0;  /* faster decompression using more memory */
-// constexpr auto BZ_LESS_MEM = 1;  /* slower decompression but requires less memory */
-#endif
 
 constexpr std::array<unsigned char, 2> magic_gzip = {0x1f, 0x8b};
 constexpr std::array<unsigned char, 2> magic_bzip = {'B', 'Z'};
@@ -319,15 +306,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   input_handle->fp = nullptr;
   input_handle->libraries = parameters.dyn_libs;
-
-#ifdef HAVE_ZLIB_H
-  input_handle->fp_gz = nullptr;
-#endif
-
-#ifdef HAVE_BZLIB_H
-  input_handle->fp_bz = nullptr;
-  int bzError = 0;
-#endif
+  input_handle->compressed_stream = nullptr;
 
   input_handle->fp = open_input_file(filename).release();
   if (input_handle->fp == nullptr)
@@ -433,39 +412,31 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   if (input_handle->format == Format::gzip)
     {
       /* GZIP: Keep original file open, then open as gzipped file as well */
-#ifdef HAVE_ZLIB_H
-      if ((input_handle->libraries == nullptr) or not input_handle->libraries->gzip_available())
+      if ((not compression::gzip_supported) or (input_handle->libraries == nullptr)
+          or not input_handle->libraries->gzip_available())
         {
           fatal("Files compressed with gzip are not supported");
         }
-      input_handle->fp_gz = input_handle->libraries->gzdopen(fileno(input_handle->fp), "rb");
-      if (input_handle->fp_gz == nullptr)
+      input_handle->compressed_stream = input_handle->libraries->gz_open(fileno(input_handle->fp));
+      if (input_handle->compressed_stream == nullptr)
         { // dup?
           fatal("Unable to open gzip compressed file (%s)", filename);
         }
-#else
-      fatal("Files compressed with gzip are not supported");
-#endif
     }
 
   if (input_handle->format == Format::bzip)
     {
       /* BZIP2: Keep original file open, then open as bzipped file as well */
-#ifdef HAVE_BZLIB_H
-      if ((input_handle->libraries == nullptr) or not input_handle->libraries->bzip2_available())
+      if ((not compression::bzip2_supported) or (input_handle->libraries == nullptr)
+          or not input_handle->libraries->bzip2_available())
         {
           fatal("Files compressed with bzip2 are not supported");
         }
-      input_handle->fp_bz = input_handle->libraries->bz_read_open(& bzError, input_handle->fp,
-                                     BZ_VERBOSE_0, BZ_MORE_MEM,
-                                     nullptr, 0);
-      if (input_handle->fp_bz == nullptr)
+      input_handle->compressed_stream = input_handle->libraries->bz_open(input_handle->fp);
+      if (input_handle->compressed_stream == nullptr)
         {
           fatal("Unable to open bzip2 compressed file (%s)", filename);
         }
-#else
-      fatal("Files compressed with bzip2 are not supported");
-#endif
     }
 
   /* init buffers */
@@ -480,7 +451,6 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   /* examine first char and see if it starts with > or @ */
 
-  auto filetype = 0;
   input_handle->is_empty = true;
   input_handle->is_fastq = false;
 
@@ -488,6 +458,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
     {
       input_handle->is_empty = false;
 
+      auto filetype = 0;
       auto const * first = input_handle->file_buffer.data();
 
       if (*first == '>')
@@ -510,18 +481,14 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
               break;
 
             case Format::gzip:
-#ifdef HAVE_ZLIB_H
-              input_handle->libraries->gzclose(input_handle->fp_gz);
-              input_handle->fp_gz = nullptr;
+              input_handle->libraries->gz_close(input_handle->compressed_stream);
+              input_handle->compressed_stream = nullptr;
               break;
-#endif
 
             case Format::bzip:
-#ifdef HAVE_BZLIB_H
-              input_handle->libraries->bz_read_close(&bzError, input_handle->fp_bz);
-              input_handle->fp_bz = nullptr;
+              input_handle->libraries->bz_close(input_handle->compressed_stream);
+              input_handle->compressed_stream = nullptr;
               break;
-#endif
 
             default:
               fatal("Internal error");
@@ -577,22 +544,17 @@ fastx_s::~fastx_s()
   switch (format)
     {
     case Format::gzip:
-#ifdef HAVE_ZLIB_H
-      if ((libraries != nullptr) and (fp_gz != nullptr))
+      if ((libraries != nullptr) and (compressed_stream != nullptr))
         {
-          libraries->gzclose(fp_gz);
+          libraries->gz_close(compressed_stream);
         }
-#endif
       break;
 
     case Format::bzip:
-#ifdef HAVE_BZLIB_H
-      if ((libraries != nullptr) and (fp_bz != nullptr))
+      if ((libraries != nullptr) and (compressed_stream != nullptr))
         {
-          int bz_error = 0;
-          libraries->bz_read_close(&bz_error, fp_bz);
+          libraries->bz_close(compressed_stream);
         }
-#endif
       break;
 
     default:
@@ -662,10 +624,6 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 
   int bytes_read = 0;
 
-#ifdef HAVE_BZLIB_H
-  int bzError = 0;
-#endif
-
   switch (input_handle->format)
     {
     case Format::plain:
@@ -677,8 +635,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
       break;
 
     case Format::gzip:
-#ifdef HAVE_ZLIB_H
-      bytes_read = input_handle->libraries->gzread(input_handle->fp_gz,
+      bytes_read = input_handle->libraries->gz_read(input_handle->compressed_stream,
                                input_handle->file_buffer.data()
                                + input_handle->file_buffer.position,
                                static_cast<unsigned int>(space));
@@ -687,24 +644,17 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
           fatal("Unable to read gzip compressed file");
         }
       break;
-#endif
 
     case Format::bzip:
-#ifdef HAVE_BZLIB_H
-      bytes_read = input_handle->libraries->bz_read(& bzError,
-                                   input_handle->fp_bz,
+      bytes_read = input_handle->libraries->bz_read(input_handle->compressed_stream,
                                    input_handle->file_buffer.data()
                                    + input_handle->file_buffer.position,
                                    static_cast<int>(space));
-      if ((bytes_read < 0) or
-          not ((bzError == BZ_OK) or
-             (bzError == BZ_STREAM_END) or
-             (bzError == BZ_SEQUENCE_ERROR)))
+      if (bytes_read < 0)
         {
           fatal("Unable to read from bzip2 compressed file");
         }
       break;
-#endif
 
     default:
       fatal("Internal error");
@@ -712,7 +662,6 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
 
   if (not input_handle->is_pipe)
     {
-#ifdef HAVE_ZLIB_H
       if (input_handle->format == Format::gzip)
         {
           /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
@@ -721,7 +670,6 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
           close(fd);
         }
       else
-#endif
         {
           input_handle->file_position = xftello(input_handle->fp);
         }

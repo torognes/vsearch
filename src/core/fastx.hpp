@@ -60,10 +60,6 @@
 
 #pragma once
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"  // HAVE_ZLIB_H, HAVE_BZLIB_H
-#endif
-
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/view.hpp"  // View
@@ -75,13 +71,6 @@
 #include <memory>  // std::unique_ptr
 #include <string>  // std::char_traits
 #include <vector>
-
-#ifdef HAVE_ZLIB_H
-#include <zlib.h>  // gzFile
-#endif
-#ifdef HAVE_BZLIB_H
-#include <bzlib.h>  // BZFILE
-#endif
 
 
 constexpr auto byte_range = 256U;
@@ -156,13 +145,10 @@ private:
      DynamicLibraries instance in main(); nullptr in library-only builds */
   DynamicLibraries const * libraries = nullptr;
 
-#ifdef HAVE_ZLIB_H
-  gzFile fp_gz = nullptr;
-#endif
-
-#ifdef HAVE_BZLIB_H
-  BZFILE * fp_bz = nullptr;
-#endif
+  /* borrowed handle for the active compressed stream (gzip or bzip2), owned
+     by the zlib/bzip2 library; nullptr for a plain file. Type-erased to void*
+     so this header needs neither zlib.h nor bzlib.h (see DynamicLibraries). */
+  void * compressed_stream = nullptr;
 
   FastxBuffer file_buffer;
 
