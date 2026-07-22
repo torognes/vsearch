@@ -69,7 +69,6 @@
 #include "utils/cityhash.hpp"
 #include "utils/string_normalize.hpp"
 #include <cstdint>  // int64_t, uint64_t
-#include <cstring>  // std::memset
 #include <vector>
 
 

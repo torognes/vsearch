@@ -73,7 +73,6 @@
 #include <cinttypes>  // macro PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf, std::fprintf
-#include <cstdlib>  // std::strtoll
 #include <cstring>  // std::strlen
 #include <iterator> // std::next
 #include <numeric> // std::accumulate

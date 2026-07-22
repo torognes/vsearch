@@ -73,7 +73,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
-#include <cstring>  // std::memset
 #include <fstream>  // std::ifstream
 #include <ios>
 #include <istream>  // std::istream
