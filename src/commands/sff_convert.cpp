@@ -512,7 +512,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
                 fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
               }
             filepos += index_header_length;
-            index_kind[index_header_length] = 0;
+            index_kind.back() = '\0';
 
             uint64_t const index_size = sff_header.index_length - index_header_length + index_padding;  // refactoring: skip index data and padding in one go?
             if (fskip(fp_sff.get(), index_size) != index_size)
@@ -637,7 +637,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
         }
       filepos += 8;
-      index_kind[8] = 0;
+      index_kind.back() = '\0';
 
       uint64_t const index_size = sff_header.index_length - 8;
       if (fskip(fp_sff.get(), index_size) != index_size)
