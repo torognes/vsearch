@@ -98,6 +98,8 @@ record-by-record readers.
 ### `<cctype>` — 17 sites
 
 `std::tolower` 6 · `std::toupper` 5 · `std::isalnum` 5 · `std::isupper` 1.
+All 17 now go through `utils/ascii_case.hpp` (`fefea7b4`, `e44277a1`);
+`<cctype>` is included in that one header and nowhere else.
 
 Twelve of the seventeen passed an unguarded `char` — fixed in `fefea7b4`;
 see the UB section below. (17 calls over 16 lines:
@@ -348,7 +350,12 @@ It also does pointer arithmetic (`*(hit - 1)`, `*(hit + wlen)`) that
 `CLAUDE.md` asks to replace with `std::next`, so the two cleanups belong
 in one pass.
 
-### Already correct — the pattern to follow
+### The five that were already correct — since converted too (`e44277a1`)
+
+These were never UB; they already cast through `unsigned char` inline.
+They were converted anyway so that one idiom remains in the tree rather
+than two, and `<cctype>` is now included in exactly one place
+(`utils/ascii_case.hpp`).
 
 | Location | Note |
 |---|---|
@@ -356,8 +363,9 @@ in one pass.
 | `core/otutable.cpp:196` | inline cast inside the lambda |
 | `utils/compare_strings_nocase.cpp:73-77` | casts into named `lhs_unsigned`/`rhs_unsigned` (`:75-76`), plus an `assert((lhs >= 0) or (lhs == EOF))` at `:74` |
 
-`compare_strings_nocase.cpp` is the best model: it makes the contract
-explicit with an `assert` as well as casting.
+`compare_strings_nocase.cpp` was the best model: it makes the contract
+explicit with an `assert` as well as casting. That `assert` is kept in
+the converted form.
 
 ### The fix that was applied
 
@@ -402,10 +410,9 @@ not bundled with the UB fix.
   (`*(hit - 1)`, `*(hit + wlen)`), which `CLAUDE.md` asks to replace with
   `std::next` / `std::prev`. Left untouched to keep the UB fix reviewable
   on its own; worth doing in a follow-up pass over that function.
-- The five already-guarded sites still spell the cast inline. Converting
-  them to the helper would leave one idiom in the tree instead of two,
-  which matters mainly because the next person will copy whichever they
-  meet first. Purely cosmetic, so it is the maintainer's call.
+- ~~The five already-guarded sites still spell the cast inline.~~
+  **Done** in `e44277a1`: all 17 sites now go through the helper, and
+  `<cctype>` appears in exactly one file.
 
 
 ## Suggested ordering
