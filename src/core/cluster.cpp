@@ -1279,8 +1279,8 @@ auto cluster(char const * dbname,
     if (parameters.opt_clusterout_sort)
       {
         /* by cluster abundance (descending), then cluster number, then seqno.
-           The seqno tiebreak is a strict total order, so this matches the
-           previous std::qsort result exactly. */
+           The seqno tiebreak makes the comparator a strict total order, so the
+           result is deterministic even though std::sort is not stable. */
         std::sort(clusterinfo_v.begin(), clusterinfo_v.end(),
                   [&cluster_abundance_v](clusterinfo_t const & lhs, clusterinfo_t const & rhs) -> bool {
                     auto const lhs_ab = cluster_abundance_v[static_cast<std::size_t>(lhs.clusterno)];

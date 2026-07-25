@@ -424,12 +424,10 @@ Database::~Database()
 
 
 /* The sort comparators need the data buffer to compare header strings. Each is
-   a lambda capturing the Database (this), so no file-scope pointer is needed
-   (the old std::qsort path used one because a C comparator cannot capture, and
-   qsort_r is non-portable). header_p increases with input order, so comparing
-   it is a deterministic, stable tie-break that keeps equal records in their
-   original order (it replaces the element-address comparison the qsort version
-   relied on). */
+   a lambda capturing that buffer, so no file-scope pointer is needed. header_p
+   increases with input order, so comparing it is a deterministic tie-break that
+   keeps equal records in their original order (std::sort is not stable, so the
+   comparator has to provide that ordering itself). */
 
 auto Database::sortbylength(struct Parameters const & parameters) -> void
 {

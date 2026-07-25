@@ -79,7 +79,6 @@
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::sscanf, std::size_t
-#include <cstdlib>  // std::qsort
 #include <cstring>  // std::strcmp
 #include <limits>
 #include <utility>  // std::move
@@ -1045,9 +1044,7 @@ auto search_joinhits(struct searchinfo_s const * si_plus,
   free_rejected_alignments(si_plus);
   free_rejected_alignments(si_minus);
 
-  /* last, sort the hits. std::sort (not std::qsort) because struct hit now owns
-     a std::string cigar and is no longer trivially copyable — qsort's bitwise
-     element moves would corrupt it. */
+  /* last, sort the hits */
   std::sort(hits.begin(), hits.end(),
             [](struct hit const & lhs, struct hit const & rhs) -> bool {
               return hit_compare_byid_typed(&lhs, &rhs) < 0;

@@ -74,7 +74,6 @@
 #include <cstddef>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
-#include <cstdlib>  // std::qsort
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
@@ -507,8 +506,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
               }
           }
 
-        /* sort the accepted hits. std::sort (not std::qsort) because struct hit
-           now owns a std::string cigar and is no longer trivially copyable. */
+        /* sort the accepted hits */
         std::sort(finalhits.begin(),
                   std::next(finalhits.begin(), static_cast<std::ptrdiff_t>(searchinfo.accepts)),
                   [](struct hit const & lhs, struct hit const & rhs) -> bool {
