@@ -177,6 +177,7 @@ utils/fatal.hpp \
 utils/fatal_allocator.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
+utils/make_unique.hpp \
 utils/maps.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
