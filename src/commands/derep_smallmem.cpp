@@ -77,7 +77,6 @@
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::fclose
-#include <cstring>  // refactoring: unused?
 #include <limits>
 #include <string>
 #include <vector>

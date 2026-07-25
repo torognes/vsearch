@@ -72,7 +72,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
-#include <cstring>  // std::memchr, std::strlen
+#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <vector>
