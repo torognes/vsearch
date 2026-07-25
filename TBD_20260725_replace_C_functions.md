@@ -99,9 +99,9 @@ record-by-record readers.
 
 `std::tolower` 6 · `std::toupper` 5 · `std::isalnum` 5 · `std::isupper` 1.
 
-Twelve of the seventeen pass an unguarded `char`. See the UB section
-below. (17 calls over 16 lines: `compare_strings_nocase.cpp:77` holds
-two.)
+Twelve of the seventeen passed an unguarded `char` — fixed in `fefea7b4`;
+see the UB section below. (17 calls over 16 lines:
+`compare_strings_nocase.cpp:77` holds two.)
 
 ### `<cstdlib>` — 15 sites
 
@@ -295,9 +295,16 @@ ABI hazard. Here it is not, for two reasons already settled:
    distinction rather than leave it implied.
 
 
-## Latent UB: unguarded `<cctype>` calls
+## Latent UB: unguarded `<cctype>` calls — FIXED (`fefea7b4`)
 
-**12 of the 17 `<cctype>` call sites pass a plain `char`.**
+All 12 sites below were routed through a new `utils/ascii_case.hpp`
+(`to_upper` / `to_lower` / `is_alnum` / `is_upper`) in commit
+`fefea7b4`. The six files each dropped their now-unused `<cctype>`.
+Tests 0 FAIL; Windows, POWER and mips64el cross-compiles clean. The
+section is kept for the rationale and for the five sites deliberately
+left alone.
+
+**12 of the 17 `<cctype>` call sites passed a plain `char`.**
 
 `std::toupper`, `std::tolower`, `std::isalnum` and friends take an `int`
 whose value must be representable as `unsigned char`, or be `EOF`.
@@ -352,45 +359,58 @@ in one pass.
 `compare_strings_nocase.cpp` is the best model: it makes the contract
 explicit with an `assert` as well as casting.
 
-### Suggested fix
+### The fix that was applied
 
-A shared helper is preferable to twelve inline casts — it is one place
-to state the contract, and it reads better than the cast at each call
-site:
+A shared helper, in preference to twelve inline casts — one place to
+state the contract, and it reads better at each call site. Landed as
+`src/utils/ascii_case.hpp`, registered in `src/Makefile.am`:
 
 ```cpp
-// utils/ascii_case.hpp
-inline auto to_upper(char const chr) -> char {
-  return static_cast<char>(std::toupper(static_cast<unsigned char>(chr)));
+inline auto to_upper(char const character) -> char {
+  return static_cast<char>(std::toupper(static_cast<unsigned char>(character)));
 }
-inline auto to_lower(char const chr) -> char {
-  return static_cast<char>(std::tolower(static_cast<unsigned char>(chr)));
+inline auto to_lower(char const character) -> char {
+  return static_cast<char>(std::tolower(static_cast<unsigned char>(character)));
 }
-inline auto is_alnum(char const chr) -> bool {
-  return std::isalnum(static_cast<unsigned char>(chr)) != 0;
+inline auto is_alnum(char const character) -> bool {
+  return std::isalnum(static_cast<unsigned char>(character)) != 0;
+}
+inline auto is_upper(char const character) -> bool {
+  return std::isupper(static_cast<unsigned char>(character)) != 0;
 }
 ```
 
-This also removes the `!= 0` / `== 0` comparisons that the current
-`isalnum`/`isupper` sites need in order to satisfy the
-"avoid implicit bool conversion" rule.
+Returning `bool` from the `is_*` wrappers also removed the `!= 0` /
+`== 0` comparisons that the `isalnum` and `isupper` call sites needed in
+order to satisfy the "avoid implicit bool conversion" rule.
+
+Not marked `noexcept`: the `<cctype>` functions are not declared
+`noexcept` by the standard, so the wrappers promise no more than what
+they call, and the comparable small helpers in `utils/` (`seqcmp`,
+`round_up`, `string_normalize`) carry no `noexcept` either.
 
 Note on scope: these functions are **locale-dependent**. vsearch never
 calls `setlocale`, so it runs in the `"C"` locale and the behaviour is
 plain ASCII case folding. If pure-ASCII behaviour is what is wanted —
 and for nucleotide data it is — a locale-free implementation would be
-more honest still, but that is a separate decision and should not be
-bundled with the UB fix.
+more honest still, but that is a separate decision and was deliberately
+not bundled with the UB fix.
 
-**Recommendation:** treat the UB fix as its own small commit, separate
-from any `strlen`/`View` work, so it can be reviewed and backported on
-its own.
+### Still open at these sites
+
+- The four `core/getseq.cpp` sites keep their pointer arithmetic
+  (`*(hit - 1)`, `*(hit + wlen)`), which `CLAUDE.md` asks to replace with
+  `std::next` / `std::prev`. Left untouched to keep the UB fix reviewable
+  on its own; worth doing in a follow-up pass over that function.
+- The five already-guarded sites still spell the cast inline. Converting
+  them to the helper would leave one idiom in the tree instead of two,
+  which matters mainly because the next person will copy whichever they
+  meet first. Purely cosmetic, so it is the maintainer's call.
 
 
 ## Suggested ordering
 
-1. **`<cctype>` UB fix** (12 sites, one helper header). Small,
-   self-contained, fixes real UB. Independent of everything else.
+1. ~~**`<cctype>` UB fix**~~ — **done**, `fefea7b4`.
 2. **`vsearch::` namespace for `View`/`Span`.** Cheapest now, and it
    gates item 3.
 3. **`View` through the output call chains**, `core/results.cpp` first.
