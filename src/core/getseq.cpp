@@ -71,6 +71,7 @@
 #include "core/fastx.hpp"
 #include "os/system.hpp"  // xstat_t, xfstat, S_ISFIFO
 #include "utils/progress.hpp"
+#include "utils/ascii_case.hpp"  // is_alnum
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -79,7 +80,6 @@
 #include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
 #include <array>
 #include <cassert>
-#include <cctype>  // isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
@@ -267,9 +267,9 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
             {
               /* check of full word */
               if (((hit == header) or
-                   (std::isalnum(*(hit - 1)) == 0)) and
+                   (not is_alnum(*(hit - 1)))) and
                   ((hit + wlen == header + hlen) or
-                   (std::isalnum(*(hit + wlen)) == 0)))
+                   (not is_alnum(*(hit + wlen)))))
                 {
                   return true;
                 }
@@ -316,9 +316,9 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
               {
                 /* check of full word */
                 if (((hit == header) or
-                     (std::isalnum(*(hit - 1)) == 0)) and
+                     (not is_alnum(*(hit - 1)))) and
                     ((hit + wlen == header + hlen) or
-                     (std::isalnum(*(hit + wlen)) == 0)))
+                     (not is_alnum(*(hit + wlen)))))
                   {
                     return true;
                   }

@@ -167,6 +167,7 @@ commands/udbinfo.hpp \
 commands/udbstats.hpp \
 core/udb.hpp \
 core/unique.hpp \
+utils/ascii_case.hpp \
 utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/cityhash.hpp \

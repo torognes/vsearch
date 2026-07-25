@@ -59,10 +59,10 @@
 */
 
 #include "core/db.hpp"  // Database
+#include "utils/ascii_case.hpp"  // to_lower
 #include "utils/taxonomic_fields.h"
 #include "utils/view.hpp"  // View
 #include <algorithm>  // std::find, std::search
-#include <cctype>  // std::tolower
 #include <cstdint>
 #include <iterator>  // std::distance
 #include <string>  // std::string
@@ -154,7 +154,7 @@ auto tax_split(int const seqno, int * level_start, int * level_len, struct Datab
   while (offset < tax_end)
     {
       /* Is the next char a recognized tax level letter? */
-      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), std::tolower(header.data()[offset]));
+      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), to_lower(header.data()[offset]));
       if (next_level != taxonomic_fields.end())
         {
           int const level = static_cast<int>(std::distance(taxonomic_fields.data(), next_level));

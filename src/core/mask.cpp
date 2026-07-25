@@ -63,12 +63,12 @@
 #include "utils/progress.hpp"
 #include "core/mask.hpp"
 #include "core/db.hpp"
+#include "utils/ascii_case.hpp"  // to_upper
 #include "utils/maps.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::transform
 #include <array>
-#include <cctype>  // std::toupper
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
 #include <mutex>  // std::mutex, std::unique_lock
@@ -157,7 +157,7 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
       /* convert sequence to upper case unless hardmask in effect */
       for (auto i = 0; i < len; i++)
         {
-          seq[i] = static_cast<char>(std::toupper(seq[i]));
+          seq[i] = to_upper(seq[i]);
         }
       seq[len] = 0;
     }

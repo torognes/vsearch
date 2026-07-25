@@ -64,10 +64,10 @@
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/mask.hpp"
+#include "utils/ascii_case.hpp"  // is_upper
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
-#include <cctype>  // std::isupper
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
 
@@ -129,7 +129,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
           {
             for (auto j = 0; j < len; j++)
               {
-                if (std::isupper(seq[j]) != 0)
+                if (is_upper(seq[j]))
                   {
                     ++unmasked;
                   }

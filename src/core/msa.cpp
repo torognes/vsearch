@@ -63,13 +63,13 @@
 #include "core/msa.hpp"
 #include "core/db.hpp"
 #include "core/fasta.hpp"
+#include "utils/ascii_case.hpp"  // to_upper
 #include "utils/cigar.hpp"
 #include "utils/span.hpp"
 #include "utils/reverse_complement.hpp"
 #include <array>
 #include <algorithm>  // std::max()
 #include <cassert>
-#include <cctype>  // std::toupper
 #include <cinttypes>  // macro PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf, std::fprintf
@@ -104,7 +104,7 @@ auto update_profile(char const nucleotide,
   auto const offset = static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(position_in_alignment);
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
-  switch (std::toupper(nucleotide))
+  switch (to_upper(nucleotide))
     {
     case 'A':
       profile[offset + A_counter] += abundance;

@@ -75,6 +75,7 @@
 #include "core/searchcore.hpp"
 #include "core/udb.hpp"
 #include "core/unique.hpp"
+#include "utils/ascii_case.hpp"  // to_lower
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"  // make_unique
@@ -86,7 +87,6 @@
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
 #include <array>
 #include <cassert>
-#include <cctype>  // std::tolower
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::sscanf
@@ -1008,7 +1008,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
       for (int f = 0; f < ci->parents_found; ++f) {
         if ((psym[static_cast<size_t>(f)] != 0U) and (psym[static_cast<size_t>(f)] != qsym)) {
-          ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]));
+          ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)] = to_lower(ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)]);
         }
       }
 
@@ -1295,12 +1295,12 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
       if ((p1sym != 0U) and (p1sym != qsym))
         {
-          ci->paln[0][static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->paln[0][static_cast<size_t>(i)]));
+          ci->paln[0][static_cast<size_t>(i)] = to_lower(ci->paln[0][static_cast<size_t>(i)]);
         }
 
       if ((p2sym != 0U) and (p2sym != qsym))
         {
-          ci->paln[1][static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->paln[1][static_cast<size_t>(i)]));
+          ci->paln[1][static_cast<size_t>(i)] = to_lower(ci->paln[1][static_cast<size_t>(i)]);
         }
 
       /* compute diffs */
@@ -1536,7 +1536,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           /* lower case diffs for no votes */
           if (v == '!')
             {
-              ci->diffs[static_cast<size_t>(i)] = static_cast<char>(std::tolower(ci->diffs[static_cast<size_t>(i)]));
+              ci->diffs[static_cast<size_t>(i)] = to_lower(ci->diffs[static_cast<size_t>(i)]);
             }
         }
 
