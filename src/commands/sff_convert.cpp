@@ -632,14 +632,14 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
   if ((not index_is_done) and (filepos == sff_header.index_offset))
     {
-      if (std::fread(index_kind.data(), byte_size, 8, fp_sff.get()) < 8)
+      if (std::fread(index_kind.data(), byte_size, index_header_length, fp_sff.get()) < index_header_length)
         {
           fatal("Invalid SFF file. Unable to read index header. File may be truncated.");
         }
-      filepos += 8;
+      filepos += index_header_length;
       index_kind.back() = '\0';
 
-      uint64_t const index_size = sff_header.index_length - 8;
+      uint64_t const index_size = sff_header.index_length - index_header_length;
       if (fskip(fp_sff.get(), index_size) != index_size)
         {
           fatal("Invalid SFF file. Unable to read entire index. File may be truncated.");
