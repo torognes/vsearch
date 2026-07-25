@@ -59,6 +59,7 @@
 */
 
 #include "otutable.hpp"
+#include "utils/ascii_case.hpp"  // is_alnum
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
@@ -68,7 +69,6 @@
 #include <algorithm>  // std::find, std::find_if
 #include <array>
 #include <cassert>  // assert
-#include <cctype>  // std::isalnum
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -193,7 +193,7 @@ auto OtuTable::add(View<char> const query_header, View<char> const target_header
         {
           /* no match: use first name in header with A-Za-z0-9_ */
           auto const * const first_other = std::find_if(query_header.begin(), query_header.end(),
-              [](char const chr) -> bool { return (std::isalnum(static_cast<unsigned char>(chr)) == 0) and (chr != '_'); });
+              [](char const chr) -> bool { return (not is_alnum(chr)) and (chr != '_'); });
           len_sample = static_cast<std::size_t>(std::distance(query_header.begin(), first_other));
         }
 

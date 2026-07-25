@@ -58,10 +58,10 @@
 
 */
 
+#include "ascii_case.hpp"  // to_upper
 #include "view.hpp"
 #include <algorithm>  // std::search, std::equal
 #include <cassert>
-#include <cctype>  // std::toupper
 #include <cstdio>  // EOF
 #include <cstring>  // std::strlen
 #include <vector>
@@ -72,9 +72,7 @@ namespace {
 
   auto compare_chars = [](char const lhs, char const rhs) -> bool {
     assert((lhs >= 0) or (lhs == EOF));
-    auto const lhs_unsigned = static_cast<unsigned char>(lhs);
-    auto const rhs_unsigned = static_cast<unsigned char>(rhs);
-    return std::toupper(lhs_unsigned) == std::toupper(rhs_unsigned);
+    return to_upper(lhs) == to_upper(rhs);
   };
 
 }  // end of anonymous namespace

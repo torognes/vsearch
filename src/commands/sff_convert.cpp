@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include "core/fastq.hpp"
+#include "utils/ascii_case.hpp"  // to_lower, to_upper
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
@@ -67,7 +68,6 @@
 #include <algorithm>  // std::min, std::max, std::transform
 #include <array>
 #include <cassert>
-#include <cctype>  // std::tolower, std::toupper
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t, stderr
 #include <iterator>  // std::prev
@@ -581,11 +581,11 @@ auto sff_convert(struct Parameters const & parameters) -> void
           {
             if ((i < clip_start) or (i >= clip_end))
               {
-                bases[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(bases[i])));
+                bases[i] = to_lower(bases[i]);
               }
             else
               {
-                bases[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(bases[i])));
+                bases[i] = to_upper(bases[i]);
               }
           }
 
