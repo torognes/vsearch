@@ -70,17 +70,17 @@
 // unnamed here. Selected over fatal_throw.cpp by the executable's source list
 // in Makefile.am, not the preprocessor.
 namespace fatal_detail {
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * /*message*/) -> void {
     std::exit(EXIT_FAILURE);
   }
 
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * /*format*/, char const * /*message*/) -> void {
     std::exit(EXIT_FAILURE);
   }
 
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * /*format*/, char const /*symbol*/,
                      uint64_t const /*line_number*/) -> void {
     std::exit(EXIT_FAILURE);

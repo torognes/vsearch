@@ -64,7 +64,7 @@
 #include <cstdio>  // std::fprintf
 
 
-__attribute__((noreturn))
+[[noreturn]]
 auto fatal(char const * message) -> void {
   std::fprintf(stderr, "\n\n");
   std::fprintf(stderr, "Fatal error: %s\n", message);
@@ -79,7 +79,7 @@ auto fatal(char const * message) -> void {
 }
 
 
-__attribute__((noreturn))
+[[noreturn]]
 auto fatal(char const * format,
            char const * message) -> void {
   std::fprintf(stderr, "\n\nFatal error: ");
@@ -98,7 +98,7 @@ auto fatal(char const * format,
 
 
 // used in fastx.cc
-__attribute__((noreturn))
+[[noreturn]]
 auto fatal(char const * format,
            char const symbol,
            uint64_t const line_number) -> void {

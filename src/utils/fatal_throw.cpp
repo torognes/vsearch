@@ -101,19 +101,19 @@ namespace {
 // the CLI does. Selected over fatal_exit.cpp by libvsearch_core's source list
 // in Makefile.am, not the preprocessor.
 namespace fatal_detail {
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * message) -> void {
     if (throw_on_fatal()) { throw VsearchError{message}; }
     std::exit(EXIT_FAILURE);
   }
 
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * format, char const * message) -> void {
     if (throw_on_fatal()) { throw VsearchError{format_message(format, message)}; }
     std::exit(EXIT_FAILURE);
   }
 
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * format, char const symbol,
                      uint64_t const line_number) -> void {
     if (throw_on_fatal()) { throw VsearchError{format_message(format, symbol, line_number)}; }

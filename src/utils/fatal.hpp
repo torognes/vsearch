@@ -90,11 +90,11 @@ namespace fatal_detail {
   // exit-only definition (fatal_exit.cpp, -fno-exceptions); the library links
   // the throwing definition (fatal_throw.cpp, -fexceptions). Which one is used
   // is selected by the source list in Makefile.am, not the preprocessor.
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * message) -> void;
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * format, char const * message) -> void;
-  __attribute__((noreturn))
+  [[noreturn]]
   auto exit_or_throw(char const * format, char symbol, uint64_t line_number) -> void;
 }
 
@@ -109,9 +109,9 @@ namespace fatal_detail {
 // "control reaches end of non-void function" after a fatal() call). Both builds
 // satisfy it -- the CLI std::exit()s and the library throws, and neither returns
 // to the caller. Spelled the same way as exit_or_throw above.
-__attribute__((noreturn))
+[[noreturn]]
 auto fatal(char const * message) -> void;
-__attribute__((noreturn))
+[[noreturn]]
 auto fatal(char const * format, char const * message) -> void;
-__attribute__((noreturn))
+[[noreturn]]
 auto fatal(char const * format, char symbol, uint64_t line_number) -> void;
