@@ -22,7 +22,7 @@ in a namespace today except four small internal ones (`fatal_detail`,
 
 | Name | Kind | Header | Collision risk |
 |---|---|---|---|
-| `fatal` (3 overloads) | function | `utils/fatal.hpp:105-107` | **severe** |
+| `fatal` (3 overloads) | function | `utils/fatal.hpp:105-107` | **severe** — costed out below |
 | `dust`, `hardmask`, `dust_all`, `hardmask_all`, `dust_single` | functions | `core/mask.hpp` | **high** |
 | `Parameters` | type | `vsearch.hpp:85` | **high** |
 | `Database` | type | `core/db.hpp:104` | **high** |
@@ -53,6 +53,116 @@ Against those, `View` is comparatively benign: it breaks loudly.
 
 So the helper-only option addresses the loud failures and leaves the
 quiet ones in place, which is the wrong way round.
+
+
+## Worked example: `fatal()`, measured
+
+`fatal()` is the largest single name in the surface, so it is the useful
+one to cost out. **306 call sites** (comments and string literals
+stripped), across:
+
+| Location | Sites |
+|---|---|
+| `core/` | 104 |
+| `cli.cc` | 93 |
+| `commands/` | 79 |
+| `utils/` | 13 (three of which are the definitions themselves) |
+| `os/` | 10 |
+| `parameters.cpp` | 6 |
+| `arch/` | 1 |
+
+### Almost none of those 306 sites change
+
+This is the central practical point, and it generalises to every name in
+the table above. A call such as
+
+```cpp
+      fatal("Invalid FASTA - header must start with > character");  // core/fasta.cpp:295
+```
+
+is **byte-identical before and after**, because `core/fasta.cpp` is itself
+wrapped in `namespace vsearch`: unqualified lookup finds `vsearch::fatal`
+in the enclosing namespace. No qualification, no `using`, no edit — at any
+of the 104 sites in `core/`, the 79 in `commands/`, the 13 in `utils/` or
+the 6 in `parameters.cpp`.
+
+The migration is therefore **one wrap per file, not 306 edits**. That is
+the main reason the whole-library scope is affordable, and it is worth
+stating explicitly in the review request so the diff's size is not
+mistaken for its risk.
+
+### What does change: three boundary cases
+
+1. **`os/` (10 sites)** — only if `os/` stays outside the namespace (open
+   question 2 below). Each call then needs `vsearch::fatal(...)`, or one
+   `using vsearch::fatal;` per file to leave the call sites untouched.
+   This is the cheapest concrete argument for putting `os/` inside.
+2. **`main()`** cannot live in a namespace, so `vsearch.cc`'s wrap must
+   stop short of it. Its single `fatal()` call is in `flush_stdout()`
+   (`:323`), not in `main()`, so the split is clean: wrap the helpers,
+   leave `main()` outside, and have it call `vsearch::dispatch_command()`.
+3. **Consumer code** — the visible break, e.g.
+   `api_examples/example_recover.cc:48`:
+   `catch (VsearchError const & error)` becomes
+   `catch (vsearch::VsearchError const & error)`, and every example's
+   `struct Parameters parameters;` / `Database db;` gains `vsearch::`.
+   The ten example files are a good canary for the `LIBRARY_API.md`
+   migration note: they are the only in-tree consumer code.
+
+### A trap specific to `fatal()`: three TUs must move in lockstep
+
+`fatal_detail::exit_or_throw` is declared in `utils/fatal.hpp` but
+**defined in one of two alternative translation units** —
+`fatal_exit.cpp` (CLI, `-fno-exceptions`) or `fatal_throw.cpp` (library,
+`-fexceptions`) — selected by the source lists in `Makefile.am`, not by
+the preprocessor.
+
+If the header and `fatal.cpp` are wrapped but one of those two TUs is
+missed, **there is no compile error**: `fatal.cpp` resolves to
+`vsearch::fatal_detail::exit_or_throw` (declared, never defined) while the
+missed TU still defines `::fatal_detail::exit_or_throw`. The result is an
+undefined reference at *link* time, in whichever configuration links the
+missed file — so the CLI can link clean while `libvsearch.a` consumers
+fail, or the reverse. Move `fatal.hpp`, `fatal.cpp`, `fatal_exit.cpp` and
+`fatal_throw.cpp` in one commit, and build **both** configurations before
+pushing.
+
+Any other name whose definition is split across build-selected TUs
+deserves the same care.
+
+### Unrelated fix that came out of reading this
+
+Auditing `fatal()` for the above turned up that its three *declarations*
+carried no `__attribute__((noreturn))` while all nine definitions
+(`fatal.cpp`, `fatal_exit.cpp`, `fatal_throw.cpp`) did, and while
+`exit_or_throw`'s declarations in the same header did. Callers therefore
+could not know `fatal()` never returns. Fixed separately — it is nothing
+to do with namespacing, but it explains why the header now carries three
+more attribute lines than the snippets in this document show.
+
+### C++11 constraint on the mechanical wrap
+
+`namespace vsearch::fatal_detail { ... }` is a **C++17** nested namespace
+definition and will not compile here. Every nested case needs the
+two-level form:
+
+```cpp
+namespace vsearch {
+namespace fatal_detail {
+  // ...
+}
+}
+```
+
+This applies to all four existing sub-namespaces (`fatal_detail`,
+`dynlib`, `log_file`, `compression`) and matters because the project must
+keep building on GCC 4.9.
+
+### Where the wrap goes in a header
+
+After `#pragma once` **and after the `#include`s** — includes must stay
+outside, or the wrap would declare standard-library names inside
+`vsearch::`. Existing doc comments stay exactly where they are.
 
 
 ## Why not piecemeal
