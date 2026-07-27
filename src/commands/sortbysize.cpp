@@ -67,7 +67,6 @@
 #include <cassert>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
-#include <cstdlib>   // std::ldiv
 #include <vector>
 
 #ifndef NDEBUG
@@ -138,9 +137,10 @@ namespace {
     }
 
     // refactoring C++11: use const& std::vector.size()
-    auto const midarray = std::ldiv(static_cast<long>(deck.size()), 2L);
-
-    auto const mid = static_cast<std::size_t>(midarray.quot);
+    // plain division on std::size_t: ldiv would have needed a narrowing cast
+    // to long (32-bit on the Windows target), and its remainder is recomputed
+    // with % just below anyway
+    auto const mid = deck.size() / 2;
 
     // odd number of valid amplicons
     if (deck.size() % 2 != 0)  {

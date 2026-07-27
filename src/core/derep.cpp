@@ -78,7 +78,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdlib>  // std::ldiv
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <limits>
 #include <memory>  // std::unique_ptr
@@ -163,17 +162,20 @@ namespace {
     if (num_used == 0) {
       return 0.0;
     }
-    auto const midpoint = std::ldiv(static_cast<long>(num_used), 2L);
+    // plain division on the uint64_t count. ldiv would have needed a narrowing
+    // cast to long (32-bit on the Windows target), its remainder is recomputed
+    // with % just below anyway, and its quotient came back signed and so had to
+    // be converted again at each subscript -- num_used / 2 is already unsigned.
+    auto const midpoint = num_used / 2;
     auto const is_odd = ((num_used % 2) != 0U);
     if (is_odd) {
       // index is zero-based, so if size == 3, midpoint == 1
-      auto const index = static_cast<std::size_t>(midpoint.quot);
-      return hashtable[index].size;
+      return hashtable[midpoint].size;
     }
     // pair number of elements:
     // index is zero-based, so if size == 4, midpoint == 2, lhs index == 1
-    auto const lhs_index = static_cast<std::size_t>(midpoint.quot - 1);
-    auto const rhs_index = static_cast<std::size_t>(midpoint.quot);
+    auto const lhs_index = midpoint - 1;
+    auto const rhs_index = midpoint;
     auto const lhs_size = hashtable[lhs_index].size;
     auto const rhs_size = hashtable[rhs_index].size;
     // sorted by decreasing abundance: lhs size > rhs size

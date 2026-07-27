@@ -66,7 +66,6 @@
 #include <algorithm>  // std::sort, std::min
 #include <cassert>
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
-#include <cstdlib>  // std::ldiv
 #include <vector>
 
 #ifndef NDEBUG
@@ -142,19 +141,22 @@ namespace {
     }
 
     // refactoring C++11: use const& std::vector.size()
-    auto const midarray = std::ldiv(static_cast<long>(deck.size()), 2L);
+    // plain division on std::size_t: ldiv would have needed a narrowing cast
+    // to long (32-bit on the Windows target), and its remainder is recomputed
+    // with % just below anyway
+    auto const mid = deck.size() / 2;
 
     // odd number of valid amplicons
     if (deck.size() % 2 != 0)  {
-      return deck[static_cast<std::size_t>(midarray.quot)].length * 1.0;  // a round value
+      return deck[mid].length * 1.0;  // a round value
     }
 
     // even number of valid amplicons
     // (average of two ints is either round or has a remainder of .5)
     // avoid risk of silent overflow for large abundance values:
     // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return deck[static_cast<std::size_t>(midarray.quot)].length +
-      ((deck[static_cast<std::size_t>(midarray.quot - 1)].length - deck[static_cast<std::size_t>(midarray.quot)].length) * half);
+    return deck[mid].length +
+      ((deck[mid - 1].length - deck[mid].length) * half);
   }
 
 
