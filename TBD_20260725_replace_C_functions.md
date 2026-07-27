@@ -12,7 +12,7 @@ sites) is excluded as a target: `CLAUDE.md` actively asks for it
 ("make implicit contracts explicit with assert()").
 
 Total: **144 call sites** (73 + 36 + 17 + 15 + 3), plus ~20 POSIX/OS
-calls. **120** after the 2026-07-27 `strlen` pass (see below).
+calls. **106** after the 2026-07-27 `strlen` and `strcmp` passes (see below).
 
 
 ## Status of `qsort`
@@ -30,8 +30,8 @@ commit `ed226b7c`; two more of the same kind (`memchr`, an unused
 
 | Function | Sites | Notes |
 |---|---|---|
-| `std::strlen` | 48 → 24 | see "The `strlen` root cause" below; 24 removed 2026-07-27 |
-| `std::strcmp` | 13 | sort comparators + `"-"` stdin detection |
+| `std::strlen` | 48 → 22 | see "The `strlen` root cause" below; 26 removed 2026-07-27 |
+| `std::strcmp` | 13 → 3 | see "`strcmp` and the signedness trap" below; 10 removed 2026-07-27 |
 | `std::memcpy` | 6 | **keep** — SIMD type-punning |
 | `std::memcmp` | 2 | `fastx.cpp` magic-byte sniffing |
 | `std::memset` | 1 | `align_simd.cpp` raw SIMD buffer |
@@ -47,16 +47,68 @@ comment at `align_simd.cpp:460`. Replacing them with casts would
 reintroduce the bug that comment records. `memset`/`memmove` there
 operate on raw SIMD scratch buffers for the same reason.
 
-`std::strcmp` splits into two groups:
+### `strcmp` and the signedness trap — DONE (13 → 3)
 
-- **Sort comparators** (10): `db.cpp` ×3, `sortbysize`, `sortbylength`,
-  `derep_prefix`, `derep.cpp` ×3. These compare header C-strings inside
-  `std::sort` lambdas. They become `View<char>` comparisons once the
-  headers are carried as views (`View` already has `operator<`, doing a
-  `std::lexicographical_compare`), but not before.
-- **`"-"` stdin detection** (2): `fastx.cpp:342`, `open_file.cpp:89`.
-  Trivially replaceable, low value.
-- **Self-hit label compare** (1): `searchcore.cpp:613`.
+An earlier revision of this document said the sort comparators "become
+`View<char>` comparisons once the headers are carried as views (`View`
+already has `operator<`, doing a `std::lexicographical_compare`)".
+**That was wrong, and following it would have silently changed output.**
+
+`std::strcmp` compares bytes as **`unsigned char`**. `View::operator<` is a
+`std::lexicographical_compare` over **`char`**, which is signed on x86-64 and
+on the Windows target but unsigned on ARM and PowerPC Linux. Any header
+carrying a high-bit byte — UTF-8 or Latin-1, which sequence headers routinely
+do — would therefore sort differently from the historical output *and*
+differently from one architecture to the next. Measured over 2 692 881 pairs
+from a byte alphabet straddling `0x80`: `View::operator<` disagrees with
+`strcmp` on 1 378 400 of them with signed `char`, and on none with
+`-funsigned-char`. Concretely, with tied length and abundance so the header is
+the only tie-break:
+
+```
+current (strcmp)     View::operator< would give
+  >Frad                >Fréd
+  >Frzd                >Frad
+  >Fréd                >Frzd
+```
+
+This is the same class of bug as the `<cctype>` UB recorded below, and it
+would also bite any future `std::set<View<char>>` (see the TODO at the top of
+`span.hpp`).
+
+**What was done.** A new `utils/header_order.hpp` provides `header_less`
+(two-way, for the comparators that only need `<`) and `header_compare`
+(three-way, for those that tie-break on "equal headers"), both comparing
+through `unsigned char`, so the order is `strcmp`'s on every architecture.
+Both match `strcmp` exactly on all 2 692 881 pairs above, with signed and
+unsigned `char` alike.
+
+The 13 sites split three ways, not two:
+
+- **Ordering** (7) — `db.cpp` ×3, `sortbylength:127`, `sortbysize:122`,
+  `derep_prefix:327`, `derep.cpp:245`. Now `header_compare`/`header_less` over
+  `Database::header_view()`. The three `db.cpp` comparators also lost their
+  raw `buffer + header_p` pointer arithmetic to a `header_of` view helper.
+- **Header equality** (3) — `derep.cpp:652`, `:671`, `searchcore.cpp:612`.
+  These need no helper: `View::operator==` is signedness-independent, and it
+  compares sizes before bytes, so it short-circuits where `strcmp` walked to
+  the terminating null. Both `derep` sites sit inside hash-collision probe
+  loops and `searchcore`'s is in `search_acceptable_aligned`, so all three are
+  on hot paths. `View`/`Span` gained the matching `operator!=`, which neither
+  had (C++11 does not synthesise it).
+- **`"-"` stdin detection** (3) — `cli.cc:4448`, `fastx.cpp:342`,
+  `open_file.cpp:89`. **Keep.** These compare an `argv` pointer against a
+  one-character literal, which is `strcmp` used for exactly what it is for;
+  a `std::string` temporary would allocate and a hand-rolled
+  `s[0] == '-' and s[1] == '\0'` reads worse.
+
+Verified byte-identical against `dev` on a dataset built around the
+signedness boundary (`0x80`, `0xA9`, `0xC3`, `0xE9`, `0xFF` beside their
+ASCII neighbours, with tied lengths and abundances so the header decides the
+order) across `--sortbysize`, `--sortbylength`, `--derep_fulllength`,
+`--derep_id`, `--derep_smallmem`, `--derep_prefix`, `--cluster_fast`,
+`--cluster_size`, `--uchime_denovo` and `--usearch_global --self/--selfid`:
+31/31 outputs identical.
 
 ### `<cstdio>` non-printf — 36 sites
 
@@ -170,12 +222,12 @@ Two leaks outside `src/os/`, both minor:
   not allocate; `std::fprintf` may.
 
 
-## The `strlen` root cause — PARTLY DONE (48 → 24)
+## The `strlen` root cause — PARTLY DONE (48 → 22)
 
 48 sites, the single largest group, and worth stating precisely because
 the obvious diagnosis is wrong.
 
-**Status (2026-07-27).** Twenty-four of the 48 are gone, in three
+**Status (2026-07-27).** Twenty-six of the 48 are gone, in four
 commits; see "What was done" at the end of this section for what
 remains and why. The diagnosis below held up exactly: not one of the
 removed sites needed a new `Database` accessor.
@@ -228,7 +280,7 @@ OS) and `utils/compare_strings_nocase.cpp:114-115` (constructing views
 
 ### What was done (2026-07-27)
 
-Three commits, each verified byte-identical against `dev` on purpose-built
+Four commits, each verified byte-identical against `dev` on purpose-built
 datasets (non-ASCII headers, `--notrunclabels`, `--strand both`,
 `--output_no_hits`, header-stripping and relabel options) as well as by the
 test suite (0 FAIL), all three cross-compiles, the release build and
@@ -257,7 +309,12 @@ test suite (0 FAIL), all three cross-compiles, the release build and
    now stored as `fwd_header_length`/`rev_header_length`, matching the
    existing `fwd_length`/`rev_length` sequence fields.
 
-3. **`msa` — 2 sites.** `msa_target_s::cigar` became a `View<char>` borrowed
+3. **`fastq_print` deleted — 2 sites.** It had no caller anywhere in the
+   tree and `core/fastq.hpp` is not among the module headers `vsearch_api.h`
+   pulls in, so it was not reachable by a library user either. Its FASTA
+   counterpart `fasta_print` does have a caller (`msa.cpp:503`) and stays.
+
+4. **`msa` — 2 sites.** `msa_target_s::cigar` became a `View<char>` borrowed
    from the `clusterinfo` `std::string` whose `size()` the caller has. This
    needed `find_runlength_of_leftmost_operation`'s endptr out-parameter to
    become `char const **`; `std::strtoll` still wants a `char **`, so the
@@ -269,7 +326,7 @@ slightly better — `usearch_global` with `--alnout/--blast6out/--uc/--userout`
 and with `--samout` both within noise, `cluster_size --msaout` ~3 % faster,
 `fastq_mergepairs` ~3 % faster.
 
-### The 24 that remain, and why
+### The 22 that remain, and why
 
 | Sites | Where | Why it stays |
 |---|---|---|
@@ -278,7 +335,6 @@ and with `--samout` both within noise, `cluster_size --msaout` ~3 % faster,
 | 2 | `search.cpp:258`, `:413` | library API boundary — building a length *from* a user's C string, the correct direction |
 | 2 | `chimera.cpp:2855`, `:2863` | same, plus `:2855` is a deliberate length-vs-`strlen` consistency check on caller-supplied data (S18) |
 | 2 | `compare_strings_nocase.cpp:112-113` | already flagged above as the correct direction |
-| 2 | `fastq.cpp:731-732` | inside `fastq_print`, which has **no callers anywhere in the tree** and is not in `vsearch_api.h`. Dead code — worth deleting, but that is the maintainer's call, not a `strlen` cleanup |
 | 2 | `fasta.cpp:490`, `fastq.cpp:653` | `opt_label_suffix`, an `argv` string |
 | 1 | `cluster.cpp:1307` | `opt_clusters`, an `argv` string |
 | 2 | `userfields.cpp:124`, `:149` | a table of string literals and a parse cursor over one |
@@ -495,14 +551,17 @@ not bundled with the UB fix.
 2. **`vsearch::` namespace for `View`/`Span`.** Cheapest now, and it
    gates item 3.
 3. ~~**`View` through the output call chains**, `core/results.cpp`
-   first.~~ — **done for the output chains** (48 → 24 `strlen`); see
+   first.~~ — **done for the output chains** (48 → 22 `strlen`, after
+   `fastq_print` was deleted as dead code); see
    "What was done" above. Note this was taken **before** item 2, at the
    maintainer's request. The gating argument in item 2 is about
    *external* consumers naming the type, and every site converted here
    is internal, so the later move into `vsearch::` is unaffected — but
-   `View`/`Span` are now named in `results.hpp` and `msa.hpp` as well,
-   so item 2 has grown by two headers. The 10 comparator `strcmp` did
-   **not** fall out of this change; they are a separate thread.
+   `View`/`Span` are now named in `results.hpp`, `msa.hpp` and the new
+   `utils/header_order.hpp` as well, so item 2 has grown by three
+   headers. The 10 comparator `strcmp` did **not** fall out of this
+   change; they were done separately (13 → 3), and the way the plan
+   assumed would have changed output — see the signedness section.
 4. **`sscanf` → the existing cigar helper** (5 CIGAR sites), then the
    `cli.cc` option parsing (6 sites) separately, since that one needs
    care over trailing-garbage rejection.
