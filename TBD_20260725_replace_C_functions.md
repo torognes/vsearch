@@ -12,7 +12,7 @@ sites) is excluded as a target: `CLAUDE.md` actively asks for it
 ("make implicit contracts explicit with assert()").
 
 Total: **144 call sites** (73 + 36 + 17 + 15 + 3), plus ~20 POSIX/OS
-calls. **97** after the 2026-07-27 `strlen`, `strcmp`, `sscanf`, `ldiv` and
+calls. **91** after the 2026-07-27 `strlen`, `strcmp`, `sscanf`, `ldiv` and
 `strstr` passes (see below).
 
 
@@ -34,11 +34,11 @@ commit `ed226b7c`; two more of the same kind (`memchr`, an unused
 | `std::strlen` | 48 → 22 | see "The `strlen` root cause" below; 26 removed 2026-07-27 |
 | `std::strcmp` | 13 → 3 | see "`strcmp` and the signedness trap" below; 10 removed 2026-07-27 |
 | `std::memcpy` | 6 | **keep** — SIMD type-punning |
-| `std::memcmp` | 2 | `fastx.cpp` magic-byte sniffing |
+| `std::memcmp` | 2 | **keep** — `fastx.cpp` magic-byte sniffing; see below |
 | `std::memset` | 1 | `align_simd.cpp` raw SIMD buffer |
 | `std::memmove` | 1 | `align_simd.cpp` cigar shift |
 | `std::strstr` | 1 → 0 | **done 2026-07-27** (`f706b6ae`) — it was also a bug |
-| `std::strcspn` | 1 | `cli.cc:4053`, truncating optarg at a separator |
+| `std::strcspn` | 1 | **keep** — `cli.cc`, truncating optarg at a separator; see below |
 
 **Do not touch the SIMD `memcpy`.** The five in `align_simd.cpp` and the
 one in `arch/ppc64le/increment_counters.cpp` implement aliasing-safe
@@ -143,7 +143,7 @@ specialization that replaced it.
 
 | Function | Sites |
 |---|---|
-| `std::sscanf` | 11 → 6 |
+| `std::sscanf` | 11 → 0 |
 | `std::fread` | 9 |
 | `std::fclose` | 5 |
 | `std::fputc` | 3 |
@@ -181,13 +181,30 @@ record-by-record readers.
   A negative or zero run length is *not* reachable from the CLI, since every
   CIGAR on these paths is produced by the in-tree aligner; the `results.cpp`
   guard stays defensive, and the equivalence table above is its only test.
-- **CLI option parsing** (5 in `cli.cc` + 1 helper): `cli.cc:118`, `:153`,
-  `:160`, `:230`, `:414`, `:428`. `cli.cc:150` already carries a
-  `// refactoring: std::stoi(), faster than sscanf()` note. Careful:
-  `:153`/`:160` parse a 3-field and a 2-field comma/`*` grammar
-  (`--length_cutoffs`), and several sites rely on `%n` to detect trailing
-  garbage — the replacement has to keep rejecting `"12abc"`. `cli.cc:415`
-  and `:430` show the existing pattern for that check.
+- ~~**CLI option parsing** (6 in `cli.cc`)~~ — **done 2026-07-27**
+  (`299111b8`, `c01d30b0`). Not `std::stoi` as the old note suggested: it
+  throws, and exceptions are library-only here, so the replacement is
+  `strtoll`/`strtod` with an endptr.
+
+  **A live bug surfaced first** (`299111b8`). `args_getlong` and
+  `args_getdouble` tested `sscanf`'s return against `0`, but `sscanf` returns
+  `EOF` when the input ends before any conversion. An empty argument was
+  therefore read as zero: `--id ""` exited 0 and behaved as `--id 0.0`,
+  accepting every hit, and `--topn ""` reported the range message for
+  `--topn 0`. Fixed with `ret != 1` as a separate commit, still on `sscanf`,
+  so the migration on top stayed behaviour-neutral.
+
+  **The migration also removes undefined behaviour.** An integer that does not
+  fit is UB for the scanf family (C11 §7.21.6.2p10), and the `errno == ERANGE`
+  the old checks relied on to catch it is a glibc extension — the mingw build
+  links a different runtime. `strtoll` clamps and sets `ERANGE` by contract.
+
+  **One deliberate narrowing, agreed with the maintainer:**
+  `--length_cutoffs` now takes exactly `shortest,longest,increment` with no
+  whitespace. `sscanf` tolerated whitespace wherever a `%d` conversion began,
+  so `1,*, 10` parsed while `1, *, 10` did not — a format-string artefact no
+  manual page describes. `1,*, 10` is now rejected. Six checks in
+  `scripts/fastq_eestats2.sh` pin the grammar.
 
 ### `<cctype>` — 17 sites
 
@@ -665,6 +682,23 @@ not bundled with the UB fix.
 Explicitly **not** targets: the SIMD `memcpy`/`memset`/`memmove`, the
 `FILE *`/RAII layer, `std::exit` on the `fatal()` paths, `<ctime>` in
 `timestamp.cpp`, `posix_memalign`/`std::free` in `xmalloc`/`xfree`, the
-`write(2)` OOM handler, and `assert()`. Blocked on C++11:
+`write(2)` OOM handler, and `assert()`.
+
+Two more joined that list on inspection (2026-07-27), both of which had looked
+like one-line cleanups:
+
+- **the two `memcmp` in `fastx.cpp`.** Unifying them on the `std::equal` used
+  higher up in the same file *breaks gzip detection*: there the buffer is a
+  `char const *` while `magic_gzip` is `std::array<unsigned char, 2>`, so
+  `std::equal` compares `0x8b` as 139 against the same byte as −117 wherever
+  `char` is signed. Measured: `memcmp` matches, `std::equal` does not,
+  `std::equal` through a `reinterpret_cast<unsigned char const *>` does — and
+  that cast reads worse than the `memcmp`. Same trap as the `strcmp`
+  comparators. Only the repeated literal `2` was replaced, by
+  `magic_gzip.size()` (`db44dc30`).
+- **the `strcspn` in `cli.cc`.** `optarg[std::strcspn(optarg, "; \t\r\n\v\f")] = '\0'`
+  is one call. `std::find_first_of` needs an added `std::strlen` for the end
+  iterator and an off-by-one to keep the separator array's own NUL out of the
+  separator set. Strictly worse; kept. Blocked on C++11:
 `std::from_chars` for the two `strtoll` sites, `std::aligned_alloc`
 for `xmalloc`.
