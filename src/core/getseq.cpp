@@ -83,7 +83,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
-#include <cstring>  // std::strlen, std::strstr
+#include <cstring>  // std::strlen
 #include <sys/stat.h>
 #include <vector>
 
@@ -239,26 +239,35 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
   else if (parameters.opt_label_word != nullptr)
     {
       char const * needle = parameters.opt_label_word;
+      auto wlen = std::strlen(needle);
       if (parameters.opt_label_field != nullptr)
         {
-          std::copy_n(needle, std::strlen(needle) + 1, &field_buffer[field_len + 1]);
+          std::copy_n(needle, wlen + 1, &field_buffer[field_len + 1]);
           needle = field_buffer.data();
+          wlen += field_len + 1;
         }
-      auto const wlen = std::strlen(needle);
-      char const * hit = header_view.data();
+      // the search is bounded by header_end, like the --label_words loop
+      // below. std::strstr() was not: with an empty needle it never returns
+      // nullptr, so the loop walked past the end of the header and decided
+      // from bytes that were not part of it
+      char const * const needle_end = std::next(needle, static_cast<std::ptrdiff_t>(wlen));
+      char const * const header_end = std::next(header, static_cast<std::ptrdiff_t>(hlen));
+      char const * hit = header;
       while (true)
         {
-          hit = std::strstr(hit, needle);
-          if (hit == nullptr) {
+          hit = std::search(hit, header_end, needle, needle_end);
+          char const * const after = std::next(hit, static_cast<std::ptrdiff_t>(wlen));
+          if (after > header_end) {
+            // the needle does not fit in what is left: no match
             break;
           }
           if (parameters.opt_label_field != nullptr)
             {
               /* check of field */
               if (((hit == header) or
-                   (*(hit - 1) == ';')) and
-                  ((hit + wlen == header + hlen) or
-                   (*(hit + wlen) == ';')))
+                   (*std::prev(hit) == ';')) and
+                  ((after == header_end) or
+                   (*after == ';')))
                 {
                   return true;
                 }
@@ -267,14 +276,19 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
             {
               /* check of full word */
               if (((hit == header) or
-                   (not is_alnum(*(hit - 1)))) and
-                  ((hit + wlen == header + hlen) or
-                   (not is_alnum(*(hit + wlen)))))
+                   (not is_alnum(*std::prev(hit)))) and
+                  ((after == header_end) or
+                   (not is_alnum(*after))))
                 {
                   return true;
                 }
             }
-          ++hit;
+          if (hit == header_end) {
+            // an empty needle also matches at end-of-header; that position
+            // has just been checked, so there is nothing left to scan
+            break;
+          }
+          hit = std::next(hit);
         }
     }
   else if (parameters.opt_label_words != nullptr)
