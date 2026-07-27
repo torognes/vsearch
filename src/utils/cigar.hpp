@@ -65,7 +65,7 @@
 
 
 auto find_runlength_of_leftmost_operation(char const * first_character,
-                                          char ** first_non_digit) -> long long;
+                                          char const ** first_non_digit) -> long long;
 
 auto parse_cigar_string(View<char> cigar_string) -> std::vector<std::pair<Operation, long long>>;
 

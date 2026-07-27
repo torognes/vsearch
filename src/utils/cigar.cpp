@@ -122,7 +122,7 @@ namespace {
 
 // duplicate: msa.cc
 auto find_runlength_of_leftmost_operation(char const * first_character,
-                                          char ** first_non_digit) -> long long {
+                                          char const ** first_non_digit) -> long long {
   // std::strtoll:
   // - start from the 'first_character' pointed to,
   // - consume as many characters as possible to form a valid integer,
@@ -130,9 +130,14 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
   // - return the valid integer
   // - if there is no valid integer: pointer is not advanced and strtoll() returns zero
   static constexpr auto decimal_base = 10;
+  // strtoll's endptr is a char** even though it only ever points back into the
+  // read-only input; take it in a local and hand the caller a pointer to const,
+  // so callers holding a const buffer do not have to launder it themselves
+  char * end_of_digits = nullptr;
   auto const runlength = std::strtoll(first_character,
-                                      first_non_digit,
+                                      &end_of_digits,
                                       decimal_base);
+  *first_non_digit = end_of_digits;
   assert(runlength <= std::numeric_limits<int>::max());
 
   // in cigar strings, runlength of 1 are implicit (no digit)
@@ -151,9 +156,8 @@ auto parse_cigar_string(View<char> const cigar_string) -> std::vector<std::pair<
     {
       // Consume digits (if any), return the position of the
       // first char (M, D, or I), store it, move cursor to the next byte.
-      // next_operation is a separate char* for std::strtoll's endptr (a C-API
-      // out-parameter); it aliases the read-only cigar buffer and is only read.
-      char * next_operation = nullptr;
+      // next_operation aliases the read-only cigar buffer and is only read.
+      char const * next_operation = nullptr;
       auto const run = find_runlength_of_leftmost_operation(position, &next_operation);
       // do not dereference if outside of cigar_string! (= missing operation!)
       if (next_operation >= cigar_end) {

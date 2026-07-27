@@ -1464,11 +1464,12 @@ auto cluster(char const * dbname,
           {
             int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
             int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
-            /* msa_target_list_v[].cigar is a non-owning char* view; borrow a
-               pointer into the clusterinfo std::string, which outlives the
-               msa() calls below (the seed's empty cigar sits at index 0, which
-               msa() never parses) */
-            char * cigar = &clusterinfo_v[static_cast<std::size_t>(i)].cigar[0];
+            /* msa_target_list_v[].cigar is a non-owning view; borrow the
+               clusterinfo std::string, which outlives the msa() calls below
+               (the seed's empty cigar sits at index 0, which msa() never
+               parses) */
+            auto const & cigar_string = clusterinfo_v[static_cast<std::size_t>(i)].cigar;
+            auto const cigar = View<char>{cigar_string.data(), cigar_string.size()};
             int const strand = clusterinfo_v[static_cast<std::size_t>(i)].strand;
 
             if (clusterno != lastcluster)

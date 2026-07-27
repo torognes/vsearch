@@ -73,7 +73,6 @@
 #include <cinttypes>  // macro PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::sscanf, std::fprintf
-#include <cstring>  // std::strlen
 #include <iterator> // std::next
 #include <numeric> // std::accumulate
 #include <vector>
@@ -168,9 +167,7 @@ auto find_max_insertions_per_position(int const target_count,
 
   for (auto i = 1; i < target_count; ++i) {
     auto position = 0LL;
-    auto * cigar_start = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)].cigar;
-    auto const cigar_length = std::strlen(cigar_start);
-    auto const cigar_pairs = parse_cigar_string(View<char>{cigar_start, cigar_length});
+    auto const cigar_pairs = parse_cigar_string(target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)].cigar);
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
@@ -359,16 +356,14 @@ auto compute_and_print_msa(int const target_count,
       auto qpos = 0;
       auto tpos = 0;
 
-      auto * cigar_start = target.cigar;
-      auto const cigar_length = static_cast<long>(std::strlen(cigar_start));
-      auto const * cigar_end = std::next(cigar_start, cigar_length);
-      auto * position_in_cigar = cigar_start;
+      auto const * const cigar_end = target.cigar.end();
+      auto const * position_in_cigar = target.cigar.begin();
       while (position_in_cigar < cigar_end)
         {
           // Consume digits (if any), return the position of the
           // first char (M, D, or I), store it, move cursor to the next byte.
           // Operations: match (M), insertion (I), or deletion (D)
-          auto** next_operation = &position_in_cigar;
+          auto ** next_operation = &position_in_cigar;
           auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
           auto const operation = **next_operation;
           position_in_cigar = std::next(position_in_cigar);

@@ -58,6 +58,7 @@
 
 */
 
+#include "utils/view.hpp"  // View
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 #include <vector>
@@ -68,7 +69,10 @@ struct Database;
 struct msa_target_s
 {
   int seqno;
-  char * cigar;
+  /* a non-owning view into the cluster's cigar string, which the caller owns
+     and which outlives the msa() call; carrying the length here spares msa()
+     an std::strlen per target */
+  View<char> cigar;
   int strand;
 };
 
