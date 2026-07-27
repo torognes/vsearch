@@ -379,9 +379,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
       input_handle->format = Format::plain;
 
       // refactoring: fread() see C++ Weekly - Ep 482 - Safely Wrapping C APIs
-      auto const bytes_read = std::fread(magic.data(), 1, 2, input_handle->fp);
+      auto const bytes_read = std::fread(magic.data(), 1, magic.size(), input_handle->fp);
 
-      if (bytes_read >= 2)
+      if (bytes_read >= magic.size())
         {
           if (std::equal(magic.begin(), magic.end(), magic_gzip.begin()))
             {
@@ -483,14 +483,14 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
           std::fclose(input_handle->fp);
           input_handle->fp = nullptr;
 
-          if (rest >= 2)
+          if (rest >= magic_gzip.size())
             {
-              if (std::memcmp(first, magic_gzip.data(), 2) == 0)
+              if (std::memcmp(first, magic_gzip.data(), magic_gzip.size()) == 0)
                 {
                   fatal("File appears to be gzip compressed. Please use --gzip_decompress");
                 }
 
-              if (std::memcmp(first, magic_bzip.data(), 2) == 0)
+              if (std::memcmp(first, magic_bzip.data(), magic_bzip.size()) == 0)
                 {
                   fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
                 }
