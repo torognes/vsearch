@@ -724,11 +724,3 @@ auto fastq_print_general(std::FILE * output_handle,
                       parameters);
 }
 
-
-auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality,
-                 struct Parameters const & parameters) -> void
-{
-  auto const slen = static_cast<int>(std::strlen(sequence));
-  auto const hlen = static_cast<int>(std::strlen(header));
-  fastq_print_general(output_handle, sequence, slen, header, hlen, quality, 0, 0, -1.0, parameters);
-}

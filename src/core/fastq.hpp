@@ -74,9 +74,6 @@ auto fastq_next(fastx_handle input_handle,
                 bool truncateatspace,
                 const unsigned char * char_mapping) -> bool;
 
-auto fastq_print(std::FILE * output_handle, char const * header, char const * sequence, char const * quality,
-                 struct Parameters const & parameters) -> void;
-
 auto fastq_print_general(std::FILE * output_handle,
                          char const * seq,
                          int len,
