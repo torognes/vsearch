@@ -12,7 +12,8 @@ sites) is excluded as a target: `CLAUDE.md` actively asks for it
 ("make implicit contracts explicit with assert()").
 
 Total: **144 call sites** (73 + 36 + 17 + 15 + 3), plus ~20 POSIX/OS
-calls. **106** after the 2026-07-27 `strlen` and `strcmp` passes (see below).
+calls. **98** after the 2026-07-27 `strlen`, `strcmp`, `sscanf` and `ldiv`
+passes (see below).
 
 
 ## Status of `qsort`
@@ -142,7 +143,7 @@ specialization that replaced it.
 
 | Function | Sites |
 |---|---|
-| `std::sscanf` | 11 |
+| `std::sscanf` | 11 → 6 |
 | `std::fread` | 9 |
 | `std::fclose` | 5 |
 | `std::fputc` | 3 |
@@ -160,13 +161,21 @@ record-by-record readers.
 
 `std::sscanf` (11) **is** a genuine target, in two clusters:
 
-- **CIGAR run-length parsing** (5): `searchcore.cpp` ×3,
-  `linmemalign.cpp:733`, `results.cpp:823`. All are
-  `sscanf(p, "%" PRId64 "%n", &run, &len)` — read an integer, advance a
-  pointer. `utils/cigar.cpp` already does the same job with
-  `std::strtoll` and documents the endptr contract, so the natural fix
-  is to route these five through the existing cigar helper rather than
-  to reimplement the parse.
+- ~~**CIGAR run-length parsing** (5)~~ — **done 2026-07-27** (`529efe67`).
+  `searchcore.cpp` ×3, `linmemalign.cpp`, `results.cpp`, all routed through
+  `utils/cigar.cpp` as planned. One thing the plan did not anticipate:
+  `find_runlength_of_leftmost_operation` ends with `std::max(runlength, 1LL)`,
+  and that clamp would have made `results.cpp`'s
+  `if (run < 0) fatal(...)` unreachable, silently rewriting a negative or zero
+  run as 1. The primitive was therefore split — `read_runlength()` returns what
+  `strtoll` read, `find_runlength_of_leftmost_operation()` is that plus the
+  clamp — and `build_sam_strings` uses the raw form so its guard keeps working.
+  Checked against the old idiom on `12M`, `M`, `1M`, `0M`, `-5M`, `7D3I`,
+  `999999M`, `""`, `12` and `007M`: identical run and consumed width in every
+  case. Neutral on performance end-to-end (the primitive is 7.5× faster, but
+  the alignment dominates). Newly covered by `scripts/cigar_parsing.sh` in
+  vsearch-tests, which pins the implicit run length of 1 at both ends of a
+  CIGAR — untested before, and the one reachable observable of the clamp.
 - **CLI option parsing** (5 in `cli.cc` + 1 helper): `cli.cc:118`, `:153`,
   `:160`, `:230`, `:414`, `:428`. `cli.cc:150` already carries a
   `// refactoring: std::stoi(), faster than sscanf()` note. Careful:
@@ -190,7 +199,7 @@ see the UB section below. (17 calls over 16 lines:
 | Function | Sites | Notes |
 |---|---|---|
 | `std::exit` | 9 | **keep** — `fatal()` paths |
-| `std::ldiv` | 3 | median computation |
+| `std::ldiv` | 3 → 0 | **done 2026-07-27** (`989a7734`) |
 | `std::strtoll` | 2 | already flagged for C++17 |
 | `std::free` | 1 | `xfree`, pairs with `posix_memalign` |
 
@@ -199,10 +208,17 @@ see the UB section below. (17 calls over 16 lines:
   after a `noreturn` `fatal()`). These are the intended process-exit
   points; in a library session `fatal()` throws `VsearchError` instead.
   Not a target.
-- `std::ldiv` (3): `sortbylength.cpp:147`, `sortbysize.cpp:143`,
-  `derep.cpp:167`, all computing a median index as
-  `std::ldiv(size, 2)`. Plain `/` and `%` would do, and would drop the
-  `long` round-trip and its narrowing cast. Low risk, low value.
+- ~~`std::ldiv` (3)~~ — **done 2026-07-27** (`989a7734`). All three used only
+  `.quot`, the remainder being recomputed with `%` on the next line. The
+  `static_cast<long>` was worse than redundant: `long` is 32-bit on the
+  `x86_64-w64-mingw32` target (confirmed with a `static_assert` through the
+  cross-compiler; 64-bit on Linux), so it narrowed a `std::size_t` / `uint64_t`
+  there. Reaching it needs ~2.1 billion records, so it was latent, but plain
+  division on the original unsigned type removes the exposure. It also removed
+  the second round of casting that `ldiv`'s *signed* quotient forced at every
+  subscript — `-Wuseless-cast` now rejects putting those back — and
+  `<cstdlib>` from `derep.cpp`. Medians verified identical to `dev` at 0, 1, 2,
+  3, 4, 5, 8, 9, 100 and 101 records.
 - `std::strtoll` (2): `utils/cigar.cpp:133`, `core/attributes.cpp:213`.
   `attributes.cpp:212` already carries the note that
   `std::from_chars` is the C++17 replacement. **Blocked** — the project
@@ -590,10 +606,18 @@ not bundled with the UB fix.
    headers. The 10 comparator `strcmp` did **not** fall out of this
    change; they were done separately (13 → 3), and the way the plan
    assumed would have changed output — see the signedness section.
-4. **`sscanf` → the existing cigar helper** (5 CIGAR sites), then the
-   `cli.cc` option parsing (6 sites) separately, since that one needs
-   care over trailing-garbage rejection.
-5. **`ldiv` → `/` and `%`** (3 sites). Cosmetic; bundle with something.
+4. ~~**`sscanf` → the existing cigar helper** (5 CIGAR sites)~~ — **done**,
+   `529efe67`; see the `<cstdio>` section for the clamp that had to be split
+   out first. The `cli.cc` option parsing (6 sites) is still open and still
+   wants its own pass: several rely on `%n` to reject trailing garbage, and
+   `std::stoll`/`std::stod` throw, so the replacement is `strtoll` with an
+   endptr rather than the `sto*` family.
+5. ~~**`ldiv` → `/` and `%`** (3 sites)~~ — **done 2026-07-27** (`989a7734`).
+   Not purely cosmetic after all: `static_cast<long>` narrowed a `std::size_t`
+   on the Windows target, where `long` is 32-bit (confirmed with a
+   `static_assert` through the cross-compiler). Removing `ldiv` removed the
+   cast, the second round of casting its signed quotient forced at each
+   subscript, and `<cstdlib>` from `derep.cpp`.
 
 Explicitly **not** targets: the SIMD `memcpy`/`memset`/`memmove`, the
 `FILE *`/RAII layer, `std::exit` on the `fatal()` paths, `<ctime>` in
