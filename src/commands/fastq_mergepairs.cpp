@@ -82,7 +82,6 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::strlen
 #include <mutex>  // std::mutex, std::unique_lock
 #include <string>  // std::to_string
 #include <vector>
@@ -310,7 +309,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           a_read_pair.merged_sequence.data(),
                           static_cast<int>(a_read_pair.merged_length),
                           a_read_pair.fwd_header.data(),
-                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
+                          static_cast<int>(a_read_pair.fwd_header_length),
                           a_read_pair.merged_quality_v.data(),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.merged,
@@ -325,7 +324,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           a_read_pair.merged_sequence.data(),
                           static_cast<int>(a_read_pair.merged_length),
                           a_read_pair.fwd_header.data(),
-                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
+                          static_cast<int>(a_read_pair.fwd_header_length),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.merged,
                           a_read_pair.ee_merged,
@@ -424,7 +423,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           a_read_pair.fwd_sequence.data(),
                           static_cast<int>(a_read_pair.fwd_length),
                           a_read_pair.fwd_header.data(),
-                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
+                          static_cast<int>(a_read_pair.fwd_header_length),
                           a_read_pair.fwd_quality.data(),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.notmerged,
@@ -438,7 +437,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           a_read_pair.rev_sequence.data(),
                           static_cast<int>(a_read_pair.rev_length),
                           a_read_pair.rev_header.data(),
-                          static_cast<int>(std::strlen(a_read_pair.rev_header.data())),
+                          static_cast<int>(a_read_pair.rev_header_length),
                           a_read_pair.rev_quality.data(),
                           static_cast<uint64_t>(a_read_pair.rev_abundance),
                           state.notmerged,
@@ -453,7 +452,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           a_read_pair.fwd_sequence.data(),
                           static_cast<int>(a_read_pair.fwd_length),
                           a_read_pair.fwd_header.data(),
-                          static_cast<int>(std::strlen(a_read_pair.fwd_header.data())),
+                          static_cast<int>(a_read_pair.fwd_header_length),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.notmerged,
                           -1.0,
@@ -470,7 +469,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           a_read_pair.rev_sequence.data(),
                           static_cast<int>(a_read_pair.rev_length),
                           a_read_pair.rev_header.data(),
-                          static_cast<int>(std::strlen(a_read_pair.rev_header.data())),
+                          static_cast<int>(a_read_pair.rev_header_length),
                           static_cast<uint64_t>(a_read_pair.rev_abundance),
                           state.notmerged,
                           -1.0,
@@ -543,12 +542,14 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
         fastq_fwd->get_header_length()};
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
       a_read_pair.fwd_header[fwd_header_view.size()] = '\0';  // fix issue when reusing allocated mem
+      a_read_pair.fwd_header_length = fwd_header_len;
 
       auto const rev_header_view = View<char> {
         fastq_rev->get_header(),
         fastq_rev->get_header_length()};
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
       a_read_pair.rev_header[rev_header_view.size()] = '\0';  // fix issue when reusing allocated mem
+      a_read_pair.rev_header_length = rev_header_len;
 
       auto const fwd_sequence_view = View<char> {
         fastq_fwd->get_sequence(),
