@@ -61,6 +61,7 @@
 #pragma once
 
 
+#include "element_order.hpp"  // element_order, element_less
 #include <algorithm>  // std::equal, std::lexicographical_compare, std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -105,9 +106,27 @@ public:
     return not (*this == other);
   }
   // refactoring: std::lexicographical works only for char and int?
+  // Ordering goes through element_order (see element_order.hpp), so that a
+  // Span<char> orders its bytes as unsigned char, like std::strcmp and
+  // std::string, rather than as a possibly-signed char.
   auto operator<(Span<Type> const & other) const -> bool {
     return std::lexicographical_compare(cbegin(), cend(),
-                                        other.cbegin(), other.cend());
+                                        other.cbegin(), other.cend(),
+                                        element_less<Type>{});
+  }
+
+  // Three-way form, with the sign convention of std::strcmp and
+  // std::string::compare, for callers that must tell "equal" from
+  // "greater" in a single pass. C++11 offers no three-way algorithm;
+  // std::lexicographical_compare_three_way arrives in C++20.
+  auto compare(Span<Type> const & other) const -> int {
+    auto const common_length = std::min(size(), other.size());
+    for (std::size_t index = 0; index < common_length; ++index) {
+      auto const order = element_order<Type>::compare((*this)[index], other[index]);
+      if (order != 0) { return order; }
+    }
+    if (size() == other.size()) { return 0; }
+    return (size() < other.size()) ? -1 : +1;
   }
 
   // Iterators
