@@ -396,14 +396,13 @@ auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, s
 auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                               struct hit const * best,
                               int const clusterno,
-                              View<char> const query_head_view,
-                              int const qseqlen,
-                              char const * qsequence,
-                              char const * qsequence_rc,
+                              View<char> const query_head,
+                              View<char> const qsequence,
+                              View<char> const qsequence_rc,
                               int64_t const qsize,
                               struct Database const & db) -> void
 {
-  auto const * const query_head = query_head_view.data();
+  auto const qseqlen = static_cast<int>(qsequence.size());
   ++state.count_matched;
 
   if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
@@ -414,11 +413,11 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                                  db.getsequence(static_cast<uint64_t>(best->target)),
                                                  static_cast<int>(db.getsequencelen(static_cast<uint64_t>(best->target))),
                                                  state.parameters);
-          state.otutable.add(query_head_view, View<char>{label.c_str(), label.size()}, qsize);
+          state.otutable.add(query_head, View<char>{label.c_str(), label.size()}, qsize);
         }
       else
         {
-          state.otutable.add(query_head_view,
+          state.otutable.add(query_head,
                        db.header_view(static_cast<uint64_t>(best->target)),
                        qsize);
         }
@@ -438,7 +437,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
     {
       results_show_alnout(state.fp_alnout,
                           best, 1, query_head,
-                          qsequence, qseqlen,
+                          qsequence,
                           db,
                           state.parameters);
     }
@@ -469,7 +468,6 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                                best,
                                query_head,
                                qsequence,
-                               qseqlen,
                                qsequence_rc,
                                state.parameters);
     }
@@ -485,7 +483,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_userout != nullptr)
     {
       results_show_userout_one(state.fp_userout, best, query_head,
-                               qsequence, qseqlen, qsequence_rc,
+                               qsequence, qsequence_rc,
                                db,
                                state.parameters);
     }
@@ -501,10 +499,10 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
     {
       fasta_print_general(state.fp_matched,
                           nullptr,
-                          qsequence,
+                          qsequence.data(),
                           qseqlen,
-                          query_head,
-                          static_cast<int>(std::strlen(query_head)),
+                          query_head.data(),
+                          static_cast<int>(query_head.size()),
                           static_cast<uint64_t>(qsize),
                           state.count_matched,
                           -1.0,
@@ -517,25 +515,24 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
 
 auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                                 int const clusterno,
-                                View<char> const query_head_view,
-                                int const qseqlen,
-                                char const * qsequence,
-                                char const * qsequence_rc,
+                                View<char> const query_head,
+                                View<char> const qsequence,
+                                View<char> const qsequence_rc,
                                 int64_t const qsize) -> void
 {
-  auto const * const query_head = query_head_view.data();
+  auto const qseqlen = static_cast<int>(qsequence.size());
   ++state.count_notmatched;
 
   if ((state.parameters.opt_otutabout != nullptr) or (state.parameters.opt_mothur_shared_out != nullptr) or (state.parameters.opt_biomout != nullptr))
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
-          std::string const label = relabel_otu(clusterno, qsequence, qseqlen, state.parameters);
-          state.otutable.add(query_head_view, View<char>{label.c_str(), label.size()}, qsize);
+          std::string const label = relabel_otu(clusterno, qsequence.data(), qseqlen, state.parameters);
+          state.otutable.add(query_head, View<char>{label.c_str(), label.size()}, qsize);
         }
       else
         {
-          state.otutable.add(query_head_view, query_head_view, qsize);
+          state.otutable.add(query_head, query_head, qsize);
         }
     }
 
@@ -543,7 +540,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
     {
       std::fprintf(state.fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", state.clusters, qseqlen);
       header_fprint_strip(state.fp_uc,
-                          query_head_view,
+                          query_head,
                           state.parameters.opt_xsize,
                           state.parameters.opt_xee,
                           state.parameters.opt_xlength);
@@ -555,7 +552,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       if (state.fp_userout != nullptr)
         {
           results_show_userout_one(state.fp_userout, nullptr, query_head,
-                                   qsequence, qseqlen, qsequence_rc,
+                                   qsequence, qsequence_rc,
                                    state.db,
                                    state.parameters);
         }
@@ -572,10 +569,10 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
     {
       fasta_print_general(state.fp_notmatched,
                           nullptr,
-                          qsequence,
+                          qsequence.data(),
                           qseqlen,
-                          query_head,
-                          static_cast<int>(std::strlen(query_head)),
+                          query_head.data(),
+                          static_cast<int>(query_head.size()),
                           static_cast<uint64_t>(qsize),
                           state.count_notmatched,
                           -1.0,
@@ -958,9 +955,10 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               cluster_core_results_hit(state, best,
                                        state.clusterinfo[target].clusterno,
                                        si_p->query_head,
-                                       static_cast<int>(si_p->qsequence.size()),
-                                       si_p->qsequence.data(),
-                                       (best->strand != 0) ? si_m->qsequence.data() : nullptr,
+                                       View<char>{si_p->qsequence.data(), si_p->qsequence.size()},
+                                       (best->strand != 0)
+                                         ? View<char>{si_m->qsequence.data(), si_m->qsequence.size()}
+                                         : View<char>{},
                                        si_p->qsize,
                                        db);
 
@@ -992,9 +990,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
                                          si_p->query_head,
-                                         static_cast<int>(si_p->qsequence.size()),
-                                         si_p->qsequence.data(),
-                                         nullptr,
+                                         View<char>{si_p->qsequence.data(), si_p->qsequence.size()},
+                                         View<char>{},
                                          si_p->qsize);
               ++state.clusters;
             }
@@ -1065,9 +1062,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           cluster_core_results_hit(state, best,
                                    state.clusterinfo[target].clusterno,
                                    si_p[0].query_head,
-                                   static_cast<int>(si_p[0].qsequence.size()),
-                                   si_p[0].qsequence.data(),
-                                   (best->strand != 0) ? si_m[0].qsequence.data() : nullptr,
+                                   View<char>{si_p[0].qsequence.data(), si_p[0].qsequence.size()},
+                                   (best->strand != 0)
+                                     ? View<char>{si_m[0].qsequence.data(), si_m[0].qsequence.size()}
+                                     : View<char>{},
                                    si_p[0].qsize,
                                    db);
           state.clusterinfo[seqno].seqno = seqno;
@@ -1086,9 +1084,8 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask, db);
           cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head,
-                                     static_cast<int>(si_p[0].qsequence.size()),
-                                     si_p[0].qsequence.data(),
-                                     nullptr,
+                                     View<char>{si_p[0].qsequence.data(), si_p[0].qsequence.size()},
+                                     View<char>{},
                                      si_p[0].qsize);
           ++state.clusters;
         }

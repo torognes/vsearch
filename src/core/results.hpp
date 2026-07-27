@@ -60,37 +60,43 @@
 
 #pragma once
 
+#include "utils/view.hpp"  // View
 #include <cstdio>  // std::FILE
 #include <cstdint>  // int64_t
 
 
 struct Database;
 
+/* The query header and the query sequence (plus its reverse complement, when
+   the minus strand was searched) are passed as views: the caller already knows
+   both lengths, and a bare pointer would force each leaf to recover them with
+   std::strlen. A view carrying the length also removes the separate qseqlen
+   argument wherever the sequence itself is passed. */
+
 auto results_show_alnout(std::FILE * output_handle,
                          struct hit const * hits,
                          int hitcount,
-                         char const * query_head,
-                         char const * qsequence,
-                         int64_t qseqlen,
+                         View<char> query_head,
+                         View<char> qsequence,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;
 
 auto results_show_lcaout(std::FILE * output_handle,
                          struct hit const * hits,
                          int hitcount,
-                         char const * query_head,
+                         View<char> query_head,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;
 
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hits,
-                                char const * query_head,
+                                View<char> query_head,
                                 int64_t qseqlen,
                                 struct Database const & db) -> void;
 
 auto results_show_uc_one(std::FILE * output_handle,
                          struct hit const * hits,
-                         char const * query_head,
+                         View<char> query_head,
                          int64_t qseqlen,
                          int clusterno,
                          struct Database const & db,
@@ -98,27 +104,25 @@ auto results_show_uc_one(std::FILE * output_handle,
 
 auto results_show_userout_one(std::FILE * output_handle,
                               struct hit const * hits,
-                              char const * query_head,
-                              char const * qsequence,
-                              int64_t qseqlen,
-                              char const * qsequence_rc,
+                              View<char> query_head,
+                              View<char> qsequence,
+                              View<char> qsequence_rc,
                               struct Database const & db,
                               struct Parameters const & parameters) -> void;
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const * hits,
-                                 char const * query_head,
-                                 char const * qsequence,
-                                 char const * qsequence_rc,
+                                 View<char> query_head,
+                                 View<char> qsequence,
+                                 View<char> qsequence_rc,
                                  struct Database const & db,
                                  struct Parameters const & parameters) -> void;
 
 auto results_show_qsegout_one(std::FILE * output_handle,
                               struct hit const * hits,
-                              char const * query_head,
-                              char const * qsequence,
-                              int64_t qseqlen,
-                              char const * qsequence_rc,
+                              View<char> query_head,
+                              View<char> qsequence,
+                              View<char> qsequence_rc,
                               struct Parameters const & parameters) -> void;
 
 auto results_show_tsegout_one(std::FILE * output_handle,
@@ -134,8 +138,8 @@ auto results_show_samheader(std::FILE * output_handle,
 auto results_show_samout(std::FILE * output_handle,
                          struct hit const * hits,
                          int hitcount,
-                         char const * query_head,
-                         char const * qsequence,
-                         char const * qsequence_rc,
+                         View<char> query_head,
+                         View<char> qsequence,
+                         View<char> qsequence_rc,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;

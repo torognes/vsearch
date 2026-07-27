@@ -77,7 +77,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::sscanf
-#include <cstring>  // std::strlen
+#include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
 
 
@@ -102,9 +102,9 @@ namespace {
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct hit const * hits,
-                                 char const * query_head,
-                                 char const * qsequence,
-                                 char const * qsequence_rc,
+                                 View<char> const query_head,
+                                 View<char> const qsequence,
+                                 View<char> const qsequence_rc,
                                  struct Database const & db,
                                  struct Parameters const & parameters) -> void
 {
@@ -114,16 +114,16 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
     return;
   }
 
-  auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
-  auto const qrow = get_alignment_qrow(View<char>{query, std::strlen(query)},
+  auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
+  auto const qrow = get_alignment_qrow(query,
                                  View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
                       &qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
                       hits->internal_alignmentlength,
-                      query_head,
-                      static_cast<int>(std::strlen(query_head)),
+                      query_head.data(),
+                      static_cast<int>(query_head.size()),
                       0,
                       0,
                       -1.0,
@@ -160,25 +160,26 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
 auto results_show_qsegout_one(std::FILE * output_handle,
                               struct hit const * hits,
-                              char const * query_head,
-                              char const * qsequence,
-                              int64_t const qseqlen,
-                              char const * qsequence_rc,
+                              View<char> const query_head,
+                              View<char> const qsequence,
+                              View<char> const qsequence_rc,
                               struct Parameters const & parameters) -> void
 {
   if (hits == nullptr) {
     return;
   }
 
-  char const * qseg = ((hits->strand != 0) ? qsequence_rc : qsequence) + hits->trim_q_left;
+  auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
+  auto const qseqlen = static_cast<int64_t>(query.size());
+  char const * qseg = std::next(query.data(), hits->trim_q_left);
   int const qseglen = static_cast<int>(qseqlen - hits->trim_q_left - hits->trim_q_right);
 
   fasta_print_general(output_handle,
                       nullptr,
                       qseg,
                       qseglen,
-                      query_head,
-                      static_cast<int>(std::strlen(query_head)),
+                      query_head.data(),
+                      static_cast<int>(query_head.size()),
                       0,
                       0,
                       -1.0,
@@ -223,7 +224,7 @@ auto results_show_tsegout_one(std::FILE * output_handle,
 
 auto results_show_blast6out_one(std::FILE * output_handle,
                                 struct hit const * hits,
-                                char const * query_head,
+                                View<char> const query_head,
                                 int64_t const qseqlen,
                                 struct Database const & db) -> void
 {
@@ -249,7 +250,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   */
 
   if (hits == nullptr) {
-    std::fprintf(output_handle, "%s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", query_head);
+    std::fprintf(output_handle, "%.*s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n",
+                 static_cast<int>(query_head.size()), query_head.data());
     return;
   }
   // if 'hp->strand' then 'minus strand' else 'plus strand'
@@ -258,8 +260,9 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   int const qend = (hits->strand != 0) ? 1 : static_cast<int>(qseqlen);
 
   std::fprintf(output_handle,
-          "%s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
-          query_head,
+          "%.*s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
+          static_cast<int>(query_head.size()),
+          query_head.data(),
           db.getheader(target),
           hits->id,
           hits->internal_alignmentlength,
@@ -276,7 +279,7 @@ auto results_show_blast6out_one(std::FILE * output_handle,
 
 auto results_show_uc_one(std::FILE * output_handle,
                          struct hit const * hits,
-                         char const * query_head,
+                         View<char> const query_head,
                          int64_t const qseqlen,
                          int const clusterno,
                          struct Database const & db,
@@ -299,7 +302,8 @@ auto results_show_uc_one(std::FILE * output_handle,
   */
 
   if (hits == nullptr) {
-    std::fprintf(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t%s\t*\n", query_head);
+    std::fprintf(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t%.*s\t*\n",
+                 static_cast<int>(query_head.size()), query_head.data());
     return;
   }
 
@@ -314,7 +318,7 @@ auto results_show_uc_one(std::FILE * output_handle,
           is_perfect_match ? "=" : hits->nwalignment.c_str());
   auto const target = static_cast<uint64_t>(hits->target);
   header_fprint_strip(output_handle,
-                      View<char>{query_head, std::strlen(query_head)},
+                      query_head,
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
@@ -329,9 +333,9 @@ auto results_show_uc_one(std::FILE * output_handle,
 
 
 auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits,
-                              char const * query_head,
-                              char const * qsequence, int64_t const qseqlen,
-                              char const * qsequence_rc,
+                              View<char> const query_head,
+                              View<char> const qsequence,
+                              View<char> const qsequence_rc,
                               struct Database const & db,
                               struct Parameters const & parameters) -> void
 {
@@ -341,6 +345,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
     qlo, qhi, tlo, thi and raw are given more meaningful values here
   */
 
+  auto const qseqlen = static_cast<int64_t>(qsequence.size());
   auto const & userfields_requested = parameters.opt_userfields;
 
   for (std::size_t c = 0; c < userfields_requested.size(); ++c)
@@ -352,14 +357,14 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 
       auto const field = userfields_requested[c];
 
-      char const * tsequence = nullptr;
+      View<char> tsequence;
       int64_t tseqlen = 0;
       char const * t_head = nullptr;
 
       if (hits != nullptr)
         {
           auto const target = static_cast<uint64_t>(hits->target);
-          tsequence = db.getsequence(target);
+          tsequence = db.sequence_view(target);
           tseqlen = static_cast<int64_t>(db.getsequencelen(target));
           t_head = db.getheader(target);
         }
@@ -368,7 +373,8 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
       switch (field)
         {
         case 0: /* query */
-          std::fprintf(output_handle, "%s", query_head);
+          std::fprintf(output_handle, "%.*s",
+                       static_cast<int>(query_head.size()), query_head.data());
           break;
         case 1: /* target */
           std::fprintf(output_handle, "%s", (hits != nullptr) ? t_head : "*");
@@ -460,8 +466,8 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 26: /* qrow */
           if (hits != nullptr)
             {
-              auto const * query = (hits->strand != 0) ? qsequence_rc : qsequence;
-              auto const qrow = get_alignment_qrow(View<char>{query, std::strlen(query)},
+              auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
+              auto const qrow = get_alignment_qrow(query,
                                              View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                              hits->nwalignmentlength);
               std::fprintf(output_handle, "%.*s",
@@ -472,7 +478,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 27: /* trow */
           if (hits != nullptr)
             {
-              auto const trow = get_alignment_trow(View<char>{tsequence, std::strlen(tsequence)},
+              auto const trow = get_alignment_trow(tsequence,
                                              View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                              hits->nwalignmentlength);
               std::fprintf(output_handle, "%.*s",
@@ -544,7 +550,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 auto results_show_lcaout(std::FILE * output_handle,
                          struct hit const * hits,
                          int const hitcount,
-                         char const * query_head,
+                         View<char> const query_head,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void
 {
@@ -554,7 +560,8 @@ auto results_show_lcaout(std::FILE * output_handle,
   /* Use a modified Boyer-Moore majority voting algorithm at each taxonomic
      level to find the most common name at each level */
 
-  std::fprintf(output_handle, "%s\t", query_head);
+  std::fprintf(output_handle, "%.*s\t",
+               static_cast<int>(query_head.size()), query_head.data());
 
   if (hitcount == 0) {
     std::fprintf(output_handle, "\n");
@@ -689,27 +696,29 @@ auto results_show_lcaout(std::FILE * output_handle,
 auto results_show_alnout(std::FILE * output_handle,
                          struct hit const * hits,
                          int const hitcount,
-                         char const * query_head,
-                         char const * qsequence,
-                         int64_t const qseqlen,
+                         View<char> const query_head,
+                         View<char> const qsequence,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
+  auto const head_len = static_cast<int>(query_head.size());
+
   if (hitcount == 0) {
     if (parameters.opt_output_no_hits != 0) {
       std::fprintf(output_handle, "\n");
-      std::fprintf(output_handle,"Query >%s\n", query_head);
+      std::fprintf(output_handle,"Query >%.*s\n", head_len, query_head.data());
       std::fprintf(output_handle, "No hits\n");
     }
     return;
   }
 
+  auto const qseqlen = static_cast<int64_t>(qsequence.size());
 
   std::fprintf(output_handle, "\n");
 
-  std::fprintf(output_handle,"Query >%s\n", query_head);
+  std::fprintf(output_handle,"Query >%.*s\n", head_len, query_head.data());
   std::fprintf(output_handle," %%Id   TLen  Target\n");
 
   auto const top_hit_id = hits[0].id;
@@ -750,15 +759,15 @@ auto results_show_alnout(std::FILE * output_handle,
       auto const tlenlen = std::to_string(dseqlen).size();
       auto const numwidth = static_cast<int>(std::max(qlenlen, tlenlen));
 
-      std::fprintf(output_handle," Query %*" PRId64 "nt >%s\n", numwidth,
-              qseqlen, query_head);
+      std::fprintf(output_handle," Query %*" PRId64 "nt >%.*s\n", numwidth,
+              qseqlen, head_len, query_head.data());
       std::fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
               dseqlen, db.getheader(target));
 
       int64_t const rowlen = (parameters.opt_rowlen == 0) ? (qseqlen + dseqlen) : parameters.opt_rowlen;
 
       align_show(output_handle,
-                 qsequence,
+                 qsequence.data(),
                  qseqlen,
                  hp->trim_q_left,
                  "Qry",
@@ -788,11 +797,9 @@ auto results_show_alnout(std::FILE * output_handle,
 
 
 namespace {
-auto build_sam_strings(char const * alignment,
-                       char const * queryseq,
-                       int64_t const queryseqlen,
-                       char const * targetseq,
-                       int64_t const targetseqlen,
+auto build_sam_strings(View<char> const alignment,
+                       View<char> const queryseq,
+                       View<char> const targetseq,
                        std::string & cigar,
                        std::string & md) -> void
 {
@@ -807,11 +814,18 @@ auto build_sam_strings(char const * alignment,
   cigar.clear();
   md.clear();
 
-  auto const * p = alignment;
-  auto const * e = p + std::strlen(p);
+  auto const queryseqlen = static_cast<int64_t>(queryseq.size());
+  auto const targetseqlen = static_cast<int64_t>(targetseq.size());
 
-  auto qpos = 0;
-  auto tpos = 0;
+  /* the alignment view is over a std::string, so the NUL that std::sscanf
+     needs below sits just past its end */
+  auto const * p = alignment.begin();
+  auto const * const e = alignment.end();
+
+  /* indices into the two sequence views, hence std::size_t; the bound checks
+     below promote them to int64_t so that qpos + run cannot overflow */
+  std::size_t qpos = 0;
+  std::size_t tpos = 0;
 
   auto matched = 0;
   auto flag = false; /* 1: MD string ends with a number */
@@ -845,8 +859,8 @@ auto build_sam_strings(char const * alignment,
       switch (op)
         {
         case 'M':
-          if ((qpos + static_cast<int64_t>(run) > queryseqlen) or
-              (tpos + static_cast<int64_t>(run) > targetseqlen))
+          if ((static_cast<int64_t>(qpos) + run > queryseqlen) or
+              (static_cast<int64_t>(tpos) + run > targetseqlen))
             {
               fatal("Invalid CIGAR string: run length exceeds sequence bounds");
             }
@@ -878,17 +892,17 @@ auto build_sam_strings(char const * alignment,
           break;
 
         case 'D':
-          if (qpos + static_cast<int64_t>(run) > queryseqlen)
+          if (static_cast<int64_t>(qpos) + run > queryseqlen)
             {
               fatal("Invalid CIGAR string: run length exceeds sequence bounds");
             }
           cigar += std::to_string(run);
           cigar += 'I';
-          qpos += run;
+          qpos += static_cast<std::size_t>(run);
           break;
 
         case 'I':
-          if (tpos + static_cast<int64_t>(run) > targetseqlen)
+          if (static_cast<int64_t>(tpos) + run > targetseqlen)
             {
               fatal("Invalid CIGAR string: run length exceeds sequence bounds");
             }
@@ -957,9 +971,9 @@ auto results_show_samheader(std::FILE * output_handle,
 auto results_show_samout(std::FILE * output_handle,
                          struct hit const * hits,
                          int const hitcount,
-                         char const * query_head,
-                         char const * qsequence,
-                         char const * qsequence_rc,
+                         View<char> const query_head,
+                         View<char> const qsequence,
+                         View<char> const qsequence_rc,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void
 {
@@ -1000,11 +1014,14 @@ auto results_show_samout(std::FILE * output_handle,
 
   */
 
+  auto const head_len = static_cast<int>(query_head.size());
+
   if (hitcount == 0) {
     if (parameters.opt_output_no_hits != 0) {
       std::fprintf(output_handle,
-              "%s\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%s\t%s\n",
-              query_head,
+              "%.*s\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.*s\t%s\n",
+              head_len,
+              query_head.data(),
               0x04,
               "*",
               static_cast<uint64_t>(0),
@@ -1013,7 +1030,8 @@ auto results_show_samout(std::FILE * output_handle,
               "*",
               static_cast<uint64_t>(0),
               static_cast<uint64_t>(0),
-              qsequence,
+              static_cast<int>(qsequence.size()),
+              qsequence.data(),
               "*");
     }
     return;
@@ -1035,23 +1053,22 @@ auto results_show_samout(std::FILE * output_handle,
       std::string md;
 
       auto const target = static_cast<uint64_t>(hp->target);
-      auto const * const query = (hp->strand != 0) ? qsequence_rc : qsequence;
-      build_sam_strings(hp->nwalignment.c_str(),
+      auto const query = (hp->strand != 0) ? qsequence_rc : qsequence;
+      build_sam_strings(View<char>{hp->nwalignment.c_str(), hp->nwalignment.size()},
                         query,
-                        static_cast<int64_t>(std::strlen(query)),
-                        db.getsequence(target),
-                        static_cast<int64_t>(db.getsequencelen(target)),
+                        db.sequence_view(target),
                         cigar,
                         md);
 
       std::fprintf(output_handle,
-              "%s\t%d\t%s\t%" PRIu64
+              "%.*s\t%d\t%s\t%" PRIu64
               "\t%d\t%s\t%s\t%" PRIu64
               "\t%" PRIu64
-              "\t%s\t%s\t"
+              "\t%.*s\t%s\t"
               "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
               "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
-              query_head,
+              head_len,
+              query_head.data(),
               (0x10 * hp->strand) | (t > 0 ? 0x100 : 0),
               db.getheader(target),
               static_cast<uint64_t>(1),
@@ -1060,7 +1077,8 @@ auto results_show_samout(std::FILE * output_handle,
               "*",
               static_cast<uint64_t>(0),
               static_cast<uint64_t>(0),
-              (hp->strand != 0) ? qsequence_rc : qsequence,
+              static_cast<int>(query.size()),
+              query.data(),
               "*",
               hp->id,
               0,

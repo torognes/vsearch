@@ -69,12 +69,12 @@
 #include "core/searchcore.hpp"
 #include "utils/open_file.hpp"
 #include "utils/threads.hpp"
+#include "utils/view.hpp"  // View
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstddef>
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
-#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
 #include <string>
@@ -148,11 +148,12 @@ inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const 
 static auto allpairs_output_results(struct allpairs_state_s & state,
                              int const hit_count,
                              struct hit const * hits,
-                             char const * query_head,
-                             int const qseqlen,
-                             char const * qsequence,
-                             char const * qsequence_rc) -> void
+                             View<char> const query_head,
+                             View<char> const qsequence,
+                             View<char> const qsequence_rc) -> void
 {
+  auto const qseqlen = static_cast<int>(qsequence.size());
+
   /* show results */
   auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hit_count));
 
@@ -163,7 +164,6 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           static_cast<int>(toreport),
                           query_head,
                           qsequence,
-                          qseqlen,
                           state.db,
                           state.parameters);
     }
@@ -210,7 +210,6 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        hp,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.parameters);
             }
@@ -240,7 +239,6 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        hp,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.db,
                                        state.parameters);
@@ -277,7 +275,6 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                                        nullptr,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.db,
                                        state.parameters);
@@ -301,10 +298,10 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
         {
           fasta_print_general(state.fp_matched,
                               nullptr,
-                              qsequence,
+                              qsequence.data(),
                               qseqlen,
-                              query_head,
-                              static_cast<int>(std::strlen(query_head)),
+                              query_head.data(),
+                              static_cast<int>(query_head.size()),
                               0,
                               state.count_matched,
                               -1.0,
@@ -320,10 +317,10 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
         {
           fasta_print_general(state.fp_notmatched,
                               nullptr,
-                              qsequence,
+                              qsequence.data(),
                               qseqlen,
-                              query_head,
-                              static_cast<int>(std::strlen(query_head)),
+                              query_head.data(),
+                              static_cast<int>(query_head.size()),
                               0,
                               state.count_notmatched,
                               -1.0,
@@ -521,10 +518,9 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
     allpairs_output_results(state,
                             searchinfo.accepts,
                             finalhits.data(),
-                            searchinfo.query_head.data(),
-                            static_cast<int>(searchinfo.qsequence.size()),
-                            searchinfo.qsequence.data(),
-                            nullptr);
+                            searchinfo.query_head,
+                            View<char>{searchinfo.qsequence.data(), searchinfo.qsequence.size()},
+                            View<char>{});
 
     /* update stats */
     if (searchinfo.accepts != 0)

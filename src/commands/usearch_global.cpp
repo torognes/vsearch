@@ -84,7 +84,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::strlen
 #include <mutex>  // std::mutex, std::lock_guard
 #include <vector>
 
@@ -159,14 +158,13 @@ struct search_cli_state_s
 
 static auto search_output_results(struct search_cli_state_s & state,
                            std::vector<struct hit> const & hits,
-                           View<char> const query_head_view,
-                           int const qseqlen,
-                           char const * qsequence,
-                           char const * qsequence_rc,
+                           View<char> const query_head,
+                           View<char> const qsequence,
+                           View<char> const qsequence_rc,
                            int64_t const qsize) -> void
 {
   std::lock_guard<std::mutex> const lock(state.mutex_output);
-  auto const * const query_head = query_head_view.data();
+  auto const qseqlen = static_cast<int>(qsequence.size());
 
   /* show results */
   auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
@@ -178,7 +176,6 @@ static auto search_output_results(struct search_cli_state_s & state,
                           static_cast<int>(toreport),
                           query_head,
                           qsequence,
-                          qseqlen,
                           state.db,
                           state.parameters);
     }
@@ -211,7 +208,7 @@ static auto search_output_results(struct search_cli_state_s & state,
 
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head_view,
+          state.otutable.add(query_head,
                        state.db.header_view(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
@@ -242,7 +239,6 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        hp,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.parameters);
             }
@@ -272,7 +268,6 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        hp,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.db,
                                        state.parameters);
@@ -292,7 +287,7 @@ static auto search_output_results(struct search_cli_state_s & state,
     {
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head_view,
+          state.otutable.add(query_head,
                        View<char>{},
                        qsize);
         }
@@ -316,7 +311,6 @@ static auto search_output_results(struct search_cli_state_s & state,
                                        nullptr,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.db,
                                        state.parameters);
@@ -340,10 +334,10 @@ static auto search_output_results(struct search_cli_state_s & state,
         {
           fasta_print_general(state.fp_matched.get(),
                               nullptr,
-                              qsequence,
+                              qsequence.data(),
                               qseqlen,
-                              query_head,
-                              static_cast<int>(std::strlen(query_head)),
+                              query_head.data(),
+                              static_cast<int>(query_head.size()),
                               static_cast<uint64_t>(qsize),
                               state.count_matched,
                               -1.0,
@@ -359,10 +353,10 @@ static auto search_output_results(struct search_cli_state_s & state,
         {
           fasta_print_general(state.fp_notmatched.get(),
                               nullptr,
-                              qsequence,
+                              qsequence.data(),
                               qseqlen,
-                              query_head,
-                              static_cast<int>(std::strlen(query_head)),
+                              query_head.data(),
+                              static_cast<int>(query_head.size()),
                               static_cast<uint64_t>(qsize),
                               state.count_notmatched,
                               -1.0,
@@ -410,12 +404,16 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
                   state.parameters.opt_strand ? si_minus + t : nullptr,
                   hits);
 
+  auto const qsequence = View<char>{si_plus[t].qsequence.data(), si_plus[t].qsequence.size()};
+  auto const qsequence_rc = state.parameters.opt_strand
+    ? View<char>{si_minus[t].qsequence.data(), si_minus[t].qsequence.size()}
+    : View<char>{};
+
   search_output_results(state,
                         hits,
                         si_plus[t].query_head,
-                        static_cast<int>(si_plus[t].qsequence.size()),
-                        si_plus[t].qsequence.data(),
-                        state.parameters.opt_strand ? si_minus[t].qsequence.data() : nullptr,
+                        qsequence,
+                        qsequence_rc,
                         si_plus[t].qsize);
 
   /* alignment strings (hit.nwalignment) are std::string and free themselves */

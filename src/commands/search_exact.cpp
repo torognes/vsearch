@@ -85,7 +85,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
-#include <cstring>  // std::strlen
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -222,15 +221,14 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 
 auto search_exact_output_results(struct search_exact_state_s & state,
                                  std::vector<struct hit> const & hits,
-                                 View<char> const query_head_view,
-                                 int const qseqlen,
-                                 char const * qsequence,
-                                 char const * qsequence_rc,
+                                 View<char> const query_head,
+                                 View<char> const qsequence,
+                                 View<char> const qsequence_rc,
                                  int64_t const qsize) -> void
 {
   struct Parameters const & parameters = state.parameters;
   std::lock_guard<std::mutex> const lock(state.mutex_output);
-  auto const * const query_head = query_head_view.data();
+  auto const qseqlen = static_cast<int>(qsequence.size());
 
   /* show results */
   auto const n_results_to_report = std::min(parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
@@ -242,7 +240,6 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                           static_cast<int>(n_results_to_report),
                           query_head,
                           qsequence,
-                          qseqlen,
                           state.db,
                           parameters);
     }
@@ -265,7 +262,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
 
       if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head_view,
+          state.otutable.add(query_head,
                        state.db.header_view(static_cast<uint64_t>(hits[0].target)),
                        qsize);
         }
@@ -296,7 +293,6 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        &hit,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        parameters);
             }
@@ -326,7 +322,6 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        &hit,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.db,
                                        parameters);
@@ -346,7 +341,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
     {
       if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
-          state.otutable.add(query_head_view,
+          state.otutable.add(query_head,
                        View<char>{},
                        qsize);
         }
@@ -370,7 +365,6 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                                        nullptr,
                                        query_head,
                                        qsequence,
-                                       qseqlen,
                                        qsequence_rc,
                                        state.db,
                                        parameters);
@@ -394,10 +388,10 @@ auto search_exact_output_results(struct search_exact_state_s & state,
         {
           fasta_print_general(state.fp_matched,
                               nullptr,
-                              qsequence,
+                              qsequence.data(),
                               qseqlen,
-                              query_head,
-                              static_cast<int>(std::strlen(query_head)),
+                              query_head.data(),
+                              static_cast<int>(query_head.size()),
                               static_cast<uint64_t>(qsize),
                               state.count_matched,
                               -1.0,
@@ -413,10 +407,10 @@ auto search_exact_output_results(struct search_exact_state_s & state,
         {
           fasta_print_general(state.fp_notmatched,
                               nullptr,
-                              qsequence,
+                              qsequence.data(),
                               qseqlen,
-                              query_head,
-                              static_cast<int>(std::strlen(query_head)),
+                              query_head.data(),
+                              static_cast<int>(query_head.size()),
                               static_cast<uint64_t>(qsize),
                               state.count_notmatched,
                               -1.0,
@@ -461,12 +455,17 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
                   parameters.opt_strand ? state.si_minus + t : nullptr,
                   hits);
 
+  auto const qsequence = View<char>{state.si_plus[t].qsequence.data(),
+                                    state.si_plus[t].qsequence.size()};
+  auto const qsequence_rc = parameters.opt_strand
+    ? View<char>{state.si_minus[t].qsequence.data(), state.si_minus[t].qsequence.size()}
+    : View<char>{};
+
   search_exact_output_results(state,
                               hits,
                               state.si_plus[t].query_head,
-                              static_cast<int>(state.si_plus[t].qsequence.size()),
-                              state.si_plus[t].qsequence.data(),
-                              parameters.opt_strand ? state.si_minus[t].qsequence.data() : nullptr,
+                              qsequence,
+                              qsequence_rc,
                               state.si_plus[t].qsize);
 
   /* alignment strings (hit.nwalignment) are std::string and free themselves */
