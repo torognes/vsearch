@@ -173,9 +173,14 @@ record-by-record readers.
   Checked against the old idiom on `12M`, `M`, `1M`, `0M`, `-5M`, `7D3I`,
   `999999M`, `""`, `12` and `007M`: identical run and consumed width in every
   case. Neutral on performance end-to-end (the primitive is 7.5× faster, but
-  the alignment dominates). Newly covered by `scripts/cigar_parsing.sh` in
-  vsearch-tests, which pins the implicit run length of 1 at both ends of a
-  CIGAR — untested before, and the one reachable observable of the clamp.
+  the alignment dominates). Newly covered by 14 checks added to
+  `scripts/usearch_global.sh` in vsearch-tests (branch
+  `tmp_usearch_global_20260727162751`), which pin the implicit run length of 1
+  at both ends of a CIGAR across `caln`, `samout`, `qilo`, `qihi`, `tilo` and
+  `alnout` — untested before, and the only reachable observable of the clamp.
+  A negative or zero run length is *not* reachable from the CLI, since every
+  CIGAR on these paths is produced by the in-tree aligner; the `results.cpp`
+  guard stays defensive, and the equivalence table above is its only test.
 - **CLI option parsing** (5 in `cli.cc` + 1 helper): `cli.cc:118`, `:153`,
   `:160`, `:230`, `:414`, `:428`. `cli.cc:150` already carries a
   `// refactoring: std::stoi(), faster than sscanf()` note. Careful:
