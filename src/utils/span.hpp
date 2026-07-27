@@ -105,7 +105,6 @@ public:
   auto operator!=(Span<Type> const & other) const -> bool {
     return not (*this == other);
   }
-  // refactoring: std::lexicographical works only for char and int?
   // Ordering goes through element_order (see element_order.hpp), so that a
   // Span<char> orders its bytes as unsigned char, like std::strcmp and
   // std::string, rather than as a possibly-signed char.
