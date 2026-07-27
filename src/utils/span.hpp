@@ -101,6 +101,9 @@ public:
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
+  auto operator!=(Span<Type> const & other) const -> bool {
+    return not (*this == other);
+  }
   // refactoring: std::lexicographical works only for char and int?
   auto operator<(Span<Type> const & other) const -> bool {
     return std::lexicographical_compare(cbegin(), cend(),

@@ -175,6 +175,7 @@ utils/compare_strings_nocase.hpp \
 utils/dynlib_loader.hpp \
 utils/fatal.hpp \
 utils/fatal_allocator.hpp \
+utils/header_order.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \

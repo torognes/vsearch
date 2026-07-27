@@ -95,6 +95,9 @@ public:
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
+  auto operator!=(View<Type> const & other) const -> bool {
+    return not (*this == other);
+  }
   auto operator<(View<Type> const & other) const -> bool {
     return std::lexicographical_compare(cbegin(), cend(),
                                         other.cbegin(), other.cend());
