@@ -394,12 +394,24 @@ four `*(hit - 1)` / `*(hit + wlen)` sites the `<cctype>` pass deferred finally
 go.
 
 Cross-checked against usearch 9.2.64, 10.0.240 and 11.0.667: they also accept
-an empty `-label_word` and apply the ordinary rule to it. **Separate finding,
-left alone and flagged for review:** usearch's delimiter class is *not a
-letter* (so `-label_word sample` matches `sample1`), vsearch's is *not
-alphanumeric*. `vsearch.1:1561` documents vsearch's choice explicitly, so the
-divergence looks deliberate — but it is visible on abundance-annotated headers,
-the common case.
+an empty `-label_word` and apply the ordinary rule to it.
+
+**The delimiter class differs from usearch, deliberately — settled, do not
+"fix" it.** usearch delimits words with *anything that is not a letter*, so
+digits delimit and `-label_word sample` matches `sample1`. vsearch delimits
+with *anything that is not alphanumeric*, so `sample` is not a word of
+`sample1`. Confirmed with the maintainer on 2026-07-27: vsearch's definition is
+intended, and it is the one `vsearch.1:1561` documents. The difference is
+visible on abundance-annotated headers, which is the common case, so it is the
+sort of thing that looks like a bug to anyone diffing the two tools — hence
+this note.
+
+Nothing pinned that choice, so three checks were added to
+`scripts/fastx_getseqs.sh`: a digit does not delimit (`>sample1` +
+`--label_word sample` → no match), neither does a letter (`+ "1"` → no match),
+and the whole alphanumeric run does match (`+ "sample1"`). They hold against
+v2.31.0 too. Changing the delimiter class now means changing the manual page
+and those tests first, which is the intent.
 
 ### The 22 that remain, and why
 
