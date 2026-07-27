@@ -69,6 +69,7 @@
 #include "core/minheap.hpp"
 #include "core/searchcore.hpp"  // struct hit, struct searchinfo_s
 #include "core/unique.hpp"
+#include "utils/cigar.hpp"  // find_runlength_of_leftmost_operation
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
@@ -78,7 +79,8 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::sscanf, std::size_t
+#include <cstddef>  // std::size_t
+#include <iterator>  // std::distance, std::next
 #include <limits>
 #include <utility>  // std::move
 #include <vector>
@@ -368,10 +370,10 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
   int64_t run = 0;
   if (*p != 0)
     {
-      run = 1;
-      auto scanlength = 0;
-      std::sscanf(p, "%" PRId64 "%n", &run, &scanlength);
-      op = *(p + scanlength);
+      char const * next_operation = nullptr;
+      run = find_runlength_of_leftmost_operation(p, &next_operation);
+      auto const scanlength = static_cast<int>(std::distance(p, next_operation));
+      op = *next_operation;
       if (op != 'M')
         {
           hit->trim_aln_left = 1 + scanlength;
@@ -399,9 +401,9 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
             {
               --p;
             }
-          run = 1;
-          std::sscanf(p, "%" PRId64, &run);
-          hit->trim_aln_right = static_cast<int>(e - p);
+          char const * next_operation = nullptr;
+          run = find_runlength_of_leftmost_operation(p, &next_operation);
+          hit->trim_aln_right = static_cast<int>(std::distance(p, e));
           if (op == 'D')
             {
               hit->trim_q_right = static_cast<int>(run);
@@ -635,12 +637,11 @@ namespace {
     bool first_op = true;
     while (*cursor != '\0')
       {
-        int64_t run = 1;
-        int scanned = 0;
-        std::sscanf(cursor, "%" PRId64 "%n", &run, &scanned);
-        cursor += scanned;
+        char const * next_operation = nullptr;
+        auto const run = find_runlength_of_leftmost_operation(cursor, &next_operation);
+        cursor = next_operation;
         char const operation = *cursor;
-        ++cursor;
+        cursor = std::next(cursor);
         if ((operation == 'I') or (operation == 'D'))
           {
             bool const is_query = (operation == 'I');

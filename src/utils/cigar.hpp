@@ -64,6 +64,20 @@
 #include <utility>  // std::pair
 
 
+/* Reads the run length a cigar operation is prefixed with, and points
+   'first_non_digit' at the first byte that is not a digit -- the operation
+   letter. Returns exactly what std::strtoll read, *without* the cigar
+   convention that an absent run length means 1, so that a caller which has to
+   reject a malformed run length sees it before it is normalised. With no digit
+   at all it returns 0 and leaves 'first_non_digit' at 'first_character', which
+   is how a caller tells an absent run length from a literal zero. */
+auto read_runlength(char const * first_character,
+                    char const ** first_non_digit) -> long long;
+
+/* read_runlength() plus the cigar convention: an absent run length reads as 1,
+   because "M" means "1M". Prefer this unless the run length has to be
+   validated -- the clamp also turns a negative or zero run into 1, which hides
+   a malformed cigar rather than reporting it. */
 auto find_runlength_of_leftmost_operation(char const * first_character,
                                           char const ** first_non_digit) -> long long;
 

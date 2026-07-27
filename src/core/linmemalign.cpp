@@ -60,12 +60,14 @@
 
 #include "vsearch.hpp"
 #include "core/linmemalign.hpp"
+#include "utils/cigar.hpp"  // find_runlength_of_leftmost_operation
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include <algorithm>  // std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::printf, std::size_t, std::snprintf, std::sscanf
+#include <cstdio>  // std::printf, std::size_t, std::snprintf
+#include <iterator>  // std::next
 #include <limits>
 #include <vector>
 // #include <vector>
@@ -728,11 +730,12 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
 
   while (*p != '\0')
     {
-      int64_t runlength = 1;
-      auto scanlength = 0;
-      std::sscanf(p, "%" PRId64 "%n", &runlength, &scanlength);
-      p += scanlength;
-      switch (*p++)
+      char const * next_operation = nullptr;
+      auto const runlength = find_runlength_of_leftmost_operation(p, &next_operation);
+      p = next_operation;
+      auto const operation = *p;
+      p = std::next(p);
+      switch (operation)
         {
         case 'M':
           nwalignmentlength += runlength;

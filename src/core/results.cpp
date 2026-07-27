@@ -76,7 +76,7 @@
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::sscanf
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
 
@@ -817,7 +817,7 @@ auto build_sam_strings(View<char> const alignment,
   auto const queryseqlen = static_cast<int64_t>(queryseq.size());
   auto const targetseqlen = static_cast<int64_t>(targetseq.size());
 
-  /* the alignment view is over a std::string, so the NUL that std::sscanf
+  /* the alignment view is over a std::string, so the NUL that read_runlength()
      needs below sits just past its end */
   auto const * p = alignment.begin();
   auto const * const e = alignment.end();
@@ -832,16 +832,16 @@ auto build_sam_strings(View<char> const alignment,
 
   while (p < e)
     {
-      auto run = 1;
-      auto scanned = 0;
-      if (std::sscanf(p, "%d%n", &run, &scanned) < 1)
-        {
-          /* no run-length number: keep the implicit run of 1 */
-          run = 1;
-        }
-      p += scanned;
+      /* read_runlength() rather than find_runlength_of_leftmost_operation():
+         the latter clamps to 1, which would hide the malformed run lengths the
+         guard below reports */
+      char const * next_operation = nullptr;
+      auto const scanned_run = read_runlength(p, &next_operation);
+      /* no run-length number: the cigar convention is an implicit run of 1 */
+      auto const run = (next_operation == p) ? 1LL : scanned_run;
+      p = next_operation;
       auto const op = *p;
-      ++p;
+      p = std::next(p);
 
       /*
         Guard against a CIGAR whose run-lengths do not sum to the query
@@ -867,7 +867,7 @@ auto build_sam_strings(View<char> const alignment,
           cigar += std::to_string(run);
           cigar += 'M';
 
-          for (auto i = 0; i < run; ++i)
+          for (auto i = 0LL; i < run; ++i)
             {
               if (is_same_4bit(queryseq[qpos], targetseq[tpos]))
                 {
@@ -917,7 +917,7 @@ auto build_sam_strings(View<char> const alignment,
             }
 
           md += '^';
-          for (auto i = 0; i < run; ++i)
+          for (auto i = 0LL; i < run; ++i)
             {
               md += targetseq[tpos];
               ++tpos;

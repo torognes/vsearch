@@ -120,9 +120,8 @@ namespace {
 }  // end of anonymous namespace
 
 
-// duplicate: msa.cc
-auto find_runlength_of_leftmost_operation(char const * first_character,
-                                          char const ** first_non_digit) -> long long {
+auto read_runlength(char const * first_character,
+                    char const ** first_non_digit) -> long long {
   // std::strtoll:
   // - start from the 'first_character' pointed to,
   // - consume as many characters as possible to form a valid integer,
@@ -139,9 +138,15 @@ auto find_runlength_of_leftmost_operation(char const * first_character,
                                       decimal_base);
   *first_non_digit = end_of_digits;
   assert(runlength <= std::numeric_limits<int>::max());
+  return runlength;
+}
 
+
+// duplicate: msa.cc
+auto find_runlength_of_leftmost_operation(char const * first_character,
+                                          char const ** first_non_digit) -> long long {
   // in cigar strings, runlength of 1 are implicit (no digit)
-  return std::max(runlength, 1LL);  // is in [1, INT_MAX]
+  return std::max(read_runlength(first_character, first_non_digit), 1LL);  // is in [1, INT_MAX]
 }
 
 
