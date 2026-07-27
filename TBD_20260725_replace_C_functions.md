@@ -12,7 +12,7 @@ sites) is excluded as a target: `CLAUDE.md` actively asks for it
 ("make implicit contracts explicit with assert()").
 
 Total: **144 call sites** (73 + 36 + 17 + 15 + 3), plus ~20 POSIX/OS
-calls.
+calls. **120** after the 2026-07-27 `strlen` pass (see below).
 
 
 ## Status of `qsort`
@@ -30,7 +30,7 @@ commit `ed226b7c`; two more of the same kind (`memchr`, an unused
 
 | Function | Sites | Notes |
 |---|---|---|
-| `std::strlen` | 48 | see "The `strlen` root cause" below |
+| `std::strlen` | 48 → 24 | see "The `strlen` root cause" below; 24 removed 2026-07-27 |
 | `std::strcmp` | 13 | sort comparators + `"-"` stdin detection |
 | `std::memcpy` | 6 | **keep** — SIMD type-punning |
 | `std::memcmp` | 2 | `fastx.cpp` magic-byte sniffing |
@@ -170,10 +170,15 @@ Two leaks outside `src/os/`, both minor:
   not allocate; `std::fprintf` may.
 
 
-## The `strlen` root cause
+## The `strlen` root cause — PARTLY DONE (48 → 24)
 
 48 sites, the single largest group, and worth stating precisely because
 the obvious diagnosis is wrong.
+
+**Status (2026-07-27).** Twenty-four of the 48 are gone, in three
+commits; see "What was done" at the end of this section for what
+remains and why. The diagnosis below held up exactly: not one of the
+removed sites needed a new `Database` accessor.
 
 **The lengths are already stored.** `Database` records `headerlen` and
 `seqlen` per record at parse time and exposes them as
@@ -220,6 +225,75 @@ Two of the 48 are not part of this pattern and should be left alone:
 `vsearch.cc:207` (summing `argv` lengths — genuinely a C string from the
 OS) and `utils/compare_strings_nocase.cpp:114-115` (constructing views
 *from* C strings at an API boundary, which is the correct direction).
+
+### What was done (2026-07-27)
+
+Three commits, each verified byte-identical against `dev` on purpose-built
+datasets (non-ASCII headers, `--notrunclabels`, `--strand both`,
+`--output_no_hits`, header-stripping and relabel options) as well as by the
+test suite (0 FAIL), all three cross-compiles, the release build and
+`api_examples` (39 PASS).
+
+1. **`results.cpp` and its four callers — 16 sites.** The `results_show_*`
+   helpers now take `View<char>` for `query_head`, `qsequence` and
+   `qsequence_rc`. The separate `qseqlen` argument disappears from every
+   helper that also receives the sequence (`alnout`, `userout`, `qsegout`);
+   `blast6out` and `uc` keep theirs, having no sequence to derive it from.
+   The header is printed with `"%.*s"` instead of `"%s"` — equivalent,
+   because every caller's view comes from `Database::header_view()` or from
+   `searchinfo_s::query_head_v` (filled with `head_len + 1` bytes and viewed
+   at `head_len`). `build_sam_strings` took the same treatment, which also
+   turned its `qpos`/`tpos` into `std::size_t`.
+
+   The eight `fasta_print_general` header lengths in `usearch_global`,
+   `allpairs_global`, `search_exact` and `cluster` fell out at the same
+   time: those four callers already held a `View<char> query_head_view` and
+   immediately called `.data()` on it.
+
+2. **`fastq_mergepairs` — 6 sites.** Not a signature problem: the two header
+   buffers in `merge_data_s` are `std::vector<char>` sized to the longest
+   header seen so far, so `size()` says nothing about the current pair.
+   `read_pair()` already reads both lengths to size those buffers; they are
+   now stored as `fwd_header_length`/`rev_header_length`, matching the
+   existing `fwd_length`/`rev_length` sequence fields.
+
+3. **`msa` — 2 sites.** `msa_target_s::cigar` became a `View<char>` borrowed
+   from the `clusterinfo` `std::string` whose `size()` the caller has. This
+   needed `find_runlength_of_leftmost_operation`'s endptr out-parameter to
+   become `char const **`; `std::strtoll` still wants a `char **`, so the
+   wrapper keeps that in a local and the laundering stays in the one place
+   that talks to the C API.
+
+Performance (release, hyperfine vs a `dev` release build): neutral to
+slightly better — `usearch_global` with `--alnout/--blast6out/--uc/--userout`
+and with `--samout` both within noise, `cluster_size --msaout` ~3 % faster,
+`fastq_mergepairs` ~3 % faster.
+
+### The 24 that remain, and why
+
+| Sites | Where | Why it stays |
+|---|---|---|
+| 4 | `cli.cc:155`, `:162`, `:415`, `:430` | `argv` strings; trailing-garbage checks. Belongs with the `sscanf` item below, not here |
+| 6 | `getseq.cpp:196`, `:200`, `:212`, `:244`, `:247` and `:139` | five are `opt_label*` `argv` strings; `:139` reads a NUL-terminated line back out of a buffer. The plan's own note applies: this function also needs the `std::next` pointer-arithmetic pass, and the two belong in one commit |
+| 2 | `search.cpp:258`, `:413` | library API boundary — building a length *from* a user's C string, the correct direction |
+| 2 | `chimera.cpp:2855`, `:2863` | same, plus `:2855` is a deliberate length-vs-`strlen` consistency check on caller-supplied data (S18) |
+| 2 | `compare_strings_nocase.cpp:112-113` | already flagged above as the correct direction |
+| 2 | `fastq.cpp:731-732` | inside `fastq_print`, which has **no callers anywhere in the tree** and is not in `vsearch_api.h`. Dead code — worth deleting, but that is the maintainer's call, not a `strlen` cleanup |
+| 2 | `fasta.cpp:490`, `fastq.cpp:653` | `opt_label_suffix`, an `argv` string |
+| 1 | `cluster.cpp:1307` | `opt_clusters`, an `argv` string |
+| 2 | `userfields.cpp:124`, `:149` | a table of string literals and a parse cursor over one |
+| 1 | `vsearch.cc:207` | `argv`, already flagged above |
+
+So of the 48, the "length known at the top of the chain, discarded, then
+recomputed at the leaf" class is now empty except for `getseq.cpp`, which
+is deliberately deferred to the pointer-arithmetic pass over that same
+function. The rest are C strings arriving from `argv` or from a library
+caller, where computing the length once at the boundary is the right thing.
+
+Not attempted here: the 10 comparator `strcmp`, which the ordering below
+expects to fall out of this change. They did not — those comparators sort
+`Database` headers inside `std::sort` lambdas and are a separate thread
+from the output call chains.
 
 
 ## Does exposing `View`/`Span` leak internal types onto library users?
@@ -420,9 +494,15 @@ not bundled with the UB fix.
 1. ~~**`<cctype>` UB fix**~~ — **done**, `fefea7b4`.
 2. **`vsearch::` namespace for `View`/`Span`.** Cheapest now, and it
    gates item 3.
-3. **`View` through the output call chains**, `core/results.cpp` first.
-   Removes most of the 48 `strlen`, and the 10 comparator `strcmp` fall
-   out of the same change.
+3. ~~**`View` through the output call chains**, `core/results.cpp`
+   first.~~ — **done for the output chains** (48 → 24 `strlen`); see
+   "What was done" above. Note this was taken **before** item 2, at the
+   maintainer's request. The gating argument in item 2 is about
+   *external* consumers naming the type, and every site converted here
+   is internal, so the later move into `vsearch::` is unaffected — but
+   `View`/`Span` are now named in `results.hpp` and `msa.hpp` as well,
+   so item 2 has grown by two headers. The 10 comparator `strcmp` did
+   **not** fall out of this change; they are a separate thread.
 4. **`sscanf` → the existing cigar helper** (5 CIGAR sites), then the
    `cli.cc` option parsing (6 sites) separately, since that one needs
    care over trailing-garbage rejection.
