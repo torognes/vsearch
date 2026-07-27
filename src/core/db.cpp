@@ -62,13 +62,15 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fastx.hpp"
+#include "utils/header_order.hpp"  // header_compare
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdio>  // std::fprintf, std::size_t
-#include <cstring>  // std::strcmp
+#include <iterator>  // std::next
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
@@ -435,11 +437,16 @@ auto Database::sortbylength(struct Parameters const & parameters) -> void
 
   /* longest first, then by abundance, then by label, otherwise keep order */
   auto const * const buffer = data_.data();
-  auto const by_length = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const header_of = [buffer](seqinfo_t const & info) -> View<char>
+  {
+    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
+    return View<char>{std::next(buffer, offset), info.headerlen};
+  };
+  auto const by_length = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen > rhs.seqlen; }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = std::strcmp(buffer + lhs.header_p, buffer + rhs.header_p);
+    auto const order = header_compare(header_of(lhs), header_of(rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
@@ -454,11 +461,16 @@ auto Database::sortbylength_shortest_first(struct Parameters const & parameters)
 
   /* shortest first, then by abundance, then by label, otherwise keep order */
   auto const * const buffer = data_.data();
-  auto const by_length_shortest = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const header_of = [buffer](seqinfo_t const & info) -> View<char>
+  {
+    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
+    return View<char>{std::next(buffer, offset), info.headerlen};
+  };
+  auto const by_length_shortest = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen < rhs.seqlen; }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = std::strcmp(buffer + lhs.header_p, buffer + rhs.header_p);
+    auto const order = header_compare(header_of(lhs), header_of(rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
@@ -473,10 +485,15 @@ auto Database::sortbyabundance(struct Parameters const & parameters) -> void
 
   /* most abundant first, then by label, otherwise keep order */
   auto const * const buffer = data_.data();
-  auto const by_abundance = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const header_of = [buffer](seqinfo_t const & info) -> View<char>
+  {
+    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
+    return View<char>{std::next(buffer, offset), info.headerlen};
+  };
+  auto const by_abundance = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = std::strcmp(buffer + lhs.header_p, buffer + rhs.header_p);
+    auto const order = header_compare(header_of(lhs), header_of(rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };

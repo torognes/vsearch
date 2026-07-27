@@ -68,6 +68,7 @@
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
 #include "utils/fatal.hpp"
+#include "utils/header_order.hpp"  // header_compare
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
@@ -80,7 +81,6 @@
 #include <cstdint> // int64_t, uint64_t
 #include <cstdlib>  // std::ldiv
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstring>  // std::strcmp
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>
@@ -242,7 +242,8 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
     {
       return false;
     }
-  auto const result = std::strcmp(lhs.header.c_str(), rhs.header.c_str());
+  auto const result = header_compare(View<char>{lhs.header.data(), lhs.header.size()},
+                                     View<char>{rhs.header.data(), rhs.header.size()});
   if (result != 0)
     {
       return result < 0;
@@ -621,6 +622,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         auto const * seq = input_handle->get_sequence();
         auto const * header = input_handle->get_header();
         auto const headerlen = input_handle->get_header_length();
+        auto const header_v = input_handle->header_view();
         auto const * qual = input_handle->get_quality(); // nullptr if FASTA
 
         /* normalize sequence: uppercase and replace U by T  */
@@ -649,7 +651,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         while ((bp->size != 0U) and
                ((hash != bp->hash) or
                 (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
-                (use_header and (std::strcmp(header, bp->header.c_str()) != 0))))
+                (use_header and (header_v != View<char>{bp->header.data(), bp->header.size()}))))
           {
             j = (j + 1) & hash_mask;
             bp = &hashtable[j];
@@ -668,7 +670,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                    and
                    ((rc_hash != rc_bp->hash) or
                     (seqcmp(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{rc_bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
-                    (use_header and (std::strcmp(header, rc_bp->header.c_str()) != 0))))
+                    (use_header and (header_v != View<char>{rc_bp->header.data(), rc_bp->header.size()}))))
               {
                 k = (k + 1) & hash_mask;
                 rc_bp = &hashtable[k];

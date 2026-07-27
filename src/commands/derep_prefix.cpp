@@ -64,6 +64,7 @@
 #include "core/fasta.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/header_order.hpp"  // header_compare
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
@@ -72,7 +73,6 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
-#include <cstring>  // std::strcmp
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
@@ -324,8 +324,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
 
       // both are deleted, same abundances, compare sequence headers
-      auto const result = std::strcmp(db.getheader(lhs.seqno_first),
-                                      db.getheader(rhs.seqno_first));
+      auto const result = header_compare(db.header_view(lhs.seqno_first),
+                                         db.header_view(rhs.seqno_first));
       if (result != 0)
         {
           return result < 0;

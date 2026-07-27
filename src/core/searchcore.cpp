@@ -79,7 +79,6 @@
 #include <cmath>  // std::pow
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::sscanf, std::size_t
-#include <cstring>  // std::strcmp
 #include <limits>
 #include <utility>  // std::move
 #include <vector>
@@ -563,7 +562,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   auto const target_seqno = static_cast<uint64_t>(target);
   auto const * qseq = searchinfo.qsequence.data();
   auto const qseqlen = static_cast<int>(searchinfo.qsequence.size());
-  auto const * dlabel = searchinfo.db->getheader(target_seqno);
+  auto const dlabel = searchinfo.db->header_view(target_seqno);
   auto const * dseq = searchinfo.db->getsequence(target_seqno);
   auto const dseqlen = static_cast<int64_t>(searchinfo.db->getsequencelen(target_seqno));
   auto const tsize = static_cast<int64_t>(searchinfo.db->getabundance(target_seqno));
@@ -609,7 +608,7 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                     View<char>{dseq, static_cast<std::size_t>(dseqlen)}.last(static_cast<std::size_t>(parameters.opt_idsuffix))) == 0))
           and
           /* self */
-          ((parameters.opt_self == 0) or (std::strcmp(searchinfo.query_head.data(), dlabel) != 0))
+          ((parameters.opt_self == 0) or (searchinfo.query_head != dlabel))
           and
           /* selfid */
           ((parameters.opt_selfid == 0) or
