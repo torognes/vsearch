@@ -12,8 +12,8 @@ sites) is excluded as a target: `CLAUDE.md` actively asks for it
 ("make implicit contracts explicit with assert()").
 
 Total: **144 call sites** (73 + 36 + 17 + 15 + 3), plus ~20 POSIX/OS
-calls. **98** after the 2026-07-27 `strlen`, `strcmp`, `sscanf` and `ldiv`
-passes (see below).
+calls. **97** after the 2026-07-27 `strlen`, `strcmp`, `sscanf`, `ldiv` and
+`strstr` passes (see below).
 
 
 ## Status of `qsort`
@@ -37,7 +37,7 @@ commit `ed226b7c`; two more of the same kind (`memchr`, an unused
 | `std::memcmp` | 2 | `fastx.cpp` magic-byte sniffing |
 | `std::memset` | 1 | `align_simd.cpp` raw SIMD buffer |
 | `std::memmove` | 1 | `align_simd.cpp` cigar shift |
-| `std::strstr` | 1 | `getseq.cpp` label search |
+| `std::strstr` | 1 → 0 | **done 2026-07-27** (`f706b6ae`) — it was also a bug |
 | `std::strcspn` | 1 | `cli.cc:4053`, truncating optarg at a separator |
 
 **Do not touch the SIMD `memcpy`.** The five in `align_simd.cpp` and the
@@ -375,12 +375,38 @@ slightly better — `usearch_global` with `--alnout/--blast6out/--uc/--userout`
 and with `--samout` both within noise, `cluster_size --msaout` ~3 % faster,
 `fastq_mergepairs` ~3 % faster.
 
+### The `strstr` in `getseq.cpp` was a bug — DONE
+
+`std::strstr()` never returns `nullptr` for an empty needle, so with
+`--label_word ""` the loop in `test_label_match()` had no exit other than a
+successful boundary check: it walked past the end of the header until it found
+two adjacent non-alphanumeric bytes, which the zero-filled tail of the 8 KB
+`FastxBuffer` always supplies. An empty `--label_word` therefore matched every
+record. The read stays inside the buffer's capacity, so ASan does not flag it —
+a logic bug, not a memory-safety one.
+
+The `--label_words` branch was already immune, using a `std::search` bounded by
+`header_end`; a human comment there records why. `f706b6ae` gives
+`--label_word` the same bound (keeping the end-of-header position, which an
+empty needle may legitimately match), and `8a0aee28` then collapses the two
+now-identical loops into one `matches_delimited()` helper — which is where the
+four `*(hit - 1)` / `*(hit + wlen)` sites the `<cctype>` pass deferred finally
+go.
+
+Cross-checked against usearch 9.2.64, 10.0.240 and 11.0.667: they also accept
+an empty `-label_word` and apply the ordinary rule to it. **Separate finding,
+left alone and flagged for review:** usearch's delimiter class is *not a
+letter* (so `-label_word sample` matches `sample1`), vsearch's is *not
+alphanumeric*. `vsearch.1:1561` documents vsearch's choice explicitly, so the
+divergence looks deliberate — but it is visible on abundance-annotated headers,
+the common case.
+
 ### The 22 that remain, and why
 
 | Sites | Where | Why it stays |
 |---|---|---|
 | 4 | `cli.cc:155`, `:162`, `:415`, `:430` | `argv` strings; trailing-garbage checks. Belongs with the `sscanf` item below, not here |
-| 6 | `getseq.cpp:196`, `:200`, `:212`, `:244`, `:247` and `:139` | five are `opt_label*` `argv` strings; `:139` reads a NUL-terminated line back out of a buffer. The plan's own note applies: this function also needs the `std::next` pointer-arithmetic pass, and the two belong in one commit |
+| 5 | `getseq.cpp` ×5 | **done 2026-07-27** (`f706b6ae`, `8a0aee28`): `strstr` gone, the pointer-arithmetic pass done with it. The five left all build a length from an `argv` string or an `fgets` buffer at the boundary — the right direction |
 | 2 | `search.cpp:258`, `:413` | library API boundary — building a length *from* a user's C string, the correct direction |
 | 2 | `chimera.cpp:2855`, `:2863` | same, plus `:2855` is a deliberate length-vs-`strlen` consistency check on caller-supplied data (S18) |
 | 2 | `compare_strings_nocase.cpp:112-113` | already flagged above as the correct direction |
