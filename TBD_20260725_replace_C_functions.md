@@ -52,7 +52,9 @@ operate on raw SIMD scratch buffers for the same reason.
 An earlier revision of this document said the sort comparators "become
 `View<char>` comparisons once the headers are carried as views (`View`
 already has `operator<`, doing a `std::lexicographical_compare`)".
-**That was wrong, and following it would have silently changed output.**
+**That was wrong as written**, and following it would have silently changed
+output. It is now true, because `View` was fixed — see "The fix went into
+`View`, not into a helper" below.
 
 `std::strcmp` compares bytes as **`unsigned char`**. `View::operator<` is a
 `std::lexicographical_compare` over **`char`**, which is signed on x86-64 and
@@ -73,29 +75,54 @@ current (strcmp)     View::operator< would give
 ```
 
 This is the same class of bug as the `<cctype>` UB recorded below, and it
-would also bite any future `std::set<View<char>>` (see the TODO at the top of
-`span.hpp`).
+would also have bitten any future `std::set<View<char>>` (see the TODO at the
+top of `span.hpp`).
 
-**What was done.** A new `utils/header_order.hpp` provides `header_less`
-(two-way, for the comparators that only need `<`) and `header_compare`
-(three-way, for those that tie-break on "equal headers"), both comparing
-through `unsigned char`, so the order is `strcmp`'s on every architecture.
-Both match `strcmp` exactly on all 2 692 881 pairs above, with signed and
-unsigned `char` alike.
+### The fix went into `View`, not into a helper
 
-The 13 sites split three ways, not two:
+The first attempt (`bf5154d8`) added a `utils/header_order.hpp` with
+`header_less` and `header_compare`, leaving `View::operator<` alone. That
+worked, but it left the trap armed for the next caller, so it was replaced.
+
+The deciding observation: **`std::string` already orders as `unsigned char`**,
+through `std::char_traits<char>::lt`. So of the three, `View<char>` was the
+only one out of step — with `std::strcmp` *and* with the type it is modelled
+on. That is a defect in `View`, not something callers should have had to route
+around.
+
+`utils/element_order.hpp` (`d1169e95`) holds the element comparison as a
+trait: the primary template defers to the element type's own `operator<`, and
+the explicit specialization for `char` reads both bytes as `unsigned char`.
+`View::operator<` and `Span::operator<` keep their
+`std::lexicographical_compare` and pass the trait as the comparison object, so
+only the element step changed. Both classes also gained `compare()` — the
+three-way form with `std::strcmp`'s sign convention, for callers that must
+tell "equal" from "greater" in one pass — and `operator!=`, which neither had
+(C++11 does not synthesise it from `operator==`).
+
+Only `char` is specialized. `signed char` and `unsigned char` say what they
+mean and are left to the primary template, the same line `std::char_traits`
+draws.
+
+`header_order.hpp` was then deleted (`91cb6032`): its two functions had become
+the view's own operators spelled longhand. Perf-neutral — `--sortbysize` over
+389 MB measures 1.00 ± 0.01 against `dev`, so passing the trait as a
+comparison object costs nothing next to a bare `operator<`.
+
+### Where the 13 sites went
+
+They split three ways, not two:
 
 - **Ordering** (7) — `db.cpp` ×3, `sortbylength:127`, `sortbysize:122`,
-  `derep_prefix:327`, `derep.cpp:245`. Now `header_compare`/`header_less` over
+  `derep_prefix:327`, `derep.cpp:245`. Now `a < b` and `a.compare(b)` over
   `Database::header_view()`. The three `db.cpp` comparators also lost their
   raw `buffer + header_p` pointer arithmetic to a `header_of` view helper.
 - **Header equality** (3) — `derep.cpp:652`, `:671`, `searchcore.cpp:612`.
-  These need no helper: `View::operator==` is signedness-independent, and it
-  compares sizes before bytes, so it short-circuits where `strcmp` walked to
-  the terminating null. Both `derep` sites sit inside hash-collision probe
-  loops and `searchcore`'s is in `search_acceptable_aligned`, so all three are
-  on hot paths. `View`/`Span` gained the matching `operator!=`, which neither
-  had (C++11 does not synthesise it).
+  `View::operator==` is signedness-independent, and it compares sizes before
+  bytes, so it short-circuits where `strcmp` walked to the terminating null.
+  Both `derep` sites sit inside hash-collision probe loops and `searchcore`'s
+  is in `search_acceptable_aligned`, so all three are on hot paths;
+  `--derep_id` measured 4 % faster.
 - **`"-"` stdin detection** (3) — `cli.cc:4448`, `fastx.cpp:342`,
   `open_file.cpp:89`. **Keep.** These compare an `argv` pointer against a
   one-character literal, which is `strcmp` used for exactly what it is for;
@@ -108,7 +135,8 @@ ASCII neighbours, with tied lengths and abundances so the header decides the
 order) across `--sortbysize`, `--sortbylength`, `--derep_fulllength`,
 `--derep_id`, `--derep_smallmem`, `--derep_prefix`, `--cluster_fast`,
 `--cluster_size`, `--uchime_denovo` and `--usearch_global --self/--selfid`:
-31/31 outputs identical.
+31/31 outputs identical, both for the helper version and for the
+specialization that replaced it.
 
 ### `<cstdio>` non-printf — 36 sites
 
@@ -558,7 +586,7 @@ not bundled with the UB fix.
    *external* consumers naming the type, and every site converted here
    is internal, so the later move into `vsearch::` is unaffected — but
    `View`/`Span` are now named in `results.hpp`, `msa.hpp` and the new
-   `utils/header_order.hpp` as well, so item 2 has grown by three
+   `utils/element_order.hpp` as well, so item 2 has grown by three
    headers. The 10 comparator `strcmp` did **not** fall out of this
    change; they were done separately (13 → 3), and the way the plan
    assumed would have changed output — see the signedness section.
