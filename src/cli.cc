@@ -65,6 +65,7 @@
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/mask.hpp"  // Masking
 #include "utils/userfields.hpp"  // parse_userfields_arg
+#include "utils/ascii_case.hpp"  // is_digit
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset
@@ -75,7 +76,7 @@
 #include <cinttypes>  // macro SCNd64
 #include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::sscanf, std::fprintf, fprintf, stderr, stdout
+#include <cstdio>  // std::fprintf, fprintf, stderr, stdout
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <string>  // std::to_string
@@ -112,17 +113,19 @@ namespace {
     char const * cursor = arg;
     while (true)
       {
-        double val = 0;
-        int skip = 0;
+        errno = 0;
+        char * end_of_number = nullptr;
+        auto const val = std::strtod(cursor, &end_of_number);
 
-        if ((std::sscanf(cursor, "%lf%n", &val, &skip) != 1) or (val <= 0.0))
+        if ((end_of_number == cursor) or (errno == ERANGE) or
+            (not std::isfinite(val)) or (val <= 0.0))
           {
             fatal("Invalid arguments to ee_cutoffs");
           }
 
         parameters.opt_ee_cutoffs.push_back(val);
 
-        cursor += skip;
+        cursor = end_of_number;
 
         if (*cursor == ',')
           {
@@ -140,6 +143,62 @@ namespace {
   }
 
 
+  /* one integer of the --length_cutoffs grammar. Rejects leading whitespace,
+     which std::strtoll would otherwise skip, and any value outside the int
+     range, which the former "%d" conversion could not report: an integer that
+     does not fit is undefined behaviour for the scanf family. */
+  auto read_length_cutoff(char const * & cursor, int & value) -> bool
+  {
+    static constexpr auto decimal_base = 10;
+    if ((*cursor != '+') and (*cursor != '-') and (not is_digit(*cursor)))
+      {
+        return false;
+      }
+    errno = 0;
+    char * end_of_number = nullptr;
+    auto const scanned = std::strtoll(cursor, &end_of_number, decimal_base);
+    if ((end_of_number == cursor) or (errno == ERANGE) or
+        (scanned < std::numeric_limits<int>::min()) or
+        (scanned > std::numeric_limits<int>::max()))
+      {
+        return false;
+      }
+    value = static_cast<int>(scanned);
+    cursor = end_of_number;
+    return true;
+  }
+
+
+  /* "shortest,longest,increment", where longest may be '*' for no limit.
+     No whitespace is accepted anywhere. The former std::sscanf tolerated it
+     wherever a %d conversion began, so "1,*, 10" parsed while "1, *, 10" did
+     not -- an artefact of the format string rather than a documented grammar. */
+  auto parse_length_cutoffs(char const * arg, int & shortest, int & longest,
+                            int & increment) -> bool
+  {
+    auto const * cursor = arg;
+    if (not read_length_cutoff(cursor, shortest)) { return false; }
+    if (*cursor != ',') { return false; }
+    cursor = std::next(cursor);
+
+    if (*cursor == '*')
+      {
+        longest = std::numeric_limits<int>::max();
+        cursor = std::next(cursor);
+      }
+    else if (not read_length_cutoff(cursor, longest))
+      {
+        return false;
+      }
+
+    if (*cursor != ',') { return false; }
+    cursor = std::next(cursor);
+
+    if (not read_length_cutoff(cursor, increment)) { return false; }
+    return *cursor == '\0';
+  }
+
+
   auto args_get_length_cutoffs(char const * arg, struct Parameters & parameters) -> void
   {
     /* get comma-separated list of 3 integers: */
@@ -147,28 +206,18 @@ namespace {
     /* second value may be * indicating no limit */
     /* save in length_cutoffs_{smallest,largest,increment} */
 
-    // refactoring: std::stoi(), faster than sscanf()
-    static constexpr auto n_of_expected_assignments= 3;
-    int skip = 0;  // receives the number of characters read so far ('%n')
-    if (std::sscanf(arg, "%d,%d,%d%n", &parameters.opt_length_cutoffs_shortest, &parameters.opt_length_cutoffs_longest, &parameters.opt_length_cutoffs_increment, & skip) == n_of_expected_assignments)
-      {
-        if (static_cast<size_t>(skip) < std::strlen(arg))
-          {
-            fatal("Invalid arguments to length_cutoffs");
-          }
-      }
-    else if (std::sscanf(arg, "%d,*,%d%n", &parameters.opt_length_cutoffs_shortest, &parameters.opt_length_cutoffs_increment, &skip) == 2)
-      {
-        if (static_cast<size_t>(skip) < std::strlen(arg))
-          {
-            fatal("Invalid arguments to length_cutoffs");
-          }
-        parameters.opt_length_cutoffs_longest = std::numeric_limits<int>::max();
-      }
-    else
+    int shortest = 0;
+    int longest = 0;
+    int increment = 0;
+    if (not parse_length_cutoffs(arg, shortest, longest, increment))
       {
         fatal("Invalid arguments to length_cutoffs");
       }
+    /* assigned only once the whole argument has parsed, so a rejected
+       argument cannot leave the parameters half-written */
+    parameters.opt_length_cutoffs_shortest = shortest;
+    parameters.opt_length_cutoffs_longest = longest;
+    parameters.opt_length_cutoffs_increment = increment;
 
     if ((parameters.opt_length_cutoffs_shortest < 1) or
         (parameters.opt_length_cutoffs_shortest > parameters.opt_length_cutoffs_longest) or
@@ -223,13 +272,22 @@ namespace {
 
     while (*cursor != '\0')
       {
-        int skip = 0;
         int pen = 0;
         bool is_infinite = false;
 
-        if (std::sscanf(cursor, "%d%n", &pen, &skip) == 1)
+        static constexpr auto decimal_base = 10;
+        errno = 0;
+        char * end_of_number = nullptr;
+        auto const scanned = std::strtoll(cursor, &end_of_number, decimal_base);
+
+        if (end_of_number != cursor)
           {
-            cursor += skip;
+            cursor = end_of_number;
+            /* out of the int range is out of the penalty range either way, and
+               the message below names the accepted range */
+            pen = ((errno == ERANGE) or (scanned < 0) or (scanned > max_gap_penalty))
+              ? -1
+              : static_cast<int>(scanned);
             if ((pen < 0) or (pen > max_gap_penalty))
               {
                 std::string const message =
@@ -406,36 +464,45 @@ namespace {
   }
 
 
+  /* std::strtoll rather than std::sscanf("%" SCNd64): an integer that does not
+     fit is undefined behaviour for the scanf family, and the ERANGE relied on
+     below to catch it is a glibc extension rather than something the standard
+     promises -- which matters for the mingw runtime. strtoll is defined: it
+     clamps and sets ERANGE. Leading whitespace and a leading '+' are still
+     accepted, both skipping straight through strtoll as they did through
+     sscanf; anything after the number is still rejected. */
   auto args_getlong(char const * arg) -> int64_t
   {
-    int len = 0;
-    int64_t temp = 0;
+    static constexpr auto decimal_base = 10;
     errno = 0;
-    auto const ret = std::sscanf(arg, "%" SCNd64 "%n", &temp, &len);
-    /* ret != 1, not ret == 0: std::sscanf returns EOF, not zero, when the
-       input ends before any conversion, so an empty argument used to slip
-       through with temp left at its initial value and len at 0 */
-    if ((ret != 1) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE))
+    char * end_of_number = nullptr;
+    auto const value = std::strtoll(arg, &end_of_number, decimal_base);
+    if ((end_of_number == arg)        // no digits at all, including an empty argument
+        or (*end_of_number != '\0')   // trailing garbage
+        or (errno == ERANGE))
       {
         fatal("Illegal option argument");
       }
-    return temp;
+    return static_cast<int64_t>(value);
   }
 
 
+  /* std::strtod, for the reasons given above args_getlong(). std::strtod
+     parses "nan" and "inf" just as "%lf" did, so the isfinite() guard is still
+     what rejects them. */
   auto args_getdouble(char const * arg) -> double
   {
-    int len = 0;
-    double temp = 0;
     errno = 0;
-    auto const ret = std::sscanf(arg, "%lf%n", &temp, &len);
-
-    /* ret != 1: see the note in args_getlong() above */
-    if ((ret != 1) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE) or (not std::isfinite(temp)))
+    char * end_of_number = nullptr;
+    auto const value = std::strtod(arg, &end_of_number);
+    if ((end_of_number == arg)        // no number at all, including an empty argument
+        or (*end_of_number != '\0')   // trailing garbage
+        or (errno == ERANGE)
+        or (not std::isfinite(value)))
       {
         fatal("Illegal option argument");
       }
-    return temp;
+    return value;
   }
 
 

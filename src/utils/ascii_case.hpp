@@ -61,7 +61,7 @@
 #pragma once
 
 
-#include <cctype>  // std::isalnum, std::isupper, std::tolower, std::toupper
+#include <cctype>  // std::isalnum, std::isdigit, std::isupper, std::tolower, std::toupper
 
 
 // Guarded wrappers around the single-character <cctype> functions.
@@ -91,6 +91,10 @@ inline auto to_lower(char const character) -> char {
 
 inline auto is_alnum(char const character) -> bool {
   return std::isalnum(static_cast<unsigned char>(character)) != 0;
+}
+
+inline auto is_digit(char const character) -> bool {
+  return std::isdigit(static_cast<unsigned char>(character)) != 0;
 }
 
 inline auto is_upper(char const character) -> bool {
