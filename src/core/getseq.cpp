@@ -100,6 +100,54 @@ namespace {
     return longest;
   }
 
+
+  /* --label_field matches a "name=value" field, delimited by ';'; the
+     --label_word family matches a whole word, delimited by anything that is
+     not a letter or a digit (see the --label_word entry in vsearch.1). */
+  enum struct Delimiter : char { semicolon, non_alphanumeric };
+
+  auto is_delimiter(char const character, Delimiter const delimiter) -> bool {
+    return (delimiter == Delimiter::semicolon)
+      ? (character == ';')
+      : (not is_alnum(character));
+  }
+
+  /* Does 'needle' occur in 'haystack', delimited at both ends either by a
+     delimiter or by an end of the haystack?
+
+     The search is bounded by haystack.end(): the needle may come from a
+     std::vector<char> with no terminating null, and an empty needle would
+     otherwise never end the scan. An empty needle is not rejected -- it is a
+     zero-length word, and the rule below decides where it may sit, which is
+     what usearch does too. */
+  auto matches_delimited(View<char> const haystack, View<char> const needle,
+                         Delimiter const delimiter) -> bool {
+    auto const * const begin = haystack.begin();
+    auto const * const end = haystack.end();
+    auto const needle_length = static_cast<std::ptrdiff_t>(needle.size());
+    auto const * hit = begin;
+    while (true)
+      {
+        hit = std::search(hit, end, needle.begin(), needle.end());
+        auto const * const after = std::next(hit, needle_length);
+        if (after > end) {
+          // the needle does not fit in what is left: no match
+          return false;
+        }
+        if (((hit == begin) or is_delimiter(*std::prev(hit), delimiter)) and
+            ((after == end) or is_delimiter(*after, delimiter)))
+          {
+            return true;
+          }
+        if (hit == end) {
+          // an empty needle also matches at the end of the haystack; that
+          // position has just been checked, so there is nothing left to scan
+          return false;
+        }
+        hit = std::next(hit);
+      }
+  }
+
 }  // end of anonymous namespace
 
 
@@ -186,11 +234,13 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
 {
   char const * header = input_handle->get_header();
   auto const header_length = input_handle->get_header_length();
-  auto const hlen = static_cast<std::size_t>(header_length);
   auto const header_view = View<char>{header, header_length};
   auto const longest_label = find_length_longest_label(labels_data);
   std::vector<char> field_buffer;
   std::size_t field_len = 0;
+  auto const boundary = (parameters.opt_label_field != nullptr)
+    ? Delimiter::semicolon
+    : Delimiter::non_alphanumeric;
   if (parameters.opt_label_field != nullptr)
     {
       field_len = std::strlen(parameters.opt_label_field);
@@ -238,107 +288,33 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
     }
   else if (parameters.opt_label_word != nullptr)
     {
-      char const * needle = parameters.opt_label_word;
-      auto wlen = std::strlen(needle);
+      auto needle = View<char>{parameters.opt_label_word,
+                               std::strlen(parameters.opt_label_word)};
       if (parameters.opt_label_field != nullptr)
         {
-          std::copy_n(needle, wlen + 1, &field_buffer[field_len + 1]);
-          needle = field_buffer.data();
-          wlen += field_len + 1;
+          std::copy(needle.begin(), needle.end(),
+                    std::next(field_buffer.begin(), static_cast<std::ptrdiff_t>(field_len) + 1));
+          needle = View<char>{field_buffer.data(), field_len + 1 + needle.size()};
         }
-      // the search is bounded by header_end, like the --label_words loop
-      // below. std::strstr() was not: with an empty needle it never returns
-      // nullptr, so the loop walked past the end of the header and decided
-      // from bytes that were not part of it
-      char const * const needle_end = std::next(needle, static_cast<std::ptrdiff_t>(wlen));
-      char const * const header_end = std::next(header, static_cast<std::ptrdiff_t>(hlen));
-      char const * hit = header;
-      while (true)
-        {
-          hit = std::search(hit, header_end, needle, needle_end);
-          char const * const after = std::next(hit, static_cast<std::ptrdiff_t>(wlen));
-          if (after > header_end) {
-            // the needle does not fit in what is left: no match
-            break;
-          }
-          if (parameters.opt_label_field != nullptr)
-            {
-              /* check of field */
-              if (((hit == header) or
-                   (*std::prev(hit) == ';')) and
-                  ((after == header_end) or
-                   (*after == ';')))
-                {
-                  return true;
-                }
-            }
-          else
-            {
-              /* check of full word */
-              if (((hit == header) or
-                   (not is_alnum(*std::prev(hit)))) and
-                  ((after == header_end) or
-                   (not is_alnum(*after))))
-                {
-                  return true;
-                }
-            }
-          if (hit == header_end) {
-            // an empty needle also matches at end-of-header; that position
-            // has just been checked, so there is nothing left to scan
-            break;
-          }
-          hit = std::next(hit);
-        }
+      return matches_delimited(header_view, needle, boundary);
     }
   else if (parameters.opt_label_words != nullptr)
     {
-      char const * const header_end = header + hlen;
       for (auto const & label: labels_data) {
         // labels read from a file are stored as std::vector<char>
         // without a trailing '\0', so the needle length must come from
         // label.size() and the search must be range-based; strlen and
         // strstr would read past the vector's storage
-        char const * needle = label.data();
-        std::size_t wlen = label.size();
+        auto needle = View<char>{label.data(), label.size()};
         if (parameters.opt_label_field != nullptr)
           {
-            std::copy(label.begin(), label.end(), &field_buffer[field_len + 1]);
-            needle = field_buffer.data();
-            wlen = field_len + 1 + label.size();
+            std::copy(label.begin(), label.end(),
+                      std::next(field_buffer.begin(), static_cast<std::ptrdiff_t>(field_len) + 1));
+            needle = View<char>{field_buffer.data(), field_len + 1 + label.size()};
           }
-        char const * const needle_end = needle + wlen;
-        char const * hit = header;
-        while (true)
-          {
-            hit = std::search(hit, header_end, needle, needle_end);
-            if (hit == header_end) {
-              break;
-            }
-            if (parameters.opt_label_field != nullptr)
-              {
-                /* check of field */
-                if (((hit == header) or
-                     (*(hit - 1) == ';')) and
-                    ((hit + wlen == header + hlen) or
-                     (*(hit + wlen) == ';')))
-                  {
-                    return true;
-                  }
-              }
-            else
-              {
-                /* check of full word */
-                if (((hit == header) or
-                     (not is_alnum(*(hit - 1)))) and
-                    ((hit + wlen == header + hlen) or
-                     (not is_alnum(*(hit + wlen)))))
-                  {
-                    return true;
-                  }
-              }
-            ++hit;
-          }
+        if (matches_delimited(header_view, needle, boundary)) {
+          return true;
+        }
       }  // end of range-for loop
     }
   return false;
