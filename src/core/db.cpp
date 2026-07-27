@@ -62,7 +62,6 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fastx.hpp"
-#include "utils/header_order.hpp"  // header_compare
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
@@ -446,7 +445,7 @@ auto Database::sortbylength(struct Parameters const & parameters) -> void
   {
     if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen > rhs.seqlen; }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = header_compare(header_of(lhs), header_of(rhs));
+    auto const order = header_of(lhs).compare(header_of(rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
@@ -470,7 +469,7 @@ auto Database::sortbylength_shortest_first(struct Parameters const & parameters)
   {
     if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen < rhs.seqlen; }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = header_compare(header_of(lhs), header_of(rhs));
+    auto const order = header_of(lhs).compare(header_of(rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
@@ -493,7 +492,7 @@ auto Database::sortbyabundance(struct Parameters const & parameters) -> void
   auto const by_abundance = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = header_compare(header_of(lhs), header_of(rhs));
+    auto const order = header_of(lhs).compare(header_of(rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };

@@ -64,7 +64,6 @@
 #include "core/fasta.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
-#include "utils/header_order.hpp"  // header_compare
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
@@ -324,8 +323,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         }
 
       // both are deleted, same abundances, compare sequence headers
-      auto const result = header_compare(db.header_view(lhs.seqno_first),
-                                         db.header_view(rhs.seqno_first));
+      auto const result = db.header_view(lhs.seqno_first)
+                            .compare(db.header_view(rhs.seqno_first));
       if (result != 0)
         {
           return result < 0;

@@ -61,7 +61,6 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fasta.hpp"
-#include "utils/header_order.hpp"  // header_less
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::sort, std::min
@@ -124,7 +123,7 @@ namespace {
       }
       // ...then ties are sorted by sequence labels (alpha-numerical ordering),
       // preserve input order
-      return header_less(db.header_view(lhs.seqno), db.header_view(rhs.seqno));
+      return db.header_view(lhs.seqno) < db.header_view(rhs.seqno);
     };
 
     static constexpr auto one_hundred_percent = 100ULL;

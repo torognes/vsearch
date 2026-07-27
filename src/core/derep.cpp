@@ -68,7 +68,6 @@
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
 #include "utils/fatal.hpp"
-#include "utils/header_order.hpp"  // header_compare
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
@@ -242,8 +241,8 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
     {
       return false;
     }
-  auto const result = header_compare(View<char>{lhs.header.data(), lhs.header.size()},
-                                     View<char>{rhs.header.data(), rhs.header.size()});
+  auto const result = View<char>{lhs.header.data(), lhs.header.size()}
+                        .compare(View<char>{rhs.header.data(), rhs.header.size()});
   if (result != 0)
     {
       return result < 0;
