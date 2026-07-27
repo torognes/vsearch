@@ -412,7 +412,10 @@ namespace {
     int64_t temp = 0;
     errno = 0;
     auto const ret = std::sscanf(arg, "%" SCNd64 "%n", &temp, &len);
-    if ((ret == 0) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE))
+    /* ret != 1, not ret == 0: std::sscanf returns EOF, not zero, when the
+       input ends before any conversion, so an empty argument used to slip
+       through with temp left at its initial value and len at 0 */
+    if ((ret != 1) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE))
       {
         fatal("Illegal option argument");
       }
@@ -427,7 +430,8 @@ namespace {
     errno = 0;
     auto const ret = std::sscanf(arg, "%lf%n", &temp, &len);
 
-    if ((ret == 0) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE) or (not std::isfinite(temp)))
+    /* ret != 1: see the note in args_getlong() above */
+    if ((ret != 1) or ((static_cast<unsigned int>(len)) < std::strlen(arg)) or (errno == ERANGE) or (not std::isfinite(temp)))
       {
         fatal("Illegal option argument");
       }
