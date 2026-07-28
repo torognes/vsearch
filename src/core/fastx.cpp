@@ -80,7 +80,7 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::memcmp, std::strcmp
+#include <cstring>  // std::strcmp
 #include <iterator> // std::distance
 #include <limits>  // std::numeric_limits
 #include <memory>  // std::unique_ptr
@@ -92,8 +92,26 @@
 
 constexpr uint64_t fastx_buffer_alloc = 8192;
 
-constexpr std::array<unsigned char, 2> magic_gzip = {0x1f, 0x8b};
-constexpr std::array<unsigned char, 2> magic_bzip = {'B', 'Z'};
+/* the leading bytes identifying a compressed file; unsigned char because a
+   magic byte is a byte value, not a character */
+using Magic = std::array<unsigned char, 2>;
+
+constexpr Magic magic_gzip = {0x1f, 0x8b};
+constexpr Magic magic_bzip = {'B', 'Z'};
+
+namespace {
+/* Does the file start with the given signature? The file buffer holds char,
+   while a signature holds unsigned char, so the bytes are compared as byte
+   values: comparing them directly would make 0x8b (gzip's second byte)
+   negative wherever char is signed, and no file would ever look gzipped.
+   The caller must have at least magic.size() bytes available at first_bytes. */
+auto has_magic(char const * const first_bytes, Magic const & magic) -> bool
+{
+  return std::equal(magic.begin(), magic.end(), first_bytes,
+                    [](unsigned char const expected, char const actual) -> bool
+                    { return expected == static_cast<unsigned char>(actual); });
+}
+}  // anonymous namespace
 
 
 auto FastxBuffer::init() -> void
@@ -374,7 +392,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
       /* read two characters and compare with magic */
 
-      std::array<unsigned char, 2> magic {{}};
+      Magic magic {{}};
 
       input_handle->format = Format::plain;
 
@@ -383,11 +401,11 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
       if (bytes_read >= magic.size())
         {
-          if (std::equal(magic.begin(), magic.end(), magic_gzip.begin()))
+          if (magic == magic_gzip)
             {
               input_handle->format = Format::gzip;
             }
-          else if (std::equal(magic.begin(), magic.end(), magic_bzip.begin()))
+          else if (magic == magic_bzip)
             {
               input_handle->format = Format::bzip;
             }
@@ -485,12 +503,12 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
           if (rest >= magic_gzip.size())
             {
-              if (std::memcmp(first, magic_gzip.data(), magic_gzip.size()) == 0)
+              if (has_magic(first, magic_gzip))
                 {
                   fatal("File appears to be gzip compressed. Please use --gzip_decompress");
                 }
 
-              if (std::memcmp(first, magic_bzip.data(), magic_bzip.size()) == 0)
+              if (has_magic(first, magic_bzip))
                 {
                   fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
                 }
