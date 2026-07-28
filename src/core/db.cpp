@@ -61,14 +61,17 @@
 #include "core/seq_record.hpp"
 #include "vsearch.hpp"
 #include "core/db.hpp"
+#include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/fastx.hpp"
+#include "utils/fatal.hpp"  // fatal
 #include "utils/maps.hpp"
 #include "utils/progress.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
+#include <array>  // std::array
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstddef>  // std::ptrdiff_t
-#include <cstdio>  // std::fprintf, std::size_t
+#include <cstdio>  // std::fprintf, std::snprintf, std::size_t
 #include <iterator>  // std::next
 #include <limits>
 #include <memory>  // std::unique_ptr
@@ -179,6 +182,34 @@ auto Database::add(bool const is_fastq_record,
 
   auto const headerlength = record.header.size();
   auto const sequencelength = record.sequence.size();
+
+  /* Reject a record too long for the int length bookkeeping downstream, at the
+     same bound as the other three entry points: the --maxseqlength parse-time
+     cap (cli.cc), fastx_filter_sequence_length / fastx_filter_header on every
+     FASTA/FASTQ read, and udb_read for the binary loader. add() is the fourth,
+     and until now the only unguarded one -- read() feeds it from the guarded
+     reader, but a library caller assembling a database with init() + add()
+     passes views of its own. Above the bound the length reaches the int print
+     and search paths; above UINT32_MAX it also wraps in the 32-bit seqinfo_s
+     fields below (see the comment there).
+
+     Checked before anything is appended, so a rejected record leaves the
+     database untouched: in a library session fatal() throws instead of
+     exiting, and the caller may keep using the same handle. */
+  static constexpr auto max_length =
+    static_cast<std::size_t>(std::numeric_limits<int>::max() - buffer_headroom);
+  if ((sequencelength > max_length) or (headerlength > max_length))
+    {
+      std::array<char, 256> message {{}};
+      std::snprintf(message.data(), message.size(),
+                    "Database::add: record too long (%" PRIu64 " nt sequence, %"
+                    PRIu64 " byte header).\nSequences and headers longer than %"
+                    PRIu64 " are not supported.",
+                    static_cast<uint64_t>(sequencelength),
+                    static_cast<uint64_t>(headerlength),
+                    static_cast<uint64_t>(max_length));
+      fatal(message.data());
+    }
 
   /* grow space for data, if necessary (memchunk-stepped, as the raw buffer was);
      each stored string is followed by a terminating NUL, hence the +1s. */

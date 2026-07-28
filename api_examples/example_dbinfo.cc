@@ -9,7 +9,7 @@
  * abundance/quality bookkeeping. Every check here is self-validating against
  * values known from the input, not against native vsearch output.
  *
- * Two of these checks are regression guards for library-only bugs fixed
+ * Three of these checks are regression guards for library-only bugs fixed
  * alongside them (db.cc):
  *   - db_read() with a default Parameters used to discard every sequence: the
  *     -1 "unset" opt_minseqlength sentinel was cast to size_t (SIZE_MAX), so
@@ -19,6 +19,12 @@
  *   - db_add(is_fastq=true, ...) stored the quality string but left the global
  *     is_fastq flag false, so db_is_fastq()/db_getquality() could not reach it.
  *     db_add now sets the flag (test_db_add_fastq_quality).
+ *   - db_add() validated no length at all, narrowing both into 32-bit fields
+ *     unchecked, so only a library caller could store a record too long for
+ *     the int length bookkeeping downstream (db_read is fed by the guarded
+ *     reader, which is why the CLI never reached it). db_add now applies the
+ *     same INT_MAX - buffer_headroom bound as the reader and the UDB loader
+ *     (test_db_add_rejects_oversized_record).
  *
  * Build:  g++ -std=c++11 -O3 -I../src -o example_dbinfo example_dbinfo.cc ../src/libvsearch.a -lpthread -ldl
  * Run:    ./example_dbinfo
@@ -30,6 +36,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -303,6 +310,108 @@ static int test_db_add_accessors()
 }
 
 
+/* --- Test 3b: db_add rejects a record too long for its length fields ---
+   db_add narrows both lengths into the 32-bit seqinfo_s fields and hands them
+   to print/search paths that carry an int, so it caps them at
+   INT_MAX - buffer_headroom, the same bound as --maxseqlength, the FASTA/FASTQ
+   reader and the UDB loader. Only db_add can be reached with an unvetted
+   length: db_read is fed by the guarded reader, so a library caller passing
+   its own views is the one caller that needs the check.
+
+   The oversized views here point at a one-byte buffer. That is deliberate: a
+   guard that ran after the record was appended would have to read through the
+   pointer first, so this only survives because the check happens before any
+   copying. The same property is what leaves the database intact below --
+   fatal() throws inside a session, and a consumer that catches it keeps using
+   the handle. */
+static int test_db_add_rejects_oversized_record()
+{
+  int failures = 0;
+
+  struct Parameters parameters;
+  VsearchSession const session(parameters);
+
+  std::vector<record_s> const records = make_records();
+  Database db;
+  load_records(db, records);
+
+  uint64_t const loaded = db.getsequencecount();
+  uint64_t const loaded_nt = db.getnucleotidecount();
+
+  /* One byte of real storage, described as one past the bound: buffer_headroom
+     is 2001, so INT_MAX - 2000 is exactly max_length + 1. That makes this an
+     off-by-one check on the comparison as well as a rejection check, without
+     allocating anything near 2 GB. */
+  std::vector<char> const tiny(1, 'A');
+  std::size_t const oversize =
+    static_cast<std::size_t>(std::numeric_limits<int>::max()) - 2000;
+  std::string const label = "oversized";
+  std::string const sequence = "ACGTACGTAA";
+
+  struct { char const * what; View<char> header; View<char> sequence; } const rejects[] = {
+    { "sequence", View<char>{label.c_str(), label.size()}, View<char>{tiny.data(), oversize} },
+    { "header",   View<char>{tiny.data(), oversize},       View<char>{sequence.c_str(), sequence.size()} },
+  };
+
+  for (auto const & reject : rejects)
+    {
+      bool caught = false;
+      std::string message;
+      try
+        {
+          db.add(false, SeqRecord{reject.header, reject.sequence, View<char>{}}, 1);
+        }
+      catch (VsearchError const & error)
+        {
+          caught = true;
+          message = error.message;
+        }
+      if (not caught)
+        {
+          std::fprintf(stderr, "FAIL: db_add() accepted an oversized %s\n", reject.what);
+          ++failures;
+        }
+      else if (message.find("too long") == std::string::npos)
+        {
+          std::fprintf(stderr, "FAIL: oversized %s raised an unrelated error: \"%s\"\n",
+                       reject.what, message.c_str());
+          ++failures;
+        }
+    }
+
+  /* the rejects must not have half-added anything */
+  if (db.getsequencecount() != loaded || db.getnucleotidecount() != loaded_nt)
+    {
+      std::fprintf(stderr, "FAIL: a rejected record changed the database: "
+                   "%lu records / %lu nt, expected %lu / %lu\n",
+                   (unsigned long) db.getsequencecount(),
+                   (unsigned long) db.getnucleotidecount(),
+                   (unsigned long) loaded, (unsigned long) loaded_nt);
+      ++failures;
+    }
+
+  /* and the handle must still take a good record afterwards */
+  db.add(false, SeqRecord{View<char>{label.c_str(), label.size()},
+                          View<char>{sequence.c_str(), sequence.size()},
+                          View<char>{}}, 1);
+  if (db.getsequencecount() != loaded + 1 ||
+      db.getsequencelen(loaded) != sequence.size() ||
+      std::strcmp(db.getheader(loaded), label.c_str()) != 0)
+    {
+      std::fprintf(stderr, "FAIL: db_add() did not work after a caught rejection\n");
+      ++failures;
+    }
+
+  db.clear();
+
+  if (failures == 0)
+    {
+      std::fprintf(stderr, "PASS: db_add() rejects an oversized record and leaves the database usable\n");
+    }
+  return failures;
+}
+
+
 /* Collect the multiset of sequence lengths currently in the database. */
 static std::vector<uint64_t> current_lengths(Database const & db)
 {
@@ -518,6 +627,7 @@ int main()
   failures += test_db_read_fastq_quality();
   failures += test_db_add_fastq_quality();
   failures += test_db_add_accessors();
+  failures += test_db_add_rejects_oversized_record();
   failures += test_sort_contracts();
   failures += test_incremental_indexing();
   return failures == 0 ? 0 : 1;
