@@ -61,16 +61,15 @@
 #include "vsearch.hpp"
 #include "commands/version.hpp"
 #include "os/dynlibs.hpp"
-#include <cstdio>  // std::printf, std::fprintf
+#include <cstdio>  // std::printf, std::fprintf, std::fputs
 
 
 auto show_publication() -> void
 {
-  std::fprintf(stdout,
-          "Rognes T, Flouri T, Nichols B, Quince C, Mahe F (2016)\n"
+  std::fputs("Rognes T, Flouri T, Nichols B, Quince C, Mahe F (2016)\n"
           "VSEARCH: a versatile open source tool for metagenomics\n"
           "PeerJ 4:e2584 doi: 10.7717/peerj.2584 https://doi.org/10.7717/peerj.2584\n"
-          "\n");
+          "\n", stdout);
 }
 
 

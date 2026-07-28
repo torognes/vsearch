@@ -71,7 +71,7 @@
 #include <algorithm>  // std::max, std::sort, std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputs
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
@@ -364,13 +364,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "0 unique sequences\n");
+          std::fputs("0 unique sequences\n", stderr);
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "0 unique sequences\n\n");
+          std::fputs("0 unique sequences\n\n", parameters.fp_log);
         }
     }
   else

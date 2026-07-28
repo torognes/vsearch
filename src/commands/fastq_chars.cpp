@@ -68,7 +68,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fputc, std::fputs
 #include <iterator>  // std::distance
 #include <vector>
 
@@ -188,35 +188,35 @@ namespace {
       {
         if (stats.qmin < solexa_ascii_offset)
           {
-            std::fprintf(output_stream, "Guess: Solexa format (phred+64)\n");
+            std::fputs("Guess: Solexa format (phred+64)\n", output_stream);
           }
         else if (stats.qmin < first_char_in_Illumina_1_5)
           {
-            std::fprintf(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
+            std::fputs("Guess: Illumina 1.3+ format (phred+64)\n", output_stream);
           }
         else
           {
             // Illumina 1.5+ Phred+64, quality values ranging from 3 to 41 (ascii: 67 to 105)
             // Q2 (ascii 66, 'B') is the Read Segment Quality Control Indicator
-            std::fprintf(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
+            std::fputs("Guess: Illumina 1.5+ format (phred+64)\n", output_stream);
           }
       }
     else
       {
         if (stats.qmax > last_char_in_original_Sanger)
           {
-            std::fprintf(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
+            std::fputs("Guess: Illumina 1.8+ format (phred+33)\n", output_stream);
           }
         else
           {
             // Sanger Phred+33, quality values ranging from 0 to 40 (ascii: 33 to 73)
-            std::fprintf(output_stream, "Guess: Original Sanger format (phred+33)\n");
+            std::fputs("Guess: Original Sanger format (phred+33)\n", output_stream);
           }
       }
 
-    std::fprintf(output_stream, "\n");
-    std::fprintf(output_stream, "Letter          N   Freq MaxRun\n");
-    std::fprintf(output_stream, "------ ---------- ------ ------\n");
+    std::fputc('\n', output_stream);
+    std::fputs("Letter          N   Freq MaxRun\n", output_stream);
+    std::fputs("------ ---------- ------ ------\n", output_stream);
 
     double const percentage_factor = 100.0 / static_cast<double>(stats.total_chars);
     unsigned char index = 0;
@@ -239,13 +239,13 @@ namespace {
                 std::fprintf(output_stream, "  Q=%c", stats.qmin_n);
               }
           }
-        std::fprintf(output_stream, "\n");
+        std::fputc('\n', output_stream);
         ++index;
       }
 
-    std::fprintf(output_stream, "\n");
-    std::fprintf(output_stream, "Char  ASCII    Freq       Tails\n");
-    std::fprintf(output_stream, "----  -----  ------  ----------\n");
+    std::fputc('\n', output_stream);
+    std::fputs("Char  ASCII    Freq       Tails\n", output_stream);
+    std::fputs("----  -----  ------  ----------\n", output_stream);
 
     for (char i = stats.qmin; i <= stats.qmax; ++i)
       {

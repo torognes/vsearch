@@ -67,7 +67,7 @@
 #include <algorithm>  // std::max, std::min, std::sort
 #include <cinttypes>  // macro PRIu64
 #include <cmath>  // std::lround
-#include <cstdio>  // std::fprintf
+#include <cstdio>  // std::fprintf, std::fputc, std::fputs
 #include <vector>
 
 
@@ -133,19 +133,19 @@ auto udbstats(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log, "      Alphabet  nt\n");
+      std::fputs("      Alphabet  nt\n", parameters.fp_log);
       std::fprintf(parameters.fp_log, "    Word width  %u\n", dbindex.wordlength);
       std::fprintf(parameters.fp_log, "     Word ones  %u\n", dbindex.wordlength);
-      std::fprintf(parameters.fp_log, "        Spaced  No\n");
-      std::fprintf(parameters.fp_log, "        Hashed  No\n");
-      std::fprintf(parameters.fp_log, "         Coded  No\n");
-      std::fprintf(parameters.fp_log, "       Stepped  No\n");
+      std::fputs("        Spaced  No\n", parameters.fp_log);
+      std::fputs("        Hashed  No\n", parameters.fp_log);
+      std::fputs("         Coded  No\n", parameters.fp_log);
+      std::fputs("       Stepped  No\n", parameters.fp_log);
       std::fprintf(parameters.fp_log,
               "         Slots  %u (%.1fk)\n",
               dbindex.hashsize,
               1.0 * dbindex.hashsize / 1000.0);
       std::fprintf(parameters.fp_log, "       DBAccel  %u%%\n", dbindex.dbaccel);
-      std::fprintf(parameters.fp_log, "\n");
+      std::fputc('\n', parameters.fp_log);
 
       std::fprintf(parameters.fp_log,
               "%10" PRIu64 "  DB size (%.1fk)\n",
@@ -156,12 +156,10 @@ auto udbstats(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log,
               "%10.1f  Mean size\n",
               1.0 * static_cast<double>(dbindex.indexsize) / dbindex.hashsize);
-      std::fprintf(parameters.fp_log, "\n");
+      std::fputc('\n', parameters.fp_log);
 
-      std::fprintf(parameters.fp_log,
-              "     iWord         sWord         Cap        Size  Row\n");
-      std::fprintf(parameters.fp_log,
-              "----------  ------------  ----------  ----------  ---\n");
+      std::fputs("     iWord         sWord         Cap        Size  Row\n", parameters.fp_log);
+      std::fputs("----------  ------------  ----------  ----------  ---\n", parameters.fp_log);
 
       for (auto i = 0U; i < dbindex.hashsize; i++)
         {
@@ -182,7 +180,7 @@ auto udbstats(struct Parameters const & parameters) -> void
                   0U,
                   freqtable[dbindex.hashsize - 1 - i].count);
 
-          std::fprintf(parameters.fp_log, " ");
+          std::fputc(' ', parameters.fp_log);
 
           for (auto j = 0U; j < freqtable[dbindex.hashsize - 1 - i].count; j++)
             {
@@ -198,10 +196,10 @@ auto udbstats(struct Parameters const & parameters) -> void
 
           if (freqtable[dbindex.hashsize-1-i].count > 8)
             {
-              std::fprintf(parameters.fp_log, "...");
+              std::fputs("...", parameters.fp_log);
             }
 
-          std::fprintf(parameters.fp_log, "\n");
+          std::fputc('\n', parameters.fp_log);
 
           if (i == 10)
             {
@@ -209,17 +207,17 @@ auto udbstats(struct Parameters const & parameters) -> void
             }
         }
 
-      std::fprintf(parameters.fp_log, "\n\n");
+      std::fputs("\n\n", parameters.fp_log);
 
       std::fprintf(parameters.fp_log, "Word width  %u\n", dbindex.wordlength);
       std::fprintf(parameters.fp_log, "Slots       %u\n", dbindex.hashsize);
       std::fprintf(parameters.fp_log, "Words       %" PRIu64 "\n", dbindex.indexsize);
       std::fprintf(parameters.fp_log, "Max size    %u (", wcmax);
       fprint_kmer(parameters.fp_log, dbindex.wordlength, freqtable[dbindex.hashsize - 1].kmer);
-      std::fprintf(parameters.fp_log, ")\n\n");
+      std::fputs(")\n\n", parameters.fp_log);
 
-      std::fprintf(parameters.fp_log, "   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n");
-      std::fprintf(parameters.fp_log, "----------  ----------  ----------  ----------  ------  ------\n");
+      std::fputs("   Size lo     Size hi  Total size   Nr. Words     Pct  TotPct\n", parameters.fp_log);
+      std::fputs("----------  ----------  ----------  ----------  ------  ------\n", parameters.fp_log);
 
 
       auto size_lo = 0U;
@@ -248,7 +246,7 @@ auto udbstats(struct Parameters const & parameters) -> void
             }
           else
             {
-              std::fprintf(parameters.fp_log, "          ");
+              std::fputs("          ", parameters.fp_log);
             }
 
           std::fprintf(parameters.fp_log, "  %10u", size_hi);
@@ -278,15 +276,15 @@ auto udbstats(struct Parameters const & parameters) -> void
 
           if (dots > 0)
             {
-              std::fprintf(parameters.fp_log, "  ");
+              std::fputs("  ", parameters.fp_log);
             }
 
           for (auto i = 0L; i < dots ; i++)
             {
-              std::fprintf(parameters.fp_log, "*");
+              std::fputc('*', parameters.fp_log);
             }
 
-          std::fprintf(parameters.fp_log, "\n");
+          std::fputc('\n', parameters.fp_log);
 
           size_lo = size_hi + 1;
           if (size_hi > 0)
@@ -300,8 +298,8 @@ auto udbstats(struct Parameters const & parameters) -> void
           size_hi = std::min(size_hi, seqcount);
         }
 
-      std::fprintf(parameters.fp_log, "----------  ----------  ----------  ----------\n");
-      std::fprintf(parameters.fp_log, "                      ");
+      std::fputs("----------  ----------  ----------  ----------\n", parameters.fp_log);
+      std::fputs("                      ", parameters.fp_log);
 
       if (dbindex.indexsize >= 10000)
         {
@@ -321,7 +319,7 @@ auto udbstats(struct Parameters const & parameters) -> void
           std::fprintf(parameters.fp_log, "  %10.1f", dbindex.hashsize * 1.0);
         }
 
-      std::fprintf(parameters.fp_log, "\n\n");
+      std::fputs("\n\n", parameters.fp_log);
 
       std::fprintf(parameters.fp_log, "%10" PRIu64 "  Upper\n", nt);
       std::fprintf(parameters.fp_log, "%10u  Lower (%.1f%%)\n", 0U, 0.0);

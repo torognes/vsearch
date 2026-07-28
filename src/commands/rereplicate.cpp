@@ -65,7 +65,7 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <cinttypes> // macros PRIu64 and PRId64
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <cstdint>  // int64_t
 
 
@@ -119,7 +119,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
     {
       if (missing_abundance)
         {
-          std::fprintf(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
+          std::fputs("WARNING: Missing abundance information for some input sequences, assumed 1\n", stderr);
         }
       std::fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }
@@ -128,7 +128,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
     {
       if (missing_abundance)
         {
-          std::fprintf(parameters.fp_log, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
+          std::fputs("WARNING: Missing abundance information for some input sequences, assumed 1\n", parameters.fp_log);
         }
       std::fprintf(parameters.fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
     }

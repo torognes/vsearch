@@ -83,7 +83,7 @@
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t, int64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::fputc
 #include <mutex>  // std::mutex, std::lock_guard
 #include <vector>
 
@@ -696,7 +696,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
         {
           std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fprintf(stderr, "\n");
+      std::fputc('\n', stderr);
       if (parameters.opt_sizein)
         {
           std::fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
@@ -707,7 +707,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
               std::fprintf(stderr, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          std::fprintf(stderr, "\n");
+          std::fputc('\n', stderr);
         }
     }
 
@@ -719,7 +719,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
         {
           std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fprintf(parameters.fp_log, "\n");
+      std::fputc('\n', parameters.fp_log);
       if (parameters.opt_sizein)
         {
           std::fprintf(parameters.fp_log, "Matching total query sequences: %" PRIu64 " of %"
@@ -730,7 +730,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
               std::fprintf(parameters.fp_log, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          std::fprintf(parameters.fp_log, "\n");
+          std::fputc('\n', parameters.fp_log);
         }
     }
 

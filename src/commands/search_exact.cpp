@@ -84,7 +84,7 @@
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fputc
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -761,7 +761,7 @@ auto search_exact(struct Parameters const & parameters) -> void
         {
           std::fprintf(stderr, " (%.2f%%)", 100.0 * state.qmatches / state.queries);
         }
-      std::fprintf(stderr, "\n");
+      std::fputc('\n', stderr);
       if (parameters.opt_sizein)
         {
           std::fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
@@ -772,7 +772,7 @@ auto search_exact(struct Parameters const & parameters) -> void
               std::fprintf(stderr, " (%.2f%%)",
                       100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
             }
-          std::fprintf(stderr, "\n");
+          std::fputc('\n', stderr);
         }
     }
 
@@ -784,7 +784,7 @@ auto search_exact(struct Parameters const & parameters) -> void
         {
           std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * state.qmatches / state.queries);
         }
-      std::fprintf(parameters.fp_log, "\n");
+      std::fputc('\n', parameters.fp_log);
       if (parameters.opt_sizein)
         {
           std::fprintf(parameters.fp_log, "Matching total query sequences: %" PRIu64 " of %"
@@ -795,7 +795,7 @@ auto search_exact(struct Parameters const & parameters) -> void
               std::fprintf(parameters.fp_log, " (%.2f%%)",
                       100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
             }
-          std::fprintf(parameters.fp_log, "\n");
+          std::fputc('\n', parameters.fp_log);
         }
     }
 

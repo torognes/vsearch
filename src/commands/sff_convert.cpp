@@ -69,7 +69,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint>  // uint64_t, uint32_t, uint16_t, uint8_t
-#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t, stderr
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::fread, std::size_t, stderr, std::fputs
 #include <iterator>  // std::prev
 #include <limits>
 #include <vector>
@@ -424,7 +424,7 @@ auto write_report(std::FILE * output_stream,
   if (sff_header.index_length != 0) {
     std::fprintf(output_stream, "Index type:      %s\n", index_kind);
   }
-  std::fprintf(output_stream, "\nSFF file read successfully.\n");
+  std::fputs("\nSFF file read successfully.\n", output_stream);
   if (sff_header.number_of_reads == 0) {
     return;
   }
@@ -655,7 +655,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           uint64_t const got = fskip(fp_sff.get(), index_padding);
           if ((got < index_padding) and (got != 0))
             {
-              std::fprintf(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
+              std::fputs("WARNING: Additional data at end of SFF file ignored\n", stderr); // refactoring: should be "missing padding"!
             }
         }
     }

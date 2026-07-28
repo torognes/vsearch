@@ -76,7 +76,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::fprintf, std::fclose
+#include <cstdio>  // std::fprintf, std::fclose, std::fputs
 #include <limits>
 #include <string>
 #include <vector>
@@ -463,13 +463,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "0 unique sequences\n");
+          std::fputs("0 unique sequences\n", stderr);
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "0 unique sequences\n\n");
+          std::fputs("0 unique sequences\n\n", parameters.fp_log);
         }
     }
   else

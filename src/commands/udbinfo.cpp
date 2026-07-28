@@ -64,7 +64,7 @@
 #include "utils/fatal.hpp"
 #include <array>
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::fprintf
+#include <cstdio>  // std::fprintf, std::fputs
 #include <fstream>  // std::ifstream
 #include <sys/stat.h>
 #include <ios>
@@ -135,7 +135,7 @@ auto udbinfo(struct Parameters const & parameters) -> void
     {
       std::fprintf(stderr, "           Seqs  %u\n", buffer[13]);
       std::fprintf(stderr, "     SeqIx bits  %u\n", buffer[2]);
-      std::fprintf(stderr, "          Alpha  nt (4)\n");
+      std::fputs("          Alpha  nt (4)\n", stderr);
       std::fprintf(stderr, "     Word width  %u\n", buffer[4]);
       std::fprintf(stderr, "          Slots  %u\n", buffer[11]);
       std::fprintf(stderr, "      Dict size  %u (%.1fk)\n",
@@ -149,7 +149,7 @@ auto udbinfo(struct Parameters const & parameters) -> void
     {
       std::fprintf(parameters.fp_log, "           Seqs  %u\n", buffer[13]);
       std::fprintf(parameters.fp_log, "     SeqIx bits  %u\n", buffer[2]);
-      std::fprintf(parameters.fp_log, "          Alpha  nt (4)\n");
+      std::fputs("          Alpha  nt (4)\n", parameters.fp_log);
       std::fprintf(parameters.fp_log, "     Word width  %u\n", buffer[4]);
       std::fprintf(parameters.fp_log, "          Slots  %u\n", buffer[11]);
       std::fprintf(parameters.fp_log, "      Dict size  %u (%.1fk)\n",
