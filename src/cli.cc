@@ -3261,7 +3261,11 @@ namespace {
 
           case option_topn:
             parameters.opt_topn = args_getlong(optarg);
-            if (parameters.opt_topn == 0)
+            /* < 1, not == 0: the manual page specifies a positive integer, and
+               a negative value used to pass this guard and then read as "no
+               limit" through the unsigned casts in truncate_deck() and
+               derep.cpp, silently ignoring the option */
+            if (parameters.opt_topn < 1)
               {
                 fatal("The argument to --topn must be greater than zero");
               }
