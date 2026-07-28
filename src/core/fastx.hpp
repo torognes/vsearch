@@ -62,6 +62,7 @@
 
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -100,6 +101,10 @@ public:
   /* the bytes in use as a single read-only window, for callers that scan or
      compare the whole buffer instead of indexing into it */
   auto view() const noexcept -> View<char> { return View<char>{data(), length}; }
+  /* writable companion to view(), for the in-place filters that rewrite the
+     bytes in use (see fastx_filter_header); mirrors Database::mutable_sequence()
+     in that only a non-const buffer hands out a mutable window */
+  auto span() noexcept -> Span<char> { return Span<char>{data(), length}; }
 
   /* Reset to a single empty, NUL-terminated block (former buffer_init). */
   auto init() -> void;
@@ -254,14 +259,19 @@ public:
   auto get_abundance_and_presence() const -> int64_t;  // 0 when ;size= is absent
 
   // View/SeqRecord companions, mirroring Database::sequence_view()/record().
+  // The header and the sequence are exactly the bytes their buffer holds, so
+  // they hand out the buffer's own window; quality does not, see below.
   auto header_view() const noexcept -> View<char>
   {
-    return View<char>{get_header(), get_header_length()};
+    return header_buffer.view();
   }
   auto sequence_view() const noexcept -> View<char>
   {
-    return View<char>{get_sequence(), get_sequence_length()};
+    return sequence_buffer.view();
   }
+  // Deliberately not quality_buffer.view(): a FASTA record has no quality at
+  // all, and for FASTQ the window is sized from the sequence, the length
+  // fastq_next() has just checked the quality string against.
   auto quality_view() const noexcept -> View<char>
   {
     return View<char>{is_fastq ? quality_buffer.data() : nullptr,
