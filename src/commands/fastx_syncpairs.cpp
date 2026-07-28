@@ -218,12 +218,12 @@ namespace {
                     read_record const & record,
                     int64_t const ordinal,
                     struct Parameters const & parameters) -> void {
-    auto const length = static_cast<int>(record.sequence.length());
-    auto const header_length = static_cast<int>(record.header.length());
+    auto const sequence = View<char>{record.sequence.data(), record.sequence.size()};
+    auto const header = View<char>{record.header.data(), record.header.size()};
     if (destination.fastq.handle != nullptr) {
       fastq_print_general(destination.fastq.handle.get(),
-                          View<char>{record.sequence.data(), record.sequence.size()},
-                          View<char>{record.header.data(), record.header.size()},
+                          sequence,
+                          header,
                           View<char>{record.quality.data(), record.quality.size()},
                           static_cast<uint64_t>(record.abundance),
                           ordinal,
@@ -233,8 +233,8 @@ namespace {
     if (destination.fasta.handle != nullptr) {
       fasta_print_general(destination.fasta.handle.get(),
                           nullptr,
-                          View<char>{record.sequence.data(), record.sequence.size()},
-                          View<char>{record.header.data(), record.header.size()},
+                          sequence,
+                          header,
                           static_cast<uint64_t>(record.abundance),
                           ordinal,
                           -1.0,
