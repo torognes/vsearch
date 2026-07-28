@@ -58,9 +58,11 @@
 
 */
 
+#include "core/kmerhash.hpp"
 #include "vendored/city.h"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
+#include "utils/view.hpp"  // View<char>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
@@ -101,7 +103,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
 }  // anonymous namespace
 
 
-auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char const * seq, int const len) -> void
+auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, View<char> const seq) -> void
 {
   int const kmers = static_cast<int>(1U << (2U * static_cast<unsigned int>(k_offset)));
   auto const kmer_mask = static_cast<unsigned int>(kmers - 1);
@@ -110,7 +112,7 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
 
   /* reallocate hash table if necessary */
 
-  int64_t const needed = 2 * static_cast<int64_t>(len);
+  int64_t const needed = 2 * static_cast<int64_t>(seq.size());
   if (kmer_hash.alloc < needed)
     {
       while (kmer_hash.alloc < needed)
@@ -127,26 +129,23 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
     }
   kmer_hash.hash_mask = static_cast<unsigned int>(kmer_hash.size - 1);
 
-  kmer_hash.maxpos = len;
+  kmer_hash.maxpos = static_cast<int>(seq.size());
 
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char const * s = seq;
 
   auto const * two_bit_map = chrmap_2bit();
   auto const * mask_ambig_map = chrmap_mask_ambig();
-  for (int pos = 0; pos < len; pos++)
+  int pos = 0;
+  for (auto const nucleotide : seq)
     {
-      char const c = *s;
-      ++s;
-
       bad <<= 2ULL;
-      bad |= mask_ambig_map[static_cast<unsigned char>(c)];
+      bad |= mask_ambig_map[static_cast<unsigned char>(nucleotide)];
       bad &= kmer_mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(c)];
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
       kmer &= kmer_mask;
 
       if (bad == 0U)
@@ -154,14 +153,14 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, char co
           /* 1-based pos of start of kmer */
           kh_insert_kmer(kmer_hash, k_offset, kmer, static_cast<unsigned int>(pos - k_offset + 1 + 1));
         }
+      ++pos;
     }
 }
 
 
 auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
                        int const k_offset,
-                       char const * seq,
-                       int const len,
+                       View<char> const seq,
                        std::vector<int> & diags) -> void
 {
 
@@ -170,14 +169,19 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
 
   unsigned int bad = kmer_mask;
   unsigned int kmer = 0;
-  char const * seq_cursor = seq + len - 1;
+
+  /* the diagonal is a signed offset into diags, so the length is taken
+     as an int once here rather than at each of the call sites */
+  int const len = static_cast<int>(seq.size());
 
   auto const * two_bit_map = chrmap_2bit();
   auto const * mask_ambig_map = chrmap_mask_ambig();
   auto const * complement_map = chrmap_complement();
+  auto seq_cursor = seq.crbegin();
   for (int pos = 0; pos < len; pos++)
     {
-      char const nucleotide = *seq_cursor--;
+      char const nucleotide = *seq_cursor;
+      ++seq_cursor;
 
       bad <<= 2ULL;
       bad |= mask_ambig_map[static_cast<unsigned char>(nucleotide)];
