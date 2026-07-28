@@ -220,15 +220,15 @@ auto find_longest_target_on_reverse_strand(int const target_count,
 auto allocate_buffer_for_reverse_strand_target(int const target_count,
                                                std::vector<struct msa_target_s> const & target_list_v,
                                                std::vector<char> & rc_buffer_v,
-                                               struct Database const & db) -> char * {
+                                               struct Database const & db) -> Span<char> {
   /* Find longest target sequence on reverse strand and allocate buffer */
   auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v, db);
   if (longest_reversed > 0)
     {
       rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed + 1));
-      return rc_buffer_v.data();
+      return Span<char>{rc_buffer_v.data(), rc_buffer_v.size()};
     }
-  return nullptr;
+  return {};
 }
 
 
@@ -257,17 +257,15 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
 }
 
 
-auto reverse_complement_target_if_need_be(int const strand, int const target_seqno,
-                                          char * rc_buffer, char const * target_seq,
-                                          struct Database const & db) -> char const * {
+auto reverse_complement_target_if_need_be(int const strand, Span<char> const rc_buffer,
+                                          View<char> const target_seq) -> View<char> {
   if (strand == 0) { return target_seq; }
-  auto const target_len = db.getsequencelen(static_cast<uint64_t>(target_seqno));
-  reverse_complement(Span<char>{rc_buffer, target_len + 1}, View<char>{target_seq, target_len});
-  return rc_buffer;
+  reverse_complement(rc_buffer.first(target_seq.size() + 1), target_seq);
+  return View<char>{rc_buffer.data(), target_seq.size()};
 }
 
 
-auto process_and_print_centroid(char *rc_buffer,
+auto process_and_print_centroid(Span<char> const rc_buffer,
                                 std::vector<struct msa_target_s> const &target_list_v,
                                 std::vector<int> const &max_insertions,
                                 std::vector<prof_type> &profile,
@@ -278,8 +276,8 @@ auto process_and_print_centroid(char *rc_buffer,
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
   auto const & target = target_list_v.front();
   auto const target_seqno = target.seqno;
-  auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno, rc_buffer,
-                                                                 db.getsequence(static_cast<uint64_t>(target_seqno)), db);
+  auto const target_seq = reverse_complement_target_if_need_be(target.strand, rc_buffer,
+                                                               db.sequence_view(static_cast<uint64_t>(target_seqno)));
   prof_type const target_abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(target_seqno)) : 1;
   auto position_in_alignment = 0;
 
@@ -290,8 +288,8 @@ auto process_and_print_centroid(char *rc_buffer,
           update_profile('-', position_in_alignment, target_abundance, profile);
           update_msa('-', position_in_alignment, aln_v);
         }
-      update_profile(*std::next(target_seq, i), position_in_alignment, target_abundance, profile);
-      update_msa(*std::next(target_seq, i), position_in_alignment, aln_v);
+      update_profile(target_seq[static_cast<std::size_t>(i)], position_in_alignment, target_abundance, profile);
+      update_msa(target_seq[static_cast<std::size_t>(i)], position_in_alignment, aln_v);
     }
 
   // insert
@@ -336,7 +334,7 @@ auto compute_and_print_msa(int const target_count,
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   std::vector<char> rc_buffer_v;
-  char * rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v, db);
+  auto const rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v, db);
 
   // ------------------------------------------------------- deal with centroid
   process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
@@ -347,8 +345,8 @@ auto compute_and_print_msa(int const target_count,
     {
       auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       auto const target_seqno = target.seqno;
-      auto const * const target_seq = reverse_complement_target_if_need_be(target.strand, target_seqno,
-                                                                     rc_buffer, db.getsequence(static_cast<uint64_t>(target_seqno)), db);
+      auto const target_seq = reverse_complement_target_if_need_be(target.strand, rc_buffer,
+                                                                   db.sequence_view(static_cast<uint64_t>(target_seqno)));
       prof_type const target_abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(target_seqno)) : 1;
       int position_in_alignment = 0;
 
@@ -372,8 +370,8 @@ auto compute_and_print_msa(int const target_count,
           case 'D':
             for (auto j = 0; j < runlength; ++j)
               {
-                update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                update_profile(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, target_abundance, profile);
+                update_msa(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, aln_v);
                 ++tpos;
               }
             for (auto j = runlength; j < max_insertions[static_cast<std::vector<int>::size_type>(qpos)]; ++j)
@@ -389,8 +387,8 @@ auto compute_and_print_msa(int const target_count,
                 insert_gaps_in_alignment_and_profile(is_inserted, max_insertions[static_cast<std::vector<int>::size_type>(qpos)],
                                                      position_in_alignment, target_abundance,
                                                      profile, aln_v);
-                update_profile(*std::next(target_seq, tpos), position_in_alignment, target_abundance, profile);
-                update_msa(*std::next(target_seq, tpos), position_in_alignment, aln_v);
+                update_profile(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, target_abundance, profile);
+                update_msa(target_seq[static_cast<std::size_t>(tpos)], position_in_alignment, aln_v);
                 ++tpos;
                 ++qpos;
                 is_inserted = false;
