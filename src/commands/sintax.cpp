@@ -103,7 +103,7 @@
 #include "utils/worker_loop.hpp"
 #include "utils/random.hpp"
 #include "utils/reverse_complement.hpp"
-#include <algorithm>  // std::equal, std::min, std::max
+#include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
@@ -155,8 +155,10 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
   std::array<int, tax_levels> level_matchcount {{}};
   std::array<int, tax_levels> level_best {{}};
-  std::array<std::array<char const *, tax_levels>, bootstrap_count> cand_level_name_start {{}};
-  std::array<std::array<int, tax_levels>, bootstrap_count> cand_level_name_len {{}};
+  /* the taxonomy name of each candidate at each rank, as a window into that
+     candidate's header; a single array of views replaces the parallel
+     start-pointer and length arrays this used to keep side by side */
+  std::array<std::array<View<char>, tax_levels>, bootstrap_count> cand_level_name {{}};
 
   /* Check number of successful bootstraps, must be at least half */
 
@@ -175,11 +177,13 @@ static auto sintax_analyse(struct sintax_state_s & state,
           std::array<int, tax_levels> new_level_name_start {{}};
           std::array<int, tax_levels> new_level_name_len {{}};
           tax_split(seqno, new_level_name_start.data(), new_level_name_len.data(), state.db);
-          cand_level_name_len[static_cast<std::size_t>(i)] = new_level_name_len;
+          auto const header = state.db.header_view(static_cast<uint64_t>(seqno));
           for (auto k = 0; k < tax_levels; k++)
             {
-              cand_level_name_start[static_cast<std::size_t>(i)][static_cast<std::size_t>(k)] =
-                state.db.getheader(static_cast<uint64_t>(seqno)) + new_level_name_start[static_cast<std::size_t>(k)];
+              auto const level = static_cast<std::size_t>(k);
+              cand_level_name[static_cast<std::size_t>(i)][level] =
+                header.subspan(static_cast<std::size_t>(new_level_name_start[level]),
+                               static_cast<std::size_t>(new_level_name_len[level]));
             }
         }
 
@@ -206,10 +210,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
                 if (cand_included[cand_j])
                   {
                     /* check match at current level */
-                    if ((cand_level_name_len[cand_i][level] == cand_level_name_len[cand_j][level]) &&
-                        std::equal(cand_level_name_start[cand_i][level],
-                                   cand_level_name_start[cand_i][level] + cand_level_name_len[cand_i][level],
-                                   cand_level_name_start[cand_j][level]))
+                    if (cand_level_name[cand_i][level] == cand_level_name[cand_j][level])
                       {
                         cand_match[cand_i] = j;
                         cand_matchcount[cand_j]++;
@@ -253,14 +254,15 @@ static auto sintax_analyse(struct sintax_state_s & state,
         {
           auto const level = static_cast<std::size_t>(j);
           auto const best = static_cast<std::size_t>(level_best[level]);
-          if (cand_level_name_len[best][level] > 0)
+          auto const & level_name = cand_level_name[best][level];
+          if (not level_name.empty())
             {
               std::fprintf(fp_tabbedout,
                       "%s%c:%.*s(%.2f)",
                       (comma ? "," : ""),
                       taxonomic_fields[level],
-                      cand_level_name_len[best][level],
-                      cand_level_name_start[best][level],
+                      static_cast<int>(level_name.size()),
+                      level_name.data(),
                       1.0 * level_matchcount[level] / count);
               comma = true;
             }
@@ -276,15 +278,16 @@ static auto sintax_analyse(struct sintax_state_s & state,
             {
               auto const level = static_cast<std::size_t>(j);
               auto const best = static_cast<std::size_t>(level_best[level]);
-              if ((cand_level_name_len[best][level] > 0) &&
+              auto const & level_name = cand_level_name[best][level];
+              if ((not level_name.empty()) &&
                   (1.0 * level_matchcount[level] / count >= state.parameters.opt_sintax_cutoff))
                 {
                   std::fprintf(fp_tabbedout,
                           "%s%c:%.*s",
                           (comma_cutoff ? "," : ""),
                           taxonomic_fields[level],
-                          cand_level_name_len[best][level],
-                          cand_level_name_start[best][level]);
+                          static_cast<int>(level_name.size()),
+                          level_name.data());
                   comma_cutoff = true;
                 }
             }
