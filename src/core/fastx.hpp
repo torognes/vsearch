@@ -65,6 +65,7 @@
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
+#include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
@@ -101,6 +102,15 @@ public:
   /* the bytes in use as a single read-only window, for callers that scan or
      compare the whole buffer instead of indexing into it */
   auto view() const noexcept -> View<char> { return View<char>{data(), length}; }
+  /* the bytes the read cursor has not passed yet: the window the line scanner
+     works on. Only the file refill buffer advances 'position', so for the
+     per-record buffers this is the same window as view(). */
+  auto unread() const noexcept -> View<char>
+  {
+    assert(position <= length);
+    auto const distance = static_cast<std::ptrdiff_t>(position);
+    return View<char>{std::next(data(), distance), length - position};
+  }
   /* writable companion to view(), for the in-place filters that rewrite the
      bytes in use (see fastx_filter_header); mirrors Database::mutable_sequence()
      in that only a non-const buffer hands out a mutable window */
@@ -366,16 +376,17 @@ struct Line_fragment
 // whole-program optimisation is assumed at build time).
 inline auto scan_line_fragment(fastx_handle input_handle) -> Line_fragment
 {
-  auto & file_buffer = input_handle->file_buffer;
-  auto const rest = file_buffer.length - file_buffer.position;
-  auto * const start = std::next(file_buffer.data(),
-                                 static_cast<std::ptrdiff_t>(file_buffer.position));
-  auto const * const line_end = std::char_traits<char>::find(start, rest, '\n');
+  // the bytes not yet consumed, so that neither the remaining length nor the
+  // start of the scan is computed here, and the fragment below is carved out of
+  // a bounded window
+  auto const unread = input_handle->file_buffer.unread();
+  auto const * const line_end =
+    std::char_traits<char>::find(unread.data(), unread.size(), '\n');
   auto const has_newline = (line_end != nullptr);
   auto const length = has_newline
-    ? static_cast<std::size_t>(line_end - start) + 1
-    : static_cast<std::size_t>(rest);
-  return Line_fragment{View<char>{start, length}, has_newline};
+    ? static_cast<std::size_t>(std::distance(unread.data(), line_end)) + 1
+    : unread.size();
+  return Line_fragment{unread.first(length), has_newline};
 }
 
 // Advance the file-buffer read position past a fragment already copied out.
