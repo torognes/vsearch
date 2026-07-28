@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
 #include <vector>
@@ -106,8 +107,8 @@ private:
   int64_t cigar_length = 0;
   std::vector<char> cigar_string;
 
-  char const * a_seq = nullptr;
-  char const * b_seq = nullptr;
+  View<char> a_seq;
+  View<char> b_seq;
 
   // initialize a 16x16 matrix
   std::vector<std::vector<int64_t>> scorematrix = std::vector<std::vector<int64_t>>(matrix_size, std::vector<int64_t>(matrix_size));
@@ -164,14 +165,14 @@ public:
 
   explicit LinearMemoryAligner(struct Scoring const & scoring);
 
-  auto align(char const * _a_seq,
-             char const * _b_seq,
-             int64_t a_len,
-             int64_t b_len) -> char *;
+  /* The two sequences travel as Views: the pointer/length pairs they replace
+     put the two pointers and then the two lengths side by side, four
+     interchangeable arguments whose pairing was positional only. */
+  auto align(View<char> a_sequence, View<char> b_sequence) -> char *;
 
   auto alignstats(char const * cigar,
-                  char const * a_seq,
-                  char const * b_seq,
+                  View<char> a_sequence,
+                  View<char> b_sequence,
                   int64_t * nwscore,
                   int64_t * nwalignmentlength,
                   int64_t * nwmatches,

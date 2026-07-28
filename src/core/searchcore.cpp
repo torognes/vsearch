@@ -820,15 +820,14 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                      perform a new alignment with the
                      linear memory aligner */
 
-                  char const * dseq = searchinfo->db->getsequence(static_cast<uint64_t>(target));
+                  auto const dseq = searchinfo->db->sequence_view(static_cast<uint64_t>(target));
+                  auto const qseq = View<char>{searchinfo->qsequence.data(),
+                                               searchinfo->qsequence.size()};
 
-                  nwcigar = searchinfo->lma->align(searchinfo->qsequence.data(),
-                                                   dseq,
-                                                   static_cast<int>(searchinfo->qsequence.size()),
-                                                   dseqlen);
+                  nwcigar = searchinfo->lma->align(qseq, dseq);
 
                   searchinfo->lma->alignstats(nwcigar.c_str(),
-                                      searchinfo->qsequence.data(),
+                                      qseq,
                                       dseq,
                                       & nwscore,
                                       & nwalignmentlength,

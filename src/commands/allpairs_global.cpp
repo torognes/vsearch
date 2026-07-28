@@ -443,15 +443,13 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                    perform a new alignment with the
                    linear memory aligner */
 
-                char const * tseq = state.db.getsequence(target);
-                auto const tseqlen = static_cast<int64_t>(state.db.getsequencelen(target));
+                auto const tseq = state.db.sequence_view(target);
+                auto const qseq = View<char>{searchinfo.qsequence.data(),
+                                             searchinfo.qsequence.size()};
 
-                nwcigar = lma.align(searchinfo.qsequence.data(),
-                                    tseq,
-                                    static_cast<int>(searchinfo.qsequence.size()),
-                                    tseqlen);
+                nwcigar = lma.align(qseq, tseq);
                 lma.alignstats(nwcigar.c_str(),
-                               searchinfo.qsequence.data(),
+                               qseq,
                                tseq,
                                & nwscore,
                                & nwalignmentlength,

@@ -740,15 +740,14 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                          perform a new alignment with the
                          linear memory aligner */
 
-                      char const * tseq = db.getsequence(target);
+                      auto const tseq = db.sequence_view(target);
+                      auto const qseq = View<char>{si->qsequence.data(),
+                                                   si->qsequence.size()};
 
-                      nwcigar = lma.align(si->qsequence.data(),
-                                          tseq,
-                                          static_cast<int>(si->qsequence.size()),
-                                          tseqlen);
+                      nwcigar = lma.align(qseq, tseq);
 
                       lma.alignstats(nwcigar.c_str(),
-                                     si->qsequence.data(),
+                                     qseq,
                                      tseq,
                                      & nwscore,
                                      & nwalignmentlength,

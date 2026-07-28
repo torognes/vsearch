@@ -416,7 +416,8 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
               Score -= a_left ? go_q_l + (i * ge_q_l) : go_q_i + (i * ge_q_i);
             }
 
-          Score += subst_score(a_seq[a_start], b_seq[b_start + i]);
+          Score += subst_score(a_seq[static_cast<std::size_t>(a_start)],
+                               b_seq[static_cast<std::size_t>(b_start + i)]);
 
           if (i < b_len - 1)
             {
@@ -503,7 +504,8 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                   EE[jdx] = std::max(EE[jdx], HH[jdx] - go_t_i) - ge_t_i;
                 }
 
-              h = p + subst_score(a_seq[a_start + i - 1], b_seq[b_start + j - 1]);
+              h = p + subst_score(a_seq[static_cast<std::size_t>(a_start + i - 1)],
+                                  b_seq[static_cast<std::size_t>(b_start + j - 1)]);
 
               h = std::max(f, h);
               h = std::max(EE[jdx], h);
@@ -553,7 +555,8 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                   YY[jdx] = std::max(YY[jdx], XX[jdx] - go_t_i) - ge_t_i;
                 }
 
-              h = p + subst_score(a_seq[a_start + a_len - i], b_seq[b_start + b_len - j]);
+              h = p + subst_score(a_seq[static_cast<std::size_t>(a_start + a_len - i)],
+                                  b_seq[static_cast<std::size_t>(b_start + b_len - j)]);
 
               h = std::max(f, h);
               h = std::max(YY[jdx], h);
@@ -676,14 +679,14 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
 }
 
 
-auto LinearMemoryAligner::align(char const * _a_seq,
-                                char const * _b_seq,
-                                int64_t const a_len,
-                                int64_t const b_len) -> char *
+auto LinearMemoryAligner::align(View<char> const a_sequence,
+                                View<char> const b_sequence) -> char *
 {
   /* copy parameters */
-  a_seq = _a_seq;
-  b_seq = _b_seq;
+  a_seq = a_sequence;
+  b_seq = b_sequence;
+  auto const a_len = static_cast<int64_t>(a_sequence.size());
+  auto const b_len = static_cast<int64_t>(b_sequence.size());
 
   /* init cigar operations */
   cigar_reset();
@@ -703,8 +706,8 @@ auto LinearMemoryAligner::align(char const * _a_seq,
 
 
 auto LinearMemoryAligner::alignstats(char const * cigar,
-                                     char const * _a_seq,
-                                     char const * _b_seq,
+                                     View<char> const a_sequence,
+                                     View<char> const b_sequence,
                                      int64_t * _nwscore,
                                      int64_t * _nwalignmentlength,
                                      int64_t * _nwmatches,
@@ -712,8 +715,8 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
                                      int64_t * _nwgaps) -> void
 {
   static constexpr auto is_N = 15;  // 4-bit code for 'N' or 'n'
-  a_seq = _a_seq;
-  b_seq = _b_seq;
+  a_seq = a_sequence;
+  b_seq = b_sequence;
 
   int64_t nwscore = 0;
   int64_t nwalignmentlength = 0;
@@ -741,8 +744,8 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
           nwalignmentlength += runlength;
           for (int64_t k = 0; k < runlength; k++)
             {
-              auto const a_nuc = a_seq[a_pos];
-              auto const b_nuc = b_seq[b_pos];
+              auto const a_nuc = a_seq[static_cast<std::size_t>(a_pos)];
+              auto const b_nuc = b_seq[static_cast<std::size_t>(b_pos)];
               nwscore += subst_score(a_nuc, b_nuc);
 
               if (n_mismatch and ((map_4bit(a_nuc) == is_N) or
