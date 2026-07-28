@@ -282,6 +282,17 @@ enum struct Status : unsigned char {
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  /* Copy a stored header or sequence into a local NUL-terminated buffer. The
+     detection core walks its copies as C strings, so the terminator is written
+     here rather than read from the source: the byte after a header or sequence
+     view is a '\0' in the reader's and the Database's buffers alike, but it is
+     not part of the view being copied. */
+  auto copy_and_terminate(View<char> const source, std::vector<char> & destination) -> void {
+    assert(destination.size() > source.size());
+    std::copy(source.cbegin(), source.cend(), destination.begin());
+    destination[source.size()] = '\0';
+  }
+
 }  // end of anonymous namespace
 
 
@@ -2075,15 +2086,13 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              perform a new alignment with the
              linear memory aligner */
 
-          auto const * tseq = db.getsequence(static_cast<uint64_t>(target));
-          auto const tseqlen = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target)));
+          auto const tseq = db.sequence_view(static_cast<uint64_t>(target));
+          auto const qseq = View<char>{ci->query_seq.data(),
+                                       static_cast<std::size_t>(ci->query_len)};
 
-          nwcigar = lma.align(ci->query_seq.data(),
-                              tseq,
-                              ci->query_len,
-                              tseqlen);
+          nwcigar = lma.align(qseq, tseq);
           lma.alignstats(nwcigar.c_str(),
-                         ci->query_seq.data(),
+                         qseq,
                          tseq,
                          & nwscore,
                          & nwalignmentlength,
@@ -2162,8 +2171,9 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
         if (state.query_fasta_h->next((not state.parameters.opt_notrunclabels),
                        chrmap_no_change()))
           {
-            ci->query_head_len = static_cast<int>(state.query_fasta_h->get_header_length());
-            ci->query_len = static_cast<int>(state.query_fasta_h->get_sequence_length());
+            auto const query_record = state.query_fasta_h->record();
+            ci->query_head_len = static_cast<int>(query_record.header.size());
+            ci->query_len = static_cast<int>(query_record.sequence.size());
             ci->query_no = static_cast<int>(state.query_fasta_h->get_seqno());
             ci->query_size = state.query_fasta_h->get_abundance();
 
@@ -2171,8 +2181,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             realloc_arrays(ci, db);
 
             /* copy the data locally (query seq, head) */
-            std::copy_n(state.query_fasta_h->get_header(), static_cast<std::size_t>(ci->query_head_len) + 1, ci->query_head.data());
-            std::copy_n(state.query_fasta_h->get_sequence(), static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
+            copy_and_terminate(query_record.header, ci->query_head);
+            copy_and_terminate(query_record.sequence, ci->query_seq);
             query_position = state.query_fasta_h->get_position();
           }
         else
@@ -2184,16 +2194,17 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
       {
         if (state.seqno < db.getsequencecount())
           {
+            auto const query_record = db.record(state.seqno);
             ci->query_no = static_cast<int>(state.seqno);
-            ci->query_head_len = static_cast<int>(db.getheaderlen(state.seqno));
-            ci->query_len = static_cast<int>(db.getsequencelen(state.seqno));
+            ci->query_head_len = static_cast<int>(query_record.header.size());
+            ci->query_len = static_cast<int>(query_record.sequence.size());
             ci->query_size = static_cast<int64_t>(db.getabundance(state.seqno));
 
             /* if necessary expand memory for arrays based on query length */
             realloc_arrays(ci, db);
 
-            std::copy_n(db.getheader(state.seqno), static_cast<std::size_t>(ci->query_head_len) + 1, ci->query_head.data());
-            std::copy_n(db.getsequence(state.seqno), static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
+            copy_and_terminate(query_record.header, ci->query_head);
+            copy_and_terminate(query_record.sequence, ci->query_seq);
           }
         else
           {

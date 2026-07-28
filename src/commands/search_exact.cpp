@@ -485,10 +485,9 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
         return false;
       }
 
-    char const * qhead = state.query_fastx_h->get_header();
-    int const query_head_len = static_cast<int>(state.query_fastx_h->get_header_length());
-    char const * qseq = state.query_fastx_h->get_sequence();
-    int const qseqlen = static_cast<int>(state.query_fastx_h->get_sequence_length());
+    auto const qhead = state.query_fastx_h->header_view();
+    auto const qseq = state.query_fastx_h->sequence_view();
+    auto const qseqlen = static_cast<int>(qseq.size());
     int const query_no = static_cast<int>(state.query_fastx_h->get_seqno());
     qsize = state.query_fastx_h->get_abundance();
 
@@ -510,11 +509,13 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       }
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
-    state.si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
-    std::copy_n(qhead, static_cast<std::size_t>(query_head_len) + 1, state.si_plus[t].query_head_v.data());
-    state.si_plus[t].query_head = View<char>{state.si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
-    std::copy_n(qseq, static_cast<std::size_t>(qseqlen) + 1, state.si_plus[t].qsequence_v.data());
-    state.si_plus[t].qsequence = Span<char>{state.si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
+    state.si_plus[t].query_head_v.resize(qhead.size() + 1);
+    std::copy(qhead.cbegin(), qhead.cend(), state.si_plus[t].query_head_v.begin());
+    state.si_plus[t].query_head_v[qhead.size()] = '\0';
+    state.si_plus[t].query_head = View<char>{state.si_plus[t].query_head_v.data(), qhead.size()};
+    std::copy(qseq.cbegin(), qseq.cend(), state.si_plus[t].qsequence_v.begin());
+    state.si_plus[t].qsequence_v[qseq.size()] = '\0';
+    state.si_plus[t].qsequence = Span<char>{state.si_plus[t].qsequence_v.data(), qseq.size()};
 
     /* get progress as amount of input file read */
     progress = state.query_fastx_h->get_position();

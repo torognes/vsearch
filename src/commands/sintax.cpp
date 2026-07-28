@@ -550,10 +550,9 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
         return false;
       }
 
-    auto const * qhead = query_fastx_h->get_header();
-    int const query_head_len = static_cast<int>(query_fastx_h->get_header_length());
-    auto const * qseq = query_fastx_h->get_sequence();
-    int const qseqlen = static_cast<int>(query_fastx_h->get_sequence_length());
+    auto const qhead = query_fastx_h->header_view();
+    auto const qseq = query_fastx_h->sequence_view();
+    auto const qseqlen = static_cast<int>(qseq.size());
     int const query_no = static_cast<int>(query_fastx_h->get_seqno());
     int64_t const qsize = query_fastx_h->get_abundance();
 
@@ -575,11 +574,13 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       }
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
-    si_plus[t].query_head_v.resize(static_cast<std::size_t>(query_head_len) + 1);
-    std::copy_n(qhead, static_cast<std::size_t>(query_head_len) + 1, si_plus[t].query_head_v.data());
-    si_plus[t].query_head = View<char>{si_plus[t].query_head_v.data(), static_cast<std::size_t>(query_head_len)};
-    std::copy_n(qseq, static_cast<std::size_t>(qseqlen) + 1, si_plus[t].qsequence_v.data());
-    si_plus[t].qsequence = Span<char>{si_plus[t].qsequence_v.data(), static_cast<std::size_t>(qseqlen)};
+    si_plus[t].query_head_v.resize(qhead.size() + 1);
+    std::copy(qhead.cbegin(), qhead.cend(), si_plus[t].query_head_v.begin());
+    si_plus[t].query_head_v[qhead.size()] = '\0';
+    si_plus[t].query_head = View<char>{si_plus[t].query_head_v.data(), qhead.size()};
+    std::copy(qseq.cbegin(), qseq.cend(), si_plus[t].qsequence_v.begin());
+    si_plus[t].qsequence_v[qseq.size()] = '\0';
+    si_plus[t].qsequence = Span<char>{si_plus[t].qsequence_v.data(), qseq.size()};
 
     /* get progress as amount of input file read */
     progress = query_fastx_h->get_position();

@@ -65,13 +65,12 @@
    paths (core/search.cpp). Not part of the public library API, so they live in
    this internal header rather than core/search.hpp. */
 
+#include "utils/view.hpp"
 #include <cstdint>  // int64_t
 
 auto populate_si(struct searchinfo_s * si,
-                 const char * head,
-                 int head_len,
-                 const char * seq,
-                 int seq_len,
+                 View<char> head,
+                 View<char> seq,
                  int query_no,
                  int64_t qsize,
                  int strand) -> void;

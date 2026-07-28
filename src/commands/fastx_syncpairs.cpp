@@ -67,6 +67,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // chrmap_no_change()
 #include "utils/open_file.hpp"
+#include "utils/view.hpp"  // View<char>
 #include <cinttypes>  // macros PRIu64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fclose
@@ -178,10 +179,9 @@ namespace {
   // before the first whitespace, so truncating there is enough. Older
   // headers carry the mate number as a "/1" or "/2" suffix, removed here
   // when its separator belongs to the configured set.
-  auto matching_key(char const * header,
-                    uint64_t const header_length,
+  auto matching_key(View<char> const header,
                     std::string const & separators) -> std::string {
-    std::string key {header, header_length};
+    std::string key {header.data(), header.size()};
 
     auto const blank = key.find_first_of(" \t");
     if (blank != std::string::npos) {
@@ -203,10 +203,11 @@ namespace {
 
   auto store_record(fastx_handle handle, bool const is_fastq) -> read_record {
     read_record record;
-    record.header.assign(handle->get_header(), handle->get_header_length());
-    record.sequence.assign(handle->get_sequence(), handle->get_sequence_length());
+    auto const stored = handle->record();
+    record.header.assign(stored.header.data(), stored.header.size());
+    record.sequence.assign(stored.sequence.data(), stored.sequence.size());
     if (is_fastq) {
-      record.quality.assign(handle->get_quality(), handle->get_sequence_length());
+      record.quality.assign(stored.quality.data(), stored.quality.size());
     }
     record.abundance = handle->get_abundance();
     return record;
@@ -261,9 +262,7 @@ namespace {
                      struct Parameters const & parameters) -> void {
     Progress progress("Indexing reverse reads", reverse_handle->get_size(), parameters);
     while (reverse_handle->next(false, chrmap_no_change())) {
-      auto key = matching_key(reverse_handle->get_header(),
-                              reverse_handle->get_header_length(),
-                              separators);
+      auto key = matching_key(reverse_handle->header_view(), separators);
       auto const position = records.size();
       auto const inserted = index.emplace(std::move(key), position);
       if (not inserted.second) {
@@ -340,9 +339,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   {
     Progress progress("Synchronizing reads", forward_handle->get_size(), parameters);
     while (forward_handle->next(false, chrmap_no_change())) {
-      auto const key = matching_key(forward_handle->get_header(),
-                                    forward_handle->get_header_length(),
-                                    separators);
+      auto const key = matching_key(forward_handle->header_view(), separators);
       auto const match = reverse_index.find(key);
       if (match == reverse_index.end()) {
         write_record(outfiles.orphans_fwd, store_record(forward_handle.get(), is_fastq),

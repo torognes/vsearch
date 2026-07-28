@@ -86,10 +86,8 @@
 
 
 auto populate_si(struct searchinfo_s * si,
-                 const char * head,
-                 int const head_len,
-                 const char * seq,
-                 int const seq_len,
+                 View<char> const head,
+                 View<char> const seq,
                  int const query_no,
                  int64_t const qsize,
                  int const strand) -> void
@@ -100,28 +98,35 @@ auto populate_si(struct searchinfo_s * si,
 
   /* allocate more memory for the sequence, if necessary */
 
+  auto const seq_len = static_cast<int>(seq.size());
   if (seq_len + 1 > si->seq_alloc)
     {
       si->seq_alloc = seq_len + buffer_headroom;
       si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
     }
 
-  /* copy the header into owned storage, then point the read-only view at it */
-  si->query_head_v.resize(static_cast<std::size_t>(head_len) + 1);
-  std::copy_n(head, static_cast<std::size_t>(head_len) + 1, si->query_head_v.data());
-  si->query_head = View<char>{si->query_head_v.data(), static_cast<std::size_t>(head_len)};
+  /* copy the header into owned storage, then point the read-only view at it.
+     The copy is head.size() bytes plus a terminator written here, rather than
+     head.size() + 1 bytes read from the source: the callers all happen to pass
+     a NUL-terminated header, but that byte is outside the view they hand over. */
+  si->query_head_v.resize(head.size() + 1);
+  std::copy(head.cbegin(), head.cend(), si->query_head_v.begin());
+  si->query_head_v[head.size()] = '\0';
+  si->query_head = View<char>{si->query_head_v.data(), head.size()};
 
   /* copy or reverse-complement sequence into the owned buffer, then point the
-     span at it (length == seq_len; the NUL at [seq_len] sits just past the span) */
+     span at it (length == seq.size(); the NUL at [seq.size()] sits just past
+     the span) */
   if (strand == 0)
     {
-      std::copy_n(seq, static_cast<std::size_t>(seq_len) + 1, si->qsequence_v.data());
+      std::copy(seq.cbegin(), seq.cend(), si->qsequence_v.begin());
+      si->qsequence_v[seq.size()] = '\0';
     }
   else
     {
-      reverse_complement(Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seq_len) + 1}, View<char>{seq, static_cast<std::size_t>(seq_len)});
+      reverse_complement(Span<char>{si->qsequence_v.data(), seq.size() + 1}, seq);
     }
-  si->qsequence = Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seq_len)};
+  si->qsequence = Span<char>{si->qsequence_v.data(), seq.size()};
 }
 
 
@@ -259,11 +264,12 @@ auto search_session_single(struct search_session_s * ss,
   struct searchinfo_s const * si = ss->si_plus.get();
   struct Parameters const & parameters = *ss->parameters;
 
+  auto const head_v = View<char>{query_head, static_cast<std::size_t>(head_len)};
+  auto const seq_v = View<char>{query_seq, static_cast<std::size_t>(query_len)};
+
   populate_si(ss->si_plus.get(),
-              query_head,
-              head_len,
-              query_seq,
-              query_len,
+              head_v,
+              seq_v,
               0,
               query_size,
               0);
@@ -271,10 +277,8 @@ auto search_session_single(struct search_session_s * ss,
   if (parameters.opt_strand)
     {
       populate_si(ss->si_minus.get(),
-                  query_head,
-                  head_len,
-                  query_seq,
-                  query_len,
+                  head_v,
+                  seq_v,
                   0,
                   query_size,
                   1);
@@ -406,17 +410,15 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
   };
 
   auto const process_query = [&]() -> void {
-    char const * qseq = ctx.query_seqs[qi];
     char const * qhead = ctx.query_heads[qi];
-    int const qlen = ctx.query_lens[qi];
     int64_t const qsize = ctx.query_sizes[qi];
-    int const head_len = static_cast<int>(std::strlen(qhead));
+    auto const head_v = View<char>{qhead, std::strlen(qhead)};
+    auto const seq_v = View<char>{ctx.query_seqs[qi],
+                                  static_cast<std::size_t>(ctx.query_lens[qi])};
 
     populate_si(my_si_plus,
-                qhead,
-                head_len,
-                qseq,
-                qlen,
+                head_v,
+                seq_v,
                 qi,
                 qsize,
                 0);
@@ -424,10 +426,8 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     if (my_si_minus != nullptr)
       {
         populate_si(my_si_minus,
-                    qhead,
-                    head_len,
-                    qseq,
-                    qlen,
+                    head_v,
+                    seq_v,
                     qi,
                     qsize,
                     1);
@@ -474,7 +474,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
         r.mismatches = h.mismatches;
         r.gaps = h.nwgaps;
         r.alignment_length = h.nwalignmentlength;
-        r.query_length = qlen;
+        r.query_length = ctx.query_lens[qi];
         r.target_length = static_cast<int>(my_si_plus->db->getsequencelen(static_cast<uint64_t>(h.target)));
         r.accepted = h.accepted;
         r.strand = h.strand;

@@ -427,8 +427,6 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
   auto * const query_fastx_h = state.query_fastx_h;
   struct searchinfo_s * const si_plus = state.si_plus.data();
 
-  int query_head_len = 0;
-  int qseqlen = 0;
   int query_no = 0;
   int64_t qsize = 0;
   uint64_t progress = 0;
@@ -441,18 +439,12 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
         return false;
       }
 
-    char const * qhead = query_fastx_h->get_header();
-    query_head_len = static_cast<int>(query_fastx_h->get_header_length());
-    char const * qseq = query_fastx_h->get_sequence();
-    qseqlen = static_cast<int>(query_fastx_h->get_sequence_length());
     query_no = static_cast<int>(query_fastx_h->get_seqno());
     qsize = query_fastx_h->get_abundance();
 
     populate_si(si_plus + t,
-                qhead,
-                query_head_len,
-                qseq,
-                qseqlen,
+                query_fastx_h->header_view(),
+                query_fastx_h->sequence_view(),
                 query_no,
                 qsize,
                 0);
@@ -466,10 +458,8 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
     if (state.parameters.opt_strand)
       {
         populate_si(state.si_minus.data() + t,
-                    si_plus[t].query_head.data(),
-                    query_head_len,
-                    si_plus[t].qsequence.data(),
-                    qseqlen,
+                    si_plus[t].query_head,
+                    View<char>{si_plus[t].qsequence.data(), si_plus[t].qsequence.size()},
                     query_no,
                     qsize,
                     1);
