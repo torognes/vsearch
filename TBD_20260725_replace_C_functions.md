@@ -430,6 +430,51 @@ and the whole alphanumeric run does match (`+ "sample1"`). They hold against
 v2.31.0 too. Changing the delimiter class now means changing the manual page
 and those tests first, which is the intent.
 
+## Two option-validation bugs found while probing the CLI parsers
+
+Neither is a C-function question, but both surfaced from the `sscanf` work and
+are recorded here so the reasoning is not lost.
+
+### `--id ""` was read as `--id 0.0` — FIXED (`299111b8`)
+
+`args_getlong`/`args_getdouble` compared `std::sscanf`'s return against `0`,
+but `sscanf` returns `EOF` when the input ends before any conversion. An empty
+argument therefore left the output variable at its initialiser and the `"%n"`
+width at `0`, so the trailing-garbage check (`0 < strlen("")`) did not fire
+either. `--id ""` exited 0 accepting every hit; `--topn ""` reported the range
+message for `--topn 0`. `ret != 1` is the correct test.
+
+### `--topn -1` silently ignored the option — FIXED (`8b14e45c`)
+
+The manual page specifies a *positive* integer and `0` was rejected, but the
+guard tested `== 0`, so negatives passed and then read as **"no limit"** three
+separate accidental ways: `deck.size() > static_cast<unsigned long>(-1)` is
+false (`sortbysize.cpp:192`), `std::min(selected, static_cast<uint64_t>(-1))`
+is `selected` (`derep.cpp:155`), and `selected == opt_topn` never holds for a
+rising count (`derep_prefix.cpp:402`). `< 1` is the correct test, and it was
+the only integer option in `cli.cc` guarded with `== 0` — the others use
+`<= 0` or `< 0`.
+
+usearch accepts `0` and negatives alike as "no limit" and never errors, so this
+widens a divergence the manual page already justifies rather than creating one.
+
+**Four tests in vsearch-tests asserted the opposite of their own names**
+(`success`/`failure` the wrong way round after `--topn "-1"`, in
+`derep_fulllength.sh`, `derep_id.sh`, `derep_prefix.sh`, `fastx_uniques.sh`)
+and were green only because of the bug. Corrected in the same round.
+
+### `--gapopen ""` is *not* a bug
+
+Worth recording because it looks like one. The manual page sets out an
+initialize-then-override model — "vsearch always initializes the six gap
+opening penalties using the default parameters (20I/2E). The user is then free
+to declare only the values he/she wants to modify" — so an empty declaration
+modifies nothing. Measured: identical raw score to no option at all and to an
+explicit `20I/2E` (50, against 66 for `4I/2E`). usearch accepts an empty
+`-gapopen` the same way while rejecting a malformed one. Pinned by five checks
+in `scripts/usearch_global.sh` rather than changed.
+
+
 ### The 22 that remain, and why
 
 | Sites | Where | Why it stays |
