@@ -61,13 +61,14 @@
 #include "utils/view.hpp"
 #include "core/attributes.hpp"  // View<char>
 #include "utils/fatal.hpp"
-#include <algorithm>  // std::swap
+#include <algorithm>  // std::find_if, std::search, std::sort
 #include <array>
 #include <cerrno>  // errno
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::strtoll
-#include <iterator>  // std::next
+#include <iterator>  // std::next, std::distance
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -81,6 +82,13 @@ namespace {
     constexpr Attribute(char const * new_text, int new_length, bool new_allow_decimal)
       : text(new_text), length(new_length), allow_decimal(new_allow_decimal) {}
 
+    /* the name as a window, for the scans below; the members stay a pointer and
+       a length so that the table of attributes remains constexpr (View's
+       constructor asserts, so it cannot be constexpr in C++11) */
+    auto view() const noexcept -> View<char>
+    {
+      return View<char>{text, static_cast<std::size_t>(length)};
+    }
   };
 
 
@@ -96,11 +104,30 @@ namespace {
   constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
 
 
-  auto header_find_attribute(char const * header,
-                             int const header_length,
-                             Attribute const attribute,
-                             int * start,
-                             int * end) -> bool
+  /* where one attribute sits inside a header: [start, end) in bytes, with
+     'start' on the first byte of the name and 'end' one past the last digit of
+     its value. Members carry no default initializer, so the struct stays an
+     aggregate in C++11 (which does not allow them here) and '{}' zero-fills it
+     into a 'not present' span. */
+  struct Attribute_span
+  {
+    std::size_t start;
+    std::size_t end;
+    bool present;
+  };
+
+
+  /* a byte belonging to an attribute's value: a digit, or the decimal point for
+     the attributes that allow one */
+  auto is_value_character(char const symbol, bool const allow_decimal) -> bool
+  {
+    return ((symbol >= '0') and (symbol <= '9'))
+      or (allow_decimal and (symbol == '.'));
+  }
+
+
+  auto header_find_attribute(View<char> const header,
+                             Attribute const & attribute) -> Attribute_span
   {
     /*
       Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
@@ -108,87 +135,69 @@ namespace {
       If allow_decimal is true, a dot (.) is allowed within the digits.
     */
 
-    if ((header == nullptr) or (attribute.text == nullptr))
+    if ((header.data() == nullptr) or (attribute.text == nullptr))
       {
-        return false;
+        return {};
       }
 
-    auto const * const header_end = header + header_length;
-    auto const * const attribute_text_end = attribute.text + attribute.length;
+    auto const name = attribute.view();
 
-    auto offset = 0;
+    auto offset = std::size_t{0};
 
-    while (offset < header_length - attribute.length)
+    /* the bound is written as an addition, not as
+       'offset < header.size() - name.size()': in unsigned arithmetic that
+       subtraction wraps to a huge value whenever the header is shorter than the
+       attribute name, and the loop below would run on out-of-range offsets */
+    while (offset + name.size() < header.size())
       {
-        /* find the next occurrence of the attribute text, bounded by
-           header_length (no dependence on a trailing '\0') */
+        /* find the next occurrence of the attribute text, bounded by the
+           header's size (no dependence on a trailing '\0') */
         auto const * const first_occurence
-          = std::search(header + offset, header_end, attribute.text, attribute_text_end);
+          = std::search(std::next(header.cbegin(), static_cast<std::ptrdiff_t>(offset)),
+                        header.cend(), name.cbegin(), name.cend());
 
         /* no match */
-        if (first_occurence == header_end)
+        if (first_occurence == header.cend())
           {
             break;
           }
 
-        offset = static_cast<int>(first_occurence - header);
+        offset = static_cast<std::size_t>(std::distance(header.cbegin(), first_occurence));
 
         /* check for ';' in front */
         if ((offset > 0) and (header[offset - 1] != ';'))
           {
-            offset += attribute.length + 1;
+            offset += name.size() + 1;
             continue;
           }
 
-        /* count the value's digits, likewise bounded by header_length */
-        auto const * value_it = header + offset + attribute.length;
-        while ((value_it < header_end) and
-               (((*value_it >= '0') and (*value_it <= '9')) or
-                (attribute.allow_decimal and (*value_it == '.'))))
-          {
-            ++value_it;
-          }
-        auto const digits = static_cast<int>(value_it - (header + offset + attribute.length));
+        /* count the value's digits, likewise bounded by the header's size */
+        auto const value = header.drop(offset + name.size());
+        auto const * const value_end =
+          std::find_if(value.cbegin(), value.cend(),
+                       [&attribute](char const symbol) -> bool
+                       { return not is_value_character(symbol, attribute.allow_decimal); });
+        auto const digits = static_cast<std::size_t>(std::distance(value.cbegin(), value_end));
 
         /* check for at least one digit */
         if (digits == 0)
           {
-            offset += attribute.length + 1;
+            offset += name.size() + 1;
             continue;
           }
 
         /* check for ';' after */
-        if ((offset + attribute.length + digits < header_length) and (header[offset + attribute.length + digits] != ';'))
+        auto const value_end_offset = offset + name.size() + digits;
+        if ((value_end_offset < header.size()) and (header[value_end_offset] != ';'))
           {
-            offset += attribute.length + digits + 2;
+            offset += name.size() + digits + 2;
             continue;
           }
 
         /* ok */
-        *start = offset;
-        *end = offset + attribute.length + digits;
-        return true;
+        return Attribute_span{offset, value_end_offset, true};
       }
-    return false;
-  }
-
-
-  auto look_for_attribute(char const * header, int const header_length,
-                          int & nth_attribute, std::array<int, n_expected_attributes> &attribute_start,
-                          std::array<int, n_expected_attributes> &attribute_end,
-                          Attribute const attribute) -> void {
-    auto start = 0;
-    auto end = 0;
-
-    auto const attribute_is_present = header_find_attribute(header,
-                                                            header_length,
-                                                            attribute,
-                                                            & start,
-                                                            & end);
-    if (not attribute_is_present) { return; }
-    attribute_start[static_cast<std::size_t>(nth_attribute)] = start;
-    attribute_end[static_cast<std::size_t>(nth_attribute)] = end;
-    ++nth_attribute;
+    return {};
   }
 
 
@@ -198,22 +207,16 @@ namespace {
 auto header_get_size(View<char> const header) -> int64_t {
   /* read size/abundance annotation */
   static constexpr auto decimal_base = 10;
-  auto start = 0;
-  auto end = 0;
-  /* header_find_attribute still works on a pointer and an int length, as it
-     does for header_fprint_strip below, so the view is unpacked here */
-  auto const attribute_is_present = header_find_attribute(header.data(),
-                                                          static_cast<int>(header.size()),
-                                                          attributes.size,
-                                                          &start,
-                                                          &end);
-  if (not attribute_is_present) {
+  auto const annotation = header_find_attribute(header, attributes.size);
+  if (not annotation.present) {
     return 0;  // refactoring: return 1 by default?
   }
 
   char * next_character = nullptr;
   // C++17 refactoring: replace strtoll with std::from_chars
-  auto const * const value = std::next(header.data(), start + attributes.size.length);
+  auto const value_offset = annotation.start + attributes.size.view().size();
+  auto const * const value = std::next(header.data(),
+                                       static_cast<std::ptrdiff_t>(value_offset));
   auto const abundance = std::strtoll(value, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 
@@ -250,90 +253,74 @@ auto header_fprint_strip(std::FILE * output_handle,
                          bool const strip_ee,
                          bool const strip_length) -> bool
 {
-  auto const * const header = header_view.data();
-  auto const header_length = static_cast<int>(header_view.size());
+  /* the attributes found, ordered by position in the header by the sort below;
+     one array of spans, where two parallel start/end arrays used to be kept
+     side by side */
+  std::array<Attribute_span, n_expected_attributes> found {{}};
+  auto nth_attribute = std::size_t{0};
 
-  auto nth_attribute = 0;
-  std::array<int, n_expected_attributes> attribute_start {{}};
-  std::array<int, n_expected_attributes> attribute_end {{}};
+  auto collect = [&](bool const wanted, Attribute const & attribute) -> void {
+    if (not wanted) { return; }
+    auto const span = header_find_attribute(header_view, attribute);
+    if (span.present) {
+      found[nth_attribute] = span;
+      ++nth_attribute;
+    }
+  };
 
   /* look for size attribute */
-  if (strip_size) {
-    look_for_attribute(header, header_length,
-                       nth_attribute, attribute_start,
-                       attribute_end,
-                       attributes.size);
-  }
+  collect(strip_size, attributes.size);
 
   /* look for ee attribute */
-  if (strip_ee) {
-    look_for_attribute(header, header_length,
-                       nth_attribute, attribute_start,
-                       attribute_end,
-                       attributes.ee);
-  }
+  collect(strip_ee, attributes.ee);
 
   /* look for length attribute */
-  if (strip_length) {
-    look_for_attribute(header, header_length,
-                       nth_attribute, attribute_start,
-                       attribute_end,
-                       attributes.length);
-  }
+  collect(strip_length, attributes.length);
 
   /* sort */
 
-  auto last_swap = 0;
-  auto limit = nth_attribute - 1;
-  while (limit > 0)
-    {
-      for (auto i = 0; i < limit; ++i)
-        {
-          if (attribute_start[static_cast<std::size_t>(i)] > attribute_start[static_cast<std::size_t>(i + 1)])
-            {
-              std::swap(attribute_start[static_cast<std::size_t>(i)], attribute_start[static_cast<std::size_t>(i + 1)]);
-              std::swap(attribute_end[static_cast<std::size_t>(i)], attribute_end[static_cast<std::size_t>(i + 1)]);
-              last_swap = i;
-            }
-        }
-      limit = last_swap;
-    }
+  /* by position in the header; the attribute names differ, so no two spans
+     share a start and the order among equals never comes up */
+  std::sort(found.begin(),
+            std::next(found.begin(), static_cast<std::ptrdiff_t>(nth_attribute)),
+            [](Attribute_span const & lhs, Attribute_span const & rhs) -> bool
+            { return lhs.start < rhs.start; });
 
   /* print */
 
-  auto last_index = -1;  // index in 'header' of the last emitted character
+  auto last_emitted = View<char>{};  // the last chunk printed, empty until one is
+
+  auto emit = [output_handle, &last_emitted](View<char> const chunk) -> void {
+    if (chunk.empty()) { return; }
+    std::fprintf(output_handle, "%.*s",
+                 static_cast<int>(chunk.size()), chunk.data());
+    last_emitted = chunk;
+  };
 
   if (nth_attribute == 0)
     {
-      std::fprintf(output_handle, "%.*s", header_length, header);
-      if (header_length > 0) { last_index = header_length - 1; }
+      emit(header_view);
     }
   else
     {
-      auto prev_end = 0;
-      for (auto i = 0; i < nth_attribute; ++i)
+      auto prev_end = std::size_t{0};
+      for (std::size_t i = 0; i < nth_attribute; ++i)
         {
           /* print part of header in front of this attribute */
-          if (attribute_start[static_cast<std::size_t>(i)] > prev_end + 1)
+          if (found[i].start > prev_end + 1)
             {
-              std::fprintf(output_handle, "%.*s",
-                      attribute_start[static_cast<std::size_t>(i)] - prev_end - 1,
-                      header + prev_end);
-              last_index = attribute_start[static_cast<std::size_t>(i)] - 2;
+              emit(header_view.subspan(prev_end, found[i].start - prev_end - 1));
             }
-          prev_end = attribute_end[static_cast<std::size_t>(i)];
+          prev_end = found[i].end;
         }
 
       /* print the rest, if any */
-      if (header_length > prev_end + 1)
+      if (header_view.size() > prev_end + 1)
         {
-          std::fprintf(output_handle, "%.*s",
-                  header_length - prev_end,
-                  header + prev_end);
-          last_index = header_length - 1;
+          emit(header_view.drop(prev_end));
         }
     }
 
   /* report whether the last emitted character is the annotation separator */
-  return (last_index >= 0) and (header[last_index] == ';');
+  return (not last_emitted.empty()) and (last_emitted.back() == ';');
 }
