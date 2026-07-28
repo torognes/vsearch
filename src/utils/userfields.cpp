@@ -60,15 +60,35 @@
 
 #include "userfields.hpp"
 #include "vsearch.hpp"  // struct Parameters
-#include <algorithm>  // std::equal, std::find
+#include <algorithm>  // std::find
+#include <array>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::strlen
+#include <iterator>  // std::distance
+#include <string>  // std::string
 #include <vector>  // std::vector::clear, push_back
 
 
-// refactoring: C++11 std::array does not allow conversion from litteral string to char *
-static const char * userfields_names[] =
-  {
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+/* The position of each name IS the field id: results_show_userout_one()
+   switches on 0..42 in this exact order, so an entry must never be inserted in
+   the middle or reordered (its default: case fatal()s if one is). The count is
+   spelled out so that adding a name without extending that switch is a compile
+   error here rather than a silent renumbering. */
+constexpr std::size_t userfield_count = 43;
+
+/* Held by a function-local static rather than a namespace-scope object: the
+   names are std::string, so their initialization is dynamic, and a throwing
+   static initializer cannot be caught (the command-line build compiles with
+   -fno-exceptions). This way the table is built on first use, outside the
+   static-initialization order. */
+auto valid_userfield_names() -> std::array<std::string, userfield_count> const &
+{
+  static std::array<std::string, userfield_count> const names =
+  {{
     "query",  // 0
     "target", // 1
     "evalue", // 2
@@ -112,8 +132,11 @@ static const char * userfields_names[] =
     "qihi",
     "tilo",
     "tihi",   // 42
-    nullptr,
-  };
+  },};
+  return names;
+}
+
+}  // anonymous namespace
 
 auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> bool
 {
@@ -128,6 +151,7 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
   parameters.opt_userfields.clear();
 
   char const * next_separator = nullptr;
+  auto const & valid_names = valid_userfield_names();
 
   while (true)
     {
@@ -142,23 +166,17 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
           return false;
         }
 
-      char const * const * valid_userfield = userfields_names;
+      std::string const field(ptr, static_cast<std::size_t>(field_length));
+      auto const * const found = std::find(valid_names.cbegin(),
+                                           valid_names.cend(), field);
 
-      while (*valid_userfield != nullptr)
-        {
-          if ((std::strlen(*valid_userfield) == field_length) and std::equal(ptr, ptr + field_length, *valid_userfield))
-            {
-              break;
-            }
-          ++valid_userfield;
-        }
-
-      if (*valid_userfield == nullptr)
+      if (found == valid_names.cend())
         {    // reached end of list -> unrecognized field
           return false; // bad argument
         }
 
-      auto const nth_valid_userfield = static_cast<int>(valid_userfield - userfields_names);
+      auto const nth_valid_userfield =
+        static_cast<int>(std::distance(valid_names.cbegin(), found));
       parameters.opt_userfields.push_back(nth_valid_userfield);
 
       ptr = next_separator;
