@@ -76,7 +76,7 @@
 #include <cinttypes>  // macro SCNd64
 #include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::fprintf, fprintf, stderr, stdout
+#include <cstdio>  // std::fprintf, fprintf, stderr, stdout, std::fputc, std::fputs
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <string>  // std::to_string
@@ -3146,7 +3146,7 @@ namespace {
 
           case option_fulldp:
             parameters.opt_fulldp = 1;
-            std::fprintf(stderr, "WARNING: Option --fulldp is ignored\n");
+            std::fputs("WARNING: Option --fulldp is ignored\n", stderr);
             break;
 
           case option_strand:
@@ -3478,7 +3478,7 @@ namespace {
             break;
 
           case option_cons_truncate:
-            std::fprintf(stderr, "WARNING: Option --cons_truncate is ignored\n");
+            std::fputs("WARNING: Option --cons_truncate is ignored\n", stderr);
             parameters.opt_cons_truncate = 1;
             break;
 
@@ -3499,12 +3499,12 @@ namespace {
             break;
 
           case option_slots:
-            std::fprintf(stderr, "WARNING: Option --slots is ignored\n");
+            std::fputs("WARNING: Option --slots is ignored\n", stderr);
             parameters.opt_slots = static_cast<int>(args_getlong(optarg));
             break;
 
           case option_pattern:
-            std::fprintf(stderr, "WARNING: Option --pattern is ignored\n");
+            std::fputs("WARNING: Option --pattern is ignored\n", stderr);
             parameters.opt_pattern = optarg;
             break;
 
@@ -3870,22 +3870,22 @@ namespace {
 
           case option_xdrop_nw:
             /* xdrop_nw ignored */
-            std::fprintf(stderr, "WARNING: Option --xdrop_nw is ignored\n");
+            std::fputs("WARNING: Option --xdrop_nw is ignored\n", stderr);
             break;
 
           case option_minhsp:
             /* minhsp ignored */
-            std::fprintf(stderr, "WARNING: Option --minhsp is ignored\n");
+            std::fputs("WARNING: Option --minhsp is ignored\n", stderr);
             break;
 
           case option_band:
             /* band ignored */
-            std::fprintf(stderr, "WARNING: Option --band is ignored\n");
+            std::fputs("WARNING: Option --band is ignored\n", stderr);
             break;
 
           case option_hspw:
             /* hspw ignored */
-            std::fprintf(stderr, "WARNING: Option --hspw is ignored\n");
+            std::fputs("WARNING: Option --hspw is ignored\n", stderr);
             break;
 
           case option_gzip_decompress:
@@ -4245,7 +4245,7 @@ namespace {
           }
         if (any_options)
           {
-            std::fprintf(stderr, "WARNING: Options given, but no valid command specified.\n");
+            std::fputs("WARNING: Options given, but no valid command specified.\n", stderr);
           }
       }
     else
@@ -4276,8 +4276,7 @@ namespace {
                         std::fprintf(stderr,
                                 "Fatal error: Invalid options to command %s\n",
                                 long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
-                        std::fprintf(stderr,
-                                "Invalid option(s):");
+                        std::fputs("Invalid option(s):", stderr);
                       }
                     std::fprintf(stderr, " --%s",
                             long_options[static_cast<size_t>(i)].name);
@@ -4300,9 +4299,9 @@ namespace {
               }
             if (count == 0)
               {
-                std::fprintf(stderr, " (none)");
+                std::fputs(" (none)", stderr);
               }
-            std::fprintf(stderr, "\n");
+            std::fputc('\n', stderr);
             std::exit(EXIT_FAILURE);
           }
       }
@@ -4340,7 +4339,7 @@ namespace {
       }
     if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
       {
-        std::fprintf(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
+        std::fputs("WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n", stderr);
       }
   }
 
