@@ -72,7 +72,7 @@
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
-#include <algorithm>  // std::equal, std::max
+#include <algorithm>  // std::max
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
@@ -612,10 +612,13 @@ auto results_show_lcaout(std::FILE * output_handle,
               auto match = true;
               for (std::size_t j = 0; j <= k; ++j)
                 {
-                  auto const * const cand_level = db.getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j];
-                  auto const * const query_level = db.getheader(static_cast<uint64_t>(seqno)) + new_level_start[j];
-                  if ((new_level_len[j] != cand_level_len[k][j]) or
-                      (not std::equal(cand_level, cand_level + new_level_len[j], query_level)))
+                  auto const cand_level = db.header_view(static_cast<uint64_t>(cand[k]))
+                    .subspan(static_cast<std::size_t>(cand_level_start[k][j]),
+                             static_cast<std::size_t>(cand_level_len[k][j]));
+                  auto const query_level = db.header_view(static_cast<uint64_t>(seqno))
+                    .subspan(static_cast<std::size_t>(new_level_start[j]),
+                             static_cast<std::size_t>(new_level_len[j]));
+                  if (cand_level != query_level)
                     {
                       match = false;
                       break;
@@ -647,10 +650,13 @@ auto results_show_lcaout(std::FILE * output_handle,
           auto match = true;
           for (std::size_t j = 0; j <= k; ++j)
             {
-              auto const * const cand_level = db.getheader(static_cast<uint64_t>(cand[k])) + cand_level_start[k][j];
-              auto const * const query_level = db.getheader(static_cast<uint64_t>(seqno)) + new_level_start[j];
-              if ((new_level_len[j] != cand_level_len[k][j]) or
-                  (not std::equal(cand_level, cand_level + new_level_len[j], query_level)))
+              auto const cand_level = db.header_view(static_cast<uint64_t>(cand[k]))
+                .subspan(static_cast<std::size_t>(cand_level_start[k][j]),
+                         static_cast<std::size_t>(cand_level_len[k][j]));
+              auto const query_level = db.header_view(static_cast<uint64_t>(seqno))
+                .subspan(static_cast<std::size_t>(new_level_start[j]),
+                         static_cast<std::size_t>(new_level_len[j]));
+              if (cand_level != query_level)
                 {
                   match = false;
                   break;
