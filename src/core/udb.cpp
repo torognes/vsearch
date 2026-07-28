@@ -490,8 +490,9 @@ auto udb_read(const char * filename,
         Progress progress("Parsing abundances", seqcount, parameters);
         for (auto i = 0U; i < seqcount; i++)
           {
-            auto const size = header_get_size(datap + seqindex[i].header_p,
-                                           static_cast<int>(seqindex[i].headerlen));
+            /* udb_finalize() above only moved the sequences and rewrote their
+               seq_p, so the headers are where db's own accessor finds them */
+            auto const size = header_get_size(db.header_view(i));
             if (size > 0)
               {
                 seqindex[i].size = static_cast<uint64_t>(size);

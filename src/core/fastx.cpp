@@ -160,8 +160,7 @@ auto FastxBuffer::extend(char const * const source, uint64_t const len) -> void
 auto fastx_s::get_abundance() const -> int64_t
 {
   // return 1 if the ;size= annotation is not present
-  auto const size = header_get_size(header_buffer.data(),
-                                    static_cast<int>(header_buffer.length));
+  auto const size = header_get_size(header_buffer.view());
   if (size > 0)
     {
       return size;
@@ -173,7 +172,7 @@ auto fastx_s::get_abundance() const -> int64_t
 auto fastx_s::get_abundance_and_presence() const -> int64_t
 {
   // return 0 if the ;size= annotation is not present
-  return header_get_size(header_buffer.data(), static_cast<int>(header_buffer.length));
+  return header_get_size(header_buffer.view());
 }
 
 
@@ -250,7 +249,7 @@ auto warn(char const * const message) -> void {
 
 auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
   // truncate header (in-place)
-  auto raw_header = Span<char>{input_handle->header_buffer.data(), input_handle->header_buffer.length};
+  auto raw_header = input_handle->header_buffer.span();
   auto const count = truncateatspace ? find_header_end_first_blank(raw_header) : find_header_end(raw_header);
   input_handle->header_buffer.length = count;
 

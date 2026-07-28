@@ -65,7 +65,7 @@
 #include <cstdio>  // std::FILE
 
 
-auto header_get_size(char const * header, int header_length) -> int64_t;
+auto header_get_size(View<char> header) -> int64_t;
 
 auto annotation_separator(bool & trailing_separator) -> char const *;
 

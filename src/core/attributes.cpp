@@ -67,6 +67,7 @@
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::strtoll
+#include <iterator>  // std::next
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -194,13 +195,15 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto header_get_size(char const * header, int const header_length) -> int64_t {
+auto header_get_size(View<char> const header) -> int64_t {
   /* read size/abundance annotation */
   static constexpr auto decimal_base = 10;
   auto start = 0;
   auto end = 0;
-  auto const attribute_is_present = header_find_attribute(header,
-                                                          header_length,
+  /* header_find_attribute still works on a pointer and an int length, as it
+     does for header_fprint_strip below, so the view is unpacked here */
+  auto const attribute_is_present = header_find_attribute(header.data(),
+                                                          static_cast<int>(header.size()),
                                                           attributes.size,
                                                           &start,
                                                           &end);
@@ -210,7 +213,8 @@ auto header_get_size(char const * header, int const header_length) -> int64_t {
 
   char * next_character = nullptr;
   // C++17 refactoring: replace strtoll with std::from_chars
-  auto const abundance = std::strtoll(header + start + attributes.size.length, &next_character, decimal_base);
+  auto const * const value = std::next(header.data(), start + attributes.size.length);
+  auto const abundance = std::strtoll(value, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 
   if (range_error) {
