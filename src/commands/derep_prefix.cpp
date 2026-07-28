@@ -86,7 +86,10 @@ namespace {
     uint64_t hash = 0;
     unsigned int seqno_first = 0;
     unsigned int seqno_last = 0;
-    unsigned int size = 0;
+    /* total abundance of the cluster, as wide as the ;size= annotation it comes
+       from (header_get_size returns int64_t); see the same field in
+       core/derep.cpp for what a 32-bit field did to a large annotation */
+    uint64_t size = 0;
     unsigned int count = 0;
     bool deleted = false;
     char * header = nullptr;
@@ -236,7 +239,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         if (bp->size != 0U)
           {
             /* exact match */
-            bp->size += static_cast<unsigned int>(abundance);
+            bp->size += abundance;
             auto const last = bp->seqno_last;
             nextseqtab[last] = static_cast<unsigned int>(i);
             bp->seqno_last = static_cast<unsigned int>(i);
@@ -280,7 +283,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
                 /* create new hash entry */
                 bp = orig_bp;
-                bp->size = static_cast<unsigned int>(size + abundance);
+                bp->size = size + abundance;
                 bp->hash = orig_hash;
                 bp->seqno_first = static_cast<unsigned int>(i);
                 nextseqtab[static_cast<std::vector<unsigned int>::size_type>(i)] = first;
@@ -291,7 +294,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             else
               {
                 /* no match */
-                orig_bp->size = static_cast<unsigned int>(abundance);
+                orig_bp->size = abundance;
                 orig_bp->hash = orig_hash;
                 orig_bp->seqno_first = static_cast<unsigned int>(i);
                 orig_bp->seqno_last = static_cast<unsigned int>(i);
@@ -346,12 +349,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if ((clusters % 2) != 0)
         {
-          median = hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters - 1) / 2)].size;
+          median = static_cast<double>(hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters - 1) / 2)].size);
         }
       else
         {
-          median = (hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters / 2) - 1)].size +
-                    hashtable[static_cast<std::vector<struct bucket>::size_type>(clusters / 2)].size) / 2.0;
+          median = (static_cast<double>(hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters / 2) - 1)].size) +
+                    static_cast<double>(hashtable[static_cast<std::vector<struct bucket>::size_type>(clusters / 2)].size)) / 2.0;
         }
     }
 
@@ -395,7 +398,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   int64_t selected = 0;
   for (int64_t i = 0; i < clusters; i++)
     {
-      int64_t const size = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)].size;
+      auto const size = static_cast<int64_t>(hashtable[static_cast<std::vector<struct bucket>::size_type>(i)].size);
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
           ++selected;
@@ -418,7 +421,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         for (int64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-            int64_t const size = bp.size;
+            auto const size = static_cast<int64_t>(bp.size);
             if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
               {
                 ++relabel_count;
@@ -474,7 +477,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         for (int64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-            std::fprintf(fp_uc, "C\t%" PRId64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+            std::fprintf(fp_uc, "C\t%" PRId64 "\t%" PRIu64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                     i, bp.size, db.getheader(bp.seqno_first));
             progress.update(static_cast<uint64_t>(i));
           }

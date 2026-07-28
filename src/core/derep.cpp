@@ -103,7 +103,12 @@ namespace {
     uint64_t hash = 0;
     unsigned int seqno_first = 0;
     unsigned int seqno_last = 0;
-    unsigned int size = 0;
+    /* total abundance of the cluster, as wide as the ;size= annotation it comes
+       from (header_get_size returns int64_t). A 32-bit field truncated any
+       annotation above 4294967295 silently, and an abundance that was an exact
+       multiple of 2^32 truncated to zero -- which is this table's empty-bucket
+       sentinel, so the record was dropped from the output altogether. */
+    uint64_t size = 0;
     unsigned int count = 0;
     unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
     bool deleted = false;
@@ -146,7 +151,8 @@ namespace {
   auto count_selected(std::vector<struct bucket> const & hashtable,
                       struct Parameters const & parameters) -> uint64_t {
     auto size_in_range = [&](struct bucket const & bucket) -> bool {
-      auto const size = bucket.size;
+      /* compared as int64_t, the type of the two bounds */
+      auto const size = static_cast<int64_t>(bucket.size);
       return ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize));
     };
     auto const selected = std::count_if(hashtable.begin(), hashtable.end(),
@@ -170,7 +176,7 @@ namespace {
     auto const is_odd = ((num_used % 2) != 0U);
     if (is_odd) {
       // index is zero-based, so if size == 3, midpoint == 1
-      return hashtable[midpoint].size;
+      return static_cast<double>(hashtable[midpoint].size);
     }
     // pair number of elements:
     // index is zero-based, so if size == 4, midpoint == 2, lhs index == 1
@@ -181,7 +187,8 @@ namespace {
     // sorted by decreasing abundance: lhs size > rhs size
     // limit risk of integer additon overflow:
     // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return rhs_size + ((lhs_size - rhs_size) * half);
+    return static_cast<double>(rhs_size)
+      + (static_cast<double>(lhs_size - rhs_size) * half);
   }
 
 
@@ -279,7 +286,7 @@ namespace {
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & cluster = hashtable[i];
-          int64_t const size = cluster.size;
+          auto const size = static_cast<int64_t>(cluster.size);
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
@@ -317,7 +324,7 @@ namespace {
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & cluster = hashtable[i];
-          int64_t const size = cluster.size;
+          auto const size = static_cast<int64_t>(cluster.size);
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
@@ -380,7 +387,7 @@ namespace {
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & cluster = hashtable[i];
-          std::fprintf(fp_uc, "C\t%" PRIu64 "\t%u\t*\t*\t*\t*\t*\t%s\t*\n",
+          std::fprintf(fp_uc, "C\t%" PRIu64 "\t%" PRIu64 "\t*\t*\t*\t*\t*\t%s\t*\n",
                   i, cluster.size, cluster.header.c_str());
           progress.update(i);
         }
@@ -702,7 +709,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                 headertab[sequencecount] = header;
               }
 
-            int64_t const s1 = bp->size;
+            auto const s1 = static_cast<int64_t>(bp->size);
             int64_t const s2 = abundance;
             int64_t const s3 = s1 + s2;
 
@@ -761,13 +768,13 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                   }
               }
 
-            bp->size = static_cast<unsigned int>(s3);
+            bp->size = static_cast<uint64_t>(s3);
             ++bp->count;
           }
         else
           {
             /* no identical sequences yet */
-            bp->size = static_cast<unsigned int>(abundance);
+            bp->size = static_cast<uint64_t>(abundance);
             bp->hash = hash;
             bp->seqno_first = static_cast<unsigned int>(sequencecount);
             bp->seqno_last = static_cast<unsigned int>(sequencecount);
@@ -1135,13 +1142,13 @@ auto derep_add_sequence(struct derep_session_s * ds,
   if (bp->size != 0U)
     {
       /* Existing unique sequence — merge */
-      bp->size += static_cast<unsigned int>(abundance);
+      bp->size += static_cast<uint64_t>(abundance);
       ++bp->count;
     }
   else
     {
       /* New unique sequence */
-      bp->size = static_cast<unsigned int>(abundance);
+      bp->size = static_cast<uint64_t>(abundance);
       bp->hash = hash;
       bp->seq = ds->seq_up.data();
       bp->header = header;
