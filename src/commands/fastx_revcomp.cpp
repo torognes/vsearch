@@ -155,10 +155,8 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
           {
             fasta_print_general(fp_fastaout,
                                 nullptr,
-                                seq_buffer.data(),
-                                static_cast<int>(length),
-                                header,
-                                static_cast<int>(hlen),
+                                View<char>{seq_buffer.data(), static_cast<std::size_t>(length)},
+                                View<char>{header, static_cast<std::size_t>(hlen)},
                                 static_cast<uint64_t>(abundance),
                                 count,
                                 -1.0,
@@ -170,11 +168,9 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         if (parameters.opt_fastqout != nullptr)
           {
             fastq_print_general(fp_fastqout,
-                                seq_buffer.data(),
-                                static_cast<int>(length),
-                                header,
-                                static_cast<int>(hlen),
-                                qual_buffer.data(),
+                                View<char>{seq_buffer.data(), static_cast<std::size_t>(length)},
+                                View<char>{header, static_cast<std::size_t>(hlen)},
+                                View<char>{qual_buffer.data(), static_cast<std::size_t>(length)},
                                 static_cast<uint64_t>(abundance),
                                 count,
                                 -1.0,

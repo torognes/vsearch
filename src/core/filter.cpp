@@ -68,6 +68,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::signbit
@@ -107,8 +108,12 @@ struct analysis_res
 {
   bool discarded = false;
   bool truncated = false;
-  int start = 0;
-  int length = 0;
+  /* the kept part of the record, and the matching part of its quality string
+     (empty for a FASTA record). Subspans of the reader's own buffers, so they
+     stay valid until the next read; holding them removes the start/length pair
+     every consumer had to re-slice the handle with. */
+  View<char> sequence;
+  View<char> quality;
   double ee = -1.0;
 };
 
@@ -119,41 +124,42 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
   auto const fastq_trunclen = static_cast<int>(parameters.opt_fastq_trunclen);
   auto const fastq_trunclen_keep = static_cast<int>(parameters.opt_fastq_trunclen_keep);
   struct analysis_res res;
-  res.length = static_cast<int>(input_handle->get_sequence_length());
-  auto const old_length = res.length;
+  int start = 0;
+  int length = static_cast<int>(input_handle->get_sequence_length());
+  auto const old_length = length;
 
   /* strip left (5') end */
-  if (parameters.opt_fastq_stripleft < res.length)
+  if (parameters.opt_fastq_stripleft < length)
     {
-      res.start += static_cast<int>(parameters.opt_fastq_stripleft);
-      res.length -= static_cast<int>(parameters.opt_fastq_stripleft);
+      start += static_cast<int>(parameters.opt_fastq_stripleft);
+      length -= static_cast<int>(parameters.opt_fastq_stripleft);
     }
   else
     {
-      res.start = res.length;
-      res.length = 0;
+      start = length;
+      length = 0;
     }
 
   /* strip right (3') end */
-  if (parameters.opt_fastq_stripright < res.length)
+  if (parameters.opt_fastq_stripright < length)
     {
-      res.length -= static_cast<int>(parameters.opt_fastq_stripright);
+      length -= static_cast<int>(parameters.opt_fastq_stripright);
     }
   else
     {
-      res.length = 0;
+      length = 0;
     }
 
   /* truncate trailing (3') part */
   if (parameters.opt_fastq_trunclen >= 0)
     {
-      res.length = std::min(res.length, fastq_trunclen);
+      length = std::min(length, fastq_trunclen);
     }
 
   /* truncate trailing (3') part, but keep if short */
   if (parameters.opt_fastq_trunclen_keep >= 0)
     {
-      res.length = std::min(res.length, fastq_trunclen_keep);
+      length = std::min(length, fastq_trunclen_keep);
     }
 
   if (input_handle->is_fastq_format())
@@ -161,8 +167,8 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
       static constexpr auto base = 10.0;
-      auto const * quality_symbols = input_handle->get_quality() + res.start;
-      for (auto i = 0; i < res.length; ++i)
+      auto const * quality_symbols = input_handle->get_quality() + start;
+      for (auto i = 0; i < length; ++i)
         {
           auto const quality_score = fastq_get_qual(quality_symbols[i], parameters);
           auto const expected_error = std::pow(base, -quality_score / base);
@@ -173,7 +179,7 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
               (res.ee > parameters.opt_fastq_truncee_rate * (i + 1)))
             {
               res.ee -= expected_error;
-              res.length = i;
+              length = i;
               break;
             }
 
@@ -188,30 +194,30 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
         {
           res.discarded = true;
         }
-      if ((res.length > 0) and ((res.ee / res.length) > parameters.opt_fastq_maxee_rate))
+      if ((length > 0) and ((res.ee / length) > parameters.opt_fastq_maxee_rate))
         {
           res.discarded = true;
         }
     }
 
   /* filter by length */
-  if ((parameters.opt_fastq_trunclen >= 0) and (res.length < parameters.opt_fastq_trunclen))
+  if ((parameters.opt_fastq_trunclen >= 0) and (length < parameters.opt_fastq_trunclen))
     {
       res.discarded = true;
     }
-  if (res.length < parameters.opt_fastq_minlen)
+  if (length < parameters.opt_fastq_minlen)
     {
       res.discarded = true;
     }
-  if (res.length > parameters.opt_fastq_maxlen)
+  if (length > parameters.opt_fastq_maxlen)
     {
       res.discarded = true;
     }
 
   /* filter by n's */  // refactoring: std::count_if();
   int64_t ncount = 0;
-  auto const * nucleotides = input_handle->get_sequence() + res.start;
-  for (auto i = 0; i < res.length; ++i)
+  auto const * nucleotides = input_handle->get_sequence() + start;
+  for (auto i = 0; i < length; ++i)
     {
       auto const nucleotide = nucleotides[i];
       if ((nucleotide == 'N') or (nucleotide == 'n'))
@@ -235,7 +241,16 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
       res.discarded = true;
     }
 
-  res.truncated = res.length < old_length;
+  res.truncated = length < old_length;
+
+  /* publish the kept window as views into the reader's buffers */
+  auto const window_start = static_cast<std::size_t>(start);
+  auto const window_length = static_cast<std::size_t>(length);
+  res.sequence = input_handle->sequence_view().subspan(window_start, window_length);
+  if (input_handle->is_fastq_format())
+    {
+      res.quality = input_handle->quality_view().subspan(window_start, window_length);
+    }
 
   return res;
 }
@@ -359,10 +374,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               {
                 fasta_print_general(fp_fastaout_discarded.get(),
                                     nullptr,
-                                    forward_handle->get_sequence() + res1.start,
-                                    res1.length,
-                                    forward_handle->get_header(),
-                                    static_cast<int>(forward_handle->get_header_length()),
+                                    res1.sequence,
+                                    forward_handle->header_view(),
                                     static_cast<uint64_t>(forward_handle->get_abundance()),
                                     discarded,
                                     res1.ee,
@@ -377,11 +390,9 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             if (parameters.opt_fastqout_discarded != nullptr)
               {
                 fastq_print_general(fp_fastqout_discarded.get(),
-                                    forward_handle->get_sequence() + res1.start,
-                                    res1.length,
-                                    forward_handle->get_header(),
-                                    static_cast<int>(forward_handle->get_header_length()),
-                                    forward_handle->get_quality() + res1.start,
+                                    res1.sequence,
+                                    forward_handle->header_view(),
+                                    res1.quality,
                                     static_cast<uint64_t>(forward_handle->get_abundance()),
                                     discarded,
                                     res1.ee,
@@ -394,10 +405,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                   {
                     fasta_print_general(fp_fastaout_discarded_rev.get(),
                                         nullptr,
-                                        reverse_handle->get_sequence() + res2.start,
-                                        res2.length,
-                                        reverse_handle->get_header(),
-                                        static_cast<int>(reverse_handle->get_header_length()),
+                                        res2.sequence,
+                                        reverse_handle->header_view(),
                                         static_cast<uint64_t>(reverse_handle->get_abundance()),
                                         discarded,
                                         res2.ee,
@@ -412,11 +421,9 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                 if (parameters.opt_fastqout_discarded_rev != nullptr)
                   {
                     fastq_print_general(fp_fastqout_discarded_rev.get(),
-                                        reverse_handle->get_sequence() + res2.start,
-                                        res2.length,
-                                        reverse_handle->get_header(),
-                                        static_cast<int>(reverse_handle->get_header_length()),
-                                        reverse_handle->get_quality() + res2.start,
+                                        res2.sequence,
+                                        reverse_handle->header_view(),
+                                        res2.quality,
                                         static_cast<uint64_t>(reverse_handle->get_abundance()),
                                         discarded,
                                         res2.ee,
@@ -439,10 +446,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
               {
                 fasta_print_general(fp_fastaout.get(),
                                     nullptr,
-                                    forward_handle->get_sequence() + res1.start,
-                                    res1.length,
-                                    forward_handle->get_header(),
-                                    static_cast<int>(forward_handle->get_header_length()),
+                                    res1.sequence,
+                                    forward_handle->header_view(),
                                     static_cast<uint64_t>(forward_handle->get_abundance()),
                                     kept,
                                     res1.ee,
@@ -457,11 +462,9 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
             if (parameters.opt_fastqout != nullptr)
               {
                 fastq_print_general(fp_fastqout.get(),
-                                    forward_handle->get_sequence() + res1.start,
-                                    res1.length,
-                                    forward_handle->get_header(),
-                                    static_cast<int>(forward_handle->get_header_length()),
-                                    forward_handle->get_quality() + res1.start,
+                                    res1.sequence,
+                                    forward_handle->header_view(),
+                                    res1.quality,
                                     static_cast<uint64_t>(forward_handle->get_abundance()),
                                     kept,
                                     res1.ee,
@@ -474,10 +477,8 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                   {
                     fasta_print_general(fp_fastaout_rev.get(),
                                         nullptr,
-                                        reverse_handle->get_sequence() + res2.start,
-                                        res2.length,
-                                        reverse_handle->get_header(),
-                                        static_cast<int>(reverse_handle->get_header_length()),
+                                        res2.sequence,
+                                        reverse_handle->header_view(),
                                         static_cast<uint64_t>(reverse_handle->get_abundance()),
                                         kept,
                                         res2.ee,
@@ -492,11 +493,9 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                 if (parameters.opt_fastqout_rev != nullptr)
                   {
                     fastq_print_general(fp_fastqout_rev.get(),
-                                        reverse_handle->get_sequence() + res2.start,
-                                        res2.length,
-                                        reverse_handle->get_header(),
-                                        static_cast<int>(reverse_handle->get_header_length()),
-                                        reverse_handle->get_quality() + res2.start,
+                                        res2.sequence,
+                                        reverse_handle->header_view(),
+                                        res2.quality,
                                         static_cast<uint64_t>(reverse_handle->get_abundance()),
                                         kept,
                                         res2.ee,

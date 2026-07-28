@@ -150,11 +150,9 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
         int const hlen = static_cast<int>(input_handle->get_header_length());
         fastq_print_general(fp_fastqout,
-                            sequence,
-                            static_cast<int>(length),
-                            header,
-                            hlen,
-                            normalized_quality.data(),
+                            View<char>{sequence, static_cast<std::size_t>(length)},
+                            View<char>{header, static_cast<std::size_t>(hlen)},
+                            View<char>{normalized_quality.data(), static_cast<std::size_t>(length)},
                             static_cast<uint64_t>(abundance),
                             n_entries,
                             default_expected_error,

@@ -66,6 +66,7 @@
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::min
 #include <array>
 #include <cassert>  // assert
@@ -363,7 +364,7 @@ auto fasta_next(fastx_handle input_handle,
 /* fasta output */
 
 namespace {
-auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t const len, int const width) -> void
+auto fasta_print_sequence(std::FILE * output_handle, View<char> const seq, std::size_t const len, int const width) -> void
 {
   /*
     The actual length of the sequence may be longer than "len", but only
@@ -374,20 +375,16 @@ auto fasta_print_sequence(std::FILE * output_handle, char const * seq, uint64_t 
 
   if (width < 1)  // no sequence folding
     {
-      /* len may exceed INT_MAX, which the "%.*s" precision (an int) cannot
-         express, so write the bytes directly rather than through fprintf. */
-      std::fwrite(seq, 1, len, output_handle);
-      std::fprintf(output_handle, "\n");
+      fprint(output_handle, seq.first(len));
+      std::fputc('\n', output_handle);
     }
   else  // sequence folding every 'width'
     {
-      auto const width_u = static_cast<uint64_t>(width);
-      for (uint64_t i = 0; i < len; i += width_u)
+      auto const width_u = static_cast<std::size_t>(width);
+      for (std::size_t i = 0; i < len; i += width_u)
         {
-          /* each chunk is at most 'width' (an int), so the cast is safe even
-             when the whole sequence is longer than INT_MAX */
-          auto const chunk = static_cast<int>(std::min(len - i, width_u));
-          std::fprintf(output_handle, "%.*s\n", chunk, seq + i);
+          fprint(output_handle, seq.subspan(i, std::min(len - i, width_u)));
+          std::fputc('\n', output_handle);
         }
     }
 }
@@ -398,43 +395,19 @@ auto fasta_print(std::FILE * output_handle, char const * header,
                  char const * seq, uint64_t const len,
                  struct Parameters const & parameters) -> void
 {
-  std::fprintf(output_handle, ">%s\n", header);
-  fasta_print_sequence(output_handle, seq, len, static_cast<int>(parameters.opt_fasta_width));
+  std::fputc('>', output_handle);
+  std::fputs(header, output_handle);
+  std::fputc('\n', output_handle);
+  fasta_print_sequence(output_handle, View<char>{seq, static_cast<std::size_t>(len)},
+                       static_cast<std::size_t>(len),
+                       static_cast<int>(parameters.opt_fasta_width));
 }
 
 
-namespace {
-inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
-{
-  /* profile/consensus output (see msa.cc) has no centroid sequence and
-     passes seq == nullptr; passing a null pointer to "%s" is undefined
-     behaviour even when len is zero, so emit an empty label instead. */
-  if (seq == nullptr) { return; }
-  /* normalize first? */
-  std::fprintf(output_handle, "%.*s", len, seq);
-}
-}  // anonymous namespace
-
-
-// NOTE: the sequence length `len` is still carried as int here and used for
-// the length= annotation, the --relabel_sha1/md5 digest and the
-// --relabel_self label (fprint_seq_label). fasta_print_sequence itself now
-// handles 64-bit lengths, but a single sequence longer than INT_MAX would
-// still be mis-annotated / mis-hashed and its relabel_self label truncated.
-// Widening this interface (and its ~15 callers, the digest chain and the
-// fastq equivalent) is deferred. Not reachable from the command line:
-// --maxseqlength is itself capped at INT_MAX - buffer_headroom (cli.cc),
-// fastx_filter_sequence_length rejects a longer sequence on every FASTA/FASTQ
-// read whatever that option says, and udb_read rejects one in a UDB file.
-// Still reachable through Database::add(), which does not check the length, so
-// a library caller building a database directly can get here; read-only (wrong
-// output, no corruption).
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
-                         char const * seq,
-                         int const len,
-                         char const * header,
-                         int const header_length,
+                         View<char> const seq,
+                         View<char> const header,
                          uint64_t const abundance,
                          int64_t const ordinal,
                          double const expected_error,
@@ -445,11 +418,11 @@ auto fasta_print_general(std::FILE * output_handle,
                          uint64_t const centroid_size,
                          struct Parameters const & parameters) -> void
 {
-  std::fprintf(output_handle, ">");
+  std::fputc('>', output_handle);
 
   if (prefix != nullptr)
     {
-      std::fprintf(output_handle, "%s", prefix);
+      std::fputs(prefix, output_handle);
     }
 
   // track whether the text printed so far ends with the annotation
@@ -459,15 +432,16 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (parameters.opt_relabel_self)
     {
-      fprint_seq_label(output_handle, seq, len);
+      /* normalize first? */
+      fprint(output_handle, seq);
     }
   else if (parameters.opt_relabel_sha1)
     {
-      fprint_seq_digest_sha1(output_handle, View<char>{seq, static_cast<std::size_t>(len)});
+      fprint_seq_digest_sha1(output_handle, seq);
     }
   else if (parameters.opt_relabel_md5)
     {
-      fprint_seq_digest_md5(output_handle, View<char>{seq, static_cast<std::size_t>(len)});
+      fprint_seq_digest_md5(output_handle, seq);
     }
   else if ((parameters.opt_relabel != nullptr) and (ordinal > 0))
     {
@@ -479,7 +453,7 @@ auto fasta_print_general(std::FILE * output_handle,
       bool const strip_ee = parameters.opt_xee or ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (expected_error >= 0.0));
       bool const strip_length = parameters.opt_xlength or parameters.opt_lengthout;
       trailing_separator = header_fprint_strip(output_handle,
-                                               View<char>{header, static_cast<std::size_t>(header_length)},
+                                               header,
                                                strip_size,
                                                strip_ee,
                                                strip_length);
@@ -487,7 +461,7 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (parameters.opt_label_suffix != nullptr)
     {
-      std::fprintf(output_handle, "%s", parameters.opt_label_suffix);
+      std::fputs(parameters.opt_label_suffix, output_handle);
       if (*parameters.opt_label_suffix != '\0')
         {
           trailing_separator = (parameters.opt_label_suffix[std::strlen(parameters.opt_label_suffix) - 1] == ';');
@@ -547,7 +521,12 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (parameters.opt_lengthout)
     {
-      std::fprintf(output_handle, "%slength=%d", annotation_separator(trailing_separator), len);
+      /* widened by assignment, not by a cast: std::size_t already is
+         uint64_t on a 64-bit target, where a cast would be flagged useless */
+      uint64_t const sequence_length = seq.size();
+      std::fprintf(output_handle, "%slength=%" PRIu64,
+                   annotation_separator(trailing_separator),
+                   sequence_length);
     }
 
   if (score_name != nullptr)
@@ -558,15 +537,14 @@ auto fasta_print_general(std::FILE * output_handle,
   if (parameters.opt_relabel_keep and
       (((parameters.opt_relabel != nullptr) and (ordinal > 0)) or parameters.opt_relabel_sha1 or parameters.opt_relabel_md5 or parameters.opt_relabel_self))
     {
-      std::fprintf(output_handle, " %s", header);
+      std::fputc(' ', output_handle);
+      fprint(output_handle, header);
     }
 
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 
-  if (seq != nullptr)
-    {
-      fasta_print_sequence(output_handle, seq, static_cast<uint64_t>(len), static_cast<int>(parameters.opt_fasta_width));
-    }
+  fasta_print_sequence(output_handle, seq, seq.size(),
+                       static_cast<int>(parameters.opt_fasta_width));
 }
 
 
@@ -585,10 +563,8 @@ auto fasta_print_general(std::FILE * output_handle,
 {
   fasta_print_general(output_handle,
                       prefix,
-                      record.sequence.data(),
-                      static_cast<int>(record.sequence.size()),
-                      record.header.data(),
-                      static_cast<int>(record.header.size()),
+                      record.sequence,
+                      record.header,
                       abundance,
                       ordinal,
                       expected_error,

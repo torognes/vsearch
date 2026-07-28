@@ -123,8 +123,8 @@ namespace {
                       struct Parameters const & parameters) -> void
   {
     auto const pattern_length = static_cast<int>(restriction.pattern.size());
-    char const * seq = input_handle->get_sequence();
-    auto const seq_length = static_cast<int>(input_handle->get_sequence_length());
+    auto const sequence = input_handle->sequence_view();
+    auto const seq_length = static_cast<int>(sequence.size());
     // failed refactoring: use transform to create a coded std::string
     // and find() to search for pattern occurrences, IUPAC chars make it
     // harder to compare sequences
@@ -132,7 +132,8 @@ namespace {
     /* get reverse complement */
     rc_buffer.clear();
     rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
-    reverse_complement(Span<char>{rc_buffer.data(), static_cast<std::size_t>(seq_length) + 1}, View<char>{seq, static_cast<std::size_t>(seq_length)});
+    reverse_complement(Span<char>{rc_buffer.data(), sequence.size() + 1}, sequence);
+    auto const rc_sequence = View<char>{rc_buffer.data(), sequence.size()};
 
     int64_t local_matches = 0;
     int frag_start = 0;
@@ -144,7 +145,7 @@ namespace {
       {
         auto const match = std::equal(restriction.coded_pattern.cbegin(),
                                       restriction.coded_pattern.cend(),
-                                      std::next(seq, i),
+                                      std::next(sequence.cbegin(), i),
                                       [](char const & lhs, char const & rhs) -> bool {
                                         return is_equivalent_4bit_rhs(lhs, rhs);
                                       });
@@ -162,10 +163,9 @@ namespace {
           {
             fasta_print_general(fastaout.cut.forward.handle.get(),
                                 nullptr,
-                                std::next(seq, frag_start),
-                                frag_length,
-                                input_handle->get_header(),
-                                static_cast<int>(input_handle->get_header_length()),
+                                sequence.subspan(static_cast<std::size_t>(frag_start),
+                                                 static_cast<std::size_t>(frag_length)),
+                                input_handle->header_view(),
                                 static_cast<uint64_t>(input_handle->get_abundance()),
                                 ++counters.fragment_no,
                                 -1.0,
@@ -181,10 +181,9 @@ namespace {
           {
             fasta_print_general(fastaout.cut.reverse.handle.get(),
                                 nullptr,
-                                &rc_buffer[static_cast<std::size_t>(rc_start)],
-                                rc_length,
-                                input_handle->get_header(),
-                                static_cast<int>(input_handle->get_header_length()),
+                                rc_sequence.subspan(static_cast<std::size_t>(rc_start),
+                                                    static_cast<std::size_t>(rc_length)),
+                                input_handle->header_view(),
                                 static_cast<uint64_t>(input_handle->get_abundance()),
                                 ++counters.fragment_rev_no,
                                 -1.0,
@@ -211,10 +210,9 @@ namespace {
       {
         fasta_print_general(fastaout.cut.forward.handle.get(),
                             nullptr,
-                            std::next(seq, frag_start),
-                            frag_length,
-                            input_handle->get_header(),
-                            static_cast<int>(input_handle->get_header_length()),
+                            sequence.subspan(static_cast<std::size_t>(frag_start),
+                                             static_cast<std::size_t>(frag_length)),
+                            input_handle->header_view(),
                             static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_no,
                             -1.0,
@@ -230,10 +228,9 @@ namespace {
       {
         fasta_print_general(fastaout.cut.reverse.handle.get(),
                             nullptr,
-                            &rc_buffer[static_cast<std::size_t>(rc_start)],
-                            rc_length,
-                            input_handle->get_header(),
-                            static_cast<int>(input_handle->get_header_length()),
+                            rc_sequence.subspan(static_cast<std::size_t>(rc_start),
+                                                static_cast<std::size_t>(rc_length)),
+                            input_handle->header_view(),
                             static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_rev_no,
                             -1.0,
@@ -270,10 +267,8 @@ namespace {
       {
         fasta_print_general(fastaout.discarded.reverse.handle.get(),
                             nullptr,
-                            rc_buffer.data(),
-                            seq_length,
-                            input_handle->get_header(),
-                            static_cast<int>(input_handle->get_header_length()),
+                            rc_sequence,
+                            input_handle->header_view(),
                             static_cast<uint64_t>(input_handle->get_abundance()),
                             ++counters.fragment_discarded_rev_no,
                             -1.0,

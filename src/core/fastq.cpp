@@ -65,6 +65,7 @@
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <array>
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -580,39 +581,16 @@ auto fastq_next(fastx_handle input_handle,
 }
 
 
-namespace {
-inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int const len) -> void
-{
-  /* no FASTQ caller passes a null seq today, but guard defensively to
-     mirror the fasta.cc twin: passing a null pointer to "%s" is undefined
-     behaviour even when len is zero, so emit an empty label instead. */
-  if (seq == nullptr) { return; }
-  /* normalize first? */
-  std::fprintf(output_handle, "%.*s", len, seq);
-}
-}  // anonymous namespace
-
-
-// NOTE: the sequence length `len` is carried as int and used directly in the
-// "%.*s" sequence/quality output below, so a single sequence longer than
-// INT_MAX would be printed as garbage/truncated (the "%.*s" precision is an
-// int). Widening this interface and its callers is deferred. Not reachable
-// from the command line -- see the matching NOTE at fasta_print_general for
-// the three guards -- but still reachable through Database::add(), which does
-// not check the length, so a library caller building a database directly can
-// get here; read-only (no corruption).
 auto fastq_print_general(FILE * output_handle,
-                         char const * seq,
-                         int const len,
-                         char const * header,
-                         int const header_len,
-                         char const * quality,
+                         View<char> const seq,
+                         View<char> const header,
+                         View<char> const quality,
                          uint64_t const abundance,
                          int64_t const ordinal,
                          double const expected_error,
                          struct Parameters const & parameters) -> void
 {
-  std::fprintf(output_handle, "@");
+  std::fputc('@', output_handle);
 
   // track whether the text printed so far ends with the annotation
   // separator ';', so that appended annotations are merged with a single
@@ -621,15 +599,16 @@ auto fastq_print_general(FILE * output_handle,
 
   if (parameters.opt_relabel_self)
     {
-      fprint_seq_label(output_handle, seq, len);
+      /* normalize first? */
+      fprint(output_handle, seq);
     }
   else if (parameters.opt_relabel_sha1)
     {
-      fprint_seq_digest_sha1(output_handle, View<char>{seq, static_cast<std::size_t>(len)});
+      fprint_seq_digest_sha1(output_handle, seq);
     }
   else if (parameters.opt_relabel_md5)
     {
-      fprint_seq_digest_md5(output_handle, View<char>{seq, static_cast<std::size_t>(len)});
+      fprint_seq_digest_md5(output_handle, seq);
     }
   else if ((parameters.opt_relabel != nullptr) && (ordinal > 0))
     {
@@ -641,7 +620,7 @@ auto fastq_print_general(FILE * output_handle,
       auto const xee = parameters.opt_xee || ((parameters.opt_eeout || parameters.opt_fastq_eeout) && (expected_error >= 0.0));
       auto const xlength = parameters.opt_xlength || parameters.opt_lengthout;
       trailing_separator = header_fprint_strip(output_handle,
-                                               View<char>{header, static_cast<std::size_t>(header_len)},
+                                               header,
                                                xsize,
                                                xee,
                                                xlength);
@@ -649,7 +628,7 @@ auto fastq_print_general(FILE * output_handle,
 
   if (parameters.opt_label_suffix != nullptr)
     {
-      std::fprintf(output_handle, "%s", parameters.opt_label_suffix);
+      std::fputs(parameters.opt_label_suffix, output_handle);
       if (*parameters.opt_label_suffix != '\0')
         {
           trailing_separator = (parameters.opt_label_suffix[std::strlen(parameters.opt_label_suffix) - 1] == ';');
@@ -694,16 +673,26 @@ auto fastq_print_general(FILE * output_handle,
 
   if (parameters.opt_lengthout)
     {
-      std::fprintf(output_handle, "%slength=%d", annotation_separator(trailing_separator), len);
+      /* widened by assignment, not by a cast: std::size_t already is
+         uint64_t on a 64-bit target, where a cast would be flagged useless */
+      uint64_t const sequence_length = seq.size();
+      std::fprintf(output_handle, "%slength=%" PRIu64,
+                   annotation_separator(trailing_separator),
+                   sequence_length);
     }
 
   if (parameters.opt_relabel_keep &&
       (((parameters.opt_relabel != nullptr) && (ordinal > 0)) || parameters.opt_relabel_sha1 || parameters.opt_relabel_md5 || parameters.opt_relabel_self))
     {
-      std::fprintf(output_handle, " %.*s", header_len, header);
+      std::fputc(' ', output_handle);
+      fprint(output_handle, header);
     }
 
-  std::fprintf(output_handle, "\n%.*s\n+\n%.*s\n", len, seq, len, quality);
+  std::fputc('\n', output_handle);
+  fprint(output_handle, seq);
+  std::fputs("\n+\n", output_handle);
+  fprint(output_handle, quality);
+  std::fputc('\n', output_handle);
 }
 
 
@@ -715,11 +704,9 @@ auto fastq_print_general(std::FILE * output_handle,
                          struct Parameters const & parameters) -> void
 {
   fastq_print_general(output_handle,
-                      record.sequence.data(),
-                      static_cast<int>(record.sequence.size()),
-                      record.header.data(),
-                      static_cast<int>(record.header.size()),
-                      record.quality.data(),
+                      record.sequence,
+                      record.header,
+                      record.quality,
                       abundance,
                       ordinal,
                       expected_error,

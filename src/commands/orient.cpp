@@ -75,6 +75,7 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::fclose
@@ -223,10 +224,10 @@ auto orient(struct Parameters const & parameters) -> void
                       (not parameters.opt_notrunclabels),
                       chrmap_no_change()))
       {
-        char const * query_head = query_h->get_header();
-        int const query_head_len = static_cast<int>(query_h->get_header_length());
-        char const * qseq_fwd = query_h->get_sequence();
-        int const qseqlen = static_cast<int>(query_h->get_sequence_length());
+        auto const query_head = query_h->header_view();
+        auto const query_sequence = query_h->sequence_view();
+        char const * qseq_fwd = query_sequence.data();
+        auto const qseqlen = static_cast<int>(query_sequence.size());
         int64_t const qsize = query_h->get_abundance();
         char const * query_qual_fwd = query_h->get_quality();
 
@@ -336,16 +337,15 @@ auto orient(struct Parameters const & parameters) -> void
 
             /* get reverse complementary sequence */
 
-            reverse_complement(Span<char>{qseq_rev.data(), static_cast<std::size_t>(qseqlen) + 1}, View<char>{qseq_fwd, static_cast<std::size_t>(qseqlen)});
+            reverse_complement(Span<char>{qseq_rev.data(), query_sequence.size() + 1}, query_sequence);
+            auto const rc_sequence = View<char>{qseq_rev.data(), query_sequence.size()};
 
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    qseq_rev.data(),
-                                    qseqlen,
+                                    rc_sequence,
                                     query_head,
-                                    query_head_len,
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,
@@ -372,11 +372,9 @@ auto orient(struct Parameters const & parameters) -> void
                   }
 
                 fastq_print_general(fp_fastqout,
-                                    qseq_rev.data(),
-                                    qseqlen,
+                                    rc_sequence,
                                     query_head,
-                                    query_head_len,
-                                    query_qual_rev.data(),
+                                    View<char>{query_qual_rev.data(), query_sequence.size()},
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,
@@ -421,9 +419,9 @@ auto orient(struct Parameters const & parameters) -> void
 
         if (parameters.opt_tabbedout != nullptr)
           {
+            fprint(fp_tabbedout, query_head);
             std::fprintf(fp_tabbedout,
-                    "%s\t%c\t%u\t%u\n",
-                    query_head,
+                    "\t%c\t%u\t%u\n",
                     strand == 0 ? '+' : (strand == 1 ? '-' : '?'),
                     count_fwd,
                     count_rev);

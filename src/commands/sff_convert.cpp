@@ -611,11 +611,11 @@ auto sff_convert(struct Parameters const & parameters) -> void
         uint32_t const length = clip_end - clip_start;
 
         fastq_print_general(fp_fastqout,
-                            bases.data() + clip_start,
-                            static_cast<int>(length),
-                            read_name.data(),
-                            static_cast<int>(read_name.size() - 1),
-                            quality_scores.data() + clip_start,
+                            View<char>{std::next(bases.data(), clip_start),
+                                       static_cast<std::size_t>(length)},
+                            View<char>{read_name.data(), read_name.size() - 1},
+                            View<char>{std::next(quality_scores.data(), clip_start),
+                                       static_cast<std::size_t>(length)},
                             1, read_no + 1, -1.0,
                             parameters);
 

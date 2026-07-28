@@ -292,10 +292,8 @@ namespace {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  cluster.seq.c_str(),
-                                  static_cast<int>(cluster.seq.size()),
-                                  cluster.header.c_str(),
-                                  static_cast<int>(cluster.header.size()),
+                                  View<char>{cluster.seq.data(), cluster.seq.size()},
+                                  View<char>{cluster.header.data(), cluster.header.size()},
                                   static_cast<uint64_t>(size),
                                   relabel_count,
                                   -1.0,
@@ -329,11 +327,9 @@ namespace {
             {
               ++relabel_count;
               fastq_print_general(fp_fastqout,
-                                  cluster.seq.c_str(),
-                                  static_cast<int>(cluster.seq.size()),
-                                  cluster.header.c_str(),
-                                  static_cast<int>(cluster.header.size()),
-                                  cluster.qual.c_str(),
+                                  View<char>{cluster.seq.data(), cluster.seq.size()},
+                                  View<char>{cluster.header.data(), cluster.header.size()},
+                                  View<char>{cluster.qual.data(), cluster.qual.size()},
                                   static_cast<uint64_t>(size),
                                   relabel_count,
                                   -1.0,

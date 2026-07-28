@@ -222,11 +222,9 @@ namespace {
     auto const header_length = static_cast<int>(record.header.length());
     if (destination.fastq.handle != nullptr) {
       fastq_print_general(destination.fastq.handle.get(),
-                          record.sequence.c_str(),
-                          length,
-                          record.header.c_str(),
-                          header_length,
-                          record.quality.c_str(),
+                          View<char>{record.sequence.data(), record.sequence.size()},
+                          View<char>{record.header.data(), record.header.size()},
+                          View<char>{record.quality.data(), record.quality.size()},
                           static_cast<uint64_t>(record.abundance),
                           ordinal,
                           -1.0,
@@ -235,10 +233,8 @@ namespace {
     if (destination.fasta.handle != nullptr) {
       fasta_print_general(destination.fasta.handle.get(),
                           nullptr,
-                          record.sequence.c_str(),
-                          length,
-                          record.header.c_str(),
-                          header_length,
+                          View<char>{record.sequence.data(), record.sequence.size()},
+                          View<char>{record.header.data(), record.header.size()},
                           static_cast<uint64_t>(record.abundance),
                           ordinal,
                           -1.0,

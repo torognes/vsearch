@@ -569,10 +569,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                 ++selected;
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    seq,
-                                    static_cast<int>(seqlen),
-                                    header,
-                                    headerlen,
+                                    View<char>{seq, static_cast<std::size_t>(seqlen)},
+                                    View<char>{header, static_cast<std::size_t>(headerlen)},
                                     static_cast<uint64_t>(size),
                                     static_cast<int64_t>(selected),
                                     -1.0,

@@ -120,8 +120,7 @@ auto get_hex_seq_digest_sha1(Span<char> const hex, View<char> const seq) -> void
      in place, so it must only ever touch a throwaway, suitably aligned buffer.
      Being per-call (no shared state), this is also what makes it safe to call
      from the search worker threads (e.g. --relabel_sha1). Do not hash `seq`
-     directly, and do not enable SHA1HANDSOFF (a shared static workspace) -- see
-     S26 in CODE_REVIEW.md. */
+     directly, and do not enable SHA1HANDSOFF (a shared static workspace). */
 
   assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_sha1));
 

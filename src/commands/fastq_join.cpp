@@ -272,11 +272,9 @@ auto fastq_join(struct Parameters const & parameters) -> void
         if (parameters.opt_fastqout != nullptr)
           {
             fastq_print_general(outfiles.fastq.handle.get(),
-                                final_sequence.c_str(),
-                                static_cast<int>(needed),
-                                infiles.forward.handle->get_header(),
-                                static_cast<int>(infiles.forward.handle->get_header_length()),
-                                final_quality.c_str(),
+                                View<char>{final_sequence.data(), needed},
+                                infiles.forward.handle->header_view(),
+                                View<char>{final_quality.data(), needed},
                                 static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
                                 static_cast<int>(total + 1),
                                 -1.0,
@@ -287,10 +285,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
           {
             fasta_print_general(outfiles.fasta.handle.get(),
                                 nullptr,
-                                final_sequence.c_str(),
-                                static_cast<int>(needed),
-                                infiles.forward.handle->get_header(),
-                                static_cast<int>(infiles.forward.handle->get_header_length()),
+                                View<char>{final_sequence.data(), needed},
+                                infiles.forward.handle->header_view(),
                                 static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
                                 static_cast<int>(total + 1),
                                 -1.0,

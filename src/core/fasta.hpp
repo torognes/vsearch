@@ -61,6 +61,7 @@
 #pragma once
 
 #include "core/fastx.hpp"  // fastx_handle, struct fastx_s
+#include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <memory>  // std::unique_ptr
@@ -88,10 +89,8 @@ auto fasta_print(std::FILE * output_handle,
 
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
-                         char const * seq,
-                         int len,
-                         char const * header,
-                         int header_length,
+                         View<char> seq,
+                         View<char> header,
                          uint64_t abundance,
                          int64_t ordinal,
                          double expected_error,
@@ -102,12 +101,11 @@ auto fasta_print_general(std::FILE * output_handle,
                          uint64_t centroid_size,
                          struct Parameters const & parameters) -> void;
 
-/* Overload emitting a sequence record: the (seq, len, header, header_length)
-   group of the primary overload is replaced by a single SeqRecord (from
-   Database::record() or fastx_record()). Abundance stays a separate argument,
-   because callers often display a computed abundance rather than the record's
-   own. It forwards to the primary overload, so the output is identical; the two
-   are distinguished by arity. */
+/* Convenience overload for callers emitting a whole record: it forwards the
+   record's header and sequence views to the primary overload above, which takes
+   the same two Views. Abundance stays a separate argument, because callers often
+   display a computed abundance rather than the record's own. The record comes
+   from Database::record() or a reader's record(). */
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          SeqRecord const & record,

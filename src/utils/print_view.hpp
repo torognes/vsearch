@@ -85,6 +85,10 @@
 
 inline auto fprint(std::FILE * output_handle, View<char> const text) -> void
 {
-  if (text.empty()) { return; }  // fwrite would be a no-op, but data() may be null
+  /* An empty view may carry a null pointer, and passing one to fwrite is
+     undefined even with a zero count. This is a real case, not a defensive
+     guard: the --profile output (see msa.cpp) describes a cluster with no
+     centroid sequence and hands over an empty sequence view. */
+  if (text.empty()) { return; }
   static_cast<void>(std::fwrite(text.data(), 1, text.size(), output_handle));
 }

@@ -121,10 +121,9 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      &qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
-                      hits->internal_alignmentlength,
-                      query_head.data(),
-                      static_cast<int>(query_head.size()),
+                      View<char>{&qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
+                                 static_cast<std::size_t>(hits->internal_alignmentlength)},
+                      query_head,
                       0,
                       0,
                       -1.0,
@@ -141,10 +140,9 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      &trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
-                      hits->internal_alignmentlength,
-                      db.getheader(target),
-                      static_cast<int>(db.getheaderlen(target)),
+                      View<char>{&trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
+                                 static_cast<std::size_t>(hits->internal_alignmentlength)},
+                      db.header_view(target),
                       0,
                       0,
                       -1.0,
@@ -171,16 +169,15 @@ auto results_show_qsegout_one(std::FILE * output_handle,
   }
 
   auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
-  auto const qseqlen = static_cast<int64_t>(query.size());
-  char const * qseg = std::next(query.data(), hits->trim_q_left);
-  int const qseglen = static_cast<int>(qseqlen - hits->trim_q_left - hits->trim_q_right);
+  auto const qseglen = static_cast<int64_t>(query.size())
+    - hits->trim_q_left - hits->trim_q_right;
+  auto const qseg = query.subspan(static_cast<std::size_t>(hits->trim_q_left),
+                                  static_cast<std::size_t>(qseglen));
 
   fasta_print_general(output_handle,
                       nullptr,
                       qseg,
-                      qseglen,
-                      query_head.data(),
-                      static_cast<int>(query_head.size()),
+                      query_head,
                       0,
                       0,
                       -1.0,
@@ -202,15 +199,16 @@ auto results_show_tsegout_one(std::FILE * output_handle,
     return;
   }
   auto const target = static_cast<uint64_t>(hits->target);
-  auto const * tseg = db.getsequence(target) + hits->trim_t_left;
-  int const tseglen = static_cast<int>(db.getsequencelen(target)) - hits->trim_t_left - hits->trim_t_right;
+  auto const target_sequence = db.sequence_view(target);
+  auto const tseglen = static_cast<int64_t>(target_sequence.size())
+    - hits->trim_t_left - hits->trim_t_right;
+  auto const tseg = target_sequence.subspan(static_cast<std::size_t>(hits->trim_t_left),
+                                            static_cast<std::size_t>(tseglen));
 
   fasta_print_general(output_handle,
                       nullptr,
                       tseg,
-                      tseglen,
-                      db.getheader(target),
-                      static_cast<int>(db.getheaderlen(target)),
+                      db.header_view(target),
                       0,
                       0,
                       -1.0,

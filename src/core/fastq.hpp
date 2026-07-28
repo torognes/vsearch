@@ -61,6 +61,7 @@
 #pragma once
 
 #include "core/fastx.hpp"  // fastx_handle, struct fastx_s
+#include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <memory>  // std::unique_ptr
@@ -75,22 +76,19 @@ auto fastq_next(fastx_handle input_handle,
                 const unsigned char * char_mapping) -> bool;
 
 auto fastq_print_general(std::FILE * output_handle,
-                         char const * seq,
-                         int len,
-                         char const * header,
-                         int header_len,
-                         char const * quality,
+                         View<char> seq,
+                         View<char> header,
+                         View<char> quality,
                          uint64_t abundance,
                          int64_t ordinal,
                          double expected_error,
                          struct Parameters const & parameters) -> void;
 
-/* Overload emitting a database record: the (seq, len, header, header_len,
-   quality) group of the primary overload is replaced by a single SeqRecord
-   (from Database::record() or fastx_record(), whose quality view carries the
-   FASTQ quality). Abundance stays a separate argument, as in the FASTA
-   counterpart. It forwards to the primary overload, so the output is identical;
-   the two are distinguished by arity. */
+/* Convenience overload for callers emitting a whole record: it forwards the
+   record's header, sequence and quality views to the primary overload above,
+   which takes the same three Views. Abundance stays a separate argument, as in
+   the FASTA counterpart. The record comes from Database::record() or a reader's
+   record(). */
 auto fastq_print_general(std::FILE * output_handle,
                          SeqRecord const & record,
                          uint64_t abundance,

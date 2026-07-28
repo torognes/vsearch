@@ -449,15 +449,16 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                 length = 0;
                 offset = 0;
               }
+            auto const window_start = static_cast<std::size_t>(offset);
+            auto const window_length = static_cast<std::size_t>(length);
+            auto const sequence = h1->sequence_view().subspan(window_start, window_length);
 
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    h1->get_sequence() + offset,
-                                    static_cast<int>(length),
-                                    h1->get_header(),
-                                    static_cast<int>(h1->get_header_length()),
+                                    sequence,
+                                    h1->header_view(),
                                     static_cast<uint64_t>(h1->get_abundance()),
                                     kept,
                                     -1.0,
@@ -472,11 +473,9 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
             if (parameters.opt_fastqout != nullptr)
               {
                 fastq_print_general(fp_fastqout,
-                                    h1->get_sequence() + offset,
-                                    static_cast<int>(length),
-                                    h1->get_header(),
-                                    static_cast<int>(h1->get_header_length()),
-                                    h1->get_quality() + offset,
+                                    sequence,
+                                    h1->header_view(),
+                                    h1->quality_view().subspan(window_start, window_length),
                                     static_cast<uint64_t>(h1->get_abundance()),
                                     kept,
                                     -1.0,
