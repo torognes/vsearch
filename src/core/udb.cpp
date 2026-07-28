@@ -204,13 +204,6 @@ auto udb_read(const char * filename,
   auto udb_wordlength = 0U;
   uint64_t nucleotides = 0;
 
-  /* udb_read fills the reserved database buffers in place (it bypasses
-     Database::add). These raw pointers are bound to the passed-in Database's
-     vector storage right after udb_reserve() sizes it below; the buffers are
-     not resized again during the load, so the pointers stay valid throughout. */
-  char * datap = nullptr;
-  seqinfo_t * seqindex = nullptr;
-
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
     {
@@ -356,6 +349,13 @@ auto udb_read(const char * filename,
 
     /* allocate the two database buffers up front; udb_read fills them in place */
 
+    /* udb_read fills the reserved database buffers in place (it bypasses
+       Database::add). These raw pointers are bound to the passed-in Database's
+       vector storage right after udb_reserve() sizes it below; the buffers are
+       not resized again during the load, so the pointers stay valid throughout. */
+    char * datap = nullptr;
+    seqinfo_t * seqindex = nullptr;
+
     uint64_t const datap_bytes =
       udb_checked_add(udb_checked_add(udb_headerchars, nucleotides), seqcount);
     db.udb_reserve(seqcount, datap_bytes);
@@ -493,14 +493,7 @@ auto udb_read(const char * filename,
             /* udb_finalize() above only moved the sequences and rewrote their
                seq_p, so the headers are where db's own accessor finds them */
             auto const size = header_get_size(db.header_view(i));
-            if (size > 0)
-              {
-                seqindex[i].size = static_cast<uint64_t>(size);
-              }
-            else
-              {
-                seqindex[i].size = 1;
-              }
+            db.set_abundance(i, (size > 0) ? size : 1);
             progress.update(i + 1);
           }
       }

@@ -64,6 +64,7 @@
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/span.hpp"  // Span<char>
 #include "utils/view.hpp"  // View<char>
+#include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::size_t
@@ -191,6 +192,17 @@ public:
   auto getabundance(uint64_t seqno) const -> uint64_t
   {
     return seqindex_[seqno].size;
+  }
+
+  /* Non-const companion to getabundance(), for the UDB loader: it parses the
+     ;size= annotation out of each header once the records are in place, and
+     records the result through the class rather than reaching into seqindex_
+     with a raw pointer. The value is the int64_t header_get_size() returns, so
+     the two parameters cannot be swapped by accident. */
+  auto set_abundance(uint64_t const seqno, int64_t const abundance) -> void
+  {
+    assert(abundance > 0);
+    seqindex_[seqno].size = static_cast<uint64_t>(abundance);
   }
 
   auto getsequencelen(uint64_t seqno) const -> uint64_t
