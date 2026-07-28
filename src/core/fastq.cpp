@@ -68,9 +68,11 @@
 #include <array>
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstddef>  // std::ptrdiff_t
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <cstring>  // std::strlen
+#include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -234,27 +236,25 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * 
 
 auto buffer_filter_extend(fastx_handle input_handle,
                           FastxBuffer & dest_buffer,
-                          char const * source_buf,
-                          uint64_t const len,
+                          View<char> const source,
                           Action const * char_action,
                           unsigned char const * char_mapping,
                           bool * ok,
                           char * illegal_char) -> void
 {
-  dest_buffer.makespace(len + 1);
+  dest_buffer.makespace(source.size() + 1);
 
   /* Strip unwanted characters from the string and raise warnings or
      errors on certain characters. */
 
-  auto const * p = source_buf;
-  auto * d = dest_buffer.data() + dest_buffer.length;
+  auto * d = std::next(dest_buffer.data(),
+                       static_cast<std::ptrdiff_t>(dest_buffer.length));
   auto * q = d;
   *ok = true;
 
-  for (auto i = 0ULL; i < len; i++)
+  for (auto const symbol : source)
     {
-      auto const c = *p++;
-      auto const action = char_action[static_cast<unsigned char>(c)];
+      auto const action = char_action[static_cast<unsigned char>(symbol)];
 
       /* Fast path: legal characters dominate, so test 'accept' with a single
          predictable branch and keep it off the switch (which the compiler may
@@ -262,7 +262,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
       if (action == Action::accept)
         {
           /* legal character */
-          *q++ = static_cast<char>(char_mapping[static_cast<unsigned char>(c)]);
+          *q++ = static_cast<char>(char_mapping[static_cast<unsigned char>(symbol)]);
         }
       else
         {
@@ -270,14 +270,14 @@ auto buffer_filter_extend(fastx_handle input_handle,
             {
             case Action::warn:
               /* stripped */
-              input_handle->record_stripped(static_cast<unsigned char>(c));
+              input_handle->record_stripped(static_cast<unsigned char>(symbol));
               break;
 
             case Action::reject:
               /* fatal character */
               if (*ok)
                 {
-                  *illegal_char = c;
+                  *illegal_char = symbol;
                 }
               *ok = false;
               break;
@@ -354,7 +354,7 @@ auto fastq_next(fastx_handle input_handle,
 
   /* check initial @ character */
 
-  if (input_handle->file_buffer.data()[input_handle->file_buffer.position] != '@')
+  if (input_handle->file_buffer.peek() != '@')
     {
       fastq_fatal(input_handle, input_handle->lineno, "Header line must start with '@' character");
       return false;
@@ -374,8 +374,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to header buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      input_handle->header_buffer.extend(fragment.view.data(),
-                                         fragment.view.size());
+      input_handle->header_buffer.extend(fragment.view);
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -399,7 +398,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end when new line starting with + is seen */
-      if (previous_line_complete && (input_handle->file_buffer.data()[input_handle->file_buffer.position] == '+'))
+      if (previous_line_complete && (input_handle->file_buffer.peek() == '+'))
         {
           break;
         }
@@ -408,8 +407,7 @@ auto fastq_next(fastx_handle input_handle,
       auto const fragment = scan_line_fragment(input_handle);
       buffer_filter_extend(input_handle,
                            input_handle->sequence_buffer,
-                           fragment.view.data(),
-                           fragment.view.size(),
+                           fragment.view,
                            char_fq_action_seq.data(), char_mapping,
                            &ok, &illegal_char);
       consume_fragment(input_handle, fragment);
@@ -460,8 +458,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to plusline buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      input_handle->plusline_buffer.extend(fragment.view.data(),
-                                           fragment.view.size());
+      input_handle->plusline_buffer.extend(fragment.view);
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -520,7 +517,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* end if next entry starts : LF + '@' + correct length */
       if (last_line_complete &&
-          (input_handle->file_buffer.data()[input_handle->file_buffer.position] == '@') &&
+          (input_handle->file_buffer.peek() == '@') &&
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
           break;
@@ -530,8 +527,7 @@ auto fastq_next(fastx_handle input_handle,
       auto const fragment = scan_line_fragment(input_handle);
       buffer_filter_extend(input_handle,
                            input_handle->quality_buffer,
-                           fragment.view.data(),
-                           fragment.view.size(),
+                           fragment.view,
                            char_fq_action_qual.data(), chrmap_identity.data(),
                            &ok, &illegal_char);
       consume_fragment(input_handle, fragment);

@@ -284,14 +284,15 @@ auto fasta_next(fastx_handle input_handle,
 
   /* check initial > character */
 
-  if (input_handle->file_buffer.data()[input_handle->file_buffer.position] != '>')
+  if (input_handle->file_buffer.peek() != '>')
     {
       if (input_handle->defers_errors())
         {
           input_handle->set_deferred_error("Invalid FASTA - header must start with > character");
           return false;
         }
-      std::fprintf(stderr, "Found character %02x\n", static_cast<unsigned char>(input_handle->file_buffer.data()[input_handle->file_buffer.position]));
+      std::fprintf(stderr, "Found character %02x\n",
+                   static_cast<unsigned char>(input_handle->file_buffer.peek()));
       fatal("Invalid FASTA - header must start with > character");
     }
   ++input_handle->file_buffer.position;
@@ -313,8 +314,7 @@ auto fasta_next(fastx_handle input_handle,
 
       /* copy to header buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      input_handle->header_buffer.extend(fragment.view.data(),
-                                         fragment.view.size());
+      input_handle->header_buffer.extend(fragment.view);
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -339,14 +339,13 @@ auto fasta_next(fastx_handle input_handle,
         }
 
       /* end if new sequence starts */
-      if (previous_line_complete and (input_handle->file_buffer.data()[input_handle->file_buffer.position] == '>'))
+      if (previous_line_complete and (input_handle->file_buffer.peek() == '>'))
         {
           break;
         }
 
       auto const fragment = scan_line_fragment(input_handle);
-      input_handle->sequence_buffer.extend(fragment.view.data(),
-                                           fragment.view.size());
+      input_handle->sequence_buffer.extend(fragment.view);
       consume_fragment(input_handle, fragment);
       previous_line_complete = fragment.has_newline;
     }

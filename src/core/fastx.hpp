@@ -111,6 +111,15 @@ public:
     auto const distance = static_cast<std::ptrdiff_t>(position);
     return View<char>{std::next(data(), distance), length - position};
   }
+  /* the byte at the read cursor, for the record-boundary sentinel tests in the
+     FASTA/FASTQ parsers. Deliberately a direct read and not unread().front():
+     building a window to look at one byte cost 7% of the runtime on an input of
+     one-nucleotide records, where the test runs once per line. */
+  auto peek() const noexcept -> char
+  {
+    assert(position < length);
+    return data()[position];
+  }
   /* writable companion to view(), for the in-place filters that rewrite the
      bytes in use (see fastx_filter_header); mirrors Database::mutable_sequence()
      in that only a non-const buffer hands out a mutable window */
@@ -121,9 +130,9 @@ public:
   /* Ensure at least 'size' more bytes fit after 'length', rounding the
      allocation up to the nearest block (former buffer_makespace). */
   auto makespace(uint64_t size) -> void;
-  /* Append 'len' bytes from 'source', then a terminating NUL (former
+  /* Append the bytes of 'source', then a terminating NUL (former
      buffer_extend). */
-  auto extend(char const * source, uint64_t len) -> void;
+  auto extend(View<char> source) -> void;
 
 private:
   std::vector<char, FatalAllocator<char>> storage_;
