@@ -472,18 +472,25 @@ auto fastq_next(fastx_handle input_handle,
 
   /* check that the plus line is empty or identical to @ line */
 
+  auto const header = input_handle->header_buffer.view();
+  auto const plusline = input_handle->plusline_buffer.view();
+
   auto plusline_invalid = false;
-  if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
+  if (header.size() == plusline.size())
     {
-      if (input_handle->header_buffer.view() != input_handle->plusline_buffer.view())
+      if (header != plusline)
         {
           plusline_invalid = true;
         }
     }
   else
     {
-      if ((input_handle->plusline_buffer.length > 2) ||
-          ((input_handle->plusline_buffer.length == 2) && (input_handle->plusline_buffer.data()[0] != '\r')))
+      /* a plus line of a different length than the header is legal only when it
+         carries nothing but the line terminator: the LF on its own, or CR LF.
+         The loop above exits only on a newline, so the LF is always there. */
+      static constexpr auto crlf_length = std::size_t{2};
+      if ((plusline.size() > crlf_length) or
+          ((plusline.size() == crlf_length) and (plusline.front() != '\r')))
         {
           plusline_invalid = true;
         }
