@@ -63,6 +63,7 @@
 #include "core/db.hpp"
 #include "core/udb.hpp"
 #include "core/dbindex.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::max, std::min, std::sort
 #include <cinttypes>  // macro PRIu64
 #include <cmath>  // std::lround
@@ -168,8 +169,11 @@ auto udbstats(struct Parameters const & parameters) -> void
                   "%10u  ",
                   freqtable[dbindex.hashsize - 1 - i].kmer);
 
-          std::fprintf(parameters.fp_log,
-                  "%.*s", std::max(12 - static_cast<int>(dbindex.wordlength), 0), "            ");
+          /* pad the k-mer column out to 12 characters */
+          static constexpr char twelve_spaces[] = "            ";
+          auto const padding = static_cast<std::size_t>(
+            std::max(12 - static_cast<int>(dbindex.wordlength), 0));
+          fprint(parameters.fp_log, View<char>{twelve_spaces, padding});
 
           fprint_kmer(parameters.fp_log, dbindex.wordlength, freqtable[dbindex.hashsize - 1 - i].kmer);
 

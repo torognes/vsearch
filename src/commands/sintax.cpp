@@ -103,6 +103,7 @@
 #include "utils/worker_loop.hpp"
 #include "utils/random.hpp"
 #include "utils/reverse_complement.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
@@ -257,12 +258,11 @@ static auto sintax_analyse(struct sintax_state_s & state,
           auto const & level_name = cand_level_name[best][level];
           if (not level_name.empty())
             {
-              std::fprintf(fp_tabbedout,
-                      "%s%c:%.*s(%.2f)",
+              std::fprintf(fp_tabbedout, "%s%c:",
                       (comma ? "," : ""),
-                      taxonomic_fields[level],
-                      static_cast<int>(level_name.size()),
-                      level_name.data(),
+                      taxonomic_fields[level]);
+              fprint(fp_tabbedout, View<char>{level_name.data(), level_name.size()});
+              std::fprintf(fp_tabbedout, "(%.2f)",
                       1.0 * level_matchcount[level] / count);
               comma = true;
             }
@@ -282,12 +282,10 @@ static auto sintax_analyse(struct sintax_state_s & state,
               if ((not level_name.empty()) &&
                   (1.0 * level_matchcount[level] / count >= state.parameters.opt_sintax_cutoff))
                 {
-                  std::fprintf(fp_tabbedout,
-                          "%s%c:%.*s",
+                  std::fprintf(fp_tabbedout, "%s%c:",
                           (comma_cutoff ? "," : ""),
-                          taxonomic_fields[level],
-                          static_cast<int>(level_name.size()),
-                          level_name.data());
+                          taxonomic_fields[level]);
+                  fprint(fp_tabbedout, View<char>{level_name.data(), level_name.size()});
                   comma_cutoff = true;
                 }
             }

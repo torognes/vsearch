@@ -61,6 +61,7 @@
 #include "utils/view.hpp"
 #include "core/attributes.hpp"  // View<char>
 #include "utils/fatal.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::find_if, std::search, std::sort
 #include <array>
 #include <cerrno>  // errno
@@ -292,8 +293,7 @@ auto header_fprint_strip(std::FILE * output_handle,
 
   auto emit = [output_handle, &last_emitted](View<char> const chunk) -> void {
     if (chunk.empty()) { return; }
-    std::fprintf(output_handle, "%.*s",
-                 static_cast<int>(chunk.size()), chunk.data());
+    fprint(output_handle, chunk);
     last_emitted = chunk;
   };
 
