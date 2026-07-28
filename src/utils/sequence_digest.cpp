@@ -66,8 +66,9 @@
 #include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
 #include "vendored/sha1.h"  // SHA1_CTX, SHA1_Init, SHA1_Update, SHA1_Final
 #include <array>  // std::array
+#include <cassert>
 #include <cstddef>  // std::size_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fputs
 #include <iterator>  // std::advance
 #include <vector>  // std::vector
 
@@ -108,7 +109,7 @@ auto MD5(void * data, unsigned long const len, unsigned char * digest) -> void
 }  // namespace
 
 
-auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> void
+auto get_hex_seq_digest_sha1(Span<char> const hex, View<char> const seq) -> void
 {
   /* Save hexadecimal representation of the SHA1 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_sha1).
@@ -122,26 +123,29 @@ auto get_hex_seq_digest_sha1(char * hex, char const * seq, int const seqlen) -> 
      directly, and do not enable SHA1HANDSOFF (a shared static workspace) -- see
      S26 in CODE_REVIEW.md. */
 
-  std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
-  string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
+  assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_sha1));
+
+  std::vector<char> normalized(seq.size() + 1);
+  string_normalize(Span<char>{normalized.data(), normalized.size()}, seq);
 
   std::vector<unsigned char> digest(sha1_digest_length);
 
   SHA1(reinterpret_cast<unsigned char const *>(normalized.data()),
-       static_cast<std::size_t>(seqlen),
+       seq.size(),
        digest.data());
 
+  auto hex_cursor = hex.begin();
   for (auto const & element: digest) {
-    *hex = hexdigits[element >> drop_lower_nibble];
-    std::advance(hex, 1);
-    *hex = hexdigits[element & mask_upper_nibble];
-    std::advance(hex, 1);
+    *hex_cursor = hexdigits[element >> drop_lower_nibble];
+    std::advance(hex_cursor, 1);
+    *hex_cursor = hexdigits[element & mask_upper_nibble];
+    std::advance(hex_cursor, 1);
   }
-  *hex = '\0';
+  *hex_cursor = '\0';
 }
 
 
-auto get_hex_seq_digest_md5(char * hex, char const * seq, int const seqlen) -> void
+auto get_hex_seq_digest_md5(Span<char> const hex, View<char> const seq) -> void
 {
   /* Save hexadecimal representation of the MD5 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_md5).
@@ -151,34 +155,37 @@ auto get_hex_seq_digest_md5(char * hex, char const * seq, int const seqlen) -> v
      per-call `normalized` copy (never `seq`): the vendored MD5 may read it
      via an aligned reinterpret, and being per-call it is thread-safe. */
 
-  std::vector<char> normalized(static_cast<std::size_t>(seqlen) + 1);
-  string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
+  assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_md5));
+
+  std::vector<char> normalized(seq.size() + 1);
+  string_normalize(Span<char>{normalized.data(), normalized.size()}, seq);
 
   std::vector<unsigned char> digest(md5_digest_length);
 
-  MD5(normalized.data(), static_cast<std::size_t>(seqlen), digest.data());
+  MD5(normalized.data(), seq.size(), digest.data());
 
+  auto hex_cursor = hex.begin();
   for (auto const & element: digest) {
-    *hex = hexdigits[element >> drop_lower_nibble];
-    std::advance(hex, 1);
-    *hex = hexdigits[element & mask_upper_nibble];
-    std::advance(hex, 1);
+    *hex_cursor = hexdigits[element >> drop_lower_nibble];
+    std::advance(hex_cursor, 1);
+    *hex_cursor = hexdigits[element & mask_upper_nibble];
+    std::advance(hex_cursor, 1);
   }
-  *hex = '\0';
+  *hex_cursor = '\0';
 }
 
 
-auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int const seqlen) -> void
+auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> const seq) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_sha1);
-  get_hex_seq_digest_sha1(hex_digest.data(), seq, seqlen);
-  std::fprintf(output_handle, "%s", hex_digest.data());
+  get_hex_seq_digest_sha1(Span<char>{hex_digest.data(), hex_digest.size()}, seq);
+  std::fputs(hex_digest.data(), output_handle);
 }
 
 
-auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int const seqlen) -> void
+auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> const seq) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_md5);
-  get_hex_seq_digest_md5(hex_digest.data(), seq, seqlen);
-  std::fprintf(output_handle, "%s", hex_digest.data());
+  get_hex_seq_digest_md5(Span<char>{hex_digest.data(), hex_digest.size()}, seq);
+  std::fputs(hex_digest.data(), output_handle);
 }

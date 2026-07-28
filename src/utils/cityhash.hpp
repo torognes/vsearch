@@ -60,9 +60,10 @@
 
 #pragma once
 
+#include "utils/view.hpp"
 #include "vendored/city.h"  // uint128
 #include <cstdint>  // uint64_t
 
 
-auto hash_cityhash64(char const * sequence, uint64_t length) -> uint64_t;
-auto hash_cityhash128(char const * sequence, uint64_t length) -> uint128;
+auto hash_cityhash64(View<char> sequence) -> uint64_t;
+auto hash_cityhash128(View<char> sequence) -> uint128;

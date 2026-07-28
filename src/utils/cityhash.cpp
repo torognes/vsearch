@@ -59,17 +59,18 @@
 */
 
 #include "cityhash.hpp"
+#include "utils/view.hpp"
 #include "vendored/city.h"  // CityHash64, CityHash128, uint128
 #include <cstdint>  // uint64_t
 
 
-auto hash_cityhash64(char const * sequence, uint64_t const length) -> uint64_t
+auto hash_cityhash64(View<char> const sequence) -> uint64_t
 {
-  return CityHash64(sequence, length);
+  return CityHash64(sequence.data(), sequence.size());
 }
 
 
-auto hash_cityhash128(char const * sequence, uint64_t const length) -> uint128
+auto hash_cityhash128(View<char> const sequence) -> uint128
 {
-  return CityHash128(sequence, length);
+  return CityHash128(sequence.data(), sequence.size());
 }

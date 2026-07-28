@@ -61,6 +61,7 @@
 #pragma once
 
 #include "core/bitmap.hpp"
+#include "utils/view.hpp"
 #include <cstdint>  // uint64_t
 #include <vector>
 
@@ -76,8 +77,7 @@ struct dbhash_bucket_s
 
 struct dbhash_search_info_s
 {
-  char * seq = nullptr;
-  uint64_t seqlen = 0;
+  View<char> seq;
   uint64_t hash = 0;
   uint64_t index = 0;
 };
@@ -106,11 +106,10 @@ public:
   auto open(uint64_t maxelements) -> void;
   auto clear() -> void;
 
-  auto add(char * seq, uint64_t seqlen, uint64_t seqno, struct Database const & db) -> void;
+  auto add(View<char> seq, uint64_t seqno, struct Database const & db) -> void;
   auto add_all(struct Database const & db, struct Parameters const & parameters) -> void;
 
-  auto search_first(char * seq,
-                    uint64_t seqlen,
+  auto search_first(View<char> seq,
                     struct dbhash_search_info_s * info,
                     struct Database const & db) const -> int64_t;
   auto search_next(struct dbhash_search_info_s * info, struct Database const & db) const -> int64_t;

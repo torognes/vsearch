@@ -954,9 +954,8 @@ auto results_show_samheader(std::FILE * output_handle,
       std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
         {
-          get_hex_seq_digest_md5(md5hex.data(),
-                                 db.getsequence(i),
-                                 static_cast<int>(db.getsequencelen(i)));
+          get_hex_seq_digest_md5(Span<char>{md5hex.data(), md5hex.size()},
+                                 db.sequence_view(i));
           std::fprintf(output_handle,
                   "@SQ\tSN:%s\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
                   db.getheader(i),

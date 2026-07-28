@@ -629,7 +629,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         auto const * seq = input_handle->get_sequence();
         auto const * header = input_handle->get_header();
-        auto const headerlen = input_handle->get_header_length();
         auto const header_v = input_handle->header_view();
         auto const * qual = input_handle->get_quality(); // nullptr if FASTA
 
@@ -650,15 +649,16 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
           collision when the number of sequences is about 5e9.
         */
 
-        auto const hash_header = use_header ? hash_function(header, headerlen) : uint64_t{0};
+        auto const hash_header = use_header ? hash_function(header_v) : uint64_t{0};
 
-        auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen)) ^ hash_header;
+        auto const seq_up_v = View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)};
+        auto const hash = hash_function(seq_up_v) ^ hash_header;
         auto j = hash & hash_mask;
         auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
 
         while ((bp->size != 0U) and
                ((hash != bp->hash) or
-                (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
+                (seqcmp(seq_up_v, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
                 (use_header and (header_v != View<char>{bp->header.data(), bp->header.size()}))))
           {
             j = (j + 1) & hash_mask;
@@ -670,14 +670,15 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             /* no match on plus strand */
             /* check minus strand as well */
 
-            auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen)) ^ hash_header;
+            auto const rc_seq_up_v = View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)};
+            auto const rc_hash = hash_function(rc_seq_up_v) ^ hash_header;
             auto k = rc_hash & hash_mask;
             auto * rc_bp = &hashtable[k];
 
             while ((rc_bp->size != 0U)
                    and
                    ((rc_hash != rc_bp->hash) or
-                    (seqcmp(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{rc_bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
+                    (seqcmp(rc_seq_up_v, View<char>{rc_bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
                     (use_header and (header_v != View<char>{rc_bp->header.data(), rc_bp->header.size()}))))
               {
                 k = (k + 1) & hash_mask;
@@ -1127,13 +1128,14 @@ auto derep_add_sequence(struct derep_session_s * ds,
     }
 
   /* Hash and probe */
-  auto const hash = hash_cityhash64(ds->seq_up.data(), static_cast<uint64_t>(seqlen));
+  auto const seq_up_v = View<char>{ds->seq_up.data(), static_cast<std::size_t>(seqlen)};
+  auto const hash = hash_cityhash64(seq_up_v);
   auto j = hash & ds->hash_mask;
   auto * bp = &ds->hashtable[j];
 
   while ((bp->size != 0U) and
          ((hash != bp->hash) or
-          (seqcmp(View<char>{ds->seq_up.data(), static_cast<std::size_t>(seqlen)}, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0)))
+          (seqcmp(seq_up_v, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0)))
     {
       j = (j + 1) & ds->hash_mask;
       bp = &ds->hashtable[j];

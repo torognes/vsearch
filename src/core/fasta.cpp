@@ -463,11 +463,11 @@ auto fasta_print_general(std::FILE * output_handle,
     }
   else if (parameters.opt_relabel_sha1)
     {
-      fprint_seq_digest_sha1(output_handle, seq, len);
+      fprint_seq_digest_sha1(output_handle, View<char>{seq, static_cast<std::size_t>(len)});
     }
   else if (parameters.opt_relabel_md5)
     {
-      fprint_seq_digest_md5(output_handle, seq, len);
+      fprint_seq_digest_md5(output_handle, View<char>{seq, static_cast<std::size_t>(len)});
     }
   else if ((parameters.opt_relabel != nullptr) and (ordinal > 0))
     {

@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include "utils/span.hpp"
+#include "utils/view.hpp"
 #include <cstdio>  // std::FILE
 
 
@@ -68,8 +70,8 @@ constexpr auto sha1_digest_length = 20;
 constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
 constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
-auto get_hex_seq_digest_sha1(char * hex, char const * seq, int seqlen) -> void;
-auto get_hex_seq_digest_md5(char * hex, char const * seq, int seqlen) -> void;
+auto get_hex_seq_digest_sha1(Span<char> hex, View<char> seq) -> void;
+auto get_hex_seq_digest_md5(Span<char> hex, View<char> seq) -> void;
 
-auto fprint_seq_digest_sha1(std::FILE * output_handle, char const * seq, int seqlen) -> void;
-auto fprint_seq_digest_md5(std::FILE * output_handle, char const * seq, int seqlen) -> void;
+auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> seq) -> void;
+auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> seq) -> void;

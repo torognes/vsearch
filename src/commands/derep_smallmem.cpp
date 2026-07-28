@@ -321,7 +321,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           2^64 (~1.8e19) sequences.
         */
 
-        auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
+        auto const hash = hash_function(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
 
@@ -336,7 +336,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no match on plus strand */
             /* check minus strand as well */
 
-            auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
+            auto const rc_hash = hash_function(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)});
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
 
@@ -523,7 +523,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             reverse_complement(Span<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
           }
 
-        auto const hash = hash_function(seq_up.data(), static_cast<uint64_t>(seqlen));
+        auto const hash = hash_function(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
 
@@ -538,7 +538,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no match on plus strand */
             /* check minus strand as well */
 
-            auto const rc_hash = hash_function(rc_seq_up.data(), static_cast<uint64_t>(seqlen));
+            auto const rc_hash = hash_function(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)});
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
 

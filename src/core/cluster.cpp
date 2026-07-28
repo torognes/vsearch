@@ -367,7 +367,7 @@ struct cluster_work_pool_s
 
 
 namespace {
-auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, struct Parameters const & parameters) -> std::string
+auto relabel_otu(int const clusterno, View<char> const sequence, struct Parameters const & parameters) -> std::string
 {
   if (parameters.opt_relabel != nullptr)
     {
@@ -375,18 +375,18 @@ auto relabel_otu(int const clusterno, char const * sequence, int const seqlen, s
     }
   if (parameters.opt_relabel_self)
     {
-      return {sequence, static_cast<std::size_t>(seqlen)};
+      return {sequence.data(), sequence.size()};
     }
   if (parameters.opt_relabel_sha1)
     {
       std::array<char, len_hex_dig_sha1> digest {{}};
-      get_hex_seq_digest_sha1(digest.data(), sequence, seqlen);
+      get_hex_seq_digest_sha1(Span<char>{digest.data(), digest.size()}, sequence);
       return {digest.data()};
     }
   if (parameters.opt_relabel_md5)
     {
       std::array<char, len_hex_dig_md5> digest {{}};
-      get_hex_seq_digest_md5(digest.data(), sequence, seqlen);
+      get_hex_seq_digest_md5(Span<char>{digest.data(), digest.size()}, sequence);
       return {digest.data()};
     }
   return {};
@@ -410,8 +410,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
           std::string const label = relabel_otu(clusterno,
-                                                 db.getsequence(static_cast<uint64_t>(best->target)),
-                                                 static_cast<int>(db.getsequencelen(static_cast<uint64_t>(best->target))),
+                                                 db.sequence_view(static_cast<uint64_t>(best->target)),
                                                  state.parameters);
           state.otutable.add(query_head, View<char>{label.c_str(), label.size()}, qsize);
         }
@@ -527,7 +526,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
     {
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
-          std::string const label = relabel_otu(clusterno, qsequence.data(), qseqlen, state.parameters);
+          std::string const label = relabel_otu(clusterno, qsequence, state.parameters);
           state.otutable.add(query_head, View<char>{label.c_str(), label.size()}, qsize);
         }
       else

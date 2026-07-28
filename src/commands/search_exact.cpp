@@ -204,14 +204,14 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 {
   dbhash_search_info_s info;
 
-  char const * seq = si->qsequence.data();
-  uint64_t const seqlen = si->qsequence.size();
+  auto const seqlen = si->qsequence.size();
   std::vector<char> normalized(seqlen + 1);
-  string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
+  string_normalize(Span<char>{normalized.data(), seqlen + 1},
+                   View<char>{si->qsequence.data(), seqlen});
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash.search_first(normalized.data(), seqlen, & info, *si->db);
+  int64_t ret = dbhash.search_first(View<char>{normalized.data(), seqlen}, & info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));

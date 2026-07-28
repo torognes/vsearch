@@ -108,23 +108,21 @@ auto Dbhash::clear() -> void
 }
 
 
-auto Dbhash::search_first(char * seq,
-                          uint64_t const seqlen,
+auto Dbhash::search_first(View<char> const seq,
                           struct dbhash_search_info_s * info,
                           struct Database const & db) const -> int64_t
 {
-  auto const hash = hash_cityhash64(seq, seqlen);
+  auto const hash = hash_cityhash64(seq);
   info->hash = hash;
   info->seq = seq;
-  info->seqlen = seqlen;
   auto index = hash & mask_;
   auto const * bp = &table_[index];
 
   while (bitmap_.is_set(static_cast<unsigned int>(index))
          and
          ((bp->hash != hash) or
-          (seqlen != db.getsequencelen(bp->seqno)) or
-          (seqcmp(View<char>{seq, static_cast<std::size_t>(seqlen)}, View<char>{db.getsequence(bp->seqno), static_cast<std::size_t>(seqlen)}) != 0)))
+          (seq.size() != db.getsequencelen(bp->seqno)) or
+          (seqcmp(seq, db.sequence_view(bp->seqno)) != 0)))
     {
       index = (index + 1) & mask_;
       bp = &table_[index];
@@ -143,16 +141,15 @@ auto Dbhash::search_first(char * seq,
 auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database const & db) const -> int64_t
 {
   auto const hash = info->hash;
-  auto const * seq = info->seq;
-  auto const seqlen = info->seqlen;
+  auto const seq = info->seq;
   auto index = (info->index + 1) & mask_;
   auto const * bp = &table_[index];
 
   while (bitmap_.is_set(static_cast<unsigned int>(index))
          and
          ((bp->hash != hash) or
-          (seqlen != db.getsequencelen(bp->seqno)) or
-          (seqcmp(View<char>{seq, static_cast<std::size_t>(seqlen)}, View<char>{db.getsequence(bp->seqno), static_cast<std::size_t>(seqlen)}) != 0)))
+          (seq.size() != db.getsequencelen(bp->seqno)) or
+          (seqcmp(seq, db.sequence_view(bp->seqno)) != 0)))
     {
       index = (index + 1) & mask_;
       bp = &table_[index];
@@ -168,11 +165,11 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
 }
 
 
-auto Dbhash::add(char * seq, uint64_t const seqlen, uint64_t const seqno, struct Database const & db) -> void
+auto Dbhash::add(View<char> const seq, uint64_t const seqno, struct Database const & db) -> void
 {
   struct dbhash_search_info_s info;
 
-  auto ret = search_first(seq, seqlen, &info, db);
+  auto ret = search_first(seq, &info, db);
   while (ret >= 0)
     {
       ret = search_next(&info, db);
@@ -191,10 +188,9 @@ auto Dbhash::add_all(struct Database const & db, struct Parameters const & param
   std::vector<char> normalized(db.getlongestsequence() + 1);
   for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
-      auto const * seq = db.getsequence(seqno);
-      auto const seqlen = db.getsequencelen(seqno);
-      string_normalize(Span<char>{normalized.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
-      add(normalized.data(), seqlen, seqno, db);
+      auto const sequence = db.sequence_view(seqno);
+      string_normalize(Span<char>{normalized.data(), sequence.size() + 1}, sequence);
+      add(View<char>{normalized.data(), sequence.size()}, seqno, db);
       progress.update(seqno + 1);
     }
 }
