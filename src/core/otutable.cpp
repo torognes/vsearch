@@ -71,7 +71,7 @@
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::fputc, std::fputs
 #include <iterator>  // std::next
 #include <map>
 #include <string>
@@ -279,16 +279,16 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
   int64_t progress = 0;
   Progress progress_bar("Writing OTU table (classic)", otu_set_.size(), parameters);
 
-  std::fprintf(output_handle, "#OTU ID");
+  std::fputs("#OTU ID", output_handle);
   for (auto const & it_sample : sample_set_)
     {
       std::fprintf(output_handle, "\t%s", it_sample.c_str());
     }
   if (not otu_tax_map_.empty())
     {
-      std::fprintf(output_handle, "\ttaxonomy");
+      std::fputs("\ttaxonomy", output_handle);
     }
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 
   auto it_map = otu_sample_count_.begin();
   for (auto it_otu = otu_set_.begin();
@@ -313,7 +313,7 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
         }
       if (not otu_tax_map_.empty())
         {
-          std::fprintf(output_handle, "\t");
+          std::fputc('\t', output_handle);
           auto it
             = otu_tax_map_.find(*it_otu);
           if (it != otu_tax_map_.end())
@@ -321,7 +321,7 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
               std::fprintf(output_handle, "%s", it->second.c_str());
             }
         }
-      std::fprintf(output_handle, "\n");
+      std::fputc('\n', output_handle);
       progress_bar.update(static_cast<uint64_t>(++progress));
     }
 }
@@ -332,7 +332,7 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
   int64_t progress = 0;
   Progress progress_bar("Writing OTU table (mothur)", sample_set_.size(), parameters);
 
-  std::fprintf(output_handle, "label\tGroup\tnumOtus");
+  std::fputs("label\tGroup\tnumOtus", output_handle);
   int64_t numotus = 0;
   for (auto const & it_otu : otu_set_)
     {
@@ -340,7 +340,7 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
       std::fprintf(output_handle, "\t%s", otu_name);
       ++numotus;
     }
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 
   auto it_map = sample_otu_count_.begin();
 
@@ -365,7 +365,7 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
           std::fprintf(output_handle, "\t%" PRIu64, a);
         }
 
-      std::fprintf(output_handle, "\n");
+      std::fputc('\n', output_handle);
       progress_bar.update(static_cast<uint64_t>(++progress));
     }
 }
@@ -401,20 +401,20 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
   string_no_map_t otu_no_map;
   uint64_t otu_no = 0;
 
-  std::fprintf(output_handle, "\t\"rows\":[");
+  std::fputs("\t\"rows\":[", output_handle);
   for (auto it_otu = otu_set_.begin();
        it_otu != otu_set_.end();
        ++it_otu)
     {
       if (it_otu != otu_set_.begin())
         {
-          std::fprintf(output_handle, ",");
+          std::fputc(',', output_handle);
         }
       char const * otu_name = it_otu->c_str();
       std::fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
       if (otu_tax_map_.empty())
         {
-          std::fprintf(output_handle, "null");
+          std::fputs("null", output_handle);
         }
       else
         {
@@ -424,40 +424,40 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
             {
               fprintf(output_handle, "%s", it->second.c_str());
             }
-          fprintf(output_handle, "\"}");
+          std::fputs("\"}", output_handle);
         }
-      std::fprintf(output_handle, "}");
+      std::fputc('}', output_handle);
       otu_no_map[*it_otu] = otu_no;
       ++otu_no;
     }
-  std::fprintf(output_handle, "\n");
-  std::fprintf(output_handle, "\t],\n");
+  std::fputc('\n', output_handle);
+  std::fputs("\t],\n", output_handle);
 
   string_no_map_t sample_no_map;
   uint64_t sample_no = 0;
 
-  std::fprintf(output_handle, "\t\"columns\":[");
+  std::fputs("\t\"columns\":[", output_handle);
   for (auto it_sample = sample_set_.begin();
        it_sample != sample_set_.end();
        ++it_sample)
     {
       if (it_sample != sample_set_.begin())
         {
-          std::fprintf(output_handle, ",");
+          std::fputc(',', output_handle);
         }
       std::fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":null}", it_sample->c_str());
       sample_no_map[*it_sample] = sample_no++;
     }
-  std::fprintf(output_handle, "\n\t],\n");
+  std::fputs("\n\t],\n", output_handle);
 
   auto first = true;
-  std::fprintf(output_handle, "\t\"data\": [");
+  std::fputs("\t\"data\": [", output_handle);
 
   for (auto const & it_map : otu_sample_count_)
     {
       if (not first)
         {
-          std::fprintf(output_handle, ",");
+          std::fputc(',', output_handle);
         }
 
       otu_no = otu_no_map[it_map.first.first];
@@ -468,7 +468,7 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
       ++progress;
       progress_bar.update(static_cast<uint64_t>(progress));
     }
-  std::fprintf(output_handle, "\n\t]\n");
+  std::fputs("\n\t]\n", output_handle);
 
-  std::fprintf(output_handle, "}\n");
+  std::fputs("}\n", output_handle);
 }

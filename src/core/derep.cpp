@@ -78,7 +78,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputc, std::fputs
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>
@@ -882,8 +882,7 @@ namespace {
     auto emit = [&](std::FILE * fp) -> void {
       if (stats.clusters < 1)
         {
-          std::fprintf(fp,
-                  "0 unique sequences\n");
+          std::fputs("0 unique sequences\n", fp);
         }
       else
         {

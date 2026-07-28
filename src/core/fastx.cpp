@@ -80,7 +80,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno, std::fputc, std::fputs
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strcmp
 #include <iterator> // std::next, std::distance
@@ -588,8 +588,8 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
               std::fprintf(stderr, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
             }
         }
-      std::fprintf(stderr, "\n");
-      std::fprintf(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
+      std::fputc('\n', stderr);
+      std::fputs("REMINDER: vsearch does not support amino acid sequences\n", stderr);
 
       if (parameters.opt_log != nullptr)
         {
@@ -601,8 +601,8 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
                   std::fprintf(parameters.fp_log, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
                 }
             }
-          std::fprintf(parameters.fp_log, "\n");
-          std::fprintf(parameters.fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
+          std::fputc('\n', parameters.fp_log);
+          std::fputs("REMINDER: vsearch does not support amino acid sequences\n", parameters.fp_log);
         }
     }
 }

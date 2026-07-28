@@ -82,7 +82,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t, std::fputc, std::fputs
 #include <cstring>  // std::strlen
 #include <sys/stat.h>
 #include <vector>
@@ -218,12 +218,12 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
+          std::fputs("WARNING: Labels longer than 1023 characters are not supported\n", stderr);
         }
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
+          std::fputs("WARNING: Labels longer than 1023 characters are not supported\n", parameters.fp_log);
         }
     }
 }
@@ -533,7 +533,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      std::fprintf(stderr, "\n");
+      std::fputc('\n', stderr);
     }
 
   if (parameters.opt_log != nullptr)
@@ -548,7 +548,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      std::fprintf(parameters.fp_log, "\n");
+      std::fputc('\n', parameters.fp_log);
     }
 
   if (parameters.opt_fastaout != nullptr)

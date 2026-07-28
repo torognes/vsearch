@@ -68,7 +68,7 @@
 #include <array>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::printf, std::snprintf
+#include <cstdio>  // std::printf, std::snprintf, std::fputc
 #include <cstring>  // std::memcpy, std::memmove, std::memset
 #include <iterator>  // std::next
 #include <limits>
@@ -545,7 +545,7 @@ auto dprofile_fill16(CELL * dprofile_word,
     {
       for (int z = 0; z < CHANNELS; z++)
         std::fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j * CHANNELS + z]]);
-      std::fprintf(stderr, "\n");
+      std::fputc('\n', stderr);
     }
 #endif
 

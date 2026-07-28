@@ -77,7 +77,7 @@
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputc, std::fputs
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
 
@@ -153,7 +153,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       0,
                       parameters);
 
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 }
 
 
@@ -322,13 +322,13 @@ auto results_show_uc_one(std::FILE * output_handle,
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
-  std::fprintf(output_handle, "\t");
+  std::fputc('\t', output_handle);
   header_fprint_strip(output_handle,
                       db.header_view(target),
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 }
 
 
@@ -352,7 +352,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
     {
       if (c != 0)
         {
-          std::fprintf(output_handle, "\t");
+          std::fputc('\t', output_handle);
         }
 
       auto const field = userfields_requested[c];
@@ -379,7 +379,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           std::fprintf(output_handle, "%s", (hits != nullptr) ? t_head : "*");
           break;
         case 2: /* evalue */
-          std::fprintf(output_handle, "-1");
+          std::fputs("-1", output_handle);
           break;
         case 3: /* id */
           std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id : 0.0);
@@ -487,7 +487,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           break;
         case 28: /* qframe */
         case 29: /* tframe */
-          std::fprintf(output_handle, "+0");
+          std::fputs("+0", output_handle);
           break;
         case 30: /* mism */
           std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->mismatches : 0);
@@ -542,7 +542,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           fatal("Internal error: unknown userfield index in results_show_userout_one");
         }
     }
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 }
 
 
@@ -563,7 +563,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   std::fputc('\t', output_handle);
 
   if (hitcount == 0) {
-    std::fprintf(output_handle, "\n");
+    std::fputc('\n', output_handle);
     return;
   }
 
@@ -671,7 +671,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   /* output results */
 
   if (tophitcount == 0) {
-    std::fprintf(output_handle, "\n");
+    std::fputc('\n', output_handle);
     return;
   }
   auto comma = false;
@@ -695,7 +695,7 @@ auto results_show_lcaout(std::FILE * output_handle,
         }
     }
 
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 }
 
 
@@ -722,7 +722,7 @@ auto results_show_alnout(std::FILE * output_handle,
 
   auto const qseqlen = static_cast<int64_t>(qsequence.size());
 
-  std::fprintf(output_handle, "\n");
+  std::fputc('\n', output_handle);
 
   std::fputs("Query >", output_handle);
   fprint(output_handle, query_head);
@@ -756,7 +756,7 @@ auto results_show_alnout(std::FILE * output_handle,
           break;
         }
 
-      std::fprintf(output_handle,"\n");
+      std::fputc('\n', output_handle);
 
 
       auto const target = static_cast<uint64_t>(hp->target);
@@ -950,7 +950,7 @@ auto results_show_samheader(std::FILE * output_handle,
 {
   if ((parameters.opt_samout != nullptr) and parameters.opt_samheader)
     {
-      std::fprintf(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
+      std::fputs("@HD\tVN:1.0\tSO:unsorted\tGO:query\n", output_handle);
 
       std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
