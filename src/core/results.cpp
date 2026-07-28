@@ -71,6 +71,7 @@
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::max
 #include <array>
@@ -250,8 +251,8 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   */
 
   if (hits == nullptr) {
-    std::fprintf(output_handle, "%.*s\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n",
-                 static_cast<int>(query_head.size()), query_head.data());
+    fprint(output_handle, query_head);
+    std::fputs("\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", output_handle);
     return;
   }
   // if 'hp->strand' then 'minus strand' else 'plus strand'
@@ -259,11 +260,11 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   int const qstart = (hits->strand != 0) ? static_cast<int>(qseqlen) : 1;
   int const qend = (hits->strand != 0) ? 1 : static_cast<int>(qseqlen);
 
+  fprint(output_handle, query_head);
+  std::fputc('\t', output_handle);
+  fprint(output_handle, db.header_view(target));
   std::fprintf(output_handle,
-          "%.*s\t%s\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
-          static_cast<int>(query_head.size()),
-          query_head.data(),
-          db.getheader(target),
+          "\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
           hits->id,
           hits->internal_alignmentlength,
           hits->mismatches,
@@ -302,8 +303,9 @@ auto results_show_uc_one(std::FILE * output_handle,
   */
 
   if (hits == nullptr) {
-    std::fprintf(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t%.*s\t*\n",
-                 static_cast<int>(query_head.size()), query_head.data());
+    std::fputs("N\t*\t*\t*\t.\t*\t*\t*\t", output_handle);
+    fprint(output_handle, query_head);
+    std::fputs("\t*\n", output_handle);
     return;
   }
 
@@ -373,8 +375,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
       switch (field)
         {
         case 0: /* query */
-          std::fprintf(output_handle, "%.*s",
-                       static_cast<int>(query_head.size()), query_head.data());
+          fprint(output_handle, query_head);
           break;
         case 1: /* target */
           std::fprintf(output_handle, "%s", (hits != nullptr) ? t_head : "*");
@@ -470,9 +471,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
               auto const qrow = get_alignment_qrow(query,
                                              View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                              hits->nwalignmentlength);
-              std::fprintf(output_handle, "%.*s",
-                      hits->internal_alignmentlength,
-                      &qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)]);
+              fprint(output_handle,
+                     View<char>{&qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
+                                static_cast<std::size_t>(hits->internal_alignmentlength)});
             }
           break;
         case 27: /* trow */
@@ -481,9 +482,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
               auto const trow = get_alignment_trow(tsequence,
                                              View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
                                              hits->nwalignmentlength);
-              std::fprintf(output_handle, "%.*s",
-                      hits->internal_alignmentlength,
-                      &trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)]);
+              fprint(output_handle,
+                     View<char>{&trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
+                                static_cast<std::size_t>(hits->internal_alignmentlength)});
             }
           break;
         case 28: /* qframe */
@@ -560,8 +561,8 @@ auto results_show_lcaout(std::FILE * output_handle,
   /* Use a modified Boyer-Moore majority voting algorithm at each taxonomic
      level to find the most common name at each level */
 
-  std::fprintf(output_handle, "%.*s\t",
-               static_cast<int>(query_head.size()), query_head.data());
+  fprint(output_handle, query_head);
+  std::fputc('\t', output_handle);
 
   if (hitcount == 0) {
     std::fprintf(output_handle, "\n");
@@ -685,12 +686,13 @@ auto results_show_lcaout(std::FILE * output_handle,
 
       if (cand_level_len[j][j] > 0)
         {
-          std::fprintf(output_handle,
-                  "%s%c:%.*s",
+          std::fprintf(output_handle, "%s%c:",
                   (comma ? "," : ""),
-                  taxonomic_fields[j],
-                  cand_level_len[j][j],
-                  db.getheader(static_cast<uint64_t>(cand[j])) + cand_level_start[j][j]);
+                  taxonomic_fields[j]);
+          fprint(output_handle,
+                 db.header_view(static_cast<uint64_t>(cand[j]))
+                   .subspan(static_cast<std::size_t>(cand_level_start[j][j]),
+                            static_cast<std::size_t>(cand_level_len[j][j])));
           comma = true;
         }
     }
@@ -709,13 +711,13 @@ auto results_show_alnout(std::FILE * output_handle,
 {
   /* http://drive5.com/usearch/manual/alnout.html */
 
-  auto const head_len = static_cast<int>(query_head.size());
 
   if (hitcount == 0) {
     if (parameters.opt_output_no_hits != 0) {
-      std::fprintf(output_handle, "\n");
-      std::fprintf(output_handle,"Query >%.*s\n", head_len, query_head.data());
-      std::fprintf(output_handle, "No hits\n");
+      std::fputc('\n', output_handle);
+      std::fputs("Query >", output_handle);
+      fprint(output_handle, query_head);
+      std::fputs("\nNo hits\n", output_handle);
     }
     return;
   }
@@ -724,8 +726,9 @@ auto results_show_alnout(std::FILE * output_handle,
 
   std::fprintf(output_handle, "\n");
 
-  std::fprintf(output_handle,"Query >%.*s\n", head_len, query_head.data());
-  std::fprintf(output_handle," %%Id   TLen  Target\n");
+  std::fputs("Query >", output_handle);
+  fprint(output_handle, query_head);
+  std::fputs("\n %Id   TLen  Target\n", output_handle);
 
   auto const top_hit_id = hits[0].id;
 
@@ -739,10 +742,11 @@ auto results_show_alnout(std::FILE * output_handle,
         }
 
       auto const target = static_cast<uint64_t>(hp->target);
-      std::fprintf(output_handle,"%3.0f%% %6" PRIu64 "  %s\n",
+      std::fprintf(output_handle,"%3.0f%% %6" PRIu64 "  ",
               hp->id,
-              db.getsequencelen(target),
-              db.getheader(target));
+              db.getsequencelen(target));
+      fprint(output_handle, db.header_view(target));
+      std::fputc('\n', output_handle);
     }
 
   for (auto t = 0; t < hitcount; ++t)
@@ -764,10 +768,11 @@ auto results_show_alnout(std::FILE * output_handle,
       auto const tlenlen = std::to_string(dseqlen).size();
       auto const numwidth = static_cast<int>(std::max(qlenlen, tlenlen));
 
-      std::fprintf(output_handle," Query %*" PRId64 "nt >%.*s\n", numwidth,
-              qseqlen, head_len, query_head.data());
-      std::fprintf(output_handle,"Target %*" PRId64 "nt >%s\n", numwidth,
-              dseqlen, db.getheader(target));
+      std::fprintf(output_handle," Query %*" PRId64 "nt >", numwidth, qseqlen);
+      fprint(output_handle, query_head);
+      std::fprintf(output_handle,"\nTarget %*" PRId64 "nt >", numwidth, dseqlen);
+      fprint(output_handle, db.header_view(target));
+      std::fputc('\n', output_handle);
 
       int64_t const rowlen = (parameters.opt_rowlen == 0) ? (qseqlen + dseqlen) : parameters.opt_rowlen;
 
@@ -954,9 +959,10 @@ auto results_show_samheader(std::FILE * output_handle,
         {
           get_hex_seq_digest_md5(Span<char>{md5hex.data(), md5hex.size()},
                                  db.sequence_view(i));
+          std::fputs("@SQ\tSN:", output_handle);
+          fprint(output_handle, db.header_view(i));
           std::fprintf(output_handle,
-                  "@SQ\tSN:%s\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
-                  db.getheader(i),
+                  "\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
                   db.getsequencelen(i),
                   md5hex.data(),
                   dbname);
@@ -1017,14 +1023,12 @@ auto results_show_samout(std::FILE * output_handle,
 
   */
 
-  auto const head_len = static_cast<int>(query_head.size());
 
   if (hitcount == 0) {
     if (parameters.opt_output_no_hits != 0) {
+      fprint(output_handle, query_head);
       std::fprintf(output_handle,
-              "%.*s\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.*s\t%s\n",
-              head_len,
-              query_head.data(),
+              "\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t",
               0x04,
               "*",
               static_cast<uint64_t>(0),
@@ -1032,10 +1036,9 @@ auto results_show_samout(std::FILE * output_handle,
               "*",
               "*",
               static_cast<uint64_t>(0),
-              static_cast<uint64_t>(0),
-              static_cast<int>(qsequence.size()),
-              qsequence.data(),
-              "*");
+              static_cast<uint64_t>(0));
+      fprint(output_handle, qsequence);
+      std::fputs("\t*\n", output_handle);
     }
     return;
   }
@@ -1063,25 +1066,25 @@ auto results_show_samout(std::FILE * output_handle,
                         cigar,
                         md);
 
+      fprint(output_handle, query_head);
+      std::fprintf(output_handle, "\t%d\t",
+              (0x10 * hp->strand) | (t > 0 ? 0x100 : 0));
+      fprint(output_handle, db.header_view(target));
       std::fprintf(output_handle,
-              "%.*s\t%d\t%s\t%" PRIu64
-              "\t%d\t%s\t%s\t%" PRIu64
               "\t%" PRIu64
-              "\t%.*s\t%s\t"
-              "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
-              "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
-              head_len,
-              query_head.data(),
-              (0x10 * hp->strand) | (t > 0 ? 0x100 : 0),
-              db.getheader(target),
+              "\t%d\t%s\t%s\t%" PRIu64
+              "\t%" PRIu64 "\t",
               static_cast<uint64_t>(1),
               255,
               cigar.c_str(),
               "*",
               static_cast<uint64_t>(0),
-              static_cast<uint64_t>(0),
-              static_cast<int>(query.size()),
-              query.data(),
+              static_cast<uint64_t>(0));
+      fprint(output_handle, query);
+      std::fprintf(output_handle,
+              "\t%s\t"
+              "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
+              "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
               "*",
               hp->id,
               0,

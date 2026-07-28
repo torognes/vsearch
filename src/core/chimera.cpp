@@ -84,6 +84,7 @@
 #include "utils/span.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::copy, std::fill, std::fill_n, std::max, std::max_element, std::min, std::sort, std::transform
 #include <array>
 #include <cassert>
@@ -291,6 +292,39 @@ namespace {
     assert(destination.size() > source.size());
     std::copy(source.cbegin(), source.cend(), destination.begin());
     destination[source.size()] = '\0';
+  }
+
+  /* Store a label in one of the library result struct's fixed-size char
+     arrays, truncating it if it does not fit and always terminating it -- the
+     same contract snprintf("%.*s") had, expressed once here instead of at each
+     of the seven sites, and without narrowing the length to the int that the
+     "%.*s" precision requires. */
+  auto copy_label(char * label, std::size_t const capacity, View<char> const text) -> void {
+    assert(capacity > 0);
+    auto const stored = std::min(text.size(), capacity - 1);
+    std::copy_n(text.cbegin(), stored, label);
+    label[stored] = '\0';
+  }
+
+  /* One sequence row of an alignment block in the --uchimealns report: a
+     one-character label ('Q', 'A', 'B'), the row's start position, one block's
+     worth of the row, then its end position. The row is a window into a longer
+     buffer and is not terminated at the block's width, hence the View. */
+  auto print_alignment_row(std::FILE * output_handle, char const label,
+                           int const start, View<char> const row,
+                           int const end) -> void {
+    std::fprintf(output_handle, "%c %5d ", label, start);
+    fprint(output_handle, row);
+    std::fprintf(output_handle, " %d\n", end);
+  }
+
+  /* An annotation row of the same block (Diffs, Votes, Model): no positions,
+     just the name padded to the width of the label column above. */
+  auto print_annotation_row(std::FILE * output_handle, char const * padded_name,
+                            View<char> const row) -> void {
+    std::fputs(padded_name, output_handle);
+    fprint(output_handle, row);
+    std::fputc('\n', output_handle);
   }
 
 }  // end of anonymous namespace
@@ -1051,23 +1085,15 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
     {
       auto * r = ci->result_out;
       r->score = 99.9999;  /* chimeras_denovo always reports chimeric */
-      std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
-                    ci->query_head_len, ci->query_head.data());
-      std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                    static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
-      std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                    static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
+      auto const parent_a_header = db.header_view(static_cast<uint64_t>(seqno_a));
+      auto const parent_b_header = db.header_view(static_cast<uint64_t>(seqno_b));
+      copy_label(r->query_label, sizeof(r->query_label),
+                 View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)});
+      copy_label(r->parent_a_label, sizeof(r->parent_a_label), parent_a_header);
+      copy_label(r->parent_b_label, sizeof(r->parent_b_label), parent_b_header);
       /* closest parent = max of QA, QB */
-      if (QA >= QB)
-        {
-          std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
-        }
-      else
-        {
-          std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                        "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
-        }
+      copy_label(r->closest_parent_label, sizeof(r->closest_parent_label),
+                 (QA >= QB) ? parent_a_header : parent_b_header);
       r->id_query_model = QM;
       r->id_query_a = QA;
       r->id_query_b = QB;
@@ -1154,19 +1180,22 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
               }
             }
 
-          std::fprintf(cli->fp_uchimealns, "Q %5d %.*s %d\n",
-                  qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
+          print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1,
+                  View<char>{&ci->qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)}, qpos + qnt);
 
           for (int f = 0; f < ci->parents_found; ++f)
             {
-              std::fprintf(cli->fp_uchimealns, "%c %5d %.*s %d\n",
-                      'A' + f,
-                      ppos[static_cast<size_t>(f)] + 1, w, &ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
+              print_alignment_row(cli->fp_uchimealns, static_cast<char>('A' + f),
+                      ppos[static_cast<size_t>(f)] + 1,
+                      View<char>{&ci->paln[static_cast<size_t>(f)][static_cast<size_t>(i)], static_cast<std::size_t>(w)},
+                      ppos[static_cast<size_t>(f)] + pnt[static_cast<size_t>(f)]);
             }
 
-          std::fprintf(cli->fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
-          std::fprintf(cli->fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
-          std::fprintf(cli->fp_uchimealns, "\n");
+          print_annotation_row(cli->fp_uchimealns, "Diffs   ",
+                  View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          print_annotation_row(cli->fp_uchimealns, "Model   ",
+                  View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+          std::fputc('\n', cli->fp_uchimealns);
 
           rest -= width;
           qpos += qnt;
@@ -1651,22 +1680,14 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
         {
           auto * r = ci->result_out;
           r->score = best_h;
-          std::snprintf(r->query_label, sizeof(r->query_label), "%.*s",
-                        ci->query_head_len, ci->query_head.data());
-          std::snprintf(r->parent_a_label, sizeof(r->parent_a_label), "%.*s",
-                        static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
-          std::snprintf(r->parent_b_label, sizeof(r->parent_b_label), "%.*s",
-                        static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
-          if (QA >= QB)
-            {
-              std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_a))), db.getheader(static_cast<uint64_t>(seqno_a)));
-            }
-          else
-            {
-              std::snprintf(r->closest_parent_label, sizeof(r->closest_parent_label),
-                            "%.*s", static_cast<int>(db.getheaderlen(static_cast<uint64_t>(seqno_b))), db.getheader(static_cast<uint64_t>(seqno_b)));
-            }
+          auto const parent_a_header = db.header_view(static_cast<uint64_t>(seqno_a));
+          auto const parent_b_header = db.header_view(static_cast<uint64_t>(seqno_b));
+          copy_label(r->query_label, sizeof(r->query_label),
+                     View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)});
+          copy_label(r->parent_a_label, sizeof(r->parent_a_label), parent_a_header);
+          copy_label(r->parent_b_label, sizeof(r->parent_b_label), parent_b_header);
+          copy_label(r->closest_parent_label, sizeof(r->closest_parent_label),
+                     (QA >= QB) ? parent_a_header : parent_b_header);
           r->id_query_model = QM;
           r->id_query_a = QA;
           r->id_query_b = QB;
@@ -1757,29 +1778,30 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                     }
                 }
 
+              auto const parent_a_row = View<char>{&ci->paln[0][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+              auto const parent_b_row = View<char>{&ci->paln[1][static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+              auto const query_row = View<char>{&ci->qaln[static_cast<size_t>(i)], static_cast<std::size_t>(w)};
+
               if (not best_is_reverse)
                 {
-                  std::fprintf(cli->fp_uchimealns, "A %5d %.*s %d\n",
-                          p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
-                  std::fprintf(cli->fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
-                  std::fprintf(cli->fp_uchimealns, "B %5d %.*s %d\n",
-                          p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
+                  print_alignment_row(cli->fp_uchimealns, 'A', p1pos + 1, parent_a_row, p1pos + p1nt);
+                  print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
+                  print_alignment_row(cli->fp_uchimealns, 'B', p2pos + 1, parent_b_row, p2pos + p2nt);
                 }
               else
                 {
-                  std::fprintf(cli->fp_uchimealns, "A %5d %.*s %d\n",
-                          p2pos + 1, w, &ci->paln[1][static_cast<size_t>(i)], p2pos + p2nt);
-                  std::fprintf(cli->fp_uchimealns, "Q %5d %.*s %d\n",
-                          qpos + 1, w, &ci->qaln[static_cast<size_t>(i)], qpos + qnt);
-                  std::fprintf(cli->fp_uchimealns, "B %5d %.*s %d\n",
-                          p1pos + 1, w, &ci->paln[0][static_cast<size_t>(i)], p1pos + p1nt);
+                  print_alignment_row(cli->fp_uchimealns, 'A', p2pos + 1, parent_b_row, p2pos + p2nt);
+                  print_alignment_row(cli->fp_uchimealns, 'Q', qpos + 1, query_row, qpos + qnt);
+                  print_alignment_row(cli->fp_uchimealns, 'B', p1pos + 1, parent_a_row, p1pos + p1nt);
                 }
 
-              std::fprintf(cli->fp_uchimealns, "Diffs   %.*s\n", w, &ci->diffs[static_cast<size_t>(i)]);
-              std::fprintf(cli->fp_uchimealns, "Votes   %.*s\n", w, &ci->votes[static_cast<size_t>(i)]);
-              std::fprintf(cli->fp_uchimealns, "Model   %.*s\n", w, &ci->model[static_cast<size_t>(i)]);
-              std::fprintf(cli->fp_uchimealns, "\n");
+              print_annotation_row(cli->fp_uchimealns, "Diffs   ",
+                      View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+              print_annotation_row(cli->fp_uchimealns, "Votes   ",
+                      View<char>{&ci->votes[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+              print_annotation_row(cli->fp_uchimealns, "Model   ",
+                      View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
+              std::fputc('\n', cli->fp_uchimealns);
 
               qpos += qnt;
               p1pos += p1nt;
@@ -2894,8 +2916,8 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   if (status == Status::no_parents)
     {
       /* Populate result for no-parents case */
-      std::snprintf(result->query_label, sizeof(result->query_label), "%.*s",
-                    ci->query_head_len, ci->query_head.data());
+      copy_label(result->query_label, sizeof(result->query_label),
+                 View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)});
       result->flag = 'N';
     }
 

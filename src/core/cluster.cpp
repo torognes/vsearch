@@ -1682,10 +1682,10 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->cluster_id = cs->centroid_cluster_ids.at(best->target);
       result->centroid_seqno = best->target;
       result->identity = best->id;
+      auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(best->target));
       std::snprintf(result->centroid_label, sizeof(result->centroid_label),
                     "%.*s",
-                    static_cast<int>(cs->db->getheaderlen(static_cast<uint64_t>(best->target))),
-                    cs->db->getheader(static_cast<uint64_t>(best->target)));
+                    static_cast<int>(centroid_header.size()), centroid_header.data());
       if (not best->nwalignment.empty())
         {
           int const n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
@@ -1701,10 +1701,10 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->cluster_id = cs->cluster_count;
       result->centroid_seqno = seqno;
       result->identity = 100.0;
+      auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(seqno));
       std::snprintf(result->centroid_label, sizeof(result->centroid_label),
                     "%.*s",
-                    static_cast<int>(cs->db->getheaderlen(static_cast<uint64_t>(seqno))),
-                    cs->db->getheader(static_cast<uint64_t>(seqno)));
+                    static_cast<int>(centroid_header.size()), centroid_header.data());
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
       cs->dbindex->add_sequence(static_cast<unsigned int>(seqno), parameters.opt_qmask, *cs->db);
@@ -1834,11 +1834,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                 cs->centroid_cluster_ids.at(best->target);
               results[ri].centroid_seqno = best->target;
               results[ri].identity = best->id;
+              auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(best->target));
               std::snprintf(results[ri].centroid_label,
                             sizeof(results[ri].centroid_label),
                             "%.*s",
-                            static_cast<int>(cs->db->getheaderlen(static_cast<uint64_t>(best->target))),
-                            cs->db->getheader(static_cast<uint64_t>(best->target)));
+                            static_cast<int>(centroid_header.size()), centroid_header.data());
               if (not best->nwalignment.empty())
                 {
                   int const n = std::snprintf(results[ri].cigar,
@@ -1858,11 +1858,11 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               results[ri].cluster_id = cs->cluster_count;
               results[ri].centroid_seqno = myseqno;
               results[ri].identity = 100.0;
+              auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(myseqno));
               std::snprintf(results[ri].centroid_label,
                             sizeof(results[ri].centroid_label),
                             "%.*s",
-                            static_cast<int>(cs->db->getheaderlen(static_cast<uint64_t>(myseqno))),
-                            cs->db->getheader(static_cast<uint64_t>(myseqno)));
+                            static_cast<int>(centroid_header.size()), centroid_header.data());
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
               cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), parameters.opt_qmask, *cs->db);
