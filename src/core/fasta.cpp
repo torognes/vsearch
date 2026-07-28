@@ -422,9 +422,13 @@ inline auto fprint_seq_label(std::FILE * output_handle, char const * seq, int co
 // handles 64-bit lengths, but a single sequence longer than INT_MAX would
 // still be mis-annotated / mis-hashed and its relabel_self label truncated.
 // Widening this interface (and its ~15 callers, the digest chain and the
-// fastq equivalent) is the deferred S5 Tier-2 sweep; see CODE_REVIEW.md.
-// Reachable only with a >2 GB single sequence and --maxseqlength raised, and
-// read-only (wrong output, no corruption).
+// fastq equivalent) is deferred. Not reachable from the command line:
+// --maxseqlength is itself capped at INT_MAX - buffer_headroom (cli.cc),
+// fastx_filter_sequence_length rejects a longer sequence on every FASTA/FASTQ
+// read whatever that option says, and udb_read rejects one in a UDB file.
+// Still reachable through Database::add(), which does not check the length, so
+// a library caller building a database directly can get here; read-only (wrong
+// output, no corruption).
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          char const * seq,
