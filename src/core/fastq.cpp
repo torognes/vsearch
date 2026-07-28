@@ -66,7 +66,6 @@
 #include "utils/fatal.hpp"
 #include "utils/sequence_digest.hpp"
 #include <array>
-#include <algorithm>  // std::equal
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
@@ -476,9 +475,7 @@ auto fastq_next(fastx_handle input_handle,
   auto plusline_invalid = false;
   if (input_handle->header_buffer.length == input_handle->plusline_buffer.length)
     {
-      if (not std::equal(input_handle->header_buffer.data(),
-                 input_handle->header_buffer.data() + input_handle->header_buffer.length,
-                  input_handle->plusline_buffer.data()))
+      if (input_handle->header_buffer.view() != input_handle->plusline_buffer.view())
         {
           plusline_invalid = true;
         }

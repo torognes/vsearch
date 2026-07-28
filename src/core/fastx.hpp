@@ -97,6 +97,9 @@ public:
   auto data() noexcept -> char * { return storage_.data(); }
   auto data() const noexcept -> char const * { return storage_.data(); }
   auto alloc() const noexcept -> uint64_t { return storage_.size(); }
+  /* the bytes in use as a single read-only window, for callers that scan or
+     compare the whole buffer instead of indexing into it */
+  auto view() const noexcept -> View<char> { return View<char>{data(), length}; }
 
   /* Reset to a single empty, NUL-terminated block (former buffer_init). */
   auto init() -> void;
