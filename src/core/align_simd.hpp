@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "utils/view.hpp"
 #include <cstdint>  // int64_t
 #include <string>  // std::string
 
@@ -94,7 +95,7 @@ auto search16_init(int64_t score_match,
 auto search16_exit(s16info_s * searchinfo) -> void;
 
 
-auto search16_qprep(s16info_s * searchinfo, char * qseq, int qlen) -> void;
+auto search16_qprep(s16info_s * searchinfo, View<char> qseq) -> void;
 
 
 auto search16(s16info_s * searchinfo,

@@ -63,8 +63,10 @@
 #include "core/db.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"
+#include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
 #include <array>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::printf, std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset
@@ -419,7 +421,7 @@ struct s16info_s
   std::vector<VECTOR_SHORT, FatalAllocator<VECTOR_SHORT>> dprofile;
   std::vector<VECTOR_SHORT *, FatalAllocator<VECTOR_SHORT *>> qtable;  /* each entry points into dprofile (fixed size) */
   std::vector<unsigned short, FatalAllocator<unsigned short>> dir;
-  char * qseq = nullptr;  /* borrowed query (not owned) */
+  View<char> qseq;  /* borrowed query (not owned) */
   uint64_t diralloc = 0;
 
   std::vector<char, FatalAllocator<char>> cigar;
@@ -428,7 +430,6 @@ struct s16info_s
   int opcount = 0;
   char op = '\0';
 
-  int qlen = 0;
   int maxdlen = 0;
   CELL penalty_gap_open_query_left = 0;
   CELL penalty_gap_open_target_left = 0;
@@ -1064,9 +1065,9 @@ auto backtrack16(s16info_s * s,
                  unsigned short * pgaps) -> void
 {
   unsigned short const * dirbuffer = s->dir.data();
-  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * static_cast<uint64_t>(s->maxdlen) * 4;
-  auto const qlen = static_cast<uint64_t>(s->qlen);
-  char const * qseq = s->qseq;
+  uint64_t const qlen = s->qseq.size();
+  uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s->maxdlen) * 4;
+  auto const qseq = s->qseq;
 
   uint64_t const maskup      = 3ULL << ((2 * channel) + 0);
   uint64_t const maskleft    = 3ULL << ((2 * channel) + 16);
@@ -1141,7 +1142,7 @@ auto backtrack16(s16info_s * s,
   int64_t i = static_cast<int64_t>(qlen) - 1;
   int64_t j = static_cast<int64_t>(dlen) - 1;
 
-  s->cigarend = s->cigar.data() + s->qlen + s->maxdlen + 1;
+  s->cigarend = s->cigar.data() + s->qseq.size() + s->maxdlen + 1;
   s->op = 0;
   s->opcount = 1;
 
@@ -1192,9 +1193,9 @@ auto backtrack16(s16info_s * s,
         }
       else
         {
-          if (is_equivalent_4bit(qseq[i], dseq[j]))
+          if (is_equivalent_4bit(qseq[static_cast<std::size_t>(i)], dseq[j]))
             {
-              if (s->n_mismatch and ((map_4bit(qseq[i]) == 15) or
+              if (s->n_mismatch and ((map_4bit(qseq[static_cast<std::size_t>(i)]) == 15) or
                                      (map_4bit(dseq[j]) == 15)))
                 {
                   ++mismatches;
@@ -1239,7 +1240,7 @@ auto backtrack16(s16info_s * s,
   finishop(s);
 
   /* move cigar to beginning of allocated memory area */
-  int const cigarlen = static_cast<int>(s->cigar.data() + s->qlen + s->maxdlen - s->cigarend);
+  int const cigarlen = static_cast<int>(s->cigar.data() + s->qseq.size() + s->maxdlen - s->cigarend);
   std::memmove(s->cigar.data(), s->cigarend, static_cast<size_t>(cigarlen + 1));
 
   * paligned = aligned;
@@ -1378,19 +1379,20 @@ auto search16_exit(s16info_s * s) -> void
 }
 
 
-auto search16_qprep(s16info_s * s, char * qseq, int const qlen) -> void
+auto search16_qprep(s16info_s * s, View<char> const qseq) -> void
 {
-  s->qlen = qlen;
   s->qseq = qseq;
 
-  s->hearray.resize(2 * static_cast<std::size_t>(s->qlen));
+  s->hearray.resize(2 * qseq.size());
   std::memset(s->hearray.data(), 0, s->hearray.size() * sizeof(VECTOR_SHORT));
 
-  s->qtable.resize(static_cast<std::size_t>(s->qlen));
+  s->qtable.resize(qseq.size());
 
-  for (int i = 0; i < qlen; i++)
+  std::size_t position = 0;
+  for (auto const nucleotide : qseq)
     {
-      s->qtable[static_cast<std::size_t>(i)] = s->dprofile.data() + (4 * map_4bit(qseq[i]));
+      s->qtable[position] = s->dprofile.data() + (4 * map_4bit(nucleotide));
+      ++position;
     }
 }
 
@@ -1425,7 +1427,7 @@ auto search16(s16info_s * s,
   CELL ** q_start = reinterpret_cast<CELL **>(s->qtable.data());
   CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile.data());
   CELL * hearray = reinterpret_cast<CELL *>(s->hearray.data());
-  auto const qlen = static_cast<uint64_t>(s->qlen);
+  uint64_t const qlen = s->qseq.size();
 
   if (s->force_scalar_fallback)
     {
@@ -1504,14 +1506,14 @@ auto search16(s16info_s * s,
     {
       uint64_t const dlen = db.getsequencelen(seqnos[i]);
       /* skip sequences the SIMD aligner cannot handle (product/sum limits) */
-      if (search16_fits(static_cast<uint64_t>(s->qlen), dlen))
+      if (search16_fits(qlen, dlen))
         {
           maxdlen = std::max(dlen, maxdlen);
         }
     }
   maxdlen = 4 * ((maxdlen + 3) / 4);
   s->maxdlen = static_cast<int>(maxdlen);
-  uint64_t const dirbuffersize = static_cast<uint64_t>(s->qlen) * static_cast<uint64_t>(s->maxdlen) * 4;
+  uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s->maxdlen) * 4;
 
   if (dirbuffersize > s->diralloc)
     {
@@ -1521,9 +1523,9 @@ auto search16(s16info_s * s,
 
   unsigned short * dirbuffer = s->dir.data();
 
-  if (s->qlen + s->maxdlen + 1 > s->cigaralloc)
+  if (static_cast<int64_t>(qlen) + s->maxdlen + 1 > s->cigaralloc)
     {
-      s->cigaralloc = s->qlen + s->maxdlen + 1;
+      s->cigaralloc = static_cast<int64_t>(qlen) + s->maxdlen + 1;
       s->cigar.resize(static_cast<size_t>(s->cigaralloc));
     }
 
@@ -1817,7 +1819,7 @@ auto search16(s16info_s * s,
                     {
                       cand_id = static_cast<int64_t>(next_id++);
                       length = static_cast<int64_t>(db.getsequencelen(seqnos[cand_id]));
-                      if ((length == 0) or (not search16_fits(static_cast<uint64_t>(s->qlen), static_cast<uint64_t>(length))))
+                      if ((length == 0) or (not search16_fits(qlen, static_cast<uint64_t>(length))))
                         {
                           pscores[cand_id] = std::numeric_limits<short>::max();
                           paligned[cand_id] = 0;

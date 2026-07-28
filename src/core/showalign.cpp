@@ -102,8 +102,7 @@ namespace {
 
 
   struct Sequence {
-    char const * sequence = nullptr;
-    int64_t length = 0;
+    View<char> sequence;
     int64_t offset = 0;
     char const * name = nullptr;
   };
@@ -181,7 +180,7 @@ namespace {
 
 
   auto get_query_nucleotide(Alignment const & alignment, Position const & position) -> char {
-    auto const nucleotide = *std::next(alignment.query.sequence, position.query);
+    auto const nucleotide = alignment.query.sequence[static_cast<std::size_t>(position.query)];
     if (alignment.is_reverse_strand) {
       return map_complement(nucleotide);
     }
@@ -190,16 +189,16 @@ namespace {
 
 
   auto get_target_nucleotide(Alignment const & alignment, Position const & position) -> char {
-    return *std::next(alignment.target.sequence, position.target);
+    return alignment.target.sequence[static_cast<std::size_t>(position.target)];
   }
 
 
   auto print_alignment_block(Alignment const & alignment, Position const & position,
                              AlignmentRows const & rows) -> void {
     // current query and target starting and ending positions
-    auto const query_start = std::min(position.query_start + 1, alignment.query.length);
+    auto const query_start = std::min(position.query_start + 1, static_cast<int64_t>(alignment.query.sequence.size()));
     auto const query_end = alignment.is_reverse_strand ? position.query + 2 : position.query;
-    auto const target_start = std::min(position.target_start + 1, alignment.target.length);
+    auto const target_start = std::min(position.target_start + 1, static_cast<int64_t>(alignment.target.sequence.size()));
     auto const target_end = position.target;
 
     static_cast<void>(
@@ -303,16 +302,13 @@ namespace {
 
 
 auto align_show(std::FILE * output_handle,
-                char const * seq1,
-                int64_t const seq1len,
+                View<char> const seq1,
                 int64_t const seq1off,
                 char const * seq1name,
-                char const * seq2,
-                int64_t const seq2len,
+                View<char> const seq2,
                 int64_t const seq2off,
                 char const * seq2name,
-                char const * cigar,
-                int64_t const cigarlen,
+                View<char> const cigar,
                 int const numwidth,
                 int const namewidth,
                 int64_t const alignwidth,
@@ -323,11 +319,9 @@ auto align_show(std::FILE * output_handle,
   Alignment alignment;
   alignment.output_handle = output_handle;
   alignment.query.sequence = seq1;
-  alignment.query.length = seq1len;
   alignment.query.offset = seq1off;
   alignment.query.name = seq1name;
   alignment.target.sequence = seq2;
-  alignment.target.length = seq2len;
   alignment.target.offset = seq2off;
   alignment.target.name = seq2name;
   alignment.width = alignwidth;
@@ -340,8 +334,8 @@ auto align_show(std::FILE * output_handle,
   // default member initializers
   // Alignment const alignment = {
   //   output_handle,
-  //   {seq1, seq1len, seq1off, seq1name},
-  //   {seq2, seq2len, seq2off, seq2name},
+  //   {seq1, seq1off, seq1name},
+  //   {seq2, seq2off, seq2name},
   //   numwidth,
   //   namewidth,
   //   alignwidth,
@@ -349,7 +343,9 @@ auto align_show(std::FILE * output_handle,
   // };
 
   Position position;
-  position.query = alignment.is_reverse_strand ? alignment.query.length - 1 - alignment.query.offset : alignment.query.offset;
+  position.query = alignment.is_reverse_strand
+    ? static_cast<int64_t>(alignment.query.sequence.size()) - 1 - alignment.query.offset
+    : alignment.query.offset;
   position.target = alignment.target.offset;
   position.query_start = position.query;
   position.target_start = position.target;
@@ -359,8 +355,8 @@ auto align_show(std::FILE * output_handle,
   rows.symbols.resize(static_cast<size_t>(alignment.width) + 1);
   rows.target.resize(static_cast<size_t>(alignment.width) + 1);
 
-  // cigar string can be trimmed (left and right): cigarlen maybe != std::strlen(cigar)
-  auto const cigar_pairs = parse_cigar_string(View<char>{cigar, static_cast<size_t>(cigarlen)});
+  // cigar string can be trimmed (left and right): cigar.size() maybe != std::strlen(cigar.data())
+  auto const cigar_pairs = parse_cigar_string(cigar);
   for (auto const & a_pair: cigar_pairs) {
     auto const operation = a_pair.first;
     auto const runlength = a_pair.second;

@@ -410,7 +410,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
       {
         /* perform alignments */
 
-        search16_qprep(searchinfo.s.get(), searchinfo.qsequence.data(), static_cast<int>(searchinfo.qsequence.size()));
+        search16_qprep(searchinfo.s.get(), View<char>{searchinfo.qsequence.data(), searchinfo.qsequence.size()});
 
         search16(searchinfo.s.get(),
                  static_cast<unsigned int>(searchinfo.hit_count),

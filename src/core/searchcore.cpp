@@ -890,7 +890,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
      kmers are extracted at searchinfo->dbindex->wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
-  search16_qprep(searchinfo->s.get(), searchinfo->qsequence.data(), static_cast<int>(searchinfo->qsequence.size()));
+  search16_qprep(searchinfo->s.get(), View<char>{searchinfo->qsequence.data(), searchinfo->qsequence.size()});
 
   struct Scoring const scoring = scoring_from_options(*searchinfo->parameters);
 

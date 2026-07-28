@@ -758,7 +758,6 @@ auto results_show_alnout(std::FILE * output_handle,
 
 
       auto const target = static_cast<uint64_t>(hp->target);
-      auto const * dseq = db.getsequence(target);
       auto const dseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
       auto const qlenlen = std::to_string(qseqlen).size();
@@ -773,17 +772,16 @@ auto results_show_alnout(std::FILE * output_handle,
       int64_t const rowlen = (parameters.opt_rowlen == 0) ? (qseqlen + dseqlen) : parameters.opt_rowlen;
 
       align_show(output_handle,
-                 qsequence.data(),
-                 qseqlen,
+                 qsequence,
                  hp->trim_q_left,
                  "Qry",
-                 dseq,
-                 dseqlen,
+                 db.sequence_view(target),
                  hp->trim_t_left,
                  "Tgt",
-                 hp->nwalignment.c_str() + hp->trim_aln_left,
-                 static_cast<int64_t>(hp->nwalignment.size()
-                 - static_cast<std::size_t>(hp->trim_aln_left) - static_cast<std::size_t>(hp->trim_aln_right)),
+                 View<char>{std::next(hp->nwalignment.c_str(), hp->trim_aln_left),
+                            hp->nwalignment.size()
+                            - static_cast<std::size_t>(hp->trim_aln_left)
+                            - static_cast<std::size_t>(hp->trim_aln_right)},
                  numwidth,
                  3,
                  rowlen,

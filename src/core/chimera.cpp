@@ -2046,7 +2046,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* align full query to each candidate */
 
-  search16_qprep(ci->s, ci->query_seq.data(), ci->query_len);
+  search16_qprep(ci->s, View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)});
 
   search16(ci->s,
            static_cast<unsigned int>(ci->cand_count),
