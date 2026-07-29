@@ -90,7 +90,7 @@ public:
   // the explicit constructors below otherwise suppress the implicit default.
   Span() noexcept = default;
 
-  explicit Span(Type * start, std::size_t const length) noexcept
+  explicit Span(Type * const start, std::size_t const length) noexcept
     : start_ {start},
       length_ {length} {
     assert((start != nullptr) or (length == 0));
@@ -181,7 +181,7 @@ public:
     assert(offset <= size());
     assert(count <= size() - offset);
     auto const distance = static_cast<std::ptrdiff_t>(offset);
-    auto * new_start = std::next(data(), distance);
+    auto * const new_start = std::next(data(), distance);
     return Span{new_start, count};
   }
   auto first(std::size_t const count) const noexcept -> Span {

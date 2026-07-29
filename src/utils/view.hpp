@@ -84,7 +84,7 @@ public:
   // the explicit constructor below otherwise suppresses the implicit default.
   View() noexcept = default;
 
-  explicit View(Type const * start, std::size_t const length) noexcept
+  explicit View(Type const * const start, std::size_t const length) noexcept
     : start_ {start},
       length_ {length} {
     assert((start != nullptr) or (length == 0));
@@ -172,7 +172,7 @@ public:
     assert(offset <= size());
     assert(count <= size() - offset);
     auto const distance = static_cast<std::ptrdiff_t>(offset);
-    auto const * new_start = std::next(data(), distance);
+    auto const * const new_start = std::next(data(), distance);
     return View{new_start, count};
   }
   auto first(std::size_t const count) const noexcept -> View {
