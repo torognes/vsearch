@@ -157,8 +157,12 @@ struct chimera_info_s
   int part_alloc = 0; /* the longest query part allocated memory for */
 
   int query_no = 0;
-  std::vector<char> query_head;
-  int query_head_len = 0;
+  std::vector<char> query_head_v;  /* owned header storage, NUL-terminated and
+                                      grown monotonically via head_alloc, so it
+                                      is generally longer than the header */
+  View<char> query_head {nullptr, 0};  /* the header itself: a view into
+                                          query_head_v, excluding the
+                                          terminator */
   int64_t query_size = 0;
   std::vector<char> query_seq;
   int query_len = 0;
@@ -288,10 +292,14 @@ namespace {
      here rather than read from the source: the byte after a header or sequence
      view is a '\0' in the reader's and the Database's buffers alike, but it is
      not part of the view being copied. */
-  auto copy_and_terminate(View<char> const source, std::vector<char> & destination) -> void {
+  // Returns a view over the copy, so the caller can store the bytes and the
+  // length as one value instead of tracking a separate length field.
+  auto copy_and_terminate(View<char> const source,
+                          std::vector<char> & destination) -> View<char> {
     assert(destination.size() > source.size());
     std::copy(source.cbegin(), source.cend(), destination.begin());
     destination[source.size()] = '\0';
+    return View<char>{destination.data(), source.size()};
   }
 
   /* Store a label in one of the library result struct's fixed-size char
@@ -331,7 +339,11 @@ namespace {
 
 
 namespace {
-auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const & db) -> void
+// header_length is passed in rather than read from chimera_info: it sizes
+// query_head_v, so it has to be known before the buffer exists and therefore
+// before chimera_info->query_head (a view into that buffer) can be set.
+auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const & db,
+                    std::size_t const header_length) -> void
 {
   struct Parameters const & parameters = *chimera_info->parameters;
   if (parameters.opt_chimeras_denovo != nullptr)
@@ -355,10 +367,10 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
       chimera_info->parts = 4;
     }
 
-  const int maxhlen = std::max(chimera_info->query_head_len, 1);
+  const int maxhlen = std::max(static_cast<int>(header_length), 1);
   if (maxhlen > chimera_info->head_alloc)
     {
-      chimera_info->query_head.resize(static_cast<size_t>(maxhlen) + 1);
+      chimera_info->query_head_v.resize(static_cast<size_t>(maxhlen) + 1);
     }
   chimera_info->head_alloc = std::max(chimera_info->head_alloc, maxhlen);
 
@@ -1087,8 +1099,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       r->score = 99.9999;  /* chimeras_denovo always reports chimeric */
       auto const parent_a_header = db.header_view(static_cast<uint64_t>(seqno_a));
       auto const parent_b_header = db.header_view(static_cast<uint64_t>(seqno_b));
-      copy_label(r->query_label, sizeof(r->query_label),
-                 View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)});
+      copy_label(r->query_label, sizeof(r->query_label), ci->query_head);
       copy_label(r->parent_a_label, sizeof(r->parent_a_label), parent_a_header);
       copy_label(r->parent_b_label, sizeof(r->parent_b_label), parent_b_header);
       /* closest parent = max of QA, QB */
@@ -1126,7 +1137,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       std::fprintf(cli->fp_uchimealns, "Query   (%5d nt) ",
                    ci->query_len);
       header_fprint_strip(cli->fp_uchimealns,
-                          View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                          ci->query_head,
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
@@ -1214,7 +1225,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       std::fprintf(cli->fp_uchimeout, "%.4f\t", 99.9999);
 
       header_fprint_strip(cli->fp_uchimeout,
-                          View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                          ci->query_head,
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
@@ -1682,8 +1693,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           r->score = best_h;
           auto const parent_a_header = db.header_view(static_cast<uint64_t>(seqno_a));
           auto const parent_b_header = db.header_view(static_cast<uint64_t>(seqno_b));
-          copy_label(r->query_label, sizeof(r->query_label),
-                     View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)});
+          copy_label(r->query_label, sizeof(r->query_label), ci->query_head);
           copy_label(r->parent_a_label, sizeof(r->parent_a_label), parent_a_header);
           copy_label(r->parent_b_label, sizeof(r->parent_b_label), parent_b_header);
           copy_label(r->closest_parent_label, sizeof(r->closest_parent_label),
@@ -1724,7 +1734,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                   ci->query_len);
 
           header_fprint_strip(cli->fp_uchimealns,
-                              View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                              ci->query_head,
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1827,7 +1837,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           std::fprintf(cli->fp_uchimeout, "%.4f\t", best_h);
 
           header_fprint_strip(cli->fp_uchimeout,
-                              View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                              ci->query_head,
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
@@ -1955,7 +1965,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.query_no = chimera_info->query_no;
       search_info.strand = 0;
       search_info.qsize = chimera_info->query_size;
-      search_info.query_head = View<char>{chimera_info->query_head.data(), static_cast<std::size_t>(chimera_info->query_head_len)};
+      search_info.query_head = chimera_info->query_head;
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
       search_info.qsequence_v[static_cast<size_t>(length)] = '\0';
@@ -2011,7 +2021,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
 
 /* Process a single query that has already been loaded into ci.
    Shared by chimera_thread_core (CLI) and chimera_detect_single (API).
-   ci->query_seq, query_head, query_len, query_head_len, query_size must
+   ci->query_seq, query_head, query_len, query_size must
    be populated. allhits_list must be pre-allocated to maxcandidates.
    lma is the per-thread linear memory aligner (fallback for SIMD overflow). */
 static auto chimera_process_query(struct chimera_info_s * ci,
@@ -2194,16 +2204,15 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                        chrmap_no_change()))
           {
             auto const query_record = state.query_fasta_h->record();
-            ci->query_head_len = static_cast<int>(query_record.header.size());
             ci->query_len = static_cast<int>(query_record.sequence.size());
             ci->query_no = static_cast<int>(state.query_fasta_h->get_seqno());
             ci->query_size = state.query_fasta_h->get_abundance();
 
             /* if necessary expand memory for arrays based on query length */
-            realloc_arrays(ci, db);
+            realloc_arrays(ci, db, query_record.header.size());
 
             /* copy the data locally (query seq, head) */
-            copy_and_terminate(query_record.header, ci->query_head);
+            ci->query_head = copy_and_terminate(query_record.header, ci->query_head_v);
             copy_and_terminate(query_record.sequence, ci->query_seq);
             query_position = state.query_fasta_h->get_position();
           }
@@ -2218,14 +2227,13 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             auto const query_record = db.record(state.seqno);
             ci->query_no = static_cast<int>(state.seqno);
-            ci->query_head_len = static_cast<int>(query_record.header.size());
             ci->query_len = static_cast<int>(query_record.sequence.size());
             ci->query_size = static_cast<int64_t>(db.getabundance(state.seqno));
 
             /* if necessary expand memory for arrays based on query length */
-            realloc_arrays(ci, db);
+            realloc_arrays(ci, db, query_record.header.size());
 
-            copy_and_terminate(query_record.header, ci->query_head);
+            ci->query_head = copy_and_terminate(query_record.header, ci->query_head_v);
             copy_and_terminate(query_record.sequence, ci->query_seq);
           }
         else
@@ -2257,7 +2265,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             fasta_print_general(state.fp_chimeras,
                                 nullptr,
                                 View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)},
-                                View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                                ci->query_head,
                                 static_cast<uint64_t>(ci->query_size),
                                 state.chimera_count,
                                 -1.0,
@@ -2283,7 +2291,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             fasta_print_general(state.fp_borderline,
                                 nullptr,
                                 View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)},
-                                View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                                ci->query_head,
                                 static_cast<uint64_t>(ci->query_size),
                                 state.borderline_count,
                                 -1.0,
@@ -2310,7 +2318,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             std::fprintf(state.fp_uchimeout, "%.4f\t", ci->best_h);
 
             header_fprint_strip(state.fp_uchimeout,
-                                View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                                ci->query_head,
                                 state.parameters.opt_xsize,
                                 state.parameters.opt_xee,
                                 state.parameters.opt_xlength);
@@ -2330,7 +2338,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             fasta_print_general(state.fp_nonchimeras,
                                 nullptr,
                                 View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)},
-                                View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)},
+                                ci->query_head,
                                 static_cast<uint64_t>(ci->query_size),
                                 state.nonchimera_count,
                                 -1.0,
@@ -2861,7 +2869,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   /* Validate the caller-supplied query before trusting query_len: the buffers
      are sized from query_len (via realloc_arrays) but filled with the actual
      C-strings, so a query_len shorter than strlen(query_seq) would overflow
-     ci->query_seq on the heap (S18). query_head_len is derived with strlen
+     ci->query_seq on the heap (S18). The header length is derived with strlen
      below and so is self-consistent; only query_len is taken on trust. There
      is no recoverable error channel (the function always returns 0), so an
      invalid call is fatal, as elsewhere in vsearch. */
@@ -2885,13 +2893,13 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   /* Populate query in the chimera_info_s.
      ci is per-thread state — must NOT be shared across threads. */
   ci->query_no = 0;
-  ci->query_head_len = static_cast<int>(std::strlen(query_head));
+  auto const header_length = std::strlen(query_head);
   ci->query_len = query_len;
   ci->query_size = query_size;
 
-  realloc_arrays(ci, *ci->db);
+  realloc_arrays(ci, *ci->db, header_length);
 
-  std::copy_n(query_head, static_cast<std::size_t>(ci->query_head_len) + 1, ci->query_head.data());
+  ci->query_head = copy_and_terminate(View<char>{query_head, header_length}, ci->query_head_v);
   std::copy_n(query_seq, static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
 
   /* Clear result. Non-chimeric results will have only query_label and
@@ -2908,8 +2916,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   if (status == Status::no_parents)
     {
       /* Populate result for no-parents case */
-      copy_label(result->query_label, sizeof(result->query_label),
-                 View<char>{ci->query_head.data(), static_cast<std::size_t>(ci->query_head_len)});
+      copy_label(result->query_label, sizeof(result->query_label), ci->query_head);
       result->flag = 'N';
     }
 
