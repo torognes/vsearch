@@ -103,15 +103,20 @@ struct element_order {
   }
 };
 
+// Both members are noexcept, unlike the primary template's: a conversion to
+// unsigned char and an integral comparison are the whole computation, and
+// neither can throw. This is the leaf that View<char>'s and Span<char>'s
+// noexcept comparison members bottom out in (see span.hpp), so the guarantee
+// is honest all the way down for the one specialization that matters.
 template <>
 struct element_order<char> {
-  static auto less(char const lhs, char const rhs) -> bool {
+  static auto less(char const lhs, char const rhs) noexcept -> bool {
     return static_cast<unsigned char>(lhs) < static_cast<unsigned char>(rhs);
   }
 
   // One byte comparison rather than the primary template's two: char is
   // totally ordered once it is read as unsigned char.
-  static auto compare(char const lhs, char const rhs) -> int {
+  static auto compare(char const lhs, char const rhs) noexcept -> int {
     auto const lhs_byte = static_cast<unsigned char>(lhs);
     auto const rhs_byte = static_cast<unsigned char>(rhs);
     if (lhs_byte == rhs_byte) { return 0; }
