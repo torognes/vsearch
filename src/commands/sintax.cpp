@@ -261,7 +261,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
               std::fprintf(fp_tabbedout, "%s%c:",
                       (comma ? "," : ""),
                       taxonomic_fields[level]);
-              fprint(fp_tabbedout, View<char>{level_name.data(), level_name.size()});
+              fprint(fp_tabbedout, level_name);
               std::fprintf(fp_tabbedout, "(%.2f)",
                       1.0 * level_matchcount[level] / count);
               comma = true;
@@ -285,7 +285,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
                   std::fprintf(fp_tabbedout, "%s%c:",
                           (comma_cutoff ? "," : ""),
                           taxonomic_fields[level]);
-                  fprint(fp_tabbedout, View<char>{level_name.data(), level_name.size()});
+                  fprint(fp_tabbedout, level_name);
                   comma_cutoff = true;
                 }
             }
