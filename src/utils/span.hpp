@@ -68,6 +68,7 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
 #include <iterator> // std::prev, std::next
+#include <type_traits>  // std::is_arithmetic, std::remove_cv
 
 #ifndef NDEBUG
 #include <limits>
@@ -113,17 +114,32 @@ public:
   }
 
   // Operators
-  auto operator==(Span<Type> const & other) const -> bool {
+  //
+  // The four comparison members below are restricted to arithmetic element
+  // types, and are noexcept because of it: for an arithmetic Type the ordering
+  // bottoms out in a built-in comparison (see element_order.hpp), which cannot
+  // throw, whereas an arbitrary Type's operator< can. The restriction is what
+  // makes the promise honest.
+  //
+  // Deliberately checked per-member rather than at class scope: a member
+  // function of a class template is instantiated only when used, so
+  // Span<Type> over a non-arithmetic Type stays perfectly legal to declare,
+  // iterate and index -- Span<struct hit> in core/searchcore.cpp does exactly
+  // that -- and only an attempt to *compare* such a span is an error.
+  auto operator==(Span<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
-  auto operator!=(Span<Type> const & other) const -> bool {
+  auto operator!=(Span<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
     return not (*this == other);
   }
   // Ordering goes through element_order (see element_order.hpp), so that a
   // Span<char> orders its bytes as unsigned char, like std::strcmp and
   // std::string, rather than as a possibly-signed char.
-  auto operator<(Span<Type> const & other) const -> bool {
+  auto operator<(Span<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
     return std::lexicographical_compare(cbegin(), cend(),
                                         other.cbegin(), other.cend(),
                                         element_less<Type>{});
@@ -133,7 +149,8 @@ public:
   // std::string::compare, for callers that must tell "equal" from
   // "greater" in a single pass. C++11 offers no three-way algorithm;
   // std::lexicographical_compare_three_way arrives in C++20.
-  auto compare(Span<Type> const & other) const -> int {
+  auto compare(Span<Type> const & other) const noexcept -> int {
+    static_assert(comparable, "comparing a Span requires an arithmetic element type");
     auto const common_length = std::min(size(), other.size());
     for (std::size_t index = 0; index < common_length; ++index) {
       auto const order = element_order<Type>::compare((*this)[index], other[index]);
@@ -214,6 +231,12 @@ public:
   }
 
 private:
+  // Predicate behind the comparison members' static_assert above. remove_cv is
+  // needed because std::is_arithmetic<char const> is false, and Span<Type const>
+  // is an ordinary read-only instantiation that must stay comparable.
+  static constexpr bool comparable =
+    std::is_arithmetic<typename std::remove_cv<Type>::type>::value;
+
   Type * start_ {};
   std::size_t length_ {};
 

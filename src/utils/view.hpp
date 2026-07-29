@@ -67,6 +67,7 @@
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <iterator> // std::prev, std::next
 #include <limits>
+#include <type_traits>  // std::is_arithmetic, std::remove_cv
 
 
 // A read-only counterpart of Span (see span.hpp), inspired by std::span
@@ -92,17 +93,31 @@ public:
   }
 
   // Operators
-  auto operator==(View<Type> const & other) const -> bool {
+  //
+  // The four comparison members below are restricted to arithmetic element
+  // types, and are noexcept because of it: for an arithmetic Type the ordering
+  // bottoms out in a built-in comparison (see element_order.hpp), which cannot
+  // throw, whereas an arbitrary Type's operator< can. The restriction is what
+  // makes the promise honest.
+  //
+  // Deliberately checked per-member rather than at class scope: a member
+  // function of a class template is instantiated only when used, so a View
+  // over a non-arithmetic Type stays perfectly legal to declare, iterate and
+  // index, and only an attempt to *compare* such a view is an error.
+  auto operator==(View<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     return size() == other.size()
       and std::equal(cbegin(), cend(), other.cbegin());
   }
-  auto operator!=(View<Type> const & other) const -> bool {
+  auto operator!=(View<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     return not (*this == other);
   }
   // Ordering goes through element_order (see element_order.hpp), so that a
   // View<char> orders its bytes as unsigned char, like std::strcmp and
   // std::string, rather than as a possibly-signed char.
-  auto operator<(View<Type> const & other) const -> bool {
+  auto operator<(View<Type> const & other) const noexcept -> bool {
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     return std::lexicographical_compare(cbegin(), cend(),
                                         other.cbegin(), other.cend(),
                                         element_less<Type>{});
@@ -112,7 +127,8 @@ public:
   // std::string::compare, for callers that must tell "equal" from
   // "greater" in a single pass. C++11 offers no three-way algorithm;
   // std::lexicographical_compare_three_way arrives in C++20.
-  auto compare(View<Type> const & other) const -> int {
+  auto compare(View<Type> const & other) const noexcept -> int {
+    static_assert(comparable, "comparing a View requires an arithmetic element type");
     auto const common_length = std::min(size(), other.size());
     for (std::size_t index = 0; index < common_length; ++index) {
       auto const order = element_order<Type>::compare((*this)[index], other[index]);
@@ -190,6 +206,12 @@ public:
   }
 
 private:
+  // Predicate behind the comparison members' static_assert above. remove_cv is
+  // needed because std::is_arithmetic<char const> is false, and View<Type const>
+  // is an ordinary instantiation that must stay comparable.
+  static constexpr bool comparable =
+    std::is_arithmetic<typename std::remove_cv<Type>::type>::value;
+
   Type const * start_ {};
   std::size_t  length_ {};
 };
