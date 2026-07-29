@@ -400,9 +400,9 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
                   state.parameters.opt_strand ? si_minus + t : nullptr,
                   hits);
 
-  auto const qsequence = View<char>{si_plus[t].qsequence.data(), si_plus[t].qsequence.size()};
+  auto const qsequence = View<char>{si_plus[t].qsequence};
   auto const qsequence_rc = state.parameters.opt_strand
-    ? View<char>{si_minus[t].qsequence.data(), si_minus[t].qsequence.size()}
+    ? View<char>{si_minus[t].qsequence}
     : View<char>{};
 
   search_output_results(state,
@@ -455,7 +455,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
       {
         populate_si(state.si_minus.data() + t,
                     si_plus[t].query_head,
-                    View<char>{si_plus[t].qsequence.data(), si_plus[t].qsequence.size()},
+                    View<char>{si_plus[t].qsequence},
                     query_no,
                     qsize,
                     1);

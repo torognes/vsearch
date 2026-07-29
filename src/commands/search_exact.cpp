@@ -451,10 +451,9 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
                   parameters.opt_strand ? state.si_minus + t : nullptr,
                   hits);
 
-  auto const qsequence = View<char>{state.si_plus[t].qsequence.data(),
-                                    state.si_plus[t].qsequence.size()};
+  auto const qsequence = View<char>{state.si_plus[t].qsequence};
   auto const qsequence_rc = parameters.opt_strand
-    ? View<char>{state.si_minus[t].qsequence.data(), state.si_minus[t].qsequence.size()}
+    ? View<char>{state.si_minus[t].qsequence}
     : View<char>{};
 
   search_exact_output_results(state,
@@ -525,7 +524,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
         state.si_minus[t].query_head = View<char>{state.si_minus[t].query_head_v.data(), state.si_plus[t].query_head.size()};
         reverse_complement(Span<char>{state.si_minus[t].qsequence_v.data(), state.si_plus[t].qsequence.size() + 1},
-                           View<char>{state.si_plus[t].qsequence.data(), state.si_plus[t].qsequence.size()});
+                           View<char>{state.si_plus[t].qsequence});
         state.si_minus[t].qsequence = Span<char>{state.si_minus[t].qsequence_v.data(), state.si_plus[t].qsequence.size()};
       }
 

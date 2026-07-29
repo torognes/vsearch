@@ -62,6 +62,7 @@
 
 
 #include "element_order.hpp"  // element_order, element_less
+#include "view.hpp"  // View, the read-only counterpart returned by operator View
 #include <algorithm>  // std::equal, std::lexicographical_compare, std::min
 #include <cassert>
 #include <cstddef>  // std::ptrdiff_t
@@ -95,6 +96,20 @@ public:
       length_ {length} {
     assert((start != nullptr) or (length == 0));
     assert(length <= max_ptrdiff);
+  }
+
+  // Conversion to the read-only View<Type> over the same extent. This is the
+  // only direction that is sound: it adds a restriction (drops the permission
+  // to write) and can never invent access that the Span did not already hold.
+  // There is deliberately no View-to-Span conversion, because that direction
+  // would have to launder a `Type const *` into a `Type *`; see view.hpp.
+  //
+  // Kept explicit, as in swarm: handing a mutable Span to a View-consuming API
+  // is a narrowing of intent that the call site should spell out, via
+  // static_cast<View<Type>>(span) or View<Type>{span}. An implicit conversion
+  // would also make an overload pair on Span<T>/View<T> silently ambiguous.
+  explicit operator View<Type>() const noexcept {
+    return View<Type>{start_, length_};
   }
 
   // Operators

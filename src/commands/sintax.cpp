@@ -592,7 +592,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
         si_minus[t].query_head_v = si_plus[t].query_head_v;
         si_minus[t].query_head = View<char>{si_minus[t].query_head_v.data(), si_plus[t].query_head.size()};
         reverse_complement(Span<char>{si_minus[t].qsequence_v.data(), si_plus[t].qsequence.size() + 1},
-                           View<char>{si_plus[t].qsequence.data(), si_plus[t].qsequence.size()});
+                           View<char>{si_plus[t].qsequence});
         si_minus[t].qsequence = Span<char>{si_minus[t].qsequence_v.data(), si_plus[t].qsequence.size()};
       }
 

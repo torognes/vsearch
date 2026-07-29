@@ -406,7 +406,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
       {
         /* perform alignments */
 
-        search16_qprep(searchinfo.s.get(), View<char>{searchinfo.qsequence.data(), searchinfo.qsequence.size()});
+        search16_qprep(searchinfo.s.get(), View<char>{searchinfo.qsequence});
 
         search16(searchinfo.s.get(),
                  static_cast<unsigned int>(searchinfo.hit_count),
@@ -440,8 +440,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                    linear memory aligner */
 
                 auto const tseq = state.db.sequence_view(target);
-                auto const qseq = View<char>{searchinfo.qsequence.data(),
-                                             searchinfo.qsequence.size()};
+                auto const qseq = View<char>{searchinfo.qsequence};
 
                 nwcigar = lma.align(qseq, tseq);
                 lma.alignstats(nwcigar.c_str(),
@@ -513,7 +512,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                             searchinfo.accepts,
                             finalhits.data(),
                             searchinfo.query_head,
-                            View<char>{searchinfo.qsequence.data(), searchinfo.qsequence.size()},
+                            View<char>{searchinfo.qsequence},
                             View<char>{});
 
     /* update stats */

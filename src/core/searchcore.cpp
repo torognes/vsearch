@@ -821,8 +821,7 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                      linear memory aligner */
 
                   auto const dseq = searchinfo->db->sequence_view(static_cast<uint64_t>(target));
-                  auto const qseq = View<char>{searchinfo->qsequence.data(),
-                                               searchinfo->qsequence.size()};
+                  auto const qseq = View<char>{searchinfo->qsequence};
 
                   nwcigar = searchinfo->lma->align(qseq, dseq);
 
@@ -889,7 +888,7 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
      kmers are extracted at searchinfo->dbindex->wordlength, the effective index width. */
   searchinfo->hit_count = 0;
 
-  search16_qprep(searchinfo->s.get(), View<char>{searchinfo->qsequence.data(), searchinfo->qsequence.size()});
+  search16_qprep(searchinfo->s.get(), View<char>{searchinfo->qsequence});
 
   struct Scoring const scoring = scoring_from_options(*searchinfo->parameters);
 

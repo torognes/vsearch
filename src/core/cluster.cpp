@@ -737,8 +737,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                          linear memory aligner */
 
                       auto const tseq = db.sequence_view(target);
-                      auto const qseq = View<char>{si->qsequence.data(),
-                                                   si->qsequence.size()};
+                      auto const qseq = View<char>{si->qsequence};
 
                       nwcigar = lma.align(qseq, tseq);
 
@@ -949,9 +948,9 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               cluster_core_results_hit(state, best,
                                        state.clusterinfo[target].clusterno,
                                        si_p->query_head,
-                                       View<char>{si_p->qsequence.data(), si_p->qsequence.size()},
+                                       View<char>{si_p->qsequence},
                                        (best->strand != 0)
-                                         ? View<char>{si_m->qsequence.data(), si_m->qsequence.size()}
+                                         ? View<char>{si_m->qsequence}
                                          : View<char>{},
                                        si_p->qsize,
                                        db);
@@ -984,7 +983,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
                                          si_p->query_head,
-                                         View<char>{si_p->qsequence.data(), si_p->qsequence.size()},
+                                         View<char>{si_p->qsequence},
                                          View<char>{},
                                          si_p->qsize);
               ++state.clusters;
@@ -1056,9 +1055,9 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           cluster_core_results_hit(state, best,
                                    state.clusterinfo[target].clusterno,
                                    si_p[0].query_head,
-                                   View<char>{si_p[0].qsequence.data(), si_p[0].qsequence.size()},
+                                   View<char>{si_p[0].qsequence},
                                    (best->strand != 0)
-                                     ? View<char>{si_m[0].qsequence.data(), si_m[0].qsequence.size()}
+                                     ? View<char>{si_m[0].qsequence}
                                      : View<char>{},
                                    si_p[0].qsize,
                                    db);
@@ -1078,7 +1077,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           state.dbindex.add_sequence(static_cast<unsigned int>(seqno), state.parameters.opt_qmask, db);
           cluster_core_results_nohit(state, state.clusters,
                                      si_p[0].query_head,
-                                     View<char>{si_p[0].qsequence.data(), si_p[0].qsequence.size()},
+                                     View<char>{si_p[0].qsequence},
                                      View<char>{},
                                      si_p[0].qsize);
           ++state.clusters;
