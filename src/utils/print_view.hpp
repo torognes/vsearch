@@ -63,6 +63,7 @@
 
 
 #include "utils/view.hpp"  // View<char>
+#include <cstddef>  // std::size_t
 #include <cstdio>  // std::FILE, std::fwrite
 
 
@@ -70,9 +71,10 @@
 
    This is what a "%.*s" conversion was used for before: pass a counted run of
    characters that is not NUL-terminated (a slice of a sequence, a header inside
-   a shared buffer). std::fwrite takes the count as a std::size_t, which is what
-   View::size() already returns, so nothing is narrowed to the int that "%.*s"
-   requires -- and there is no format string to parse at run time.
+   a shared buffer). std::fwrite takes both its element size and its count as a
+   std::size_t, and the count is what View::size() already returns, so nothing is
+   narrowed to the int that "%.*s" requires -- and there is no format string to
+   parse at run time.
 
    Not exactly interchangeable with "%.*s": that conversion stops at an embedded
    NUL as well as at the precision, while fwrite always emits the full byte
@@ -90,5 +92,12 @@ inline auto fprint(std::FILE * output_handle, View<char> const text) -> void
      guard: the --profile output (see msa.cpp) describes a cluster with no
      centroid sequence and hands over an empty sequence view. */
   if (text.empty()) { return; }
-  static_cast<void>(std::fwrite(text.data(), 1, text.size(), output_handle));
+  /* fwrite's two size arguments are an element size and a count, in that order,
+     and transposing them compiles. Naming the element size says which is which;
+     sizeof(char) is 1 by definition, so this is about the reader, not about a
+     platform where it could differ. Same shape as sff_convert.cpp's byte_size,
+     kept local so a widely-included header exports no such name (see the note
+     on span.hpp's private bounds constants). */
+  static constexpr std::size_t element_size = sizeof(char);
+  static_cast<void>(std::fwrite(text.data(), element_size, text.size(), output_handle));
 }
