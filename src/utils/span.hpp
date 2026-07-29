@@ -153,11 +153,11 @@ public:
 
   // Element access
   // C++17 refactoring: [[nodiscard]]
-  auto front() const noexcept -> Type const & {
+  auto front() const noexcept -> Type & {
     assert(not empty());
     return *data();
   }
-  auto back() const noexcept -> Type const & {
+  auto back() const noexcept -> Type & {
     assert(not empty());
     return *std::prev(end());
   }
