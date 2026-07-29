@@ -207,7 +207,7 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
   auto const seqlen = si->qsequence.size();
   std::vector<char> normalized(seqlen + 1);
   string_normalize(Span<char>{normalized.data(), seqlen + 1},
-                   View<char>{si->qsequence.data(), seqlen});
+                   View<char>{si->qsequence});
 
   si->hit_count = 0;
 
