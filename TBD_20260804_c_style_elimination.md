@@ -492,3 +492,65 @@ classic table.
 **1.24× on the writers**, 1.028× on the whole command. The
 without-tables pair is identical to within noise, which is the control: no
 code on the clustering path changed.
+
+### The hot record writers (phase 4)
+
+End-to-end, on real inputs, the phase is neutral — which is the headline,
+because these are the commands users run:
+
+| command | `dev` | branch |
+|---|---|---|
+| `--usearch_global` 8652 q / 57605 db, `--alnout --blast6out --uc` | 15.141 s ± 0.250 | 14.803 s ± 0.063 |
+| `--cluster_size` 17314 seqs, `--centroids --uc` | 7.636 s ± 0.093 | 7.621 s ± 0.105 |
+| `--derep_fulllength` 286789 seqs, `--output --uc` | 597.2 ms ± 8.4 | 588.8 ms ± 10.9 |
+| `--derep_fulllength`, no `--uc` (control) | 473.9 ms ± 8.5 | 476.1 ms ± 3.8 |
+
+The `--uc` writer differenced out of the last two pair is 123.3 ms → 112.7 ms,
+1.09× faster. `--usearch_global` is dominated by alignment: 137k hits are
+written in a 15 s run, so the writer is under 2 % of it either way.
+
+**Where it is not neutral, and why.** Isolated on a writer-dominated
+synthetic (300 k `--search_exact` queries against a one-sequence database,
+so the lookup is trivial), the picture splits:
+
+| output | `dev` | branch | |
+|---|---|---|---|
+| `--userfields id` (one field; **code path unchanged**) | 808.9 ms ± 11.5 | 855.3 ms ± 7.3 | +5.7 % |
+| `--blast6out` (12 fields) | 839.4 ms ± 16.5 | 923.2 ms ± 9.2 | +10.0 % |
+| `--uc` (10 fields) | 831.3 ms ± 12.0 | 894.0 ms ± 11.6 | +7.5 % |
+| `--userout`, 36 fields | 1.248 s ± 0.023 | 1.220 s ± 0.010 | −2.2 % |
+
+Two separate effects, and they are worth keeping apart:
+
+1. **A baseline shift of +5.7 % on a path the migration did not change.**
+   `--userfields id` writes one `"%.1f"` per record through the same
+   `std::fprintf` in both binaries. `.text` grew 3.7 % (764 258 → 792 186 B)
+   and `results_show_userout_one` grew 9 %, so this is code layout, not
+   writer cost. Bisected to phase 3, which touches nothing on this path.
+2. **`fprint_integer` is not inlined.** In
+   `results_show_blast6out_one` GCC emits `call <void
+   fprint_integer<int>(FILE*, int)>` nine times rather than inlining the
+   digit loop nine times: the function went from 305 to 529 bytes and from
+   5 stdio calls to 24. Nine out-of-line calls at ~14 ns is the ~125 ns per
+   record measured. It is *only* the call: with the same code inlined, a
+   microbenchmark of the same ten-field tail gives
+
+   | form | ns/record |
+   |---|---|
+   | one `std::fprintf`, 10 fields (`dev`) | 173.5 |
+   | split into one call per field, inlined | 137.1 |
+   | the record batched into one `fwrite` | 95.7 |
+
+   so the split is 1.27× *faster* when inlined, and batching is 1.8× faster.
+   `--userout` shows the inlined-shaped win (−2.2 %) because it was already
+   one `fprintf` per field, so the split removed 36 format parses per record
+   and added no calls.
+
+**Open decision for review.** The plan says a regression here "is a signal
+to batch that line differently, not to revert the phase". Batching is
+costed above (95.7 ns vs 173.5 ns) and would fix both effects at once, but
+it needs a primitive the plan did not authorise — a bounded record buffer,
+with a capacity contract, changing the shape of the hot call sites — so it
+is *not* done on this branch. The alternative is to accept it: end-to-end
+the phase is neutral on every real command measured, and the affected
+records are `--blast6out` and `--uc` at a synthetic 300 k records/second.
