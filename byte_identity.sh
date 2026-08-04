@@ -481,6 +481,9 @@ compare_run "udbstats" --udbstats "${UDB}"
 compare_run "udb2fasta" --udb2fasta "${UDB}" --output out.fas
 compare_run "version" --version
 compare_run "help" --help
+# The one entry expected to differ against a pre-cli.cc-fix baseline: with
+# --threads > 1 and no command, dev read valid_options[(size_t) -1] and
+# crashed before printing the usage summary. See the cli.cc commit.
 compare_run "no command" --quiet
 
 # error paths: cli.cc's diagnostics and fatal()
