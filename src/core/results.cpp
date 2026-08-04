@@ -75,9 +75,8 @@
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::max
 #include <array>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
 
@@ -261,18 +260,27 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   fprint(output_handle, query_head);
   fprint(output_handle, '\t');
   fprint(output_handle, db.header_view(target));
-  std::fprintf(output_handle,
-          "\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
-          hits->id,
-          hits->internal_alignmentlength,
-          hits->mismatches,
-          hits->internal_gaps,
-          qstart,
-          qend,
-          1,
-          db.getsequencelen(target),
-          -1,
-          0);
+  fprint(output_handle, '\t');
+  std::fprintf(output_handle, "%.1f", hits->id);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, hits->internal_alignmentlength);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, hits->mismatches);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, hits->internal_gaps);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, qstart);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, qend);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, 1);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, db.getsequencelen(target));
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, -1);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, 0);
+  fprint(output_handle, '\n');
 }
 
 
@@ -309,13 +317,17 @@ auto results_show_uc_one(std::FILE * output_handle,
 
   auto const is_perfect_match = check_if_perfect_match(parameters.opt_cluster_fast, hits);
 
-  std::fprintf(output_handle,
-          "H\t%d\t%" PRId64 "\t%.1f\t%c\t0\t0\t%s\t",
-          clusterno,
-          qseqlen,
-          hits->id,
-          (hits->strand != 0) ? '-' : '+',
-          is_perfect_match ? "=" : hits->nwalignment.c_str());
+  fprint(output_handle, "H\t");
+  fprint_integer(output_handle, clusterno);
+  fprint(output_handle, '\t');
+  fprint_integer(output_handle, qseqlen);
+  fprint(output_handle, '\t');
+  std::fprintf(output_handle, "%.1f", hits->id);
+  fprint(output_handle, '\t');
+  fprint(output_handle, (hits->strand != 0) ? '-' : '+');
+  fprint(output_handle, "\t0\t0\t");
+  std::fputs(is_perfect_match ? "=" : hits->nwalignment.c_str(), output_handle);
+  fprint(output_handle, '\t');
   auto const target = static_cast<uint64_t>(hits->target);
   header_fprint_strip(output_handle,
                       query_head,
@@ -376,7 +388,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           fprint(output_handle, query_head);
           break;
         case 1: /* target */
-          std::fprintf(output_handle, "%s", (hits != nullptr) ? t_head : "*");
+          std::fputs((hits != nullptr) ? t_head : "*", output_handle);
           break;
         case 2: /* evalue */
           fprint(output_handle, "-1");
@@ -391,52 +403,52 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           std::fprintf(output_handle, "%.1f", ((hits != nullptr) and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->internal_indels / hits->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->matches + hits->mismatches : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->matches + hits->mismatches : 0);
           break;
         case 7: /* gaps */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_indels : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_indels : 0);
           break;
         case 8: /* qlo */
-          std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? ((hits->strand != 0) ? qseqlen : 1) : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? ((hits->strand != 0) ? qseqlen : 1) : 0);
           break;
         case 9: /* qhi */
-          std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? ((hits->strand != 0) ? 1 : qseqlen) : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? ((hits->strand != 0) ? 1 : qseqlen) : 0);
           break;
         case 10: /* tlo */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? 1 : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? 1 : 0);
           break;
         case 11: /* thi */
-          std::fprintf(output_handle, "%" PRId64, tseqlen);
+          fprint_integer(output_handle, tseqlen);
           break;
         case 12: /* pv */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->matches : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->matches : 0);
           break;
         case 13: /* ql */
-          std::fprintf(output_handle, "%" PRId64, qseqlen);
+          fprint_integer(output_handle, qseqlen);
           break;
         case 14: /* tl */
-          std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? tseqlen : 0);
           break;
         case 15: /* qs */
-          std::fprintf(output_handle, "%" PRId64, qseqlen);
+          fprint_integer(output_handle, qseqlen);
           break;
         case 16: /* ts */
-          std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? tseqlen : 0);
           break;
         case 17: /* alnlen */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_alignmentlength : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_alignmentlength : 0);
           break;
         case 18: /* opens */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_gaps : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_gaps : 0);
           break;
         case 19: /* exts */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->internal_indels - hits->internal_gaps : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_indels - hits->internal_gaps : 0);
           break;
         case 20: /* raw */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->nwscore : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->nwscore : 0);
           break;
         case 21: /* bits */
-          std::fprintf(output_handle, "%d", 0);
+          fprint_integer(output_handle, 0);
           break;
         case 22: /* aln */
           if (hits != nullptr)
@@ -447,19 +459,19 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 23: /* caln */
           if (hits != nullptr)
             {
-              std::fprintf(output_handle, "%s", hits->nwalignment.c_str());
+              fprint(output_handle, View<char>{hits->nwalignment.data(), hits->nwalignment.size()});
             }
           break;
         case 24: /* qstrand */
           if (hits != nullptr)
             {
-              std::fprintf(output_handle, "%c", (hits->strand != 0) ? '-' : '+');
+              fprint(output_handle, (hits->strand != 0) ? '-' : '+');
             }
           break;
         case 25: /* tstrand */
           if (hits != nullptr)
             {
-              std::fprintf(output_handle, "%c", '+');
+              fprint(output_handle, '+');
             }
           break;
         case 26: /* qrow */
@@ -490,18 +502,16 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           fprint(output_handle, "+0");
           break;
         case 30: /* mism */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->mismatches : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->mismatches : 0);
           break;
         case 31: /* ids */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->matches : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->matches : 0);
           break;
         case 32: /* qcov */
-          std::fprintf(output_handle, "%.1f",
-                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(qseqlen) : 0.0);
+          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(qseqlen) : 0.0);
           break;
         case 33: /* tcov */
-          std::fprintf(output_handle, "%.1f",
-                  (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(tseqlen) : 0.0);
+          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(tseqlen) : 0.0);
           break;
         case 34: /* id0 */
           std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id0 : 0.0);
@@ -522,16 +532,16 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           /* new internal alignment coordinates */
 
         case 39: /* qilo */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->trim_q_left + 1 : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->trim_q_left + 1 : 0);
           break;
         case 40: /* qihi */
-          std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? qseqlen - hits->trim_q_right : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? qseqlen - hits->trim_q_right : 0);
           break;
         case 41: /* tilo */
-          std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->trim_t_left + 1 : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? hits->trim_t_left + 1 : 0);
           break;
         case 42: /* tihi */
-          std::fprintf(output_handle, "%" PRId64, (hits != nullptr) ? tseqlen - hits->trim_t_right : 0);
+          fprint_integer(output_handle, (hits != nullptr) ? tseqlen - hits->trim_t_right : 0);
           break;
         default:
           /* userfields_requested only ever holds validated indices (0..42),
@@ -684,9 +694,9 @@ auto results_show_lcaout(std::FILE * output_handle,
 
       if (cand_level_len[j][j] > 0)
         {
-          std::fprintf(output_handle, "%s%c:",
-                  (comma ? "," : ""),
-                  taxonomic_fields[j]);
+          std::fputs((comma ? "," : ""), output_handle);
+          fprint(output_handle, static_cast<char>(taxonomic_fields[j]));
+          fprint(output_handle, ':');
           fprint(output_handle,
                  db.header_view(static_cast<uint64_t>(cand[j]))
                    .subspan(static_cast<std::size_t>(cand_level_start[j][j]),
@@ -740,9 +750,10 @@ auto results_show_alnout(std::FILE * output_handle,
         }
 
       auto const target = static_cast<uint64_t>(hp->target);
-      std::fprintf(output_handle,"%3.0f%% %6" PRIu64 "  ",
-              hp->id,
-              db.getsequencelen(target));
+      std::fprintf(output_handle, "%3.0f", hp->id);
+      fprint(output_handle, "% ");
+      fprint_integer(output_handle, db.getsequencelen(target), 6);
+      fprint(output_handle, "  ");
       fprint(output_handle, db.header_view(target));
       fprint(output_handle, '\n');
     }
@@ -766,9 +777,13 @@ auto results_show_alnout(std::FILE * output_handle,
       auto const tlenlen = std::to_string(dseqlen).size();
       auto const numwidth = static_cast<int>(std::max(qlenlen, tlenlen));
 
-      std::fprintf(output_handle," Query %*" PRId64 "nt >", numwidth, qseqlen);
+      fprint(output_handle, " Query ");
+      fprint_integer(output_handle, qseqlen, static_cast<std::size_t>(numwidth));
+      fprint(output_handle, "nt >");
       fprint(output_handle, query_head);
-      std::fprintf(output_handle,"\nTarget %*" PRId64 "nt >", numwidth, dseqlen);
+      fprint(output_handle, "\nTarget ");
+      fprint_integer(output_handle, dseqlen, static_cast<std::size_t>(numwidth));
+      fprint(output_handle, "nt >");
       fprint(output_handle, db.header_view(target));
       fprint(output_handle, '\n');
 
@@ -791,14 +806,19 @@ auto results_show_alnout(std::FILE * output_handle,
                  hp->strand,
                  parameters);
 
-      std::fprintf(output_handle, "\n%d cols, %d ids (%3.1f%%), %d gaps (%3.1f%%)\n",
-              hp->internal_alignmentlength,
-              hp->matches,
-              hp->id,
-              hp->internal_indels,
-              hp->internal_alignmentlength > 0 ?
+      fprint(output_handle, '\n');
+      fprint_integer(output_handle, hp->internal_alignmentlength);
+      fprint(output_handle, " cols, ");
+      fprint_integer(output_handle, hp->matches);
+      fprint(output_handle, " ids (");
+      std::fprintf(output_handle, "%3.1f", hp->id);
+      fprint(output_handle, "%), ");
+      fprint_integer(output_handle, hp->internal_indels);
+      fprint(output_handle, " gaps (");
+      std::fprintf(output_handle, "%3.1f", hp->internal_alignmentlength > 0 ?
               100.0 * hp->internal_indels / hp->internal_alignmentlength :
               0.0);
+      fprint(output_handle, "%)\n");
     }
 }
 
@@ -959,18 +979,22 @@ auto results_show_samheader(std::FILE * output_handle,
                                  db.sequence_view(i));
           fprint(output_handle, "@SQ\tSN:");
           fprint(output_handle, db.header_view(i));
-          std::fprintf(output_handle,
-                  "\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
-                  db.getsequencelen(i),
-                  md5hex.data(),
-                  dbname);
+          fprint(output_handle, "\tLN:");
+          fprint_integer(output_handle, db.getsequencelen(i));
+          fprint(output_handle, "\tM5:");
+          std::fputs(md5hex.data(), output_handle);
+          fprint(output_handle, "\tUR:file:");
+          std::fputs(dbname, output_handle);
+          fprint(output_handle, '\n');
         }
 
-      std::fprintf(output_handle,
-              "@PG\tID:%s\tVN:%s\tCL:%s\n",
-              PROG_NAME,
-              PROG_VERSION,
-              parameters.command_line.c_str());
+      fprint(output_handle, "@PG\tID:");
+      std::fputs(PROG_NAME, output_handle);
+      fprint(output_handle, "\tVN:");
+      std::fputs(PROG_VERSION, output_handle);
+      fprint(output_handle, "\tCL:");
+      fprint(output_handle, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(output_handle, '\n');
     }
 }
 
@@ -1025,16 +1049,23 @@ auto results_show_samout(std::FILE * output_handle,
   if (hitcount == 0) {
     if (parameters.opt_output_no_hits != 0) {
       fprint(output_handle, query_head);
-      std::fprintf(output_handle,
-              "\t%d\t%s\t%" PRIu64 "\t%d\t%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t",
-              0x04,
-              "*",
-              static_cast<uint64_t>(0),
-              255,
-              "*",
-              "*",
-              static_cast<uint64_t>(0),
-              static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, 0x04);
+      fprint(output_handle, '\t');
+      fprint(output_handle, "*");
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, 255);
+      fprint(output_handle, '\t');
+      fprint(output_handle, "*");
+      fprint(output_handle, '\t');
+      fprint(output_handle, "*");
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
       fprint(output_handle, qsequence);
       fprint(output_handle, "\t*\n");
     }
@@ -1065,32 +1096,42 @@ auto results_show_samout(std::FILE * output_handle,
                         md);
 
       fprint(output_handle, query_head);
-      std::fprintf(output_handle, "\t%d\t",
-              (0x10 * hp->strand) | (t > 0 ? 0x100 : 0));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, (0x10 * hp->strand) | (t > 0 ? 0x100 : 0));
+      fprint(output_handle, '\t');
       fprint(output_handle, db.header_view(target));
-      std::fprintf(output_handle,
-              "\t%" PRIu64
-              "\t%d\t%s\t%s\t%" PRIu64
-              "\t%" PRIu64 "\t",
-              static_cast<uint64_t>(1),
-              255,
-              cigar.c_str(),
-              "*",
-              static_cast<uint64_t>(0),
-              static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, static_cast<uint64_t>(1));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, 255);
+      fprint(output_handle, '\t');
+      fprint(output_handle, View<char>{cigar.data(), cigar.size()});
+      fprint(output_handle, '\t');
+      fprint(output_handle, "*");
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, static_cast<uint64_t>(0));
+      fprint(output_handle, '\t');
       fprint(output_handle, query);
-      std::fprintf(output_handle,
-              "\t%s\t"
-              "AS:i:%.0f\tXN:i:%d\tXM:i:%d\tXO:i:%d\t"
-              "XG:i:%d\tNM:i:%d\tMD:Z:%s\tYT:Z:%s\n",
-              "*",
-              hp->id,
-              0,
-              hp->mismatches,
-              hp->internal_gaps,
-              hp->internal_indels,
-              hp->mismatches + hp->internal_indels,
-              md.c_str(),
-              "UU");
+      fprint(output_handle, '\t');
+      fprint(output_handle, "*");
+      fprint(output_handle, "\tAS:i:");
+      std::fprintf(output_handle, "%.0f", hp->id);
+      fprint(output_handle, "\tXN:i:");
+      fprint_integer(output_handle, 0);
+      fprint(output_handle, "\tXM:i:");
+      fprint_integer(output_handle, hp->mismatches);
+      fprint(output_handle, "\tXO:i:");
+      fprint_integer(output_handle, hp->internal_gaps);
+      fprint(output_handle, "\tXG:i:");
+      fprint_integer(output_handle, hp->internal_indels);
+      fprint(output_handle, "\tNM:i:");
+      fprint_integer(output_handle, hp->mismatches + hp->internal_indels);
+      fprint(output_handle, "\tMD:Z:");
+      fprint(output_handle, View<char>{md.data(), md.size()});
+      fprint(output_handle, "\tYT:Z:");
+      fprint(output_handle, "UU");
+      fprint(output_handle, '\n');
     }
 }
