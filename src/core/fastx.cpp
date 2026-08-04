@@ -81,7 +81,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
+#include <cstdio>  // std::FILE, std::fclose, std::size_t, std::fread
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strcmp
 #include <iterator> // std::next, std::distance
@@ -242,11 +242,15 @@ auto find_header_end(Span<char> raw_header) -> std::size_t {
 // reporter and the message's format string is validated by -Wformat at the
 // call site instead of being forwarded as a runtime argument to fprintf.
 auto warn(char const * const message) -> void {
-  std::fprintf(stderr, "\nWARNING: %s\n", message);
+  fprint(stderr, "\nWARNING: ");
+  std::fputs(message, stderr);
+  fprint(stderr, '\n');
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
-    std::fprintf(log, "\nWARNING: %s\n", message);
+    fprint(log, "\nWARNING: ");
+    std::fputs(message, log);
+    fprint(log, '\n');
   }
 }
 
@@ -581,12 +585,20 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
 
   if (stripped_all != 0U)
     {
-      std::fprintf(stderr, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", stripped_all, (is_fastq ? "FASTQ" : "FASTA"));
+      fprint(stderr, "WARNING: ");
+      fprint_integer(stderr, stripped_all);
+      fprint(stderr, " invalid characters stripped from ");
+      std::fputs((is_fastq ? "FASTQ" : "FASTA"), stderr);
+      fprint(stderr, " file:");
       for (int i = 0; i < 256; i++)
         {
           if (stripped[static_cast<std::size_t>(i)] != 0U)
             {
-              std::fprintf(stderr, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
+              fprint(stderr, ' ');
+              fprint(stderr, static_cast<char>(i));
+              fprint(stderr, '(');
+              fprint_integer(stderr, stripped[static_cast<std::size_t>(i)]);
+              fprint(stderr, ')');
             }
         }
       fprint(stderr, '\n');
@@ -594,12 +606,20 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log, "WARNING: %" PRIu64 " invalid characters stripped from %s file:", stripped_all, (is_fastq ? "FASTQ" : "FASTA"));
+          fprint(parameters.fp_log, "WARNING: ");
+          fprint_integer(parameters.fp_log, stripped_all);
+          fprint(parameters.fp_log, " invalid characters stripped from ");
+          std::fputs((is_fastq ? "FASTQ" : "FASTA"), parameters.fp_log);
+          fprint(parameters.fp_log, " file:");
           for (int i = 0; i < 256; i++)
             {
               if (stripped[static_cast<std::size_t>(i)] != 0U)
                 {
-                  std::fprintf(parameters.fp_log, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
+                  fprint(parameters.fp_log, ' ');
+                  fprint(parameters.fp_log, static_cast<char>(i));
+                  fprint(parameters.fp_log, '(');
+                  fprint_integer(parameters.fp_log, stripped[static_cast<std::size_t>(i)]);
+                  fprint(parameters.fp_log, ')');
                 }
             }
           fprint(parameters.fp_log, '\n');

@@ -71,9 +71,8 @@
 #include <array>
 #include <algorithm>  // std::max()
 #include <cassert>
-#include <cinttypes>  // macro PRId64
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::FILE, std::sscanf, std::fprintf
+#include <cstdio>  // std::FILE
 #include <iterator> // std::next
 #include <numeric> // std::accumulate
 #include <vector>
@@ -547,10 +546,13 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
   aln_v.pop_back(); // remove last element ('\0')
   auto counter = 0;
   for (auto const nucleotide: aln_v) {
-    static_cast<void>(std::fprintf(fp_profile, "%d\t%c", counter, nucleotide));
+    fprint_integer(fp_profile, counter);
+    fprint(fp_profile, '\t');
+    fprint(fp_profile, nucleotide);
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
-        static_cast<void>(std::fprintf(fp_profile, "\t%" PRIu64, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]));
+        fprint(fp_profile, '\t');
+        fprint_integer(fp_profile, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]);
       }
       fprint(fp_profile, '\n');
       ++counter;

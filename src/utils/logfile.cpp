@@ -60,6 +60,7 @@
 
 #include "logfile.hpp"
 #include "print_view.hpp"  // fprint
+#include "view.hpp"  // View<char>
 #include "vsearch.hpp"  // struct Parameters
 #include "open_file.hpp"  // open_optional_output_file, OutputOption
 #include "os/system.hpp"  // system_get_memused
@@ -90,11 +91,16 @@ LogFile::LogFile(struct Parameters & parameters)
   handle = open_optional_output_file(parameters.opt_log, OutputOption{"--log"});
   parameters.fp_log = handle.get();
   log_file::set_handle(handle.get());
-  std::fprintf(handle.get(), "%s\n", parameters.prog_header.c_str());
-  std::fprintf(handle.get(), "%s\n", parameters.command_line.c_str());
+  fprint(handle.get(), View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+  fprint(handle.get(), '\n');
+  fprint(handle.get(), View<char>{parameters.command_line.data(), parameters.command_line.size()});
+  fprint(handle.get(), '\n');
 
   start_time = std::chrono::steady_clock::now();
-  std::fprintf(handle.get(), "Started  %s\n", iso8601_local_timestamp().c_str());
+  auto const started = iso8601_local_timestamp();
+  fprint(handle.get(), "Started  ");
+  fprint(handle.get(), View<char>{started.data(), started.size()});
+  fprint(handle.get(), '\n');
 }
 
 
@@ -102,8 +108,10 @@ LogFile::~LogFile()
 {
   if (handle == nullptr) { return; }
   auto const finish_time = std::chrono::steady_clock::now();
+  auto const finished = iso8601_local_timestamp();
   fprint(handle.get(), '\n');
-  std::fprintf(handle.get(), "Finished %s", iso8601_local_timestamp().c_str());
+  fprint(handle.get(), "Finished ");
+  fprint(handle.get(), View<char>{finished.data(), finished.size()});
 
   constexpr auto seconds_per_minute = 60.0;
   double const time_diff =
@@ -118,11 +126,15 @@ LogFile::~LogFile()
   double const maxmem = static_cast<double>(system_get_memused()) / bytes_per_mebibyte;
   if (maxmem < mebibytes_per_gibibyte)
     {
-      std::fprintf(handle.get(), "Max memory %.1lfMB\n", maxmem);
+      fprint(handle.get(), "Max memory ");
+      std::fprintf(handle.get(), "%.1lf", maxmem);
+      fprint(handle.get(), "MB\n");
     }
   else
     {
-      std::fprintf(handle.get(), "Max memory %.1lfGB\n", maxmem / mebibytes_per_gibibyte);
+      fprint(handle.get(), "Max memory ");
+      std::fprintf(handle.get(), "%.1lf", maxmem / mebibytes_per_gibibyte);
+      fprint(handle.get(), "GB\n");
     }
   handle.reset();
   log_file::set_handle(nullptr);

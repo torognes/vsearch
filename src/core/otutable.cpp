@@ -70,7 +70,6 @@
 #include <algorithm>  // std::find, std::find_if
 #include <array>
 #include <cassert>  // assert
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
@@ -283,7 +282,8 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
   fprint(output_handle, "#OTU ID");
   for (auto const & it_sample : sample_set_)
     {
-      std::fprintf(output_handle, "\t%s", it_sample.c_str());
+      fprint(output_handle, '\t');
+      fprint(output_handle, View<char>{it_sample.data(), it_sample.size()});
     }
   if (not otu_tax_map_.empty())
     {
@@ -296,7 +296,7 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
        it_otu != otu_set_.end();
        ++it_otu)
     {
-      std::fprintf(output_handle, "%s", it_otu->c_str());
+      std::fputs(it_otu->c_str(), output_handle);
 
       for (auto it_sample = sample_set_.begin();
            it_sample != sample_set_.end();
@@ -310,7 +310,8 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
               a = it_map->second;
               ++it_map;
             }
-          std::fprintf(output_handle, "\t%" PRIu64, a);
+          fprint(output_handle, '\t');
+          fprint_integer(output_handle, a);
         }
       if (not otu_tax_map_.empty())
         {
@@ -319,7 +320,7 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
             = otu_tax_map_.find(*it_otu);
           if (it != otu_tax_map_.end())
             {
-              std::fprintf(output_handle, "%s", it->second.c_str());
+              fprint(output_handle, View<char>{it->second.data(), it->second.size()});
             }
         }
       fprint(output_handle, '\n');
@@ -338,7 +339,8 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
   for (auto const & it_otu : otu_set_)
     {
       char const * otu_name = it_otu.c_str();
-      std::fprintf(output_handle, "\t%s", otu_name);
+      fprint(output_handle, '\t');
+      std::fputs(otu_name, output_handle);
       ++numotus;
     }
   fprint(output_handle, '\n');
@@ -349,7 +351,10 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
        it_sample != sample_set_.end();
        ++it_sample)
     {
-      std::fprintf(output_handle, "vsearch\t%s\t%" PRId64, it_sample->c_str(), numotus);
+      fprint(output_handle, "vsearch\t");
+      std::fputs(it_sample->c_str(), output_handle);
+      fprint(output_handle, '\t');
+      fprint_integer(output_handle, numotus);
 
       for (auto it_otu = otu_set_.begin();
            it_otu != otu_set_.end();
@@ -363,7 +368,8 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
               a = it_map->second;
               ++it_map;
             }
-          std::fprintf(output_handle, "\t%" PRIu64, a);
+          fprint(output_handle, '\t');
+          fprint_integer(output_handle, a);
         }
 
       fprint(output_handle, '\n');
@@ -382,22 +388,19 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
 
   static std::string const date = iso8601_local_timestamp();
 
-  std::fprintf(output_handle,
-          "{\n"
-          "\t\"id\":\"%s\",\n"
-          "\t\"format\": \"Biological Observation Matrix 1.0\",\n"
-          "\t\"format_url\": \"http://biom-format.org/documentation/format_versions/biom-1.0.html\",\n"
-          "\t\"type\": \"OTU table\",\n"
-          "\t\"generated_by\": \"%s %s\",\n"
-          "\t\"date\": \"%s\",\n"
-          "\t\"matrix_type\": \"sparse\",\n"
-          "\t\"matrix_element_type\": \"int\",\n"
-          "\t\"shape\": [%" PRId64 ",%" PRId64 "],\n",
-          parameters.opt_biomout,
-          PROG_NAME, PROG_VERSION,
-          date.c_str(),
-          rows,
-          columns);
+  fprint(output_handle, "{\n\t\"id\":\"");
+  std::fputs(parameters.opt_biomout, output_handle);
+  fprint(output_handle, "\",\n\t\"format\": \"Biological Observation Matrix 1.0\",\n\t\"format_url\": \"http://biom-format.org/documentation/format_versions/biom-1.0.html\",\n\t\"type\": \"OTU table\",\n\t\"generated_by\": \"");
+  std::fputs(PROG_NAME, output_handle);
+  fprint(output_handle, ' ');
+  std::fputs(PROG_VERSION, output_handle);
+  fprint(output_handle, "\",\n\t\"date\": \"");
+  fprint(output_handle, View<char>{date.data(), date.size()});
+  fprint(output_handle, "\",\n\t\"matrix_type\": \"sparse\",\n\t\"matrix_element_type\": \"int\",\n\t\"shape\": [");
+  fprint_integer(output_handle, rows);
+  fprint(output_handle, ',');
+  fprint_integer(output_handle, columns);
+  fprint(output_handle, "],\n");
 
   string_no_map_t otu_no_map;
   uint64_t otu_no = 0;
@@ -412,18 +415,20 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
           fprint(output_handle, ',');
         }
       char const * otu_name = it_otu->c_str();
-      std::fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":", otu_name);
+      fprint(output_handle, "\n\t\t{\"id\":\"");
+      std::fputs(otu_name, output_handle);
+      fprint(output_handle, "\", \"metadata\":");
       if (otu_tax_map_.empty())
         {
           fprint(output_handle, "null");
         }
       else
         {
-          std::fprintf(output_handle, R"({"taxonomy":")");
+          fprint(output_handle, R"({"taxonomy":")");
           auto it = otu_tax_map_.find(otu_name);
           if (it != otu_tax_map_.end())
             {
-              fprintf(output_handle, "%s", it->second.c_str());
+              fprint(output_handle, View<char>{it->second.data(), it->second.size()});
             }
           fprint(output_handle, "\"}");
         }
@@ -446,7 +451,9 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
         {
           fprint(output_handle, ',');
         }
-      std::fprintf(output_handle, "\n\t\t{\"id\":\"%s\", \"metadata\":null}", it_sample->c_str());
+      fprint(output_handle, "\n\t\t{\"id\":\"");
+      std::fputs(it_sample->c_str(), output_handle);
+      fprint(output_handle, "\", \"metadata\":null}");
       sample_no_map[*it_sample] = sample_no++;
     }
   fprint(output_handle, "\n\t],\n");
@@ -464,7 +471,13 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
       otu_no = otu_no_map[it_map.first.first];
       sample_no = sample_no_map[it_map.first.second];
 
-      std::fprintf(output_handle, "\n\t\t[%" PRIu64 ",%" PRIu64 ",%" PRIu64 "]", otu_no, sample_no, it_map.second);
+      fprint(output_handle, "\n\t\t[");
+      fprint_integer(output_handle, otu_no);
+      fprint(output_handle, ',');
+      fprint_integer(output_handle, sample_no);
+      fprint(output_handle, ',');
+      fprint_integer(output_handle, it_map.second);
+      fprint(output_handle, ']');
       first = false;
       ++progress;
       progress_bar.update(static_cast<uint64_t>(progress));

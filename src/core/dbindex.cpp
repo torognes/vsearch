@@ -64,10 +64,11 @@
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include <array>
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE
 #include <iterator>  // std::next
 #include <vector>
 
@@ -115,14 +116,18 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint
   static constexpr std::array<char, 4> sym_nt_2bit = {{'A', 'C', 'G', 'T'}};
   for (auto i = 0U; i < kmer_length; ++i)
     {
-      std::fprintf(output_handle, "%c", sym_nt_2bit[(kmer >> (2 * (kmer_length - i - 1))) & 3]);
+      fprint(output_handle, sym_nt_2bit[(kmer >> (2 * (kmer_length - i - 1))) & 3]);
     }
 }
 
 auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, struct Database const & db) -> void
 {
 #if 0
-  std::printf("Adding seqno %d as index element no %d\n", seqno, count);
+  fprint(stdout, "Adding seqno ");
+  fprint_integer(stdout, seqno);
+  fprint(stdout, " as index element no ");
+  fprint_integer(stdout, count);
+  fprint(stdout, '\n');
 #endif
 
   unsigned int uniquecount = 0;
@@ -202,7 +207,11 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   for (auto kmer = 0U; kmer < hashsize; kmer++)
     {
       fprint_kmer(kmercounts_handle.get(), 8, kmer);
-      std::fprintf(kmercounts_handle.get(), "\t%d\t%d\n", kmer, kmercount[kmer]);
+      fprint(kmercounts_handle.get(), '\t');
+      fprint_integer(kmercounts_handle.get(), kmer);
+      fprint(kmercounts_handle.get(), '\t');
+      fprint_integer(kmercounts_handle.get(), kmercount[kmer]);
+      fprint(kmercounts_handle.get(), '\n');
     }
 #endif
 
@@ -233,7 +242,11 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
 
 #if 0
   if (not parameters.opt_quiet)
-    std::fprintf(stderr, "Unique %u-mers: %u\n", wordlength, indexsize);
+    fprint(stderr, "Unique ");
+    fprint_integer(stderr, wordlength);
+    fprint(stderr, "-mers: ");
+    fprint_integer(stderr, indexsize);
+    fprint(stderr, '\n');
 #endif
 
   /* reset counts */

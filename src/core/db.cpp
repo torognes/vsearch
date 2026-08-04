@@ -65,7 +65,9 @@
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"  // fatal
 #include "utils/maps.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
 #include <array>  // std::array
 #include <cinttypes>  // macros PRIu64 and PRId64
@@ -334,21 +336,23 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
     {
       if (sequences > 0)
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, "
-                  "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
-                  getnucleotidecount(),
-                  getsequencecount(),
-                  getshortestsequence(),
-                  getlongestsequence(),
-                  static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
+          fprint_integer(stderr, getnucleotidecount());
+          fprint(stderr, " nt in ");
+          fprint_integer(stderr, getsequencecount());
+          fprint(stderr, " seqs, min ");
+          fprint_integer(stderr, getshortestsequence());
+          fprint(stderr, ", max ");
+          fprint_integer(stderr, getlongestsequence());
+          fprint(stderr, ", avg ");
+          std::fprintf(stderr, "%.0f", static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
+          fprint(stderr, '\n');
         }
       else
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  getnucleotidecount(),
-                  getsequencecount());
+          fprint_integer(stderr, getnucleotidecount());
+          fprint(stderr, " nt in ");
+          fprint_integer(stderr, getsequencecount());
+          fprint(stderr, " seqs\n");
         }
     }
 
@@ -356,21 +360,23 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
     {
       if (sequences > 0)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, "
-                  "min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
-                  getnucleotidecount(),
-                  getsequencecount(),
-                  getshortestsequence(),
-                  getlongestsequence(),
-                  static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
+          fprint_integer(parameters.fp_log, getnucleotidecount());
+          fprint(parameters.fp_log, " nt in ");
+          fprint_integer(parameters.fp_log, getsequencecount());
+          fprint(parameters.fp_log, " seqs, min ");
+          fprint_integer(parameters.fp_log, getshortestsequence());
+          fprint(parameters.fp_log, ", max ");
+          fprint_integer(parameters.fp_log, getlongestsequence());
+          fprint(parameters.fp_log, ", avg ");
+          std::fprintf(parameters.fp_log, "%.0f", static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
+          fprint(parameters.fp_log, "\n\n");
         }
       else
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
-                  getnucleotidecount(),
-                  getsequencecount());
+          fprint_integer(parameters.fp_log, getnucleotidecount());
+          fprint(parameters.fp_log, " nt in ");
+          fprint_integer(parameters.fp_log, getsequencecount());
+          fprint(parameters.fp_log, " seqs\n\n");
         }
     }
 
@@ -378,55 +384,67 @@ auto Database::read(const char * filename, int upcase, struct Parameters const &
 
   if (discarded_short != 0)
     {
-      std::fprintf(stderr,
-              "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              parameters.opt_minseqlength,
-              discarded_short,
-              (discarded_short == 1 ? "sequence" : "sequences"));
+      fprint(stderr, "minseqlength ");
+      fprint_integer(stderr, parameters.opt_minseqlength);
+      fprint(stderr, ": ");
+      fprint_integer(stderr, discarded_short);
+      fprint(stderr, ' ');
+      std::fputs((discarded_short == 1 ? "sequence" : "sequences"), stderr);
+      fprint(stderr, " discarded.\n");
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "minseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  parameters.opt_minseqlength,
-                  discarded_short,
-                  (discarded_short == 1 ? "sequence" : "sequences"));
+          fprint(parameters.fp_log, "minseqlength ");
+          fprint_integer(parameters.fp_log, parameters.opt_minseqlength);
+          fprint(parameters.fp_log, ": ");
+          fprint_integer(parameters.fp_log, discarded_short);
+          fprint(parameters.fp_log, ' ');
+          std::fputs((discarded_short == 1 ? "sequence" : "sequences"), parameters.fp_log);
+          fprint(parameters.fp_log, " discarded.\n\n");
         }
     }
 
   if (discarded_long != 0)
     {
-      std::fprintf(stderr,
-              "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n",
-              parameters.opt_maxseqlength,
-              discarded_long,
-              (discarded_long == 1 ? "sequence" : "sequences"));
+      fprint(stderr, "maxseqlength ");
+      fprint_integer(stderr, parameters.opt_maxseqlength);
+      fprint(stderr, ": ");
+      fprint_integer(stderr, discarded_long);
+      fprint(stderr, ' ');
+      std::fputs((discarded_long == 1 ? "sequence" : "sequences"), stderr);
+      fprint(stderr, " discarded.\n");
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "maxseqlength %" PRId64 ": %" PRId64 " %s discarded.\n\n",
-                  parameters.opt_maxseqlength,
-                  discarded_long,
-                  (discarded_long == 1 ? "sequence" : "sequences"));
+          fprint(parameters.fp_log, "maxseqlength ");
+          fprint_integer(parameters.fp_log, parameters.opt_maxseqlength);
+          fprint(parameters.fp_log, ": ");
+          fprint_integer(parameters.fp_log, discarded_long);
+          fprint(parameters.fp_log, ' ');
+          std::fputs((discarded_long == 1 ? "sequence" : "sequences"), parameters.fp_log);
+          fprint(parameters.fp_log, " discarded.\n\n");
         }
     }
 
     if (discarded_unoise != 0)
     {
-      std::fprintf(stderr,
-              "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
-              parameters.opt_minsize,
-              discarded_unoise,
-              (discarded_unoise == 1 ? "sequence" : "sequences"));
+      fprint(stderr, "minsize ");
+      fprint_integer(stderr, parameters.opt_minsize);
+      fprint(stderr, ": ");
+      fprint_integer(stderr, discarded_unoise);
+      fprint(stderr, ' ');
+      std::fputs((discarded_unoise == 1 ? "sequence" : "sequences"), stderr);
+      fprint(stderr, " discarded.\n");
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "minsize %" PRId64 ": %" PRId64 " %s discarded.\n",
-                  parameters.opt_minsize,
-                  discarded_unoise,
-                  (discarded_unoise == 1 ? "sequence" : "sequences"));
+          fprint(parameters.fp_log, "minsize ");
+          fprint_integer(parameters.fp_log, parameters.opt_minsize);
+          fprint(parameters.fp_log, ": ");
+          fprint_integer(parameters.fp_log, discarded_unoise);
+          fprint(parameters.fp_log, ' ');
+          std::fputs((discarded_unoise == 1 ? "sequence" : "sequences"), parameters.fp_log);
+          fprint(parameters.fp_log, " discarded.\n");
         }
     }
 }
