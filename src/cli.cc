@@ -4333,7 +4333,11 @@ namespace {
       }
     else
       {
-        if (parameters.opt_threads > 1)
+        /* k < 0 means no command was given (see the caller), and there is then
+           no command name to put in the warning; valid_options[(size_t) -1]
+           was an out-of-bounds read, so `vsearch --threads 2` with no command
+           crashed here instead of reaching the usage summary. */
+        if ((parameters.opt_threads > 1) and (k >= 0))
           {
             fprint(stderr, "WARNING: The ");
             std::fputs(long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name, stderr);
