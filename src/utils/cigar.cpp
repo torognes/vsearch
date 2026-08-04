@@ -60,6 +60,7 @@
 
 #include "cigar_operations.hpp"
 #include "fatal.hpp"
+#include "print_view.hpp"  // fprint
 #include "view.hpp"  // View (read-only cigar)
 #include <algorithm>  // std::max
 #include <cassert>
@@ -188,7 +189,7 @@ auto print_uncompressed_cigar(std::FILE * output_handle, View<char> const cigar_
     auto const runlength = a_pair.second;
     // refactoring? std::fprintf("%s", std::string(runlength, operation).c_str());
     for (auto i = 0LL; i < runlength; ++i) {
-      static_cast<void>(std::fprintf(output_handle, "%c", operation));
+      fprint(output_handle, static_cast<char>(operation));
     }
   }
 }

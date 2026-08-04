@@ -67,7 +67,6 @@
 #include <cassert>  // assert
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::size_t
 #include <vector>
 
 

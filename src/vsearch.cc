@@ -118,9 +118,10 @@
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
+#include "utils/view.hpp"
 #include <array>
 #include <cerrno>  // errno, ERANGE
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf
+#include <cstdio>  // std::FILE, std::size_t, std::snprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <new>  // std::set_new_handler
@@ -135,46 +136,9 @@
 namespace {
 auto usage_hint(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
-  std::fprintf(stderr,
-          "For more help, please enter: %s --help\n"
-          "For further details, please consult the manual by entering: man vsearch\n"
-          "\n"
-          "Selected command examples:\n"
-          "\n"
-          "vsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\n"
-          "vsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\n"
-          "vsearch --cut FILENAME --cut_pattern G^AATT_C --fastaout FILENAME\n"
-          "vsearch --fastq_chars FILENAME\n"
-          "vsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\n"
-          "vsearch --fastq_eestats FILENAME --output FILENAME\n"
-          "vsearch --fastq_eestats2 FILENAME --output FILENAME\n"
-          "vsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\n"
-          "vsearch --fastq_stats FILENAME --log FILENAME\n"
-          "vsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\n"
-          "vsearch --fastx_getseq FILENAME --label LABEL --fastaout FILENAME\n"
-          "vsearch --fastx_mask FILENAME --fastaout FILENAME\n"
-          "vsearch --fastx_revcomp FILENAME --fastqout FILENAME\n"
-          "vsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\n"
-          "vsearch --fastx_uniques FILENAME --fastaout FILENAME\n"
-          "vsearch --makeudb_usearch FILENAME --output FILENAME\n"
-          "vsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\n"
-          "vsearch --sff_convert FILENAME --output FILENAME --sff_clip\n"
-          "vsearch --shuffle FILENAME --output FILENAME\n"
-          "vsearch --sintax FILENAME --db FILENAME --tabbedout FILENAME\n"
-          "vsearch --sortbylength FILENAME --output FILENAME\n"
-          "vsearch --sortbysize FILENAME --output FILENAME\n"
-          "vsearch --uchime_denovo FILENAME --nonchimeras FILENAME\n"
-          "vsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\n"
-          "vsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n"
-          "\n"
-          "Other commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n"
-          "                derep_id, derep_fulllength, derep_prefix, derep_smallmem,\n"
-          "                fasta2fastq, fastq_filter, fastq_join, fastx_getseqs,\n"
-          "                fastx_getsubseq, fastx_syncpairs, maskfasta, orient, rereplicate,\n"
-          "                uchime2_denovo, uchime3_denovo, udb2fasta, udbinfo, udbstats,\n"
-          "                version\n"
-          "\n",
-          parameters.progname);
+  fprint(stderr, "For more help, please enter: ");
+  std::fputs(parameters.progname, stderr);
+  fprint(stderr, " --help\nFor further details, please consult the manual by entering: man vsearch\n\nSelected command examples:\n\nvsearch --allpairs_global FILENAME --id 0.5 --alnout FILENAME\nvsearch --cluster_size FILENAME --id 0.97 --centroids FILENAME\nvsearch --cut FILENAME --cut_pattern G^AATT_C --fastaout FILENAME\nvsearch --fastq_chars FILENAME\nvsearch --fastq_convert FILENAME --fastqout FILENAME --fastq_ascii 64\nvsearch --fastq_eestats FILENAME --output FILENAME\nvsearch --fastq_eestats2 FILENAME --output FILENAME\nvsearch --fastq_mergepairs FILENAME --reverse FILENAME --fastqout FILENAME\nvsearch --fastq_stats FILENAME --log FILENAME\nvsearch --fastx_filter FILENAME --fastaout FILENAME --fastq_trunclen 100\nvsearch --fastx_getseq FILENAME --label LABEL --fastaout FILENAME\nvsearch --fastx_mask FILENAME --fastaout FILENAME\nvsearch --fastx_revcomp FILENAME --fastqout FILENAME\nvsearch --fastx_subsample FILENAME --fastaout FILENAME --sample_pct 1\nvsearch --fastx_uniques FILENAME --fastaout FILENAME\nvsearch --makeudb_usearch FILENAME --output FILENAME\nvsearch --search_exact FILENAME --db FILENAME --alnout FILENAME\nvsearch --sff_convert FILENAME --output FILENAME --sff_clip\nvsearch --shuffle FILENAME --output FILENAME\nvsearch --sintax FILENAME --db FILENAME --tabbedout FILENAME\nvsearch --sortbylength FILENAME --output FILENAME\nvsearch --sortbysize FILENAME --output FILENAME\nvsearch --uchime_denovo FILENAME --nonchimeras FILENAME\nvsearch --uchime_ref FILENAME --db FILENAME --nonchimeras FILENAME\nvsearch --usearch_global FILENAME --db FILENAME --id 0.97 --alnout FILENAME\n\nOther commands: cluster_fast, cluster_smallmem, cluster_unoise, cut,\n                derep_id, derep_fulllength, derep_prefix, derep_smallmem,\n                fasta2fastq, fastq_filter, fastq_join, fastx_getseqs,\n                fastx_getsubseq, fastx_syncpairs, maskfasta, orient, rereplicate,\n                uchime2_denovo, uchime3_denovo, udb2fasta, udbinfo, udbstats,\n                version\n\n");
 }
 
 
@@ -235,7 +199,8 @@ auto getentirecommandline(int argc, char * const * argv) -> std::string
 
 auto show_header(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
-  std::fprintf(stderr, "%s\n", parameters.prog_header.c_str());
+  fprint(stderr, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+  fprint(stderr, '\n');
   fprint(stderr, "https://github.com/torognes/vsearch\n");
   fprint(stderr, '\n');
 }

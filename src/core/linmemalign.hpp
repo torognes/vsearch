@@ -61,7 +61,6 @@
 #pragma once
 
 #include "utils/view.hpp"  // View<char>
-#include <cstdio>  // std::FILE, std::size_t
 #include <cstdint>  // int64_t
 #include <vector>
 

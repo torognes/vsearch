@@ -66,7 +66,6 @@
 #include "utils/progress.hpp"
 #include <cassert>
 #include <cstdint>
-#include <cstdio>  // std::FILE, std::size_t, std::fclose
 #include <vector>
 
 

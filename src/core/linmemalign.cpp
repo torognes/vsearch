@@ -68,7 +68,6 @@
 #include <algorithm>  // std::copy, std::max
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::printf
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>

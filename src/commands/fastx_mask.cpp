@@ -67,6 +67,7 @@
 #include "utils/ascii_case.hpp"  // is_upper
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
@@ -181,26 +182,40 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     {
       if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          std::fprintf(stderr, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
+          fprint_integer(stderr, discarded_less);
+          fprint(stderr, " sequences with less than ");
+          std::fprintf(stderr, "%.1lf", parameters.opt_min_unmasked_pct);
+          fprint(stderr, "% unmasked residues discarded\n");
         }
       if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          std::fprintf(stderr, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
+          fprint_integer(stderr, discarded_more);
+          fprint(stderr, " sequences with more than ");
+          std::fprintf(stderr, "%.1lf", parameters.opt_max_unmasked_pct);
+          fprint(stderr, "% unmasked residues discarded\n");
         }
-      std::fprintf(stderr, "%d sequences kept\n", kept);
+      fprint_integer(stderr, kept);
+      fprint(stderr, " sequences kept\n");
     }
 
   if (parameters.opt_log != nullptr)
     {
       if (parameters.opt_min_unmasked_pct > 0.0)
         {
-          std::fprintf(parameters.fp_log, "%d sequences with less than %.1lf%% unmasked residues discarded\n", discarded_less, parameters.opt_min_unmasked_pct);
+          fprint_integer(parameters.fp_log, discarded_less);
+          fprint(parameters.fp_log, " sequences with less than ");
+          std::fprintf(parameters.fp_log, "%.1lf", parameters.opt_min_unmasked_pct);
+          fprint(parameters.fp_log, "% unmasked residues discarded\n");
         }
       if (parameters.opt_max_unmasked_pct < 100.0)
         {
-          std::fprintf(parameters.fp_log, "%d sequences with more than %.1lf%% unmasked residues discarded\n", discarded_more, parameters.opt_max_unmasked_pct);
+          fprint_integer(parameters.fp_log, discarded_more);
+          fprint(parameters.fp_log, " sequences with more than ");
+          std::fprintf(parameters.fp_log, "%.1lf", parameters.opt_max_unmasked_pct);
+          fprint(parameters.fp_log, "% unmasked residues discarded\n");
         }
-      std::fprintf(parameters.fp_log, "%d sequences kept\n", kept);
+      fprint_integer(parameters.fp_log, kept);
+      fprint(parameters.fp_log, " sequences kept\n");
     }
 
   db.clear();
