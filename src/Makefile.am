@@ -172,6 +172,7 @@ utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/cityhash.hpp \
 utils/compare_strings_nocase.hpp \
+utils/decimal_digits.hpp \
 utils/dynlib_loader.hpp \
 utils/element_order.hpp \
 utils/fatal.hpp \

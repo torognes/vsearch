@@ -216,10 +216,11 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -283,10 +284,11 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -350,10 +352,11 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -412,10 +415,11 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -474,10 +478,11 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -536,10 +541,11 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -597,10 +603,11 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -817,10 +824,11 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
 	utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
-	utils/compare_strings_nocase.hpp utils/dynlib_loader.hpp \
-	utils/element_order.hpp utils/fatal.hpp \
-	utils/fatal_allocator.hpp utils/kmer_hash_struct.hpp \
-	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
+	utils/dynlib_loader.hpp utils/element_order.hpp \
+	utils/fatal.hpp utils/fatal_allocator.hpp \
+	utils/kmer_hash_struct.hpp utils/logfile.hpp \
+	utils/make_unique.hpp utils/maps.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
 	utils/os_byteswap.hpp utils/print_view.hpp utils/prog_id.hpp \
 	utils/progress.hpp utils/quality_encoding.hpp utils/random.hpp \
@@ -1466,6 +1474,7 @@ utils/cigar.hpp \
 utils/cigar_operations.hpp \
 utils/cityhash.hpp \
 utils/compare_strings_nocase.hpp \
+utils/decimal_digits.hpp \
 utils/dynlib_loader.hpp \
 utils/element_order.hpp \
 utils/fatal.hpp \

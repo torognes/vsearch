@@ -34,6 +34,8 @@ in a namespace today except four small internal ones (`fatal_detail`,
 | `seqinfo_s`/`seqinfo_t`, `chimera_result_s`, `cluster_result_s`, `derep_result_s`, `search_result_s`, and the `*_session_s` forward declarations | types | `core/*.hpp` | low (suffixed) |
 | `chimera_*`, `cluster_*`, `derep_*`, `search_*` (28 functions) | functions | `core/*.hpp` | low (subsystem-prefixed) |
 | `fprint_kmer` | function | `core/dbindex.hpp` | moderate |
+| `fprint` (3 overloads), `fprint_integer` (2 overloads), `fprint_spaces` | functions | `utils/print_view.hpp` | **high** — see below |
+| `decimal::to_decimal`, `decimal::Buffer`, `decimal::max_width` | function, type, constant | `utils/decimal_digits.hpp` | low (already in `decimal`) |
 | `vsearch_api_version`, `vsearch_api_version_string` | functions | `vsearch_api.h` | low (prefixed) |
 
 ### Why `fatal()` settles it
@@ -50,6 +52,18 @@ any C-ish project has. It is worse than any of the type names, because
 
 `dust()`, `hardmask()` and `dust_all()` have exactly the same shape.
 Against those, `View` is comparatively benign: it breaks loudly.
+
+### The `fprint*` group
+
+`TBD_20260804_c_style_elimination.md`'s Decision 4 deliberately put five
+new global-namespace overloads next to the existing `fprint(View)` rather
+than qualifying ~300 call sites mid-migration, so this pass now has six
+`fprint*` names to move instead of one. That is a bigger but purely
+mechanical move, and it **must not be dropped**: these are bare functions
+whose first parameter is a `std::FILE *`, which is exactly the shape a
+consumer's own output helper has, so they collide the quiet way `fatal()`
+does, not the loud way `View` does. The `decimal` namespace is already
+there and only needs nesting inside `vsearch`.
 
 So the helper-only option addresses the loud failures and leaves the
 quiet ones in place, which is the wrong way round.

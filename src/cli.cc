@@ -73,7 +73,6 @@
 #include <array>
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct option
 #include <cerrno>  // errno, ERANGE
-#include <cinttypes>  // macro SCNd64
 #include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::fprintf, fprintf, stderr, stdout, std::fputc, std::fputs

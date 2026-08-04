@@ -2,9 +2,13 @@
 
 Inventory of the C standard-library functions still called from the
 vsearch sources, taken after the `qsort` → `std::sort` migration was
-verified complete. The **printf family is excluded** throughout
-(`fprintf`/`snprintf`/… are the project's chosen output mechanism and
-are not refactoring targets).
+verified complete. The printf family was excluded throughout when this
+was written; **that exclusion is reversed** — see
+`TBD_20260804_c_style_elimination.md`, which makes
+`fprintf`/`printf`/`fputs`/`fputc`/`snprintf` targets in full scope and
+supersedes this paragraph. Two inventory corrections while this document
+is open: the `<cstdio>` table below understates `std::fputc` (3 listed,
+115 measured) and `std::fputs` (1 listed, 124 measured).
 
 Counts are call sites with comments and string literals stripped, over
 `src/**/*.{cc,cpp,hpp,h}` excluding `src/vendored/`. `assert()` (85
