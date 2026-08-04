@@ -65,6 +65,7 @@
 #include "core/fasta.hpp"
 #include "utils/ascii_case.hpp"  // to_upper
 #include "utils/cigar.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/span.hpp"
 #include "utils/reverse_complement.hpp"
 #include <array>
@@ -72,7 +73,7 @@
 #include <cassert>
 #include <cinttypes>  // macro PRId64
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::FILE, std::sscanf, std::fprintf, std::fputc
+#include <cstdio>  // std::FILE, std::sscanf, std::fprintf
 #include <iterator> // std::next
 #include <numeric> // std::accumulate
 #include <vector>
@@ -234,7 +235,7 @@ auto allocate_buffer_for_reverse_strand_target(int const target_count,
 
 auto blank_line_before_each_msa(std::FILE * fp_msaout) -> void {
   if (fp_msaout == nullptr) { return ; }
-  static_cast<void>(std::fputc('\n', fp_msaout));
+  fprint(fp_msaout, '\n');
 }
 
 
@@ -551,10 +552,10 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
       for (auto const symbol_index : symbol_indexes) {
         static_cast<void>(std::fprintf(fp_profile, "\t%" PRIu64, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]));
       }
-      static_cast<void>(std::fputc('\n', fp_profile));
+      fprint(fp_profile, '\n');
       ++counter;
     }
-  static_cast<void>(std::fputc('\n', fp_profile));
+  fprint(fp_profile, '\n');
 }
 }  // anonymous namespace
 

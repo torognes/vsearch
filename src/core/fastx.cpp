@@ -70,6 +70,7 @@
 #include "utils/logfile.hpp"  // log_file::handle
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/open_file.hpp"  // open_input_file
+#include "utils/print_view.hpp"  // fprint
 #include "utils/span.hpp"
 #include "utils/view.hpp"  // View
 #include <sys/stat.h>
@@ -80,7 +81,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fread, std::fileno
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strcmp
 #include <iterator> // std::next, std::distance
@@ -588,8 +589,8 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
               std::fprintf(stderr, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
             }
         }
-      std::fputc('\n', stderr);
-      std::fputs("REMINDER: vsearch does not support amino acid sequences\n", stderr);
+      fprint(stderr, '\n');
+      fprint(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
 
       if (parameters.opt_log != nullptr)
         {
@@ -601,8 +602,8 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
                   std::fprintf(parameters.fp_log, " %c(%" PRIu64 ")", i, stripped[static_cast<std::size_t>(i)]);
                 }
             }
-          std::fputc('\n', parameters.fp_log);
-          std::fputs("REMINDER: vsearch does not support amino acid sequences\n", parameters.fp_log);
+          fprint(parameters.fp_log, '\n');
+          fprint(parameters.fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }
     }
 }

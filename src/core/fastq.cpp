@@ -590,7 +590,7 @@ auto fastq_print_general(FILE * output_handle,
                          double const expected_error,
                          struct Parameters const & parameters) -> void
 {
-  std::fputc('@', output_handle);
+  fprint(output_handle, '@');
 
   // track whether the text printed so far ends with the annotation
   // separator ';', so that appended annotations are merged with a single
@@ -684,15 +684,15 @@ auto fastq_print_general(FILE * output_handle,
   if (parameters.opt_relabel_keep &&
       (((parameters.opt_relabel != nullptr) && (ordinal > 0)) || parameters.opt_relabel_sha1 || parameters.opt_relabel_md5 || parameters.opt_relabel_self))
     {
-      std::fputc(' ', output_handle);
+      fprint(output_handle, ' ');
       fprint(output_handle, header);
     }
 
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
   fprint(output_handle, seq);
-  std::fputs("\n+\n", output_handle);
+  fprint(output_handle, "\n+\n");
   fprint(output_handle, quality);
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 }
 
 

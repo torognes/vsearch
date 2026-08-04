@@ -70,6 +70,7 @@
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "os/system.hpp"  // xstat_t, xfstat, S_ISFIFO
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/ascii_case.hpp"  // is_alnum
 #include "utils/compare_strings_nocase.hpp"
@@ -82,7 +83,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
 #include <cstring>  // std::strlen
 #include <sys/stat.h>
 #include <vector>
@@ -218,12 +219,12 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
     {
       if (not parameters.opt_quiet)
         {
-          std::fputs("WARNING: Labels longer than 1023 characters are not supported\n", stderr);
+          fprint(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
 
       if (parameters.opt_log != nullptr)
         {
-          std::fputs("WARNING: Labels longer than 1023 characters are not supported\n", parameters.fp_log);
+          fprint(parameters.fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
         }
     }
 }
@@ -533,7 +534,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      std::fputc('\n', stderr);
+      fprint(stderr, '\n');
     }
 
   if (parameters.opt_log != nullptr)
@@ -548,7 +549,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                   " (%.1lf%%)",
                   100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
         }
-      std::fputc('\n', parameters.fp_log);
+      fprint(parameters.fp_log, '\n');
     }
 
   if (parameters.opt_fastaout != nullptr)

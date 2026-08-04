@@ -70,6 +70,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/seqcmp.hpp"
 #include "utils/cityhash.hpp"
 #include "utils/reverse_complement.hpp"
@@ -78,7 +79,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>
@@ -869,7 +870,7 @@ namespace {
     if (parameters.opt_log != nullptr)
       {
         emit(parameters.fp_log);
-        std::fputc('\n', parameters.fp_log);
+        fprint(parameters.fp_log, '\n');
       }
   }
 
@@ -882,7 +883,7 @@ namespace {
     auto emit = [&](std::FILE * fp) -> void {
       if (stats.clusters < 1)
         {
-          std::fputs("0 unique sequences\n", fp);
+          fprint(fp, "0 unique sequences\n");
         }
       else
         {
@@ -900,7 +901,7 @@ namespace {
     if (parameters.opt_log != nullptr)
       {
         emit(parameters.fp_log);
-        std::fputc('\n', parameters.fp_log);
+        fprint(parameters.fp_log, '\n');
       }
   }
 
@@ -927,7 +928,7 @@ namespace {
     if (parameters.opt_log != nullptr)
       {
         emit(parameters.fp_log);
-        std::fputc('\n', parameters.fp_log);
+        fprint(parameters.fp_log, '\n');
       }
   }
 

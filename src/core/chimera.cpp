@@ -90,7 +90,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::sscanf, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::sscanf, std::fputs
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
@@ -332,7 +332,7 @@ namespace {
                             View<char> const row) -> void {
     std::fputs(padded_name, output_handle);
     fprint(output_handle, row);
-    std::fputc('\n', output_handle);
+    fprint(output_handle, '\n');
   }
 
 }  // end of anonymous namespace
@@ -1131,9 +1131,9 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
   if ((parameters.opt_alnout != nullptr) and (status == Status::chimeric))
     {
-      std::fputc('\n', cli->fp_uchimealns);
-      std::fputs("----------------------------------------"
-                   "--------------------------------\n", cli->fp_uchimealns);
+      fprint(cli->fp_uchimealns, '\n');
+      fprint(cli->fp_uchimealns, "----------------------------------------"
+                                 "--------------------------------\n");
       std::fprintf(cli->fp_uchimealns, "Query   (%5d nt) ",
                    ci->query_len);
       header_fprint_strip(cli->fp_uchimealns,
@@ -1159,7 +1159,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
                               parameters.opt_xlength);
         }
 
-      std::fputs("\n\n", cli->fp_uchimealns);
+      fprint(cli->fp_uchimealns, "\n\n");
 
 
       int const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
@@ -1206,7 +1206,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
                   View<char>{&ci->diffs[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
           print_annotation_row(cli->fp_uchimealns, "Model   ",
                   View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-          std::fputc('\n', cli->fp_uchimealns);
+          fprint(cli->fp_uchimealns, '\n');
 
           rest -= width;
           qpos += qnt;
@@ -1229,19 +1229,19 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
-      std::fputc('\t', cli->fp_uchimeout);
+      fprint(cli->fp_uchimeout, '\t');
       header_fprint_strip(cli->fp_uchimeout,
                           db.header_view(static_cast<uint64_t>(seqno_a)),
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
-      std::fputc('\t', cli->fp_uchimeout);
+      fprint(cli->fp_uchimeout, '\t');
       header_fprint_strip(cli->fp_uchimeout,
                           db.header_view(static_cast<uint64_t>(seqno_b)),
                           parameters.opt_xsize,
                           parameters.opt_xee,
                           parameters.opt_xlength);
-      std::fputc('\t', cli->fp_uchimeout);
+      fprint(cli->fp_uchimeout, '\t');
       if (seqno_c >= 0)
         {
           header_fprint_strip(cli->fp_uchimeout,
@@ -1252,9 +1252,9 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
         }
       else
         {
-          std::fputc('*', cli->fp_uchimeout);
+          fprint(cli->fp_uchimeout, '*');
         }
-      std::fputc('\t', cli->fp_uchimeout);
+      fprint(cli->fp_uchimeout, '\t');
 
       std::fprintf(cli->fp_uchimeout,
               "%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t"
@@ -1727,9 +1727,9 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
       if ((parameters.opt_uchimealns != nullptr) and (status == Status::chimeric))
         {
-          std::fputc('\n', cli->fp_uchimealns);
-          std::fputs("----------------------------------------"
-                  "--------------------------------\n", cli->fp_uchimealns);
+          fprint(cli->fp_uchimealns, '\n');
+          fprint(cli->fp_uchimealns, "----------------------------------------"
+                                     "--------------------------------\n");
           std::fprintf(cli->fp_uchimealns, "Query   (%5d nt) ",
                   ci->query_len);
 
@@ -1754,7 +1754,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
-          std::fputs("\n\n", cli->fp_uchimealns);
+          fprint(cli->fp_uchimealns, "\n\n");
 
           auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
           qpos = 0;
@@ -1811,7 +1811,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                       View<char>{&ci->votes[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
               print_annotation_row(cli->fp_uchimealns, "Model   ",
                       View<char>{&ci->model[static_cast<size_t>(i)], static_cast<std::size_t>(w)});
-              std::fputc('\n', cli->fp_uchimealns);
+              fprint(cli->fp_uchimealns, '\n');
 
               qpos += qnt;
               p1pos += p1nt;
@@ -1841,19 +1841,19 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
-          std::fputc('\t', cli->fp_uchimeout);
+          fprint(cli->fp_uchimeout, '\t');
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_a)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
-          std::fputc('\t', cli->fp_uchimeout);
+          fprint(cli->fp_uchimeout, '\t');
           header_fprint_strip(cli->fp_uchimeout,
                               db.header_view(static_cast<uint64_t>(seqno_b)),
                               parameters.opt_xsize,
                               parameters.opt_xee,
                               parameters.opt_xlength);
-          std::fputc('\t', cli->fp_uchimeout);
+          fprint(cli->fp_uchimeout, '\t');
 
           if (parameters.opt_uchimeout5 == 0)
             {
@@ -1873,7 +1873,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
                                       parameters.opt_xee,
                                       parameters.opt_xlength);
                 }
-              std::fputc('\t', cli->fp_uchimeout);
+              fprint(cli->fp_uchimeout, '\t');
             }
 
           std::fprintf(cli->fp_uchimeout,
@@ -2325,11 +2325,11 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
             if (state.parameters.opt_uchimeout5 != 0)
               {
-                std::fputs("\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n", state.fp_uchimeout);
+                fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
               }
             else
               {
-                std::fputs("\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n", state.fp_uchimeout);
+                fprint(state.fp_uchimeout, "\t*\t*\t*\t*\t*\t*\t*\t*\t0\t0\t0\t0\t0\t0\t*\tN\n");
               }
           }
 
@@ -2571,7 +2571,7 @@ auto chimera(struct Parameters const & parameters) -> void
           std::fprintf(parameters.fp_log, "%8d  maxp\n", 2);
         }
 
-      std::fputc('\n', parameters.fp_log);
+      fprint(parameters.fp_log, '\n');
     }
 
 

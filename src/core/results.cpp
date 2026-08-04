@@ -77,7 +77,7 @@
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
 
@@ -153,7 +153,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       0,
                       parameters);
 
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 }
 
 
@@ -250,7 +250,7 @@ auto results_show_blast6out_one(std::FILE * output_handle,
 
   if (hits == nullptr) {
     fprint(output_handle, query_head);
-    std::fputs("\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n", output_handle);
+    fprint(output_handle, "\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n");
     return;
   }
   // if 'hp->strand' then 'minus strand' else 'plus strand'
@@ -259,7 +259,7 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   int const qend = (hits->strand != 0) ? 1 : static_cast<int>(qseqlen);
 
   fprint(output_handle, query_head);
-  std::fputc('\t', output_handle);
+  fprint(output_handle, '\t');
   fprint(output_handle, db.header_view(target));
   std::fprintf(output_handle,
           "\t%.1f\t%d\t%d\t%d\t%d\t%d\t%d\t%" PRIu64 "\t%d\t%d\n",
@@ -301,9 +301,9 @@ auto results_show_uc_one(std::FILE * output_handle,
   */
 
   if (hits == nullptr) {
-    std::fputs("N\t*\t*\t*\t.\t*\t*\t*\t", output_handle);
+    fprint(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t");
     fprint(output_handle, query_head);
-    std::fputs("\t*\n", output_handle);
+    fprint(output_handle, "\t*\n");
     return;
   }
 
@@ -322,13 +322,13 @@ auto results_show_uc_one(std::FILE * output_handle,
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
-  std::fputc('\t', output_handle);
+  fprint(output_handle, '\t');
   header_fprint_strip(output_handle,
                       db.header_view(target),
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 }
 
 
@@ -352,7 +352,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
     {
       if (c != 0)
         {
-          std::fputc('\t', output_handle);
+          fprint(output_handle, '\t');
         }
 
       auto const field = userfields_requested[c];
@@ -379,7 +379,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           std::fprintf(output_handle, "%s", (hits != nullptr) ? t_head : "*");
           break;
         case 2: /* evalue */
-          std::fputs("-1", output_handle);
+          fprint(output_handle, "-1");
           break;
         case 3: /* id */
           std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id : 0.0);
@@ -487,7 +487,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           break;
         case 28: /* qframe */
         case 29: /* tframe */
-          std::fputs("+0", output_handle);
+          fprint(output_handle, "+0");
           break;
         case 30: /* mism */
           std::fprintf(output_handle, "%d", (hits != nullptr) ? hits->mismatches : 0);
@@ -542,7 +542,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           fatal("Internal error: unknown userfield index in results_show_userout_one");
         }
     }
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 }
 
 
@@ -560,10 +560,10 @@ auto results_show_lcaout(std::FILE * output_handle,
      level to find the most common name at each level */
 
   fprint(output_handle, query_head);
-  std::fputc('\t', output_handle);
+  fprint(output_handle, '\t');
 
   if (hitcount == 0) {
-    std::fputc('\n', output_handle);
+    fprint(output_handle, '\n');
     return;
   }
 
@@ -671,7 +671,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   /* output results */
 
   if (tophitcount == 0) {
-    std::fputc('\n', output_handle);
+    fprint(output_handle, '\n');
     return;
   }
   auto comma = false;
@@ -695,7 +695,7 @@ auto results_show_lcaout(std::FILE * output_handle,
         }
     }
 
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 }
 
 
@@ -712,21 +712,21 @@ auto results_show_alnout(std::FILE * output_handle,
 
   if (hitcount == 0) {
     if (parameters.opt_output_no_hits != 0) {
-      std::fputc('\n', output_handle);
-      std::fputs("Query >", output_handle);
+      fprint(output_handle, '\n');
+      fprint(output_handle, "Query >");
       fprint(output_handle, query_head);
-      std::fputs("\nNo hits\n", output_handle);
+      fprint(output_handle, "\nNo hits\n");
     }
     return;
   }
 
   auto const qseqlen = static_cast<int64_t>(qsequence.size());
 
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 
-  std::fputs("Query >", output_handle);
+  fprint(output_handle, "Query >");
   fprint(output_handle, query_head);
-  std::fputs("\n %Id   TLen  Target\n", output_handle);
+  fprint(output_handle, "\n %Id   TLen  Target\n");
 
   auto const top_hit_id = hits[0].id;
 
@@ -744,7 +744,7 @@ auto results_show_alnout(std::FILE * output_handle,
               hp->id,
               db.getsequencelen(target));
       fprint(output_handle, db.header_view(target));
-      std::fputc('\n', output_handle);
+      fprint(output_handle, '\n');
     }
 
   for (auto t = 0; t < hitcount; ++t)
@@ -756,7 +756,7 @@ auto results_show_alnout(std::FILE * output_handle,
           break;
         }
 
-      std::fputc('\n', output_handle);
+      fprint(output_handle, '\n');
 
 
       auto const target = static_cast<uint64_t>(hp->target);
@@ -770,7 +770,7 @@ auto results_show_alnout(std::FILE * output_handle,
       fprint(output_handle, query_head);
       std::fprintf(output_handle,"\nTarget %*" PRId64 "nt >", numwidth, dseqlen);
       fprint(output_handle, db.header_view(target));
-      std::fputc('\n', output_handle);
+      fprint(output_handle, '\n');
 
       int64_t const rowlen = (parameters.opt_rowlen == 0) ? (qseqlen + dseqlen) : parameters.opt_rowlen;
 
@@ -950,14 +950,14 @@ auto results_show_samheader(std::FILE * output_handle,
 {
   if ((parameters.opt_samout != nullptr) and parameters.opt_samheader)
     {
-      std::fputs("@HD\tVN:1.0\tSO:unsorted\tGO:query\n", output_handle);
+      fprint(output_handle, "@HD\tVN:1.0\tSO:unsorted\tGO:query\n");
 
       std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
         {
           get_hex_seq_digest_md5(Span<char>{md5hex.data(), md5hex.size()},
                                  db.sequence_view(i));
-          std::fputs("@SQ\tSN:", output_handle);
+          fprint(output_handle, "@SQ\tSN:");
           fprint(output_handle, db.header_view(i));
           std::fprintf(output_handle,
                   "\tLN:%" PRIu64 "\tM5:%s\tUR:file:%s\n",
@@ -1036,7 +1036,7 @@ auto results_show_samout(std::FILE * output_handle,
               static_cast<uint64_t>(0),
               static_cast<uint64_t>(0));
       fprint(output_handle, qsequence);
-      std::fputs("\t*\n", output_handle);
+      fprint(output_handle, "\t*\n");
     }
     return;
   }

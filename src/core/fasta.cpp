@@ -72,7 +72,7 @@
 #include <cassert>  // assert
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio> // std::FILE, std::fprintf, std::size_t, std::snprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
@@ -376,7 +376,7 @@ auto fasta_print_sequence(std::FILE * output_handle, View<char> const seq, std::
   if (width < 1)  // no sequence folding
     {
       fprint(output_handle, seq.first(len));
-      std::fputc('\n', output_handle);
+      fprint(output_handle, '\n');
     }
   else  // sequence folding every 'width'
     {
@@ -384,7 +384,7 @@ auto fasta_print_sequence(std::FILE * output_handle, View<char> const seq, std::
       for (std::size_t i = 0; i < len; i += width_u)
         {
           fprint(output_handle, seq.subspan(i, std::min(len - i, width_u)));
-          std::fputc('\n', output_handle);
+          fprint(output_handle, '\n');
         }
     }
 }
@@ -395,9 +395,9 @@ auto fasta_print(std::FILE * output_handle, char const * header,
                  char const * seq, uint64_t const len,
                  struct Parameters const & parameters) -> void
 {
-  std::fputc('>', output_handle);
+  fprint(output_handle, '>');
   std::fputs(header, output_handle);
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
   fasta_print_sequence(output_handle, View<char>{seq, static_cast<std::size_t>(len)},
                        static_cast<std::size_t>(len),
                        static_cast<int>(parameters.opt_fasta_width));
@@ -418,7 +418,7 @@ auto fasta_print_general(std::FILE * output_handle,
                          uint64_t const centroid_size,
                          struct Parameters const & parameters) -> void
 {
-  std::fputc('>', output_handle);
+  fprint(output_handle, '>');
 
   if (prefix != nullptr)
     {
@@ -537,11 +537,11 @@ auto fasta_print_general(std::FILE * output_handle,
   if (parameters.opt_relabel_keep and
       (((parameters.opt_relabel != nullptr) and (ordinal > 0)) or parameters.opt_relabel_sha1 or parameters.opt_relabel_md5 or parameters.opt_relabel_self))
     {
-      std::fputc(' ', output_handle);
+      fprint(output_handle, ' ');
       fprint(output_handle, header);
     }
 
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 
   fasta_print_sequence(output_handle, seq, seq.size(),
                        static_cast<int>(parameters.opt_fasta_width));

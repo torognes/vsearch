@@ -81,6 +81,7 @@
 #include "utils/make_unique.hpp"
 #include "utils/open_file.hpp"
 #include "utils/number_of_strands.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/threads.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
@@ -88,7 +89,7 @@
 #include <array>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
@@ -541,7 +542,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                           state.parameters.opt_xsize,
                           state.parameters.opt_xee,
                           state.parameters.opt_xlength);
-      std::fputs("\t*\n", state.fp_uc);
+      fprint(state.fp_uc, "\t*\n");
     }
 
   if (state.parameters.opt_output_no_hits != 0)
@@ -1211,17 +1212,17 @@ auto cluster(char const * dbname,
   if (parameters.opt_log != nullptr)
     {
       uint64_t const slots = 1ULL << (static_cast<uint64_t>(parameters.opt_wordlength) << 1ULL);
-      std::fputc('\n', parameters.fp_log);
-      std::fputs("      Alphabet  nt\n", parameters.fp_log);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "      Alphabet  nt\n");
       std::fprintf(parameters.fp_log, "    Word width  %" PRId64 "\n", parameters.opt_wordlength);
       std::fprintf(parameters.fp_log, "     Word ones  %" PRId64 "\n", parameters.opt_wordlength);
-      std::fputs("        Spaced  No\n", parameters.fp_log);
-      std::fputs("        Hashed  No\n", parameters.fp_log);
-      std::fputs("         Coded  No\n", parameters.fp_log);
-      std::fputs("       Stepped  No\n", parameters.fp_log);
+      fprint(parameters.fp_log, "        Spaced  No\n");
+      fprint(parameters.fp_log, "        Hashed  No\n");
+      fprint(parameters.fp_log, "         Coded  No\n");
+      fprint(parameters.fp_log, "       Stepped  No\n");
       std::fprintf(parameters.fp_log, "         Slots  %" PRIu64 " (%.1fk)\n", slots, static_cast<double>(slots)/1000.0);
       std::fprintf(parameters.fp_log, "       DBAccel  100%%\n");
-      std::fputc('\n', parameters.fp_log);
+      fprint(parameters.fp_log, '\n');
     }
 
   if (parameters.opt_threads == 1)
@@ -1341,7 +1342,7 @@ auto cluster(char const * dbname,
                                     parameters.opt_xsize,
                                     parameters.opt_xee,
                                     parameters.opt_xlength);
-                std::fputs("\t*\n", fp_uc);
+                fprint(fp_uc, "\t*\n");
               }
 
             if (parameters.opt_clusters != nullptr)
@@ -1394,13 +1395,13 @@ auto cluster(char const * dbname,
     {
       if (not parameters.opt_quiet)
         {
-          std::fputs("Clusters: 0\n", stderr);
-          std::fputs("Singletons: 0\n", stderr);
+          fprint(stderr, "Clusters: 0\n");
+          fprint(stderr, "Singletons: 0\n");
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fputs("Clusters: 0\n", parameters.fp_log);
-          std::fputs("Singletons: 0\n", parameters.fp_log);
+          fprint(parameters.fp_log, "Clusters: 0\n");
+          fprint(parameters.fp_log, "Singletons: 0\n");
         }
     }
   else
@@ -1433,7 +1434,7 @@ auto cluster(char const * dbname,
                   singletons,
                   100.0 * singletons / seqcount,
                   100.0 * singletons / clusters);
-          std::fputc('\n', parameters.fp_log);
+          fprint(parameters.fp_log, '\n');
         }
     }
 
