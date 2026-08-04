@@ -64,6 +64,7 @@
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/mask.hpp"  // Masking
+#include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/print_view.hpp"  // fprint
 #include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/ascii_case.hpp"  // is_digit
@@ -4611,11 +4612,17 @@ namespace {
       std::numeric_limits<int>::max() - buffer_headroom;
     if (parameters.opt_maxseqlength > maxseqlength_limit)
       {
-        std::array<char, 128> message {{}};
-        std::snprintf(message.data(), message.size(),
-                      "The argument to --maxseqlength cannot exceed %d (INT_MAX - %d)",
-                      maxseqlength_limit, buffer_headroom);
-        fatal(message.data());
+        decimal::Buffer limit_digits {};
+        decimal::Buffer headroom_digits {};
+        auto const limit = decimal::to_decimal(limit_digits, maxseqlength_limit);
+        auto const headroom = decimal::to_decimal(headroom_digits, buffer_headroom);
+        std::string const message =
+          std::string("The argument to --maxseqlength cannot exceed ")
+          + std::string(limit.data(), limit.size())
+          + " (INT_MAX - "
+          + std::string(headroom.data(), headroom.size())
+          + ")";
+        fatal(message.c_str());
       }
 
     if ((parameters.opt_chimeras_denovo != nullptr) and (not options_selected[option_alignwidth]))

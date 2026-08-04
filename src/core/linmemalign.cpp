@@ -61,12 +61,14 @@
 #include "vsearch.hpp"
 #include "core/linmemalign.hpp"
 #include "utils/cigar.hpp"  // find_runlength_of_leftmost_operation
+#include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include <algorithm>  // std::max
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include "utils/view.hpp"  // View<char>
+#include <algorithm>  // std::copy, std::max
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::printf, std::size_t, std::snprintf
+#include <cstdio>  // std::printf
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
@@ -243,39 +245,31 @@ auto LinearMemoryAligner::cigar_reset() -> void
 auto LinearMemoryAligner::cigar_flush() -> void
 {
   if (op_run <= 0) { return; }
-  while (true)
-    {
-      /* try writing string until enough memory has been allocated */
 
-      auto const rest = cigar_alloc - cigar_length;
-      auto n = 0;
-      if (op_run > 1)
-        {
-          n = std::snprintf(&cigar_string[static_cast<std::size_t>(cigar_length)],
-                       static_cast<std::size_t>(rest),
-                       "%" PRId64 "%c", op_run, op);
-        }
-      else
-        {
-          n = std::snprintf(&cigar_string[static_cast<std::size_t>(cigar_length)],
-                       static_cast<std::size_t>(rest),
-                       "%c", op);
-        }
-      if (n < 0)
-        {
-          fatal("snprintf returned a negative number.\n");
-        }
-      else if (n >= rest)
-        {
-          cigar_alloc += std::max(n - rest + 1, minimal_length);
-          cigar_string.resize(static_cast<std::size_t>(cigar_alloc));
-        }
-      else
-        {
-          cigar_length += n;
-          break;
-        }
+  /* A run of length 1 is written as the operation alone, as "%c" did; a longer
+     one is preceded by its length, as "%" PRId64 "%c" did. The digits come from
+     decimal_digits.hpp, so their width is known before anything is written --
+     which is what replaces the grow-and-retry loop this used to be: snprintf
+     had to be *called* to discover how much room the number needed. */
+  decimal::Buffer digits {};
+  auto const run = (op_run > 1) ? decimal::to_decimal(digits, op_run) : View<char>{};
+  auto const width = static_cast<int64_t>(run.size()) + 1;  /* + the operation */
+
+  /* One character beyond the run, for the terminator: cigar_length counts the
+     characters written, and cigar_reset()/the readers expect cigar_string to
+     stay NUL-terminated. */
+  if (cigar_length + width + 1 > cigar_alloc)
+    {
+      cigar_alloc += std::max(cigar_length + width + 1 - cigar_alloc, minimal_length);
+      cigar_string.resize(static_cast<std::size_t>(cigar_alloc));
     }
+
+  auto cursor = std::next(cigar_string.begin(), static_cast<std::ptrdiff_t>(cigar_length));
+  cursor = std::copy(run.cbegin(), run.cend(), cursor);
+  *cursor = op;
+  ++cursor;
+  *cursor = '\0';
+  cigar_length += width;
 }
 
 

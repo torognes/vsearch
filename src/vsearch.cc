@@ -115,11 +115,12 @@
 #include "arch/cpu_features.hpp"
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
+#include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
 #include <array>
 #include <cerrno>  // errno, ERANGE
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf, std::printf
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <new>  // std::set_new_handler
@@ -179,15 +180,26 @@ auto usage_hint(struct Parameters const & parameters) -> void {
 
 auto fill_prog_header(struct Parameters & parameters) -> void
 {
-  static constexpr auto max_line_length = std::size_t{80};
   static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
-  auto const * const format = "%s v%s_%s, %.1fGB RAM, %ld cores";
-  std::array<char, max_line_length> buffer {{}};
+  /* One snprintf, for the "%.1f" alone: formatting a fixed-precision double
+     byte-identically is the one thing nothing simpler does (Decision 1 of
+     TBD_20260804_c_style_elimination.md). Everything around it is text.
+
+     The header is built as a std::string rather than into an 80-character
+     buffer that was then copied into one, so the line can no longer be
+     silently truncated; at 24 cores and 125 GB it is about 50 characters, so
+     no reachable input was being truncated before either. */
+  static constexpr std::size_t gigabytes_width = 32;
+  std::array<char, gigabytes_width> gigabytes {{}};
   static_cast<void>(std::snprintf(
-      buffer.data(), max_line_length, format, PROG_NAME, PROG_VERSION,
-      PROG_ARCH, static_cast<double>(system_get_memtotal()) / one_gigabyte,
-      system_get_cores()));
-  parameters.prog_header = buffer.data();
+      gigabytes.data(), gigabytes.size(), "%.1f",
+      static_cast<double>(system_get_memtotal()) / one_gigabyte));
+  decimal::Buffer core_digits {};
+  auto const cores = decimal::to_decimal(core_digits, system_get_cores());
+  parameters.prog_header =
+    std::string(PROG_NAME) + " v" + PROG_VERSION + "_" + PROG_ARCH + ", "
+    + gigabytes.data() + "GB RAM, "
+    + std::string(cores.data(), cores.size()) + " cores";
 }
 
 

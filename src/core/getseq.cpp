@@ -83,7 +83,7 @@
 #include <cassert>
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::fileno, std::fgets, EOF, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fgets, EOF, std::size_t
 #include <cstring>  // std::strlen
 #include <sys/stat.h>
 #include <vector>
@@ -255,7 +255,15 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
           field_buffer_size += longest_label;
         }
       field_buffer.resize(field_buffer_size);
-      std::snprintf(field_buffer.data(), field_buffer_size, "%s=", parameters.opt_label_field);
+      /* "%s=": the field name followed by the separator the search looks for */
+      auto const field_length = std::strlen(parameters.opt_label_field);
+      auto cursor = std::copy(parameters.opt_label_field,
+                              std::next(parameters.opt_label_field,
+                                        static_cast<std::ptrdiff_t>(field_length)),
+                              field_buffer.begin());
+      *cursor = '=';
+      ++cursor;
+      *cursor = '\0';
     }
 
   if (parameters.opt_label != nullptr)

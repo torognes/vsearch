@@ -80,13 +80,15 @@
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/open_file.hpp"
+#include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/number_of_strands.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/threads.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
-#include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
+#include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min
 #include <array>
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strlen
@@ -170,6 +172,30 @@ struct thread_work_s
 
 
 namespace {
+
+  /* Copy a header into one of the library API's fixed label buffers: the
+     contract snprintf(buffer, sizeof buffer, "%.*s", ...) had, expressed once
+     instead of at each of the four call sites. At most Capacity - 1 characters
+     are copied and the result is always NUL-terminated; the return value says
+     whether the source did not fit, which is what cluster_result_s::
+     cigar_truncated reports.
+
+     The parameter is a reference to an array so that Capacity arrives with it
+     and no call site has to repeat sizeof; the C array is the struct member's
+     own type (see cluster.hpp), not a choice made here. */
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  template <std::size_t Capacity>
+  auto copy_truncated(char (&destination)[Capacity], View<char> const source) -> bool
+  {
+    static_assert(Capacity > 0, "a label buffer must have room for its terminator");
+    auto const room = Capacity - 1;
+    auto const copied = std::min(source.size(), room);
+    std::copy(source.cbegin(), std::next(source.cbegin(), static_cast<std::ptrdiff_t>(copied)),
+              std::begin(destination));
+    destination[copied] = '\0';
+    return source.size() > room;
+  }
+
 inline auto cluster_query_core(struct searchinfo_s * si, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* the main core function for clustering */
@@ -1311,7 +1337,10 @@ auto cluster(char const * dbname,
   static constexpr auto space_for_cluster_id = 25;  // up to 25 digits
   std::vector<char> fn_clusters;
   if (parameters.opt_clusters != nullptr) {
-    fn_clusters.reserve(std::strlen(parameters.opt_clusters) + space_for_cluster_id);
+    /* resize, not reserve: the name is built in this buffer and read back
+       through data(), and writing past size() is undefined however much has
+       been reserved */
+    fn_clusters.resize(std::strlen(parameters.opt_clusters) + space_for_cluster_id);
   }
 
   int lastcluster = -1;
@@ -1369,11 +1398,18 @@ auto cluster(char const * dbname,
                   }
 
                 ordinal = 0;
-                std::snprintf(fn_clusters.data(),
-                         fn_clusters.capacity(),
-                         "%s%d",
-                         parameters.opt_clusters,
-                         clusterno);
+                /* "%s%d": the prefix, then the cluster number in decimal.
+                   space_for_cluster_id above is what guarantees the digits
+                   fit. */
+                decimal::Buffer digits {};
+                auto const number = decimal::to_decimal(digits, clusterno);
+                auto const prefix_length = std::strlen(parameters.opt_clusters);
+                auto cursor = std::copy(parameters.opt_clusters,
+                                        std::next(parameters.opt_clusters,
+                                                  static_cast<std::ptrdiff_t>(prefix_length)),
+                                        fn_clusters.begin());
+                cursor = std::copy(number.cbegin(), number.cend(), cursor);
+                *cursor = '\0';
                 fp_clusters = open_output_file(fn_clusters.data());
                 if (not fp_clusters)
                   {
@@ -1704,15 +1740,12 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->centroid_seqno = best->target;
       result->identity = best->id;
       auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(best->target));
-      std::snprintf(result->centroid_label, sizeof(result->centroid_label),
-                    "%.*s",
-                    static_cast<int>(centroid_header.size()), centroid_header.data());
+      static_cast<void>(copy_truncated(result->centroid_label, centroid_header));
       if (not best->nwalignment.empty())
         {
-          int const n = std::snprintf(result->cigar, sizeof(result->cigar), "%s",
-                                best->nwalignment.c_str());
           result->cigar_truncated =
-            (n >= static_cast<int>(sizeof(result->cigar)));
+            copy_truncated(result->cigar,
+                           View<char>{best->nwalignment.data(), best->nwalignment.size()});
         }
     }
   else
@@ -1723,9 +1756,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
       result->centroid_seqno = seqno;
       result->identity = 100.0;
       auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(seqno));
-      std::snprintf(result->centroid_label, sizeof(result->centroid_label),
-                    "%.*s",
-                    static_cast<int>(centroid_header.size()), centroid_header.data());
+      static_cast<void>(copy_truncated(result->centroid_label, centroid_header));
 
       cs->centroid_cluster_ids[seqno] = cs->cluster_count;
       cs->dbindex->add_sequence(static_cast<unsigned int>(seqno), parameters.opt_qmask, *cs->db);
@@ -1856,17 +1887,12 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               results[ri].centroid_seqno = best->target;
               results[ri].identity = best->id;
               auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(best->target));
-              std::snprintf(results[ri].centroid_label,
-                            sizeof(results[ri].centroid_label),
-                            "%.*s",
-                            static_cast<int>(centroid_header.size()), centroid_header.data());
+              static_cast<void>(copy_truncated(results[ri].centroid_label, centroid_header));
               if (not best->nwalignment.empty())
                 {
-                  int const n = std::snprintf(results[ri].cigar,
-                                        sizeof(results[ri].cigar),
-                                        "%s", best->nwalignment.c_str());
                   results[ri].cigar_truncated =
-                    (n >= static_cast<int>(sizeof(results[ri].cigar)));
+                    copy_truncated(results[ri].cigar,
+                                   View<char>{best->nwalignment.data(), best->nwalignment.size()});
                 }
             }
           else
@@ -1880,10 +1906,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               results[ri].centroid_seqno = myseqno;
               results[ri].identity = 100.0;
               auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(myseqno));
-              std::snprintf(results[ri].centroid_label,
-                            sizeof(results[ri].centroid_label),
-                            "%.*s",
-                            static_cast<int>(centroid_header.size()), centroid_header.data());
+              static_cast<void>(copy_truncated(results[ri].centroid_label, centroid_header));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
               cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), parameters.opt_qmask, *cs->db);
