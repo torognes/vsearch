@@ -546,14 +546,15 @@ Two separate effects, and they are worth keeping apart:
    one `fprintf` per field, so the split removed 36 format parses per record
    and added no calls.
 
-**Open decision for review.** The plan says a regression here "is a signal
-to batch that line differently, not to revert the phase". Batching is
-costed above (95.7 ns vs 173.5 ns) and would fix both effects at once, but
-it needs a primitive the plan did not authorise — a bounded record buffer,
-with a capacity contract, changing the shape of the hot call sites — so it
-is *not* done on this branch. The alternative is to accept it: end-to-end
-the phase is neutral on every real command measured, and the affected
-records are `--blast6out` and `--uc` at a synthetic 300 k records/second.
+**Resolved, and both numbers above are wrong.** The plan says a regression
+here "is a signal to batch that line differently"; `utils/print_record.hpp`
+is that batching, and it lands on this branch. Two measurement errors had to
+be found first, and they were pulling in opposite directions — see
+"Corrected measurements" at the end of this document. In short: the
+benchmark used above was 75 % DUST masking rather than writing, which
+diluted every writer effect, and a code-alignment artefact was adding ~34 ms
+of pure noise on top. With both removed, every converted writer is faster
+than `dev`.
 
 ### Final numbers (phase 9, all nine phases landed)
 
@@ -609,3 +610,61 @@ nine times). That is the single open decision on this branch.
   is *not* reported outside a template, verified with a two-function probe,
   and the existing `fprint(View)` overload has carried it since before this
   branch.
+
+## Corrected measurements (after landing `print_record.hpp`)
+
+The phase-4 and phase-9 numbers above are superseded. Two errors in how they
+were taken, both found while investigating the 34 ms:
+
+**1. The "writer-dominated" benchmark was 75 % DUST masking.**
+`--search_exact` masks every query with DUST by default, and `callgrind` puts
+74.65 % of that run's instructions in `core/mask.cpp`'s `wo()`. So every
+writer effect quoted above is diluted by a factor of about four, in both
+directions. Adding `--qmask none --dbmask none` drops the run from 1.058 G to
+284 M instructions and makes the printf machinery visible in the profile
+(`__printf_buffer` + `__printf_buffer_write`, 12 % combined).
+
+**2. A ~34 ms code-alignment artefact, not a defect.** Bisected to `0628b38c`
+and, within it, to `core/fastx.cpp` alone — whose only changes there are in
+`warn()` and `report_stripped_warning()`, both of which run once per command
+and neither of which this benchmark calls. `callgrind` settles it: the two
+builds execute **1,058,298,400 and 1,058,258,396 instructions**, and the
+*slower* one executes 40 k fewer. There is no extra work.
+
+The mechanism: `warn()` grew 54 bytes, which shifted everything after it in
+link order by 0x150 bytes, and `wo()` — byte-identical, size `0x19e` in both
+— went from `0x697c0` (64-byte aligned) to `0x69910` (`mod 64 == 16`). A
+74-%-of-runtime loop lost its cache-line alignment. Confirmed causally:
+rebuilding both with `-falign-functions=64` puts `wo()` at `mod 64 == 0` in
+both and collapses the gap from 33 ms to 3.7 ms, i.e. to noise.
+
+This is worth remembering when benchmarking vsearch at all: any change that
+alters the size of any function can move a hot loop's alignment and produce a
+few percent in either direction with no change in work done. `-falign-functions=64`
+costs a little `.text` and makes such measurements repeatable; whether to
+adopt it is a separate decision, not taken here.
+
+### The writers, measured properly
+
+300 k records, one-sequence database, `--qmask none --dbmask none`,
+`--threads 1`, release. The control's writer path is byte-for-byte identical
+in all three binaries.
+
+| output | `dev` | branch (unbatched) | branch + `Record` | vs `dev` |
+|---|---|---|---|---|
+| control (`--userfields id`) | 150.3 ms ± 2.7 | 153.2 ms ± 2.4 | 150.1 ms ± 1.2 | — |
+| `--blast6out` | 181.2 ms ± 3.2 | 223.3 ms ± 2.3 | **161.6 ms ± 3.0** | **1.12× faster** |
+| `--uc` | 176.1 ms ± 3.4 | 194.8 ms ± 1.2 | **167.3 ms ± 3.9** | **1.05× faster** |
+| `--samout` | 234.7 ms ± 4.8 | 292.3 ms ± 2.1 | **190.8 ms ± 4.0** | **1.23× faster** |
+| `--alnout` | 439.1 ms ± 5.8 | 571.3 ms ± 5.3 | **335.5 ms ± 7.2** | **1.31× faster** |
+| `--userout`, 36 fields | 586.3 ms ± 4.2 | **506.3 ms ± 4.2** | 507.3 ms ± 4.3 | **1.16× faster** |
+
+Subtracting the control to leave the writer alone: `--blast6out` 30.9 → 11.5 ms
+(**2.7×**), `--samout` 84.4 → 40.7 ms (**2.1×**), `--alnout` 288.8 → 185.4 ms
+(1.56×), `--uc` 25.8 → 17.2 ms (1.5×), `--userout` 436.0 → 357.2 ms (1.22×,
+from the split alone — it is not batched).
+
+So the unbatched split was worse than first reported (+23 % on `--blast6out`,
++30 % on `--alnout`, not +9 % and +15 %), and the batched form is better than
+first reported. `--userout` needed no buffer: it was already one `fprintf` per
+field, so the split removed 36 format parses per record and added no calls.
