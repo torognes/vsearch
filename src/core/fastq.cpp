@@ -218,7 +218,9 @@ namespace {
 namespace {
 auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * msg) -> void
 {
-  std::string const message = "Invalid line " + std::to_string(lineno)
+  /* decimal::to_text, not std::to_string: on libstdc++ <= 10 the latter is a
+     std::vsnprintf call with a format string (see decimal_digits.hpp). */
+  std::string const message = "Invalid line " + decimal::to_text(lineno)
     + " in FASTQ file: " + msg;
 
   /* deferred-error mode (see fastx.h): record the message and return
@@ -313,7 +315,9 @@ auto fastq_open(const char * filename, struct Parameters const & parameters) -> 
 
   if (not input_handle->is_fastq_input())
     {
-      fatal("FASTQ file expected, FASTA file found (%s)", filename);
+      fatal(std::string("FASTQ file expected, FASTA file found (")
+            + std::string(filename)
+            + ")");
     }
 
   assert(input_handle != nullptr);
@@ -336,8 +340,6 @@ auto fastq_next(fastx_handle input_handle,
 
   input_handle->lineno_start = input_handle->lineno;
 
-  static constexpr auto max_message_length = std::size_t{200};
-  std::array<char, max_message_length> message {{}};
   auto ok = true;
   char illegal_char = '\0';
 
@@ -419,21 +421,12 @@ auto fastq_next(fastx_handle input_handle,
 
       if (! ok)
         {
-          if ((illegal_char >= 32) && (illegal_char < 127))
-            {
-              std::snprintf(message.data(),
-                       max_message_length,
-                       "Illegal sequence character '%c'",
-                       illegal_char);
-            }
-          else
-            {
-              std::snprintf(message.data(),
-                       max_message_length,
-                       "Illegal sequence character (unprintable, no %d)",
-                       static_cast<unsigned char>(illegal_char));
-            }
-          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.data());
+          std::string const message =
+            ((illegal_char >= 32) and (illegal_char < 127))
+            ? "Illegal sequence character '" + std::string(1, illegal_char) + "'"
+            : "Illegal sequence character (unprintable, no "
+              + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
+          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.c_str());
           return false;
         }
     }
@@ -545,21 +538,12 @@ auto fastq_next(fastx_handle input_handle,
 
       if (! ok)
         {
-          if ((illegal_char >= 32) && (illegal_char < 127))
-            {
-              std::snprintf(message.data(),
-                       max_message_length,
-                       "Illegal quality character '%c'",
-                       illegal_char);
-            }
-          else
-            {
-              std::snprintf(message.data(),
-                       max_message_length,
-                       "Illegal quality character (unprintable, no %d)",
-                       static_cast<unsigned char>(illegal_char));
-            }
-          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.data());
+          std::string const message =
+            ((illegal_char >= 32) and (illegal_char < 127))
+            ? "Illegal quality character '" + std::string(1, illegal_char) + "'"
+            : "Illegal quality character (unprintable, no "
+              + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
+          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.c_str());
           return false;
         }
     }

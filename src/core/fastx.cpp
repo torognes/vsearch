@@ -78,7 +78,6 @@
 #include <algorithm>  // std::copy, std::equal, std::find_first_of
 #include <array>
 #include <cassert>  // assert
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fclose, std::size_t, std::fread
@@ -187,7 +186,12 @@ auto fastx_s::set_deferred_error(char const * const message) -> void
      ignored so the message reflects the earliest failure. */
   if (not error)
     {
-      std::snprintf(errmsg.data(), errmsg.size(), "%s", message);
+      /* a truncating copy, which is all snprintf("%s", ...) was doing here:
+         at most errmsg.size() - 1 characters, always NUL-terminated */
+      auto const length = std::min(std::strlen(message), errmsg.size() - 1);
+      std::copy(message, std::next(message, static_cast<std::ptrdiff_t>(length)),
+                errmsg.begin());
+      errmsg[length] = '\0';
       error = true;
     }
 }
@@ -272,17 +276,16 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
   static constexpr auto max_header_length =
     static_cast<std::size_t>(std::numeric_limits<int>::max() - buffer_headroom);
   if (count > max_header_length) {
-    std::array<char, 256> message {{}};
-    std::snprintf(message.data(), message.size(),
-                  "FASTA/FASTQ header too long (%" PRIu64 " bytes) on line %"
-                  PRIu64 ".\nHeaders longer than %" PRIu64 " bytes are not supported.",
-                  static_cast<uint64_t>(count), input_handle->lineno_start,
-                  static_cast<uint64_t>(max_header_length));
+    std::string const message =
+      "FASTA/FASTQ header too long (" + decimal::to_text(static_cast<uint64_t>(count))
+      + " bytes) on line " + decimal::to_text(input_handle->lineno_start)
+      + ".\nHeaders longer than " + decimal::to_text(static_cast<uint64_t>(max_header_length))
+      + " bytes are not supported.";
     if (input_handle->defer_errors) {
-      input_handle->set_deferred_error(message.data());
+      input_handle->set_deferred_error(message.c_str());
       return;
     }
-    fatal(message.data());
+    fatal(message);
   }
 
   // scan for unusual symbols
@@ -295,27 +298,33 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
         /* Record the error and stop scanning instead of exiting here:
            this may run on a worker thread (see the deferred-error note in
            fastx.h). The caller reports it from the main thread. */
-        std::array<char, 256> message {{}};
-        std::snprintf(message.data(), message.size(),
-                      "Illegal character encountered in FASTA/FASTQ header.\n"
-                      "Unprintable ASCII character no %d on line %" PRIu64 ".",
-                      symbol, input_handle->lineno_start);
-        input_handle->set_deferred_error(message.data());
+        std::string const message =
+          "Illegal character encountered in FASTA/FASTQ header.\n"
+          "Unprintable ASCII character no " + decimal::to_text(static_cast<int>(symbol))
+          + " on line " + decimal::to_text(input_handle->lineno_start) + ".";
+        input_handle->set_deferred_error(message.c_str());
         return;
       }
-      fatal("Illegal character encountered in FASTA/FASTQ header.\n"
-            "Unprintable ASCII character no %d on line %" PRIu64 ".",
-            symbol, input_handle->lineno_start);
+      fatal(std::string("Illegal character encountered in FASTA/FASTQ header.\nUnprintable ASCII character no ")
+            + decimal::to_text(static_cast<int>(symbol))
+            + " on line "
+            + decimal::to_text(input_handle->lineno_start)
+            + ".");
     }
     auto const symbol_unsigned = static_cast<unsigned char>(symbol);
     auto const is_not_ascii = (symbol_unsigned > 127);
     if (is_not_ascii) {
-      std::array<char, 256> message {{}};
-      std::snprintf(message.data(), message.size(),
-                    "Non-ASCII character encountered in FASTA/FASTQ header.\n"
-                    "Character no %d (0x%2x) on line %" PRIu64 ".",
-                    symbol_unsigned, symbol_unsigned, input_handle->lineno_start);
-      warn(message.data());
+      /* one snprintf, for the "0x%2x" alone: a hex rendering of the offending
+         byte, which is the point of the message and which no digit loop here
+         produces. See TBD_20260804_c_style_elimination.md's Out of scope. */
+      std::array<char, 8> hex {{}};
+      static_cast<void>(std::snprintf(hex.data(), hex.size(), "%2x", symbol_unsigned));
+      std::string const message =
+        "Non-ASCII character encountered in FASTA/FASTQ header.\n"
+        "Character no " + decimal::to_text(symbol_unsigned)
+        + " (0x" + hex.data() + ") on line "
+        + decimal::to_text(input_handle->lineno_start) + ".";
+      warn(message.c_str());
     }
   }
 }
@@ -335,7 +344,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   input_handle->fp = open_input_file(filename).release();
   if (input_handle->fp == nullptr)
     {
-      fatal("Unable to open file for reading (%s)", filename);
+      fatal(std::string("Unable to open file for reading (")
+            + std::string(filename)
+            + ")");
     }
 
   /* Get mode and size of original (uncompressed) file */
@@ -343,7 +354,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
   xstat_t fs;
   if (xfstat(fileno(input_handle->fp), & fs) != 0)
     {
-      fatal("Unable to get status for input file (%s)", filename);
+      fatal(std::string("Unable to get status for input file (")
+            + std::string(filename)
+            + ")");
     }
 
   /* Treat anything that is not a regular file as a non-rewindable stream:
@@ -429,7 +442,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
       input_handle->fp = open_input_file(filename).release();
       if (input_handle->fp == nullptr)
         {
-          fatal("Unable to open file for reading (%s)", filename);
+          fatal(std::string("Unable to open file for reading (")
+                + std::string(filename)
+                + ")");
         }
     }
 
@@ -446,7 +461,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
           CompressedStreamDeleter{input_handle->libraries, Format::gzip});
       if (input_handle->compressed_stream == nullptr)
         { // dup?
-          fatal("Unable to open gzip compressed file (%s)", filename);
+          fatal(std::string("Unable to open gzip compressed file (")
+                + std::string(filename)
+                + ")");
         }
     }
 
@@ -463,7 +480,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
           CompressedStreamDeleter{input_handle->libraries, Format::bzip});
       if (input_handle->compressed_stream == nullptr)
         {
-          fatal("Unable to open bzip2 compressed file (%s)", filename);
+          fatal(std::string("Unable to open bzip2 compressed file (")
+                + std::string(filename)
+                + ")");
         }
     }
 
@@ -726,17 +745,17 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
     {
       return;
     }
-  std::array<char, 256> message {{}};
-  std::snprintf(message.data(), message.size(),
-                "FASTA/FASTQ sequence too long (%" PRIu64 " nt) on line %"
-                PRIu64 ".\nSequences longer than %" PRIu64 " nt are not supported.",
-                length, input_handle->lineno_start, max_sequence_length);
+  std::string const message =
+    "FASTA/FASTQ sequence too long (" + decimal::to_text(length)
+    + " nt) on line " + decimal::to_text(input_handle->lineno_start)
+    + ".\nSequences longer than " + decimal::to_text(max_sequence_length)
+    + " nt are not supported.";
   if (input_handle->defer_errors)
     {
-      input_handle->set_deferred_error(message.data());
+      input_handle->set_deferred_error(message.c_str());
       return;
     }
-  fatal(message.data());
+  fatal(message);
 }
 
 

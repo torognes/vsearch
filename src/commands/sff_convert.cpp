@@ -334,7 +334,9 @@ auto check_sff_read_header(struct sff_read_header_s const &read_header) -> void 
 auto skip_sff_section(std::FILE * sff_handle, uint64_t const n_bytes_to_skip, char const * const message) -> void {
   auto const n_bytes_skipped = fskip(sff_handle, n_bytes_to_skip);
   if (n_bytes_skipped < n_bytes_to_skip) {
-    fatal("Invalid SFF file. Unable to read %s. File may be truncated.", message);
+    fatal(std::string("Invalid SFF file. Unable to read ")
+          + std::string(message)
+          + ". File may be truncated.");
   }
 }
 
@@ -352,7 +354,9 @@ auto read_a_string(std::FILE * sff_handle, std::size_t const n_bytes_to_read, ch
   std::vector<char> a_string(n_bytes_to_read + 1);
   auto const n_bytes_read = std::fread(a_string.data(), byte_size, n_bytes_to_read, sff_handle);
   if (n_bytes_read < n_bytes_to_read) {
-    fatal("Invalid SFF file. Unable to read %s. File may be truncated.", message);
+    fatal(std::string("Invalid SFF file. Unable to read ")
+          + std::string(message)
+          + ". File may be truncated.");
   }
   assert(a_string.back() == '\0');  // C-string should be null-terminated
   return a_string;

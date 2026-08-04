@@ -2664,7 +2664,7 @@ auto chimera(struct Parameters const & parameters) -> void
      only) from the main thread so it does not race a worker's output */
   if ((parameters.opt_uchime_ref != nullptr) and state.query_fasta_h->get_error())
     {
-      fatal("%s", state.query_fasta_h->get_errmsg());
+      fatal(state.query_fasta_h->get_errmsg());
     }
 
   if (not parameters.opt_quiet)

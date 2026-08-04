@@ -84,7 +84,9 @@ auto udbinfo(struct Parameters const & parameters) -> void
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
     {
-      fatal("Unable to get status for input file (%s)", filename);
+      fatal(std::string("Unable to get status for input file (")
+            + std::string(filename)
+            + ")");
     }
 
   auto const is_pipe = S_ISFIFO(fs.st_mode);

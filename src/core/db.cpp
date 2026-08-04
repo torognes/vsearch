@@ -70,7 +70,6 @@
 #include "utils/view.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
 #include <array>  // std::array
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdio>  // std::fprintf, std::snprintf, std::size_t
@@ -202,15 +201,12 @@ auto Database::add(bool const is_fastq_record,
     static_cast<std::size_t>(std::numeric_limits<int>::max() - buffer_headroom);
   if ((sequencelength > max_length) or (headerlength > max_length))
     {
-      std::array<char, 256> message {{}};
-      std::snprintf(message.data(), message.size(),
-                    "Database::add: record too long (%" PRIu64 " nt sequence, %"
-                    PRIu64 " byte header).\nSequences and headers longer than %"
-                    PRIu64 " are not supported.",
-                    static_cast<uint64_t>(sequencelength),
-                    static_cast<uint64_t>(headerlength),
-                    static_cast<uint64_t>(max_length));
-      fatal(message.data());
+      fatal("Database::add: record too long ("
+            + decimal::to_text(static_cast<uint64_t>(sequencelength))
+            + " nt sequence, " + decimal::to_text(static_cast<uint64_t>(headerlength))
+            + " byte header).\nSequences and headers longer than "
+            + decimal::to_text(static_cast<uint64_t>(max_length))
+            + " are not supported.");
     }
 
   /* grow space for data, if necessary (memchunk-stepped, as the raw buffer was);

@@ -683,7 +683,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
      main thread so it does not race a worker's output */
   if (query_fastx_h->get_error())
     {
-      fatal("%s", query_fastx_h->get_errmsg());
+      fatal(query_fastx_h->get_errmsg());
     }
 
   /* si_plus/si_minus are std::vector members of state (RAII) */

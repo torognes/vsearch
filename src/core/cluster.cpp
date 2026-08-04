@@ -1413,7 +1413,9 @@ auto cluster(char const * dbname,
                 fp_clusters = open_output_file(fn_clusters.data());
                 if (not fp_clusters)
                   {
-                    fatal("Unable to open clusters file for writing (%s)", fn_clusters.data());
+                    fatal(std::string("Unable to open clusters file for writing (")
+                          + std::string(fn_clusters.data())
+                          + ")");
                   }
               }
 

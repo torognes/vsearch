@@ -745,7 +745,7 @@ auto search_exact(struct Parameters const & parameters) -> void
      main thread so it does not race a worker's output */
   if (state.query_fastx_h->get_error())
     {
-      fatal("%s", state.query_fastx_h->get_errmsg());
+      fatal(state.query_fastx_h->get_errmsg());
     }
 
   // si_plus not used below that point

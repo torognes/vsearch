@@ -114,7 +114,9 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
   std::ofstream out_stream(parameters.opt_output, std::ios::binary | std::ios::trunc);
   if (not out_stream)
     {
-      fatal("Unable to open output file for writing (%s)", parameters.opt_output);
+      fatal(std::string("Unable to open output file for writing (")
+            + std::string(parameters.opt_output)
+            + ")");
     }
 
   db.read(parameters.opt_makeudb_usearch, 1, parameters);

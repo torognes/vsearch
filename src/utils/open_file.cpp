@@ -179,7 +179,8 @@ auto open_output_file(char const * filename) -> OutputFileHandle {
 auto open_mandatory_output_file(char const * filename,
                                 OutputOption const option) -> OutputFileHandle {
   if (filename == nullptr) {
-    fatal("output file must be specified with %s", option.name);
+    fatal(std::string("output file must be specified with ")
+          + std::string(option.name));
   }
   auto output_handle = open_output_file(filename);
   if (not output_handle) {

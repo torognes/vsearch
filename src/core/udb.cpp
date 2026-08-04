@@ -68,9 +68,9 @@
 #include "os/system.hpp"  // xstat_t, xstat, xfstat, S_ISREG, S_ISFIFO
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::min, std::max
 #include <array>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <fstream>  // std::ifstream
@@ -147,13 +147,17 @@ auto udb_detect_isudb(const char * filename) -> bool
   auto const input = open_input_file(filename);
   if (not input)
     {
-      fatal("Unable to open input file for reading (%s)", filename);
+      fatal(std::string("Unable to open input file for reading (")
+            + std::string(filename)
+            + ")");
     }
 
   xstat_t fs;
   if (xfstat(fileno(input.get()), & fs) != 0)
     {
-      fatal("Unable to get status for input file (%s)", filename);
+      fatal(std::string("Unable to get status for input file (")
+            + std::string(filename)
+            + ")");
     }
 
   if (not S_ISREG(fs.st_mode))
@@ -207,7 +211,9 @@ auto udb_read(const char * filename,
   xstat_t fs;
   if (xstat(filename, & fs) != 0)
     {
-      fatal("Unable to get status for input file (%s)", filename);
+      fatal(std::string("Unable to get status for input file (")
+            + std::string(filename)
+            + ")");
     }
 
   auto const is_pipe = S_ISFIFO(fs.st_mode);
@@ -274,7 +280,9 @@ auto udb_read(const char * filename,
        configured value. */
     if (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength))
       {
-        std::fprintf(stderr, "\nWARNING: Wordlength adjusted to %u as indicated in UDB file\n", udb_wordlength);
+        fprint(stderr, "\nWARNING: Wordlength adjusted to ");
+        fprint_integer(stderr, udb_wordlength);
+        fprint(stderr, " as indicated in UDB file\n");
       }
     dbindex.wordlength = udb_wordlength;
 
@@ -520,20 +528,23 @@ auto udb_read(const char * filename,
     {
       if (seqcount > 0)
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n",
-                  db.getnucleotidecount(),
-                  db.getsequencecount(),
-                  db.getshortestsequence(),
-                  db.getlongestsequence(),
-                  static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
+          fprint_integer(stderr, db.getnucleotidecount());
+          fprint(stderr, " nt in ");
+          fprint_integer(stderr, db.getsequencecount());
+          fprint(stderr, " seqs, min ");
+          fprint_integer(stderr, db.getshortestsequence());
+          fprint(stderr, ", max ");
+          fprint_integer(stderr, db.getlongestsequence());
+          fprint(stderr, ", avg ");
+          std::fprintf(stderr, "%.0f", static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
+          fprint(stderr, '\n');
         }
       else
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  db.getnucleotidecount(),
-                  db.getsequencecount());
+          fprint_integer(stderr, db.getnucleotidecount());
+          fprint(stderr, " nt in ");
+          fprint_integer(stderr, db.getsequencecount());
+          fprint(stderr, " seqs\n");
         }
     }
 
@@ -541,20 +552,23 @@ auto udb_read(const char * filename,
     {
       if (seqcount > 0)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRIu64 ", max %" PRIu64 ", avg %.0f\n\n",
-                  db.getnucleotidecount(),
-                  db.getsequencecount(),
-                  db.getshortestsequence(),
-                  db.getlongestsequence(),
-                  static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
+          fprint_integer(parameters.fp_log, db.getnucleotidecount());
+          fprint(parameters.fp_log, " nt in ");
+          fprint_integer(parameters.fp_log, db.getsequencecount());
+          fprint(parameters.fp_log, " seqs, min ");
+          fprint_integer(parameters.fp_log, db.getshortestsequence());
+          fprint(parameters.fp_log, ", max ");
+          fprint_integer(parameters.fp_log, db.getlongestsequence());
+          fprint(parameters.fp_log, ", avg ");
+          std::fprintf(parameters.fp_log, "%.0f", static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
+          fprint(parameters.fp_log, "\n\n");
         }
       else
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n\n",
-                  db.getnucleotidecount(),
-                  db.getsequencecount());
+          fprint_integer(parameters.fp_log, db.getnucleotidecount());
+          fprint(parameters.fp_log, " nt in ");
+          fprint_integer(parameters.fp_log, db.getsequencecount());
+          fprint(parameters.fp_log, " seqs\n\n");
         }
     }
 }

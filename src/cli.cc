@@ -306,7 +306,9 @@ namespace {
           }
         else
           {
-            fatal("Invalid gap penalty argument (%s)", cursor);
+            fatal(std::string("Invalid gap penalty argument (")
+                  + std::string(cursor)
+                  + ")");
           }
 
         char const * q = cursor;
@@ -341,7 +343,9 @@ namespace {
                 set_T = 1;
                 break;
               default:
-                fatal("Invalid char '%.1s' in gap penalty string", cursor);
+                fatal(std::string("Invalid char '")
+                      + std::string(cursor, static_cast<std::size_t>(1))
+                      + "' in gap penalty string");
                 break;
               }
             ++cursor;
@@ -354,7 +358,9 @@ namespace {
 
         if ((set_E != 0) and ((set_L != 0) or (set_R != 0)))
           {
-            fatal("Invalid gap penalty string (E and L or R) '%s'", q);
+            fatal(std::string("Invalid gap penalty string (E and L or R) '")
+                  + std::string(q)
+                  + "'");
           }
 
         if (set_E != 0)
@@ -4204,7 +4210,9 @@ namespace {
     /* Terminate after reporting any extra non-option arguments */
     if (optind < argc)
       {
-        fatal("Unrecognized string on command line (%s)", argv[optind]);
+        fatal(std::string("Unrecognized string on command line (")
+              + std::string(argv[optind])
+              + ")");
       }
 
     return options_selected;

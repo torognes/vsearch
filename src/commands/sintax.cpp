@@ -764,7 +764,7 @@ auto sintax(struct Parameters const & parameters) -> void
      the process exits without racing any worker (CC3). */
   if (query_fastx_h->get_error())
     {
-      fatal("%s", query_fastx_h->get_errmsg());
+      fatal(query_fastx_h->get_errmsg());
     }
 
   if (! parameters.opt_quiet)

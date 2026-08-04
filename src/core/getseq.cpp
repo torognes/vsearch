@@ -81,7 +81,6 @@
 #include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
 #include <array>
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fgets, EOF, std::size_t
 #include <cstring>  // std::strlen
@@ -162,13 +161,17 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
   auto fp_labels = open_input_file(filename);
   if (fp_labels.get() == nullptr)
     {
-      fatal("Unable to open labels file (%s)", filename);
+      fatal(std::string("Unable to open labels file (")
+            + std::string(filename)
+            + ")");
     }
 
   xstat_t file_status;
   if (xfstat(fileno(fp_labels.get()), & file_status) != 0)
     {
-      fatal("Unable to get status for labels file (%s)", filename);
+      fatal(std::string("Unable to get status for labels file (")
+            + std::string(filename)
+            + ")");
     }
 
   auto const is_pipe = S_ISFIFO(file_status.st_mode);  // linuxism
@@ -532,30 +535,30 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   if (not parameters.opt_quiet)
     {
-      std::fprintf(stderr,
-              "%" PRId64 " of %" PRId64 " sequences extracted",
-              kept,
-              kept + discarded);
+      fprint_integer(stderr, kept);
+      fprint(stderr, " of ");
+      fprint_integer(stderr, kept + discarded);
+      fprint(stderr, " sequences extracted");
       if (kept + discarded > 0)
         {
-          std::fprintf(stderr,
-                  " (%.1lf%%)",
-                  100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
+          fprint(stderr, " (");
+          std::fprintf(stderr, "%.1lf", 100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
+          fprint(stderr, "%)");
         }
       fprint(stderr, '\n');
     }
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log,
-              "%" PRId64 " of %" PRId64 " sequences extracted",
-              kept,
-              kept + discarded);
+      fprint_integer(parameters.fp_log, kept);
+      fprint(parameters.fp_log, " of ");
+      fprint_integer(parameters.fp_log, kept + discarded);
+      fprint(parameters.fp_log, " sequences extracted");
       if (kept + discarded > 0)
         {
-          std::fprintf(parameters.fp_log,
-                  " (%.1lf%%)",
-                  100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
+          fprint(parameters.fp_log, " (");
+          std::fprintf(parameters.fp_log, "%.1lf", 100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
+          fprint(parameters.fp_log, "%)");
         }
       fprint(parameters.fp_log, '\n');
     }

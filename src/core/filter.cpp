@@ -64,16 +64,16 @@
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::signbit
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE
 #include <limits>
 #include <string>  // std::string, std::to_string
 
@@ -515,20 +515,22 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
   if (not parameters.opt_quiet)
     {
-      std::fprintf(stderr,
-              "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
-              kept,
-              truncated,
-              discarded);
+      fprint_integer(stderr, kept);
+      fprint(stderr, " sequences kept (of which ");
+      fprint_integer(stderr, truncated);
+      fprint(stderr, " truncated), ");
+      fprint_integer(stderr, discarded);
+      fprint(stderr, " sequences discarded.\n");
     }
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log,
-              "%" PRId64 " sequences kept (of which %" PRId64 " truncated), %" PRId64 " sequences discarded.\n",
-              kept,
-              truncated,
-              discarded);
+      fprint_integer(parameters.fp_log, kept);
+      fprint(parameters.fp_log, " sequences kept (of which ");
+      fprint_integer(parameters.fp_log, truncated);
+      fprint(parameters.fp_log, " truncated), ");
+      fprint_integer(parameters.fp_log, discarded);
+      fprint(parameters.fp_log, " sequences discarded.\n");
     }
 
   if (reverse_handle != nullptr)

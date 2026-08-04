@@ -70,9 +70,8 @@
 #include <algorithm>  // std::min
 #include <array>
 #include <cassert>  // assert
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
@@ -143,36 +142,30 @@ namespace {
 
 
   auto report_illegal_symbol_and_exit(fastx_handle input_handle, unsigned char const symbol, uint64_t const line_number) -> void {
-    static constexpr std::size_t max_buffer_size = 200;
-    std::array<char, max_buffer_size> msg {{}};
-    static_cast<void>(std::snprintf(
-        msg.data(), max_buffer_size,
-        "Illegal character '%c' in sequence on line %" PRIu64 " of FASTA file",
-        symbol,
-        line_number));
+    std::string const message =
+      "Illegal character '" + std::string(1, static_cast<char>(symbol))
+      + "' in sequence on line " + decimal::to_text(line_number)
+      + " of FASTA file";
     /* deferred-error mode (see fastx.h): record and return instead of
        exiting, so a worker thread does not std::exit() with siblings live */
     if (input_handle->defers_errors()) {
-      input_handle->set_deferred_error(msg.data());
+      input_handle->set_deferred_error(message.c_str());
       return;
     }
-    fatal(msg.data());
+    fatal(message);
   }
 
 
   auto report_unprintable_symbol_and_exit(fastx_handle input_handle, unsigned char const symbol, uint64_t const line_number) -> void {
-    static constexpr std::size_t max_buffer_size = 200;
-    std::array<char, max_buffer_size> msg {{}};
-    static_cast<void>(std::snprintf(
-        msg.data(), max_buffer_size,
-        "Illegal unprintable ASCII character no %d in sequence on line %" PRIu64 " of FASTA file",
-        symbol,
-        line_number));
+    std::string const message =
+      "Illegal unprintable ASCII character no " + decimal::to_text(symbol)
+      + " in sequence on line " + decimal::to_text(line_number)
+      + " of FASTA file";
     if (input_handle->defers_errors()) {
-      input_handle->set_deferred_error(msg.data());
+      input_handle->set_deferred_error(message.c_str());
       return;
     }
-    fatal(msg.data());
+    fatal(message);
   }
 
 }  // end of anonymous namespace
@@ -187,7 +180,9 @@ auto fasta_open(const char * filename, struct Parameters const & parameters) -> 
 
   if (input_handle->is_fastq_input() and not input_handle->is_empty_input())
     {
-      fatal("FASTA file expected, FASTQ file found (%s)", filename);
+      fatal(std::string("FASTA file expected, FASTQ file found (")
+            + std::string(filename)
+            + ")");
     }
 
   assert(input_handle != nullptr);
