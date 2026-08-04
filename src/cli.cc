@@ -64,6 +64,7 @@
 #include "os/system.hpp"  // system_get_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/mask.hpp"  // Masking
+#include "utils/print_view.hpp"  // fprint
 #include "utils/userfields.hpp"  // parse_userfields_arg
 #include "utils/ascii_case.hpp"  // is_digit
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
@@ -75,7 +76,7 @@
 #include <cerrno>  // errno, ERANGE
 #include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::fprintf, fprintf, stderr, stdout, std::fputc, std::fputs
+#include <cstdio>  // std::fprintf, fprintf, stderr, stdout
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <string>  // std::to_string
@@ -3145,7 +3146,7 @@ namespace {
 
           case option_fulldp:
             parameters.opt_fulldp = 1;
-            std::fputs("WARNING: Option --fulldp is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --fulldp is ignored\n");
             break;
 
           case option_strand:
@@ -3477,7 +3478,7 @@ namespace {
             break;
 
           case option_cons_truncate:
-            std::fputs("WARNING: Option --cons_truncate is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --cons_truncate is ignored\n");
             parameters.opt_cons_truncate = 1;
             break;
 
@@ -3498,12 +3499,12 @@ namespace {
             break;
 
           case option_slots:
-            std::fputs("WARNING: Option --slots is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --slots is ignored\n");
             parameters.opt_slots = static_cast<int>(args_getlong(optarg));
             break;
 
           case option_pattern:
-            std::fputs("WARNING: Option --pattern is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --pattern is ignored\n");
             parameters.opt_pattern = optarg;
             break;
 
@@ -3869,22 +3870,22 @@ namespace {
 
           case option_xdrop_nw:
             /* xdrop_nw ignored */
-            std::fputs("WARNING: Option --xdrop_nw is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --xdrop_nw is ignored\n");
             break;
 
           case option_minhsp:
             /* minhsp ignored */
-            std::fputs("WARNING: Option --minhsp is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --minhsp is ignored\n");
             break;
 
           case option_band:
             /* band ignored */
-            std::fputs("WARNING: Option --band is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --band is ignored\n");
             break;
 
           case option_hspw:
             /* hspw ignored */
-            std::fputs("WARNING: Option --hspw is ignored\n", stderr);
+            fprint(stderr, "WARNING: Option --hspw is ignored\n");
             break;
 
           case option_gzip_decompress:
@@ -4244,7 +4245,7 @@ namespace {
           }
         if (any_options)
           {
-            std::fputs("WARNING: Options given, but no valid command specified.\n", stderr);
+            fprint(stderr, "WARNING: Options given, but no valid command specified.\n");
           }
       }
     else
@@ -4275,7 +4276,7 @@ namespace {
                         std::fprintf(stderr,
                                 "Fatal error: Invalid options to command %s\n",
                                 long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
-                        std::fputs("Invalid option(s):", stderr);
+                        fprint(stderr, "Invalid option(s):");
                       }
                     std::fprintf(stderr, " --%s",
                             long_options[static_cast<size_t>(i)].name);
@@ -4298,9 +4299,9 @@ namespace {
               }
             if (count == 0)
               {
-                std::fputs(" (none)", stderr);
+                fprint(stderr, " (none)");
               }
-            std::fputc('\n', stderr);
+            fprint(stderr, '\n');
             std::exit(EXIT_FAILURE);
           }
       }
@@ -4338,7 +4339,7 @@ namespace {
       }
     if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
       {
-        std::fputs("WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n", stderr);
+        fprint(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
       }
   }
 

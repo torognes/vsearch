@@ -115,10 +115,11 @@
 #include "arch/cpu_features.hpp"
 #include "utils/fatal.hpp"
 #include "utils/logfile.hpp"  // LogFile
+#include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION, PROG_ARCH
 #include <array>
 #include <cerrno>  // errno, ERANGE
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf, std::printf, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t, std::snprintf, std::printf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <new>  // std::set_new_handler
@@ -223,8 +224,8 @@ auto getentirecommandline(int argc, char * const * argv) -> std::string
 auto show_header(struct Parameters const & parameters) -> void {
   if (parameters.opt_quiet) { return ; }
   std::fprintf(stderr, "%s\n", parameters.prog_header.c_str());
-  std::fputs("https://github.com/torognes/vsearch\n", stderr);
-  std::fputc('\n', stderr);
+  fprint(stderr, "https://github.com/torognes/vsearch\n");
+  fprint(stderr, '\n');
 }
 }  // end of anonymous namespace
 

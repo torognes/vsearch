@@ -59,13 +59,14 @@
 */
 
 #include "logfile.hpp"
+#include "print_view.hpp"  // fprint
 #include "vsearch.hpp"  // struct Parameters
 #include "open_file.hpp"  // open_optional_output_file, OutputOption
 #include "os/system.hpp"  // system_get_memused
 #include "timestamp.hpp"  // iso8601_local_timestamp
 #include <chrono>  // std::chrono::steady_clock, std::chrono::duration
 #include <cmath>  // std::floor
-#include <cstdio>  // std::FILE, std::fprintf, std::fputc
+#include <cstdio>  // std::FILE, std::fprintf
 
 
 namespace
@@ -101,13 +102,13 @@ LogFile::~LogFile()
 {
   if (handle == nullptr) { return; }
   auto const finish_time = std::chrono::steady_clock::now();
-  std::fputc('\n', handle.get());
+  fprint(handle.get(), '\n');
   std::fprintf(handle.get(), "Finished %s", iso8601_local_timestamp().c_str());
 
   constexpr auto seconds_per_minute = 60.0;
   double const time_diff =
     std::chrono::duration<double>(finish_time - start_time).count();
-  std::fputc('\n', handle.get());
+  fprint(handle.get(), '\n');
   std::fprintf(handle.get(), "Elapsed time %02.0lf:%02.0lf\n",
           std::floor(time_diff / seconds_per_minute),
           std::floor(time_diff - (seconds_per_minute * std::floor(time_diff / seconds_per_minute))));

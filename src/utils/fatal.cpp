@@ -60,18 +60,19 @@
 
 #include "fatal.hpp"  // fatal, fatal_detail::exit_or_throw
 #include "logfile.hpp"  // log_file::handle
+#include "print_view.hpp"  // fprint
 #include <cstdint> // uint64_t
-#include <cstdio>  // std::fprintf, std::fputc, std::fputs
+#include <cstdio>  // std::fprintf
 
 
 [[noreturn]]
 auto fatal(char const * message) -> void {
-  std::fputs("\n\n", stderr);
+  fprint(stderr, "\n\n");
   std::fprintf(stderr, "Fatal error: %s\n", message);
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
-    std::fputs("\n\n", log);
+    fprint(log, "\n\n");
     std::fprintf(log, "Fatal error: %s\n", message);
   }
 
@@ -82,15 +83,15 @@ auto fatal(char const * message) -> void {
 [[noreturn]]
 auto fatal(char const * format,
            char const * message) -> void {
-  std::fputs("\n\nFatal error: ", stderr);
+  fprint(stderr, "\n\nFatal error: ");
   std::fprintf(stderr, format, message);
-  std::fputc('\n', stderr);
+  fprint(stderr, '\n');
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
-    std::fputs("\n\nFatal error: ", log);
+    fprint(log, "\n\nFatal error: ");
     std::fprintf(log, format, message);
-    std::fputc('\n', log);
+    fprint(log, '\n');
   }
 
   fatal_detail::exit_or_throw(format, message);
@@ -102,15 +103,15 @@ auto fatal(char const * format,
 auto fatal(char const * format,
            char const symbol,
            uint64_t const line_number) -> void {
-  std::fputs("\n\nFatal error: ", stderr);
+  fprint(stderr, "\n\nFatal error: ");
   std::fprintf(stderr, format, symbol, line_number);
-  std::fputc('\n', stderr);
+  fprint(stderr, '\n');
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
-    std::fputs("\n\nFatal error: ", log);
+    fprint(log, "\n\nFatal error: ");
     std::fprintf(log, format, symbol, line_number);
-    std::fputc('\n', log);
+    fprint(log, '\n');
   }
 
   fatal_detail::exit_or_throw(format, symbol, line_number);
