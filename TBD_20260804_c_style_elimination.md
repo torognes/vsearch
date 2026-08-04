@@ -448,3 +448,47 @@ Phases 3–7 are independent of each other and can be reordered freely;
   `commands/version.cpp:92` `%lx`): one error path, one zlib version
   line, no `PRI` macro either side. Leave them, documented.
 - **`assert()`**: `CLAUDE.md` asks for more of it, not less.
+
+
+## Results, measured on the migration branch
+
+Recorded as each phase landed, so a later reader does not have to re-derive
+them. Release builds (`-O2`, this toolchain predefines `_FORTIFY_SOURCE 3`
+at `-O2`), `hyperfine`, `--threads 1`.
+
+### Codegen (phase 2)
+
+Checked in the disassembly at vsearch's release flags, which settles which
+of these calls are worth replacing:
+
+| written as | compiles to |
+|---|---|
+| `std::fputs("\t*\n", h)` | `jmp fwrite` |
+| `fprint(h, "\t*\n")` | `jmp fwrite` — identical |
+| `std::fputc('\t', h)` | `jmp fputc` |
+| `fprint(h, '\t')` | `jmp fputc` — identical |
+| `std::fprintf(h, "\t*\n")` | `jmp __fprintf_chk` — **not** folded |
+| `std::fprintf(h, "%" PRIu64, v)` | `jmp __fprintf_chk` |
+| `fprint_integer(h, v)` | inlined digit loop + `call fwrite` |
+
+So the `fputs`/`fputc` family is a readability change with no performance
+component, and every `fprintf` — even one whose format has no conversion at
+all — pays a run-time format parse that fortification prevents GCC from
+folding away. That is the cost phases 3–7 remove.
+
+### `core/otutable.cpp` (phase 3)
+
+The widest table vsearch writes. Measured by differencing a run with the
+three table outputs against the same run without them, so the clustering
+that dominates the command is subtracted out rather than diluting the
+result: 3468 sequences, each its own sample, `--id 1.0`, giving a 24 MB
+classic table.
+
+| | without tables | with tables | table writers |
+|---|---|---|---|
+| `dev` | 4.681 s ± 0.048 | 5.396 s ± 0.072 | 0.715 s |
+| branch | 4.671 s ± 0.063 | 5.248 s ± 0.085 | 0.577 s |
+
+**1.24× on the writers**, 1.028× on the whole command. The
+without-tables pair is identical to within noise, which is the control: no
+code on the clustering path changed.
