@@ -77,11 +77,10 @@
 #include <algorithm>  // std::copy, std::min, std::max
 #include <atomic>  // std::atomic
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <condition_variable>  // std::condition_variable
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <mutex>  // std::mutex, std::unique_lock
 #include <string>  // std::to_string
@@ -338,8 +337,11 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
       fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_fwd);
       fprint(state.fp_eetabbedout, '\t');
       fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_rev);
-      std::fprintf(state.fp_eetabbedout, "\t%" PRId64 "\t%" PRId64 "\n",
-                   a_read_pair.fwd_errors, a_read_pair.rev_errors);
+      fprint(state.fp_eetabbedout, '\t');
+      fprint_integer(state.fp_eetabbedout, a_read_pair.fwd_errors);
+      fprint(state.fp_eetabbedout, '\t');
+      fprint_integer(state.fp_eetabbedout, a_read_pair.rev_errors);
+      fprint(state.fp_eetabbedout, '\n');
     }
 }
 
@@ -870,29 +872,26 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
   auto const & sum_errors_fwd = state.sum_errors_fwd;
   auto const & sum_errors_rev = state.sum_errors_rev;
 
-  std::fprintf(output_handle,
-          "%10" PRId64 "  Pairs\n",
-          total);
+  fprint_integer(output_handle, total, 10);
+  fprint(output_handle, "  Pairs\n");
 
-  std::fprintf(output_handle,
-          "%10" PRId64 "  Merged",
-          merged);
+  fprint_integer(output_handle, merged, 10);
+  fprint(output_handle, "  Merged");
   if (total > 0)
     {
-      std::fprintf(output_handle,
-              " (%.1lf%%)",
-              100.0 * static_cast<double>(merged) / static_cast<double>(total));
+      fprint(output_handle, " (");
+      std::fprintf(output_handle, "%.1lf", 100.0 * static_cast<double>(merged) / static_cast<double>(total));
+      fprint(output_handle, "%)");
     }
   fprint(output_handle, '\n');
 
-  std::fprintf(output_handle,
-          "%10" PRId64 "  Not merged",
-          notmerged);
+  fprint_integer(output_handle, notmerged, 10);
+  fprint(output_handle, "  Not merged");
   if (total > 0)
     {
-      std::fprintf(output_handle,
-              " (%.1lf%%)",
-              100.0 * static_cast<double>(notmerged) / static_cast<double>(total));
+      fprint(output_handle, " (");
+      std::fprintf(output_handle, "%.1lf", 100.0 * static_cast<double>(notmerged) / static_cast<double>(total));
+      fprint(output_handle, "%)");
     }
   fprint(output_handle, '\n');
 
@@ -903,107 +902,92 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
 
   if (state.failed_undefined != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  undefined reason\n",
-              state.failed_undefined);
+      fprint_integer(output_handle, state.failed_undefined, 10);
+      fprint(output_handle, "  undefined reason\n");
     }
 
   if (state.failed_minlen != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  reads too short (after truncation)\n",
-              state.failed_minlen);
+      fprint_integer(output_handle, state.failed_minlen, 10);
+      fprint(output_handle, "  reads too short (after truncation)\n");
     }
 
   if (state.failed_maxlen != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  reads too long (after truncation)\n",
-              state.failed_maxlen);
+      fprint_integer(output_handle, state.failed_maxlen, 10);
+      fprint(output_handle, "  reads too long (after truncation)\n");
     }
 
   if (state.failed_maxns != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  too many N's\n",
-              state.failed_maxns);
+      fprint_integer(output_handle, state.failed_maxns, 10);
+      fprint(output_handle, "  too many N's\n");
     }
 
   if (state.failed_nokmers != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  too few kmers found on same diagonal\n",
-              state.failed_nokmers);
+      fprint_integer(output_handle, state.failed_nokmers, 10);
+      fprint(output_handle, "  too few kmers found on same diagonal\n");
     }
 
   if (state.failed_repeat != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  multiple potential alignments\n",
-              state.failed_repeat);
+      fprint_integer(output_handle, state.failed_repeat, 10);
+      fprint(output_handle, "  multiple potential alignments\n");
     }
 
   if (state.failed_maxdiffs != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  too many differences\n",
-              state.failed_maxdiffs);
+      fprint_integer(output_handle, state.failed_maxdiffs, 10);
+      fprint(output_handle, "  too many differences\n");
     }
 
   if (state.failed_maxdiffpct != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  too high percentage of differences\n",
-              state.failed_maxdiffpct);
+      fprint_integer(output_handle, state.failed_maxdiffpct, 10);
+      fprint(output_handle, "  too high percentage of differences\n");
     }
 
   if (state.failed_minscore != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  alignment score too low, or score drop too high\n",
-              state.failed_minscore);
+      fprint_integer(output_handle, state.failed_minscore, 10);
+      fprint(output_handle, "  alignment score too low, or score drop too high\n");
     }
 
   if (state.failed_minovlen != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  overlap too short\n",
-              state.failed_minovlen);
+      fprint_integer(output_handle, state.failed_minovlen, 10);
+      fprint(output_handle, "  overlap too short\n");
     }
 
   if (state.failed_maxee != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  expected error too high\n",
-              state.failed_maxee);
+      fprint_integer(output_handle, state.failed_maxee, 10);
+      fprint(output_handle, "  expected error too high\n");
     }
 
   if (state.failed_minmergelen != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  merged fragment too short\n",
-              state.failed_minmergelen);
+      fprint_integer(output_handle, state.failed_minmergelen, 10);
+      fprint(output_handle, "  merged fragment too short\n");
     }
 
   if (state.failed_maxmergelen != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  merged fragment too long\n",
-              state.failed_maxmergelen);
+      fprint_integer(output_handle, state.failed_maxmergelen, 10);
+      fprint(output_handle, "  merged fragment too long\n");
     }
 
   if (state.failed_staggered != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  staggered read pairs\n",
-              state.failed_staggered);
+      fprint_integer(output_handle, state.failed_staggered, 10);
+      fprint(output_handle, "  staggered read pairs\n");
     }
 
   if (state.failed_indel != 0U)
     {
-      std::fprintf(output_handle,
-              "%10" PRIu64 "  indel errors\n",
-              state.failed_indel);
+      fprint_integer(output_handle, state.failed_indel, 10);
+      fprint(output_handle, "  indel errors\n");
     }
 
   fprint(output_handle, '\n');
@@ -1014,9 +998,8 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
 
       auto const mean_read_length = state.sum_read_length / (2.0 * state.pairs_read);
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean read length\n",
-              mean_read_length);
+      std::fprintf(output_handle, "%10.2f", mean_read_length);
+      fprint(output_handle, "  Mean read length\n");
     }
 
   if (merged > 0)
@@ -1027,42 +1010,34 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
 
       auto const mean = sum_fragment_length / static_cast<double>(merged);
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean fragment length\n",
-              mean);
+      std::fprintf(output_handle, "%10.2f", mean);
+      fprint(output_handle, "  Mean fragment length\n");
 
       auto const stdev = std::sqrt((state.sum_squared_fragment_length
                                - (2.0 * mean * sum_fragment_length)
                                + (mean * mean * static_cast<double>(merged)))
                               / (static_cast<double>(merged) + 0.0));
 
-      std::fprintf(output_handle,
-              "%10.2f  Standard deviation of fragment length\n",
-              stdev);
+      std::fprintf(output_handle, "%10.2f", stdev);
+      fprint(output_handle, "  Standard deviation of fragment length\n");
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean expected error in forward sequences\n",
-              state.sum_ee_fwd / static_cast<double>(merged));
+      std::fprintf(output_handle, "%10.2f", state.sum_ee_fwd / static_cast<double>(merged));
+      fprint(output_handle, "  Mean expected error in forward sequences\n");
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean expected error in reverse sequences\n",
-              state.sum_ee_rev / static_cast<double>(merged));
+      std::fprintf(output_handle, "%10.2f", state.sum_ee_rev / static_cast<double>(merged));
+      fprint(output_handle, "  Mean expected error in reverse sequences\n");
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean expected error in merged sequences\n",
-              state.sum_ee_merged / static_cast<double>(merged));
+      std::fprintf(output_handle, "%10.2f", state.sum_ee_merged / static_cast<double>(merged));
+      fprint(output_handle, "  Mean expected error in merged sequences\n");
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean observed errors in merged region of forward sequences\n",
-              1.0 * static_cast<double>(sum_errors_fwd) / static_cast<double>(merged));
+      std::fprintf(output_handle, "%10.2f", 1.0 * static_cast<double>(sum_errors_fwd) / static_cast<double>(merged));
+      fprint(output_handle, "  Mean observed errors in merged region of forward sequences\n");
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean observed errors in merged region of reverse sequences\n",
-              1.0 * static_cast<double>(sum_errors_rev) / static_cast<double>(merged));
+      std::fprintf(output_handle, "%10.2f", 1.0 * static_cast<double>(sum_errors_rev) / static_cast<double>(merged));
+      fprint(output_handle, "  Mean observed errors in merged region of reverse sequences\n");
 
-      std::fprintf(output_handle,
-              "%10.2f  Mean observed errors in merged region\n",
-              1.0 * static_cast<double>(sum_errors_fwd + sum_errors_rev) / static_cast<double>(merged));
+      std::fprintf(output_handle, "%10.2f", 1.0 * static_cast<double>(sum_errors_fwd + sum_errors_rev) / static_cast<double>(merged));
+      fprint(output_handle, "  Mean observed errors in merged region\n");
     }
 }
 }  // anonymous namespace

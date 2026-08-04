@@ -67,9 +67,8 @@
 #include "utils/view.hpp"
 #include <algorithm>  // std::find_if
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <iterator>  // std::distance
 #include <vector>
 
@@ -173,17 +172,29 @@ namespace {
     static constexpr char first_char_in_Illumina_1_5 = 'B';  // 66th char
     static constexpr char last_char_in_original_Sanger = 'I';  // 73th char
     assert(stats.sequence_chars['n'] == 0);  // sequences are uppercased, no results for lowercase symbols
-    std::fprintf(output_stream, "Read %" PRIu64 " sequences.\n", stats.seq_count);
+    fprint(output_stream, "Read ");
+    fprint_integer(output_stream, stats.seq_count);
+    fprint(output_stream, " sequences.\n");
 
     if (stats.seq_count == 0) {
       return;
     }
 
-    std::fprintf(output_stream, "Qmin %d, Qmax %d, Range %d\n",
-                 stats.qmin, stats.qmax, stats.qmax - stats.qmin + 1);
+    fprint(output_stream, "Qmin ");
+    fprint_integer(output_stream, static_cast<int>(stats.qmin));
+    fprint(output_stream, ", Qmax ");
+    fprint_integer(output_stream, static_cast<int>(stats.qmax));
+    fprint(output_stream, ", Range ");
+    fprint_integer(output_stream, stats.qmax - stats.qmin + 1);
+    fprint(output_stream, '\n');
 
-    std::fprintf(output_stream, "Guess: -fastq_qmin %d -fastq_qmax %d -fastq_ascii %d\n",
-                 stats.fastq_qmin, stats.fastq_qmax, stats.fastq_ascii);
+    fprint(output_stream, "Guess: -fastq_qmin ");
+    fprint_integer(output_stream, static_cast<int>(stats.fastq_qmin));
+    fprint(output_stream, " -fastq_qmax ");
+    fprint_integer(output_stream, static_cast<int>(stats.fastq_qmax));
+    fprint(output_stream, " -fastq_ascii ");
+    fprint_integer(output_stream, static_cast<int>(stats.fastq_ascii));
+    fprint(output_stream, '\n');
 
     if (stats.fastq_ascii == solexa_ascii_offset)
       {
@@ -224,20 +235,27 @@ namespace {
     for (auto const counter: stats.sequence_chars)
       {
         if (counter == 0) { ++index ; continue; }
-        std::fprintf(output_stream, "     %c %10" PRIu64 " %5.1f%% %6d",
-                     index,
-                     counter,
-                     static_cast<double>(counter) * percentage_factor,
-                     stats.maxrun[index]);
+        fprint(output_stream, "     ");
+        fprint(output_stream, static_cast<char>(index));
+        fprint(output_stream, ' ');
+        fprint_integer(output_stream, counter, 10);
+        fprint(output_stream, ' ');
+        std::fprintf(output_stream, "%5.1f", static_cast<double>(counter) * percentage_factor);
+        fprint(output_stream, "% ");
+        fprint_integer(output_stream, stats.maxrun[index], 6);
         if (index == 'N')
           {
             if (stats.qmin_n < stats.qmax_n)
               {
-                std::fprintf(output_stream, "  Q=%c..%c", stats.qmin_n, stats.qmax_n);
+                fprint(output_stream, "  Q=");
+                fprint(output_stream, static_cast<char>(stats.qmin_n));
+                fprint(output_stream, "..");
+                fprint(output_stream, static_cast<char>(stats.qmax_n));
               }
             else
               {
-                std::fprintf(output_stream, "  Q=%c", stats.qmin_n);
+                fprint(output_stream, "  Q=");
+                fprint(output_stream, static_cast<char>(stats.qmin_n));
               }
           }
         fprint(output_stream, '\n');
@@ -254,12 +272,15 @@ namespace {
         if (stats.quality_chars[quality_index] == 0) {
           continue;
         }
-        std::fprintf(output_stream,
-                     " '%c'  %5d  %5.1f%%  %10" PRIu64 "\n",
-                     i,
-                     i,
-                     static_cast<double>(stats.quality_chars[quality_index]) * percentage_factor,
-                     stats.tail_chars[quality_index]);
+        fprint(output_stream, " '");
+        fprint(output_stream, i);
+        fprint(output_stream, "'  ");
+        fprint_integer(output_stream, static_cast<int>(i), 5);
+        fprint(output_stream, "  ");
+        std::fprintf(output_stream, "%5.1f", static_cast<double>(stats.quality_chars[quality_index]) * percentage_factor);
+        fprint(output_stream, "%  ");
+        fprint_integer(output_stream, stats.tail_chars[quality_index], 10);
+        fprint(output_stream, '\n');
       }
   }
 

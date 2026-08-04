@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include "core/fastq.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -67,7 +68,6 @@
 #include <array>
 #include <algorithm>  // std::max, std::min, std::find_if, std::transform, std::minmax_element, std::for_each
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 (for uint64_t) and PRId64 (for int64_t)
 #include <cmath>  // std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf, std::size_t
@@ -342,20 +342,30 @@ namespace {
                                        struct Stats const & stats,
                                        std::vector<uint64_t> const & read_length_table) -> void {
     assert(log_handle != nullptr);
-    std::fprintf(log_handle, "\n%s\n%s\n%s\n",
-                 "Read length distribution",
-                 "      L           N      Pct   AccPct",
-                 "-------  ----------  -------  -------");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "Read length distribution");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "      L           N      Pct   AccPct");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "-------  ----------  -------  -------");
+    fprint(log_handle, '\n');
     for (auto length = stats.len_max; length >= stats.len_min; --length)
       {
         if (read_length_table[length] != 0) {
           auto const previous_count = (length != 0) ? static_cast<double>(stats.length_dist[length - 1]) : 0;
-          std::fprintf(log_handle, "%2s%5" PRIu64 "  %10" PRIu64 "   %5.1lf%%   %5.1lf%%\n",
-                       (length == stats.len_max ? ">=" : "  "),
-                       length,
-                       read_length_table[length],
-                       static_cast<double>(read_length_table[length]) * 100.0 / stats.n_sequences,
+          /* the "%2s" this replaces padded a field whose two branches are both
+             already two characters wide, so the padding never applied */
+          std::fputs((length == stats.len_max ? ">=" : "  "), log_handle);
+          fprint_integer(log_handle, length, 5);
+          fprint(log_handle, "  ");
+          fprint_integer(log_handle, read_length_table[length], 10);
+          fprint(log_handle, "   ");
+          std::fprintf(log_handle, "%5.1lf",
+                       static_cast<double>(read_length_table[length]) * 100.0 / stats.n_sequences);
+          fprint(log_handle, "%   ");
+          std::fprintf(log_handle, "%5.1lf",
                        100.0 * (stats.n_sequences - previous_count) / stats.n_sequences);
+          fprint(log_handle, "%\n");
         }
         if (length == 0UL) { break; }
       }
@@ -372,10 +382,13 @@ namespace {
     auto const qmin = static_cast<int>(find_smallest(stats.quality_dist));
     auto const qmax = static_cast<int>(find_largest(stats.quality_dist));
 
-    std::fprintf(log_handle, "\n%s\n%s\n%s\n",
-                 "Q score distribution",
-                 "ASCII    Q       Pe           N      Pct   AccPct",
-                 "-----  ---  -------  ----------  -------  -------");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "Q score distribution");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "ASCII    Q       Pe           N      Pct   AccPct");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "-----  ---  -------  ----------  -------  -------");
+    fprint(log_handle, '\n');
     uint64_t qual_accum = 0;
     for (auto quality_symbol = qmax ; quality_symbol >= qmin ; --quality_symbol)
       {
@@ -383,14 +396,19 @@ namespace {
         if (stats.quality_dist[symbol_index] == 0) { continue; }
 
         qual_accum += stats.quality_dist[symbol_index];
-        std::fprintf(log_handle,
-                     "    %c  %3" PRIu64 "  %7.5lf  %10" PRIu64 "  %6.1lf%%  %6.1lf%%\n",
-                     quality_symbol,
-                     symbol_to_score[symbol_index],
-                     symbol_to_probability[symbol_index],
-                     stats.quality_dist[symbol_index],
-                     100.0 * static_cast<double>(stats.quality_dist[symbol_index]) / stats.n_symbols,
-                     100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
+        fprint(log_handle, "    ");
+        fprint(log_handle, static_cast<char>(quality_symbol));
+        fprint(log_handle, "  ");
+        fprint_integer(log_handle, symbol_to_score[symbol_index], 3);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%7.5lf", symbol_to_probability[symbol_index]);
+        fprint(log_handle, "  ");
+        fprint_integer(log_handle, stats.quality_dist[symbol_index], 10);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%6.1lf", 100.0 * static_cast<double>(stats.quality_dist[symbol_index]) / stats.n_symbols);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%6.1lf", 100.0 * static_cast<double>(qual_accum) / stats.n_symbols);
+        fprint(log_handle, "%\n");
       }
   }
 
@@ -399,9 +417,11 @@ namespace {
   auto report_length_vs_quality_distribution(std::FILE * log_handle,
                                              struct Stats const & stats) -> void {
     assert(log_handle != nullptr);
-    std::fprintf(log_handle, "\n%s\n%s\n",
-                 "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct",
-                 "-----  -------  ----  -------  --------  -----  ---------  --------");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "    L  PctRecs  AvgQ  P(AvgQ)      AvgP  AvgEE       Rate   RatePct");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "-----  -------  ----  -------  --------  -----  ---------  --------");
+    fprint(log_handle, '\n');
 
     for (auto length = uint64_t{2}; length <= stats.len_max; ++length)
       {
@@ -413,16 +433,22 @@ namespace {
         auto const AvgEE = distribution.avgee;
         auto const Rate = distribution.rate;
 
-        std::fprintf(log_handle,
-                     "%5" PRIu64 "  %6.1lf%%  %4.1lf  %7.5lf  %8.6lf  %5.2lf  %9.6lf  %7.3lf%%\n",
-                     length,
-                     PctRecs,
-                     AvgQ,
-                     q2p(AvgQ),
-                     AvgP,
-                     AvgEE,
-                     Rate,
-                     100.0 * Rate);
+        fprint_integer(log_handle, length, 5);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%6.1lf", PctRecs);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%4.1lf", AvgQ);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%7.5lf", q2p(AvgQ));
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%8.6lf", AvgP);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%5.2lf", AvgEE);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%9.6lf", Rate);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%7.3lf", 100.0 * Rate);
+        fprint(log_handle, "%\n");
       }
   }
 
@@ -432,9 +458,11 @@ namespace {
                                                   struct Stats const & stats,
                                                   std::vector<std::array<uint64_t, 4>> const & ee_length_table) -> void {
     assert(log_handle != nullptr);
-    std::fprintf(log_handle, "\n%s\n%s\n",
-                 "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000",
-                 "-----  -------  -------  -------  -------  -------  -------  -------  -------");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "    L   1.0000   0.5000   0.2500   0.1000   1.0000   0.5000   0.2500   0.1000");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "-----  -------  -------  -------  -------  -------  -------  -------  -------");
+    fprint(log_handle, '\n');
 
     std::vector<double> read_percentage(ee_length_table[0].size());
     auto const max_length = find_first_complete_EE_filtering(stats, ee_length_table);
@@ -447,14 +475,24 @@ namespace {
               return 100.0 * static_cast<double>(count) / stats.n_sequences;
             });
 
-        std::fprintf(log_handle,
-                     "%5" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  %7" PRIu64 "  "
-                     "%6.2lf%%  %6.2lf%%  %6.2lf%%  %6.2lf%%\n",
-                     length,
-                     read_count[0], read_count[1],
-                     read_count[2], read_count[3],
-                     read_percentage[0], read_percentage[1],
-                     read_percentage[2], read_percentage[3]);
+        fprint_integer(log_handle, length, 5);
+        fprint(log_handle, "  ");
+        fprint_integer(log_handle, read_count[0], 7);
+        fprint(log_handle, "  ");
+        fprint_integer(log_handle, read_count[1], 7);
+        fprint(log_handle, "  ");
+        fprint_integer(log_handle, read_count[2], 7);
+        fprint(log_handle, "  ");
+        fprint_integer(log_handle, read_count[3], 7);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%6.2lf", read_percentage[0]);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%6.2lf", read_percentage[1]);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%6.2lf", read_percentage[2]);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%6.2lf", read_percentage[3]);
+        fprint(log_handle, "%\n");
       }
   }
 
@@ -464,10 +502,13 @@ namespace {
                                                    struct Stats const & stats,
                                                    std::vector<std::array<uint64_t, 4>> const & q_length_table) -> void {
     assert(log_handle != nullptr);
-    std::fprintf(log_handle, "\n%s\n%s\n%s\n",
-                 "Truncate at first Q",
-                 "  Len     Q=5    Q=10    Q=15    Q=20",
-                 "-----  ------  ------  ------  ------");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "Truncate at first Q");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "  Len     Q=5    Q=10    Q=15    Q=20");
+    fprint(log_handle, '\n');
+    fprint(log_handle, "-----  ------  ------  ------  ------");
+    fprint(log_handle, '\n');
     auto const mid_length = std::max(uint64_t{1}, stats.len_max / 2);
     std::vector<double> read_percentage(q_length_table[0].size());
     for (auto length = stats.len_max; length >= mid_length; --length)
@@ -479,9 +520,16 @@ namespace {
               return 100.0 * static_cast<double>(count) / stats.n_sequences;
             });
 
-        std::fprintf(log_handle, "%5" PRIu64 "  %5.1lf%%  %5.1lf%%  %5.1lf%%  %5.1lf%%\n",
-                     length, read_percentage[0], read_percentage[1],
-                     read_percentage[2], read_percentage[3]);
+        fprint_integer(log_handle, length, 5);
+        fprint(log_handle, "  ");
+        std::fprintf(log_handle, "%5.1lf", read_percentage[0]);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%5.1lf", read_percentage[1]);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%5.1lf", read_percentage[2]);
+        fprint(log_handle, "%  ");
+        std::fprintf(log_handle, "%5.1lf", read_percentage[3]);
+        fprint(log_handle, "%\n");
       }
   }
 
@@ -491,13 +539,18 @@ namespace {
     assert(log_handle != nullptr);
     static constexpr auto a_million = double{1000000};
     auto const n_sequences = static_cast<double>(stats.seq_count);
-    std::fprintf(log_handle, "\n%10" PRIu64 "  Recs (%.1lfM), 0 too long\n",
-                 stats.seq_count, n_sequences / a_million);
+    fprint(log_handle, '\n');
+    fprint_integer(log_handle, stats.seq_count, 10);
+    fprint(log_handle, "  Recs (");
+    std::fprintf(log_handle, "%.1lf", n_sequences / a_million);
+    fprint(log_handle, "M), 0 too long\n");
     if (stats.seq_count != 0)
       {
-        std::fprintf(log_handle, "%10.1lf  Avg length\n", 1.0 * stats.n_symbols / n_sequences);
+        std::fprintf(log_handle, "%10.1lf", 1.0 * stats.n_symbols / n_sequences);
+        fprint(log_handle, "  Avg length\n");
       }
-    std::fprintf(log_handle, "%9.1lfM  Bases\n", stats.n_symbols / a_million);
+    std::fprintf(log_handle, "%9.1lf", stats.n_symbols / a_million);
+    fprint(log_handle, "M  Bases\n");
   }
 
 }  // end of anonymous namespace
@@ -629,6 +682,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      std::fprintf(stderr, "Read %" PRIu64 " sequences.\n", stats.seq_count);
+      fprint(stderr, "Read ");
+      fprint_integer(stderr, stats.seq_count);
+      fprint(stderr, " sequences.\n");
     }
 }

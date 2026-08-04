@@ -69,9 +69,8 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <limits>
 #include <map>  // std::map
 #include <vector>
@@ -327,15 +326,48 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       hi_ee   = (hi_ee   + 0.5) / resolution;
       max_ee  = (max_ee  + 0.5) / resolution;
 
-      std::fprintf(fp_output,
-              "%" PRId64 "\t%" PRId64 "\t%.1lf"
-              "\t%.1lf\t%.1lf\t%.1lf\t%.1lf\t%.1lf\t%.1lf"
-              "\t%.2lg\t%.2lg\t%.2lg\t%.2lg\t%.2lg\t%.2lg"
-              "\t%.2lf\t%.2lf\t%.2lf\t%.2lf\t%.2lf\t%.2lf\n",
-              i + 1, reads, pctrecs,
-              min_q,  low_q,  med_q,  mean_q,  hi_q,  max_q,
-              min_pe, low_pe, med_pe, mean_pe, hi_pe, max_pe,
-              min_ee, low_ee, med_ee, mean_ee, hi_ee, max_ee);
+      fprint_integer(fp_output, i + 1);
+      fprint(fp_output, '\t');
+      fprint_integer(fp_output, reads);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", pctrecs);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", min_q);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", low_q);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", med_q);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", mean_q);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", hi_q);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.1lf", max_q);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lg", min_pe);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lg", low_pe);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lg", med_pe);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lg", mean_pe);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lg", hi_pe);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lg", max_pe);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lf", min_ee);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lf", low_ee);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lf", med_ee);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lf", mean_ee);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lf", hi_ee);
+      fprint(fp_output, '\t');
+      std::fprintf(fp_output, "%.2lf", max_ee);
+      fprint(fp_output, '\n');
     }
 
   h->report_stripped_warning(parameters);

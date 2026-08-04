@@ -69,9 +69,8 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <vector>
 
 
@@ -164,22 +163,23 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
       }
   }
 
-  std::fprintf(fp_output,
-          "%" PRIu64 " reads",
-          seq_count);
+  fprint_integer(fp_output, seq_count);
+  fprint(fp_output, " reads");
 
   if (seq_count > 0)
     {
-      std::fprintf(fp_output,
-              ", max len %" PRIu64 ", avg %.1f",
-              longest, 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
+      fprint(fp_output, ", max len ");
+      fprint_integer(fp_output, longest);
+      fprint(fp_output, ", avg ");
+      std::fprintf(fp_output, "%.1f", 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
     }
   fprint(fp_output, "\n\n");
 
   fprint(fp_output, "Length");
   for (int y = 0; y < ee_cutoffs_count; y++)
     {
-      std::fprintf(fp_output, "         MaxEE %.2f", ee_cutoffs[static_cast<size_t>(y)]);
+      fprint(fp_output, "         MaxEE ");
+      std::fprintf(fp_output, "%.2f", ee_cutoffs[static_cast<size_t>(y)]);
     }
   fprint(fp_output, '\n');
   fprint(fp_output, "------");
@@ -198,28 +198,33 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
           break;
         }
 
-      std::fprintf(fp_output, "%6d", len_cutoff);
+      fprint_integer(fp_output, len_cutoff, 6);
 
       for (int y = 0; y < ee_cutoffs_count; y++)
         {
-          std::fprintf(fp_output,
-                  "   %8" PRIu64 "(%5.1f%%)",
-                  count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))],
-                  100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
+          fprint(fp_output, "   ");
+          fprint_integer(fp_output, count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))], 8);
+          fprint(fp_output, '(');
+          std::fprintf(fp_output, "%5.1f", 100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
+          fprint(fp_output, "%)");
         }
       fprint(fp_output, '\n');
     }
 
   if (parameters.fp_log != nullptr)
     {
-      std::fprintf(parameters.fp_log,
-              "%" PRIu64 " reads, max len %" PRIu64 ", avg %.1f\n\n",
-              seq_count, longest, 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
+      fprint_integer(parameters.fp_log, seq_count);
+      fprint(parameters.fp_log, " reads, max len ");
+      fprint_integer(parameters.fp_log, longest);
+      fprint(parameters.fp_log, ", avg ");
+      std::fprintf(parameters.fp_log, "%.1f", 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
+      fprint(parameters.fp_log, "\n\n");
 
       fprint(parameters.fp_log, "Length");
       for (int y = 0; y < ee_cutoffs_count; y++)
         {
-          std::fprintf(parameters.fp_log, "         MaxEE %.2f", ee_cutoffs[static_cast<size_t>(y)]);
+          fprint(parameters.fp_log, "         MaxEE ");
+          std::fprintf(parameters.fp_log, "%.2f", ee_cutoffs[static_cast<size_t>(y)]);
         }
       fprint(parameters.fp_log, '\n');
       fprint(parameters.fp_log, "------");
@@ -238,14 +243,15 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
               break;
             }
 
-          std::fprintf(parameters.fp_log, "%6d", len_cutoff);
+          fprint_integer(parameters.fp_log, len_cutoff, 6);
 
           for (int y = 0; y < ee_cutoffs_count; y++)
             {
-              std::fprintf(parameters.fp_log,
-                      "   %8" PRIu64 "(%5.1f%%)",
-                      count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))],
-                      100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
+              fprint(parameters.fp_log, "   ");
+              fprint_integer(parameters.fp_log, count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))], 8);
+              fprint(parameters.fp_log, '(');
+              std::fprintf(parameters.fp_log, "%5.1f", 100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
+              fprint(parameters.fp_log, "%)");
             }
           fprint(parameters.fp_log, '\n');
         }

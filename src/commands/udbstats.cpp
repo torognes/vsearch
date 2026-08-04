@@ -64,8 +64,8 @@
 #include "core/udb.hpp"
 #include "core/dbindex.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min, std::sort
-#include <cinttypes>  // macro PRIu64
 #include <cmath>  // std::lround
 #include <cstdio>  // std::fprintf
 #include <vector>
@@ -134,28 +134,36 @@ auto udbstats(struct Parameters const & parameters) -> void
   if (parameters.opt_log != nullptr)
     {
       fprint(parameters.fp_log, "      Alphabet  nt\n");
-      std::fprintf(parameters.fp_log, "    Word width  %u\n", dbindex.wordlength);
-      std::fprintf(parameters.fp_log, "     Word ones  %u\n", dbindex.wordlength);
+      fprint(parameters.fp_log, "    Word width  ");
+      fprint_integer(parameters.fp_log, dbindex.wordlength);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "     Word ones  ");
+      fprint_integer(parameters.fp_log, dbindex.wordlength);
+      fprint(parameters.fp_log, '\n');
       fprint(parameters.fp_log, "        Spaced  No\n");
       fprint(parameters.fp_log, "        Hashed  No\n");
       fprint(parameters.fp_log, "         Coded  No\n");
       fprint(parameters.fp_log, "       Stepped  No\n");
-      std::fprintf(parameters.fp_log,
-              "         Slots  %u (%.1fk)\n",
-              dbindex.hashsize,
-              1.0 * dbindex.hashsize / 1000.0);
-      std::fprintf(parameters.fp_log, "       DBAccel  %u%%\n", dbindex.dbaccel);
+      fprint(parameters.fp_log, "         Slots  ");
+      fprint_integer(parameters.fp_log, dbindex.hashsize);
+      fprint(parameters.fp_log, " (");
+      std::fprintf(parameters.fp_log, "%.1f", 1.0 * dbindex.hashsize / 1000.0);
+      fprint(parameters.fp_log, "k)\n");
+      fprint(parameters.fp_log, "       DBAccel  ");
+      fprint_integer(parameters.fp_log, dbindex.dbaccel);
+      fprint(parameters.fp_log, "%\n");
       fprint(parameters.fp_log, '\n');
 
-      std::fprintf(parameters.fp_log,
-              "%10" PRIu64 "  DB size (%.1fk)\n",
-              nt,
-              1.0 * static_cast<double>(nt) / 1000.0);
-      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Words\n", dbindex.indexsize);
-      std::fprintf(parameters.fp_log, "%10u  Median size\n", wcmedian);
-      std::fprintf(parameters.fp_log,
-              "%10.1f  Mean size\n",
-              1.0 * static_cast<double>(dbindex.indexsize) / dbindex.hashsize);
+      fprint_integer(parameters.fp_log, nt, 10);
+      fprint(parameters.fp_log, "  DB size (");
+      std::fprintf(parameters.fp_log, "%.1f", 1.0 * static_cast<double>(nt) / 1000.0);
+      fprint(parameters.fp_log, "k)\n");
+      fprint_integer(parameters.fp_log, dbindex.indexsize, 10);
+      fprint(parameters.fp_log, "  Words\n");
+      fprint_integer(parameters.fp_log, wcmedian, 10);
+      fprint(parameters.fp_log, "  Median size\n");
+      std::fprintf(parameters.fp_log, "%10.1f", 1.0 * static_cast<double>(dbindex.indexsize) / dbindex.hashsize);
+      fprint(parameters.fp_log, "  Mean size\n");
       fprint(parameters.fp_log, '\n');
 
       fprint(parameters.fp_log, "     iWord         sWord         Cap        Size  Row\n");
@@ -163,9 +171,8 @@ auto udbstats(struct Parameters const & parameters) -> void
 
       for (auto i = 0U; i < dbindex.hashsize; i++)
         {
-          std::fprintf(parameters.fp_log,
-                  "%10u  ",
-                  freqtable[dbindex.hashsize - 1 - i].kmer);
+          fprint_integer(parameters.fp_log, freqtable[dbindex.hashsize - 1 - i].kmer, 10);
+          fprint(parameters.fp_log, "  ");
 
           /* pad the k-mer column out to 12 characters */
           static constexpr char twelve_spaces[] = "            ";
@@ -175,17 +182,17 @@ auto udbstats(struct Parameters const & parameters) -> void
 
           fprint_kmer(parameters.fp_log, dbindex.wordlength, freqtable[dbindex.hashsize - 1 - i].kmer);
 
-          std::fprintf(parameters.fp_log,
-                  "  %10u  %10u",
-                  0U,
-                  freqtable[dbindex.hashsize - 1 - i].count);
+          fprint(parameters.fp_log, "  ");
+          fprint_integer(parameters.fp_log, 0U, 10);
+          fprint(parameters.fp_log, "  ");
+          fprint_integer(parameters.fp_log, freqtable[dbindex.hashsize - 1 - i].count, 10);
 
           fprint(parameters.fp_log, ' ');
 
           for (auto j = 0U; j < freqtable[dbindex.hashsize - 1 - i].count; j++)
             {
-              std::fprintf(parameters.fp_log,
-                      " %u", dbindex.kmerindex[dbindex.kmerhash[freqtable[dbindex.hashsize - 1 - i].kmer] + j]);
+              fprint(parameters.fp_log, ' ');
+              fprint_integer(parameters.fp_log, dbindex.kmerindex[dbindex.kmerhash[freqtable[dbindex.hashsize - 1 - i].kmer] + j]);
 
               if (j == 7)
                 {
@@ -209,10 +216,18 @@ auto udbstats(struct Parameters const & parameters) -> void
 
       fprint(parameters.fp_log, "\n\n");
 
-      std::fprintf(parameters.fp_log, "Word width  %u\n", dbindex.wordlength);
-      std::fprintf(parameters.fp_log, "Slots       %u\n", dbindex.hashsize);
-      std::fprintf(parameters.fp_log, "Words       %" PRIu64 "\n", dbindex.indexsize);
-      std::fprintf(parameters.fp_log, "Max size    %u (", wcmax);
+      fprint(parameters.fp_log, "Word width  ");
+      fprint_integer(parameters.fp_log, dbindex.wordlength);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "Slots       ");
+      fprint_integer(parameters.fp_log, dbindex.hashsize);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "Words       ");
+      fprint_integer(parameters.fp_log, dbindex.indexsize);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "Max size    ");
+      fprint_integer(parameters.fp_log, wcmax);
+      fprint(parameters.fp_log, " (");
       fprint_kmer(parameters.fp_log, dbindex.wordlength, freqtable[dbindex.hashsize - 1].kmer);
       fprint(parameters.fp_log, ")\n\n");
 
@@ -242,34 +257,45 @@ auto udbstats(struct Parameters const & parameters) -> void
 
           if (size_lo < size_hi)
             {
-              std::fprintf(parameters.fp_log, "%10u", size_lo);
+              fprint_integer(parameters.fp_log, size_lo, 10);
             }
           else
             {
               fprint(parameters.fp_log, "          ");
             }
 
-          std::fprintf(parameters.fp_log, "  %10u", size_hi);
+          fprint(parameters.fp_log, "  ");
+          fprint_integer(parameters.fp_log, size_hi, 10);
 
           if (size >= 10000)
             {
-              std::fprintf(parameters.fp_log, "  %9.1fk", size * 0.001);
+              fprint(parameters.fp_log, "  ");
+              std::fprintf(parameters.fp_log, "%9.1f", size * 0.001);
+              fprint(parameters.fp_log, 'k');
             }
           else
             {
-              std::fprintf(parameters.fp_log, "  %10.1f", size * 1.0);
+              fprint(parameters.fp_log, "  ");
+              std::fprintf(parameters.fp_log, "%10.1f", size * 1.0);
             }
 
           if (count >= 10000)
             {
-              std::fprintf(parameters.fp_log, "  %9.1fk", count * 0.001);
+              fprint(parameters.fp_log, "  ");
+              std::fprintf(parameters.fp_log, "%9.1f", count * 0.001);
+              fprint(parameters.fp_log, 'k');
             }
           else
             {
-              std::fprintf(parameters.fp_log, "  %10.1f", count * 1.0);
+              fprint(parameters.fp_log, "  ");
+              std::fprintf(parameters.fp_log, "%10.1f", count * 1.0);
             }
 
-          std::fprintf(parameters.fp_log, "  %5.1f%%  %5.1f%%", pct, totpct);
+          fprint(parameters.fp_log, "  ");
+          std::fprintf(parameters.fp_log, "%5.1f", pct);
+          fprint(parameters.fp_log, "%  ");
+          std::fprintf(parameters.fp_log, "%5.1f", totpct);
+          fprint(parameters.fp_log, '%');
 
           static constexpr auto divider = 3.0;
           const auto dots = std::lround(pct / divider);
@@ -303,28 +329,40 @@ auto udbstats(struct Parameters const & parameters) -> void
 
       if (dbindex.indexsize >= 10000)
         {
-          std::fprintf(parameters.fp_log, "  %9.1fk", static_cast<double>(dbindex.indexsize) * 0.001);
+          fprint(parameters.fp_log, "  ");
+          std::fprintf(parameters.fp_log, "%9.1f", static_cast<double>(dbindex.indexsize) * 0.001);
+          fprint(parameters.fp_log, 'k');
         }
       else
         {
-          std::fprintf(parameters.fp_log, "  %10.1f", static_cast<double>(dbindex.indexsize) * 1.0);
+          fprint(parameters.fp_log, "  ");
+          std::fprintf(parameters.fp_log, "%10.1f", static_cast<double>(dbindex.indexsize) * 1.0);
         }
 
       if (dbindex.hashsize >= 10000)
         {
-          std::fprintf(parameters.fp_log, "  %9.1fk", dbindex.hashsize * 0.001);
+          fprint(parameters.fp_log, "  ");
+          std::fprintf(parameters.fp_log, "%9.1f", dbindex.hashsize * 0.001);
+          fprint(parameters.fp_log, 'k');
         }
       else
         {
-          std::fprintf(parameters.fp_log, "  %10.1f", dbindex.hashsize * 1.0);
+          fprint(parameters.fp_log, "  ");
+          std::fprintf(parameters.fp_log, "%10.1f", dbindex.hashsize * 1.0);
         }
 
       fprint(parameters.fp_log, "\n\n");
 
-      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Upper\n", nt);
-      std::fprintf(parameters.fp_log, "%10u  Lower (%.1f%%)\n", 0U, 0.0);
-      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Total\n", nt);
-      std::fprintf(parameters.fp_log, "%10" PRIu64 "  Indexed words\n", dbindex.indexsize);
+      fprint_integer(parameters.fp_log, nt, 10);
+      fprint(parameters.fp_log, "  Upper\n");
+      fprint_integer(parameters.fp_log, 0U, 10);
+      fprint(parameters.fp_log, "  Lower (");
+      std::fprintf(parameters.fp_log, "%.1f", 0.0);
+      fprint(parameters.fp_log, "%)\n");
+      fprint_integer(parameters.fp_log, nt, 10);
+      fprint(parameters.fp_log, "  Total\n");
+      fprint_integer(parameters.fp_log, dbindex.indexsize, 10);
+      fprint(parameters.fp_log, "  Indexed words\n");
     }
 
   dbindex.clear();
