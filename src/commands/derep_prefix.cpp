@@ -70,9 +70,8 @@
 #include "utils/span.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::max, std::sort, std::transform
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
@@ -376,19 +375,25 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "%" PRId64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n",
-                  clusters, average, median, maxsize);
+          fprint_integer(stderr, clusters);
+          fprint(stderr, " unique sequences, avg cluster ");
+          std::fprintf(stderr, "%.1lf", average);
+          fprint(stderr, ", median ");
+          std::fprintf(stderr, "%.0f", median);
+          fprint(stderr, ", max ");
+          fprint_integer(stderr, maxsize);
+          fprint(stderr, '\n');
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRId64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n\n",
-                  clusters, average, median, maxsize);
+          fprint_integer(parameters.fp_log, clusters);
+          fprint(parameters.fp_log, " unique sequences, avg cluster ");
+          std::fprintf(parameters.fp_log, "%.1lf", average);
+          fprint(parameters.fp_log, ", median ");
+          std::fprintf(parameters.fp_log, "%.0f", median);
+          fprint(parameters.fp_log, ", max ");
+          fprint_integer(parameters.fp_log, maxsize);
+          fprint(parameters.fp_log, "\n\n");
         }
     }
 
@@ -455,16 +460,29 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             auto const * h =  db.getheader(bp.seqno_first);
             auto const len = static_cast<int64_t>(db.getsequencelen(bp.seqno_first));
 
-            std::fprintf(fp_uc, "S\t%" PRId64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, len, h);
+            fprint(fp_uc, "S\t");
+            fprint_integer(fp_uc, i);
+            fprint(fp_uc, '\t');
+            fprint_integer(fp_uc, len);
+            fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
+            std::fputs(h, fp_uc);
+            fprint(fp_uc, "\t*\n");
 
             for (auto next = nextseqtab[bp.seqno_first];
                  next != terminal;
                  next = nextseqtab[next])
               {
-                std::fprintf(fp_uc,
-                        "H\t%" PRId64 "\t%" PRIu64 "\t%.1f\t+\t0\t0\t*\t%s\t%s\n",
-                        i, db.getsequencelen(next), 100.0, db.getheader(next), h);
+                fprint(fp_uc, "H\t");
+                fprint_integer(fp_uc, i);
+                fprint(fp_uc, '\t');
+                fprint_integer(fp_uc, db.getsequencelen(next));
+                fprint(fp_uc, '\t');
+                std::fprintf(fp_uc, "%.1f", 100.0);
+                fprint(fp_uc, "\t+\t0\t0\t*\t");
+                std::fputs(db.getheader(next), fp_uc);
+                fprint(fp_uc, '\t');
+                std::fputs(h, fp_uc);
+                fprint(fp_uc, '\n');
               }
 
             progress.update(static_cast<uint64_t>(i));
@@ -476,8 +494,13 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         for (int64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-            std::fprintf(fp_uc, "C\t%" PRId64 "\t%" PRIu64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                    i, bp.size, db.getheader(bp.seqno_first));
+            fprint(fp_uc, "C\t");
+            fprint_integer(fp_uc, i);
+            fprint(fp_uc, '\t');
+            fprint_integer(fp_uc, bp.size);
+            fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
+            std::fputs(db.getheader(bp.seqno_first), fp_uc);
+            fprint(fp_uc, "\t*\n");
             progress.update(static_cast<uint64_t>(i));
           }
         uc_handle.reset();
@@ -488,20 +511,22 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "%" PRId64 " uniques written, %" PRId64
-                  " clusters discarded (%.1f%%)\n",
-                  selected, clusters - selected,
-                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint_integer(stderr, selected);
+          fprint(stderr, " uniques written, ");
+          fprint_integer(stderr, clusters - selected);
+          fprint(stderr, " clusters discarded (");
+          std::fprintf(stderr, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint(stderr, "%)\n");
         }
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRId64 " uniques written, %" PRId64
-                  " clusters discarded (%.1f%%)\n\n",
-                  selected, clusters - selected,
-                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint_integer(parameters.fp_log, selected);
+          fprint(parameters.fp_log, " uniques written, ");
+          fprint_integer(parameters.fp_log, clusters - selected);
+          fprint(parameters.fp_log, " clusters discarded (");
+          std::fprintf(parameters.fp_log, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint(parameters.fp_log, "%)\n\n");
         }
     }
 

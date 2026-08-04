@@ -76,10 +76,9 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::count_if, std::min, std::sort
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <limits>
 #include <memory>  // std::unique_ptr
 #include <string>
@@ -361,18 +360,31 @@ namespace {
           auto const & cluster = hashtable[i];
           auto const len = static_cast<int64_t>(cluster.seq.size());
 
-          std::fprintf(fp_uc, "S\t%" PRIu64 "\t%" PRId64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, len, cluster.header.c_str());
+          fprint(fp_uc, "S\t");
+          fprint_integer(fp_uc, i);
+          fprint(fp_uc, '\t');
+          fprint_integer(fp_uc, len);
+          fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
+          fprint(fp_uc, View<char>{cluster.header.data(), cluster.header.size()});
+          fprint(fp_uc, "\t*\n");
 
           for (auto next = nextseqtab[cluster.seqno_first];
                next != terminal;
                next = nextseqtab[next])
             {
-              std::fprintf(fp_uc,
-                      "H\t%" PRIu64 "\t%" PRId64 "\t%.1f\t%s\t0\t0\t*\t%s\t%s\n",
-                      i, len, 100.0,
-                      ((match_strand[next] != 0) ? "-" : "+"),
-                      headertab[next].c_str(), cluster.header.c_str());
+              fprint(fp_uc, "H\t");
+              fprint_integer(fp_uc, i);
+              fprint(fp_uc, '\t');
+              fprint_integer(fp_uc, len);
+              fprint(fp_uc, '\t');
+              std::fprintf(fp_uc, "%.1f", 100.0);
+              fprint(fp_uc, '\t');
+              std::fputs(((match_strand[next] != 0) ? "-" : "+"), fp_uc);
+              fprint(fp_uc, "\t0\t0\t*\t");
+              fprint(fp_uc, View<char>{headertab[next].data(), headertab[next].size()});
+              fprint(fp_uc, '\t');
+              fprint(fp_uc, View<char>{cluster.header.data(), cluster.header.size()});
+              fprint(fp_uc, '\n');
             }
 
           progress.update(i);
@@ -384,8 +396,13 @@ namespace {
       for (uint64_t i = 0; i < clusters; ++i)
         {
           auto const & cluster = hashtable[i];
-          std::fprintf(fp_uc, "C\t%" PRIu64 "\t%" PRIu64 "\t*\t*\t*\t*\t*\t%s\t*\n",
-                  i, cluster.size, cluster.header.c_str());
+          fprint(fp_uc, "C\t");
+          fprint_integer(fp_uc, i);
+          fprint(fp_uc, '\t');
+          fprint_integer(fp_uc, cluster.size);
+          fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
+          fprint(fp_uc, View<char>{cluster.header.data(), cluster.header.size()});
+          fprint(fp_uc, "\t*\n");
           progress.update(i);
         }
     }
@@ -406,12 +423,32 @@ namespace {
           auto const & cluster = hashtable[i];
 
           if (parameters.opt_relabel != nullptr) {
-            std::fprintf(fp_tabbedout,
-                    "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header.c_str(), parameters.opt_relabel, i + 1, i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
+            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, '\t');
+            std::fputs(parameters.opt_relabel, fp_tabbedout);
+            fprint_integer(fp_tabbedout, i + 1);
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, i);
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, static_cast<uint64_t>(0));
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, cluster.count);
+            fprint(fp_tabbedout, '\t');
+            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, '\n');
           } else {
-            std::fprintf(fp_tabbedout, "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                    cluster.header.c_str(), cluster.header.c_str(), i, static_cast<uint64_t>(0), cluster.count, cluster.header.c_str());
+            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, '\t');
+            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, i);
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, static_cast<uint64_t>(0));
+            fprint(fp_tabbedout, '\t');
+            fprint_integer(fp_tabbedout, cluster.count);
+            fprint(fp_tabbedout, '\t');
+            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, '\n');
           }
 
           uint64_t j = 1;
@@ -420,13 +457,32 @@ namespace {
                next = nextseqtab[next])
             {
               if (parameters.opt_relabel != nullptr) {
-                std::fprintf(fp_tabbedout,
-                        "%s\t%s%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), parameters.opt_relabel, i + 1, i, j, cluster.count, cluster.header.c_str());
+                fprint(fp_tabbedout, View<char>{headertab[next].data(), headertab[next].size()});
+                fprint(fp_tabbedout, '\t');
+                std::fputs(parameters.opt_relabel, fp_tabbedout);
+                fprint_integer(fp_tabbedout, i + 1);
+                fprint(fp_tabbedout, '\t');
+                fprint_integer(fp_tabbedout, i);
+                fprint(fp_tabbedout, '\t');
+                fprint_integer(fp_tabbedout, j);
+                fprint(fp_tabbedout, '\t');
+                fprint_integer(fp_tabbedout, cluster.count);
+                fprint(fp_tabbedout, '\t');
+                fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+                fprint(fp_tabbedout, '\n');
               } else {
-                std::fprintf(fp_tabbedout,
-                        "%s\t%s\t%" PRIu64 "\t%" PRIu64 "\t%u\t%s\n",
-                        headertab[next].c_str(), cluster.header.c_str(), i, j, cluster.count, cluster.header.c_str());
+                fprint(fp_tabbedout, View<char>{headertab[next].data(), headertab[next].size()});
+                fprint(fp_tabbedout, '\t');
+                fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+                fprint(fp_tabbedout, '\t');
+                fprint_integer(fp_tabbedout, i);
+                fprint(fp_tabbedout, '\t');
+                fprint_integer(fp_tabbedout, j);
+                fprint(fp_tabbedout, '\t');
+                fprint_integer(fp_tabbedout, cluster.count);
+                fprint(fp_tabbedout, '\t');
+                fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+                fprint(fp_tabbedout, '\n');
               }
               ++j;
             }
@@ -821,21 +877,23 @@ namespace {
     auto emit = [&](std::FILE * fp) -> void {
       if (stats.sequencecount > 0)
         {
-          std::fprintf(fp,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
-                  ", max %" PRId64 ", avg %.0f\n",
-                  stats.nucleotidecount,
-                  stats.sequencecount,
-                  stats.shortest,
-                  stats.longest,
-                  static_cast<double>(stats.nucleotidecount) * 1.0 / static_cast<double>(stats.sequencecount));
+          fprint_integer(fp, stats.nucleotidecount);
+          fprint(fp, " nt in ");
+          fprint_integer(fp, stats.sequencecount);
+          fprint(fp, " seqs, min ");
+          fprint_integer(fp, stats.shortest);
+          fprint(fp, ", max ");
+          fprint_integer(fp, stats.longest);
+          fprint(fp, ", avg ");
+          std::fprintf(fp, "%.0f", static_cast<double>(stats.nucleotidecount) * 1.0 / static_cast<double>(stats.sequencecount));
+          fprint(fp, '\n');
         }
       else
         {
-          std::fprintf(fp,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  stats.nucleotidecount,
-                  stats.sequencecount);
+          fprint_integer(fp, stats.nucleotidecount);
+          fprint(fp, " nt in ");
+          fprint_integer(fp, stats.sequencecount);
+          fprint(fp, " seqs\n");
         }
     };
     if (not parameters.opt_quiet)
@@ -859,12 +917,14 @@ namespace {
         return;
       }
     auto emit = [&](std::FILE * fp) -> void {
-      std::fprintf(fp,
-              "%s %" PRId64 ": %" PRIu64 " %s discarded.\n",
-              option_name,
-              length_limit,
-              discarded,
-              (discarded == 1 ? "sequence" : "sequences"));
+      std::fputs(option_name, fp);
+      fprint(fp, ' ');
+      fprint_integer(fp, length_limit);
+      fprint(fp, ": ");
+      fprint_integer(fp, discarded);
+      fprint(fp, ' ');
+      std::fputs((discarded == 1 ? "sequence" : "sequences"), fp);
+      fprint(fp, " discarded.\n");
     };
     emit(stderr);
     if (parameters.opt_log != nullptr)
@@ -887,11 +947,14 @@ namespace {
         }
       else
         {
-          std::fprintf(fp,
-                  "%" PRIu64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n",
-                  stats.clusters, average, median, stats.maxsize);
+          fprint_integer(fp, stats.clusters);
+          fprint(fp, " unique sequences, avg cluster ");
+          std::fprintf(fp, "%.1lf", average);
+          fprint(fp, ", median ");
+          std::fprintf(fp, "%.0f", median);
+          fprint(fp, ", max ");
+          fprint_integer(fp, stats.maxsize);
+          fprint(fp, '\n');
         }
     };
     if (not parameters.opt_quiet)
@@ -915,11 +978,12 @@ namespace {
         return;
       }
     auto emit = [&](std::FILE * fp) -> void {
-      std::fprintf(fp,
-              "%" PRIu64 " uniques written, %"
-              PRIu64 " clusters discarded (%.1f%%)\n",
-              selected, stats.clusters - selected,
-              100.0 * static_cast<double>(stats.clusters - selected) / static_cast<double>(stats.clusters));
+      fprint_integer(fp, selected);
+      fprint(fp, " uniques written, ");
+      fprint_integer(fp, stats.clusters - selected);
+      fprint(fp, " clusters discarded (");
+      std::fprintf(fp, "%.1f", 100.0 * static_cast<double>(stats.clusters - selected) / static_cast<double>(stats.clusters));
+      fprint(fp, "%)\n");
     };
     if (not parameters.opt_quiet)
       {

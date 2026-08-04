@@ -74,10 +74,9 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min, std::max
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::fprintf, std::fclose
+#include <cstdio>  // std::fprintf
 #include <limits>
 #include <string>
 #include <vector>
@@ -383,21 +382,23 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (sequencecount > 0)
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
-                  ", max %" PRId64 ", avg %.0f\n",
-                  nucleotidecount,
-                  sequencecount,
-                  shortest,
-                  longest,
-                  static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
+          fprint_integer(stderr, nucleotidecount);
+          fprint(stderr, " nt in ");
+          fprint_integer(stderr, sequencecount);
+          fprint(stderr, " seqs, min ");
+          fprint_integer(stderr, shortest);
+          fprint(stderr, ", max ");
+          fprint_integer(stderr, longest);
+          fprint(stderr, ", avg ");
+          std::fprintf(stderr, "%.0f", static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
+          fprint(stderr, '\n');
         }
       else
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  nucleotidecount,
-                  sequencecount);
+          fprint_integer(stderr, nucleotidecount);
+          fprint(stderr, " nt in ");
+          fprint_integer(stderr, sequencecount);
+          fprint(stderr, " seqs\n");
         }
     }
 
@@ -405,57 +406,67 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (sequencecount > 0)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs, min %" PRId64
-                  ", max %" PRId64 ", avg %.0f\n",
-                  nucleotidecount,
-                  sequencecount,
-                  shortest,
-                  longest,
-                  static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
+          fprint_integer(parameters.fp_log, nucleotidecount);
+          fprint(parameters.fp_log, " nt in ");
+          fprint_integer(parameters.fp_log, sequencecount);
+          fprint(parameters.fp_log, " seqs, min ");
+          fprint_integer(parameters.fp_log, shortest);
+          fprint(parameters.fp_log, ", max ");
+          fprint_integer(parameters.fp_log, longest);
+          fprint(parameters.fp_log, ", avg ");
+          std::fprintf(parameters.fp_log, "%.0f", static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
+          fprint(parameters.fp_log, '\n');
         }
       else
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " nt in %" PRIu64 " seqs\n",
-                  nucleotidecount,
-                  sequencecount);
+          fprint_integer(parameters.fp_log, nucleotidecount);
+          fprint(parameters.fp_log, " nt in ");
+          fprint_integer(parameters.fp_log, sequencecount);
+          fprint(parameters.fp_log, " seqs\n");
         }
     }
 
   if (discarded_short != 0U)
     {
-      std::fprintf(stderr,
-              "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n",
-              parameters.opt_minseqlength,
-              discarded_short,
-              (discarded_short == 1 ? "sequence" : "sequences"));
+      fprint(stderr, "minseqlength ");
+      fprint_integer(stderr, parameters.opt_minseqlength);
+      fprint(stderr, ": ");
+      fprint_integer(stderr, discarded_short);
+      fprint(stderr, ' ');
+      std::fputs((discarded_short == 1 ? "sequence" : "sequences"), stderr);
+      fprint(stderr, " discarded.\n");
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "minseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
-                  parameters.opt_minseqlength,
-                  discarded_short,
-                  (discarded_short == 1 ? "sequence" : "sequences"));
+          fprint(parameters.fp_log, "minseqlength ");
+          fprint_integer(parameters.fp_log, parameters.opt_minseqlength);
+          fprint(parameters.fp_log, ": ");
+          fprint_integer(parameters.fp_log, discarded_short);
+          fprint(parameters.fp_log, ' ');
+          std::fputs((discarded_short == 1 ? "sequence" : "sequences"), parameters.fp_log);
+          fprint(parameters.fp_log, " discarded.\n\n");
         }
     }
 
   if (discarded_long != 0U)
     {
-      std::fprintf(stderr,
-              "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n",
-              parameters.opt_maxseqlength,
-              discarded_long,
-              (discarded_long == 1 ? "sequence" : "sequences"));
+      fprint(stderr, "maxseqlength ");
+      fprint_integer(stderr, parameters.opt_maxseqlength);
+      fprint(stderr, ": ");
+      fprint_integer(stderr, discarded_long);
+      fprint(stderr, ' ');
+      std::fputs((discarded_long == 1 ? "sequence" : "sequences"), stderr);
+      fprint(stderr, " discarded.\n");
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "maxseqlength %" PRId64 ": %" PRIu64 " %s discarded.\n\n",
-                  parameters.opt_maxseqlength,
-                  discarded_long,
-                  (discarded_long == 1 ? "sequence" : "sequences"));
+          fprint(parameters.fp_log, "maxseqlength ");
+          fprint_integer(parameters.fp_log, parameters.opt_maxseqlength);
+          fprint(parameters.fp_log, ": ");
+          fprint_integer(parameters.fp_log, discarded_long);
+          fprint(parameters.fp_log, ' ');
+          std::fputs((discarded_long == 1 ? "sequence" : "sequences"), parameters.fp_log);
+          fprint(parameters.fp_log, " discarded.\n\n");
         }
     }
 
@@ -477,19 +488,25 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
       const auto median = find_median(hashtable);
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "%" PRIu64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n",
-                  clusters, average, median, maxsize);
+          fprint_integer(stderr, clusters);
+          fprint(stderr, " unique sequences, avg cluster ");
+          std::fprintf(stderr, "%.1lf", average);
+          fprint(stderr, ", median ");
+          std::fprintf(stderr, "%.0f", median);
+          fprint(stderr, ", max ");
+          fprint_integer(stderr, maxsize);
+          fprint(stderr, '\n');
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64
-                  " unique sequences, avg cluster %.1lf, median %.0f, max %"
-                  PRIu64 "\n\n",
-                  clusters, average, median, maxsize);
+          fprint_integer(parameters.fp_log, clusters);
+          fprint(parameters.fp_log, " unique sequences, avg cluster ");
+          std::fprintf(parameters.fp_log, "%.1lf", average);
+          fprint(parameters.fp_log, ", median ");
+          std::fprintf(parameters.fp_log, "%.0f", median);
+          fprint(parameters.fp_log, ", max ");
+          fprint_integer(parameters.fp_log, maxsize);
+          fprint(parameters.fp_log, "\n\n");
         }
     }
 
@@ -589,20 +606,22 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "%" PRIu64 " uniques written, %"
-                  PRIu64 " clusters discarded (%.1f%%)\n",
-                  selected, clusters - selected,
-                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint_integer(stderr, selected);
+          fprint(stderr, " uniques written, ");
+          fprint_integer(stderr, clusters - selected);
+          fprint(stderr, " clusters discarded (");
+          std::fprintf(stderr, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint(stderr, "%)\n");
         }
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "%" PRIu64 " uniques written, %"
-                  PRIu64 " clusters discarded (%.1f%%)\n\n",
-                  selected, clusters - selected,
-                  100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint_integer(parameters.fp_log, selected);
+          fprint(parameters.fp_log, " uniques written, ");
+          fprint_integer(parameters.fp_log, clusters - selected);
+          fprint(parameters.fp_log, " clusters discarded (");
+          std::fprintf(parameters.fp_log, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
+          fprint(parameters.fp_log, "%)\n\n");
         }
     }
 }
