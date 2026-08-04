@@ -445,7 +445,8 @@ auto fasta_print_general(std::FILE * output_handle,
     }
   else if ((parameters.opt_relabel != nullptr) and (ordinal > 0))
     {
-      std::fprintf(output_handle, "%s%" PRId64, parameters.opt_relabel, ordinal);
+      std::fputs(parameters.opt_relabel, output_handle);
+      fprint_integer(output_handle, ordinal);
     }
   else
     {
@@ -470,52 +471,82 @@ auto fasta_print_general(std::FILE * output_handle,
 
   if (parameters.opt_sample != nullptr)
     {
-      std::fprintf(output_handle, "%ssample=%s", annotation_separator(trailing_separator), parameters.opt_sample);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "sample=");
+      std::fputs(parameters.opt_sample, output_handle);
     }
 
   if (clustersize > 0)
     {
-      std::fprintf(output_handle, "%sseqs=%" PRId64, annotation_separator(trailing_separator), clustersize);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "seqs=");
+      fprint_integer(output_handle, clustersize);
     }
 
   if (clusterid >= 0)
     {
-      std::fprintf(output_handle, "%sclusterid=%d", annotation_separator(trailing_separator), clusterid);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "clusterid=");
+      fprint_integer(output_handle, clusterid);
     }
 
   if (parameters.opt_sizeout and (abundance > 0))
     {
-      std::fprintf(output_handle, "%ssize=%" PRIu64, annotation_separator(trailing_separator), abundance);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "size=");
+      fprint_integer(output_handle, abundance);
     }
 
   if (parameters.opt_centroid_sizeout and (centroid_size > 0))
     {
-      std::fprintf(output_handle, "%scentroid_size=%" PRIu64, annotation_separator(trailing_separator), centroid_size);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "centroid_size=");
+      fprint_integer(output_handle, centroid_size);
     }
 
   if ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (expected_error >= 0.0))
     {
       auto const * separator = annotation_separator(trailing_separator);
       if (expected_error < 0.000000001) {
-        std::fprintf(output_handle, "%see=%.13lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.13lf", expected_error);
       } else if (expected_error < 0.00000001) {
-        std::fprintf(output_handle, "%see=%.12lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.12lf", expected_error);
       } else if (expected_error < 0.0000001) {
-        std::fprintf(output_handle, "%see=%.11lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.11lf", expected_error);
       } else if (expected_error < 0.000001) {
-        std::fprintf(output_handle, "%see=%.10lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.10lf", expected_error);
       } else if (expected_error < 0.00001) {
-        std::fprintf(output_handle, "%see=%.9lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.9lf", expected_error);
       } else if (expected_error < 0.0001) {
-        std::fprintf(output_handle, "%see=%.8lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.8lf", expected_error);
       } else if (expected_error < 0.001) {
-        std::fprintf(output_handle, "%see=%.7lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.7lf", expected_error);
       } else if (expected_error < 0.01) {
-        std::fprintf(output_handle, "%see=%.6lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.6lf", expected_error);
       } else if (expected_error < 0.1) {
-        std::fprintf(output_handle, "%see=%.5lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.5lf", expected_error);
       } else {
-        std::fprintf(output_handle, "%see=%.4lf", separator, expected_error);
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.4lf", expected_error);
       }
     }
 
@@ -524,14 +555,17 @@ auto fasta_print_general(std::FILE * output_handle,
       /* widened by assignment, not by a cast: std::size_t already is
          uint64_t on a 64-bit target, where a cast would be flagged useless */
       uint64_t const sequence_length = seq.size();
-      std::fprintf(output_handle, "%slength=%" PRIu64,
-                   annotation_separator(trailing_separator),
-                   sequence_length);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "length=");
+      fprint_integer(output_handle, sequence_length);
     }
 
   if (score_name != nullptr)
     {
-      std::fprintf(output_handle, "%s%s=%.4lf", annotation_separator(trailing_separator), score_name, score);
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      std::fputs(score_name, output_handle);
+      fprint(output_handle, '=');
+      std::fprintf(output_handle, "%.4lf", score);
     }
 
   if (parameters.opt_relabel_keep and

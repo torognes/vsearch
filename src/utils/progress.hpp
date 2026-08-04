@@ -58,10 +58,10 @@
 
 */
 
+#include "print_view.hpp"  // fprint
 #include "vsearch.hpp"  // struct Parameters
 
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf
 
@@ -78,11 +78,13 @@ public:
     assert(prompt != nullptr);
     is_visible_ = check_if_visible();
     if (is_quiet_) { return; }
-    static_cast<void>(std::fprintf(stderr, "%s", prompt));
+    std::fputs(prompt, stderr);
     if (not is_visible_) { return; }
-    static_cast<void>(std::fprintf(stderr, " %d%%", 0));
+    fprint(stderr, " 0%");
     if (max_size_ == 0) {
-      static_cast<void>(std::fprintf(stderr, "  \r%s 0%%", prompt_));
+      fprint(stderr, "  \r");
+      std::fputs(prompt_, stderr);
+      fprint(stderr, " 0%");
       return;
     }
     current_percentage_ = calculate_percentage();
@@ -98,10 +100,11 @@ public:
     counter_ = counter;
     if ((not is_visible_) or (counter_ < next_threshold_)) { return; }
     current_percentage_ = calculate_percentage();
-    static_cast<void>(std::fprintf(stderr,
-                                   "  \r%s %" PRIu64 "%%",
-                                   prompt_,
-                                   current_percentage_));
+    fprint(stderr, "  \r");
+    std::fputs(prompt_, stderr);
+    fprint(stderr, ' ');
+    fprint_integer(stderr, current_percentage_);
+    fprint(stderr, '%');
     next_threshold_ = calculate_next_threshold();
   };
 
@@ -151,8 +154,11 @@ private:
   auto done() const -> void {
     if (is_quiet_) { return; }
     if (is_visible_) {
-      static_cast<void>(std::fprintf(stderr, "  \r%s", prompt_));
+      fprint(stderr, "  \r");
+      std::fputs(prompt_, stderr);
     }
-    static_cast<void>(std::fprintf(stderr, " %lu%%\n", one_hundred_percent));
+    fprint(stderr, ' ');
+    fprint_integer(stderr, one_hundred_percent);
+    fprint(stderr, "%\n");
   }
 };
