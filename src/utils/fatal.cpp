@@ -61,19 +61,21 @@
 #include "fatal.hpp"  // fatal, fatal_detail::exit_or_throw
 #include "logfile.hpp"  // log_file::handle
 #include "print_view.hpp"  // fprint
-#include <cstdint> // uint64_t
-#include <cstdio>  // std::fprintf
+#include <cstdio>  // std::fputs, stderr
+#include <string>  // std::string
 
 
 [[noreturn]]
 auto fatal(char const * message) -> void {
-  fprint(stderr, "\n\n");
-  std::fprintf(stderr, "Fatal error: %s\n", message);
+  fprint(stderr, "\n\nFatal error: ");
+  std::fputs(message, stderr);
+  fprint(stderr, '\n');
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
-    fprint(log, "\n\n");
-    std::fprintf(log, "Fatal error: %s\n", message);
+    fprint(log, "\n\nFatal error: ");
+    std::fputs(message, log);
+    fprint(log, '\n');
   }
 
   fatal_detail::exit_or_throw(message);  // CLI: exit; library: throw when in a session
@@ -81,38 +83,6 @@ auto fatal(char const * message) -> void {
 
 
 [[noreturn]]
-auto fatal(char const * format,
-           char const * message) -> void {
-  fprint(stderr, "\n\nFatal error: ");
-  std::fprintf(stderr, format, message);
-  fprint(stderr, '\n');
-
-  auto * const log = log_file::handle();
-  if (log != nullptr) {
-    fprint(log, "\n\nFatal error: ");
-    std::fprintf(log, format, message);
-    fprint(log, '\n');
-  }
-
-  fatal_detail::exit_or_throw(format, message);
-}
-
-
-// used in fastx.cc
-[[noreturn]]
-auto fatal(char const * format,
-           char const symbol,
-           uint64_t const line_number) -> void {
-  fprint(stderr, "\n\nFatal error: ");
-  std::fprintf(stderr, format, symbol, line_number);
-  fprint(stderr, '\n');
-
-  auto * const log = log_file::handle();
-  if (log != nullptr) {
-    fprint(log, "\n\nFatal error: ");
-    std::fprintf(log, format, symbol, line_number);
-    fprint(log, '\n');
-  }
-
-  fatal_detail::exit_or_throw(format, symbol, line_number);
+auto fatal(std::string const & message) -> void {
+  fatal(message.c_str());
 }

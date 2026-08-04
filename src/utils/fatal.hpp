@@ -92,10 +92,6 @@ namespace fatal_detail {
   // is selected by the source list in Makefile.am, not the preprocessor.
   [[noreturn]]
   auto exit_or_throw(char const * message) -> void;
-  [[noreturn]]
-  auto exit_or_throw(char const * format, char const * message) -> void;
-  [[noreturn]]
-  auto exit_or_throw(char const * format, char symbol, uint64_t line_number) -> void;
 }
 
 
@@ -111,7 +107,16 @@ namespace fatal_detail {
 // to the caller. Spelled the same way as exit_or_throw above.
 [[noreturn]]
 auto fatal(char const * message) -> void;
+
+// The std::string form, for a message the caller assembled -- which is now
+// every message with a variable part in it. It replaces two overloads that
+// took a printf format plus its arguments and handed both to std::fprintf: a
+// run-time format string, which is the one thing -Wformat-nonliteral cannot be
+// talked out of reporting, and the reason src/Makefile.am could not turn on
+// -Wformat=2. See TBD_20260804_c_style_elimination.md.
+//
+// A string literal still selects the char const * overload above, not this one:
+// array-to-pointer is an exact match and the std::string conversion is
+// user-defined, so the ~200 fatal("...") sites are unaffected.
 [[noreturn]]
-auto fatal(char const * format, char const * message) -> void;
-[[noreturn]]
-auto fatal(char const * format, char symbol, uint64_t line_number) -> void;
+auto fatal(std::string const & message) -> void;

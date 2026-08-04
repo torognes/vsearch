@@ -59,9 +59,6 @@
 */
 
 #include "fatal.hpp"  // fatal_detail::exit_or_throw, VsearchError, throw_on_fatal
-#include <cstddef>  // std::size_t
-#include <cstdint>  // uint64_t
-#include <cstdio>  // std::snprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <string>  // std::string (VsearchError payload)
 
@@ -70,29 +67,6 @@
 // unit reads it.
 
 
-namespace {
-  // Render a printf-style (format, args...) pair into a std::string, so the
-  // thrown VsearchError carries the same text fatal() printed. Two-pass
-  // std::snprintf: measure, then format into a right-sized buffer (C++11
-  // guarantees std::string storage is contiguous and null-terminated, so
-  // writing length+1 bytes into &text[0] is well defined).
-  auto format_message(char const * format, char const * argument) -> std::string {
-    int const length = std::snprintf(nullptr, 0, format, argument);
-    if (length <= 0) { return std::string(); }
-    std::string text(static_cast<std::size_t>(length), '\0');
-    std::snprintf(&text[0], static_cast<std::size_t>(length) + 1, format, argument);
-    return text;
-  }
-
-  auto format_message(char const * format, char const symbol,
-                      uint64_t const line_number) -> std::string {
-    int const length = std::snprintf(nullptr, 0, format, symbol, line_number);
-    if (length <= 0) { return std::string(); }
-    std::string text(static_cast<std::size_t>(length), '\0');
-    std::snprintf(&text[0], static_cast<std::size_t>(length) + 1, format, symbol, line_number);
-    return text;
-  }
-}
 
 
 // Library build (-fexceptions): when a session is active, unwind back to the
@@ -104,19 +78,6 @@ namespace fatal_detail {
   [[noreturn]]
   auto exit_or_throw(char const * message) -> void {
     if (throw_on_fatal()) { throw VsearchError{message}; }
-    std::exit(EXIT_FAILURE);
-  }
-
-  [[noreturn]]
-  auto exit_or_throw(char const * format, char const * message) -> void {
-    if (throw_on_fatal()) { throw VsearchError{format_message(format, message)}; }
-    std::exit(EXIT_FAILURE);
-  }
-
-  [[noreturn]]
-  auto exit_or_throw(char const * format, char const symbol,
-                     uint64_t const line_number) -> void {
-    if (throw_on_fatal()) { throw VsearchError{format_message(format, symbol, line_number)}; }
     std::exit(EXIT_FAILURE);
   }
 }

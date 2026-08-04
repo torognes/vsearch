@@ -69,6 +69,7 @@
 #include <cstdint>  // uint64_t
 #include <iterator>  // std::next, std::prev, std::distance
 #include <limits>  // std::numeric_limits
+#include <string>  // std::string (to_text only)
 #include <type_traits>  // std::integral_constant, std::is_integral, std::is_same,
                         // std::is_signed, std::remove_cv
 
@@ -195,6 +196,21 @@ namespace decimal {
 
     auto const width = static_cast<std::size_t>(std::distance(cursor, buffer_end));
     return View<char>{cursor, width};
+  }
+
+  /* The decimal form of 'value' as a std::string, for callers that are building
+     a message rather than writing to a stream: the diagnostics in fatal.cpp's
+     callers, which used to hand a "%" PRIu64 format to std::snprintf.
+
+     Deliberately separate from to_decimal() above and never on a hot path: it
+     allocates, which is exactly what the buffer-and-view form exists to avoid.
+     It is also why this header includes <string> -- every translation unit that
+     reaches it already does, through vsearch.hpp's Parameters. */
+  template <typename Integer>
+  auto to_text(Integer const value) -> std::string {
+    Buffer buffer {};
+    auto const digits = to_decimal(buffer, value);
+    return std::string(digits.data(), digits.size());
   }
 
 }  // namespace decimal

@@ -75,14 +75,5 @@ namespace fatal_detail {
     std::exit(EXIT_FAILURE);
   }
 
-  [[noreturn]]
-  auto exit_or_throw(char const * /*format*/, char const * /*message*/) -> void {
-    std::exit(EXIT_FAILURE);
-  }
 
-  [[noreturn]]
-  auto exit_or_throw(char const * /*format*/, char const /*symbol*/,
-                     uint64_t const /*line_number*/) -> void {
-    std::exit(EXIT_FAILURE);
-  }
 }
