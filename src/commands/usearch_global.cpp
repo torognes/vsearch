@@ -78,12 +78,13 @@
 #include "utils/maps.hpp"
 #include "utils/number_of_strands.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t, int64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fputc
+#include <cstdio>  // std::FILE, std::fprintf
 #include <mutex>  // std::mutex, std::lock_guard
 #include <vector>
 
@@ -696,7 +697,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
         {
           std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fputc('\n', stderr);
+      fprint(stderr, '\n');
       if (parameters.opt_sizein)
         {
           std::fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
@@ -707,7 +708,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
               std::fprintf(stderr, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          std::fputc('\n', stderr);
+          fprint(stderr, '\n');
         }
     }
 
@@ -719,7 +720,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
         {
           std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fputc('\n', parameters.fp_log);
+      fprint(parameters.fp_log, '\n');
       if (parameters.opt_sizein)
         {
           std::fprintf(parameters.fp_log, "Matching total query sequences: %" PRIu64 " of %"
@@ -730,7 +731,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
               std::fprintf(parameters.fp_log, " (%.2f%%)",
                       100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
             }
-          std::fputc('\n', parameters.fp_log);
+          fprint(parameters.fp_log, '\n');
         }
     }
 

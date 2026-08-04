@@ -68,6 +68,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 // #include "util.h"  // hash_cityhash128
 #include "utils/cityhash.hpp"
 #include "utils/reverse_complement.hpp"
@@ -76,7 +77,7 @@
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::fprintf, std::fclose, std::fputs
+#include <cstdio>  // std::fprintf, std::fclose
 #include <limits>
 #include <string>
 #include <vector>
@@ -463,11 +464,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fputs("0 unique sequences\n", stderr);
+          fprint(stderr, "0 unique sequences\n");
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fputs("0 unique sequences\n\n", parameters.fp_log);
+          fprint(parameters.fp_log, "0 unique sequences\n\n");
         }
     }
   else

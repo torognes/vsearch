@@ -107,7 +107,7 @@
 #include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
 
@@ -272,7 +272,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
       if (state.parameters.opt_sintax_cutoff > 0.0)
         {
-          std::fputc('\t', fp_tabbedout);
+          fprint(fp_tabbedout, '\t');
           auto comma_cutoff = false;
           for (auto j = 0; j < tax_levels; j++)
             {
@@ -295,15 +295,15 @@ static auto sintax_analyse(struct sintax_state_s & state,
     {
       if (state.parameters.opt_sintax_cutoff > 0.0)
         {
-          std::fputs("\t\t", fp_tabbedout);
+          fprint(fp_tabbedout, "\t\t");
         }
       else
         {
-          std::fputc('\t', fp_tabbedout);
+          fprint(fp_tabbedout, '\t');
         }
     }
 
-  std::fputc('\n', fp_tabbedout);
+  fprint(fp_tabbedout, '\n');
 }
 
 
@@ -771,7 +771,7 @@ auto sintax(struct Parameters const & parameters) -> void
         {
           std::fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
         }
-      std::fputc('\n', stderr);
+      fprint(stderr, '\n');
     }
 
   if (parameters.opt_log != nullptr)
@@ -781,7 +781,7 @@ auto sintax(struct Parameters const & parameters) -> void
         {
           std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * classified / queries);
         }
-      std::fputc('\n', parameters.fp_log);
+      fprint(parameters.fp_log, '\n');
     }
 
   /* clean up */

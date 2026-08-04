@@ -68,13 +68,14 @@
 #include "core/results.hpp"
 #include "core/searchcore.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/threads.hpp"
 #include "utils/view.hpp"  // View
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min, std::max
 #include <cstddef>
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t, std::fputc, std::fputs
+#include <cstdio>  // std::fprintf, std::FILE, std:fclose, std::size_t
 #include <iterator>  // std::next
 #include <limits>
 #include <string>
@@ -633,7 +634,7 @@ auto allpairs_global(struct Parameters const & parameters) -> void
         {
           std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fputc('\n', stderr);
+      fprint(stderr, '\n');
     }
 
   if (parameters.opt_log != nullptr)
@@ -644,7 +645,7 @@ auto allpairs_global(struct Parameters const & parameters) -> void
         {
           std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
         }
-      std::fputs("\n\n", parameters.fp_log);
+      fprint(parameters.fp_log, "\n\n");
     }
 
   /* clean up, global */

@@ -71,6 +71,7 @@
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/view.hpp"
 #include "utils/threads.hpp"
 #include <algorithm>  // std::copy, std::min, std::max
@@ -80,7 +81,7 @@
 #include <cmath>  // std::pow, std::sqrt, std::round, std::log10, std::log2
 #include <condition_variable>  // std::condition_variable
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputc, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <mutex>  // std::mutex, std::unique_lock
 #include <string>  // std::to_string
@@ -335,7 +336,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
   if (state.parameters.opt_eetabbedout != nullptr)
     {
       fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_fwd);
-      std::fputc('\t', state.fp_eetabbedout);
+      fprint(state.fp_eetabbedout, '\t');
       fprintf_ee_value(state.fp_eetabbedout, a_read_pair.ee_rev);
       std::fprintf(state.fp_eetabbedout, "\t%" PRId64 "\t%" PRId64 "\n",
                    a_read_pair.fwd_errors, a_read_pair.rev_errors);
@@ -882,7 +883,7 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
               " (%.1lf%%)",
               100.0 * static_cast<double>(merged) / static_cast<double>(total));
     }
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 
   std::fprintf(output_handle,
           "%10" PRId64 "  Not merged",
@@ -893,11 +894,11 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
               " (%.1lf%%)",
               100.0 * static_cast<double>(notmerged) / static_cast<double>(total));
     }
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 
   if (notmerged > 0)
     {
-      std::fputs("\nPairs that failed merging due to various reasons:\n", output_handle);
+      fprint(output_handle, "\nPairs that failed merging due to various reasons:\n");
     }
 
   if (state.failed_undefined != 0U)
@@ -1005,11 +1006,11 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
               state.failed_indel);
     }
 
-  std::fputc('\n', output_handle);
+  fprint(output_handle, '\n');
 
   if (total > 0)
     {
-      std::fputs("Statistics of all reads:\n", output_handle);
+      fprint(output_handle, "Statistics of all reads:\n");
 
       auto const mean_read_length = state.sum_read_length / (2.0 * state.pairs_read);
 
@@ -1020,9 +1021,9 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
 
   if (merged > 0)
     {
-      std::fputc('\n', output_handle);
+      fprint(output_handle, '\n');
 
-      std::fputs("Statistics of merged reads:\n", output_handle);
+      fprint(output_handle, "Statistics of merged reads:\n");
 
       auto const mean = sum_fragment_length / static_cast<double>(merged);
 

@@ -62,6 +62,7 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fasta.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
@@ -71,7 +72,7 @@
 #include <algorithm>  // std::max, std::sort, std::transform
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <iterator>  // std::next
 #include <limits>
 #include <vector>
@@ -364,11 +365,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if (not parameters.opt_quiet)
         {
-          std::fputs("0 unique sequences\n", stderr);
+          fprint(stderr, "0 unique sequences\n");
         }
       if (parameters.opt_log != nullptr)
         {
-          std::fputs("0 unique sequences\n\n", parameters.fp_log);
+          fprint(parameters.fp_log, "0 unique sequences\n\n");
         }
     }
   else

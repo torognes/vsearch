@@ -63,6 +63,7 @@
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "vsearch.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -70,7 +71,7 @@
 #include <algorithm>  // std::max, std::min
 #include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::fputs
+#include <cstdio>  // std::FILE, std::fprintf, std::fclose
 #include <limits>
 #include <map>  // std::map
 #include <vector>
@@ -174,10 +175,10 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       }
   }
 
-  std::fputs("Pos\tRecs\tPctRecs\t"
-          "Min_Q\tLow_Q\tMed_Q\tMean_Q\tHi_Q\tMax_Q\t"
-          "Min_Pe\tLow_Pe\tMed_Pe\tMean_Pe\tHi_Pe\tMax_Pe\t"
-          "Min_EE\tLow_EE\tMed_EE\tMean_EE\tHi_EE\tMax_EE\n", fp_output);
+  fprint(fp_output, "Pos\tRecs\tPctRecs\t"
+                    "Min_Q\tLow_Q\tMed_Q\tMean_Q\tHi_Q\tMax_Q\t"
+                    "Min_Pe\tLow_Pe\tMed_Pe\tMean_Pe\tHi_Pe\tMax_Pe\t"
+                    "Min_EE\tLow_EE\tMed_EE\tMean_EE\tHi_EE\tMax_EE\n");
 
   for (int64_t i = 0; i < len_max; i++)
     {
