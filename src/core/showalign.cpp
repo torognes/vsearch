@@ -61,10 +61,11 @@
 #include "vsearch.hpp"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/view.hpp"
-#include <algorithm>  // std::copy, std::fill_n, std::min
+#include <algorithm>  // std::copy, std::fill_n, std::max, std::min
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 #include <cstring>  // std::strlen
@@ -104,7 +105,11 @@ namespace {
   struct Sequence {
     View<char> sequence;
     int64_t offset = 0;
-    char const * name = nullptr;
+    // The row label, as a view rather than a pointer, because the label is
+    // written into a field of alignment.headwidth characters and the padding
+    // needs its length. align_show() measures the caller's char const * once
+    // per alignment, not once per printed block.
+    View<char> name;
   };
 
 
@@ -193,6 +198,16 @@ namespace {
   }
 
 
+  // What a "%*s" conversion did: pad on the left to 'width' characters, and
+  // never truncate a label wider than the field.
+  auto print_padded(std::FILE * output_handle, View<char> const text,
+                    int const width) -> void {
+    auto const field = static_cast<std::size_t>(std::max(width, 0));
+    if (text.size() < field) { fprint_spaces(output_handle, field - text.size()); }
+    fprint(output_handle, text);
+  }
+
+
   auto print_alignment_block(Alignment const & alignment, Position const & position,
                              AlignmentRows const & rows) -> void {
     // current query and target starting and ending positions
@@ -201,34 +216,38 @@ namespace {
     auto const target_start = std::min(position.target_start + 1, static_cast<int64_t>(alignment.target.sequence.size()));
     auto const target_end = position.target;
 
-    static_cast<void>(
-    std::fprintf(alignment.output_handle,
-                 "\n%*s %*" PRId64 " %c %s %" PRId64 "\n",
-                 alignment.headwidth,
-                 alignment.query.name,
-                 alignment.poswidth,
-                 query_start,
-                 alignment.is_reverse_strand ? '-' : '+',
-                 rows.query.data(),
-                 query_end));
-    static_cast<void>(
-    std::fprintf(alignment.output_handle,
-                 "%*s %*s   %s\n",
-                 alignment.headwidth,
-                 "",
-                 alignment.poswidth,
-                 "",
-                 rows.symbols.data()));
-    static_cast<void>(
-    std::fprintf(alignment.output_handle,
-                 "%*s %*" PRId64 " %c %s %" PRId64 "\n",
-                 alignment.headwidth,
-                 alignment.target.name,
-                 alignment.poswidth,
-                 target_start,
-                 '+',
-                 rows.target.data(),
-                 target_end));
+    // The three rows are filled up to position.line and NUL-terminated there
+    // by the caller; that length is what the "%s" conversions used to walk.
+    auto const row_length = static_cast<std::size_t>(position.line);
+    auto * const handle = alignment.output_handle;
+
+    fprint(handle, '\n');
+    print_padded(handle, alignment.query.name, alignment.headwidth);
+    fprint(handle, ' ');
+    fprint_integer(handle, query_start, static_cast<std::size_t>(alignment.poswidth));
+    fprint(handle, ' ');
+    fprint(handle, alignment.is_reverse_strand ? '-' : '+');
+    fprint(handle, ' ');
+    fprint(handle, View<char>{rows.query.data(), row_length});
+    fprint(handle, ' ');
+    fprint_integer(handle, query_end);
+    fprint(handle, '\n');
+
+    fprint_spaces(handle, static_cast<std::size_t>(std::max(alignment.headwidth, 0)));
+    fprint(handle, ' ');
+    fprint_spaces(handle, static_cast<std::size_t>(std::max(alignment.poswidth, 0)));
+    fprint(handle, "   ");
+    fprint(handle, View<char>{rows.symbols.data(), row_length});
+    fprint(handle, '\n');
+
+    print_padded(handle, alignment.target.name, alignment.headwidth);
+    fprint(handle, ' ');
+    fprint_integer(handle, target_start, static_cast<std::size_t>(alignment.poswidth));
+    fprint(handle, " + ");
+    fprint(handle, View<char>{rows.target.data(), row_length});
+    fprint(handle, ' ');
+    fprint_integer(handle, target_end);
+    fprint(handle, '\n');
   }
 
 
@@ -320,10 +339,10 @@ auto align_show(std::FILE * output_handle,
   alignment.output_handle = output_handle;
   alignment.query.sequence = seq1;
   alignment.query.offset = seq1off;
-  alignment.query.name = seq1name;
+  alignment.query.name = View<char>{seq1name, std::strlen(seq1name)};
   alignment.target.sequence = seq2;
   alignment.target.offset = seq2off;
-  alignment.target.name = seq2name;
+  alignment.target.name = View<char>{seq2name, std::strlen(seq2name)};
   alignment.width = alignwidth;
   alignment.poswidth = numwidth;
   alignment.headwidth = namewidth;

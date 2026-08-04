@@ -773,8 +773,14 @@ auto results_show_alnout(std::FILE * output_handle,
       auto const target = static_cast<uint64_t>(hp->target);
       auto const dseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
-      auto const qlenlen = std::to_string(qseqlen).size();
-      auto const tlenlen = std::to_string(dseqlen).size();
+      /* the width of the wider of the two lengths, in decimal digits. The
+         digits view carries it, so no std::string is built to be measured and
+         thrown away -- and on libstdc++ <= 10 std::to_string is itself a
+         vsnprintf call with a format string. One buffer serves both: the first
+         view is dead before the second is taken. */
+      decimal::Buffer length_digits {};
+      auto const qlenlen = decimal::to_decimal(length_digits, qseqlen).size();
+      auto const tlenlen = decimal::to_decimal(length_digits, dseqlen).size();
       auto const numwidth = static_cast<int>(std::max(qlenlen, tlenlen));
 
       fprint(output_handle, " Query ");
