@@ -82,7 +82,6 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <mutex>  // std::mutex, std::lock_guard
@@ -529,8 +528,10 @@ static auto search_prep(struct search_cli_state_s & state) -> void
   state.fp_alnout = open_optional_output_file(state.parameters.opt_alnout, OutputOption{"--alnout"});
   if (state.fp_alnout != nullptr)
     {
-      std::fprintf(state.fp_alnout.get(), "%s\n", state.parameters.command_line.c_str());
-      std::fprintf(state.fp_alnout.get(), "%s\n", state.parameters.prog_header.c_str());
+      fprint(state.fp_alnout.get(), View<char>{state.parameters.command_line.data(), state.parameters.command_line.size()});
+      fprint(state.fp_alnout.get(), '\n');
+      fprint(state.fp_alnout.get(), View<char>{state.parameters.prog_header.data(), state.parameters.prog_header.size()});
+      fprint(state.fp_alnout.get(), '\n');
     }
 
   state.fp_lcaout = open_optional_output_file(state.parameters.opt_lcaout, OutputOption{"--lcaout"});
@@ -691,22 +692,28 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      std::fprintf(stderr, "Matching unique query sequences: %d of %d",
-              qmatches, queries);
+      fprint(stderr, "Matching unique query sequences: ");
+      fprint_integer(stderr, qmatches);
+      fprint(stderr, " of ");
+      fprint_integer(stderr, queries);
       if (queries > 0)
         {
-          std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+          fprint(stderr, " (");
+          std::fprintf(stderr, "%.2f", 100.0 * qmatches / queries);
+          fprint(stderr, "%)");
         }
       fprint(stderr, '\n');
       if (parameters.opt_sizein)
         {
-          std::fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
-                  PRIu64,
-                  qmatches_abundance, queries_abundance);
+          fprint(stderr, "Matching total query sequences: ");
+          fprint_integer(stderr, qmatches_abundance);
+          fprint(stderr, " of ");
+          fprint_integer(stderr, queries_abundance);
           if (queries_abundance > 0)
             {
-              std::fprintf(stderr, " (%.2f%%)",
-                      100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
+              fprint(stderr, " (");
+              std::fprintf(stderr, "%.2f", 100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
+              fprint(stderr, "%)");
             }
           fprint(stderr, '\n');
         }
@@ -714,22 +721,28 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log, "Matching unique query sequences: %d of %d",
-              qmatches, queries);
+      fprint(parameters.fp_log, "Matching unique query sequences: ");
+      fprint_integer(parameters.fp_log, qmatches);
+      fprint(parameters.fp_log, " of ");
+      fprint_integer(parameters.fp_log, queries);
       if (queries > 0)
         {
-          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          fprint(parameters.fp_log, " (");
+          std::fprintf(parameters.fp_log, "%.2f", 100.0 * qmatches / queries);
+          fprint(parameters.fp_log, "%)");
         }
       fprint(parameters.fp_log, '\n');
       if (parameters.opt_sizein)
         {
-          std::fprintf(parameters.fp_log, "Matching total query sequences: %" PRIu64 " of %"
-                  PRIu64,
-                  qmatches_abundance, queries_abundance);
+          fprint(parameters.fp_log, "Matching total query sequences: ");
+          fprint_integer(parameters.fp_log, qmatches_abundance);
+          fprint(parameters.fp_log, " of ");
+          fprint_integer(parameters.fp_log, queries_abundance);
           if (queries_abundance > 0)
             {
-              std::fprintf(parameters.fp_log, " (%.2f%%)",
-                      100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
+              fprint(parameters.fp_log, " (");
+              std::fprintf(parameters.fp_log, "%.2f", 100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
+              fprint(parameters.fp_log, "%)");
             }
           fprint(parameters.fp_log, '\n');
         }

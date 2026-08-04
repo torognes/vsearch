@@ -575,8 +575,10 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
-      std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
-      std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
+      fprint(fp_alnout, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(fp_alnout, '\n');
+      fprint(fp_alnout, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+      fprint(fp_alnout, '\n');
     }
 
   OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
@@ -628,22 +630,30 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      std::fprintf(stderr, "Matching query sequences: %d of %d",
-              qmatches, queries);
+      fprint(stderr, "Matching query sequences: ");
+      fprint_integer(stderr, qmatches);
+      fprint(stderr, " of ");
+      fprint_integer(stderr, queries);
       if (queries > 0)
         {
-          std::fprintf(stderr, " (%.2f%%)", 100.0 * qmatches / queries);
+          fprint(stderr, " (");
+          std::fprintf(stderr, "%.2f", 100.0 * qmatches / queries);
+          fprint(stderr, "%)");
         }
       fprint(stderr, '\n');
     }
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log, "Matching query sequences: %d of %d",
-              qmatches, queries);
+      fprint(parameters.fp_log, "Matching query sequences: ");
+      fprint_integer(parameters.fp_log, qmatches);
+      fprint(parameters.fp_log, " of ");
+      fprint_integer(parameters.fp_log, queries);
       if (queries > 0)
         {
-          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * qmatches / queries);
+          fprint(parameters.fp_log, " (");
+          std::fprintf(parameters.fp_log, "%.2f", 100.0 * qmatches / queries);
+          fprint(parameters.fp_log, "%)");
         }
       fprint(parameters.fp_log, "\n\n");
     }

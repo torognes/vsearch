@@ -87,9 +87,8 @@
 #include "utils/sequence_digest.hpp"
 #include <algorithm>  // std::count, std::minmax_element, std::max_element, std::min
 #include <array>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE, std::fprintf
 #include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
@@ -536,7 +535,11 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
 
   if (state.parameters.opt_uc != nullptr)
     {
-      std::fprintf(state.fp_uc, "S\t%d\t%d\t*\t*\t*\t*\t*\t", state.clusters, qseqlen);
+      fprint(state.fp_uc, "S\t");
+      fprint_integer(state.fp_uc, state.clusters);
+      fprint(state.fp_uc, '\t');
+      fprint_integer(state.fp_uc, qseqlen);
+      fprint(state.fp_uc, "\t*\t*\t*\t*\t*\t");
       header_fprint_strip(state.fp_uc,
                           query_head,
                           state.parameters.opt_xsize,
@@ -1128,8 +1131,10 @@ auto cluster(char const * dbname,
   fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
-      std::fprintf(fp_alnout, "%s\n", parameters.command_line.c_str());
-      std::fprintf(fp_alnout, "%s\n", parameters.prog_header.c_str());
+      fprint(fp_alnout, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(fp_alnout, '\n');
+      fprint(fp_alnout, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+      fprint(fp_alnout, '\n');
     }
 
   OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
@@ -1214,14 +1219,22 @@ auto cluster(char const * dbname,
       uint64_t const slots = 1ULL << (static_cast<uint64_t>(parameters.opt_wordlength) << 1ULL);
       fprint(parameters.fp_log, '\n');
       fprint(parameters.fp_log, "      Alphabet  nt\n");
-      std::fprintf(parameters.fp_log, "    Word width  %" PRId64 "\n", parameters.opt_wordlength);
-      std::fprintf(parameters.fp_log, "     Word ones  %" PRId64 "\n", parameters.opt_wordlength);
+      fprint(parameters.fp_log, "    Word width  ");
+      fprint_integer(parameters.fp_log, parameters.opt_wordlength);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "     Word ones  ");
+      fprint_integer(parameters.fp_log, parameters.opt_wordlength);
+      fprint(parameters.fp_log, '\n');
       fprint(parameters.fp_log, "        Spaced  No\n");
       fprint(parameters.fp_log, "        Hashed  No\n");
       fprint(parameters.fp_log, "         Coded  No\n");
       fprint(parameters.fp_log, "       Stepped  No\n");
-      std::fprintf(parameters.fp_log, "         Slots  %" PRIu64 " (%.1fk)\n", slots, static_cast<double>(slots)/1000.0);
-      std::fprintf(parameters.fp_log, "       DBAccel  100%%\n");
+      fprint(parameters.fp_log, "         Slots  ");
+      fprint_integer(parameters.fp_log, slots);
+      fprint(parameters.fp_log, " (");
+      std::fprintf(parameters.fp_log, "%.1f", static_cast<double>(slots)/1000.0);
+      fprint(parameters.fp_log, "k)\n");
+      fprint(parameters.fp_log, "       DBAccel  100%\n");
       fprint(parameters.fp_log, '\n');
     }
 
@@ -1334,9 +1347,11 @@ auto cluster(char const * dbname,
 
             if (parameters.opt_uc != nullptr)
               {
-                std::fprintf(fp_uc, "C\t%d\t%" PRId64 "\t*\t*\t*\t*\t*\t",
-                        clusterno,
-                        cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
+                fprint(fp_uc, "C\t");
+                fprint_integer(fp_uc, clusterno);
+                fprint(fp_uc, '\t');
+                fprint_integer(fp_uc, cluster_abundance_v[static_cast<std::size_t>(clusterno)]);
+                fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
                 header_fprint_strip(fp_uc,
                                     state.db.header_view(static_cast<uint64_t>(seqno)),
                                     parameters.opt_xsize,
@@ -1408,32 +1423,42 @@ auto cluster(char const * dbname,
     {
       if (not parameters.opt_quiet)
         {
-          std::fprintf(stderr,
-                  "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
-                  clusters,
-                  abundance_min,
-                  abundance_max,
-                  1.0 * seqcount / clusters);
-          std::fprintf(stderr,
-                  "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
-                  singletons,
-                  100.0 * singletons / seqcount,
-                  100.0 * singletons / clusters);
+          fprint(stderr, "Clusters: ");
+          fprint_integer(stderr, clusters);
+          fprint(stderr, " Size min ");
+          fprint_integer(stderr, abundance_min);
+          fprint(stderr, ", max ");
+          fprint_integer(stderr, abundance_max);
+          fprint(stderr, ", avg ");
+          std::fprintf(stderr, "%.1f", 1.0 * seqcount / clusters);
+          fprint(stderr, '\n');
+          fprint(stderr, "Singletons: ");
+          fprint_integer(stderr, singletons);
+          fprint(stderr, ", ");
+          std::fprintf(stderr, "%.1f", 100.0 * singletons / seqcount);
+          fprint(stderr, "% of seqs, ");
+          std::fprintf(stderr, "%.1f", 100.0 * singletons / clusters);
+          fprint(stderr, "% of clusters\n");
         }
 
       if (parameters.opt_log != nullptr)
         {
-          std::fprintf(parameters.fp_log,
-                  "Clusters: %d Size min %" PRId64 ", max %" PRId64 ", avg %.1f\n",
-                  clusters,
-                  abundance_min,
-                  abundance_max,
-                  1.0 * seqcount / clusters);
-          std::fprintf(parameters.fp_log,
-                  "Singletons: %d, %.1f%% of seqs, %.1f%% of clusters\n",
-                  singletons,
-                  100.0 * singletons / seqcount,
-                  100.0 * singletons / clusters);
+          fprint(parameters.fp_log, "Clusters: ");
+          fprint_integer(parameters.fp_log, clusters);
+          fprint(parameters.fp_log, " Size min ");
+          fprint_integer(parameters.fp_log, abundance_min);
+          fprint(parameters.fp_log, ", max ");
+          fprint_integer(parameters.fp_log, abundance_max);
+          fprint(parameters.fp_log, ", avg ");
+          std::fprintf(parameters.fp_log, "%.1f", 1.0 * seqcount / clusters);
+          fprint(parameters.fp_log, '\n');
+          fprint(parameters.fp_log, "Singletons: ");
+          fprint_integer(parameters.fp_log, singletons);
+          fprint(parameters.fp_log, ", ");
+          std::fprintf(parameters.fp_log, "%.1f", 100.0 * singletons / seqcount);
+          fprint(parameters.fp_log, "% of seqs, ");
+          std::fprintf(parameters.fp_log, "%.1f", 100.0 * singletons / clusters);
+          fprint(parameters.fp_log, "% of clusters\n");
           fprint(parameters.fp_log, '\n');
         }
     }

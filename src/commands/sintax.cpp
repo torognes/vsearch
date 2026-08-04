@@ -107,7 +107,7 @@
 #include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <vector>  // std::vector
 
@@ -242,7 +242,8 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
   /* write to tabbedout file */
   std::lock_guard<std::mutex> const output_lock(state.mutex_output);
-  std::fprintf(fp_tabbedout, "%s\t", query_head);
+  std::fputs(query_head, fp_tabbedout);
+  fprint(fp_tabbedout, '\t');
 
   state.queries++;
 
@@ -258,17 +259,19 @@ static auto sintax_analyse(struct sintax_state_s & state,
           auto const & level_name = cand_level_name[best][level];
           if (not level_name.empty())
             {
-              std::fprintf(fp_tabbedout, "%s%c:",
-                      (comma ? "," : ""),
-                      taxonomic_fields[level]);
+              std::fputs((comma ? "," : ""), fp_tabbedout);
+              fprint(fp_tabbedout, static_cast<char>(taxonomic_fields[level]));
+              fprint(fp_tabbedout, ':');
               fprint(fp_tabbedout, level_name);
-              std::fprintf(fp_tabbedout, "(%.2f)",
-                      1.0 * level_matchcount[level] / count);
+              fprint(fp_tabbedout, '(');
+              std::fprintf(fp_tabbedout, "%.2f", 1.0 * level_matchcount[level] / count);
+              fprint(fp_tabbedout, ')');
               comma = true;
             }
         }
 
-      std::fprintf(fp_tabbedout, "\t%c", (strand != 0) ? '-' : '+');
+      fprint(fp_tabbedout, '\t');
+      fprint(fp_tabbedout, (strand != 0) ? '-' : '+');
 
       if (state.parameters.opt_sintax_cutoff > 0.0)
         {
@@ -282,9 +285,9 @@ static auto sintax_analyse(struct sintax_state_s & state,
               if ((not level_name.empty()) &&
                   (1.0 * level_matchcount[level] / count >= state.parameters.opt_sintax_cutoff))
                 {
-                  std::fprintf(fp_tabbedout, "%s%c:",
-                          (comma_cutoff ? "," : ""),
-                          taxonomic_fields[level]);
+                  std::fputs((comma_cutoff ? "," : ""), fp_tabbedout);
+                  fprint(fp_tabbedout, static_cast<char>(taxonomic_fields[level]));
+                  fprint(fp_tabbedout, ':');
                   fprint(fp_tabbedout, level_name);
                   comma_cutoff = true;
                 }
@@ -766,20 +769,32 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      std::fprintf(stderr, "Classified %d of %d sequences", classified, queries);
+      fprint(stderr, "Classified ");
+      fprint_integer(stderr, classified);
+      fprint(stderr, " of ");
+      fprint_integer(stderr, queries);
+      fprint(stderr, " sequences");
       if (queries > 0)
         {
-          std::fprintf(stderr, " (%.2f%%)", 100.0 * classified / queries);
+          fprint(stderr, " (");
+          std::fprintf(stderr, "%.2f", 100.0 * classified / queries);
+          fprint(stderr, "%)");
         }
       fprint(stderr, '\n');
     }
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log, "Classified %d of %d sequences", classified, queries);
+      fprint(parameters.fp_log, "Classified ");
+      fprint_integer(parameters.fp_log, classified);
+      fprint(parameters.fp_log, " of ");
+      fprint_integer(parameters.fp_log, queries);
+      fprint(parameters.fp_log, " sequences");
       if (queries > 0)
         {
-          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * classified / queries);
+          fprint(parameters.fp_log, " (");
+          std::fprintf(parameters.fp_log, "%.2f", 100.0 * classified / queries);
+          fprint(parameters.fp_log, "%)");
         }
       fprint(parameters.fp_log, '\n');
     }

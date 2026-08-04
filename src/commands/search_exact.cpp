@@ -83,9 +83,8 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
 #include <string>  // std::string, std::to_string
 #include <vector>
@@ -675,8 +674,10 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.fp_alnout = alnout_handle.get();
   if (state.fp_alnout != nullptr)
     {
-      std::fprintf(state.fp_alnout, "%s\n", parameters.command_line.c_str());
-      std::fprintf(state.fp_alnout, "%s\n", parameters.prog_header.c_str());
+      fprint(state.fp_alnout, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(state.fp_alnout, '\n');
+      fprint(state.fp_alnout, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+      fprint(state.fp_alnout, '\n');
     }
   OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});
   state.fp_samout = samout_handle.get();
@@ -755,22 +756,28 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      std::fprintf(stderr, "Matching unique query sequences: %d of %d",
-              state.qmatches, state.queries);
+      fprint(stderr, "Matching unique query sequences: ");
+      fprint_integer(stderr, state.qmatches);
+      fprint(stderr, " of ");
+      fprint_integer(stderr, state.queries);
       if (state.queries > 0)
         {
-          std::fprintf(stderr, " (%.2f%%)", 100.0 * state.qmatches / state.queries);
+          fprint(stderr, " (");
+          std::fprintf(stderr, "%.2f", 100.0 * state.qmatches / state.queries);
+          fprint(stderr, "%)");
         }
       fprint(stderr, '\n');
       if (parameters.opt_sizein)
         {
-          std::fprintf(stderr, "Matching total query sequences: %" PRIu64 " of %"
-                  PRIu64,
-                  state.qmatches_abundance, state.queries_abundance);
+          fprint(stderr, "Matching total query sequences: ");
+          fprint_integer(stderr, state.qmatches_abundance);
+          fprint(stderr, " of ");
+          fprint_integer(stderr, state.queries_abundance);
           if (state.queries_abundance > 0)
             {
-              std::fprintf(stderr, " (%.2f%%)",
-                      100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
+              fprint(stderr, " (");
+              std::fprintf(stderr, "%.2f", 100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
+              fprint(stderr, "%)");
             }
           fprint(stderr, '\n');
         }
@@ -778,22 +785,28 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log, "Matching unique query sequences: %d of %d",
-              state.qmatches, state.queries);
+      fprint(parameters.fp_log, "Matching unique query sequences: ");
+      fprint_integer(parameters.fp_log, state.qmatches);
+      fprint(parameters.fp_log, " of ");
+      fprint_integer(parameters.fp_log, state.queries);
       if (state.queries > 0)
         {
-          std::fprintf(parameters.fp_log, " (%.2f%%)", 100.0 * state.qmatches / state.queries);
+          fprint(parameters.fp_log, " (");
+          std::fprintf(parameters.fp_log, "%.2f", 100.0 * state.qmatches / state.queries);
+          fprint(parameters.fp_log, "%)");
         }
       fprint(parameters.fp_log, '\n');
       if (parameters.opt_sizein)
         {
-          std::fprintf(parameters.fp_log, "Matching total query sequences: %" PRIu64 " of %"
-                  PRIu64,
-                  state.qmatches_abundance, state.queries_abundance);
+          fprint(parameters.fp_log, "Matching total query sequences: ");
+          fprint_integer(parameters.fp_log, state.qmatches_abundance);
+          fprint(parameters.fp_log, " of ");
+          fprint_integer(parameters.fp_log, state.queries_abundance);
           if (state.queries_abundance > 0)
             {
-              std::fprintf(parameters.fp_log, " (%.2f%%)",
-                      100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
+              fprint(parameters.fp_log, " (");
+              std::fprintf(parameters.fp_log, "%.2f", 100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
+              fprint(parameters.fp_log, "%)");
             }
           fprint(parameters.fp_log, '\n');
         }
