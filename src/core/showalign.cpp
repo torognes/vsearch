@@ -61,6 +61,7 @@
 #include "vsearch.hpp"
 #include "utils/cigar.hpp"
 #include "utils/maps.hpp"
+#include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/view.hpp"
 #include <algorithm>  // std::copy, std::fill_n, std::max, std::min
@@ -200,11 +201,11 @@ namespace {
 
   // What a "%*s" conversion did: pad on the left to 'width' characters, and
   // never truncate a label wider than the field.
-  auto print_padded(std::FILE * output_handle, View<char> const text,
+  auto print_padded(OutputRecord & record, View<char> const text,
                     int const width) -> void {
     auto const field = static_cast<std::size_t>(std::max(width, 0));
-    if (text.size() < field) { fprint_spaces(output_handle, field - text.size()); }
-    fprint(output_handle, text);
+    if (text.size() < field) { fprint_spaces(record, field - text.size()); }
+    fprint(record, text);
   }
 
 
@@ -218,36 +219,43 @@ namespace {
 
     // The three rows are filled up to position.line and NUL-terminated there
     // by the caller; that length is what the "%s" conversions used to walk.
+    // The three rows are filled up to position.line and NUL-terminated there
+    // by the caller; that length is what the "%s" conversions used to walk.
     auto const row_length = static_cast<std::size_t>(position.line);
-    auto * const handle = alignment.output_handle;
 
-    fprint(handle, '\n');
-    print_padded(handle, alignment.query.name, alignment.headwidth);
-    fprint(handle, ' ');
-    fprint_integer(handle, query_start, static_cast<std::size_t>(alignment.poswidth));
-    fprint(handle, ' ');
-    fprint(handle, alignment.is_reverse_strand ? '-' : '+');
-    fprint(handle, ' ');
-    fprint(handle, View<char>{rows.query.data(), row_length});
-    fprint(handle, ' ');
-    fprint_integer(handle, query_end);
-    fprint(handle, '\n');
+    // One record for the whole block. A block is three rows of alignwidth
+    // characters, so it does not fit in the buffer and flushes a few times --
+    // still far fewer writes than the ~20 the block needs field by field, and
+    // the padding and the positions are what dominate the call count.
+    OutputRecord record {alignment.output_handle};
 
-    fprint_spaces(handle, static_cast<std::size_t>(std::max(alignment.headwidth, 0)));
-    fprint(handle, ' ');
-    fprint_spaces(handle, static_cast<std::size_t>(std::max(alignment.poswidth, 0)));
-    fprint(handle, "   ");
-    fprint(handle, View<char>{rows.symbols.data(), row_length});
-    fprint(handle, '\n');
+    fprint(record, '\n');
+    print_padded(record, alignment.query.name, alignment.headwidth);
+    fprint(record, ' ');
+    fprint_integer(record, query_start, static_cast<std::size_t>(alignment.poswidth));
+    fprint(record, ' ');
+    fprint(record, alignment.is_reverse_strand ? '-' : '+');
+    fprint(record, ' ');
+    fprint(record, View<char>{rows.query.data(), row_length});
+    fprint(record, ' ');
+    fprint_integer(record, query_end);
+    fprint(record, '\n');
 
-    print_padded(handle, alignment.target.name, alignment.headwidth);
-    fprint(handle, ' ');
-    fprint_integer(handle, target_start, static_cast<std::size_t>(alignment.poswidth));
-    fprint(handle, " + ");
-    fprint(handle, View<char>{rows.target.data(), row_length});
-    fprint(handle, ' ');
-    fprint_integer(handle, target_end);
-    fprint(handle, '\n');
+    fprint_spaces(record, static_cast<std::size_t>(std::max(alignment.headwidth, 0)));
+    fprint(record, ' ');
+    fprint_spaces(record, static_cast<std::size_t>(std::max(alignment.poswidth, 0)));
+    fprint(record, "   ");
+    fprint(record, View<char>{rows.symbols.data(), row_length});
+    fprint(record, '\n');
+
+    print_padded(record, alignment.target.name, alignment.headwidth);
+    fprint(record, ' ');
+    fprint_integer(record, target_start, static_cast<std::size_t>(alignment.poswidth));
+    fprint(record, " + ");
+    fprint(record, View<char>{rows.target.data(), row_length});
+    fprint(record, ' ');
+    fprint_integer(record, target_end);
+    fprint(record, '\n');
   }
 
 

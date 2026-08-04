@@ -179,6 +179,7 @@ utils/maps.hpp \
 utils/number_of_strands.hpp \
 utils/open_file.hpp \
 utils/os_byteswap.hpp \
+utils/print_record.hpp \
 utils/print_view.hpp \
 utils/prog_id.hpp \
 utils/progress.hpp \

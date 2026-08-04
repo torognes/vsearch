@@ -71,6 +71,7 @@
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
+#include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::max
@@ -257,30 +258,31 @@ auto results_show_blast6out_one(std::FILE * output_handle,
   int const qstart = (hits->strand != 0) ? static_cast<int>(qseqlen) : 1;
   int const qend = (hits->strand != 0) ? 1 : static_cast<int>(qseqlen);
 
-  fprint(output_handle, query_head);
-  fprint(output_handle, '\t');
-  fprint(output_handle, db.header_view(target));
-  fprint(output_handle, '\t');
-  std::fprintf(output_handle, "%.1f", hits->id);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, hits->internal_alignmentlength);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, hits->mismatches);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, hits->internal_gaps);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, qstart);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, qend);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, 1);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, db.getsequencelen(target));
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, -1);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, 0);
-  fprint(output_handle, '\n');
+  OutputRecord record {output_handle};
+  fprint(record, query_head);
+  fprint(record, '\t');
+  fprint(record, db.header_view(target));
+  fprint(record, '\t');
+  std::fprintf(record.stream(), "%.1f", hits->id);
+  fprint(record, '\t');
+  fprint_integer(record, hits->internal_alignmentlength);
+  fprint(record, '\t');
+  fprint_integer(record, hits->mismatches);
+  fprint(record, '\t');
+  fprint_integer(record, hits->internal_gaps);
+  fprint(record, '\t');
+  fprint_integer(record, qstart);
+  fprint(record, '\t');
+  fprint_integer(record, qend);
+  fprint(record, '\t');
+  fprint_integer(record, 1);
+  fprint(record, '\t');
+  fprint_integer(record, db.getsequencelen(target));
+  fprint(record, '\t');
+  fprint_integer(record, -1);
+  fprint(record, '\t');
+  fprint_integer(record, 0);
+  fprint(record, '\n');
 }
 
 
@@ -317,30 +319,38 @@ auto results_show_uc_one(std::FILE * output_handle,
 
   auto const is_perfect_match = check_if_perfect_match(parameters.opt_cluster_fast, hits);
 
-  fprint(output_handle, "H\t");
-  fprint_integer(output_handle, clusterno);
-  fprint(output_handle, '\t');
-  fprint_integer(output_handle, qseqlen);
-  fprint(output_handle, '\t');
-  std::fprintf(output_handle, "%.1f", hits->id);
-  fprint(output_handle, '\t');
-  fprint(output_handle, (hits->strand != 0) ? '-' : '+');
-  fprint(output_handle, "\t0\t0\t");
-  std::fputs(is_perfect_match ? "=" : hits->nwalignment.c_str(), output_handle);
-  fprint(output_handle, '\t');
+  OutputRecord record {output_handle};
+  fprint(record, "H\t");
+  fprint_integer(record, clusterno);
+  fprint(record, '\t');
+  fprint_integer(record, qseqlen);
+  fprint(record, '\t');
+  std::fprintf(record.stream(), "%.1f", hits->id);
+  fprint(record, '\t');
+  fprint(record, (hits->strand != 0) ? '-' : '+');
+  fprint(record, "\t0\t0\t");
+  if (is_perfect_match) {
+    fprint(record, "=");
+  } else {
+    fprint(record, View<char>{hits->nwalignment.data(), hits->nwalignment.size()});
+  }
+  fprint(record, '\t');
   auto const target = static_cast<uint64_t>(hits->target);
-  header_fprint_strip(output_handle,
+  /* the two header fields come from a helper that writes to the stream, so the
+     record flushes around them: three fwrites for this line instead of one,
+     still against the 24 stdio calls the unbuffered form needs */
+  header_fprint_strip(record.stream(),
                       query_head,
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
-  fprint(output_handle, '\t');
-  header_fprint_strip(output_handle,
+  fprint(record, '\t');
+  header_fprint_strip(record.stream(),
                       db.header_view(target),
                       parameters.opt_xsize,
                       parameters.opt_xee,
                       parameters.opt_xlength);
-  fprint(output_handle, '\n');
+  fprint(record, '\n');
 }
 
 
@@ -750,12 +760,13 @@ auto results_show_alnout(std::FILE * output_handle,
         }
 
       auto const target = static_cast<uint64_t>(hp->target);
-      std::fprintf(output_handle, "%3.0f", hp->id);
-      fprint(output_handle, "% ");
-      fprint_integer(output_handle, db.getsequencelen(target), 6);
-      fprint(output_handle, "  ");
-      fprint(output_handle, db.header_view(target));
-      fprint(output_handle, '\n');
+      OutputRecord record {output_handle};
+      std::fprintf(record.stream(), "%3.0f", hp->id);
+      fprint(record, "% ");
+      fprint_integer(record, db.getsequencelen(target), 6);
+      fprint(record, "  ");
+      fprint(record, db.header_view(target));
+      fprint(record, '\n');
     }
 
   for (auto t = 0; t < hitcount; ++t)
@@ -783,15 +794,18 @@ auto results_show_alnout(std::FILE * output_handle,
       auto const tlenlen = decimal::to_decimal(length_digits, dseqlen).size();
       auto const numwidth = static_cast<int>(std::max(qlenlen, tlenlen));
 
-      fprint(output_handle, " Query ");
-      fprint_integer(output_handle, qseqlen, static_cast<std::size_t>(numwidth));
-      fprint(output_handle, "nt >");
-      fprint(output_handle, query_head);
-      fprint(output_handle, "\nTarget ");
-      fprint_integer(output_handle, dseqlen, static_cast<std::size_t>(numwidth));
-      fprint(output_handle, "nt >");
-      fprint(output_handle, db.header_view(target));
-      fprint(output_handle, '\n');
+      {
+        OutputRecord record {output_handle};
+        fprint(record, " Query ");
+        fprint_integer(record, qseqlen, static_cast<std::size_t>(numwidth));
+        fprint(record, "nt >");
+        fprint(record, query_head);
+        fprint(record, "\nTarget ");
+        fprint_integer(record, dseqlen, static_cast<std::size_t>(numwidth));
+        fprint(record, "nt >");
+        fprint(record, db.header_view(target));
+        fprint(record, '\n');
+      }
 
       int64_t const rowlen = (parameters.opt_rowlen == 0) ? (qseqlen + dseqlen) : parameters.opt_rowlen;
 
@@ -812,19 +826,20 @@ auto results_show_alnout(std::FILE * output_handle,
                  hp->strand,
                  parameters);
 
-      fprint(output_handle, '\n');
-      fprint_integer(output_handle, hp->internal_alignmentlength);
-      fprint(output_handle, " cols, ");
-      fprint_integer(output_handle, hp->matches);
-      fprint(output_handle, " ids (");
-      std::fprintf(output_handle, "%3.1f", hp->id);
-      fprint(output_handle, "%), ");
-      fprint_integer(output_handle, hp->internal_indels);
-      fprint(output_handle, " gaps (");
-      std::fprintf(output_handle, "%3.1f", hp->internal_alignmentlength > 0 ?
+      OutputRecord record {output_handle};
+      fprint(record, '\n');
+      fprint_integer(record, hp->internal_alignmentlength);
+      fprint(record, " cols, ");
+      fprint_integer(record, hp->matches);
+      fprint(record, " ids (");
+      std::fprintf(record.stream(), "%3.1f", hp->id);
+      fprint(record, "%), ");
+      fprint_integer(record, hp->internal_indels);
+      fprint(record, " gaps (");
+      std::fprintf(record.stream(), "%3.1f", hp->internal_alignmentlength > 0 ?
               100.0 * hp->internal_indels / hp->internal_alignmentlength :
               0.0);
-      fprint(output_handle, "%)\n");
+      fprint(record, "%)\n");
     }
 }
 
@@ -1101,43 +1116,44 @@ auto results_show_samout(std::FILE * output_handle,
                         cigar,
                         md);
 
-      fprint(output_handle, query_head);
-      fprint(output_handle, '\t');
-      fprint_integer(output_handle, (0x10 * hp->strand) | (t > 0 ? 0x100 : 0));
-      fprint(output_handle, '\t');
-      fprint(output_handle, db.header_view(target));
-      fprint(output_handle, '\t');
-      fprint_integer(output_handle, static_cast<uint64_t>(1));
-      fprint(output_handle, '\t');
-      fprint_integer(output_handle, 255);
-      fprint(output_handle, '\t');
-      fprint(output_handle, View<char>{cigar.data(), cigar.size()});
-      fprint(output_handle, '\t');
-      fprint(output_handle, "*");
-      fprint(output_handle, '\t');
-      fprint_integer(output_handle, static_cast<uint64_t>(0));
-      fprint(output_handle, '\t');
-      fprint_integer(output_handle, static_cast<uint64_t>(0));
-      fprint(output_handle, '\t');
-      fprint(output_handle, query);
-      fprint(output_handle, '\t');
-      fprint(output_handle, "*");
-      fprint(output_handle, "\tAS:i:");
-      std::fprintf(output_handle, "%.0f", hp->id);
-      fprint(output_handle, "\tXN:i:");
-      fprint_integer(output_handle, 0);
-      fprint(output_handle, "\tXM:i:");
-      fprint_integer(output_handle, hp->mismatches);
-      fprint(output_handle, "\tXO:i:");
-      fprint_integer(output_handle, hp->internal_gaps);
-      fprint(output_handle, "\tXG:i:");
-      fprint_integer(output_handle, hp->internal_indels);
-      fprint(output_handle, "\tNM:i:");
-      fprint_integer(output_handle, hp->mismatches + hp->internal_indels);
-      fprint(output_handle, "\tMD:Z:");
-      fprint(output_handle, View<char>{md.data(), md.size()});
-      fprint(output_handle, "\tYT:Z:");
-      fprint(output_handle, "UU");
-      fprint(output_handle, '\n');
+      OutputRecord record {output_handle};
+      fprint(record, query_head);
+      fprint(record, '\t');
+      fprint_integer(record, (0x10 * hp->strand) | (t > 0 ? 0x100 : 0));
+      fprint(record, '\t');
+      fprint(record, db.header_view(target));
+      fprint(record, '\t');
+      fprint_integer(record, static_cast<uint64_t>(1));
+      fprint(record, '\t');
+      fprint_integer(record, 255);
+      fprint(record, '\t');
+      fprint(record, View<char>{cigar.data(), cigar.size()});
+      fprint(record, '\t');
+      fprint(record, "*");
+      fprint(record, '\t');
+      fprint_integer(record, static_cast<uint64_t>(0));
+      fprint(record, '\t');
+      fprint_integer(record, static_cast<uint64_t>(0));
+      fprint(record, '\t');
+      fprint(record, query);
+      fprint(record, '\t');
+      fprint(record, "*");
+      fprint(record, "\tAS:i:");
+      std::fprintf(record.stream(), "%.0f", hp->id);
+      fprint(record, "\tXN:i:");
+      fprint_integer(record, 0);
+      fprint(record, "\tXM:i:");
+      fprint_integer(record, hp->mismatches);
+      fprint(record, "\tXO:i:");
+      fprint_integer(record, hp->internal_gaps);
+      fprint(record, "\tXG:i:");
+      fprint_integer(record, hp->internal_indels);
+      fprint(record, "\tNM:i:");
+      fprint_integer(record, hp->mismatches + hp->internal_indels);
+      fprint(record, "\tMD:Z:");
+      fprint(record, View<char>{md.data(), md.size()});
+      fprint(record, "\tYT:Z:");
+      fprint(record, "UU");
+      fprint(record, '\n');
     }
 }
