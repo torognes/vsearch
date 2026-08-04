@@ -24,11 +24,6 @@ if ENABLE_DEBUG
 # next warnings to activate:
 # -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # GCC 14: -Wnrvo (Named Return Value Optimization)
-# evaluated and left disabled:
-# -Wformat=2: its only delta over -Wformat=1 is -Wformat-nonliteral,
-#   which fires on the non-variadic printf wrappers fatal()/warn() and
-#   cannot be silenced by __attribute__((format)) on a non-variadic
-#   function
 # -Wold-style-cast is a debug-build flag, and debug builds target
 #   x86_64, where it is verified clean. The __PPC__ and __aarch64__
 #   SIMD paths in align_simd.cc keep some C-style casts: PPC AltiVec
@@ -38,7 +33,7 @@ if ENABLE_DEBUG
 #   POWER/ARM.
 AM_CFLAGS += -UNDEBUG -D_GLIBCXX_DEBUG -Wcast-align -Wdate-time \
              -Wdouble-promotion -Wduplicated-branches -Wduplicated-cond -Wfloat-equal \
-             -Wformat=1 -Wformat-overflow -Wlogical-op -Wnull-dereference \
+             -Wformat=2 -Wformat-overflow -Wlogical-op -Wnull-dereference \
              -Wshadow -Wuninitialized \
              -Wunsafe-loop-optimizations -Wunused -Wunused-macros -Wvla \
              -Wno-ignored-attributes
