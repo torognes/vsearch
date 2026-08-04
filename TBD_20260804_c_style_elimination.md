@@ -554,3 +554,58 @@ with a capacity contract, changing the shape of the hot call sites — so it
 is *not* done on this branch. The alternative is to accept it: end-to-end
 the phase is neutral on every real command measured, and the affected
 records are `--blast6out` and `--uc` at a synthetic 300 k records/second.
+
+### Final numbers (phase 9, all nine phases landed)
+
+Release builds of `dev` and of the branch tip, same host, `hyperfine`.
+
+| what | `dev` | branch | |
+|---|---|---|---|
+| `--otutabout --biomout --mothur_shared_out`, 24 MB table | 5.414 s ± 0.047 | 5.312 s ± 0.049 | |
+| the same run without the tables (control) | 4.667 s ± 0.067 | 4.662 s ± 0.074 | identical |
+| → the three table writers, differenced | 0.747 s | 0.650 s | **1.15×** |
+| `--usearch_global`, real data, `--alnout --blast6out --uc` | 15.141 s ± 0.250 | 14.803 s ± 0.063 | neutral |
+| `--cluster_size`, real data, `--centroids --uc` | 7.636 s ± 0.093 | 7.621 s ± 0.105 | neutral |
+| `--derep_fulllength --output --uc`, 287 k seqs | 579.4 ms ± 5.5 | 584.6 ms ± 6.2 | neutral |
+| `--cut`, 58 k seqs | 78.6 ms ± 1.4 | 79.9 ms ± 1.6 | neutral |
+| `--fastq_chars` | 870 µs ± 130 | 843 µs ± 80 | neutral |
+| `--blast6out`, 300 k records, one-sequence db | 842.0 ms ± 1.8 | 921.4 ms ± 3.1 | **+9.4 %** |
+
+Every real command is neutral or better; the table writers are measurably
+faster; the one regression is the `--blast6out`/`--uc` record on a synthetic
+that does nothing but write, and its cause is known and written up under
+phase 4 (`fprint_integer` is emitted out of line when one function calls it
+nine times). That is the single open decision on this branch.
+
+### Verification actually performed
+
+- **byte-identical output**: 441 comparisons over a 144-run option matrix
+  (`byte_identity.sh`), at every commit, at `--threads 1` and `--threads 8`,
+  against both a DEBUG and a RELEASE `dev` baseline. One deliberate
+  difference, in its own commit: the `cli.cc` out-of-bounds crash.
+- **outside the matrix**, because it cannot reach them: every reachable
+  diagnostic (11 error paths, diffed against `dev`), `--sff_convert` on a
+  3 MB SFF slice with and without `--sff_clip`, `--clusters` over a 5-cluster
+  run, a 1500 nt alignment at `--rowlen` 0/3/17/60/200, and the library-only
+  `centroid_label` truncation at 8/1022/1023/1024/1025/4000 characters
+  against a `dev`-built `libvsearch.a`.
+- **test suite**: 9757 PASS, 0 FAIL. (`--derep_id --relabel --sizeout` also
+  flakes under concurrent build load, like the two cases `CLAUDE.md` names;
+  241 PASS in isolation.)
+- **api_examples**: 40 PASS, 0 FAIL against the branch's release library.
+- **primitives**: `to_decimal` against `std::snprintf` over 400 k+ values
+  including `UINT64_MAX` and `INT64_MIN`, and `fprint_integer(value, width)`
+  against `"%*d"` for every width 0–23, under
+  `-fsanitize=undefined,address -D_GLIBCXX_DEBUG`.
+- **`-Wformat=2`**: on, and clean.
+- **cross-compiles**: MinGW x86_64, POWER (ppc64le), MIPS64el and aarch64 all
+  build, with only the two pre-existing warnings (libstdc++'s `-Warray-bounds`
+  false positive in `attributes.cpp`, and AltiVec compound literals in
+  `align_simd.cpp`). MinGW was the interesting one: it is the reason the `PRI`
+  macros existed, and it no longer needs them.
+- **cppcheck** clean on every touched file. **clang-tidy** reports one
+  `cert-err33-c` on `print_view.hpp`'s literal overload; it is a check
+  limitation, not a defect — the same `static_cast<void>(std::fwrite(...))`
+  is *not* reported outside a template, verified with a two-function probe,
+  and the existing `fprint(View)` overload has carried it since before this
+  branch.
