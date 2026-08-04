@@ -63,14 +63,14 @@
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_handle
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // chrmap_no_change()
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
-#include <cinttypes>  // macros PRIu64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -274,11 +274,12 @@ namespace {
                      uint64_t const pairs,
                      uint64_t const orphans_fwd,
                      uint64_t const orphans_rev) -> void {
-    static_cast<void>(std::fprintf(output_stream,
-                                   "%" PRIu64 " pairs synchronized, "
-                                   "%" PRIu64 " forward and "
-                                   "%" PRIu64 " reverse orphan reads\n",
-                                   pairs, orphans_fwd, orphans_rev));
+    fprint_integer(output_stream, pairs);
+    fprint(output_stream, " pairs synchronized, ");
+    fprint_integer(output_stream, orphans_fwd);
+    fprint(output_stream, " forward and ");
+    fprint_integer(output_stream, orphans_rev);
+    fprint(output_stream, " reverse orphan reads\n");
   }
 
 }  // end of anonymous namespace

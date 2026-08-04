@@ -134,29 +134,57 @@ auto udbinfo(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      std::fprintf(stderr, "           Seqs  %u\n", buffer[13]);
-      std::fprintf(stderr, "     SeqIx bits  %u\n", buffer[2]);
+      fprint(stderr, "           Seqs  ");
+      fprint_integer(stderr, buffer[13]);
+      fprint(stderr, '\n');
+      fprint(stderr, "     SeqIx bits  ");
+      fprint_integer(stderr, buffer[2]);
+      fprint(stderr, '\n');
       fprint(stderr, "          Alpha  nt (4)\n");
-      std::fprintf(stderr, "     Word width  %u\n", buffer[4]);
-      std::fprintf(stderr, "          Slots  %u\n", buffer[11]);
-      std::fprintf(stderr, "      Dict size  %u (%.1fk)\n",
-              (1U << (2 * buffer[4])),
-              (1U << (2 * buffer[4])) * 1.0 / 1000.0);
-      std::fprintf(stderr, "         DBstep  %u\n", buffer[5]);
-      std::fprintf(stderr, "        DBAccel  %u%%\n", buffer[6]);
+      fprint(stderr, "     Word width  ");
+      fprint_integer(stderr, buffer[4]);
+      fprint(stderr, '\n');
+      fprint(stderr, "          Slots  ");
+      fprint_integer(stderr, buffer[11]);
+      fprint(stderr, '\n');
+      fprint(stderr, "      Dict size  ");
+      fprint_integer(stderr, (1U << (2 * buffer[4])));
+      fprint(stderr, " (");
+      std::fprintf(stderr, "%.1f", (1U << (2 * buffer[4])) * 1.0 / 1000.0);
+      fprint(stderr, "k)\n");
+      fprint(stderr, "         DBstep  ");
+      fprint_integer(stderr, buffer[5]);
+      fprint(stderr, '\n');
+      fprint(stderr, "        DBAccel  ");
+      fprint_integer(stderr, buffer[6]);
+      fprint(stderr, "%\n");
     }
 
   if (parameters.opt_log != nullptr)
     {
-      std::fprintf(parameters.fp_log, "           Seqs  %u\n", buffer[13]);
-      std::fprintf(parameters.fp_log, "     SeqIx bits  %u\n", buffer[2]);
+      fprint(parameters.fp_log, "           Seqs  ");
+      fprint_integer(parameters.fp_log, buffer[13]);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "     SeqIx bits  ");
+      fprint_integer(parameters.fp_log, buffer[2]);
+      fprint(parameters.fp_log, '\n');
       fprint(parameters.fp_log, "          Alpha  nt (4)\n");
-      std::fprintf(parameters.fp_log, "     Word width  %u\n", buffer[4]);
-      std::fprintf(parameters.fp_log, "          Slots  %u\n", buffer[11]);
-      std::fprintf(parameters.fp_log, "      Dict size  %u (%.1fk)\n",
-              (1U << (2 * buffer[4])),
-              (1U << (2 * buffer[4])) * 1.0 / 1000.0);
-      std::fprintf(parameters.fp_log, "         DBstep  %u\n", buffer[5]);
-      std::fprintf(parameters.fp_log, "        DBAccel  %u%%\n", buffer[6]);
+      fprint(parameters.fp_log, "     Word width  ");
+      fprint_integer(parameters.fp_log, buffer[4]);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "          Slots  ");
+      fprint_integer(parameters.fp_log, buffer[11]);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "      Dict size  ");
+      fprint_integer(parameters.fp_log, (1U << (2 * buffer[4])));
+      fprint(parameters.fp_log, " (");
+      std::fprintf(parameters.fp_log, "%.1f", (1U << (2 * buffer[4])) * 1.0 / 1000.0);
+      fprint(parameters.fp_log, "k)\n");
+      fprint(parameters.fp_log, "         DBstep  ");
+      fprint_integer(parameters.fp_log, buffer[5]);
+      fprint(parameters.fp_log, '\n');
+      fprint(parameters.fp_log, "        DBAccel  ");
+      fprint_integer(parameters.fp_log, buffer[6]);
+      fprint(parameters.fp_log, "%\n");
     }
 }

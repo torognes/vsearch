@@ -76,7 +76,7 @@
 #include <cerrno>  // errno, ERANGE
 #include <cmath>  // std::isfinite
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::fprintf, fprintf, stderr, stdout
+#include <cstdio>  // fprintf, stderr, stdout
 #include <cstdlib>  // exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
 #include <string>  // std::to_string
@@ -4273,28 +4273,30 @@ namespace {
 
                     if (invalid_options == 1)
                       {
-                        std::fprintf(stderr,
-                                "Fatal error: Invalid options to command %s\n",
-                                long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
+                        fprint(stderr, "Fatal error: Invalid options to command ");
+                        std::fputs(long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name, stderr);
+                        fprint(stderr, '\n');
                         fprint(stderr, "Invalid option(s):");
                       }
-                    std::fprintf(stderr, " --%s",
-                            long_options[static_cast<size_t>(i)].name);
+                    fprint(stderr, " --");
+                    std::fputs(long_options[static_cast<size_t>(i)].name, stderr);
                   }
               }
           }
 
         if (invalid_options > 0)
           {
-            std::fprintf(stderr, "\nThe valid options for the %s command are:",
-                    long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
+            fprint(stderr, "\nThe valid options for the ");
+            std::fputs(long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name, stderr);
+            fprint(stderr, " command are:");
             int count = 0;
             for (int j = 1;
                  (static_cast<size_t>(j) < max_number_of_options_per_command) and
                  (valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)] >= 0);
                  j++)
               {
-                std::fprintf(stderr, " --%s", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name);
+                fprint(stderr, " --");
+                std::fputs(long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][static_cast<size_t>(j)])].name, stderr);
                 ++count;
               }
             if (count == 0)
@@ -4333,7 +4335,9 @@ namespace {
       {
         if (parameters.opt_threads > 1)
           {
-            std::fprintf(stderr, "WARNING: The %s command does not support multithreading.\nOnly 1 thread used.\n", long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name);
+            fprint(stderr, "WARNING: The ");
+            std::fputs(long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name, stderr);
+            fprint(stderr, " command does not support multithreading.\nOnly 1 thread used.\n");
           }
         parameters.opt_threads = 1;
       }

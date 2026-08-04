@@ -63,14 +63,15 @@
 #include "core/fasta.hpp"  // fasta_print_general, fasta_get_abundance
 #include "core/fastq.hpp"  // fastq_open, fastq_get_sequence, fastq_get_quality
 #include "core/fastx.hpp"  // fastx_handle
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::transform
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint> // uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE
 #include <string>
 
 
@@ -159,9 +160,8 @@ namespace {
 
   auto stats_message(std::FILE * output_stream,
                      uint64_t const total) -> void {
-    static_cast<void>(std::fprintf(output_stream,
-                                   "%" PRIu64 " pairs joined\n",
-                                   total));
+    fprint_integer(output_stream, total);
+    fprint(output_stream, " pairs joined\n");
   }
 
 

@@ -66,13 +66,13 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/reverse_complement.hpp"
 #include <algorithm>  // std::count, std::for_each, std::equal
 #include <cassert>
-#include <cinttypes>  // macros PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE
 #include <iterator>  // std::next
 #include <string>
 #include <utility>  // std::move
@@ -382,9 +382,12 @@ namespace {
 
   auto stats_message(std::FILE * output_stream,
                      struct statistics const & counters) -> void {
-    static_cast<void>(std::fprintf(output_stream,
-                                   "%" PRId64 " sequence(s) cut %" PRId64 " times, %" PRId64 " sequence(s) never cut.\n",
-                                   counters.cut, counters.matches, counters.uncut));
+    fprint_integer(output_stream, counters.cut);
+    fprint(output_stream, " sequence(s) cut ");
+    fprint_integer(output_stream, counters.matches);
+    fprint(output_stream, " times, ");
+    fprint_integer(output_stream, counters.uncut);
+    fprint(output_stream, " sequence(s) never cut.\n");
   }
 
 

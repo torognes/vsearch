@@ -62,7 +62,7 @@
 #include "commands/version.hpp"
 #include "os/dynlibs.hpp"
 #include "utils/print_view.hpp"  // fprint
-#include <cstdio>  // std::printf, std::fprintf
+#include <cstdio>  // std::printf
 
 
 auto show_publication() -> void
@@ -82,46 +82,53 @@ auto version(struct Parameters const & parameters) -> void
 
   if (compression::gzip_supported)
     {
-      std::printf("Compiled with support for gzip-compressed files,");
+      fprint(stdout, "Compiled with support for gzip-compressed files,");
       if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->gzip_available())
         {
-          std::printf(" and the library is loaded.\n");
+          fprint(stdout, " and the library is loaded.\n");
 
           char const * const gz_version = parameters.dyn_libs->gzip_version();
           unsigned long const flags = parameters.dyn_libs->gzip_compile_flags();
 
-          std::printf("zlib version %s, compile flags %lx", gz_version, flags);
+          fprint(stdout, "zlib version ");
+          std::fputs(gz_version, stdout);
+          fprint(stdout, ", compile flags ");
+          /* the only hex conversion left in the tree beside fasta.cpp's
+             "%02x": zlib reports its compile flags as a bit field, and a
+             decimal rendering of them would not be readable. Deliberately
+             kept, see TBD_20260804_c_style_elimination.md's Out of scope. */
+          std::printf("%lx", flags);
           static constexpr auto check_10th_bit = 1024U; // 0x0400
           if ((flags & check_10th_bit) != 0U)
             {
-              std::printf(" (ZLIB_WINAPI)");
+              fprint(stdout, " (ZLIB_WINAPI)");
             }
-          std::printf("\n");
+          fprint(stdout, '\n');
         }
       else
         {
-          std::printf(" but the library was not found.\n");
+          fprint(stdout, " but the library was not found.\n");
         }
     }
   else
     {
-      std::printf("Compiled without support for gzip-compressed files.\n");
+      fprint(stdout, "Compiled without support for gzip-compressed files.\n");
     }
 
   if (compression::bzip2_supported)
     {
-      std::printf("Compiled with support for bzip2-compressed files,");
+      fprint(stdout, "Compiled with support for bzip2-compressed files,");
       if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->bzip2_available())
         {
-          std::printf(" and the library is loaded.\n");
+          fprint(stdout, " and the library is loaded.\n");
         }
       else
         {
-          std::printf(" but the library was not found.\n");
+          fprint(stdout, " but the library was not found.\n");
         }
     }
   else
     {
-      std::printf("Compiled without support for bzip2-compressed files.\n");
+      fprint(stdout, "Compiled without support for bzip2-compressed files.\n");
     }
 }

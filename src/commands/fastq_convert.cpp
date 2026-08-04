@@ -61,14 +61,15 @@
 #include "commands/fastq_convert.hpp"
 #include "vsearch.hpp"
 #include "core/fastq.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstdio>  // std::FILE, std::size_t
 #include <vector>
 
 
@@ -118,26 +119,28 @@ auto fastq_convert(struct Parameters const & parameters) -> void
             int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
             if (q < parameters.opt_fastq_qmin)
               {
-                std::fprintf(stderr,
-                        "\nFASTQ quality score (%d) below minimum (%" PRId64
-                        ") in entry no %" PRIu64
-                        " starting on line %" PRIu64 "\n",
-                        q,
-                        parameters.opt_fastq_qmin,
-                        input_handle->get_seqno() + 1,
-                        input_handle->get_lineno());
+                fprint(stderr, "\nFASTQ quality score (");
+                fprint_integer(stderr, q);
+                fprint(stderr, ") below minimum (");
+                fprint_integer(stderr, parameters.opt_fastq_qmin);
+                fprint(stderr, ") in entry no ");
+                fprint_integer(stderr, input_handle->get_seqno() + 1);
+                fprint(stderr, " starting on line ");
+                fprint_integer(stderr, input_handle->get_lineno());
+                fprint(stderr, '\n');
                 fatal("FASTQ quality score too low");
               }
             if (q > parameters.opt_fastq_qmax)
               {
-                std::fprintf(stderr,
-                        "\nFASTQ quality score (%d) above maximum (%" PRId64
-                        ") in entry no %" PRIu64
-                        " starting on line %" PRIu64 "\n",
-                        q,
-                        parameters.opt_fastq_qmax,
-                        input_handle->get_seqno() + 1,
-                        input_handle->get_lineno());
+                fprint(stderr, "\nFASTQ quality score (");
+                fprint_integer(stderr, q);
+                fprint(stderr, ") above maximum (");
+                fprint_integer(stderr, parameters.opt_fastq_qmax);
+                fprint(stderr, ") in entry no ");
+                fprint_integer(stderr, input_handle->get_seqno() + 1);
+                fprint(stderr, " starting on line ");
+                fprint_integer(stderr, input_handle->get_lineno());
+                fprint(stderr, '\n');
                 fatal("FASTQ quality score too high");
               }
             q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));

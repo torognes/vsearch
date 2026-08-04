@@ -64,14 +64,14 @@
 #include "core/fastq.hpp"
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
+#include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/random.hpp"
 #include <algorithm>  // std::count_if
 #include <cassert>
-#include <cinttypes>  // macros PRIu64 and PRId64
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::fclose
+#include <cstdio>  // std::FILE
 #include <functional>  // std::minus
 #include <numeric>  // std::fill
 #include <random>  // std::mt19937_64
@@ -187,12 +187,18 @@ auto write_original_stats(std::vector<uint64_t> const & deck,
                           uint64_t const mass_total,
                           struct Parameters const & parameters) -> void {
   if (not parameters.opt_quiet) {
-    std::fprintf(stderr, "Got %" PRIu64 " reads from %d amplicons\n",
-                 mass_total, static_cast<int>(deck.size()));
+    fprint(stderr, "Got ");
+    fprint_integer(stderr, mass_total);
+    fprint(stderr, " reads from ");
+    fprint_integer(stderr, static_cast<int>(deck.size()));
+    fprint(stderr, " amplicons\n");
   }
   if (parameters.opt_log != nullptr) {
-    std::fprintf(parameters.fp_log, "Got %" PRIu64 " reads from %d amplicons\n",
-                 mass_total, static_cast<int>(deck.size()));
+    fprint(parameters.fp_log, "Got ");
+    fprint_integer(parameters.fp_log, mass_total);
+    fprint(parameters.fp_log, " reads from ");
+    fprint_integer(parameters.fp_log, static_cast<int>(deck.size()));
+    fprint(parameters.fp_log, " amplicons\n");
   }
 }
 
@@ -213,10 +219,18 @@ auto write_subsampling_stats(std::vector<uint64_t> const &deck,
   int const samples = static_cast<int>(std::count_if(deck.begin(),
                                     deck.end(), [](uint64_t abundance) -> bool { return abundance != 0; }));
   if (not parameters.opt_quiet) {
-    std::fprintf(stderr, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+    fprint(stderr, "Subsampled ");
+    fprint_integer(stderr, n_reads);
+    fprint(stderr, " reads from ");
+    fprint_integer(stderr, samples);
+    fprint(stderr, " amplicons\n");
   }
   if (parameters.opt_log != nullptr) {
-    std::fprintf(parameters.fp_log, "Subsampled %" PRIu64 " reads from %d amplicons\n", n_reads, samples);
+    fprint(parameters.fp_log, "Subsampled ");
+    fprint_integer(parameters.fp_log, n_reads);
+    fprint(parameters.fp_log, " reads from ");
+    fprint_integer(parameters.fp_log, samples);
+    fprint(parameters.fp_log, " amplicons\n");
   }
 }
 

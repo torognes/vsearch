@@ -61,9 +61,10 @@
 #include "vsearch.hpp"
 #include "commands/help.hpp"
 #include "commands/version.hpp"  // show_publication
+#include "utils/print_view.hpp"  // fprint
 #include <array>
 #include <cstddef>  // std::size_t
-#include <cstdio>  // std::fprintf, std::fputs
+#include <cstdio>  // std::fputs
 
 
   /*       0         1         2         3         4         5         6         7          */
@@ -571,8 +572,9 @@ auto help(struct Parameters const & parameters) -> void {
 
   show_publication();
 
-  std::fprintf(stdout,
-          "Usage: %s [OPTIONS]\n", parameters.progname);
+  fprint(stdout, "Usage: ");
+  std::fputs(parameters.progname, stdout);
+  fprint(stdout, " [OPTIONS]\n");
 
   for (char const * const line : help_message)
     {

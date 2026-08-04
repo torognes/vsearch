@@ -65,8 +65,7 @@
 #include "utils/progress.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
-#include <cinttypes> // macros PRIu64 and PRId64
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdio>  // std::FILE
 #include <cstdint>  // int64_t
 
 
@@ -122,7 +121,11 @@ auto rereplicate(struct Parameters const & parameters) -> void
         {
           fprint(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      std::fprintf(stderr, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
+      fprint(stderr, "Rereplicated ");
+      fprint_integer(stderr, n_reads);
+      fprint(stderr, " reads from ");
+      fprint_integer(stderr, n_amplicons);
+      fprint(stderr, " amplicons\n");
     }
 
   if (parameters.opt_log != nullptr)
@@ -131,7 +134,11 @@ auto rereplicate(struct Parameters const & parameters) -> void
         {
           fprint(parameters.fp_log, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
         }
-      std::fprintf(parameters.fp_log, "Rereplicated %" PRId64 " reads from %" PRId64 " amplicons\n", n_reads, n_amplicons);
+      fprint(parameters.fp_log, "Rereplicated ");
+      fprint_integer(parameters.fp_log, n_reads);
+      fprint(parameters.fp_log, " reads from ");
+      fprint_integer(parameters.fp_log, n_amplicons);
+      fprint(parameters.fp_log, " amplicons\n");
     }
 
   input_handle->report_stripped_warning(parameters);
