@@ -1,8 +1,8 @@
 # Putting the library in `namespace vsearch` (2026-07-25)
 
 Decision record and plan. Follow-on to the library-distribution decision
-(source + static-only, C++-only, C façade deferred by design) and to
-`TBD_20260725_replace_C_functions.md`, whose `View`/`Span` discussion
+(source + static-only, C++-only, C façade deferred by design) and to the
+C-function inventory taken the same day, whose `View`/`Span` discussion
 raised the question.
 
 **Question:** should every function and type exposed through the library
@@ -57,9 +57,10 @@ Against those, `View` is comparatively benign: it breaks loudly.
 
 ### The `fprint*` group
 
-`DONE_20260804_c_style_elimination.md`'s Decision 4 deliberately put five
-new global-namespace overloads next to the existing `fprint(View)` rather
-than qualifying ~300 call sites mid-migration. `utils/print_record.hpp`,
+The output-path migration (2026-08-04, which replaced the printf family
+with typed writers) deliberately put five new global-namespace overloads
+next to the existing `fprint(View)` rather than qualifying ~300 call sites
+mid-migration. `utils/print_record.hpp`,
 added late in that migration to batch the hot record writers, then
 overloaded the same six names again on a `Record &` sink — so this pass has
 **twelve `fprint*` overloads across two headers** to move, plus the `Record`
@@ -295,8 +296,19 @@ and the Windows / POWER / mips64el cross-compiles.
    job is to wrap platform C APIs, and those declarations must stay
    outside regardless, so the boundary inside those files is already
    mixed. Either answer is defensible; a decision up front avoids churn.
-3. **Timing against the `View` migration.** The namespace move should
-   land *before* the call-chain `View` migration described in
-   `TBD_20260725_replace_C_functions.md` widens, so that the wider use of
-   `View` is written qualified from the start rather than being requalified
-   later.
+3. ~~**Timing against the `View` migration.**~~ **Overtaken by events, and
+   the cost it warned about has been paid.** This item asked for the
+   namespace move to land *before* the call-chain `View` migration widened,
+   so the wider use of `View` would be written qualified from the start
+   rather than requalified later. It did not: the View/Span propagation pass
+   ran first at the maintainer's request, and the output-path migration then
+   widened `View` again across some thirty files and added twelve `fprint*`
+   overloads in two headers.
+
+   So there is no longer a "before" to hit, and this is not an open question
+   but a sunk cost. What it changes for the plan below: the requalification
+   is bigger than it was in July, and it grows with every further View pass —
+   which is now the argument for doing the move *soon*, rather than for
+   sequencing it against anything. Nothing about the move itself is harder;
+   the one-wrap-per-file property that makes it affordable (see the worked
+   example) is unaffected by how many call sites name the type.
