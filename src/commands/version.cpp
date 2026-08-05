@@ -96,7 +96,7 @@ auto version(struct Parameters const & parameters) -> void
           /* the only hex conversion left in the tree beside fasta.cpp's
              "%02x": zlib reports its compile flags as a bit field, and a
              decimal rendering of them would not be readable. Deliberately
-             kept, see TBD_20260804_c_style_elimination.md's Out of scope. */
+             kept, see DONE_20260804_c_style_elimination.md's Out of scope. */
           std::printf("%lx", flags);
           static constexpr auto check_10th_bit = 1024U; // 0x0400
           if ((flags & check_10th_bit) != 0U)

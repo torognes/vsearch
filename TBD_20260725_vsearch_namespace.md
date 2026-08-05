@@ -57,7 +57,7 @@ Against those, `View` is comparatively benign: it breaks loudly.
 
 ### The `fprint*` group
 
-`TBD_20260804_c_style_elimination.md`'s Decision 4 deliberately put five
+`DONE_20260804_c_style_elimination.md`'s Decision 4 deliberately put five
 new global-namespace overloads next to the existing `fprint(View)` rather
 than qualifying ~300 call sites mid-migration. `utils/print_record.hpp`,
 added late in that migration to batch the hot record writers, then

@@ -4,7 +4,7 @@ Inventory of the C standard-library functions still called from the
 vsearch sources, taken after the `qsort` → `std::sort` migration was
 verified complete. The printf family was excluded throughout when this
 was written; **that exclusion is reversed** — see
-`TBD_20260804_c_style_elimination.md`, which makes
+`DONE_20260804_c_style_elimination.md`, which makes
 `fprintf`/`printf`/`fputs`/`fputc`/`snprintf` targets in full scope and
 supersedes this paragraph. Two inventory corrections while this document
 is open: the `<cstdio>` table below understates `std::fputc` (3 listed,

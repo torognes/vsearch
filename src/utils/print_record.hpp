@@ -251,7 +251,7 @@ auto fprint_integer(Record<Capacity> & record, Integer const value,
      auto fprint_double(Record<Capacity> &, char const (&format)[Size], double);
 
    That does not survive -Wformat=2, which phase 8 of
-   TBD_20260804_c_style_elimination.md turned on. Inside the template the
+   DONE_20260804_c_style_elimination.md turned on. Inside the template the
    format is a parameter, so GCC reports -Wformat-nonliteral even though every
    call binds it to a literal, and it cannot be silenced: the format attribute
    is a GNU extension, src/ deliberately has none left, and it does not apply
