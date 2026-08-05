@@ -419,17 +419,59 @@ Phases 3–7 are independent of each other and can be reordered freely;
 
 ## End state
 
-- `PRIu64` / `PRId64`: **0 uses**, `<cinttypes>`: **0 includes**.
-- `std::fputs`: 0 (or 8, if the run-time-pointer sites keep it).
-  `std::fputc`: 0.
-- `std::fprintf` / `std::printf`: ~167 sites, each formatting a `double`
-  and nothing else, plus 2 hex sites and the 24 `align_simd` debug dumps.
-- `-Wformat=2` on in the debug build, and `src/Makefile.am`'s note
-  replaced by the flag it used to explain.
-- Two new/extended headers carrying their own reasoning and their own
-  commented test block, in the style of `view.hpp`, both still in the
-  global namespace and both listed in `TBD_20260725_vsearch_namespace.md`
-  as four `fprint*` names for that pass to move.
+**Projected, before the work** (kept as written; the measured column was
+added on completion, and three of these were wrong):
+
+| | projected | actual |
+|---|---|---|
+| `PRIu64` / `PRId64` | 0 uses | **0** |
+| `<cinttypes>` | 0 includes | **0** |
+| `std::fputs` | 0, or 8 if the run-time-pointer sites keep it | **107** |
+| `std::fputc` | 0 | **2** (1 is `align_simd`, 1 is `fprint(char)`'s own wrapper) |
+| `std::fprintf` / `std::printf` | ~167 | **257** |
+| `std::snprintf` | not projected | **4** |
+| `-Wformat=2` | on, note replaced | **on, and clean** |
+| new/extended headers | two | **three** |
+
+Why the three differ, all decided and recorded in the commits that caused
+them:
+
+- **`std::fputs` 107, not 0–8.** The projection assumed the run-time-pointer
+  sites were the only ones. They were not: every `"%s"` of a `char const *`
+  whose length the caller does not know became one, and the Traps section
+  above is what rules out the alternative (an `fprint(std::FILE *,
+  char const *)` overload would silently capture every string literal from
+  the array template). They carry no format string, which is the point; the
+  count rose because `"%s"` sites were converted *into* them.
+- **`std::fprintf` 257, not ~167.** Arithmetic, not scope creep: the
+  projection counted *sites* that format at least one `double`, and
+  Decision 1 gives each `double` *field* its own call, so a line with three
+  of them becomes three calls.
+- **Three headers, not two.** `utils/decimal_digits.hpp` and the extended
+  `utils/print_view.hpp` were planned; `utils/print_record.hpp` was added
+  late, when phase 4's measurement showed the split is only a win where the
+  compiler inlines the writer. It is the "batch that line differently"
+  the verification section prescribes.
+
+Deliberately left, so a later reader does not read them as a missed sweep:
+
+- **`core/align_simd.cpp`, 27 sites** (24 `fprintf`/`printf`, 2 `snprintf`,
+  1 `fputc`) — Decision 3. Their only callers sit under `#if 0`, they carry
+  no `PRI` macro, and no differential run can exercise a converted version.
+  The plan said 24; the extra 3 are the `snprintf`/`fputc` in the same dumps,
+  which the original census counted separately.
+- **the three hex sites** — `core/fasta.cpp`'s `"%02x"`,
+  `commands/version.cpp`'s `"%lx"` and `core/fastx.cpp`'s `"0x%2x"`. The
+  first two were named in Out of scope; the third is the same case, found
+  during phase 8, and is noted at the call.
+- **two `snprintf`** outside `align_simd` — `vsearch.cc`'s and
+  `core/fastx.cpp`'s, each formatting one field a digit loop cannot produce
+  (a `"%.1f"` and that `"0x%2x"`).
+
+All three headers are still in the global namespace and are listed in
+`TBD_20260725_vsearch_namespace.md` — twelve `fprint*` overloads across
+`print_view.hpp` and `print_record.hpp`, which must move together, plus
+`Record`/`OutputRecord` and the `decimal` namespace.
 
 
 ## Out of scope (worth their own plans)

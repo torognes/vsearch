@@ -35,6 +35,8 @@ in a namespace today except four small internal ones (`fatal_detail`,
 | `chimera_*`, `cluster_*`, `derep_*`, `search_*` (28 functions) | functions | `core/*.hpp` | low (subsystem-prefixed) |
 | `fprint_kmer` | function | `core/dbindex.hpp` | moderate |
 | `fprint` (3 overloads), `fprint_integer` (2 overloads), `fprint_spaces` | functions | `utils/print_view.hpp` | **high** — see below |
+| `fprint` (3 overloads), `fprint_integer` (2 overloads), `fprint_spaces`, all taking a `Record &` | functions | `utils/print_record.hpp` | **high** — same group |
+| `Record`, `OutputRecord` | class template, alias | `utils/print_record.hpp` | moderate |
 | `decimal::to_decimal`, `decimal::Buffer`, `decimal::max_width` | function, type, constant | `utils/decimal_digits.hpp` | low (already in `decimal`) |
 | `vsearch_api_version`, `vsearch_api_version_string` | functions | `vsearch_api.h` | low (prefixed) |
 
@@ -57,8 +59,14 @@ Against those, `View` is comparatively benign: it breaks loudly.
 
 `TBD_20260804_c_style_elimination.md`'s Decision 4 deliberately put five
 new global-namespace overloads next to the existing `fprint(View)` rather
-than qualifying ~300 call sites mid-migration, so this pass now has six
-`fprint*` names to move instead of one. That is a bigger but purely
+than qualifying ~300 call sites mid-migration. `utils/print_record.hpp`,
+added late in that migration to batch the hot record writers, then
+overloaded the same six names again on a `Record &` sink — so this pass has
+**twelve `fprint*` overloads across two headers** to move, plus the `Record`
+class template and its `OutputRecord` alias. The two headers must move
+together: the overload sets participate in the same name lookup, and
+splitting them would make a call resolve differently depending on which
+header a translation unit happens to include. That is a bigger but purely
 mechanical move, and it **must not be dropped**: these are bare functions
 whose first parameter is a `std::FILE *`, which is exactly the shape a
 consumer's own output helper has, so they collide the quiet way `fatal()`
