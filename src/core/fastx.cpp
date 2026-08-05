@@ -316,7 +316,8 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
     if (is_not_ascii) {
       /* one snprintf, for the "0x%2x" alone: a hex rendering of the offending
          byte, which is the point of the message and which no digit loop here
-         produces. See DONE_20260804_c_style_elimination.md's Out of scope. */
+         produces. One of the three hex conversions deliberately kept when the
+         printf family was replaced with typed writers. */
       std::array<char, 8> hex {{}};
       static_cast<void>(std::snprintf(hex.data(), hex.size(), "%2x", symbol_unsigned));
       std::string const message =

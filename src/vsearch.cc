@@ -146,8 +146,9 @@ auto fill_prog_header(struct Parameters & parameters) -> void
 {
   static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
   /* One snprintf, for the "%.1f" alone: formatting a fixed-precision double
-     byte-identically is the one thing nothing simpler does (Decision 1 of
-     DONE_20260804_c_style_elimination.md). Everything around it is text.
+     byte-identically is the one thing nothing simpler does, which is why a
+     double field keeps its own std::fprintf everywhere in the tree.
+     Everything around it is text.
 
      The header is built as a std::string rather than into an 80-character
      buffer that was then copied into one, so the line can no longer be

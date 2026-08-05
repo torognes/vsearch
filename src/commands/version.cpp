@@ -93,10 +93,11 @@ auto version(struct Parameters const & parameters) -> void
           fprint(stdout, "zlib version ");
           std::fputs(gz_version, stdout);
           fprint(stdout, ", compile flags ");
-          /* the only hex conversion left in the tree beside fasta.cpp's
-             "%02x": zlib reports its compile flags as a bit field, and a
-             decimal rendering of them would not be readable. Deliberately
-             kept, see DONE_20260804_c_style_elimination.md's Out of scope. */
+          /* one of the three hex conversions in the tree, beside fasta.cpp's
+             "%02x" and fastx.cpp's "0x%2x": zlib reports its compile flags as
+             a bit field, and a decimal rendering of them would not be
+             readable. Deliberately kept when the printf family was replaced
+             with typed writers. */
           std::printf("%lx", flags);
           static constexpr auto check_10th_bit = 1024U; // 0x0400
           if ((flags & check_10th_bit) != 0U)

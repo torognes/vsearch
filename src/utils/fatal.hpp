@@ -113,7 +113,7 @@ auto fatal(char const * message) -> void;
 // took a printf format plus its arguments and handed both to std::fprintf: a
 // run-time format string, which is the one thing -Wformat-nonliteral cannot be
 // talked out of reporting, and the reason src/Makefile.am could not turn on
-// -Wformat=2. See DONE_20260804_c_style_elimination.md.
+// -Wformat=2 -- which it now does, in the debug warning set.
 //
 // A string literal still selects the char const * overload above, not this one:
 // array-to-pointer is an exact match and the std::string conversion is

@@ -250,10 +250,10 @@ auto fprint_integer(Record<Capacity> & record, Integer const value,
      template <std::size_t Capacity, std::size_t Size>
      auto fprint_double(Record<Capacity> &, char const (&format)[Size], double);
 
-   That does not survive -Wformat=2, which phase 8 of
-   DONE_20260804_c_style_elimination.md turned on. Inside the template the
-   format is a parameter, so GCC reports -Wformat-nonliteral even though every
-   call binds it to a literal, and it cannot be silenced: the format attribute
+   That does not survive -Wformat=2, which the debug build enables. Inside the
+   template the format is a parameter, so GCC reports -Wformat-nonliteral even
+   though every call binds it to a literal, and it cannot be silenced: the
+   format attribute
    is a GNU extension, src/ deliberately has none left, and it does not apply
    to a non-variadic function anyway -- which is the same wall the note in
    Makefile.am used to describe about fatal().
