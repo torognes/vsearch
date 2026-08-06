@@ -192,7 +192,7 @@ namespace {
   }
 
 
-  // refactorig: duplicate of q2p()?
+  // refactoring: duplicate of q2p()?
   inline auto convert_quality_symbol_to_probability(int const quality_symbol, struct Parameters const & parameters) -> double
   {
     static constexpr auto minimal_quality_value = 2;
