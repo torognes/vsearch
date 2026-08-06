@@ -132,8 +132,8 @@ namespace {
     /* get reverse complement */
     rc_buffer.clear();
     rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
-    reverse_complement(Span<char>{rc_buffer.data(), sequence.size() + 1}, sequence);
-    auto const rc_sequence = View<char>{rc_buffer.data(), sequence.size()};
+    reverse_complement(make_span(rc_buffer), sequence);
+    auto const rc_sequence = make_view(rc_buffer).first(sequence.size());
 
     int64_t local_matches = 0;
     int frag_start = 0;
