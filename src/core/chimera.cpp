@@ -447,7 +447,7 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
       auto tpos = 0;
 
       auto const & cigar = chimera_info->nwcigar[static_cast<size_t>(i)];
-      auto const cigar_pairs = parse_cigar_string(View<char>{cigar.c_str(), cigar.size()});
+      auto const cigar_pairs = parse_cigar_string(make_view(cigar));
 
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
@@ -836,7 +836,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
   for (auto const best_parent : best_parents_view) {
     auto pos = 0LL;
     auto const & cigar = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
-    auto const cigar_pairs = parse_cigar_string(View<char>{cigar.c_str(), cigar.size()});
+    auto const cigar_pairs = parse_cigar_string(make_view(cigar));
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
@@ -874,7 +874,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
       int alnpos = 0;
 
       auto const & cigar = ci->nwcigar[static_cast<size_t>(cand)];
-      auto const cigar_pairs = parse_cigar_string(View<char>{cigar.c_str(), cigar.size()});
+      auto const cigar_pairs = parse_cigar_string(make_view(cigar));
       for (auto const & a_pair: cigar_pairs) {
         auto const operation = a_pair.first;
         auto const runlength = a_pair.second;

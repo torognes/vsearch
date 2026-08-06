@@ -575,9 +575,9 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
-      fprint(fp_alnout, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(fp_alnout, make_view(parameters.command_line));
       fprint(fp_alnout, '\n');
-      fprint(fp_alnout, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+      fprint(fp_alnout, make_view(parameters.prog_header));
       fprint(fp_alnout, '\n');
     }
 

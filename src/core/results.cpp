@@ -118,7 +118,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
   auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
   auto const qrow = get_alignment_qrow(query,
-                                 View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
+                                 make_view(hits->nwalignment),
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
@@ -137,7 +137,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
   auto const target = static_cast<uint64_t>(hits->target);
   auto const trow = get_alignment_trow(db.sequence_view(target),
-                                 View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
+                                 make_view(hits->nwalignment),
                                  hits->nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
@@ -333,7 +333,7 @@ auto results_show_uc_one(std::FILE * output_handle,
   if (is_perfect_match) {
     fprint(record, "=");
   } else {
-    fprint(record, View<char>{hits->nwalignment.data(), hits->nwalignment.size()});
+    fprint(record, make_view(hits->nwalignment));
   }
   fprint(record, '\t');
   auto const target = static_cast<uint64_t>(hits->target);
@@ -464,13 +464,13 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
         case 22: /* aln */
           if (hits != nullptr)
             {
-              print_uncompressed_cigar(output_handle, View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()});
+              print_uncompressed_cigar(output_handle, make_view(hits->nwalignment));
             }
           break;
         case 23: /* caln */
           if (hits != nullptr)
             {
-              fprint(output_handle, View<char>{hits->nwalignment.data(), hits->nwalignment.size()});
+              fprint(output_handle, make_view(hits->nwalignment));
             }
           break;
         case 24: /* qstrand */
@@ -490,7 +490,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
             {
               auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
               auto const qrow = get_alignment_qrow(query,
-                                             View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
+                                             make_view(hits->nwalignment),
                                              hits->nwalignmentlength);
               fprint(output_handle,
                      View<char>{&qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
@@ -501,7 +501,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           if (hits != nullptr)
             {
               auto const trow = get_alignment_trow(tsequence,
-                                             View<char>{hits->nwalignment.c_str(), hits->nwalignment.size()},
+                                             make_view(hits->nwalignment),
                                              hits->nwalignmentlength);
               fprint(output_handle,
                      View<char>{&trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
@@ -1015,7 +1015,7 @@ auto results_show_samheader(std::FILE * output_handle,
       fprint(output_handle, "\tVN:");
       std::fputs(PROG_VERSION, output_handle);
       fprint(output_handle, "\tCL:");
-      fprint(output_handle, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(output_handle, make_view(parameters.command_line));
       fprint(output_handle, '\n');
     }
 }
@@ -1111,7 +1111,7 @@ auto results_show_samout(std::FILE * output_handle,
 
       auto const target = static_cast<uint64_t>(hp->target);
       auto const query = (hp->strand != 0) ? qsequence_rc : qsequence;
-      build_sam_strings(View<char>{hp->nwalignment.c_str(), hp->nwalignment.size()},
+      build_sam_strings(make_view(hp->nwalignment),
                         query,
                         db.sequence_view(target),
                         cigar,
@@ -1128,7 +1128,7 @@ auto results_show_samout(std::FILE * output_handle,
       fprint(record, '\t');
       fprint_integer(record, 255);
       fprint(record, '\t');
-      fprint(record, View<char>{cigar.data(), cigar.size()});
+      fprint(record, make_view(cigar));
       fprint(record, '\t');
       fprint(record, "*");
       fprint(record, '\t');
@@ -1152,7 +1152,7 @@ auto results_show_samout(std::FILE * output_handle,
       fprint(record, "\tNM:i:");
       fprint_integer(record, hp->mismatches + hp->internal_indels);
       fprint(record, "\tMD:Z:");
-      fprint(record, View<char>{md.data(), md.size()});
+      fprint(record, make_view(md));
       fprint(record, "\tYT:Z:");
       fprint(record, "UU");
       fprint(record, '\n');

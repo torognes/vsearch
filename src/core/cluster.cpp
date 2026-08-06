@@ -438,7 +438,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
           std::string const label = relabel_otu(clusterno,
                                                  db.sequence_view(static_cast<uint64_t>(best->target)),
                                                  state.parameters);
-          state.otutable.add(query_head, View<char>{label.c_str(), label.size()}, qsize);
+          state.otutable.add(query_head, make_view(label), qsize);
         }
       else
         {
@@ -551,7 +551,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
       if ((state.parameters.opt_relabel != nullptr) or state.parameters.opt_relabel_self or state.parameters.opt_relabel_sha1 or state.parameters.opt_relabel_md5)
         {
           std::string const label = relabel_otu(clusterno, qsequence, state.parameters);
-          state.otutable.add(query_head, View<char>{label.c_str(), label.size()}, qsize);
+          state.otutable.add(query_head, make_view(label), qsize);
         }
       else
         {
@@ -1157,9 +1157,9 @@ auto cluster(char const * dbname,
   fp_alnout = alnout_handle.get();
   if (fp_alnout != nullptr)
     {
-      fprint(fp_alnout, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(fp_alnout, make_view(parameters.command_line));
       fprint(fp_alnout, '\n');
-      fprint(fp_alnout, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+      fprint(fp_alnout, make_view(parameters.prog_header));
       fprint(fp_alnout, '\n');
     }
 
@@ -1526,7 +1526,7 @@ auto cluster(char const * dbname,
                (the seed's empty cigar sits at index 0, which msa() never
                parses) */
             auto const & cigar_string = clusterinfo_v[static_cast<std::size_t>(i)].cigar;
-            auto const cigar = View<char>{cigar_string.data(), cigar_string.size()};
+            auto const cigar = make_view(cigar_string);
             int const strand = clusterinfo_v[static_cast<std::size_t>(i)].strand;
 
             if (clusterno != lastcluster)
@@ -1747,7 +1747,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
         {
           result->cigar_truncated =
             copy_truncated(result->cigar,
-                           View<char>{best->nwalignment.data(), best->nwalignment.size()});
+                           make_view(best->nwalignment));
         }
     }
   else
@@ -1894,7 +1894,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
                 {
                   results[ri].cigar_truncated =
                     copy_truncated(results[ri].cigar,
-                                   View<char>{best->nwalignment.data(), best->nwalignment.size()});
+                                   make_view(best->nwalignment));
                 }
             }
           else

@@ -674,9 +674,9 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.fp_alnout = alnout_handle.get();
   if (state.fp_alnout != nullptr)
     {
-      fprint(state.fp_alnout, View<char>{parameters.command_line.data(), parameters.command_line.size()});
+      fprint(state.fp_alnout, make_view(parameters.command_line));
       fprint(state.fp_alnout, '\n');
-      fprint(state.fp_alnout, View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+      fprint(state.fp_alnout, make_view(parameters.prog_header));
       fprint(state.fp_alnout, '\n');
     }
   OutputFileHandle samout_handle = open_optional_output_file(parameters.opt_samout, OutputOption{"--samout"});

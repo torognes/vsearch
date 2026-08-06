@@ -283,7 +283,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
       if (parameters.opt_label_substr_match)
         {
           for (auto const & label: labels_data) {
-            auto const label_view = View<char>{label.data(), label.size()};
+            auto const label_view = make_view(label);
             if (contains_substring(header_view, label_view)) {
               return true;
             }
@@ -317,7 +317,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
         // without a trailing '\0', so the needle length must come from
         // label.size() and the search must be range-based; strlen and
         // strstr would read past the vector's storage
-        auto needle = View<char>{label.data(), label.size()};
+        auto needle = make_view(label);
         if (parameters.opt_label_field != nullptr)
           {
             std::copy(label.begin(), label.end(),

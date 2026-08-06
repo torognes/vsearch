@@ -218,13 +218,13 @@ namespace {
                     read_record const & record,
                     int64_t const ordinal,
                     struct Parameters const & parameters) -> void {
-    auto const sequence = View<char>{record.sequence.data(), record.sequence.size()};
-    auto const header = View<char>{record.header.data(), record.header.size()};
+    auto const sequence = make_view(record.sequence);
+    auto const header = make_view(record.header);
     if (destination.fastq.handle != nullptr) {
       fastq_print_general(destination.fastq.handle.get(),
                           sequence,
                           header,
-                          View<char>{record.quality.data(), record.quality.size()},
+                          make_view(record.quality),
                           static_cast<uint64_t>(record.abundance),
                           ordinal,
                           -1.0,

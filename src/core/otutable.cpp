@@ -283,7 +283,7 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
   for (auto const & it_sample : sample_set_)
     {
       fprint(output_handle, '\t');
-      fprint(output_handle, View<char>{it_sample.data(), it_sample.size()});
+      fprint(output_handle, make_view(it_sample));
     }
   if (not otu_tax_map_.empty())
     {
@@ -320,7 +320,7 @@ auto OtuTable::print_otutabout(std::FILE * output_handle, struct Parameters cons
             = otu_tax_map_.find(*it_otu);
           if (it != otu_tax_map_.end())
             {
-              fprint(output_handle, View<char>{it->second.data(), it->second.size()});
+              fprint(output_handle, make_view(it->second));
             }
         }
       fprint(output_handle, '\n');
@@ -395,7 +395,7 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
   fprint(output_handle, ' ');
   std::fputs(PROG_VERSION, output_handle);
   fprint(output_handle, "\",\n\t\"date\": \"");
-  fprint(output_handle, View<char>{date.data(), date.size()});
+  fprint(output_handle, make_view(date));
   fprint(output_handle, "\",\n\t\"matrix_type\": \"sparse\",\n\t\"matrix_element_type\": \"int\",\n\t\"shape\": [");
   fprint_integer(output_handle, rows);
   fprint(output_handle, ',');
@@ -428,7 +428,7 @@ auto OtuTable::print_biomout(std::FILE * output_handle, struct Parameters const 
           auto it = otu_tax_map_.find(otu_name);
           if (it != otu_tax_map_.end())
             {
-              fprint(output_handle, View<char>{it->second.data(), it->second.size()});
+              fprint(output_handle, make_view(it->second));
             }
           fprint(output_handle, "\"}");
         }

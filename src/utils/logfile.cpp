@@ -91,15 +91,15 @@ LogFile::LogFile(struct Parameters & parameters)
   handle = open_optional_output_file(parameters.opt_log, OutputOption{"--log"});
   parameters.fp_log = handle.get();
   log_file::set_handle(handle.get());
-  fprint(handle.get(), View<char>{parameters.prog_header.data(), parameters.prog_header.size()});
+  fprint(handle.get(), make_view(parameters.prog_header));
   fprint(handle.get(), '\n');
-  fprint(handle.get(), View<char>{parameters.command_line.data(), parameters.command_line.size()});
+  fprint(handle.get(), make_view(parameters.command_line));
   fprint(handle.get(), '\n');
 
   start_time = std::chrono::steady_clock::now();
   auto const started = iso8601_local_timestamp();
   fprint(handle.get(), "Started  ");
-  fprint(handle.get(), View<char>{started.data(), started.size()});
+  fprint(handle.get(), make_view(started));
   fprint(handle.get(), '\n');
 }
 
@@ -111,7 +111,7 @@ LogFile::~LogFile()
   auto const finished = iso8601_local_timestamp();
   fprint(handle.get(), '\n');
   fprint(handle.get(), "Finished ");
-  fprint(handle.get(), View<char>{finished.data(), finished.size()});
+  fprint(handle.get(), make_view(finished));
 
   constexpr auto seconds_per_minute = 60.0;
   double const time_diff =
