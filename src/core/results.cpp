@@ -68,6 +68,7 @@
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
@@ -996,7 +997,7 @@ auto results_show_samheader(std::FILE * output_handle,
       std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
         {
-          get_hex_seq_digest_md5(Span<char>{md5hex.data(), md5hex.size()},
+          get_hex_seq_digest_md5(make_span(md5hex),
                                  db.sequence_view(i));
           fprint(output_handle, "@SQ\tSN:");
           fprint(output_handle, db.header_view(i));

@@ -406,13 +406,13 @@ auto relabel_otu(int const clusterno, View<char> const sequence, struct Paramete
   if (parameters.opt_relabel_sha1)
     {
       std::array<char, len_hex_dig_sha1> digest {{}};
-      get_hex_seq_digest_sha1(Span<char>{digest.data(), digest.size()}, sequence);
+      get_hex_seq_digest_sha1(make_span(digest), sequence);
       return {digest.data()};
     }
   if (parameters.opt_relabel_md5)
     {
       std::array<char, len_hex_dig_md5> digest {{}};
-      get_hex_seq_digest_md5(Span<char>{digest.data(), digest.size()}, sequence);
+      get_hex_seq_digest_md5(make_span(digest), sequence);
       return {digest.data()};
     }
   return {};

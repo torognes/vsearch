@@ -226,7 +226,7 @@ auto allocate_buffer_for_reverse_strand_target(int const target_count,
   if (longest_reversed > 0)
     {
       rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed + 1));
-      return Span<char>{rc_buffer_v.data(), rc_buffer_v.size()};
+      return make_span(rc_buffer_v);
     }
   return {};
 }

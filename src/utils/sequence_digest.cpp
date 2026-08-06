@@ -125,7 +125,7 @@ auto get_hex_seq_digest_sha1(Span<char> const hex, View<char> const seq) -> void
   assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_sha1));
 
   std::vector<char> normalized(seq.size() + 1);
-  string_normalize(Span<char>{normalized.data(), normalized.size()}, seq);
+  string_normalize(make_span(normalized), seq);
 
   std::vector<unsigned char> digest(sha1_digest_length);
 
@@ -157,7 +157,7 @@ auto get_hex_seq_digest_md5(Span<char> const hex, View<char> const seq) -> void
   assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_md5));
 
   std::vector<char> normalized(seq.size() + 1);
-  string_normalize(Span<char>{normalized.data(), normalized.size()}, seq);
+  string_normalize(make_span(normalized), seq);
 
   std::vector<unsigned char> digest(md5_digest_length);
 
@@ -177,7 +177,7 @@ auto get_hex_seq_digest_md5(Span<char> const hex, View<char> const seq) -> void
 auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> const seq) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_sha1);
-  get_hex_seq_digest_sha1(Span<char>{hex_digest.data(), hex_digest.size()}, seq);
+  get_hex_seq_digest_sha1(make_span(hex_digest), seq);
   std::fputs(hex_digest.data(), output_handle);
 }
 
@@ -185,6 +185,6 @@ auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> const seq) -> 
 auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> const seq) -> void
 {
   std::vector<char> hex_digest(len_hex_dig_md5);
-  get_hex_seq_digest_md5(Span<char>{hex_digest.data(), hex_digest.size()}, seq);
+  get_hex_seq_digest_md5(make_span(hex_digest), seq);
   std::fputs(hex_digest.data(), output_handle);
 }
