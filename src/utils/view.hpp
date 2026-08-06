@@ -215,3 +215,38 @@ private:
   Type const * start_ {};
   std::size_t  length_ {};
 };
+
+
+// A View over a whole container, with the element type deduced so that
+// call sites neither spell it out nor reach for data():
+//
+//   make_view(cigar_string_)
+//
+// rather than
+//
+//   View<char>{cigar_string_.data(), cigar_string_.size()}
+//
+// A prefix or an interior slice comes from composing with the members
+// that already exist -- make_view(vec).first(count), or
+// make_view(vec).subspan(offset, count), which also carries the bounds
+// assertions that an open-coded &vec[offset] cannot. That composition is
+// why there is no offset/count overload here.
+//
+// noexcept: the containers this is called with (std::vector, std::array,
+// std::string) all have noexcept data() and size(), so the only other
+// operation left is View's noexcept constructor. A container whose
+// accessors can throw is not a supported argument.
+//
+// constexpr: what C++11 requires of a constexpr function is the shape of
+// the declaration, not that every call can be folded -- one return
+// statement, a literal return type (View has an implicitly constexpr
+// defaulted default constructor and two literal members), and literal
+// parameter types (a reference type is one). No standard container has a
+// constexpr data() before C++17, so under C++11 the specializations used
+// here are simply not constant expressions; the keyword costs nothing and
+// starts working the day the standard level moves.
+template <typename Container>
+constexpr auto make_view(Container const & container) noexcept
+  -> View<typename Container::value_type> {
+  return View<typename Container::value_type>{container.data(), container.size()};
+}
