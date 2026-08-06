@@ -61,8 +61,10 @@
 #include "vsearch.hpp"
 #include "core/db.hpp"
 #include "core/fasta.hpp"
+#include "utils/median.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
+#include "utils/view.hpp"
 #include <algorithm>  // std::min, std::sort
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
@@ -132,40 +134,12 @@ namespace {
   }
 
 
-  // refactoring C++17 [[nodiscard]]
-  auto find_median_abundance(std::vector<sortinfo_size_s> const & deck) noexcept -> double
-  {
-    // function returns a round value or a value with a remainder of 0.5
-    static constexpr double half = 0.5;
-
-    if (deck.empty()) {
-      return 0.0;
-    }
-
-    // refactoring C++11: use const& std::vector.size()
-    // plain division on std::size_t: ldiv would have needed a narrowing cast
-    // to long (32-bit on the Windows target), and its remainder is recomputed
-    // with % just below anyway
-    auto const mid = deck.size() / 2;
-
-    // odd number of valid amplicons
-    if (deck.size() % 2 != 0)  {
-      return static_cast<double>(deck[mid].size);  // a round value
-    }
-
-    // even number of valid amplicons
-    // (average of two ints is either round or has a remainder of .5)
-    // avoid risk of silent overflow for large abundance values:
-    // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return static_cast<double>(deck[mid].size) +
-      (static_cast<double>(deck[mid - 1].size - deck[mid].size) * half);
-  }
-
-
   auto output_median_abundance(std::vector<sortinfo_size_s> const & deck,
                                struct Parameters const & parameters) -> void {
     // Banker's rounding (round half to even)
-    auto const median = find_median_abundance(deck);
+    auto const median = median_of_descending(
+        make_view(deck),
+        [](sortinfo_size_s const & entry) { return entry.size; });
     if (not parameters.opt_quiet) {
       static_cast<void>(std::fprintf(stderr, "Median abundance: %.0f\n", median));
     }

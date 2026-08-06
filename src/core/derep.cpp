@@ -69,6 +69,7 @@
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/median.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/seqcmp.hpp"
@@ -159,36 +160,6 @@ namespace {
                                         size_in_range);
     return std::min(static_cast<uint64_t>(selected),
                     static_cast<uint64_t>(parameters.opt_topn));
-  }
-
-
-  // refactoring: same as find_median_abundance()
-  auto find_median_size(std::vector<struct bucket> const & hashtable, uint64_t const num_used) -> double {
-    static constexpr auto half = 0.5;
-    if (num_used == 0) {
-      return 0.0;
-    }
-    // plain division on the uint64_t count. ldiv would have needed a narrowing
-    // cast to long (32-bit on the Windows target), its remainder is recomputed
-    // with % just below anyway, and its quotient came back signed and so had to
-    // be converted again at each subscript -- num_used / 2 is already unsigned.
-    auto const midpoint = num_used / 2;
-    auto const is_odd = ((num_used % 2) != 0U);
-    if (is_odd) {
-      // index is zero-based, so if size == 3, midpoint == 1
-      return static_cast<double>(hashtable[midpoint].size);
-    }
-    // pair number of elements:
-    // index is zero-based, so if size == 4, midpoint == 2, lhs index == 1
-    auto const lhs_index = midpoint - 1;
-    auto const rhs_index = midpoint;
-    auto const lhs_size = hashtable[lhs_index].size;
-    auto const rhs_size = hashtable[rhs_index].size;
-    // sorted by decreasing abundance: lhs size > rhs size
-    // limit risk of integer additon overflow:
-    // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return static_cast<double>(rhs_size)
-      + (static_cast<double>(lhs_size - rhs_size) * half);
   }
 
 
@@ -1082,7 +1053,9 @@ auto derep(struct Parameters const & parameters, char const * input_filename, De
     std::sort(hashtable.begin(), hashtable.end(), derep_bucket_before);
   }
 
-  auto const median = find_median_size(hashtable, stats.clusters);
+  auto const median = median_of_descending(
+      make_view(hashtable).first(static_cast<std::size_t>(stats.clusters)),
+      [](struct bucket const & entry) { return entry.size; });
   auto const average = 1.0 * static_cast<double>(stats.sumsize) / static_cast<double>(stats.clusters);
   report_unique_summary(stats, average, median, parameters);
 
