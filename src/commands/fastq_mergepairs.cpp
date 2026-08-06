@@ -306,9 +306,9 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
   if (state.parameters.opt_fastqout != nullptr)
     {
       fastq_print_general(state.fp_fastqout,
-                          View<char>{a_read_pair.merged_sequence.data(), static_cast<std::size_t>(a_read_pair.merged_length)},
-                          View<char>{a_read_pair.fwd_header.data(), static_cast<std::size_t>(a_read_pair.fwd_header_length)},
-                          View<char>{a_read_pair.merged_quality_v.data(), static_cast<std::size_t>(a_read_pair.merged_length)},
+                          make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
+                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
+                          make_view(a_read_pair.merged_quality_v).first(static_cast<std::size_t>(a_read_pair.merged_length)),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.merged,
                           a_read_pair.ee_merged,
@@ -319,8 +319,8 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
     {
       fasta_print_general(state.fp_fastaout,
                           nullptr,
-                          View<char>{a_read_pair.merged_sequence.data(), static_cast<std::size_t>(a_read_pair.merged_length)},
-                          View<char>{a_read_pair.fwd_header.data(), static_cast<std::size_t>(a_read_pair.fwd_header_length)},
+                          make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
+                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.merged,
                           a_read_pair.ee_merged,
@@ -419,9 +419,9 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
   if (state.parameters.opt_fastqout_notmerged_fwd != nullptr)
     {
       fastq_print_general(state.fp_fastqout_notmerged_fwd,
-                          View<char>{a_read_pair.fwd_sequence.data(), static_cast<std::size_t>(a_read_pair.fwd_length)},
-                          View<char>{a_read_pair.fwd_header.data(), static_cast<std::size_t>(a_read_pair.fwd_header_length)},
-                          View<char>{a_read_pair.fwd_quality.data(), static_cast<std::size_t>(a_read_pair.fwd_length)},
+                          make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
+                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
+                          make_view(a_read_pair.fwd_quality).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.notmerged,
                           -1.0,
@@ -431,9 +431,9 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
   if (state.parameters.opt_fastqout_notmerged_rev != nullptr)
     {
       fastq_print_general(state.fp_fastqout_notmerged_rev,
-                          View<char>{a_read_pair.rev_sequence.data(), static_cast<std::size_t>(a_read_pair.rev_length)},
-                          View<char>{a_read_pair.rev_header.data(), static_cast<std::size_t>(a_read_pair.rev_header_length)},
-                          View<char>{a_read_pair.rev_quality.data(), static_cast<std::size_t>(a_read_pair.rev_length)},
+                          make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
+                          make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
+                          make_view(a_read_pair.rev_quality).first(static_cast<std::size_t>(a_read_pair.rev_length)),
                           static_cast<uint64_t>(a_read_pair.rev_abundance),
                           state.notmerged,
                           -1.0,
@@ -444,8 +444,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
     {
       fasta_print_general(state.fp_fastaout_notmerged_fwd,
                           nullptr,
-                          View<char>{a_read_pair.fwd_sequence.data(), static_cast<std::size_t>(a_read_pair.fwd_length)},
-                          View<char>{a_read_pair.fwd_header.data(), static_cast<std::size_t>(a_read_pair.fwd_header_length)},
+                          make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
+                          make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
                           static_cast<uint64_t>(a_read_pair.fwd_abundance),
                           state.notmerged,
                           -1.0,
@@ -459,8 +459,8 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
     {
       fasta_print_general(state.fp_fastaout_notmerged_rev,
                           nullptr,
-                          View<char>{a_read_pair.rev_sequence.data(), static_cast<std::size_t>(a_read_pair.rev_length)},
-                          View<char>{a_read_pair.rev_header.data(), static_cast<std::size_t>(a_read_pair.rev_header_length)},
+                          make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
+                          make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
                           static_cast<uint64_t>(a_read_pair.rev_abundance),
                           state.notmerged,
                           -1.0,
