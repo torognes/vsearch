@@ -221,8 +221,8 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
     {
       return false;
     }
-  auto const result = View<char>{lhs.header.data(), lhs.header.size()}
-                        .compare(View<char>{rhs.header.data(), rhs.header.size()});
+  auto const result = make_view(lhs.header)
+                        .compare(make_view(rhs.header));
   if (result != 0)
     {
       return result < 0;
@@ -263,8 +263,8 @@ namespace {
               ++relabel_count;
               fasta_print_general(fp_fastaout,
                                   nullptr,
-                                  View<char>{cluster.seq.data(), cluster.seq.size()},
-                                  View<char>{cluster.header.data(), cluster.header.size()},
+                                  make_view(cluster.seq),
+                                  make_view(cluster.header),
                                   static_cast<uint64_t>(size),
                                   relabel_count,
                                   -1.0,
@@ -298,9 +298,9 @@ namespace {
             {
               ++relabel_count;
               fastq_print_general(fp_fastqout,
-                                  View<char>{cluster.seq.data(), cluster.seq.size()},
-                                  View<char>{cluster.header.data(), cluster.header.size()},
-                                  View<char>{cluster.qual.data(), cluster.qual.size()},
+                                  make_view(cluster.seq),
+                                  make_view(cluster.header),
+                                  make_view(cluster.qual),
                                   static_cast<uint64_t>(size),
                                   relabel_count,
                                   -1.0,
@@ -336,7 +336,7 @@ namespace {
           fprint(fp_uc, '\t');
           fprint_integer(fp_uc, len);
           fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
-          fprint(fp_uc, View<char>{cluster.header.data(), cluster.header.size()});
+          fprint(fp_uc, make_view(cluster.header));
           fprint(fp_uc, "\t*\n");
 
           for (auto next = nextseqtab[cluster.seqno_first];
@@ -352,9 +352,9 @@ namespace {
               fprint(fp_uc, '\t');
               std::fputs(((match_strand[next] != 0) ? "-" : "+"), fp_uc);
               fprint(fp_uc, "\t0\t0\t*\t");
-              fprint(fp_uc, View<char>{headertab[next].data(), headertab[next].size()});
+              fprint(fp_uc, make_view(headertab[next]));
               fprint(fp_uc, '\t');
-              fprint(fp_uc, View<char>{cluster.header.data(), cluster.header.size()});
+              fprint(fp_uc, make_view(cluster.header));
               fprint(fp_uc, '\n');
             }
 
@@ -372,7 +372,7 @@ namespace {
           fprint(fp_uc, '\t');
           fprint_integer(fp_uc, cluster.size);
           fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
-          fprint(fp_uc, View<char>{cluster.header.data(), cluster.header.size()});
+          fprint(fp_uc, make_view(cluster.header));
           fprint(fp_uc, "\t*\n");
           progress.update(i);
         }
@@ -394,7 +394,7 @@ namespace {
           auto const & cluster = hashtable[i];
 
           if (parameters.opt_relabel != nullptr) {
-            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, make_view(cluster.header));
             fprint(fp_tabbedout, '\t');
             std::fputs(parameters.opt_relabel, fp_tabbedout);
             fprint_integer(fp_tabbedout, i + 1);
@@ -405,12 +405,12 @@ namespace {
             fprint(fp_tabbedout, '\t');
             fprint_integer(fp_tabbedout, cluster.count);
             fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, make_view(cluster.header));
             fprint(fp_tabbedout, '\n');
           } else {
-            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, make_view(cluster.header));
             fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, make_view(cluster.header));
             fprint(fp_tabbedout, '\t');
             fprint_integer(fp_tabbedout, i);
             fprint(fp_tabbedout, '\t');
@@ -418,7 +418,7 @@ namespace {
             fprint(fp_tabbedout, '\t');
             fprint_integer(fp_tabbedout, cluster.count);
             fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+            fprint(fp_tabbedout, make_view(cluster.header));
             fprint(fp_tabbedout, '\n');
           }
 
@@ -428,7 +428,7 @@ namespace {
                next = nextseqtab[next])
             {
               if (parameters.opt_relabel != nullptr) {
-                fprint(fp_tabbedout, View<char>{headertab[next].data(), headertab[next].size()});
+                fprint(fp_tabbedout, make_view(headertab[next]));
                 fprint(fp_tabbedout, '\t');
                 std::fputs(parameters.opt_relabel, fp_tabbedout);
                 fprint_integer(fp_tabbedout, i + 1);
@@ -439,12 +439,12 @@ namespace {
                 fprint(fp_tabbedout, '\t');
                 fprint_integer(fp_tabbedout, cluster.count);
                 fprint(fp_tabbedout, '\t');
-                fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+                fprint(fp_tabbedout, make_view(cluster.header));
                 fprint(fp_tabbedout, '\n');
               } else {
-                fprint(fp_tabbedout, View<char>{headertab[next].data(), headertab[next].size()});
+                fprint(fp_tabbedout, make_view(headertab[next]));
                 fprint(fp_tabbedout, '\t');
-                fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+                fprint(fp_tabbedout, make_view(cluster.header));
                 fprint(fp_tabbedout, '\t');
                 fprint_integer(fp_tabbedout, i);
                 fprint(fp_tabbedout, '\t');
@@ -452,7 +452,7 @@ namespace {
                 fprint(fp_tabbedout, '\t');
                 fprint_integer(fp_tabbedout, cluster.count);
                 fprint(fp_tabbedout, '\t');
-                fprint(fp_tabbedout, View<char>{cluster.header.data(), cluster.header.size()});
+                fprint(fp_tabbedout, make_view(cluster.header));
                 fprint(fp_tabbedout, '\n');
               }
               ++j;
@@ -683,7 +683,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         while ((bp->size != 0U) and
                ((hash != bp->hash) or
                 (seqcmp(seq_up_v, View<char>{bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
-                (use_header and (header_v != View<char>{bp->header.data(), bp->header.size()}))))
+                (use_header and (header_v != make_view(bp->header)))))
           {
             j = (j + 1) & hash_mask;
             bp = &hashtable[j];
@@ -703,7 +703,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                    and
                    ((rc_hash != rc_bp->hash) or
                     (seqcmp(rc_seq_up_v, View<char>{rc_bp->seq.data(), static_cast<std::size_t>(seqlen)}) != 0) or
-                    (use_header and (header_v != View<char>{rc_bp->header.data(), rc_bp->header.size()}))))
+                    (use_header and (header_v != make_view(rc_bp->header)))))
               {
                 k = (k + 1) & hash_mask;
                 rc_bp = &hashtable[k];
