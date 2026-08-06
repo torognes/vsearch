@@ -60,7 +60,7 @@
 
 #include "logfile.hpp"
 #include "print_view.hpp"  // fprint
-#include "view.hpp"  // View<char>
+#include "view.hpp"  // make_view
 #include "vsearch.hpp"  // struct Parameters
 #include "open_file.hpp"  // open_optional_output_file, OutputOption
 #include "os/system.hpp"  // system_get_memused
