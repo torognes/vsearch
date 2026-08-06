@@ -298,7 +298,7 @@ namespace {
     assert(destination.size() > source.size());
     std::copy(source.cbegin(), source.cend(), destination.begin());
     destination[source.size()] = '\0';
-    return View<char>{destination.data(), source.size()};
+    return make_view(destination).first(source.size());
   }
 
   /* Store a label in one of the library result struct's fixed-size char
@@ -418,7 +418,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
       for (auto & query_info: chimera_info->si)
         {
           query_info.qsequence_v.resize(static_cast<size_t>(maxpartlen) + 1);
-          query_info.qsequence = Span<char>{query_info.qsequence_v.data(), 0};
+          query_info.qsequence = make_span(query_info.qsequence_v).first(0);
         }
       chimera_info->part_alloc = maxpartlen;
     }
@@ -832,7 +832,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
   auto const count = static_cast<size_t>(chimera_info->parents_found);
   assert(count <= chimera_info->best_parents.size());
-  auto const best_parents_view = Span<int>{chimera_info->best_parents.data(), count};
+  auto const best_parents_view = make_span(chimera_info->best_parents).first(count);
   for (auto const best_parent : best_parents_view) {
     auto pos = 0LL;
     auto const & cigar = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
@@ -2040,7 +2040,7 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
       search_info.qsequence_v[static_cast<size_t>(length)] = '\0';
-      search_info.qsequence = Span<char>{search_info.qsequence_v.data(), static_cast<std::size_t>(length)};
+      search_info.qsequence = make_span(search_info.qsequence_v).first(static_cast<std::size_t>(length));
 
       rest -= length;
       cursor = std::next(cursor, length);
@@ -2160,7 +2160,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* align full query to each candidate */
 
-  search16_qprep(ci->s, View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)});
+  search16_qprep(ci->s, make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)));
 
   search16(ci->s,
            static_cast<unsigned int>(ci->cand_count),
@@ -2190,8 +2190,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              linear memory aligner */
 
           auto const tseq = db.sequence_view(static_cast<uint64_t>(target));
-          auto const qseq = View<char>{ci->query_seq.data(),
-                                       static_cast<std::size_t>(ci->query_len)};
+          auto const qseq = make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len));
 
           nwcigar = lma.align(qseq, tseq);
           lma.alignstats(nwcigar.c_str(),
@@ -2335,7 +2334,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             fasta_print_general(state.fp_chimeras,
                                 nullptr,
-                                View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)},
+                                make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
                                 ci->query_head,
                                 static_cast<uint64_t>(ci->query_size),
                                 state.chimera_count,
@@ -2361,7 +2360,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             fasta_print_general(state.fp_borderline,
                                 nullptr,
-                                View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)},
+                                make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
                                 ci->query_head,
                                 static_cast<uint64_t>(ci->query_size),
                                 state.borderline_count,
@@ -2409,7 +2408,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             fasta_print_general(state.fp_nonchimeras,
                                 nullptr,
-                                View<char>{ci->query_seq.data(), static_cast<std::size_t>(ci->query_len)},
+                                make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
                                 ci->query_head,
                                 static_cast<uint64_t>(ci->query_size),
                                 state.nonchimera_count,

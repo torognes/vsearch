@@ -206,12 +206,12 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 
   auto const seqlen = si->qsequence.size();
   std::vector<char> normalized(seqlen + 1);
-  string_normalize(Span<char>{normalized.data(), seqlen + 1},
+  string_normalize(make_span(normalized),
                    View<char>{si->qsequence});
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash.search_first(View<char>{normalized.data(), seqlen}, & info, *si->db);
+  int64_t ret = dbhash.search_first(make_view(normalized).first(seqlen), & info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
@@ -507,10 +507,10 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     state.si_plus[t].query_head_v.resize(qhead.size() + 1);
     std::copy(qhead.cbegin(), qhead.cend(), state.si_plus[t].query_head_v.begin());
     state.si_plus[t].query_head_v[qhead.size()] = '\0';
-    state.si_plus[t].query_head = View<char>{state.si_plus[t].query_head_v.data(), qhead.size()};
+    state.si_plus[t].query_head = make_view(state.si_plus[t].query_head_v).first(qhead.size());
     std::copy(qseq.cbegin(), qseq.cend(), state.si_plus[t].qsequence_v.begin());
     state.si_plus[t].qsequence_v[qseq.size()] = '\0';
-    state.si_plus[t].qsequence = Span<char>{state.si_plus[t].qsequence_v.data(), qseq.size()};
+    state.si_plus[t].qsequence = make_span(state.si_plus[t].qsequence_v).first(qseq.size());
 
     /* get progress as amount of input file read */
     progress = state.query_fastx_h->get_position();
@@ -522,10 +522,10 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     if (parameters.opt_strand)
       {
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
-        state.si_minus[t].query_head = View<char>{state.si_minus[t].query_head_v.data(), state.si_plus[t].query_head.size()};
-        reverse_complement(Span<char>{state.si_minus[t].qsequence_v.data(), state.si_plus[t].qsequence.size() + 1},
+        state.si_minus[t].query_head = make_view(state.si_minus[t].query_head_v).first(state.si_plus[t].query_head.size());
+        reverse_complement(make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size() + 1),
                            View<char>{state.si_plus[t].qsequence});
-        state.si_minus[t].qsequence = Span<char>{state.si_minus[t].qsequence_v.data(), state.si_plus[t].qsequence.size()};
+        state.si_minus[t].qsequence = make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size());
       }
 
     int const match = search_exact_query(t, state);

@@ -578,10 +578,10 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     si_plus[t].query_head_v.resize(qhead.size() + 1);
     std::copy(qhead.cbegin(), qhead.cend(), si_plus[t].query_head_v.begin());
     si_plus[t].query_head_v[qhead.size()] = '\0';
-    si_plus[t].query_head = View<char>{si_plus[t].query_head_v.data(), qhead.size()};
+    si_plus[t].query_head = make_view(si_plus[t].query_head_v).first(qhead.size());
     std::copy(qseq.cbegin(), qseq.cend(), si_plus[t].qsequence_v.begin());
     si_plus[t].qsequence_v[qseq.size()] = '\0';
-    si_plus[t].qsequence = Span<char>{si_plus[t].qsequence_v.data(), qseq.size()};
+    si_plus[t].qsequence = make_span(si_plus[t].qsequence_v).first(qseq.size());
 
     /* get progress as amount of input file read */
     progress = query_fastx_h->get_position();
@@ -593,10 +593,10 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     if (state.parameters.opt_strand)
       {
         si_minus[t].query_head_v = si_plus[t].query_head_v;
-        si_minus[t].query_head = View<char>{si_minus[t].query_head_v.data(), si_plus[t].query_head.size()};
-        reverse_complement(Span<char>{si_minus[t].qsequence_v.data(), si_plus[t].qsequence.size() + 1},
+        si_minus[t].query_head = make_view(si_minus[t].query_head_v).first(si_plus[t].query_head.size());
+        reverse_complement(make_span(si_minus[t].qsequence_v).first(si_plus[t].qsequence.size() + 1),
                            View<char>{si_plus[t].qsequence});
-        si_minus[t].qsequence = Span<char>{si_minus[t].qsequence_v.data(), si_plus[t].qsequence.size()};
+        si_minus[t].qsequence = make_span(si_minus[t].qsequence_v).first(si_plus[t].qsequence.size());
       }
 
     sintax_query(state, t);
