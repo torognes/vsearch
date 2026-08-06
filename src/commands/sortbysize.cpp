@@ -65,7 +65,7 @@
 #include "utils/progress.hpp"
 #include <algorithm>  // std::min, std::sort
 #include <cassert>
-#include <cstdint>  // int64_t
+#include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <vector>
 
@@ -79,7 +79,11 @@ namespace {
 
   struct sortinfo_size_s
   {
-    unsigned int size = 0;
+    /* abundance, as wide as the ;size= annotation it comes from
+       (Database::getabundance() returns uint64_t). A 32-bit field truncated
+       any annotation above 4294967295 silently, which sorted the most
+       abundant sequences to the bottom and skewed the reported median. */
+    uint64_t size = 0;
     unsigned int seqno = 0;
   };
 
@@ -91,12 +95,14 @@ namespace {
     Progress progress("Getting sizes", deck.size(), parameters);
     auto counter = std::size_t{0};
     for (auto seqno = 0U; seqno < dbsequencecount; ++seqno) {
-      auto const size = static_cast<int64_t>(db.getabundance(seqno));
+      auto const abundance = db.getabundance(seqno);
+      /* compared as int64_t, the type of the two bounds */
+      auto const size = static_cast<int64_t>(abundance);
       if ((size < parameters.opt_minsize) or (size > parameters.opt_maxsize)) {
         continue;
       }
       deck[counter].seqno = seqno;
-      deck[counter].size = static_cast<unsigned int>(size);
+      deck[counter].size = abundance;
       progress.update(seqno);
       ++counter;
     }
@@ -144,15 +150,15 @@ namespace {
 
     // odd number of valid amplicons
     if (deck.size() % 2 != 0)  {
-      return deck[mid].size * 1.0;  // a round value
+      return static_cast<double>(deck[mid].size);  // a round value
     }
 
     // even number of valid amplicons
     // (average of two ints is either round or has a remainder of .5)
     // avoid risk of silent overflow for large abundance values:
     // a >= b ; (a + b) / 2 == b + (a - b) / 2
-    return deck[mid].size +
-      ((deck[mid - 1].size - deck[mid].size) * half);
+    return static_cast<double>(deck[mid].size) +
+      (static_cast<double>(deck[mid - 1].size - deck[mid].size) * half);
   }
 
 
