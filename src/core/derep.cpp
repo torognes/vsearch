@@ -112,7 +112,6 @@ namespace {
     uint64_t size = 0;
     unsigned int count = 0;
     unsigned int seqlen = 0;  /* sequence length (used by API to avoid strlen) */
-    bool deleted = false;
     std::string header;
     std::string seq;
     std::string qual;  /* empty when FASTA (no quality) */
@@ -199,15 +198,6 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
 {
   /* highest abundance first, then by label, otherwise keep order */
 
-  if (lhs.deleted and not rhs.deleted)  // refactoring: deleted is always set to false for derep_fulllength
-    {
-      return false;
-    }
-  if (not lhs.deleted and rhs.deleted)  // refactoring: deleted is always set to false for derep_fulllength
-    {
-      return true;
-    }
-  // same status
   if (lhs.size < rhs.size)
     {
       return false;
