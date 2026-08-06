@@ -134,7 +134,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
           }
 
         auto const * p = input_handle->get_sequence();
-        reverse_complement(Span<char>{seq_buffer.data(), static_cast<std::size_t>(length) + 1}, View<char>{p, static_cast<std::size_t>(length)});
+        reverse_complement(make_span(seq_buffer).first(static_cast<std::size_t>(length) + 1), View<char>{p, static_cast<std::size_t>(length)});
 
 
         /* quality values */
@@ -155,7 +155,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
           {
             fasta_print_general(fp_fastaout,
                                 nullptr,
-                                View<char>{seq_buffer.data(), static_cast<std::size_t>(length)},
+                                make_view(seq_buffer).first(static_cast<std::size_t>(length)),
                                 View<char>{header, static_cast<std::size_t>(hlen)},
                                 static_cast<uint64_t>(abundance),
                                 count,
@@ -168,9 +168,9 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         if (parameters.opt_fastqout != nullptr)
           {
             fastq_print_general(fp_fastqout,
-                                View<char>{seq_buffer.data(), static_cast<std::size_t>(length)},
+                                make_view(seq_buffer).first(static_cast<std::size_t>(length)),
                                 View<char>{header, static_cast<std::size_t>(hlen)},
-                                View<char>{qual_buffer.data(), static_cast<std::size_t>(length)},
+                                make_view(qual_buffer).first(static_cast<std::size_t>(length)),
                                 static_cast<uint64_t>(abundance),
                                 count,
                                 -1.0,

@@ -189,8 +189,8 @@ auto Dbhash::add_all(struct Database const & db, struct Parameters const & param
   for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
       auto const sequence = db.sequence_view(seqno);
-      string_normalize(Span<char>{normalized.data(), sequence.size() + 1}, sequence);
-      add(View<char>{normalized.data(), sequence.size()}, seqno, db);
+      string_normalize(make_span(normalized).first(sequence.size() + 1), sequence);
+      add(make_view(normalized).first(sequence.size()), seqno, db);
       progress.update(seqno + 1);
     }
 }

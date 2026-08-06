@@ -112,7 +112,7 @@ auto populate_si(struct searchinfo_s * si,
   si->query_head_v.resize(head.size() + 1);
   std::copy(head.cbegin(), head.cend(), si->query_head_v.begin());
   si->query_head_v[head.size()] = '\0';
-  si->query_head = View<char>{si->query_head_v.data(), head.size()};
+  si->query_head = make_view(si->query_head_v).first(head.size());
 
   /* copy or reverse-complement sequence into the owned buffer, then point the
      span at it (length == seq.size(); the NUL at [seq.size()] sits just past
@@ -124,9 +124,9 @@ auto populate_si(struct searchinfo_s * si,
     }
   else
     {
-      reverse_complement(Span<char>{si->qsequence_v.data(), seq.size() + 1}, seq);
+      reverse_complement(make_span(si->qsequence_v).first(seq.size() + 1), seq);
     }
-  si->qsequence = Span<char>{si->qsequence_v.data(), seq.size()};
+  si->qsequence = make_span(si->qsequence_v).first(seq.size());
 }
 
 

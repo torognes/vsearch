@@ -248,7 +248,7 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
 
   fasta_print_general(fp_msaout,
                       header_prefix,
-                      View<char>{aln_v.data(), aln_v.size() - 1},
+                      make_view(aln_v).first(aln_v.size() - 1),
                       db.header_view(static_cast<uint64_t>(target_seqno)),
                       db.getabundance(static_cast<uint64_t>(target_seqno)),
                       0, -1.0, -1, -1, nullptr, 0.0, 0, parameters);
@@ -259,7 +259,7 @@ auto reverse_complement_target_if_need_be(int const strand, Span<char> const rc_
                                           View<char> const target_seq) -> View<char> {
   if (strand == 0) { return target_seq; }
   reverse_complement(rc_buffer.first(target_seq.size() + 1), target_seq);
-  return View<char>{rc_buffer.data(), target_seq.size()};
+  return View<char>{rc_buffer.first(target_seq.size())};
 }
 
 
@@ -505,7 +505,7 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
   if (fp_consout == nullptr) { return ; }
   fasta_print_general(fp_consout,
                       "centroid=",
-                      View<char>{cons_v.data(), cons_v.size() - 1},  // exclude the '\0' terminator slot
+                      make_view(cons_v).first(cons_v.size() - 1),  // exclude the '\0' terminator slot
                       db.header_view(static_cast<uint64_t>(centroid_seqno)),
                       static_cast<uint64_t>(totalabundance),
                       cluster + 1,

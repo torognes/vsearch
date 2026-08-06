@@ -306,7 +306,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
         {
           std::copy(needle.begin(), needle.end(),
                     std::next(field_buffer.begin(), static_cast<std::ptrdiff_t>(field_len) + 1));
-          needle = View<char>{field_buffer.data(), field_len + 1 + needle.size()};
+          needle = make_view(field_buffer).first(field_len + 1 + needle.size());
         }
       return matches_delimited(header_view, needle, boundary);
     }
@@ -322,7 +322,7 @@ auto test_label_match(fastx_handle input_handle, struct Parameters const & param
           {
             std::copy(label.begin(), label.end(),
                       std::next(field_buffer.begin(), static_cast<std::ptrdiff_t>(field_len) + 1));
-            needle = View<char>{field_buffer.data(), field_len + 1 + label.size()};
+            needle = make_view(field_buffer).first(field_len + 1 + label.size());
           }
         if (matches_delimited(header_view, needle, boundary)) {
           return true;

@@ -408,10 +408,8 @@ auto optimize(merge_data_t & a_read_pair,
 
   std::vector<int> diags(static_cast<std::size_t>(a_read_pair.fwd_trunc + a_read_pair.rev_trunc), 0);
 
-  kh_insert_kmers(kmerhash, k, View<char>{a_read_pair.fwd_sequence.data(),
-                                          static_cast<std::size_t>(a_read_pair.fwd_trunc)});
-  kh_find_diagonals(kmerhash, k, View<char>{a_read_pair.rev_sequence.data(),
-                                           static_cast<std::size_t>(a_read_pair.rev_trunc)},
+  kh_insert_kmers(kmerhash, k, make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_trunc)));
+  kh_find_diagonals(kmerhash, k, make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_trunc)),
                     diags);
 
   for (int64_t i = i1; i <= i2; i++)

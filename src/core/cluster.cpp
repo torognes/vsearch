@@ -210,13 +210,13 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
   auto const seqlen = db.getsequencelen(useqno);
   if (si->strand != 0)
     {
-      reverse_complement(Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seqlen) + 1}, db.sequence_view(useqno));
+      reverse_complement(make_span(si->qsequence_v).first(static_cast<std::size_t>(seqlen) + 1), db.sequence_view(useqno));
     }
   else
     {
       std::copy_n(db.getsequence(useqno), static_cast<std::size_t>(seqlen) + 1, si->qsequence_v.data());
     }
-  si->qsequence = Span<char>{si->qsequence_v.data(), static_cast<std::size_t>(seqlen)};
+  si->qsequence = make_span(si->qsequence_v).first(static_cast<std::size_t>(seqlen));
 
   /* perform search */
   search_onequery(si, parameters.opt_qmask);
@@ -245,7 +245,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si->seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
   si->qsequence_v.resize(static_cast<std::size_t>(si->seq_alloc));
-  si->qsequence = Span<char>{si->qsequence_v.data(), 0};
+  si->qsequence = make_span(si->qsequence_v).first(0);
 
   si->kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
   si->kmers_v.resize(static_cast<std::size_t>(seqcount));

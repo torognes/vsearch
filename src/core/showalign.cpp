@@ -236,7 +236,7 @@ namespace {
     fprint(record, ' ');
     fprint(record, alignment.is_reverse_strand ? '-' : '+');
     fprint(record, ' ');
-    fprint(record, View<char>{rows.query.data(), row_length});
+    fprint(record, make_view(rows.query).first(row_length));
     fprint(record, ' ');
     fprint_integer(record, query_end);
     fprint(record, '\n');
@@ -245,14 +245,14 @@ namespace {
     fprint(record, ' ');
     fprint_spaces(record, static_cast<std::size_t>(std::max(alignment.poswidth, 0)));
     fprint(record, "   ");
-    fprint(record, View<char>{rows.symbols.data(), row_length});
+    fprint(record, make_view(rows.symbols).first(row_length));
     fprint(record, '\n');
 
     print_padded(record, alignment.target.name, alignment.headwidth);
     fprint(record, ' ');
     fprint_integer(record, target_start, static_cast<std::size_t>(alignment.poswidth));
     fprint(record, " + ");
-    fprint(record, View<char>{rows.target.data(), row_length});
+    fprint(record, make_view(rows.target).first(row_length));
     fprint(record, ' ');
     fprint_integer(record, target_end);
     fprint(record, '\n');

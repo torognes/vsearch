@@ -107,7 +107,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
       fastq_print_general(output_handle.get(),
                           fp_input->sequence_view(),
                           fp_input->header_view(),
-                          View<char>{quality.data(), length},
+                          make_view(quality).first(length),
                           static_cast<uint64_t>(fp_input->get_abundance()),
                           counter,
                           -1.0,

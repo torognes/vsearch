@@ -337,8 +337,8 @@ auto orient(struct Parameters const & parameters) -> void
 
             /* get reverse complementary sequence */
 
-            reverse_complement(Span<char>{qseq_rev.data(), query_sequence.size() + 1}, query_sequence);
-            auto const rc_sequence = View<char>{qseq_rev.data(), query_sequence.size()};
+            reverse_complement(make_span(qseq_rev).first(query_sequence.size() + 1), query_sequence);
+            auto const rc_sequence = make_view(qseq_rev).first(query_sequence.size());
 
             if (parameters.opt_fastaout != nullptr)
               {
@@ -374,7 +374,7 @@ auto orient(struct Parameters const & parameters) -> void
                 fastq_print_general(fp_fastqout,
                                     rc_sequence,
                                     query_head,
-                                    View<char>{query_qual_rev.data(), query_sequence.size()},
+                                    make_view(query_qual_rev).first(query_sequence.size()),
                                     static_cast<uint64_t>(qsize),
                                     qmatches,
                                     -1.0,

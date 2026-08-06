@@ -155,7 +155,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
         fastq_print_general(fp_fastqout,
                             View<char>{sequence, static_cast<std::size_t>(length)},
                             View<char>{header, static_cast<std::size_t>(hlen)},
-                            View<char>{normalized_quality.data(), static_cast<std::size_t>(length)},
+                            make_view(normalized_quality).first(static_cast<std::size_t>(length)),
                             static_cast<uint64_t>(abundance),
                             n_entries,
                             default_expected_error,
