@@ -183,7 +183,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         auto const * seq = db.getsequence(static_cast<uint64_t>(i));
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        string_normalize(make_span(seq_up).first(static_cast<std::size_t>(seqlen) + 1), View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         auto const abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
         sumsize += static_cast<int64_t>(abundance);
@@ -208,7 +208,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
         */
 
-        compute_hashes_of_all_prefixes(prefix_hashes, Span<char>{seq_up.data(), seqlen});
+        compute_hashes_of_all_prefixes(prefix_hashes, make_span(seq_up).first(seqlen));
 
         /* first, look for an identical match */
 
@@ -221,7 +221,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                (bp->deleted or
                 (bp->hash != hash) or
                 (prefix_len != db.getsequencelen(bp->seqno_first)) or
-                (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(prefix_len)}, View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
+                (seqcmp(make_view(seq_up).first(static_cast<std::size_t>(prefix_len)), View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
           {
             ++bp;
             if (bp > &hashtable.back())
@@ -260,7 +260,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                        (bp->deleted or
                         (bp->hash != hash) or
                         (prefix_len != db.getsequencelen(bp->seqno_first)) or
-                        (seqcmp(View<char>{seq_up.data(), static_cast<std::size_t>(prefix_len)},
+                        (seqcmp(make_view(seq_up).first(static_cast<std::size_t>(prefix_len)),
                                 View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
                   {
                     ++bp;

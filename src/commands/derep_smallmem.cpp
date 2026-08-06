@@ -304,12 +304,12 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto const * seq = h->get_sequence();
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        string_normalize(make_span(seq_up).first(static_cast<std::size_t>(seqlen) + 1), View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(Span<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen) + 1), make_view(seq_up).first(static_cast<std::size_t>(seqlen)));
           }
 
         /*
@@ -321,7 +321,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           2^64 (~1.8e19) sequences.
         */
 
-        auto const hash = hash_function(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
+        auto const hash = hash_function(make_view(seq_up).first(static_cast<std::size_t>(seqlen)));
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
 
@@ -336,7 +336,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no match on plus strand */
             /* check minus strand as well */
 
-            auto const rc_hash = hash_function(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)});
+            auto const rc_hash = hash_function(make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen)));
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
 
@@ -531,15 +531,15 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto const * seq = h2->get_sequence();
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(Span<char>{seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        string_normalize(make_span(seq_up).first(static_cast<std::size_t>(seqlen) + 1), View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(Span<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen) + 1}, View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen) + 1), make_view(seq_up).first(static_cast<std::size_t>(seqlen)));
           }
 
-        auto const hash = hash_function(View<char>{seq_up.data(), static_cast<std::size_t>(seqlen)});
+        auto const hash = hash_function(make_view(seq_up).first(static_cast<std::size_t>(seqlen)));
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
 
@@ -554,7 +554,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no match on plus strand */
             /* check minus strand as well */
 
-            auto const rc_hash = hash_function(View<char>{rc_seq_up.data(), static_cast<std::size_t>(seqlen)});
+            auto const rc_hash = hash_function(make_view(rc_seq_up).first(static_cast<std::size_t>(seqlen)));
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
 
