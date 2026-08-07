@@ -299,12 +299,12 @@ auto LinearMemoryAligner::diff(int64_t const a_start,
                                int64_t const b_start,
                                int64_t const a_len,
                                int64_t const b_len,
-                               bool gap_b_left,  /* gap open left of b      */
-                               bool gap_b_right, /* gap open right of b     */
-                               bool a_left,      /* includes left end of a  */
-                               bool a_right,     /* includes right end of a */
-                               bool b_left,      /* includes left end of b  */
-                               bool b_right) -> void  /* includes right end of b */
+                               bool const gap_b_left,  /* gap open left of b      */
+                               bool const gap_b_right, /* gap open right of b     */
+                               bool const a_left,      /* includes left end of a  */
+                               bool const a_right,     /* includes right end of a */
+                               bool const b_left,      /* includes left end of b  */
+                               bool const b_right) -> void  /* includes right end of b */
 {
   static constexpr auto int64_min = std::numeric_limits<int64_t>::min();
   // auto span_A = Span{std::next(a_seq, a_start), a_len};
