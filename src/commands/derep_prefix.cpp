@@ -183,11 +183,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     Progress progress("Dereplicating", static_cast<uint64_t>(dbsequencecount), parameters);
     for (int64_t i = 0; i < dbsequencecount; i++)
       {
-        auto const seqlen = static_cast<unsigned int>(db.getsequencelen(static_cast<uint64_t>(i)));
-        auto const * seq = db.getsequence(static_cast<uint64_t>(i));
+        auto const sequence = db.sequence_view(static_cast<uint64_t>(i));
+        auto const seqlen = static_cast<unsigned int>(sequence.size());
 
         /* normalize sequence: uppercase and replace U by T  */
-        normalize_into(seq_up, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        normalize_into(seq_up, sequence);
 
         auto const abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
         stats.sumsize += static_cast<int64_t>(abundance);
@@ -225,7 +225,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                (bp->deleted or
                 (bp->hash != hash) or
                 (prefix_len != db.getsequencelen(bp->seqno_first)) or
-                (seqcmp(make_view(seq_up).first(static_cast<std::size_t>(prefix_len)), View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
+                (seqcmp(make_view(seq_up).first(static_cast<std::size_t>(prefix_len)),
+                        db.sequence_view(bp->seqno_first).first(static_cast<std::size_t>(prefix_len))) != 0)))
           {
             ++bp;
             if (bp > &hashtable.back())
@@ -265,7 +266,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                         (bp->hash != hash) or
                         (prefix_len != db.getsequencelen(bp->seqno_first)) or
                         (seqcmp(make_view(seq_up).first(static_cast<std::size_t>(prefix_len)),
-                                View<char>{db.getsequence(bp->seqno_first), static_cast<std::size_t>(prefix_len)}) != 0)))
+                                db.sequence_view(bp->seqno_first).first(static_cast<std::size_t>(prefix_len))) != 0)))
                   {
                     ++bp;
                     if (bp > &hashtable.back())
@@ -420,7 +421,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         for (uint64_t i = 0; i < stats.clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
-            auto const * h =  db.getheader(bp.seqno_first);
+            auto const header = db.header_view(bp.seqno_first);
             auto const len = static_cast<int64_t>(db.getsequencelen(bp.seqno_first));
 
             fprint(fp_uc, "S\t");
@@ -428,7 +429,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             fprint(fp_uc, '\t');
             fprint_integer(fp_uc, len);
             fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
-            std::fputs(h, fp_uc);
+            fprint(fp_uc, header);
             fprint(fp_uc, "\t*\n");
 
             for (auto next = nextseqtab[bp.seqno_first];
@@ -442,9 +443,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 fprint(fp_uc, '\t');
                 std::fprintf(fp_uc, "%.1f", 100.0);
                 fprint(fp_uc, "\t+\t0\t0\t*\t");
-                std::fputs(db.getheader(next), fp_uc);
+                fprint(fp_uc, db.header_view(next));
                 fprint(fp_uc, '\t');
-                std::fputs(h, fp_uc);
+                fprint(fp_uc, header);
                 fprint(fp_uc, '\n');
               }
 
@@ -462,7 +463,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             fprint(fp_uc, '\t');
             fprint_integer(fp_uc, bp.size);
             fprint(fp_uc, "\t*\t*\t*\t*\t*\t");
-            std::fputs(db.getheader(bp.seqno_first), fp_uc);
+            fprint(fp_uc, db.header_view(bp.seqno_first));
             fprint(fp_uc, "\t*\n");
             progress.update(static_cast<uint64_t>(i));
           }

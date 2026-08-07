@@ -69,6 +69,7 @@
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include <algorithm>  // std::count_if
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
 
@@ -110,31 +111,23 @@ auto fastx_mask(struct Parameters const & parameters) -> void
     for (uint64_t i = 0; i < seqcount; i++)
       {
         auto unmasked = 0;
-        auto const * seq = db.getsequence(i);
-        const int len = static_cast<int>(db.getsequencelen(i));
+        auto const seq = db.sequence_view(i);
+        const int len = static_cast<int>(seq.size());
         if (parameters.opt_qmask == Masking::none)
           {
             unmasked = len;
           }
         else if (parameters.opt_hardmask)
           {
-            for (auto j = 0; j < len; j++)
-              {
-                if (seq[j] != 'N')
-                  {
-                    ++unmasked;
-                  }
-              }
+            unmasked = static_cast<int>(std::count_if(seq.cbegin(), seq.cend(),
+                                                      [](char const nucleotide) -> bool
+                                                      { return nucleotide != 'N'; }));
           }
         else
           {
-            for (auto j = 0; j < len; j++)
-              {
-                if (is_upper(seq[j]))
-                  {
-                    ++unmasked;
-                  }
-              }
+            unmasked = static_cast<int>(std::count_if(seq.cbegin(), seq.cend(),
+                                                      [](char const nucleotide) -> bool
+                                                      { return is_upper(nucleotide); }));
           }
         auto const unmasked_pct = 100.0 * unmasked / len;
 

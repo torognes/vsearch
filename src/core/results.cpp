@@ -68,7 +68,6 @@
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "utils/taxonomic_fields.h"
 #include "utils/sequence_digest.hpp"
@@ -371,14 +370,14 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
 
       View<char> tsequence;
       int64_t tseqlen = 0;
-      char const * t_head = nullptr;
+      View<char> t_head;
 
       if (hit != nullptr)
         {
           auto const target = static_cast<uint64_t>(hit->target);
           tsequence = db.sequence_view(target);
-          tseqlen = static_cast<int64_t>(db.getsequencelen(target));
-          t_head = db.getheader(target);
+          tseqlen = static_cast<int64_t>(tsequence.size());
+          t_head = db.header_view(target);
         }
 
 
@@ -388,7 +387,8 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
           fprint(output_handle, query_head);
           break;
         case 1: /* target */
-          std::fputs((hit != nullptr) ? t_head : "*", output_handle);
+          if (hit != nullptr) { fprint(output_handle, t_head); }
+          else { fprint(output_handle, '*'); }
           break;
         case 2: /* evalue */
           fprint(output_handle, "-1");

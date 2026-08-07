@@ -442,7 +442,7 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
 
   for (auto i = 0; i < chimera_info->cand_count; ++i)
     {
-      auto const * tseq = db.getsequence(chimera_info->cand_list[static_cast<size_t>(i)]);
+      auto const tseq = db.sequence_view(chimera_info->cand_list[static_cast<size_t>(i)]);
 
       auto qpos = 0;
       auto tpos = 0;
@@ -458,7 +458,7 @@ auto find_matches(struct chimera_info_s * chimera_info, struct Database const & 
           for (auto j = 0; j < runlength; ++j)
             {
               if ((map_4bit(qseq[static_cast<size_t>(qpos)]) &
-                   map_4bit(tseq[tpos])) != 0U)
+                   map_4bit(tseq[static_cast<std::size_t>(tpos)])) != 0U)
                 {
                   chimera_info->match[static_cast<size_t>((i * chimera_info->query_len) + qpos)] = 1;
                 }
@@ -640,7 +640,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
           fprint(stdout, ' ');
           std::fputs(ci->query_head.data(), stdout);
           fprint(stdout, ' ');
-          std::fputs(ci->db->getheader(ci->cand_list[best_cand]), stdout);
+          fprint(stdout, ci->db->header_view(ci->cand_list[best_cand]));
           fprint(stdout, '\n');
 #endif
 
@@ -867,7 +867,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
       auto & alignment = ci->paln[static_cast<size_t>(i)];
       int const cand = ci->best_parents[static_cast<size_t>(i)];
       int const target_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(cand)]);
-      char const * target_seq = db.getsequence(static_cast<uint64_t>(target_seqno));
+      auto const target_seq = db.sequence_view(static_cast<uint64_t>(target_seqno));
 
       auto is_inserted = false;
       int qpos = 0;
@@ -885,7 +885,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
             {
               if (j < runlength)
                 {
-                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[tpos]);
+                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
                   ++tpos;
                   ++alnpos;
                 }
@@ -910,7 +910,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
 
               if (operation == Operation::match)
                 {
-                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[tpos]);
+                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
                   ++tpos;
                   ++alnpos;
                 }
