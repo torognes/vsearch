@@ -86,6 +86,7 @@
 #include "utils/threads.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/sequence_digest.hpp"
+#include <cassert>
 #include <algorithm>  // std::copy, std::count, std::minmax_element, std::max_element, std::min
 #include <array>
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -180,18 +181,17 @@ namespace {
      whether the source did not fit, which is what cluster_result_s::
      cigar_truncated reports.
 
-     The parameter is a reference to an array so that Capacity arrives with it
-     and no call site has to repeat sizeof; the C array is the struct member's
-     own type (see cluster.hpp), not a choice made here. */
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+     The parameter is a reference to the array so that Capacity arrives with it
+     and no call site has to repeat sizeof; the array is the struct member's own
+     type (see cluster.hpp), not a choice made here. */
   template <std::size_t Capacity>
-  auto copy_truncated(char (&destination)[Capacity], View<char> const source) -> bool
+  auto copy_truncated(std::array<char, Capacity> & destination, View<char> const source) -> bool
   {
     static_assert(Capacity > 0, "a label buffer must have room for its terminator");
     auto const room = Capacity - 1;
     auto const copied = std::min(source.size(), room);
     std::copy(source.cbegin(), std::next(source.cbegin(), static_cast<std::ptrdiff_t>(copied)),
-              std::begin(destination));
+              destination.begin());
     destination[copied] = '\0';
     return source.size() > room;
   }
@@ -1775,13 +1775,13 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
 auto cluster_assign_batch(struct cluster_session_s * cs,
                           int const start_seqno,
-                          int const count,
-                          struct cluster_result_s * results) -> void
+                          Span<struct cluster_result_s> const results) -> void
 {
-  if (count <= 0)
+  if (results.empty())
     {
       return;
     }
+  auto const count = static_cast<int>(results.size());
 
   /* cluster_session_init() captured the database sequence count into
      cs->seqcount and sized this session's search state from the file-static
@@ -1879,24 +1879,22 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             }
 
           int const myseqno = si_p->query_no;
-          int const ri = myseqno - start_seqno;
-          results[ri] = {};
+          auto & result = results[static_cast<std::size_t>(myseqno - start_seqno)];
+          result = {};
 
           if (best != nullptr)
             {
               /* Match found — assign to existing cluster */
-              results[ri].is_centroid = false;
-              results[ri].cluster_id =
-                cs->centroid_cluster_ids.at(best->target);
-              results[ri].centroid_seqno = best->target;
-              results[ri].identity = best->id;
+              result.is_centroid = false;
+              result.cluster_id = cs->centroid_cluster_ids.at(best->target);
+              result.centroid_seqno = best->target;
+              result.identity = best->id;
               auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(best->target));
-              static_cast<void>(copy_truncated(results[ri].centroid_label, centroid_header));
+              static_cast<void>(copy_truncated(result.centroid_label, centroid_header));
               if (not best->nwalignment.empty())
                 {
-                  results[ri].cigar_truncated =
-                    copy_truncated(results[ri].cigar,
-                                   make_view(best->nwalignment));
+                  result.cigar_truncated =
+                    copy_truncated(result.cigar, make_view(best->nwalignment));
                 }
             }
           else
@@ -1905,12 +1903,12 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               extra_list[static_cast<std::size_t>(extra_count)] = i;
               ++extra_count;
 
-              results[ri].is_centroid = true;
-              results[ri].cluster_id = cs->cluster_count;
-              results[ri].centroid_seqno = myseqno;
-              results[ri].identity = 100.0;
+              result.is_centroid = true;
+              result.cluster_id = cs->cluster_count;
+              result.centroid_seqno = myseqno;
+              result.identity = 100.0;
               auto const centroid_header = cs->db->header_view(static_cast<uint64_t>(myseqno));
-              static_cast<void>(copy_truncated(results[ri].centroid_label, centroid_header));
+              static_cast<void>(copy_truncated(result.centroid_label, centroid_header));
 
               cs->centroid_cluster_ids[myseqno] = cs->cluster_count;
               cs->dbindex->add_sequence(static_cast<unsigned int>(myseqno), parameters.opt_qmask, *cs->db);

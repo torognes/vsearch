@@ -60,7 +60,15 @@
 
 #pragma once
 
+#include "core/query_record.hpp"  // struct query_record_s
+#include "utils/span.hpp"  // Span
+#include "utils/view.hpp"  // View
+#include <array>
+
 constexpr auto maxparents = 20; /* max, could be fewer */
+
+/* capacity of the label fields below, terminator included */
+constexpr auto chimera_label_capacity = 1024;
 
 /* === Library API for embedding chimera detection === */
 
@@ -71,10 +79,10 @@ constexpr auto maxparents = 20; /* max, could be fewer */
    Labels may be silently truncated to 1023 characters. */
 struct chimera_result_s {
   double score;               /* h-score */
-  char query_label[1024];     /* query header (may truncate) */
-  char parent_a_label[1024];  /* parent A header (or empty if none) */
-  char parent_b_label[1024];  /* parent B header (or empty if none) */
-  char closest_parent_label[1024]; /* closest parent header */
+  std::array<char, chimera_label_capacity> query_label;     /* query header (may truncate) */
+  std::array<char, chimera_label_capacity> parent_a_label;  /* parent A header (or empty if none) */
+  std::array<char, chimera_label_capacity> parent_b_label;  /* parent B header (or empty if none) */
+  std::array<char, chimera_label_capacity> closest_parent_label; /* closest parent header */
   double id_query_model;      /* query-to-model identity % */
   double id_query_a;          /* query-to-parentA identity % */
   double id_query_b;          /* query-to-parentB identity % */
@@ -138,17 +146,13 @@ auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & p
 /* Detect chimera for a single query sequence.
    Supports both uchime_ref and uchime_denovo modes (based on opt_chimeras_denovo).
    ci: per-thread working state (from chimera_detect_init). NOT thread-safe if shared.
-   query_seq: null-terminated query sequence (DNA, uppercase).
-   query_head: null-terminated query header.
-   query_len: length of query sequence.
-   query_size: abundance (1 for uchime_ref, actual count for uchime_denovo).
+   query: the query's header, sequence (DNA, uppercase) and abundance (1 for
+   uchime_ref, the actual count for uchime_denovo). Neither view need be
+   null-terminated, but both must outlive the call.
    result: output struct populated on return.
    Returns 0 on success. */
 auto chimera_detect_single(struct chimera_info_s * ci,
-                           const char * query_seq,
-                           const char * query_head,
-                           int query_len,
-                           int64_t query_size,
+                           struct query_record_s const & query,
                            struct chimera_result_s * result) -> int;
 
 /* Convenience: chimera_detect_thread_cleanup(ci) + chimera_session_cleanup().
@@ -167,13 +171,10 @@ auto chimera_detect_cleanup(struct chimera_info_s * ci) -> void;
    Creates and destroys a thread pool per call.
    Requires: parameters configured (same one passed to the VsearchSession
    constructor), database loaded and indexed.
-   results: caller-allocated array of query_count elements. */
+   results: caller-allocated span of queries.size() elements (checked by
+   assertion). */
 auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,
                           struct Database const & db,
-                          const char ** query_seqs,
-                          const char ** query_heads,
-                          const int * query_lens,
-                          const int64_t * query_sizes,
-                          int query_count,
-                          struct chimera_result_s * results) -> void;
+                          View<struct query_record_s> queries,
+                          Span<struct chimera_result_s> results) -> void;

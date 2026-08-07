@@ -104,10 +104,8 @@ static session_results run_session(
     for (size_t i = 0; i < query_labels.size(); i++) {
         struct chimera_result_s result;
         chimera_detect_single(ci,
-                              query_seqs[i].c_str(),
-                              query_labels[i].c_str(),
-                              static_cast<int>(query_seqs[i].size()),
-                              1,
+                              query_record_s{make_view(query_labels[i]),
+                                             make_view(query_seqs[i]), 1},
                               &result);
         results.flags.push_back(result.flag);
         results.scores.push_back(result.score);
@@ -242,16 +240,10 @@ int main() {
     /* Run same queries through both handles and compare with session 1 */
     for (size_t i = 0; i < query_labels.size(); i++) {
         struct chimera_result_s r1, r2;
-        chimera_detect_single(ci1,
-                              query_seqs[i].c_str(),
-                              query_labels[i].c_str(),
-                              static_cast<int>(query_seqs[i].size()),
-                              1, &r1);
-        chimera_detect_single(ci2,
-                              query_seqs[i].c_str(),
-                              query_labels[i].c_str(),
-                              static_cast<int>(query_seqs[i].size()),
-                              1, &r2);
+        auto const query = query_record_s{make_view(query_labels[i]),
+                                          make_view(query_seqs[i]), 1};
+        chimera_detect_single(ci1, query, &r1);
+        chimera_detect_single(ci2, query, &r2);
 
         /* Both handles must produce same result as session 1 */
         if (r1.flag != s1.flags[i] || r2.flag != s1.flags[i]) {

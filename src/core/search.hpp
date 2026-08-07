@@ -60,6 +60,10 @@
 
 #pragma once
 
+#include "core/query_record.hpp"  // struct query_record_s
+#include "utils/span.hpp"  // Span
+#include "utils/view.hpp"  // View
+
 /* === Library API for embedding global search === */
 
 /* Result of a single search hit. The target's header can be obtained
@@ -100,18 +104,13 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
 
 /* Search for a single query against the global database.
    Searches both strands when opt_strand is true.
-   results: caller-allocated array of at least max_results elements.
-   result_count: number of results populated on return.
-   Results are ordered by identity (descending).
+   results: caller-allocated span; its size is the maximum number of hits to
+   report for this query.
+   Returns the number of results populated, ordered by identity (descending).
    result.strand indicates which strand matched (0=plus, 1=minus). */
 auto search_session_single(struct search_session_s * ss,
-                           const char * query_seq,
-                           const char * query_head,
-                           int query_len,
-                           int64_t query_size,
-                           struct search_result_s * results,
-                           int max_results,
-                           int * result_count) -> void;
+                           struct query_record_s const & query,
+                           Span<struct search_result_s> results) -> int;
 
 /* Clean up search session state.
    Call before search_session_free(). */
@@ -129,17 +128,15 @@ auto search_session_cleanup(struct search_session_s * ss) -> void;
    stream of queries should submit large batches to amortize this cost.
    As a rule of thumb, aim for at least 10 * opt_threads queries per
    call — below that, thread-pool setup dominates per-query cost.
-   results: caller-allocated array of (query_count * max_results_per_query).
-   result_counts: caller-allocated array of query_count elements.
-   Each query gets up to max_results_per_query hits, ordered by identity. */
+   results: caller-allocated span of (queries.size() * max_results_per_query),
+   the hits of query i starting at i * max_results_per_query.
+   result_counts: caller-allocated span of queries.size() elements.
+   Each query gets up to max_results_per_query hits, ordered by identity.
+   Both sizes are checked against queries.size() by assertion. */
 auto search_batch(struct Parameters const & parameters,
                   struct Dbindex const & dbindex,
                   struct Database const & db,
-                  const char ** query_seqs,
-                  const char ** query_heads,
-                  const int * query_lens,
-                  const int64_t * query_sizes,
-                  int query_count,
-                  struct search_result_s * results,
+                  View<struct query_record_s> queries,
+                  Span<struct search_result_s> results,
                   int max_results_per_query,
-                  int * result_counts) -> void;
+                  Span<int> result_counts) -> void;

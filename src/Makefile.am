@@ -141,6 +141,7 @@ core/msa.hpp \
 commands/orient.hpp \
 core/otutable.hpp \
 commands/rereplicate.hpp \
+core/query_record.hpp \
 core/results.hpp \
 commands/usearch_global.hpp \
 core/search.hpp \

@@ -64,6 +64,7 @@
 #include "core/buffer_headroom.hpp"
 #include "core/db.hpp"  // Database
 #include "core/search.hpp"
+#include "core/query_record.hpp"  // struct query_record_s
 #include "core/search_internal.hpp"
 #include "core/searchcore.hpp"
 #include "core/align_simd.hpp"
@@ -76,10 +77,10 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include "utils/reverse_complement.hpp"
+#include <cassert>
 #include <algorithm>  // std::copy_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // uint64_t, int64_t
-#include <cstring>  // std::strlen
 #include <memory>  // std::unique_ptr
 #include <mutex>  // std::mutex
 #include <vector>
@@ -250,35 +251,26 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
 
 
 auto search_session_single(struct search_session_s * ss,
-                           const char * query_seq,
-                           const char * query_head,
-                           int const query_len,
-                           int64_t const query_size,
-                           struct search_result_s * results,
-                           int const max_results,
-                           int * result_count) -> void
+                           struct query_record_s const & query,
+                           Span<struct search_result_s> const results) -> int
 {
-  int const head_len = static_cast<int>(std::strlen(query_head));
   struct searchinfo_s const * si = ss->si_plus.get();
   struct Parameters const & parameters = *ss->parameters;
 
-  auto const head_v = View<char>{query_head, static_cast<std::size_t>(head_len)};
-  auto const seq_v = View<char>{query_seq, static_cast<std::size_t>(query_len)};
-
   populate_si(ss->si_plus.get(),
-              head_v,
-              seq_v,
+              query.header,
+              query.sequence,
               0,
-              query_size,
+              query.abundance,
               0);
 
   if (parameters.opt_strand)
     {
       populate_si(ss->si_minus.get(),
-                  head_v,
-                  seq_v,
+                  query.header,
+                  query.sequence,
                   0,
-                  query_size,
+                  query.abundance,
                   1);
     }
 
@@ -310,11 +302,11 @@ auto search_session_single(struct search_session_s * ss,
   int count = 0;
   for (auto const & h : hits)
     {
-      if (count >= max_results)
+      if (static_cast<std::size_t>(count) >= results.size())
         {
           break;
         }
-      auto & r = results[count];
+      auto & r = results[static_cast<std::size_t>(count)];
       r.target = h.target;
       r.id = h.id;
       r.matches = h.matches;
@@ -327,7 +319,6 @@ auto search_session_single(struct search_session_s * ss,
       r.strand = h.strand;
       ++count;
     }
-  *result_count = count;
 
   /* Free alignment strings directly from the si hit buffer (not the joinhits
      copy) to avoid dangling pointers. Follows cluster_assign_single pattern. */
@@ -343,6 +334,8 @@ auto search_session_single(struct search_session_s * ss,
             }
         }
     }
+
+  return count;
 }
 
 
@@ -366,14 +359,10 @@ auto search_session_cleanup(struct search_session_s * ss) -> void
 
 /* Shared state for batch search worker threads */
 struct search_batch_context_s {
-  const char ** query_seqs;
-  const char ** query_heads;
-  const int * query_lens;
-  const int64_t * query_sizes;
-  int query_count;
-  struct search_result_s * results;
+  View<struct query_record_s> queries;
+  Span<struct search_result_s> results;
   int max_results_per_query;
-  int * result_counts;
+  Span<int> result_counts;
 
   /* per-thread search state arrays (sized to opt_threads). Owned vectors so a
      fatal() during per-thread init unwinds them, running each searchinfo_s
@@ -404,15 +393,14 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
   auto const has_work_to_claim = [&]() -> bool {
     qi = ctx.next_query++;
-    return qi < ctx.query_count;
+    return static_cast<std::size_t>(qi) < ctx.queries.size();
   };
 
   auto const process_query = [&]() -> void {
-    char const * qhead = ctx.query_heads[qi];
-    int64_t const qsize = ctx.query_sizes[qi];
-    auto const head_v = View<char>{qhead, std::strlen(qhead)};
-    auto const seq_v = View<char>{ctx.query_seqs[qi],
-                                  static_cast<std::size_t>(ctx.query_lens[qi])};
+    auto const & query = ctx.queries[static_cast<std::size_t>(qi)];
+    auto const head_v = query.header;
+    auto const seq_v = query.sequence;
+    int64_t const qsize = query.abundance;
 
     populate_si(my_si_plus,
                 head_v,
@@ -455,9 +443,11 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
                     parameters.opt_strand ? my_si_minus : nullptr,
                     hits);
 
-    /* Populate results for this query */
-    struct search_result_s * qresults =
-      ctx.results + (static_cast<std::ptrdiff_t>(qi) * ctx.max_results_per_query);
+    /* Populate results for this query: its slot in the flattened
+       queries x max_results_per_query output array */
+    auto const qresults =
+      ctx.results.subspan(static_cast<std::size_t>(qi) * static_cast<std::size_t>(ctx.max_results_per_query),
+                          static_cast<std::size_t>(ctx.max_results_per_query));
     int count = 0;
     for (auto const & h : hits)
       {
@@ -465,20 +455,20 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
           {
             break;
           }
-        auto & r = qresults[count];
+        auto & r = qresults[static_cast<std::size_t>(count)];
         r.target = h.target;
         r.id = h.id;
         r.matches = h.matches;
         r.mismatches = h.mismatches;
         r.gaps = h.nwgaps;
         r.alignment_length = h.nwalignmentlength;
-        r.query_length = ctx.query_lens[qi];
+        r.query_length = static_cast<int>(seq_v.size());
         r.target_length = static_cast<int>(my_si_plus->db->getsequencelen(static_cast<uint64_t>(h.target)));
         r.accepted = h.accepted;
         r.strand = h.strand;
         ++count;
       }
-    ctx.result_counts[qi] = count;
+    ctx.result_counts[static_cast<std::size_t>(qi)] = count;
 
     /* Free alignment strings from the si hit buffer directly */
     for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
@@ -502,15 +492,15 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 auto search_batch(struct Parameters const & parameters,
                   struct Dbindex const & dbindex,
                   struct Database const & db,
-                  const char ** query_seqs,
-                  const char ** query_heads,
-                  const int * query_lens,
-                  const int64_t * query_sizes,
-                  int const query_count,
-                  struct search_result_s * results,
+                  View<struct query_record_s> const queries,
+                  Span<struct search_result_s> const results,
                   int const max_results_per_query,
-                  int * result_counts) -> void
+                  Span<int> const result_counts) -> void
 {
+  assert(max_results_per_query >= 0);
+  assert(results.size() == queries.size() * static_cast<std::size_t>(max_results_per_query));
+  assert(result_counts.size() == queries.size());
+
   /* per-thread buffer sizes for search_thread_init (formerly file-statics).
      The library path does not clamp to the database size (only the CLI
      search_prep does), so the sizing uses the configured values from
@@ -523,11 +513,7 @@ auto search_batch(struct Parameters const & parameters,
 
   /* Allocate per-thread search state */
   struct search_batch_context_s ctx;
-  ctx.query_seqs = query_seqs;
-  ctx.query_heads = query_heads;
-  ctx.query_lens = query_lens;
-  ctx.query_sizes = query_sizes;
-  ctx.query_count = query_count;
+  ctx.queries = queries;
   ctx.results = results;
   ctx.max_results_per_query = max_results_per_query;
   ctx.result_counts = result_counts;

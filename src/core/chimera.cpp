@@ -64,6 +64,7 @@
 #include "core/align_simd.hpp"
 #include "core/attributes.hpp"
 #include "core/chimera.hpp"
+#include "core/query_record.hpp"  // struct query_record_s
 #include "core/chimera_internal.hpp"
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
@@ -90,7 +91,6 @@
 #include <cassert>
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
-#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
 #include <memory>
@@ -306,10 +306,11 @@ namespace {
      same contract snprintf("%.*s") had, expressed once here instead of at each
      of the seven sites, and without narrowing the length to the int that the
      "%.*s" precision requires. */
-  auto copy_label(char * label, std::size_t const capacity, View<char> const text) -> void {
-    assert(capacity > 0);
-    auto const stored = std::min(text.size(), capacity - 1);
-    std::copy_n(text.cbegin(), stored, label);
+  template <std::size_t Capacity>
+  auto copy_label(std::array<char, Capacity> & label, View<char> const text) -> void {
+    static_assert(Capacity > 0, "a label buffer must have room for its terminator");
+    auto const stored = std::min(text.size(), Capacity - 1);
+    std::copy_n(text.cbegin(), stored, label.begin());
     label[stored] = '\0';
   }
 
@@ -1118,12 +1119,11 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       r->score = 99.9999;  /* chimeras_denovo always reports chimeric */
       auto const parent_a_header = db.header_view(static_cast<uint64_t>(seqno_a));
       auto const parent_b_header = db.header_view(static_cast<uint64_t>(seqno_b));
-      copy_label(r->query_label, sizeof(r->query_label), ci->query_head);
-      copy_label(r->parent_a_label, sizeof(r->parent_a_label), parent_a_header);
-      copy_label(r->parent_b_label, sizeof(r->parent_b_label), parent_b_header);
+      copy_label(r->query_label, ci->query_head);
+      copy_label(r->parent_a_label, parent_a_header);
+      copy_label(r->parent_b_label, parent_b_header);
       /* closest parent = max of QA, QB */
-      copy_label(r->closest_parent_label, sizeof(r->closest_parent_label),
-                 (QA >= QB) ? parent_a_header : parent_b_header);
+      copy_label(r->closest_parent_label, (QA >= QB) ? parent_a_header : parent_b_header);
       r->id_query_model = QM;
       r->id_query_a = QA;
       r->id_query_b = QB;
@@ -1726,11 +1726,10 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           r->score = best_h;
           auto const parent_a_header = db.header_view(static_cast<uint64_t>(seqno_a));
           auto const parent_b_header = db.header_view(static_cast<uint64_t>(seqno_b));
-          copy_label(r->query_label, sizeof(r->query_label), ci->query_head);
-          copy_label(r->parent_a_label, sizeof(r->parent_a_label), parent_a_header);
-          copy_label(r->parent_b_label, sizeof(r->parent_b_label), parent_b_header);
-          copy_label(r->closest_parent_label, sizeof(r->closest_parent_label),
-                     (QA >= QB) ? parent_a_header : parent_b_header);
+          copy_label(r->query_label, ci->query_head);
+          copy_label(r->parent_a_label, parent_a_header);
+          copy_label(r->parent_b_label, parent_b_header);
+          copy_label(r->closest_parent_label, (QA >= QB) ? parent_a_header : parent_b_header);
           r->id_query_model = QM;
           r->id_query_a = QA;
           r->id_query_b = QB;
@@ -2942,47 +2941,45 @@ auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & p
 }
 
 auto chimera_detect_single(struct chimera_info_s * ci,
-                           const char * query_seq,
-                           const char * query_head,
-                           int const query_len,
-                           int64_t const query_size,
+                           struct query_record_s const & query,
                            struct chimera_result_s * result) -> int
 {
-  /* Validate the caller-supplied query before trusting query_len: the buffers
-     are sized from query_len (via realloc_arrays) but filled with the actual
-     C-strings, so a query_len shorter than strlen(query_seq) would overflow
-     ci->query_seq on the heap (S18). The header length is derived with strlen
-     below and so is self-consistent; only query_len is taken on trust. There
-     is no recoverable error channel (the function always returns 0), so an
-     invalid call is fatal, as elsewhere in vsearch. */
-  if (query_seq == nullptr)
+  /* Validate the caller-supplied query. The S18 hazard the checks here used to
+     guard against is now unrepresentable: the buffers were sized from a
+     query_len the caller passed separately, then filled from the C-string it
+     pointed at, so a query_len shorter than strlen(query_seq) overflowed
+     ci->query_seq on the heap. A View carries the bytes and their count as one
+     value, which cannot disagree with itself, so that check has nothing left to
+     compare. Likewise the null-header check: a header of length zero is an
+     empty header, which is legal input and was already spelled "" before.
+
+     What survives is the empty query, which the detection core does not handle,
+     and a null data pointer on a non-empty view -- View's constructor asserts
+     against that, but asserts are stripped under NDEBUG and this is a library
+     entry point. There is no recoverable error channel (the function always
+     returns 0), so an invalid call is fatal, as elsewhere in vsearch. */
+  if (query.sequence.empty())
+    {
+      fatal("chimera_detect_single: query sequence must not be empty");
+    }
+  if (query.sequence.data() == nullptr)
     {
       fatal("chimera_detect_single: query sequence must not be null");
-    }
-  if (query_head == nullptr)
-    {
-      fatal("chimera_detect_single: query header must not be null");
-    }
-  if (query_len <= 0)
-    {
-      fatal("chimera_detect_single: query length must be positive");
-    }
-  if (static_cast<size_t>(query_len) != std::strlen(query_seq))
-    {
-      fatal("chimera_detect_single: query length does not match the query sequence");
     }
 
   /* Populate query in the chimera_info_s.
      ci is per-thread state — must NOT be shared across threads. */
   ci->query_no = 0;
-  auto const header_length = std::strlen(query_head);
-  ci->query_len = query_len;
-  ci->query_size = query_size;
+  ci->query_len = static_cast<int>(query.sequence.size());
+  ci->query_size = query.abundance;
 
-  realloc_arrays(ci, *ci->db, header_length);
+  realloc_arrays(ci, *ci->db, query.header.size());
 
-  ci->query_head = copy_and_terminate(View<char>{query_head, header_length}, ci->query_head_v);
-  std::copy_n(query_seq, static_cast<std::size_t>(ci->query_len) + 1, ci->query_seq.data());
+  ci->query_head = copy_and_terminate(query.header, ci->query_head_v);
+  /* copy the bases and write the terminator here, rather than reading a
+     query.sequence.size() + 1'th byte the view does not cover */
+  std::copy(query.sequence.cbegin(), query.sequence.cend(), ci->query_seq.begin());
+  ci->query_seq[query.sequence.size()] = '\0';
 
   /* Clear result. Non-chimeric results will have only query_label and
      flag='N' populated; all other fields remain zero. */
@@ -2998,7 +2995,7 @@ auto chimera_detect_single(struct chimera_info_s * ci,
   if (status == Status::no_parents)
     {
       /* Populate result for no-parents case */
-      copy_label(result->query_label, sizeof(result->query_label), ci->query_head);
+      copy_label(result->query_label, ci->query_head);
       result->flag = 'N';
     }
 
@@ -3050,12 +3047,8 @@ struct chimera_info_thread_deleter {
 };
 
 struct chimera_batch_context_s {
-  const char ** query_seqs;
-  const char ** query_heads;
-  const int * query_lens;
-  const int64_t * query_sizes;
-  int query_count;
-  struct chimera_result_s * results;
+  View<struct query_record_s> queries;
+  Span<struct chimera_result_s> results;
 
   /* per-thread chimera state arrays (sized to opt_threads). Owned unique_ptrs so
      a fatal() during per-thread init unwinds them, freeing every element built
@@ -3077,16 +3070,12 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 
   auto const has_work_to_claim = [&]() -> bool {
     qi = ctx.next_query++;
-    return qi < ctx.query_count;
+    return static_cast<std::size_t>(qi) < ctx.queries.size();
   };
 
   auto const process_query = [&]() -> void {
-    chimera_detect_single(ci,
-                          ctx.query_seqs[qi],
-                          ctx.query_heads[qi],
-                          ctx.query_lens[qi],
-                          ctx.query_sizes[qi],
-                          &ctx.results[qi]);
+    auto const index = static_cast<std::size_t>(qi);
+    chimera_detect_single(ci, ctx.queries[index], &ctx.results[index]);
   };
 
   run_worker_loop(ctx.mutex, has_work_to_claim, process_query);
@@ -3096,14 +3085,11 @@ static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
 auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,
                           struct Database const & db,
-                          const char ** query_seqs,
-                          const char ** query_heads,
-                          const int * query_lens,
-                          const int64_t * query_sizes,
-                          int const query_count,
-                          struct chimera_result_s * results) -> void
+                          View<struct query_record_s> const queries,
+                          Span<struct chimera_result_s> const results) -> void
 {
-  if (query_count <= 0)
+  assert(results.size() == queries.size());
+  if (queries.empty())
     {
       return;
     }
@@ -3116,11 +3102,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
 
   /* Allocate per-thread chimera state */
   struct chimera_batch_context_s ctx;
-  ctx.query_seqs = query_seqs;
-  ctx.query_heads = query_heads;
-  ctx.query_lens = query_lens;
-  ctx.query_sizes = query_sizes;
-  ctx.query_count = query_count;
+  ctx.queries = queries;
   ctx.results = results;
   ctx.next_query = 0;
 

@@ -125,7 +125,7 @@
 /* === API version === */
 
 #define VSEARCH_API_VERSION_MAJOR 0
-#define VSEARCH_API_VERSION_MINOR 17
+#define VSEARCH_API_VERSION_MINOR 18
 #define VSEARCH_API_VERSION_PATCH 0
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
@@ -165,6 +165,7 @@
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/derep.hpp"
+#include "core/query_record.hpp"
 #include "core/mergepairs.hpp"
 #include "core/mask.hpp"
 #include "core/search.hpp"

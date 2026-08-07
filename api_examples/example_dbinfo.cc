@@ -503,11 +503,13 @@ static std::vector<std::string> search_hits(struct Parameters const & parameters
   struct search_session_s * const session = search_session_alloc();
   search_session_init(session, parameters, dbindex, db);
 
-  struct search_result_s results[16];
-  int count = 0;
-  search_session_single(session, query, "q",
-                        static_cast<int>(std::strlen(query)), 1,
-                        results, 16, &count);
+  std::array<struct search_result_s, 16> results {};
+  char const * const label = "q";
+  int const count =
+    search_session_single(session,
+                          query_record_s{View<char>{label, std::strlen(label)},
+                                         View<char>{query, std::strlen(query)}, 1},
+                          make_span(results));
 
   std::vector<std::string> hits;
   for (int idx = 0; idx < count; ++idx)

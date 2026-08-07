@@ -156,9 +156,9 @@ static int test_recover_from_midread(struct Parameters const & parameters)
 /* --- Test 3: recover from a fatal raised inside a compute-engine entry point
    ---
    The fatals above all originate in db.read(). This one fires inside
-   chimera_detect_single(): its input validation (a query_len that disagrees
-   with the query string) is a library-only contract — the CLI never calls this
-   entry point. The throw unwinds while the per-thread chimera_info_s (SIMD
+   chimera_detect_single(): its input validation (an empty query sequence) is a
+   library-only contract — the CLI never calls this entry point. The throw
+   unwinds while the per-thread chimera_info_s (SIMD
    aligners and k-mer finders allocated by chimera_detect_init) is live, so this
    checks that (a) an engine-internal fatal is catchable, (b) the per-thread
    handle survives it, and (c) a subsequent valid query on the SAME handle still
@@ -184,17 +184,21 @@ static int test_recover_from_engine_fatal(struct Parameters const & parameters)
   struct chimera_info_s * const info = chimera_info_alloc();
   chimera_detect_init(info, parameters, dbindex, db);
 
-  /* A query_len that does not match strlen(query_seq) is rejected by
-     chimera_detect_single before any per-query work, raising a fatal that
-     unwinds out of the engine. */
+  /* An empty query sequence is rejected by chimera_detect_single before any
+     per-query work, raising a fatal that unwinds out of the engine. (Until API
+     0.18.0 this test used a query_len that disagreed with strlen(query_seq);
+     query_record_s carries the bytes and their count together, so that
+     inconsistency can no longer be expressed, and the empty query is the
+     validation that remains.) */
   bool caught = false;
   std::string message;
   try
     {
       struct chimera_result_s result;
-      chimera_detect_single(info, sequence, "query1",
-                            static_cast<int>(std::strlen(sequence)) + 5, 1, &result);
-      std::fprintf(stderr, "FAIL: an inconsistent query length did not raise VsearchError\n");
+      chimera_detect_single(info,
+                            query_record_s{View<char>{"query1", 6}, View<char>{}, 1},
+                            &result);
+      std::fprintf(stderr, "FAIL: an empty query sequence did not raise VsearchError\n");
       ++failures;
     }
   catch (VsearchError const & error)
@@ -216,8 +220,11 @@ static int test_recover_from_engine_fatal(struct Parameters const & parameters)
   /* The handle must still be usable: a valid query on the same per-thread state
      succeeds (a corrupted handle would crash or misbehave here). */
   struct chimera_result_s result;
-  int const status = chimera_detect_single(info, sequence, "query1",
-                                           static_cast<int>(std::strlen(sequence)), 1, &result);
+  int const status =
+    chimera_detect_single(info,
+                          query_record_s{View<char>{"query1", 6},
+                                         View<char>{sequence, std::strlen(sequence)}, 1},
+                          &result);
   if (status != 0)
     {
       std::fprintf(stderr, "FAIL: valid query after recovery returned %d (expected 0)\n", status);

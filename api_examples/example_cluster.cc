@@ -96,9 +96,9 @@ static int run_cluster_uc() {
                         r.cluster_id,
                         (unsigned long) db.getsequencelen(i),
                         r.identity,
-                        r.cigar[0] ? r.cigar : "*",
+                        (r.cigar[0] != '\0') ? r.cigar.data() : "*",
                         db.getheader(i),
-                        r.centroid_label);
+                        r.centroid_label.data());
         }
     }
 
@@ -172,7 +172,7 @@ static int run_batch_tests()
   cluster_session_init(cs_batch, parameters, dbindex, db);
 
   std::vector<struct cluster_result_s> batch_results(sc);
-  cluster_assign_batch(cs_batch, 0, sc, batch_results.data());
+  cluster_assign_batch(cs_batch, 0, make_span(batch_results));
 
   cluster_session_cleanup(cs_batch);
   cluster_session_free(cs_batch);
@@ -191,7 +191,7 @@ static int run_batch_tests()
         {
           mismatch = mismatch ||
             (std::fabs(sr.identity - br.identity) > 0.01) ||
-            (std::strcmp(sr.cigar, br.cigar) != 0);
+            (std::strcmp(sr.cigar.data(), br.cigar.data()) != 0);
         }
       if (mismatch)
         {
@@ -201,9 +201,9 @@ static int run_batch_tests()
                        "!= centroid=%d/cid=%d/cseq=%d/id=%.1f/cigar=%s\n",
                        i,
                        br.is_centroid, br.cluster_id,
-                       br.centroid_seqno, br.identity, br.cigar,
+                       br.centroid_seqno, br.identity, br.cigar.data(),
                        sr.is_centroid, sr.cluster_id,
-                       sr.centroid_seqno, sr.identity, sr.cigar);
+                       sr.centroid_seqno, sr.identity, sr.cigar.data());
           ++failures;
         }
     }

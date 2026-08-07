@@ -230,8 +230,10 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
 
   /* A query identical to the single reference cannot be a chimera. */
   struct chimera_result_s result;
-  chimera_detect_single(info, sequence, "query1",
-                        static_cast<int>(std::strlen(sequence)), 1, &result);
+  chimera_detect_single(info,
+                        query_record_s{View<char>{"query1", 6},
+                                       View<char>{sequence, std::strlen(sequence)}, 1},
+                        &result);
 
   if (result.flag != 'N')
     {
@@ -256,10 +258,10 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
       std::fprintf(stderr, "FAIL: non-chimeric result has non-empty parent labels\n");
       ++failures;
     }
-  if (std::strcmp(result.query_label, "query1") != 0)
+  if (std::strcmp(result.query_label.data(), "query1") != 0)
     {
       std::fprintf(stderr, "FAIL: non-chimeric result query_label = '%s', expected 'query1'\n",
-                   result.query_label);
+                   result.query_label.data());
       ++failures;
     }
 

@@ -88,24 +88,22 @@ static int run_chimera_tsv() {
     for (size_t i = 0; i < query_labels.size(); i++) {
         struct chimera_result_s result;
         chimera_detect_single(ci,
-                              query_seqs[i].c_str(),
-                              query_labels[i].c_str(),
-                              static_cast<int>(query_seqs[i].size()),
-                              1,
+                              query_record_s{make_view(query_labels[i]),
+                                             make_view(query_seqs[i]), 1},
                               &result);
 
         if (result.flag == 'N') {
             std::printf("%.4f\t%s\t*\t*\t*\t*\t*\t*\t*\t*\t"
                         "0\t0\t0\t0\t0\t0\t*\t%c\n",
-                        result.score, result.query_label, result.flag);
+                        result.score, result.query_label.data(), result.flag);
         } else {
             std::printf("%.4f\t%s\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t"
                         "%d\t%d\t%d\t%d\t%d\t%d\t%.1f\t%c\n",
                         result.score,
-                        result.query_label,
-                        result.parent_a_label,
-                        result.parent_b_label,
-                        result.closest_parent_label,
+                        result.query_label.data(),
+                        result.parent_a_label.data(),
+                        result.parent_b_label.data(),
+                        result.closest_parent_label.data(),
                         result.id_query_model,
                         result.id_query_a,
                         result.id_query_b,
@@ -166,10 +164,9 @@ static int run_batch_tests()
     for (int i = 0; i < nq; i++)
       {
         chimera_detect_single(ci,
-                              query_seqs[i].c_str(),
-                              query_labels[i].c_str(),
-                              static_cast<int>(query_seqs[i].size()),
-                              1,
+                              query_record_s{make_view(query_labels[i]),
+                                             make_view(query_seqs[i]),
+                                             1},
                               &seq_results[i]);
       }
 
@@ -178,22 +175,17 @@ static int run_batch_tests()
   }
 
   /* Batch */
-  std::vector<const char *> q_seqs(nq);
-  std::vector<const char *> q_heads(nq);
-  std::vector<int> q_lens(nq);
-  std::vector<int64_t> q_sizes(nq);
+  std::vector<struct query_record_s> queries(nq);
   for (int i = 0; i < nq; i++)
     {
-      q_seqs[i] = query_seqs[i].c_str();
-      q_heads[i] = query_labels[i].c_str();
-      q_lens[i] = static_cast<int>(query_seqs[i].size());
-      q_sizes[i] = 1;
+      queries[i] = query_record_s{make_view(query_labels[i]),
+                                  make_view(query_seqs[i]),
+                                  1};
     }
 
   std::vector<struct chimera_result_s> batch_results(nq);
   chimera_detect_batch(parameters, dbindex, db,
-                       q_seqs.data(), q_heads.data(), q_lens.data(),
-                       q_sizes.data(), nq, batch_results.data());
+                       make_view(queries), make_span(batch_results));
 
   /* Compare */
   for (int i = 0; i < nq; i++)
@@ -206,8 +198,8 @@ static int run_batch_tests()
       if (sr.flag != 'N')
         {
           mismatch = mismatch ||
-            (std::strcmp(sr.parent_a_label, br.parent_a_label) != 0) ||
-            (std::strcmp(sr.parent_b_label, br.parent_b_label) != 0) ||
+            (std::strcmp(sr.parent_a_label.data(), br.parent_a_label.data()) != 0) ||
+            (std::strcmp(sr.parent_b_label.data(), br.parent_b_label.data()) != 0) ||
             (std::fabs(sr.id_query_a - br.id_query_a) > 0.1) ||
             (std::fabs(sr.id_query_b - br.id_query_b) > 0.1) ||
             (sr.left_yes != br.left_yes) ||

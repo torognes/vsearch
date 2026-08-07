@@ -406,8 +406,9 @@ struct chimera_info_s * ci = chimera_info_alloc();
 chimera_detect_init(ci, parameters, dbindex, db);   // session + per-thread init
 
 struct chimera_result_s result;
-chimera_detect_single(ci, query_seq, query_head,
-                      query_len, query_abundance, &result);
+chimera_detect_single(ci,
+                      query_record_s{query_head_view, query_seq_view, query_abundance},
+                      &result);
 
 chimera_detect_cleanup(ci);    // per-thread + session cleanup
 chimera_info_free(ci);
@@ -446,10 +447,10 @@ chimera_session_cleanup();
 | Field | Type | Description |
 |-------|------|-------------|
 | `score` | `double` | h-score |
-| `query_label` | `char[1024]` | Query header (truncated to 1023 chars) |
-| `parent_a_label` | `char[1024]` | Parent A header |
-| `parent_b_label` | `char[1024]` | Parent B header |
-| `closest_parent_label` | `char[1024]` | Closest parent header |
+| `query_label` | `std::array<char, 1024>` | Query header (truncated to 1023 chars) |
+| `parent_a_label` | `std::array<char, 1024>` | Parent A header |
+| `parent_b_label` | `std::array<char, 1024>` | Parent B header |
+| `closest_parent_label` | `std::array<char, 1024>` | Closest parent header |
 | `id_query_model` | `double` | Query-to-model identity % |
 | `id_query_a` | `double` | Query-to-parent-A identity % |
 | `id_query_b` | `double` | Query-to-parent-B identity % |
@@ -478,8 +479,8 @@ classifications and output. In this mode:
 - Process queries in decreasing abundance order
 - After classifying a query as non-chimeric, add it to the reference
   database with `db.add()` and index it with `dbindex.add_sequence()`
-- The `query_abundance` parameter to `chimera_detect_single()` controls
-  abundance skew filtering
+- The `abundance` field of the `query_record_s` passed to
+  `chimera_detect_single()` controls abundance skew filtering
 
 De novo mode is inherently sequential (single-threaded).
 
@@ -505,7 +506,7 @@ De novo mode is inherently sequential (single-threaded).
 | `chimera_session_cleanup()` | Session-level teardown: destroy mutexes. Call after all per-thread cleanup. |
 | `chimera_detect_thread_init(ci, parameters, dbindex, db)` | Per-thread init: allocate SIMD aligners, k-mer finders; searches `dbindex`. |
 | `chimera_detect_thread_cleanup(ci)` | Per-thread teardown: free resources. |
-| `chimera_detect_single(ci, seq, head, len, abund, result)` | Detect chimera for one query. Returns 0 on success. |
+| `chimera_detect_single(ci, query, result)` | Detect chimera for one query, given as a `query_record_s`. Returns 0 on success. Fatal on an empty query sequence. |
 | `chimera_detect_init(ci, parameters, dbindex, db)` | Convenience: `session_init` + `thread_init`. Single-threaded only. |
 | `chimera_detect_cleanup(ci)` | Convenience: `thread_cleanup` + `session_cleanup`. Single-threaded only. |
 
@@ -531,10 +532,11 @@ struct search_session_s * ss = search_session_alloc();
 search_session_init(ss, parameters, dbindex, db);  // call after DB indexed
 
 // Search queries
-struct search_result_s results[10];
-int result_count;
-search_session_single(ss, query_seq, query_head, query_len,
-                      query_abundance, results, 10, &result_count);
+std::array<struct search_result_s, 10> results {};
+int const result_count =
+    search_session_single(ss,
+                          query_record_s{query_head_view, query_seq_view, query_abundance},
+                          make_span(results));
 
 // Target headers are looked up from the database by index
 for (int i = 0; i < result_count; i++) {
@@ -552,8 +554,12 @@ search_session_free(ss);
 For bulk workloads, `search_batch()` parallelizes across `opt_threads`:
 
 ```cpp
-search_batch(parameters, dbindex, db, q_seqs, q_heads, q_lens, q_sizes, query_count,
-             results, max_results_per_query, result_counts);
+std::vector<struct query_record_s> queries;   // one record per query
+// ... fill queries ...
+search_batch(parameters, dbindex, db,
+             make_view(queries),
+             make_span(results), max_results_per_query,
+             make_span(result_counts));
 ```
 
 ### Result structure
@@ -574,8 +580,10 @@ search_batch(parameters, dbindex, db, q_seqs, q_heads, q_lens, q_sizes, query_co
 | `strand` | `int` | `0` = plus strand, `1` = minus strand (when `opt_strand` is true). |
 
 Results are ordered by identity (descending). The caller provides the
-result array and its capacity; `result_count` is set to the number of
-hits returned (up to `max_results` and `opt_maxaccepts`).
+result span, whose size is the per-query capacity;
+`search_session_single()` returns the number of hits written (up to that
+size and `opt_maxaccepts`), and `search_batch()` writes the per-query
+counts into `result_counts`.
 
 ### Key options
 
@@ -595,9 +603,9 @@ hits returned (up to `max_results` and `opt_maxaccepts`).
 | `search_session_alloc()` | Allocate opaque session state. |
 | `search_session_free(ss)` | Free session state. Null-safe (cleanup is implicit). |
 | `search_session_init(ss, parameters, dbindex, db)` | Initialize session. Call after DB indexed. Respects `opt_strand`. Stores a reference to `dbindex`, which must outlive the session. |
-| `search_session_single(ss, seq, head, len, size, results, max, count)` | Search one query (both strands when `opt_strand` is true). Do not share a search session across threads (give each thread its own). |
+| `search_session_single(ss, query, results)` | Search one query, given as a `query_record_s`; `results` is a `Span` whose size caps the hits reported. Returns the number written. Both strands when `opt_strand` is true. Do not share a search session across threads (give each thread its own). |
 | `search_session_cleanup(ss)` | Free per-session resources. Call before `search_session_free`. |
-| `search_batch(parameters, dbindex, db, seqs, heads, lens, sizes, n, results, max_per, counts)` | Bulk-parallel search of `dbindex`. Internally uses `opt_threads`. |
+| `search_batch(parameters, dbindex, db, queries, results, max_per, counts)` | Bulk-parallel search of `dbindex`, over a `View<query_record_s>`. `results` is a `Span` of `queries.size() * max_per`, `counts` a `Span` of `queries.size()`. Internally uses `opt_threads`. |
 
 ---
 
@@ -642,9 +650,9 @@ cluster_session_free(cs);
 | `is_centroid` | `bool` | `true` if sequence starts a new cluster. |
 | `cluster_id` | `int` | Cluster number (0-based). |
 | `centroid_seqno` | `int` | Database seqno of the cluster centroid. |
-| `centroid_label` | `char[1024]` | Centroid header (truncated to 1023 chars). |
+| `centroid_label` | `std::array<char, 1024>` | Centroid header (truncated to 1023 chars). |
 | `identity` | `double` | Identity to centroid (100.0 if centroid). |
-| `cigar` | `char[4096]` | CIGAR alignment string (empty if centroid). |
+| `cigar` | `std::array<char, 4096>` | CIGAR alignment string (empty if centroid). |
 | `cigar_truncated` | `bool` | `true` if CIGAR was truncated to fit buffer. |
 
 ### Key options
@@ -1014,7 +1022,7 @@ performed for results.
 ```cpp
 // Caller allocates on stack or heap
 struct chimera_result_s result;
-chimera_detect_single(ci, seq, head, len, abund, &result);
+chimera_detect_single(ci, query_record_s{head_view, seq_view, abund}, &result);
 // result is fully populated — no cleanup needed
 ```
 
@@ -1039,7 +1047,9 @@ All free functions are null-safe.
 
 ### Fixed-size buffers in result structs
 
-Several result structs still use fixed-size character buffers:
+Several result structs still use fixed-size character buffers. They are
+`std::array<char, N>` as of API 0.18.0 (same layout as the C arrays they
+replaced, same truncation); read them as C strings with `.data()`:
 
 | Buffer | Size | Truncation |
 |--------|------|------------|
@@ -1211,10 +1221,13 @@ int main() {
 
     const char * qh = "query1";
     const char * qs = "ACGTACGTACGTACGTACGT";
-    struct search_result_s results[5];
-    int count = 0;
-    search_session_single(ss, qs, qh, static_cast<int>(std::strlen(qs)), 1,
-                          results, 5, &count);
+    std::array<struct search_result_s, 5> results {};
+    int const count =
+        search_session_single(ss,
+                              query_record_s{View<char>{qh, std::strlen(qh)},
+                                             View<char>{qs, std::strlen(qs)},
+                                             1},
+                              make_span(results));
 
     for (int i = 0; i < count; i++) {
         std::printf("%s\t%s\t%.1f%%\n",

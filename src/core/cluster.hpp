@@ -60,16 +60,23 @@
 
 #pragma once
 
+#include "utils/span.hpp"  // Span
+#include <array>
+
 /* === Library API for embedding clustering === */
+
+/* capacities of the two result fields below, terminator included */
+constexpr auto cluster_label_capacity = 1024;
+constexpr auto cluster_cigar_capacity = 4096;
 
 /* Result of assigning a single sequence to a cluster. */
 struct cluster_result_s {
   bool is_centroid;            /* true if this sequence started a new cluster */
   int cluster_id;              /* cluster number (0-based) */
   int centroid_seqno;          /* database seqno of the cluster centroid */
-  char centroid_label[1024];   /* centroid header (may truncate) */
+  std::array<char, cluster_label_capacity> centroid_label;   /* centroid header (may truncate) */
   double identity;             /* identity to centroid (100.0 if is_centroid) */
-  char cigar[4096];            /* CIGAR alignment string (empty if centroid) */
+  std::array<char, cluster_cigar_capacity> cigar;            /* CIGAR alignment string (empty if centroid) */
   bool cigar_truncated;        /* true if cigar was truncated to fit buffer */
 };
 
@@ -108,12 +115,12 @@ auto cluster_assign_single(struct cluster_session_s * cs,
    processes results sequentially with intra-batch fixup for centroids
    discovered within the same batch.
    Must be called with ascending, non-overlapping seqno ranges.
-   results: caller-allocated array of count elements.
+   results: caller-allocated span; its size is the number of sequences to
+   assign, starting at start_seqno.
    NOT safe to call concurrently with any other cluster API call. */
 auto cluster_assign_batch(struct cluster_session_s * cs,
                           int start_seqno,
-                          int count,
-                          struct cluster_result_s * results) -> void;
+                          Span<struct cluster_result_s> results) -> void;
 
 /* Clean up clustering session resources.
    Call before cluster_session_free(). */

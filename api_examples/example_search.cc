@@ -101,14 +101,10 @@ static int run_search_tsv() {
         struct search_result_s results[16];
         int count = 0;
 
-        search_session_single(ss,
-                              query_seqs[i].c_str(),
-                              query_labels[i].c_str(),
-                              static_cast<int>(query_seqs[i].size()),
-                              1,
-                              results,
-                              3,
-                              &count);
+        count = search_session_single(ss,
+                                      query_record_s{make_view(query_labels[i]),
+                                                     make_view(query_seqs[i]), 1},
+                                      Span<struct search_result_s>{results, 3});
 
         for (int j = 0; j < count; j++) {
             std::printf("%s\t%s\t%.1f\n",
@@ -170,38 +166,35 @@ static int run_batch_tests()
 
   for (int i = 0; i < nq; i++)
     {
-      search_session_single(ss,
-                            query_seqs[i].c_str(),
-                            query_labels[i].c_str(),
-                            static_cast<int>(query_seqs[i].size()),
-                            1,
-                            &seq_results[i * max_per_query],
-                            max_per_query,
-                            &seq_counts[i]);
+      seq_counts[i] =
+        search_session_single(ss,
+                              query_record_s{make_view(query_labels[i]),
+                                             make_view(query_seqs[i]),
+                                             1},
+                              Span<struct search_result_s>{
+                                &seq_results[i * max_per_query],
+                                static_cast<std::size_t>(max_per_query)});
     }
 
   search_session_cleanup(ss);
   search_session_free(ss);
 
   /* Batch: search all queries at once */
-  std::vector<const char *> q_seqs(nq);
-  std::vector<const char *> q_heads(nq);
-  std::vector<int> q_lens(nq);
-  std::vector<int64_t> q_sizes(nq);
+  std::vector<struct query_record_s> queries(nq);
   for (int i = 0; i < nq; i++)
     {
-      q_seqs[i] = query_seqs[i].c_str();
-      q_heads[i] = query_labels[i].c_str();
-      q_lens[i] = static_cast<int>(query_seqs[i].size());
-      q_sizes[i] = 1;
+      queries[i] = query_record_s{make_view(query_labels[i]),
+                                  make_view(query_seqs[i]),
+                                  1};
     }
 
   std::vector<struct search_result_s> batch_results(nq * max_per_query);
   std::vector<int> batch_counts(nq, 0);
 
   search_batch(parameters, dbindex, db,
-               q_seqs.data(), q_heads.data(), q_lens.data(), q_sizes.data(),
-               nq, batch_results.data(), max_per_query, batch_counts.data());
+               make_view(queries),
+               make_span(batch_results), max_per_query,
+               make_span(batch_counts));
 
   /* Compare */
   for (int i = 0; i < nq; i++)
@@ -276,14 +269,10 @@ static bool search_rc_finds_hit(const std::string & fwd,
   struct search_result_s results[4];
   int count = 0;
 
-  search_session_single(ss,
-                        rev.c_str(),
-                        "rev_query",
-                        static_cast<int>(rev.size()),
-                        1,
-                        results,
-                        1,
-                        &count);
+  count = search_session_single(ss,
+                                query_record_s{View<char>{"rev_query", 9},
+                                               make_view(rev), 1},
+                                Span<struct search_result_s>{results, 1});
 
   bool found = (count > 0) && results[0].accepted;
   if (found && out_strand != nullptr)
