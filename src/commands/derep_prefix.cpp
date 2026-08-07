@@ -65,6 +65,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/median.hpp"  // median_of_descending
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/span.hpp"
@@ -345,18 +346,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       }
   }
 
-  if (clusters > 0)
-    {
-      if ((clusters % 2) != 0)
-        {
-          median = static_cast<double>(hashtable[(clusters - 1) / 2].size);
-        }
-      else
-        {
-          median = (static_cast<double>(hashtable[(clusters / 2) - 1].size) +
-                    static_cast<double>(hashtable[clusters / 2].size)) / 2.0;
-        }
-    }
+  /* the live clusters are the leading 'clusters' entries: compare_prefix puts
+     the not-deleted buckets first and orders them by decreasing size, and
+     'clusters' counts exactly those (it is incremented only when no prefix
+     match was found, never on the path that marks a bucket deleted) */
+  median = median_of_descending(make_view(hashtable).first(clusters),
+                                [](struct bucket const & entry) { return entry.size; });
 
   average = 1.0 * static_cast<double>(sumsize) / static_cast<double>(clusters);
 
