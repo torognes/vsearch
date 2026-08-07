@@ -59,6 +59,36 @@
 */
 
 
+#pragma once
+
+
+#include "utils/taxonomic_fields.h"  // tax_levels
+#include <array>
+
+
 struct Database;
 
-auto tax_split(int seqno, int * level_start, int * level_len, struct Database const & db) -> void;
+/* Where one taxonomic rank's name sits inside a database header: the offset of
+   its first byte and its length, so that db.header_view(seqno).subspan(start,
+   length) is the name. A zero length means the header does not carry that rank.
+
+   Offsets rather than a View<char> into the header, deliberately.  Every
+   consumer does build that view, and commands/sintax.cpp builds it immediately
+   -- but results_show_lcaout keeps its candidate ranks across iterations and
+   re-derives them from a different seqno each round, so a view stored in round
+   one would be compared against a header fetched in round three. The offsets
+   are the safe currency inside tax_split; the views are the right thing for the
+   caller to build right afterwards. */
+struct TaxLevel {
+  int start = 0;
+  int length = 0;
+};
+
+/* Fills `levels` with the ranks the header of sequence `seqno` carries, leaving
+   the ranks it does not carry as they were -- so callers pass a freshly
+   default-constructed array. One array of a two-field record rather than the
+   two parallel int arrays this used to take as separate out-parameters: a
+   wrong-size buffer now fails to compile instead of running off the end, and
+   the two halves can no longer be filled to different depths. */
+auto tax_split(int seqno, std::array<TaxLevel, tax_levels> & levels,
+               struct Database const & db) -> void;

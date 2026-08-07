@@ -64,7 +64,7 @@
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/searchcore.hpp"  // struct hit, top_hits
 #include "core/showalign.hpp"
-#include "core/tax.hpp"
+#include "core/tax.hpp"  // TaxLevel, tax_levels, tax_split
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -74,7 +74,7 @@
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
-#include <algorithm>  // std::max
+#include <algorithm>  // std::equal, std::max
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -96,6 +96,14 @@ namespace {
     /* usearch_global, search_exact, allpairs_global */
     /* use '=' for strictly identical sequences */
     return (hit.matches == hit.nwalignmentlength);
+  }
+
+  /* The name of one taxonomic rank, as a window into the header it was parsed
+     out of (see TaxLevel in core/tax.hpp). A zero-length rank is one the header
+     does not carry, and yields an empty view. */
+  auto rank_name(View<char> const header, TaxLevel const & rank) -> View<char> {
+    return header.subspan(static_cast<std::size_t>(rank.start),
+                          static_cast<std::size_t>(rank.length));
   }
 
 }  // end of anonymous namespace
@@ -580,8 +588,10 @@ auto results_show_lcaout(std::FILE * output_handle,
   std::array<int, tax_levels> votes {{}};
   std::array<int, tax_levels> cand;
   cand.fill(-1);
-  std::array<std::array<int, tax_levels>, tax_levels> cand_level_start {{}};
-  std::array<std::array<int, tax_levels>, tax_levels> cand_level_len {{}};
+  /* the ranks of the candidate at each level, as offsets into that candidate's
+     own header (see TaxLevel in core/tax.hpp); one array of records where two
+     parallel start/length arrays used to sit side by side, indexed in lockstep */
+  std::array<std::array<TaxLevel, tax_levels>, tax_levels> cand_levels {{}};
   std::array<int, tax_levels> level_match {{}};
 
   auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
@@ -589,9 +599,9 @@ auto results_show_lcaout(std::FILE * output_handle,
   for (auto const & hit : top)
     {
       int const seqno = hit.target;
-      std::array<int, tax_levels> new_level_start {{}};  // refactoring: std::array<struct a_level{.start, .length}, tax_levels>
-      std::array<int, tax_levels> new_level_len {{}};
-      tax_split(seqno, new_level_start.data(), new_level_len.data(), db);
+      std::array<TaxLevel, tax_levels> new_levels {{}};
+      tax_split(seqno, new_levels, db);
+      auto const hit_header = db.header_view(static_cast<uint64_t>(seqno));
 
       for (std::size_t k = 0; k < levels; ++k)
         {
@@ -599,29 +609,23 @@ auto results_show_lcaout(std::FILE * output_handle,
             {
               cand[k] = seqno;
               votes[k] = 1;
-              for (std::size_t j = 0; j < levels; ++j)
-                {
-                  cand_level_start[k][j] = new_level_start[j];
-                  cand_level_len[k][j] = new_level_len[j];
-                }
+              cand_levels[k] = new_levels;
             }
           else
             {
-              auto match = true;
-              for (std::size_t j = 0; j <= k; ++j)
-                {
-                  auto const cand_level = db.header_view(static_cast<uint64_t>(cand[k]))
-                    .subspan(static_cast<std::size_t>(cand_level_start[k][j]),
-                             static_cast<std::size_t>(cand_level_len[k][j]));
-                  auto const query_level = db.header_view(static_cast<uint64_t>(seqno))
-                    .subspan(static_cast<std::size_t>(new_level_start[j]),
-                             static_cast<std::size_t>(new_level_len[j]));
-                  if (cand_level != query_level)
-                    {
-                      match = false;
-                      break;
-                    }
-                }
+              /* Does this hit agree with the candidate at level k on every rank
+                 down to k? The two sets of offsets index two different headers,
+                 so both headers are part of the predicate -- and the two
+                 arguments are interchangeable, equality being symmetric. */
+              auto const cand_header = db.header_view(static_cast<uint64_t>(cand[k]));
+              auto const match =
+                std::equal(cand_levels[k].begin(),
+                           std::next(cand_levels[k].begin(), static_cast<std::ptrdiff_t>(k) + 1),
+                           new_levels.begin(),
+                           [&](TaxLevel const & cand_rank, TaxLevel const & hit_rank) -> bool {
+                             return rank_name(cand_header, cand_rank)
+                               == rank_name(hit_header, hit_rank);
+                           });
               if (match)
                 {
                   ++votes[k];
@@ -639,27 +643,21 @@ auto results_show_lcaout(std::FILE * output_handle,
   for (auto const & hit : top)
     {
       auto const seqno = hit.target;
-      std::array<int, tax_levels> new_level_start {{}};
-      std::array<int, tax_levels> new_level_len {{}};
-      tax_split(seqno, new_level_start.data(), new_level_len.data(), db);
+      std::array<TaxLevel, tax_levels> new_levels {{}};
+      tax_split(seqno, new_levels, db);
+      auto const hit_header = db.header_view(static_cast<uint64_t>(seqno));
 
       for (std::size_t k = 0; k < levels; ++k)
         {
-          auto match = true;
-          for (std::size_t j = 0; j <= k; ++j)
-            {
-              auto const cand_level = db.header_view(static_cast<uint64_t>(cand[k]))
-                .subspan(static_cast<std::size_t>(cand_level_start[k][j]),
-                         static_cast<std::size_t>(cand_level_len[k][j]));
-              auto const query_level = db.header_view(static_cast<uint64_t>(seqno))
-                .subspan(static_cast<std::size_t>(new_level_start[j]),
-                         static_cast<std::size_t>(new_level_len[j]));
-              if (cand_level != query_level)
-                {
-                  match = false;
-                  break;
-                }
-            }
+          auto const cand_header = db.header_view(static_cast<uint64_t>(cand[k]));
+          auto const match =
+            std::equal(cand_levels[k].begin(),
+                       std::next(cand_levels[k].begin(), static_cast<std::ptrdiff_t>(k) + 1),
+                       new_levels.begin(),
+                       [&](TaxLevel const & cand_rank, TaxLevel const & hit_rank) -> bool {
+                         return rank_name(cand_header, cand_rank)
+                           == rank_name(hit_header, hit_rank);
+                       });
           if (match)
             {
               ++level_match[k];
@@ -681,15 +679,14 @@ auto results_show_lcaout(std::FILE * output_handle,
           break;
         }
 
-      if (cand_level_len[j][j] > 0)
+      if (cand_levels[j][j].length > 0)
         {
           std::fputs((comma ? "," : ""), output_handle);
           fprint(output_handle, static_cast<char>(taxonomic_fields[j]));
           fprint(output_handle, ':');
           fprint(output_handle,
-                 db.header_view(static_cast<uint64_t>(cand[j]))
-                   .subspan(static_cast<std::size_t>(cand_level_start[j][j]),
-                            static_cast<std::size_t>(cand_level_len[j][j])));
+                 rank_name(db.header_view(static_cast<uint64_t>(cand[j])),
+                           cand_levels[j][j]));
           comma = true;
         }
     }

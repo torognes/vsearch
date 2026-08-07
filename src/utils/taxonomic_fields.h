@@ -58,6 +58,9 @@
 
 */
 
+#pragma once
+
+
 #include <array>
 
 

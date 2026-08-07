@@ -91,7 +91,7 @@
 #include "core/dbindex.hpp"
 #include "core/mask.hpp"
 #include "core/minheap.hpp"
-#include "core/tax.hpp"
+#include "core/tax.hpp"  // TaxLevel, tax_levels, tax_split
 #include "core/udb.hpp"
 #include "core/unique.hpp"
 #include "utils/fatal.hpp"
@@ -104,7 +104,7 @@
 #include "utils/random.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/print_view.hpp"  // fprint
-#include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max
+#include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max, std::transform
 #include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
@@ -175,17 +175,15 @@ static auto sintax_analyse(struct sintax_state_s & state,
           /* Split headers of all candidates by taxonomy ranks */
 
           auto const seqno = all_seqno[i];
-          std::array<int, tax_levels> new_level_name_start {{}};
-          std::array<int, tax_levels> new_level_name_len {{}};
-          tax_split(seqno, new_level_name_start.data(), new_level_name_len.data(), state.db);
+          std::array<TaxLevel, tax_levels> new_levels {{}};
+          tax_split(seqno, new_levels, state.db);
           auto const header = state.db.header_view(static_cast<uint64_t>(seqno));
-          for (auto k = 0; k < tax_levels; k++)
-            {
-              auto const level = static_cast<std::size_t>(k);
-              cand_level_name[static_cast<std::size_t>(i)][level] =
-                header.subspan(static_cast<std::size_t>(new_level_name_start[level]),
-                               static_cast<std::size_t>(new_level_name_len[level]));
-            }
+          std::transform(new_levels.begin(), new_levels.end(),
+                         cand_level_name[static_cast<std::size_t>(i)].begin(),
+                         [header](TaxLevel const & rank) -> View<char> {
+                           return header.subspan(static_cast<std::size_t>(rank.start),
+                                                 static_cast<std::size_t>(rank.length));
+                         });
         }
 
       std::array<bool, bootstrap_count> cand_included {{}};

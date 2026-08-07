@@ -59,10 +59,13 @@
 */
 
 #include "core/db.hpp"  // Database
+#include "core/tax.hpp"  // TaxLevel, tax_split
 #include "utils/ascii_case.hpp"  // to_lower
 #include "utils/taxonomic_fields.h"
 #include "utils/view.hpp"  // View
 #include <algorithm>  // std::find, std::search
+#include <array>  // std::array
+#include <cstddef>  // std::size_t
 #include <cstdint>
 #include <iterator>  // std::distance
 #include <string>  // std::string
@@ -130,7 +133,8 @@ auto tax_parse(View<char> const header,
 }  // anonymous namespace
 
 
-auto tax_split(int const seqno, int * level_start, int * level_len, struct Database const & db) -> void
+auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
+               struct Database const & db) -> void
 {
   /* Parse taxonomy string into the following 9 parts
      d domain
@@ -157,21 +161,21 @@ auto tax_split(int const seqno, int * level_start, int * level_len, struct Datab
       auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), to_lower(header.data()[offset]));
       if (next_level != taxonomic_fields.end())
         {
-          int const level = static_cast<int>(std::distance(taxonomic_fields.data(), next_level));
+          auto const level = static_cast<std::size_t>(std::distance(taxonomic_fields.begin(), next_level));
 
           /* Is there a colon after it? */
           if (header.data()[offset + 1] == ':')
             {
-              level_start[level] = offset + 2;
+              levels[level].start = offset + 2;
 
               auto const * const next_comma = std::find(header.begin() + offset + 2, header.end(), ',');
               if (next_comma != header.end())
                 {
-                  level_len[level] = static_cast<int>(std::distance(header.begin(), next_comma)) - offset - 2;
+                  levels[level].length = static_cast<int>(std::distance(header.begin(), next_comma)) - offset - 2;
                 }
               else
                 {
-                  level_len[level] = tax_end - offset - 2;
+                  levels[level].length = tax_end - offset - 2;
                 }
             }
         }
