@@ -111,12 +111,9 @@ auto Uniquer::count_bitmap(int const wordlength,
   uint64_t bad = 0;
   uint64_t kmer = 0;
   uint64_t const mask = size - 1ULL;
-  auto const * s = seq.data();
-  auto const * const e2 = seq.end();
   /* the wordlength - 1 leading bases only prime the rolling kmer; a sequence
      shorter than that primes it as far as it goes and yields no kmer */
-  auto const * const e1 = std::next(s, static_cast<std::ptrdiff_t>(
-                                      std::min(static_cast<std::size_t>(wordlength - 1), seq.size())));
+  auto const primer_length = std::min(static_cast<std::size_t>(wordlength - 1), seq.size());
 
   auto const * mask_map = (seqmask != Masking::none) ?
     chrmap_mask_lower() : chrmap_mask_ambig();
@@ -125,27 +122,25 @@ auto Uniquer::count_bitmap(int const wordlength,
   auto * const bitmap = bitmap_.data();
   auto * const list_data = list_.data();
 
-  while (s < e1)
+  for (auto const nucleotide : seq.first(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(*s)];
+      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
-      ++s;
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
     }
 
   auto unique = 0;
 
-  while (s < e2)
+  for (auto const nucleotide : seq.drop(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(*s)];
+      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
-      ++s;
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
       kmer &= mask;
 
       if (bad == 0U)
@@ -200,11 +195,8 @@ auto Uniquer::count_hash(int const wordlength,
   uint64_t bad = 0;
   auto kmer = 0U;
   auto const mask = static_cast<unsigned int>((1ULL << (2ULL * static_cast<unsigned int>(wordlength))) - 1ULL);
-  auto const * s = seq.data();
-  auto const * const e2 = seq.end();
   /* see count_bitmap: the leading wordlength - 1 bases only prime the kmer */
-  auto const * const e1 = std::next(s, static_cast<std::ptrdiff_t>(
-                                      std::min(static_cast<std::size_t>(wordlength - 1), seq.size())));
+  auto const primer_length = std::min(static_cast<std::size_t>(wordlength - 1), seq.size());
 
   auto const * mask_map = (seqmask != Masking::none) ?
     chrmap_mask_lower() : chrmap_mask_ambig();
@@ -213,27 +205,25 @@ auto Uniquer::count_hash(int const wordlength,
   auto * const hash = hash_.data();
   auto * const list_data = list_.data();
 
-  while (s < e1)
+  for (auto const nucleotide : seq.first(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(*s)];
+      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
-      ++s;
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
     }
 
   uint64_t unique = 0;
 
-  while (s < e2)
+  for (auto const nucleotide : seq.drop(primer_length))
     {
       bad <<= 2ULL;
-      bad |= mask_map[static_cast<unsigned char>(*s)];
+      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
       bad &= mask;
 
       kmer <<= 2ULL;
-      kmer |= two_bit_map[static_cast<unsigned char>(*s)];
-      ++s;
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
       kmer &= mask;
 
       if (bad == 0U)
