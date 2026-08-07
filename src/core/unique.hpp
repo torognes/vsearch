@@ -62,6 +62,7 @@
 
 #include "core/mask.hpp"  // Masking
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/view.hpp"  // View
 #include <cstdint>  // uint64_t
 #include <vector>  // std::vector
 
@@ -71,18 +72,19 @@
 class Uniquer
 {
 public:
+  /* The k-mers of `seq`, each one once, in order of first occurrence. The view
+     is over list_, this Uniquer's own scratch buffer, so it stays valid until
+     the next count() on the same instance -- which is what the two out
+     parameters this replaced (an unsigned int * and an unsigned int const **)
+     already meant, only in a comment. */
   auto count(int wordlength,
-             int seqlen,
-             char const * seq,
-             unsigned int * listlen,
-             unsigned int const * * list,
-             Masking seqmask) -> void;
+             View<char> seq,
+             Masking seqmask) -> View<unsigned int>;
 
   // noexcept: reads the already-built hash/bitmap only (no allocation), so it
   // cannot fatal()/throw, unlike count() which grows its buffers.
   auto count_shared(int wordlength,
-                    int listlen,
-                    unsigned int const * list) const noexcept -> unsigned int;
+                    View<unsigned int> list) const noexcept -> unsigned int;
 
 private:
   struct bucket
@@ -92,18 +94,12 @@ private:
   };
 
   auto count_bitmap(int wordlength,
-                    int seqlen,
-                    char const * seq,
-                    unsigned int * listlen,
-                    unsigned int const * * list,
-                    Masking seqmask) -> void;
+                    View<char> seq,
+                    Masking seqmask) -> View<unsigned int>;
 
   auto count_hash(int wordlength,
-                  int seqlen,
-                  char const * seq,
-                  unsigned int * listlen,
-                  unsigned int const * * list,
-                  Masking seqmask) -> void;
+                  View<char> seq,
+                  Masking seqmask) -> View<unsigned int>;
 
   std::vector<bucket, FatalAllocator<bucket>> hash_;
   std::vector<unsigned int, FatalAllocator<unsigned int>> list_;

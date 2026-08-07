@@ -256,7 +256,7 @@ auto search_enough_kmers(struct searchinfo_s const & searchinfo,
                          unsigned int const count) -> bool
 {
   struct Parameters const & parameters = *searchinfo.parameters;
-  return (count >= parameters.opt_minwordmatches) or (count >= searchinfo.kmersamplecount);
+  return (count >= parameters.opt_minwordmatches) or (count >= searchinfo.kmersample.size());
 }
 
 
@@ -280,9 +280,8 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 
   searchinfo->m.clear();
 
-  for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
+  for (auto const kmer : searchinfo->kmersample)
     {
-      auto const kmer = searchinfo->kmersample[i];
       auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
@@ -322,7 +321,14 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
         }
     }
 
-  auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches), searchinfo->kmersamplecount);
+  /* 32-bit on purpose: the counters compared against it below are count_t
+     (unsigned short), and widening the bound to std::size_t costs ~1
+     instruction per indexed sequence in the loop that follows -- measurably,
+     +8% on search_topscores. The sample is one kmer per query base, so it
+     cannot overflow an unsigned int. */
+  assert(searchinfo->kmersample.size() <= std::numeric_limits<unsigned int>::max());
+  auto const minmatches = std::min(static_cast<unsigned int>(parameters.opt_minwordmatches),
+                                   static_cast<unsigned int>(searchinfo->kmersample.size()));
 
   for (auto i = 0U; i < indexed_count; i++)
     {
@@ -895,9 +901,8 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 
 
   /* extract unique kmer samples from query*/
-  searchinfo->uh.count(static_cast<int>(searchinfo->dbindex->wordlength),
-                       static_cast<int>(searchinfo->qsequence.size()), searchinfo->qsequence.data(),
-                       &searchinfo->kmersamplecount, &searchinfo->kmersample, seqmask);
+  searchinfo->kmersample = searchinfo->uh.count(static_cast<int>(searchinfo->dbindex->wordlength),
+                                                View<char>{searchinfo->qsequence}, seqmask);
 
   /* find database sequences with the most kmer hits */
   search_topscores(searchinfo);

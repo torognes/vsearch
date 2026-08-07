@@ -226,19 +226,15 @@ auto orient(struct Parameters const & parameters) -> void
       {
         auto const query_head = query_h->header_view();
         auto const query_sequence = query_h->sequence_view();
-        char const * qseq_fwd = query_sequence.data();
         auto const qseqlen = static_cast<int>(query_sequence.size());
         int64_t const qsize = query_h->get_abundance();
         char const * query_qual_fwd = query_h->get_quality();
 
         /* find kmers in query sequence */
 
-        unsigned int kmer_count_fwd = 0;
-        unsigned int const * kmer_list_fwd = nullptr;
-
         /* dbindex.wordlength: the effective index width (see rc_kmer) */
-        uh_fwd.count(static_cast<int>(dbindex.wordlength), qseqlen, qseq_fwd,
-                     & kmer_count_fwd, & kmer_list_fwd, parameters.opt_qmask);
+        auto const kmer_list_fwd = uh_fwd.count(static_cast<int>(dbindex.wordlength),
+                                                query_sequence, parameters.opt_qmask);
 
         /* count kmers matching on each strand */
 
@@ -246,9 +242,8 @@ auto orient(struct Parameters const & parameters) -> void
         unsigned int count_rev = 0;
         constexpr auto hits_factor = 8U;
 
-        for (unsigned int i = 0; i < kmer_count_fwd; i++)
+        for (auto const kmer_fwd : kmer_list_fwd)
           {
-            unsigned int const kmer_fwd = kmer_list_fwd[i];
             unsigned int const kmer_rev = rc_kmer(kmer_fwd, dbindex.wordlength);
 
             unsigned int const hits_fwd = dbindex.getmatchcount(kmer_fwd);

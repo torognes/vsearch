@@ -642,7 +642,6 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           /* find the number of shared unique kmers */
           auto const shared
             = si->uh.count_shared(static_cast<int>(si->dbindex->wordlength),
-                                  static_cast<int>(sic->kmersamplecount),
                                   sic->kmersample);
 
           /* check if min number of shared kmers is satisfied */

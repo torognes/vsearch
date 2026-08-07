@@ -130,15 +130,11 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
   fprint(stdout, '\n');
 #endif
 
-  unsigned int uniquecount = 0;
-  unsigned int const * uniquelist = nullptr;
-  uhandle.count(static_cast<int>(wordlength),
-                static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
-                &uniquecount, &uniquelist, seqmask);
+  auto const uniquelist = uhandle.count(static_cast<int>(wordlength),
+                                        db.sequence_view(seqno), seqmask);
   map[count] = seqno;
-  for (auto i = 0U; i < uniquecount; i++)
+  for (auto const kmer : uniquelist)
     {
-      auto const kmer = uniquelist[i];
       if (not kmerbitmap[kmer].empty())
         {
           ++kmercount[kmer];
@@ -188,14 +184,11 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
     Progress progress("Counting k-mers", seqcount, parameters);
     for (auto seqno = 0U; seqno < seqcount ; seqno++)
       {
-        unsigned int uniquecount = 0;
-        unsigned int const * uniquelist = nullptr;
-        uhandle.count(static_cast<int>(wordlength),
-                      static_cast<int>(db.getsequencelen(seqno)), db.getsequence(seqno),
-                      &uniquecount, &uniquelist, seqmask);
-        for (auto i = 0U; i < uniquecount; i++)
+        auto const uniquelist = uhandle.count(static_cast<int>(wordlength),
+                                              db.sequence_view(seqno), seqmask);
+        for (auto const kmer : uniquelist)
           {
-            ++kmercount[uniquelist[i]];
+            ++kmercount[kmer];
           }
         progress.update(seqno);
       }

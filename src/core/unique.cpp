@@ -63,8 +63,9 @@
 #include "core/mask.hpp"  // Masking
 #include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
 #include <algorithm>  // std::min, std::fill_n
-#include <cstddef>  // std::size_t
+#include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
+#include <iterator>  // std::next
 
 
 /*
@@ -89,17 +90,14 @@ namespace {
 
 
 auto Uniquer::count_bitmap(int const wordlength,
-                           int const seqlen,
-                           char const * seq,
-                           unsigned int * listlen,
-                           unsigned int const * * list,
-                           Masking const seqmask) -> void
+                           View<char> const seq,
+                           Masking const seqmask) -> View<unsigned int>
 {
-  /* if necessary, grow the list of unique kmers (at most seqlen entries) */
+  /* if necessary, grow the list of unique kmers (at most seq.size() entries) */
 
-  if (list_.size() < static_cast<std::size_t>(seqlen))
+  if (list_.size() < seq.size())
     {
-      list_.resize(static_cast<std::size_t>(seqlen));
+      list_.resize(seq.size());
     }
 
   uint64_t const size = 1ULL << (wordlength << 1ULL);
@@ -113,10 +111,12 @@ auto Uniquer::count_bitmap(int const wordlength,
   uint64_t bad = 0;
   uint64_t kmer = 0;
   uint64_t const mask = size - 1ULL;
-  auto const * s = seq;
-  auto const * e1 = s + wordlength - 1;
-  auto const * e2 = s + seqlen;
-  e1 = std::min(e2, e1);
+  auto const * s = seq.data();
+  auto const * const e2 = seq.end();
+  /* the wordlength - 1 leading bases only prime the rolling kmer; a sequence
+     shorter than that primes it as far as it goes and yields no kmer */
+  auto const * const e1 = std::next(s, static_cast<std::ptrdiff_t>(
+                                      std::min(static_cast<std::size_t>(wordlength - 1), seq.size())));
 
   auto const * mask_map = (seqmask != Masking::none) ?
     chrmap_mask_lower() : chrmap_mask_ambig();
@@ -162,24 +162,20 @@ auto Uniquer::count_bitmap(int const wordlength,
         }
     }
 
-  *listlen = static_cast<unsigned int>(unique);
-  *list = list_data;
+  return View<unsigned int>{list_data, static_cast<std::size_t>(unique)};
 }
 
 
 auto Uniquer::count_hash(int const wordlength,
-                         int const seqlen,
-                         char const * seq,
-                         unsigned int * listlen,
-                         unsigned int const * * list,
-                         Masking const seqmask) -> void
+                         View<char> const seq,
+                         Masking const seqmask) -> View<unsigned int>
 {
   /* size the hash table and the list of unique kmers to the sequence. needed
      and size are 64-bit: the hash grows to 2 * sequence length, which exceeds
      INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise overflow
      int before reaching the target). */
 
-  int64_t const needed = 2 * static_cast<int64_t>(seqlen);
+  int64_t const needed = 2 * static_cast<int64_t>(seq.size());
   int64_t size = 1;
   while (size < needed)
     {
@@ -204,10 +200,11 @@ auto Uniquer::count_hash(int const wordlength,
   uint64_t bad = 0;
   auto kmer = 0U;
   auto const mask = static_cast<unsigned int>((1ULL << (2ULL * static_cast<unsigned int>(wordlength))) - 1ULL);
-  auto const * s = seq;
-  auto const * e1 = s + wordlength - 1;
-  auto const * e2 = s + seqlen;
-  e1 = std::min(e2, e1);
+  auto const * s = seq.data();
+  auto const * const e2 = seq.end();
+  /* see count_bitmap: the leading wordlength - 1 bases only prime the kmer */
+  auto const * const e1 = std::next(s, static_cast<std::ptrdiff_t>(
+                                      std::min(static_cast<std::size_t>(wordlength - 1), seq.size())));
 
   auto const * mask_map = (seqmask != Masking::none) ?
     chrmap_mask_lower() : chrmap_mask_ambig();
@@ -259,32 +256,24 @@ auto Uniquer::count_hash(int const wordlength,
         }
     }
 
-  *listlen = static_cast<unsigned int>(unique);
-  *list = list_data;
+  return View<unsigned int>{list_data, static_cast<std::size_t>(unique)};
 }
 
 
 auto Uniquer::count(int const wordlength,
-                    int const seqlen,
-                    char const * seq,
-                    unsigned int * listlen,
-                    unsigned int const * * list,
-                    Masking const seqmask) -> void
+                    View<char> const seq,
+                    Masking const seqmask) -> View<unsigned int>
 {
   if (wordlength < 10)
     {
-      count_bitmap(wordlength, seqlen, seq, listlen, list, seqmask);
+      return count_bitmap(wordlength, seq, seqmask);
     }
-  else
-    {
-      count_hash(wordlength, seqlen, seq, listlen, list, seqmask);
-    }
+  return count_hash(wordlength, seq, seqmask);
 }
 
 
 auto Uniquer::count_shared(int const wordlength,
-                           int const listlen,
-                           unsigned int const * list) const noexcept -> unsigned int
+                           View<unsigned int> const list) const noexcept -> unsigned int
 {
   /* counts how many of the kmers in list are present in the
      (already computed) hash or bitmap */
@@ -293,9 +282,8 @@ auto Uniquer::count_shared(int const wordlength,
   if (wordlength < 10)
     {
       auto const * const bitmap = bitmap_.data();
-      for (auto i = 0; i < listlen; i++)
+      for (auto const kmer : list)
         {
-          auto const kmer = list[i];
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
           if ((bitmap[x] & y) != 0U)
@@ -307,9 +295,8 @@ auto Uniquer::count_shared(int const wordlength,
   else
     {
       auto const * const hash = hash_.data();
-      for (auto i = 0; i < listlen; i++)
+      for (auto kmer : list)
         {
-          auto kmer = list[i];
           uint64_t j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & hash_mask_;
           while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
             {

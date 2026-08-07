@@ -333,9 +333,8 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
   /* zero counts */
   std::fill_n(kmer_counts.begin(), indexed_count, count_t{0});
 
-  for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
+  for (auto const kmer : searchinfo->kmersample)
     {
-      unsigned int const kmer = searchinfo->kmersample[i];
       auto const * bitmap = searchinfo->dbindex->getbitmap(kmer);
 
       if (bitmap != nullptr)
@@ -444,29 +443,29 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
       /* perform search */
 
-      auto kmersamplecount = 0U;
-      unsigned int const * kmersample = nullptr;
-
       /* find unique kmers at dbindex.wordlength, the effective index width (set
          by Dbindex::prepare for a FASTA db, or udb_read for a UDB db); reading
          parameters.opt_wordlength would use the wrong width against a UDB index. */
-      si->uh.count(static_cast<int>(si->dbindex->wordlength),
-                   static_cast<int>(si->qsequence.size()), si->qsequence.data(),
-                   &kmersamplecount, &kmersample, Masking::none);
+      auto const kmersample = si->uh.count(static_cast<int>(si->dbindex->wordlength),
+                                           View<char>{si->qsequence}, Masking::none);
 
       /* perform 100 bootstraps */
 
-      if (kmersamplecount >= subset_size)
+      if (kmersample.size() >= subset_size)
         {
+          /* declared outside the loop, so that the view si->kmersample holds
+             into it cannot outlive it; refilled from index 0 every round, and
+             only the first `subsamples` entries are ever read */
+          std::array<unsigned int, subset_size> kmersample_subset {{}};
+
           for (auto i = 0; i < bootstrap_count ; i++)
             {
               /* subsample 32 kmers */
-              std::array<unsigned int, subset_size> kmersample_subset {{}};
               auto subsamples = 0;
               b.reset_all();
               for (auto j = 0; j < subset_size ; j++)
                 {
-                  auto const x = static_cast<int64_t>(random_bounded(rng, kmersamplecount));
+                  std::size_t const x = random_bounded(rng, static_cast<unsigned int>(kmersample.size()));
                   if (not b.is_set(static_cast<unsigned int>(x)))
                     {
                       kmersample_subset[static_cast<std::size_t>(subsamples++)] = kmersample[x];
@@ -474,8 +473,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
                     }
                 }
 
-              si->kmersamplecount = static_cast<unsigned int>(subsamples);
-              si->kmersample = kmersample_subset.data();
+              si->kmersample = make_view(kmersample_subset).first(static_cast<std::size_t>(subsamples));
 
               sintax_search_topscores(si, rng, state.parameters);
 

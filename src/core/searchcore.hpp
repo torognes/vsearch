@@ -155,8 +155,11 @@ struct searchinfo_s
   Span<char> qsequence;          /* query sequence (length == query length):
                                        a span over qsequence_v, the database, or
                                        a caller-owned buffer */
-  unsigned int kmersamplecount = 0; /* number of kmer samples from query */
-  unsigned int const * kmersample = nullptr;    /* list of kmers sampled from query */
+  /* the kmers sampled from the query. A view into whatever produced them: the
+     Uniquer's own list_ buffer for a plain search, or -- in the sintax
+     bootstrap -- a caller-owned subset array that must outlive the search it
+     is set for */
+  View<unsigned int> kmersample;
   /* one kmer-match counter per indexed database sequence. Sized by the
      per-thread init, which also reserves headroom past the logical end for the
      SIMD counter stores; readers take a Span over it once, rather than caching
