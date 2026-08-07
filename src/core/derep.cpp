@@ -632,12 +632,12 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         auto const * qual = input_handle->get_quality(); // nullptr if FASTA
 
         /* normalize sequence: uppercase and replace U by T  */
-        string_normalize(make_span(seq_up).first(static_cast<std::size_t>(seqlen) + 1), View<char>{seq, static_cast<std::size_t>(seqlen)});
+        auto const seq_up_v = normalize_into(seq_up, View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen) + 1), make_view(seq_up).first(static_cast<std::size_t>(seqlen)));
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen) + 1), seq_up_v);
           }
 
         /*
@@ -650,7 +650,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         auto const hash_header = use_header ? hash_function(header_v) : uint64_t{0};
 
-        auto const seq_up_v = make_view(seq_up).first(static_cast<std::size_t>(seqlen));
         auto const hash = hash_function(seq_up_v) ^ hash_header;
         auto j = hash & hash_mask;
         auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
@@ -992,7 +991,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
     }
 
   /* Normalize: uppercase, U→T */
-  string_normalize(make_span(ds->seq_up).first(static_cast<std::size_t>(seqlen) + 1), View<char>{sequence, static_cast<std::size_t>(seqlen)});
+  auto const seq_up_v = normalize_into(ds->seq_up, View<char>{sequence, static_cast<std::size_t>(seqlen)});
 
   /* Rehash if needed */
   if (ds->clusters + 1 > ds->alloc_clusters)
@@ -1004,7 +1003,6 @@ auto derep_add_sequence(struct derep_session_s * ds,
     }
 
   /* Hash and probe */
-  auto const seq_up_v = make_view(ds->seq_up).first(static_cast<std::size_t>(seqlen));
   auto const hash = hash_cityhash64(seq_up_v);
   auto j = hash & ds->hash_mask;
   auto * bp = &ds->hashtable[j];

@@ -60,8 +60,8 @@
 
 #pragma once
 
-#include "utils/span.hpp"
 #include "utils/view.hpp"
+#include <array>
 #include <cstdio>  // std::FILE
 
 
@@ -70,8 +70,11 @@ constexpr auto sha1_digest_length = 20;
 constexpr auto len_hex_dig_md5 = (2 * md5_digest_length) + 1;
 constexpr auto len_hex_dig_sha1 = (2 * sha1_digest_length) + 1;
 
-auto get_hex_seq_digest_sha1(Span<char> hex, View<char> seq) -> void;
-auto get_hex_seq_digest_md5(Span<char> hex, View<char> seq) -> void;
+/* The output buffer is the whole fixed-size array rather than a Span over it:
+   every caller passes exactly one of these, so a wrong-sized buffer is now a
+   compile error instead of the run-time assertion it used to be. */
+auto get_hex_seq_digest_sha1(std::array<char, len_hex_dig_sha1> & hex, View<char> seq) -> void;
+auto get_hex_seq_digest_md5(std::array<char, len_hex_dig_md5> & hex, View<char> seq) -> void;
 
 auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> seq) -> void;
 auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> seq) -> void;

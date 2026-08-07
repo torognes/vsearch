@@ -978,8 +978,7 @@ auto results_show_samheader(std::FILE * output_handle,
       std::array<char, len_hex_dig_md5> md5hex;
       for (uint64_t i = 0; i < db.getsequencecount(); ++i)
         {
-          get_hex_seq_digest_md5(make_span(md5hex),
-                                 db.sequence_view(i));
+          get_hex_seq_digest_md5(md5hex, db.sequence_view(i));
           fprint(output_handle, "@SQ\tSN:");
           fprint(output_handle, db.header_view(i));
           fprint(output_handle, "\tLN:");

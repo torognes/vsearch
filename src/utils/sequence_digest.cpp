@@ -66,8 +66,6 @@
 #include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
 #include "vendored/sha1.h"  // SHA1_CTX, SHA1_Init, SHA1_Update, SHA1_Final
 #include <array>  // std::array
-#include <cassert>
-#include <cstddef>  // std::size_t
 #include <cstdio>  // std::FILE, std::fputs
 #include <iterator>  // std::advance
 #include <vector>  // std::vector
@@ -109,7 +107,7 @@ auto MD5(void * data, unsigned long const len, unsigned char * digest) -> void
 }  // namespace
 
 
-auto get_hex_seq_digest_sha1(Span<char> const hex, View<char> const seq) -> void
+auto get_hex_seq_digest_sha1(std::array<char, len_hex_dig_sha1> & hex, View<char> const seq) -> void
 {
   /* Save hexadecimal representation of the SHA1 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_sha1).
@@ -122,12 +120,10 @@ auto get_hex_seq_digest_sha1(Span<char> const hex, View<char> const seq) -> void
      from the search worker threads (e.g. --relabel_sha1). Do not hash `seq`
      directly, and do not enable SHA1HANDSOFF (a shared static workspace). */
 
-  assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_sha1));
-
   std::vector<char> normalized(seq.size() + 1);
   string_normalize(make_span(normalized), seq);
 
-  std::vector<unsigned char> digest(sha1_digest_length);
+  std::array<unsigned char, sha1_digest_length> digest {{}};
 
   SHA1(reinterpret_cast<unsigned char const *>(normalized.data()),
        seq.size(),
@@ -144,7 +140,7 @@ auto get_hex_seq_digest_sha1(Span<char> const hex, View<char> const seq) -> void
 }
 
 
-auto get_hex_seq_digest_md5(Span<char> const hex, View<char> const seq) -> void
+auto get_hex_seq_digest_md5(std::array<char, len_hex_dig_md5> & hex, View<char> const seq) -> void
 {
   /* Save hexadecimal representation of the MD5 hash of the sequence.
      The string array digest must be large enough (len_hex_dig_md5).
@@ -154,12 +150,10 @@ auto get_hex_seq_digest_md5(Span<char> const hex, View<char> const seq) -> void
      per-call `normalized` copy (never `seq`): the vendored MD5 may read it
      via an aligned reinterpret, and being per-call it is thread-safe. */
 
-  assert(hex.size() >= static_cast<std::size_t>(len_hex_dig_md5));
-
   std::vector<char> normalized(seq.size() + 1);
   string_normalize(make_span(normalized), seq);
 
-  std::vector<unsigned char> digest(md5_digest_length);
+  std::array<unsigned char, md5_digest_length> digest {{}};
 
   MD5(normalized.data(), seq.size(), digest.data());
 
@@ -176,15 +170,15 @@ auto get_hex_seq_digest_md5(Span<char> const hex, View<char> const seq) -> void
 
 auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> const seq) -> void
 {
-  std::vector<char> hex_digest(len_hex_dig_sha1);
-  get_hex_seq_digest_sha1(make_span(hex_digest), seq);
+  std::array<char, len_hex_dig_sha1> hex_digest {{}};
+  get_hex_seq_digest_sha1(hex_digest, seq);
   std::fputs(hex_digest.data(), output_handle);
 }
 
 
 auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> const seq) -> void
 {
-  std::vector<char> hex_digest(len_hex_dig_md5);
-  get_hex_seq_digest_md5(make_span(hex_digest), seq);
+  std::array<char, len_hex_dig_md5> hex_digest {{}};
+  get_hex_seq_digest_md5(hex_digest, seq);
   std::fputs(hex_digest.data(), output_handle);
 }
