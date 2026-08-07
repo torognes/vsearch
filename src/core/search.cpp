@@ -77,6 +77,7 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include "utils/reverse_complement.hpp"
+#include <array>  // std::array
 #include <cassert>
 #include <algorithm>  // std::copy_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -275,11 +276,11 @@ auto search_session_single(struct search_session_s * ss,
     }
 
   /* Mask and search each strand independently */
-  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+  std::array<struct searchinfo_s *, 2> const strands
+    {{ss->si_plus.get(), ss->si_minus.get()}};
+  for (auto * const strand_si : make_view(strands)
+         .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
-      struct searchinfo_s * strand_si =
-        (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
-
       if (parameters.opt_qmask == Masking::dust)
         {
           dust(strand_si->qsequence, parameters);
@@ -322,10 +323,9 @@ auto search_session_single(struct search_session_s * ss,
 
   /* Free alignment strings directly from the si hit buffer (not the joinhits
      copy) to avoid dangling pointers. Follows cluster_assign_single pattern. */
-  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+  for (auto * const strand_si : make_view(strands)
+         .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
-      struct searchinfo_s * strand_si =
-        (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
       for (auto & hit : make_hits_span(strand_si))
         {
           if (hit.aligned)
@@ -387,6 +387,9 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
   struct searchinfo_s * my_si_minus =
     (not ctx.batch_si_minus.empty()) ? &ctx.batch_si_minus[tid] : nullptr;
   struct Parameters const & parameters = *ctx.parameters;
+  /* the strands to visit, in the plus-then-minus order the counter used to
+     reconstruct; a local, so it outlives every loop below that slices it */
+  std::array<struct searchinfo_s *, 2> const strands {{my_si_plus, my_si_minus}};
 
   /* grab next query */
   int qi {0};
@@ -420,11 +423,9 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
       }
 
     /* Mask and search each strand independently */
-    for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+    for (auto * const strand_si : make_view(strands)
+           .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
       {
-        struct searchinfo_s * strand_si =
-          (s != 0) ? my_si_minus : my_si_plus;
-
         if (parameters.opt_qmask == Masking::dust)
           {
             dust(strand_si->qsequence, parameters);
@@ -471,10 +472,9 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     ctx.result_counts[static_cast<std::size_t>(qi)] = count;
 
     /* Free alignment strings from the si hit buffer directly */
-    for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+    for (auto * const strand_si : make_view(strands)
+           .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
       {
-        struct searchinfo_s * strand_si =
-          (s != 0) ? my_si_minus : my_si_plus;
         for (auto & hit : make_hits_span(strand_si))
           {
             if (hit.aligned)

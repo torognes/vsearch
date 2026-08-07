@@ -83,6 +83,7 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::min
+#include <array>  // std::array
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
@@ -428,10 +429,11 @@ auto search_exact_output_results(struct search_exact_state_s & state,
 auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -> int
 {
   struct Parameters const & parameters = state.parameters;
-  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+  std::array<struct searchinfo_s *, 2> const strands
+    {{state.si_plus + t, (state.si_minus != nullptr) ? state.si_minus + t : nullptr}};
+  for (auto * const si : make_view(strands)
+         .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
-      struct searchinfo_s * si = (s != 0) ? state.si_minus + t : state.si_plus + t;
-
       /* mask query */
       if (parameters.opt_qmask == Masking::dust)
         {
@@ -487,6 +489,8 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
     int const query_no = static_cast<int>(state.query_fastx_h->get_seqno());
     qsize = state.query_fastx_h->get_abundance();
 
+    /* indexed rather than a range-for over the two strands: the counter is
+       stored as si->strand, so here the index is data */
     for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
       {
         struct searchinfo_s * si = (s != 0) ? state.si_minus + t : state.si_plus + t;

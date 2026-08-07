@@ -82,6 +82,7 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::min
+#include <array>  // std::array
 #include <cstdint>  // uint64_t, int64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <mutex>  // std::mutex, std::lock_guard
@@ -374,10 +375,11 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
   struct searchinfo_s * const si_plus = state.si_plus.data();
   struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
 
-  for (int s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
+  std::array<struct searchinfo_s *, 2> const strands
+    {{si_plus + t, (si_minus != nullptr) ? si_minus + t : nullptr}};
+  for (auto * const si : make_view(strands)
+         .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
     {
-      struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
-
       /* mask query */
       if (state.parameters.opt_qmask == Masking::dust)
         {

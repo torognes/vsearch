@@ -866,9 +866,11 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
                                 struct Parameters const & parameters) -> void
 {
   /* free alignments */
-  for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+  // non-const elements: the loop clears the strings
+  std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
+  for (auto * const si : make_view(strands)
+         .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
-      struct searchinfo_s * si = (s != 0) ? si_m : si_p;  // non-const: clear the strings
       for (auto & hit : make_hits_span(si))
         {
           if (hit.aligned)
@@ -955,10 +957,10 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
           struct searchinfo_s * si_p = si_plus + i;
           struct searchinfo_s * si_m = state.parameters.opt_strand ? si_minus + i : nullptr;
 
-          for (int s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
+          std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
+          for (auto * const si : make_view(strands)
+                 .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
             {
-              struct searchinfo_s * si = (s != 0) ? si_m : si_p;
-
               evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, tophits, db);
             }
 
@@ -1864,10 +1866,10 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
           struct searchinfo_s * si_m =
             parameters.opt_strand ? si_minus + i : nullptr;
 
-          for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
+          std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
+          for (auto * const si : make_view(strands)
+                 .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
             {
-              struct searchinfo_s * si = (s != 0) ? si_m : si_p;
-
               evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, cs->tophits, *cs->db);
             }
 

@@ -437,6 +437,9 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
 
   Bitmap b(static_cast<unsigned int>(qseqlen));
 
+  /* indexed rather than a range-for over the two strands: the counter is also
+     the row this strand's bootstrap hits are accumulated into (all_seqno,
+     boot_count and best_count below), so here the index is data */
   for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
@@ -557,6 +560,8 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
     int const query_no = static_cast<int>(query_fastx_h->get_seqno());
     int64_t const qsize = query_fastx_h->get_abundance();
 
+    /* indexed rather than a range-for over the two strands: the counter is
+       stored as si->strand, so here the index is data */
     for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
       {
         struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
