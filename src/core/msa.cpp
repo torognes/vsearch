@@ -69,11 +69,12 @@
 #include "utils/span.hpp"
 #include "utils/reverse_complement.hpp"
 #include <array>
-#include <algorithm>  // std::max()
+#include <algorithm>  // std::fill, std::fill_n, std::max, std::max_element
 #include <cassert>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE
-#include <iterator> // std::next
+#include <iterator> // std::distance, std::next
 #include <numeric> // std::accumulate
 #include <vector>
 
@@ -86,37 +87,59 @@
    sequence of clustered sequences */
 
 using prof_type = std::uint64_t;
-constexpr auto profsize = 6;
+
+/* One profile column per alignment position: the six abundance counters below,
+   in storage order. The four nucleotide counters come first and in the order
+   sym_nt_4bit encodes them (1 << A_counter == 'A' and so on), which is what
+   lets the consensus read the winner's symbol straight out of its position. */
+constexpr auto A_counter = 0;
+constexpr auto C_counter = 1;
+constexpr auto G_counter = 2;
+constexpr auto U_counter = 3;  // note: T converted to U?
+constexpr auto N_counter = 4;
+constexpr auto gap_counter = 5;
+constexpr auto profsize = 6;  // the six counters above
 
 
 namespace {
+/* The counters of alignment position `index`. The profile is a flat vector of
+   profsize-wide columns, and every reader used to spell that stride by hand;
+   the subspan also carries the bounds assertions an open-coded
+   profsize * index + counter cannot. */
+auto column(std::vector<prof_type> & profile, int const index) -> Span<prof_type> {
+  return make_span(profile).subspan(static_cast<std::size_t>(index)
+                                    * static_cast<std::size_t>(profsize),
+                                    static_cast<std::size_t>(profsize));
+}
+
+auto column(std::vector<prof_type> const & profile, int const index) -> View<prof_type> {
+  return make_view(profile).subspan(static_cast<std::size_t>(index)
+                                    * static_cast<std::size_t>(profsize),
+                                    static_cast<std::size_t>(profsize));
+}
+
+
 auto update_profile(char const nucleotide,
                     int const position_in_alignment,
                     prof_type const abundance,
                     std::vector<prof_type>& profile) -> void {
-  static constexpr auto A_counter = 0;
-  static constexpr auto C_counter = 1;
-  static constexpr auto G_counter = 2;
-  static constexpr auto U_counter = 3;  // note: T converted to U?
-  static constexpr auto N_counter = 4;
-  static constexpr auto gap_counter = 5;
-  auto const offset = static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(position_in_alignment);
+  auto const counters = column(profile, position_in_alignment);
 
   // refactoring: eliminate unused cases? No, T and U are merged, same as IUPAC and N
   switch (to_upper(nucleotide))
     {
     case 'A':
-      profile[offset + A_counter] += abundance;
+      counters[A_counter] += abundance;
       break;
     case 'C':
-      profile[offset + C_counter] += abundance;
+      counters[C_counter] += abundance;
       break;
     case 'G':
-      profile[offset + G_counter] += abundance;
+      counters[G_counter] += abundance;
       break;
     case 'T':
     case 'U':
-      profile[offset + U_counter] += abundance;
+      counters[U_counter] += abundance;
       break;
     case 'R':
     case 'Y':
@@ -129,10 +152,10 @@ auto update_profile(char const nucleotide,
     case 'H':
     case 'V':
     case 'N':
-      profile[offset + N_counter] += abundance;
+      counters[N_counter] += abundance;
       break;
     case '-':
-      profile[offset + gap_counter] += abundance;
+      counters[gap_counter] += abundance;
       break;
     default:
       break;
@@ -427,32 +450,34 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
   /* Censor part of the consensus sequence outside the centroid sequence */
   auto const left_censored = max_insertions.front();
   auto const right_censored = max_insertions.back();
-  for (auto i = 0; i < left_censored; ++i)
-    {
-      aln_v[static_cast<std::vector<char>::size_type>(i)] = '+';
-    }
-  for (auto i = alignment_length - right_censored; i < alignment_length; ++i)
-    {
-      aln_v[static_cast<std::vector<char>::size_type>(i)] = '+';
-    }
+  assert(left_censored >= 0);
+  assert(right_censored >= 0);
+  /* aln_v ends in a '\0' past the alignment, so the censoring and the
+     consensus below run over its first alignment_length characters */
+  auto const alignment = make_span(aln_v).first(static_cast<std::size_t>(alignment_length));
+  std::fill_n(alignment.begin(), left_censored, '+');
+  auto const right_censored_tail = alignment.last(static_cast<std::size_t>(right_censored));
+  std::fill(right_censored_tail.begin(), right_censored_tail.end(), '+');
 
   for (auto i = left_censored; i < alignment_length - right_censored; ++i)
     {
-      /* find most common symbol of A, C, G and T */
+      auto const counters = column(profile, i);
+
+      /* find most common symbol of A, C, G and T. Strictly-greater kept the
+         first of a tie, which is what max_element returns; a column with no
+         nucleotide at all leaves best_sym at 0, so the count is tested. */
+      auto const most_common =
+        std::max_element(counters.begin(), std::next(counters.begin(), U_counter + 1));
       char best_sym = 0;
-      prof_type best_count = 0;
-      for (auto nucleotide = 0U; nucleotide < 4; ++nucleotide)
+      auto best_count = *most_common;
+      if (best_count > 0)
         {
-          auto const count = profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(i)) + nucleotide];
-          if (count > best_count)
-            {
-              best_count = count;
-              best_sym = static_cast<char>(1U << nucleotide);  // 1, 2, 4, or 8
-            }
+          // 1, 2, 4, or 8 -- A_counter..U_counter are sym_nt_4bit's bit positions
+          best_sym = static_cast<char>(1U << std::distance(counters.begin(), most_common));
         }
 
       /* if no A, C, G, or T, check if there are any N's */
-      auto const N_count = profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(i)) + 4U];
+      auto const N_count = counters[N_counter];
       if ((best_count == 0) and (N_count > 0))
         {
           best_count = N_count;
@@ -460,18 +485,18 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
         }
 
       /* compare to the number of gap symbols */
-      auto const gap_count = profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(i)) + 5U];
+      auto const gap_count = counters[gap_counter];
       if (best_count >= gap_count)
         {
           auto const index = static_cast<unsigned char>(best_sym);
           auto const sym = sym_nt_4bit[index];  // A, C, G, T, or N
-          aln_v[static_cast<std::vector<char>::size_type>(i)] = sym;
+          alignment[static_cast<std::size_t>(i)] = sym;
           cons_v[static_cast<std::vector<char>::size_type>(conslen)] = sym;
           ++conslen;
         }
       else
         {
-          aln_v[static_cast<std::vector<char>::size_type>(i)] = '-';
+          alignment[static_cast<std::size_t>(i)] = '-';
         }
     }
 
@@ -542,7 +567,7 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
       // A, C, G and T, then gap '-', then N
       for (auto const symbol_index : symbol_indexes) {
         fprint(fp_profile, '\t');
-        fprint_integer(fp_profile, profile[(static_cast<std::vector<prof_type>::size_type>(profsize) * static_cast<std::vector<prof_type>::size_type>(counter)) + static_cast<std::vector<prof_type>::size_type>(symbol_index)]);
+        fprint_integer(fp_profile, column(profile, counter)[static_cast<std::size_t>(symbol_index)]);
       }
       fprint(fp_profile, '\n');
       ++counter;
@@ -570,6 +595,11 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
+  /* one profsize-wide column per alignment position, flattened; read through
+     column() above, which is what gives the call sites the shape the brief
+     below asks for. The brief stands for the storage itself: a
+     vector<array<prof_type, profsize>> would make the stride a type-level fact
+     and let the compiler see the column width, which a subspan cannot. */
   std::vector<prof_type> profile(static_cast<unsigned long>(profsize) * static_cast<unsigned long>(alignment_length));  // C++20 refactoring: std::vector<std::array<prof_type, profsize>>(alnlen);
   std::vector<char> aln_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
   std::vector<char> cons_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
