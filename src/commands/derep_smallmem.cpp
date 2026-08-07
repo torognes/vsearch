@@ -61,6 +61,7 @@
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "vsearch.hpp"
+#include "core/derep_stats.hpp"  // Derep_stats, report_*
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
@@ -249,15 +250,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
 
-  uint64_t sequencecount = 0;
-  uint64_t nucleotidecount = 0;
-  int64_t shortest = std::numeric_limits<long>::max();
-  int64_t longest = 0;
-  uint64_t discarded_short = 0;
-  uint64_t discarded_long = 0;
-  uint64_t clusters = 0;
-  int64_t sumsize = 0;
-  uint64_t maxsize = 0;
+  Derep_stats stats;
 
   /* first pass */
 
@@ -269,19 +262,19 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
         if (seqlen < parameters.opt_minseqlength)
           {
-            ++discarded_short;
+            ++stats.discarded_short;
             continue;
           }
 
         if (seqlen > parameters.opt_maxseqlength)
           {
-            ++discarded_long;
+            ++stats.discarded_long;
             continue;
           }
 
-        nucleotidecount += static_cast<uint64_t>(seqlen);
-        longest = std::max(seqlen, longest);
-        shortest = std::min(seqlen, shortest);
+        stats.nucleotidecount += static_cast<uint64_t>(seqlen);
+        stats.longest = std::max(seqlen, stats.longest);
+        stats.shortest = std::min(seqlen, stats.shortest);
 
         /* check allocations */
 
@@ -294,7 +287,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             // memory-intensive: sequence buffers grown to fit the longest sequence
           }
 
-        if (100 * (clusters + 1) > 95 * hashtable.size())
+        if (100 * (stats.clusters + 1) > 95 * hashtable.size())
           {
             // keep hash table fill rate at max 95% */
             rehash_smallmem(hashtable);
@@ -355,7 +348,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
         int64_t const abundance = h->get_abundance();
         int64_t const ab = parameters.opt_sizein ? abundance : 1;
-        sumsize += ab;
+        stats.sumsize += ab;
 
         if (bp->size != 0U)
           {
@@ -367,148 +360,35 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             /* no identical sequences yet */
             bp->size = static_cast<uint64_t>(ab);
             bp->hash = hash;
-            ++clusters;
+            ++stats.clusters;
           }
 
-        maxsize = std::max(bp->size, maxsize);
+        stats.maxsize = std::max(bp->size, stats.maxsize);
 
-        ++sequencecount;
+        ++stats.sequencecount;
         progress.update(h->get_position());
       }
   }
   h->report_stripped_warning(parameters);
 
-  if (not parameters.opt_quiet)
-    {
-      if (sequencecount > 0)
-        {
-          fprint_integer(stderr, nucleotidecount);
-          fprint(stderr, " nt in ");
-          fprint_integer(stderr, sequencecount);
-          fprint(stderr, " seqs, min ");
-          fprint_integer(stderr, shortest);
-          fprint(stderr, ", max ");
-          fprint_integer(stderr, longest);
-          fprint(stderr, ", avg ");
-          std::fprintf(stderr, "%.0f", static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
-          fprint(stderr, '\n');
-        }
-      else
-        {
-          fprint_integer(stderr, nucleotidecount);
-          fprint(stderr, " nt in ");
-          fprint_integer(stderr, sequencecount);
-          fprint(stderr, " seqs\n");
-        }
-    }
+  report_input_stats(stats, parameters);
 
-  if (parameters.opt_log != nullptr)
-    {
-      if (sequencecount > 0)
-        {
-          fprint_integer(parameters.fp_log, nucleotidecount);
-          fprint(parameters.fp_log, " nt in ");
-          fprint_integer(parameters.fp_log, sequencecount);
-          fprint(parameters.fp_log, " seqs, min ");
-          fprint_integer(parameters.fp_log, shortest);
-          fprint(parameters.fp_log, ", max ");
-          fprint_integer(parameters.fp_log, longest);
-          fprint(parameters.fp_log, ", avg ");
-          std::fprintf(parameters.fp_log, "%.0f", static_cast<double>(nucleotidecount) / static_cast<double>(sequencecount));
-          fprint(parameters.fp_log, '\n');
-        }
-      else
-        {
-          fprint_integer(parameters.fp_log, nucleotidecount);
-          fprint(parameters.fp_log, " nt in ");
-          fprint_integer(parameters.fp_log, sequencecount);
-          fprint(parameters.fp_log, " seqs\n");
-        }
-    }
-
-  if (discarded_short != 0U)
-    {
-      fprint(stderr, "minseqlength ");
-      fprint_integer(stderr, parameters.opt_minseqlength);
-      fprint(stderr, ": ");
-      fprint_integer(stderr, discarded_short);
-      fprint(stderr, ' ');
-      std::fputs((discarded_short == 1 ? "sequence" : "sequences"), stderr);
-      fprint(stderr, " discarded.\n");
-
-      if (parameters.opt_log != nullptr)
-        {
-          fprint(parameters.fp_log, "minseqlength ");
-          fprint_integer(parameters.fp_log, parameters.opt_minseqlength);
-          fprint(parameters.fp_log, ": ");
-          fprint_integer(parameters.fp_log, discarded_short);
-          fprint(parameters.fp_log, ' ');
-          std::fputs((discarded_short == 1 ? "sequence" : "sequences"), parameters.fp_log);
-          fprint(parameters.fp_log, " discarded.\n\n");
-        }
-    }
-
-  if (discarded_long != 0U)
-    {
-      fprint(stderr, "maxseqlength ");
-      fprint_integer(stderr, parameters.opt_maxseqlength);
-      fprint(stderr, ": ");
-      fprint_integer(stderr, discarded_long);
-      fprint(stderr, ' ');
-      std::fputs((discarded_long == 1 ? "sequence" : "sequences"), stderr);
-      fprint(stderr, " discarded.\n");
-
-      if (parameters.opt_log != nullptr)
-        {
-          fprint(parameters.fp_log, "maxseqlength ");
-          fprint_integer(parameters.fp_log, parameters.opt_maxseqlength);
-          fprint(parameters.fp_log, ": ");
-          fprint_integer(parameters.fp_log, discarded_long);
-          fprint(parameters.fp_log, ' ');
-          std::fputs((discarded_long == 1 ? "sequence" : "sequences"), parameters.fp_log);
-          fprint(parameters.fp_log, " discarded.\n\n");
-        }
-    }
+  report_length_filtered(parameters, "minseqlength", parameters.opt_minseqlength, stats.discarded_short);
+  report_length_filtered(parameters, "maxseqlength", parameters.opt_maxseqlength, stats.discarded_long);
 
 
-  if (clusters < 1)
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint(stderr, "0 unique sequences\n");
-        }
-      if (parameters.opt_log != nullptr)
-        {
-          fprint(parameters.fp_log, "0 unique sequences\n\n");
-        }
-    }
-  else
-    {
-      auto const average = static_cast<double>(sumsize) / static_cast<double>(clusters);
-      const auto median = find_median(hashtable);
-      if (not parameters.opt_quiet)
-        {
-          fprint_integer(stderr, clusters);
-          fprint(stderr, " unique sequences, avg cluster ");
-          std::fprintf(stderr, "%.1lf", average);
-          fprint(stderr, ", median ");
-          std::fprintf(stderr, "%.0f", median);
-          fprint(stderr, ", max ");
-          fprint_integer(stderr, maxsize);
-          fprint(stderr, '\n');
-        }
-      if (parameters.opt_log != nullptr)
-        {
-          fprint_integer(parameters.fp_log, clusters);
-          fprint(parameters.fp_log, " unique sequences, avg cluster ");
-          std::fprintf(parameters.fp_log, "%.1lf", average);
-          fprint(parameters.fp_log, ", median ");
-          std::fprintf(parameters.fp_log, "%.0f", median);
-          fprint(parameters.fp_log, ", max ");
-          fprint_integer(parameters.fp_log, maxsize);
-          fprint(parameters.fp_log, "\n\n");
-        }
-    }
+  {
+    /* both are unused when there is no cluster to report, and the median
+       costs a full pass over the hash table, so neither is computed then */
+    auto average = 0.0;
+    auto median = 0.0;
+    if (stats.clusters >= 1)
+      {
+        average = static_cast<double>(stats.sumsize) / static_cast<double>(stats.clusters);
+        median = find_median(hashtable);
+      }
+    report_unique_summary(stats, average, median, parameters);
+  }
 
   /* second pass with output */
 
@@ -602,26 +482,5 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   }
   h2->report_stripped_warning(parameters);
 
-  if (selected < clusters)
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint_integer(stderr, selected);
-          fprint(stderr, " uniques written, ");
-          fprint_integer(stderr, clusters - selected);
-          fprint(stderr, " clusters discarded (");
-          std::fprintf(stderr, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
-          fprint(stderr, "%)\n");
-        }
-
-      if (parameters.opt_log != nullptr)
-        {
-          fprint_integer(parameters.fp_log, selected);
-          fprint(parameters.fp_log, " uniques written, ");
-          fprint_integer(parameters.fp_log, clusters - selected);
-          fprint(parameters.fp_log, " clusters discarded (");
-          std::fprintf(parameters.fp_log, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
-          fprint(parameters.fp_log, "%)\n\n");
-        }
-    }
+  report_selected(selected, stats, parameters);
 }
