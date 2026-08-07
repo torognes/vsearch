@@ -67,7 +67,8 @@
 #include "utils/maps.hpp"
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
-#include <algorithm>  // std::transform
+#include <algorithm>  // std::copy_n, std::fill, std::transform
+#include <iterator>  // std::next
 #include <array>
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
@@ -80,15 +81,31 @@ constexpr int dust_window = 64;
 
 
 namespace {
-auto wo(int const len, const char *s, int *beg, int *end) -> int
+/* The lowest-complexity region wo() found in the window it was given, as an
+   offset pair relative to that window. A zero score means no region: either
+   the window is too short to hold one, or nothing in it repeated. The two
+   int out-parameters this replaces were only ever read when the score cleared
+   the DUST level, so the caller no longer keeps them alive between windows.
+
+   A plain aggregate, deliberately: in C++11 a member initializer would make it
+   a non-aggregate, and the returns below would no longer brace-initialize.
+   Every DustRegion here is built with braces, so every member is set. */
+struct DustRegion {
+  int score;
+  int begin;
+  int end;
+};
+
+auto wo(View<char> const window) -> DustRegion
 {
   static constexpr auto dust_word = 3;
   static constexpr auto word_count = 1U << (2U * dust_word);  // 64
   static constexpr auto bitmask = word_count - 1;
+  auto const len = static_cast<int>(window.size());
   const auto l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
     {
-      return 0;
+      return DustRegion{};
     }
 
   auto bestv = 0;
@@ -101,7 +118,7 @@ auto wo(int const len, const char *s, int *beg, int *end) -> int
   for (auto j = 0; j < len; j++)
     {
       word <<= 2U;
-      word |= map_2bit(s[j]);
+      word |= map_2bit(window[static_cast<std::size_t>(j)]);
       words[static_cast<std::size_t>(j)] = static_cast<int>(word & bitmask);
     }
 
@@ -131,10 +148,7 @@ auto wo(int const len, const char *s, int *beg, int *end) -> int
         }
     }
 
-  *beg = besti;
-  *end = besti + bestj;
-
-  return bestv;
+  return DustRegion{bestv, besti, besti + bestj};
 }
 }  // anonymous namespace
 
@@ -145,48 +159,51 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
 {
   static constexpr auto dust_level = 20;
   static constexpr auto half_dust_window = dust_window / 2;
-  auto a = 0;
-  auto b = 0;
 
   /* make a local copy of the original sequence */
   std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
   std::copy_n(seq, static_cast<std::size_t>(len) + 1, local_seq.data());
 
+  auto const sequence = Span<char>{seq, static_cast<std::size_t>(len)};
+
   if (!use_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
-      for (auto i = 0; i < len; i++)
-        {
-          seq[i] = to_upper(seq[i]);
-        }
-      seq[len] = 0;
+      std::transform(sequence.begin(), sequence.end(), sequence.begin(), to_upper);
+      seq[len] = 0;  /* the terminator, which sits just past the span */
     }
 
+  /* indexed, and the index is mutated in the body: a masked region short
+     enough to end inside this window rewinds the next window's start
+     (i += half_dust_window - b), so this is not a traversal */
   for (auto i = 0; i < len; i += half_dust_window)
     {
       const auto l = (len > i + dust_window) ? dust_window : len - i;
-      const auto v = wo(l, &local_seq[static_cast<std::size_t>(i)], &a, &b);
+      auto const worst = wo(make_view(local_seq).subspan(static_cast<std::size_t>(i),
+                                                         static_cast<std::size_t>(l)));
 
-      if (v > dust_level)
+      if (worst.score > dust_level)
         {
+          /* the low-complexity region wo() found, in sequence coordinates */
+          auto const region = sequence.subspan(static_cast<std::size_t>(worst.begin + i),
+                                               static_cast<std::size_t>(worst.end - worst.begin + 1));
           if (use_hardmask)
             {
-              for (auto j = a + i; j <= b + i; j++)
-                {
-                  seq[j] = 'N';
-                }
+              std::fill(region.begin(), region.end(), 'N');
             }
           else
             {
-              for (auto j = a + i; j <= b + i; j++)
-                {
-                  seq[j] = static_cast<char>(local_seq[static_cast<std::size_t>(j)] | 32U);  // check_5th_bit (0x20)
-                }
+              auto const * const original = std::next(local_seq.data(), worst.begin + i);
+              std::transform(original, std::next(original, worst.end - worst.begin + 1),
+                             region.begin(),
+                             [](char const nucleotide) -> char {
+                               return static_cast<char>(nucleotide | 32U);  // check_5th_bit (0x20)
+                             });
             }
 
-          if (b < half_dust_window)
+          if (worst.end < half_dust_window)
             {
-              i += half_dust_window - b;
+              i += half_dust_window - worst.end;
             }
         }
     }
