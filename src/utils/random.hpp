@@ -105,7 +105,7 @@ public:
   /* Not noexcept: the opt_randseed == 0 branch uses std::random_device, whose
      construction and operator() may throw when no entropy source is available. */
   explicit RandomSeed(struct Parameters const & parameters);
-  auto value() const noexcept -> uint64_t { return seed_; }
+  constexpr auto value() const noexcept -> uint64_t { return seed_; }
   /* Well-separated sub-stream seed for the given index (e.g. a query number),
      so per-index streams are reproducible regardless of thread count/order. */
   auto substream(uint64_t index) const noexcept -> uint64_t;

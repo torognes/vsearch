@@ -139,8 +139,8 @@ public:
   }
 
   // Iterators
-  auto begin() const noexcept -> Type const * { return data(); }
-  auto cbegin() const noexcept -> Type const * { return data(); }
+  constexpr auto begin() const noexcept -> Type const * { return data(); }
+  constexpr auto cbegin() const noexcept -> Type const * { return data(); }
   auto end() const noexcept -> Type const * {
     auto const distance = static_cast<std::ptrdiff_t>(size());
     return std::next(data(), distance);
@@ -168,7 +168,7 @@ public:
     assert(not empty());
     return *std::prev(end());
   }
-  auto data() const noexcept -> Type const * { return start_; }
+  constexpr auto data() const noexcept -> Type const * { return start_; }
   auto operator[](std::size_t const index) const noexcept -> Type const & {
     assert(index < size());
     auto const distance = static_cast<std::ptrdiff_t>(index);
@@ -176,12 +176,12 @@ public:
   }
 
   // Observers
-  auto size() const noexcept -> std::size_t { return length_; }
+  constexpr auto size() const noexcept -> std::size_t { return length_; }
   auto size_bytes() const noexcept -> std::size_t {
     assert(size() <= (std::numeric_limits<std::size_t>::max() / sizeof(Type)));
     return size() * sizeof(Type);
   }
-  auto empty() const noexcept -> bool { return size() == 0; }
+  constexpr auto empty() const noexcept -> bool { return size() == 0; }
 
   // Subviews
   auto subspan(std::size_t const offset, std::size_t const count) const noexcept -> View {

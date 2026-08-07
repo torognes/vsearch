@@ -88,7 +88,7 @@
 
 template <typename Type>
 struct element_order {
-  static auto less(Type const & lhs, Type const & rhs) -> bool {
+  static constexpr auto less(Type const & lhs, Type const & rhs) -> bool {
     return lhs < rhs;
   }
 
@@ -110,7 +110,7 @@ struct element_order {
 // is honest all the way down for the one specialization that matters.
 template <>
 struct element_order<char> {
-  static auto less(char const lhs, char const rhs) noexcept -> bool {
+  static constexpr auto less(char const lhs, char const rhs) noexcept -> bool {
     return static_cast<unsigned char>(lhs) < static_cast<unsigned char>(rhs);
   }
 
