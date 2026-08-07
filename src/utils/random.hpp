@@ -85,8 +85,8 @@
 class SplitMix64 {
 public:
   using result_type = uint64_t;
-  explicit SplitMix64(uint64_t seed_value) : state_(seed_value) {}
-  auto seed(uint64_t seed_value) -> void { state_ = seed_value; }
+  explicit SplitMix64(uint64_t const seed_value) : state_(seed_value) {}
+  auto seed(uint64_t const seed_value) -> void { state_ = seed_value; }
   auto operator()() -> uint64_t;
   static constexpr auto min() -> uint64_t { return 0; }
   static constexpr auto max() -> uint64_t { return std::numeric_limits<uint64_t>::max(); }
@@ -119,7 +119,7 @@ private:
    UniformRandomBitGenerator (SplitMix64 or std::mt19937_64) whose output
    spans the full 64 bits. */
 template <typename URBG>
-auto random_bounded(URBG & generator, uint64_t range) -> uint64_t
+auto random_bounded(URBG & generator, uint64_t const range) -> uint64_t
 {
   if (range == 0) { fatal("Internal error: random_bounded() called with range 0"); }
 #ifdef __SIZEOF_INT128__
@@ -148,7 +148,7 @@ auto random_bounded(URBG & generator, uint64_t range) -> uint64_t
 /* Portable in-place Fisher-Yates shuffle over data[0 .. count), replacing
    std::shuffle (which is implementation-defined). */
 template <typename T, typename URBG>
-auto random_shuffle(T * data, std::size_t count, URBG & generator) -> void
+auto random_shuffle(T * data, std::size_t const count, URBG & generator) -> void
 {
   for (std::size_t i = count; i > 1; --i)
     {

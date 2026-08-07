@@ -115,7 +115,7 @@ auto xfree(void * ptr) -> void
 }
 
 
-auto xfstat(int file_descriptor, xstat_t * buf) -> int
+auto xfstat(int const file_descriptor, xstat_t * buf) -> int
 {
   return _fstat64(file_descriptor, buf);
 }
@@ -127,7 +127,7 @@ auto xstat(const char * path, xstat_t * buf) -> int
 }
 
 
-auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
+auto xlseek(int const file_descriptor, uint64_t const offset, int const whence) -> uint64_t
 {
   __int64 const position = _lseeki64(file_descriptor, offset, whence);
   assert(position != -1);  // unchecked: -1 would widen to a huge uint64_t

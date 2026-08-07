@@ -112,7 +112,7 @@ auto xfree(void * ptr) -> void
 }
 
 
-auto xfstat(int file_descriptor, xstat_t * buf) -> int
+auto xfstat(int const file_descriptor, xstat_t * buf) -> int
 {
   return fstat(file_descriptor, buf);  // return zero if success
 }
@@ -124,7 +124,7 @@ auto xstat(const char * path, xstat_t * buf) -> int
 }
 
 
-auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t
+auto xlseek(int const file_descriptor, uint64_t const offset, int const whence) -> uint64_t
 {
   // libC or linuxism: replace with std::fseek()?
   off_t const position = lseek(file_descriptor, static_cast<off_t>(offset), whence);

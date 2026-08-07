@@ -67,15 +67,15 @@
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <stdlib.h>
 
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
   return _byteswap_ushort(bsx);
 }
 
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
   return _byteswap_ulong(bsx);
 }
 
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
   return _byteswap_uint64(bsx);
 }
 
@@ -86,15 +86,15 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <libkern/OSByteOrder.h>
 
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
   return OSSwapInt16(bsx);
 }
 
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
   return OSSwapInt32(bsx);
 }
 
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
   return OSSwapInt64(bsx);
 }
 
@@ -104,15 +104,15 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 #include <sys/endian.h>
 
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
   return bswap16(bsx);
 }
 
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
   return bswap32(bsx);
 }
 
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
   return bswap64(bsx);
 }
 
@@ -123,15 +123,15 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 #include <sys/types.h>
 #include <machine/bswap.h>
 
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
   return bswap16(bsx);
 }
 
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
   return bswap32(bsx);
 }
 
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
   return bswap64(bsx);
 }
 
@@ -145,7 +145,7 @@ auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
 // being present.
 #include <cstdint>  // uint16_t, uint32_t, uint64_t
 
-auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
+auto bswap_16(uint16_t const bsx) noexcept -> uint16_t {
 #if defined(__GNUC__) || defined(__clang__)
   return __builtin_bswap16(bsx);
 #else
@@ -153,7 +153,7 @@ auto bswap_16(uint16_t bsx) noexcept -> uint16_t {
 #endif
 }
 
-auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
+auto bswap_32(uint32_t const bsx) noexcept -> uint32_t {
 #if defined(__GNUC__) || defined(__clang__)
   return __builtin_bswap32(bsx);
 #else
@@ -164,7 +164,7 @@ auto bswap_32(uint32_t bsx) noexcept -> uint32_t {
 #endif
 }
 
-auto bswap_64(uint64_t bsx) noexcept -> uint64_t {
+auto bswap_64(uint64_t const bsx) noexcept -> uint64_t {
 #if defined(__GNUC__) || defined(__clang__)
   return __builtin_bswap64(bsx);
 #else
