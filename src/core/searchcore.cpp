@@ -770,9 +770,12 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
   unsigned int target_count = 0;
   auto const hits = make_hits_span(searchinfo);
 
-  for (auto x = static_cast<std::size_t>(searchinfo->finalized); x < hits.size(); ++x)
+  /* the hits that have not been finalized yet: the tail of the hit buffer past
+     the fill level of the previous round, which is what drop() names */
+  auto const delayed = hits.drop(static_cast<std::size_t>(searchinfo->finalized));
+
+  for (auto const & hit : delayed)
     {
-      auto const & hit = hits[x];
       if (not hit.rejected)
         {
           target_list[target_count++] = static_cast<unsigned int>(hit.target);
@@ -795,20 +798,18 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
   unsigned int i = 0;
 
-  for (auto x = static_cast<std::size_t>(searchinfo->finalized); x < hits.size(); ++x)
+  for (auto & hit : delayed)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
       if ((searchinfo->rejects < searchinfo->parameters->opt_maxrejects) and (searchinfo->accepts < searchinfo->parameters->opt_maxaccepts))
         {
-          struct hit * const hit = &hits[x];
-
-          if (hit->rejected)
+          if (hit.rejected)
             {
               searchinfo->rejects++;
             }
           else
             {
-              int64_t const target = hit->target;
+              int64_t const target = hit.target;
               int64_t nwscore = nwscore_list[i];
 
               std::string nwcigar;
@@ -848,25 +849,25 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
                   nwcigar = std::move(nwcigar_list[i]);
                 }
 
-              hit->aligned = true;
-              hit->shortest = std::min(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
-              hit->longest = std::max(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
-              hit->nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
-              hit->nwscore = static_cast<int>(nwscore);
-              hit->nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
-              hit->nwgaps = static_cast<int>(nwgaps);
-              hit->nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
-              hit->nwalignmentlength = static_cast<int>(nwalignmentlength);
-              hit->nwid = 100.0 * static_cast<double>(nwalignmentlength - hit->nwdiff) /
+              hit.aligned = true;
+              hit.shortest = std::min(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
+              hit.longest = std::max(static_cast<int>(searchinfo->qsequence.size()), static_cast<int>(dseqlen));
+              hit.nwalignment = std::move(nwcigar);  // owned cigar (empty means no alignment)
+              hit.nwscore = static_cast<int>(nwscore);
+              hit.nwdiff = static_cast<int>(nwalignmentlength - nwmatches);
+              hit.nwgaps = static_cast<int>(nwgaps);
+              hit.nwindels = static_cast<int>(nwalignmentlength - nwmatches - nwmismatches);
+              hit.nwalignmentlength = static_cast<int>(nwalignmentlength);
+              hit.nwid = 100.0 * static_cast<double>(nwalignmentlength - hit.nwdiff) /
                 static_cast<double>(nwalignmentlength);
-              hit->matches = static_cast<int>(nwalignmentlength - hit->nwdiff);
-              hit->mismatches = hit->nwdiff - hit->nwindels;
+              hit.matches = static_cast<int>(nwalignmentlength - hit.nwdiff);
+              hit.mismatches = hit.nwdiff - hit.nwindels;
 
               /* trim alignment and compute numbers excluding terminal gaps */
-              align_trim(hit, *searchinfo->parameters);
+              align_trim(&hit, *searchinfo->parameters);
 
               /* test accept/reject criteria after alignment */
-              if (search_acceptable_aligned(*searchinfo, hit))
+              if (search_acceptable_aligned(*searchinfo, &hit))
                 {
                   searchinfo->accepts++;
                 }
