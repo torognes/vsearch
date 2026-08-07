@@ -181,22 +181,23 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/cluster_unoise.hpp arch/increment_counters.hpp \
 	arch/intrinsics.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	os/dynlibs.hpp commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/derep_internal.hpp core/derep_stats.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp os/dynlibs.hpp \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -250,22 +251,23 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/cluster_unoise.hpp arch/increment_counters.hpp \
 	arch/intrinsics.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
-	core/derep_internal.hpp commands/derep_fulllength.hpp \
-	commands/derep_id.hpp commands/fastx_uniques.hpp \
-	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
-	os/dynlibs.hpp commands/fastq_eestats.hpp \
-	commands/fastq_eestats2.hpp core/eestats.hpp \
-	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
-	commands/fastq_chars.hpp commands/fastq_convert.hpp \
-	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
-	core/mergepairs.hpp core/mergepairs_internal.hpp \
-	commands/fastq_stats.hpp core/fastx.hpp \
-	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
-	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
-	commands/fastx_filter.hpp core/filter.hpp \
-	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
-	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
-	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/derep_internal.hpp core/derep_stats.hpp \
+	commands/derep_fulllength.hpp commands/derep_id.hpp \
+	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
+	commands/derep_smallmem.hpp os/dynlibs.hpp \
+	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
+	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
+	core/fastq.hpp commands/fastq_chars.hpp \
+	commands/fastq_convert.hpp commands/fastq_join.hpp \
+	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
+	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
+	core/fastx.hpp commands/fastx_revcomp.hpp \
+	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
+	commands/fastq_filter.hpp commands/fastx_filter.hpp \
+	core/filter.hpp commands/fastx_getseq.hpp \
+	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
+	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
+	core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp core/results.hpp \
@@ -318,7 +320,7 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
-	core/derep.hpp core/derep_internal.hpp \
+	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
 	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
 	commands/derep_smallmem.hpp os/dynlibs.hpp \
@@ -382,7 +384,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
-	core/derep.hpp core/derep_internal.hpp \
+	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
 	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
 	commands/derep_smallmem.hpp os/dynlibs.hpp \
@@ -446,7 +448,7 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
-	core/derep.hpp core/derep_internal.hpp \
+	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
 	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
 	commands/derep_smallmem.hpp os/dynlibs.hpp \
@@ -510,7 +512,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
-	core/derep.hpp core/derep_internal.hpp \
+	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
 	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
 	commands/derep_smallmem.hpp os/dynlibs.hpp \
@@ -573,7 +575,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
-	core/derep.hpp core/derep_internal.hpp \
+	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
 	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
 	commands/derep_smallmem.hpp os/dynlibs.hpp \
@@ -627,15 +629,16 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
 	commands/cluster_size.cpp commands/cluster_unoise.cpp \
 	commands/cut.cpp core/db.cpp core/dbhash.cpp core/dbindex.cpp \
-	core/derep.cpp commands/derep_fulllength.cpp \
-	commands/derep_id.cpp commands/fastx_uniques.cpp \
-	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
-	os/dynlibs.cpp commands/fastq_eestats.cpp \
-	commands/fastq_eestats2.cpp core/eestats.cpp \
-	commands/fasta2fastq.cpp core/fasta.cpp core/fastq.cpp \
-	commands/fastq_chars.cpp commands/fastq_convert.cpp \
-	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
-	core/mergepairs.cpp commands/fastq_stats.cpp core/fastx.cpp \
+	core/derep.cpp core/derep_stats.cpp \
+	commands/derep_fulllength.cpp commands/derep_id.cpp \
+	commands/fastx_uniques.cpp commands/derep_prefix.cpp \
+	commands/derep_smallmem.cpp os/dynlibs.cpp \
+	commands/fastq_eestats.cpp commands/fastq_eestats2.cpp \
+	core/eestats.cpp commands/fasta2fastq.cpp core/fasta.cpp \
+	core/fastq.cpp commands/fastq_chars.cpp \
+	commands/fastq_convert.cpp commands/fastq_join.cpp \
+	commands/fastq_mergepairs.cpp core/mergepairs.cpp \
+	commands/fastq_stats.cpp core/fastx.cpp \
 	commands/fastx_revcomp.cpp commands/fastx_subsample.cpp \
 	commands/fastx_syncpairs.cpp commands/fastq_filter.cpp \
 	commands/fastx_filter.cpp core/filter.cpp \
@@ -688,6 +691,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	core/libvsearch_core_a-dbhash.$(OBJEXT) \
 	core/libvsearch_core_a-dbindex.$(OBJEXT) \
 	core/libvsearch_core_a-derep.$(OBJEXT) \
+	core/libvsearch_core_a-derep_stats.$(OBJEXT) \
 	commands/libvsearch_core_a-derep_fulllength.$(OBJEXT) \
 	commands/libvsearch_core_a-derep_id.$(OBJEXT) \
 	commands/libvsearch_core_a-fastx_uniques.$(OBJEXT) \
@@ -795,7 +799,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/cluster_size.hpp commands/cluster_unoise.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
-	core/derep.hpp core/derep_internal.hpp \
+	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
 	commands/derep_fulllength.hpp commands/derep_id.hpp \
 	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
 	commands/derep_smallmem.hpp os/dynlibs.hpp \
@@ -849,15 +853,16 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/cluster_fast.cpp commands/cluster_smallmem.cpp \
 	commands/cluster_size.cpp commands/cluster_unoise.cpp \
 	commands/cut.cpp core/db.cpp core/dbhash.cpp core/dbindex.cpp \
-	core/derep.cpp commands/derep_fulllength.cpp \
-	commands/derep_id.cpp commands/fastx_uniques.cpp \
-	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
-	os/dynlibs.cpp commands/fastq_eestats.cpp \
-	commands/fastq_eestats2.cpp core/eestats.cpp \
-	commands/fasta2fastq.cpp core/fasta.cpp core/fastq.cpp \
-	commands/fastq_chars.cpp commands/fastq_convert.cpp \
-	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
-	core/mergepairs.cpp commands/fastq_stats.cpp core/fastx.cpp \
+	core/derep.cpp core/derep_stats.cpp \
+	commands/derep_fulllength.cpp commands/derep_id.cpp \
+	commands/fastx_uniques.cpp commands/derep_prefix.cpp \
+	commands/derep_smallmem.cpp os/dynlibs.cpp \
+	commands/fastq_eestats.cpp commands/fastq_eestats2.cpp \
+	core/eestats.cpp commands/fasta2fastq.cpp core/fasta.cpp \
+	core/fastq.cpp commands/fastq_chars.cpp \
+	commands/fastq_convert.cpp commands/fastq_join.cpp \
+	commands/fastq_mergepairs.cpp core/mergepairs.cpp \
+	commands/fastq_stats.cpp core/fastx.cpp \
 	commands/fastx_revcomp.cpp commands/fastx_subsample.cpp \
 	commands/fastx_syncpairs.cpp commands/fastq_filter.cpp \
 	commands/fastx_filter.cpp core/filter.cpp \
@@ -901,7 +906,8 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/cluster_size.$(OBJEXT) \
 	commands/cluster_unoise.$(OBJEXT) commands/cut.$(OBJEXT) \
 	core/db.$(OBJEXT) core/dbhash.$(OBJEXT) core/dbindex.$(OBJEXT) \
-	core/derep.$(OBJEXT) commands/derep_fulllength.$(OBJEXT) \
+	core/derep.$(OBJEXT) core/derep_stats.$(OBJEXT) \
+	commands/derep_fulllength.$(OBJEXT) \
 	commands/derep_id.$(OBJEXT) commands/fastx_uniques.$(OBJEXT) \
 	commands/derep_prefix.$(OBJEXT) \
 	commands/derep_smallmem.$(OBJEXT) os/dynlibs.$(OBJEXT) \
@@ -1107,10 +1113,10 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	core/$(DEPDIR)/chimera.Po core/$(DEPDIR)/cluster.Po \
 	core/$(DEPDIR)/db.Po core/$(DEPDIR)/dbhash.Po \
 	core/$(DEPDIR)/dbindex.Po core/$(DEPDIR)/derep.Po \
-	core/$(DEPDIR)/eestats.Po core/$(DEPDIR)/fasta.Po \
-	core/$(DEPDIR)/fastq.Po core/$(DEPDIR)/fastx.Po \
-	core/$(DEPDIR)/filter.Po core/$(DEPDIR)/getseq.Po \
-	core/$(DEPDIR)/kmerhash.Po \
+	core/$(DEPDIR)/derep_stats.Po core/$(DEPDIR)/eestats.Po \
+	core/$(DEPDIR)/fasta.Po core/$(DEPDIR)/fastq.Po \
+	core/$(DEPDIR)/fastx.Po core/$(DEPDIR)/filter.Po \
+	core/$(DEPDIR)/getseq.Po core/$(DEPDIR)/kmerhash.Po \
 	core/$(DEPDIR)/libvsearch_core_a-align_simd.Po \
 	core/$(DEPDIR)/libvsearch_core_a-attributes.Po \
 	core/$(DEPDIR)/libvsearch_core_a-bitmap.Po \
@@ -1120,6 +1126,7 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	core/$(DEPDIR)/libvsearch_core_a-dbhash.Po \
 	core/$(DEPDIR)/libvsearch_core_a-dbindex.Po \
 	core/$(DEPDIR)/libvsearch_core_a-derep.Po \
+	core/$(DEPDIR)/libvsearch_core_a-derep_stats.Po \
 	core/$(DEPDIR)/libvsearch_core_a-eestats.Po \
 	core/$(DEPDIR)/libvsearch_core_a-fasta.Po \
 	core/$(DEPDIR)/libvsearch_core_a-fastq.Po \
@@ -1408,6 +1415,7 @@ core/dbhash.hpp \
 core/dbindex.hpp \
 core/derep.hpp \
 core/derep_internal.hpp \
+core/derep_stats.hpp \
 commands/derep_fulllength.hpp \
 commands/derep_id.hpp \
 commands/fastx_uniques.hpp \
@@ -1584,6 +1592,7 @@ core/db.cpp \
 core/dbhash.cpp \
 core/dbindex.cpp \
 core/derep.cpp \
+core/derep_stats.cpp \
 commands/derep_fulllength.cpp \
 commands/derep_id.cpp \
 commands/fastx_uniques.cpp \
@@ -1958,6 +1967,8 @@ core/libvsearch_core_a-dbindex.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-derep.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
+core/libvsearch_core_a-derep_stats.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-derep_fulllength.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-derep_id.$(OBJEXT):  \
@@ -2237,6 +2248,8 @@ core/dbhash.$(OBJEXT): core/$(am__dirstamp) \
 core/dbindex.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 core/derep.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+core/derep_stats.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 commands/derep_fulllength.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
@@ -2572,6 +2585,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/dbhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/dbindex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/derep.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/derep_stats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/eestats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/fasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/fastq.Po@am__quote@ # am--include-marker
@@ -2588,6 +2602,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-dbhash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-dbindex.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-derep.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-derep_stats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-eestats.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-fasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-fastq.Po@am__quote@ # am--include-marker
@@ -3193,6 +3208,20 @@ core/libvsearch_core_a-derep.obj: core/derep.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/derep.cpp' object='core/libvsearch_core_a-derep.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-derep.obj `if test -f 'core/derep.cpp'; then $(CYGPATH_W) 'core/derep.cpp'; else $(CYGPATH_W) '$(srcdir)/core/derep.cpp'; fi`
+
+core/libvsearch_core_a-derep_stats.o: core/derep_stats.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-derep_stats.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-derep_stats.Tpo -c -o core/libvsearch_core_a-derep_stats.o `test -f 'core/derep_stats.cpp' || echo '$(srcdir)/'`core/derep_stats.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-derep_stats.Tpo core/$(DEPDIR)/libvsearch_core_a-derep_stats.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/derep_stats.cpp' object='core/libvsearch_core_a-derep_stats.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-derep_stats.o `test -f 'core/derep_stats.cpp' || echo '$(srcdir)/'`core/derep_stats.cpp
+
+core/libvsearch_core_a-derep_stats.obj: core/derep_stats.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-derep_stats.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-derep_stats.Tpo -c -o core/libvsearch_core_a-derep_stats.obj `if test -f 'core/derep_stats.cpp'; then $(CYGPATH_W) 'core/derep_stats.cpp'; else $(CYGPATH_W) '$(srcdir)/core/derep_stats.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-derep_stats.Tpo core/$(DEPDIR)/libvsearch_core_a-derep_stats.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/derep_stats.cpp' object='core/libvsearch_core_a-derep_stats.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-derep_stats.obj `if test -f 'core/derep_stats.cpp'; then $(CYGPATH_W) 'core/derep_stats.cpp'; else $(CYGPATH_W) '$(srcdir)/core/derep_stats.cpp'; fi`
 
 commands/libvsearch_core_a-derep_fulllength.o: commands/derep_fulllength.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-derep_fulllength.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-derep_fulllength.Tpo -c -o commands/libvsearch_core_a-derep_fulllength.o `test -f 'commands/derep_fulllength.cpp' || echo '$(srcdir)/'`commands/derep_fulllength.cpp
@@ -4704,6 +4733,7 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/dbhash.Po
 	-rm -f core/$(DEPDIR)/dbindex.Po
 	-rm -f core/$(DEPDIR)/derep.Po
+	-rm -f core/$(DEPDIR)/derep_stats.Po
 	-rm -f core/$(DEPDIR)/eestats.Po
 	-rm -f core/$(DEPDIR)/fasta.Po
 	-rm -f core/$(DEPDIR)/fastq.Po
@@ -4720,6 +4750,7 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbhash.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbindex.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep_stats.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-eestats.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-fasta.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-fastq.Po
@@ -4984,6 +5015,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/dbhash.Po
 	-rm -f core/$(DEPDIR)/dbindex.Po
 	-rm -f core/$(DEPDIR)/derep.Po
+	-rm -f core/$(DEPDIR)/derep_stats.Po
 	-rm -f core/$(DEPDIR)/eestats.Po
 	-rm -f core/$(DEPDIR)/fasta.Po
 	-rm -f core/$(DEPDIR)/fastq.Po
@@ -5000,6 +5032,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbhash.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-dbindex.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-derep_stats.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-eestats.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-fasta.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-fastq.Po

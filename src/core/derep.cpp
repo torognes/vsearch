@@ -64,6 +64,7 @@
 #include "utils/progress.hpp"
 #include "core/derep.hpp"
 #include "core/derep_internal.hpp"
+#include "core/derep_stats.hpp"
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
@@ -495,22 +496,6 @@ namespace {
 }  // end of anonymous namespace (output writers)
 
 
-namespace {
-  struct Derep_stats
-  {
-    uint64_t sequencecount = 0;
-    uint64_t nucleotidecount = 0;
-    int64_t shortest = std::numeric_limits<int64_t>::max();
-    int64_t longest = 0;
-    uint64_t discarded_short = 0;
-    uint64_t discarded_long = 0;
-    uint64_t clusters = 0;
-    int64_t sumsize = 0;
-    uint64_t maxsize = 0;
-  };
-}  // end of anonymous namespace
-
-
 // streams every input record and builds the cluster hash table: normalize,
 // find-or-create the cluster, accumulate abundance (and merge FASTQ quality).
 // Grows the table and side tables as needed. Returns the run statistics; the
@@ -826,138 +811,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 }
 
 
-// statistics / summary reporting: each helper folds the former
-// stderr-then-log duplicate blocks. The message text is written verbatim to
-// stderr and, when --log is in effect, to the log; the log copy is followed
-// by the extra blank line the original code emitted (the "\n\n" endings).
-namespace {
-
-  auto report_input_stats(Derep_stats const & stats,
-                          struct Parameters const & parameters) -> void
-  {
-    auto emit = [&](std::FILE * fp) -> void {
-      if (stats.sequencecount > 0)
-        {
-          fprint_integer(fp, stats.nucleotidecount);
-          fprint(fp, " nt in ");
-          fprint_integer(fp, stats.sequencecount);
-          fprint(fp, " seqs, min ");
-          fprint_integer(fp, stats.shortest);
-          fprint(fp, ", max ");
-          fprint_integer(fp, stats.longest);
-          fprint(fp, ", avg ");
-          std::fprintf(fp, "%.0f", static_cast<double>(stats.nucleotidecount) * 1.0 / static_cast<double>(stats.sequencecount));
-          fprint(fp, '\n');
-        }
-      else
-        {
-          fprint_integer(fp, stats.nucleotidecount);
-          fprint(fp, " nt in ");
-          fprint_integer(fp, stats.sequencecount);
-          fprint(fp, " seqs\n");
-        }
-    };
-    if (not parameters.opt_quiet)
-      {
-        emit(stderr);
-      }
-    if (parameters.opt_log != nullptr)
-      {
-        emit(parameters.fp_log);
-      }
-  }
-
-
-  auto report_length_filtered(struct Parameters const & parameters,
-                              char const * option_name,
-                              int64_t const length_limit,
-                              uint64_t const discarded) -> void
-  {
-    if (discarded == 0U)
-      {
-        return;
-      }
-    auto emit = [&](std::FILE * fp) -> void {
-      std::fputs(option_name, fp);
-      fprint(fp, ' ');
-      fprint_integer(fp, length_limit);
-      fprint(fp, ": ");
-      fprint_integer(fp, discarded);
-      fprint(fp, ' ');
-      std::fputs((discarded == 1 ? "sequence" : "sequences"), fp);
-      fprint(fp, " discarded.\n");
-    };
-    emit(stderr);
-    if (parameters.opt_log != nullptr)
-      {
-        emit(parameters.fp_log);
-        fprint(parameters.fp_log, '\n');
-      }
-  }
-
-
-  auto report_unique_summary(Derep_stats const & stats,
-                             double const average,
-                             double const median,
-                             struct Parameters const & parameters) -> void
-  {
-    auto emit = [&](std::FILE * fp) -> void {
-      if (stats.clusters < 1)
-        {
-          fprint(fp, "0 unique sequences\n");
-        }
-      else
-        {
-          fprint_integer(fp, stats.clusters);
-          fprint(fp, " unique sequences, avg cluster ");
-          std::fprintf(fp, "%.1lf", average);
-          fprint(fp, ", median ");
-          std::fprintf(fp, "%.0f", median);
-          fprint(fp, ", max ");
-          fprint_integer(fp, stats.maxsize);
-          fprint(fp, '\n');
-        }
-    };
-    if (not parameters.opt_quiet)
-      {
-        emit(stderr);
-      }
-    if (parameters.opt_log != nullptr)
-      {
-        emit(parameters.fp_log);
-        fprint(parameters.fp_log, '\n');
-      }
-  }
-
-
-  auto report_selected(uint64_t const selected,
-                       Derep_stats const & stats,
-                       struct Parameters const & parameters) -> void
-  {
-    if (selected >= stats.clusters)
-      {
-        return;
-      }
-    auto emit = [&](std::FILE * fp) -> void {
-      fprint_integer(fp, selected);
-      fprint(fp, " uniques written, ");
-      fprint_integer(fp, stats.clusters - selected);
-      fprint(fp, " clusters discarded (");
-      std::fprintf(fp, "%.1f", 100.0 * static_cast<double>(stats.clusters - selected) / static_cast<double>(stats.clusters));
-      fprint(fp, "%)\n");
-    };
-    if (not parameters.opt_quiet)
-      {
-        emit(stderr);
-      }
-    if (parameters.opt_log != nullptr)
-      {
-        emit(parameters.fp_log);
-        fprint(parameters.fp_log, '\n');
-      }
-  }
-
-}  // end of anonymous namespace (statistics reporting)
 
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques

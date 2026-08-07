@@ -98,6 +98,7 @@ core/dbhash.hpp \
 core/dbindex.hpp \
 core/derep.hpp \
 core/derep_internal.hpp \
+core/derep_stats.hpp \
 commands/derep_fulllength.hpp \
 commands/derep_id.hpp \
 commands/fastx_uniques.hpp \
@@ -293,6 +294,7 @@ core/db.cpp \
 core/dbhash.cpp \
 core/dbindex.cpp \
 core/derep.cpp \
+core/derep_stats.cpp \
 commands/derep_fulllength.cpp \
 commands/derep_id.cpp \
 commands/fastx_uniques.cpp \
