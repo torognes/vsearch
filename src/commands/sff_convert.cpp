@@ -66,6 +66,7 @@
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/os_byteswap.hpp"
+#include "utils/span.hpp"  // Span, make_span
 #include "utils/view.hpp"
 #include <algorithm>  // std::min, std::max, std::transform
 #include <array>
@@ -601,19 +602,20 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
         uint32_t clip_end = std::min((read_header.clip_qual_right == 0 ? read_header.number_of_bases : read_header.clip_qual_right), (read_header.clip_adapter_right == 0 ? read_header.number_of_bases : read_header.clip_adapter_right));
 
-        /* make the clipped bases lowercase and the rest uppercase */
-        // refactoring: soft_mask_read(transform(begin(), left_mask_end); transform(right_mask_start, end()))
-        for (uint32_t i = 0; i < read_header.number_of_bases; i++)
-          {
-            if ((i < clip_start) or (i >= clip_end))
-              {
-                bases[i] = to_lower(bases[i]);
-              }
-            else
-              {
-                bases[i] = to_upper(bases[i]);
-              }
-          }
+        /* make the clipped bases lowercase and the rest uppercase: three
+           slices, rather than one loop asking of every base which slice it is
+           in. An inverted clip pair (clip_start > clip_end, which only
+           --sff_clip rejects, below) leaves no kept window at all and the two
+           clipped ends meet, so the whole read is lowercased -- which is what
+           the position-guarded loop did. */
+        auto const read = make_span(bases).first(read_header.number_of_bases);
+        auto const kept_start = std::min(clip_start, clip_end);
+        auto const left_clipped = read.first(kept_start);
+        auto const kept = read.subspan(kept_start, clip_end - kept_start);
+        auto const right_clipped = read.drop(clip_end);
+        std::transform(left_clipped.begin(), left_clipped.end(), left_clipped.begin(), to_lower);
+        std::transform(kept.begin(), kept.end(), kept.begin(), to_upper);
+        std::transform(right_clipped.begin(), right_clipped.end(), right_clipped.begin(), to_lower);
 
         if (parameters.opt_sff_clip)
           {

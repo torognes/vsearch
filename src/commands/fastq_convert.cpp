@@ -67,10 +67,16 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
-#include <algorithm>  // std::max, std::min
+#include <algorithm>  // std::max, std::min, std::transform
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <vector>
+
+
+/* the printable ASCII range a quality character must end up in, whatever
+   --fastq_asciiout and the clamps above it asked for */
+constexpr auto printable_low = 33;
+constexpr auto printable_high = 126;
 
 
 auto fastq_convert(struct Parameters const & parameters) -> void
@@ -106,17 +112,16 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
         /* convert quality values */
 
-        // refactoring: std::copy(quality, normalized_quality);
-        // - subspan(0, end - 1)
-        // - substract parameters.opt_fastq_ascii
-        // - clamp qminout < x < qmaxout
-        // - add parameters.opt_fastq_asciiout
-        // - clamp 33 < x < 126
+        /* Rebase each score onto the requested output offset: subtract the
+           input offset, refuse anything outside --fastq_qmin/--fastq_qmax,
+           clamp to --fastq_qminout/--fastq_qmaxout, add the output offset, and
+           clamp to the printable range. */
         normalized_quality.resize(length + 1);
-        auto const * quality = input_handle->get_quality();
-        for (uint64_t i = 0; i < length; i++)
+        auto const quality = input_handle->quality_view();
+        std::transform(quality.begin(), quality.end(), normalized_quality.begin(),
+                       [&](char const quality_char) -> char
           {
-            int q = static_cast<int>(quality[i] - parameters.opt_fastq_ascii);
+            int q = static_cast<int>(quality_char - parameters.opt_fastq_ascii);
             if (q < parameters.opt_fastq_qmin)
               {
                 fprint(stderr, "\nFASTQ quality score (");
@@ -146,10 +151,10 @@ auto fastq_convert(struct Parameters const & parameters) -> void
             q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));
             q = static_cast<int>(std::min<int64_t>(q, parameters.opt_fastq_qmaxout));
             q += static_cast<int>(parameters.opt_fastq_asciiout);
-            q = std::max(q, 33);
-            q = std::min(q, 126);
-            normalized_quality[i] = static_cast<char>(q);
-          }
+            q = std::max(q, printable_low);
+            q = std::min(q, printable_high);
+            return static_cast<char>(q);
+          });
 
         int const hlen = static_cast<int>(input_handle->get_header_length());
         fastq_print_general(fp_fastqout,

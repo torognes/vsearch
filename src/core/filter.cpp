@@ -70,7 +70,8 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
-#include <algorithm>  // std::min, std::max
+#include <algorithm>  // std::count_if, std::min, std::max
+#include <cstddef>  // std::size_t
 #include <cmath>  // std::pow, std::signbit
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
@@ -214,17 +215,15 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
       res.discarded = true;
     }
 
-  /* filter by n's */  // refactoring: std::count_if();
-  int64_t ncount = 0;
-  auto const * nucleotides = input_handle->get_sequence() + start;
-  for (auto i = 0; i < length; ++i)
-    {
-      auto const nucleotide = nucleotides[i];
-      if ((nucleotide == 'N') or (nucleotide == 'n'))
-        {
-          ++ncount;
-        }
-    }
+  /* filter by n's, over the kept part of the sequence: the reader has had a
+     sequence_view() since the streaming reader became a class, so the window
+     is a subspan rather than a raw get_sequence() + start */
+  auto const kept = input_handle->sequence_view()
+    .subspan(static_cast<std::size_t>(start), static_cast<std::size_t>(length));
+  auto const ncount = std::count_if(kept.begin(), kept.end(),
+                                    [](char const nucleotide) -> bool {
+                                      return (nucleotide == 'N') or (nucleotide == 'n');
+                                    });
   if (ncount > parameters.opt_fastq_maxns)
     {
       res.discarded = true;

@@ -728,7 +728,13 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       /* Compute smoothed score in a 32bp window for each candidate. */
       /* Record max smoothed score for each position among candidates left. */
 
-      // refactoring: reset or initialize?
+      /* a reset, not an initialization: maxsmooth is a per-thread buffer sized
+         once to maxqlen (see the resize in chimera_thread_init) and reused
+         across queries and across the rounds of this parent search, so it
+         still holds the previous round's maxima here. The whole buffer is
+         cleared rather than its first query_len entries: the tail past this
+         query's length is never read, so either would do, and clearing all of
+         it keeps the reset independent of the query at hand. */
       std::fill(ci->maxsmooth.begin(), ci->maxsmooth.end(), 0);
 
       for (int i = 0; i < ci->cand_count; ++i)
