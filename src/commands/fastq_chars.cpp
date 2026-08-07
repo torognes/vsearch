@@ -83,6 +83,18 @@ constexpr unsigned int n_characters = 256;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  // The FASTQ quality encodings --fastq_chars can distinguish, grouped by the
+  // ascii offset they imply (Phred+33 first, then Phred+64). Detected by
+  // classify_encoding(), which is the only place the thresholds live.
+  enum struct FastqEncoding : unsigned char {
+    sanger,        // Original Sanger,  Phred+33
+    illumina_1_8,  // Illumina 1.8+,    Phred+33
+    solexa,        // Solexa,           Phred+64
+    illumina_1_3,  // Illumina 1.3+,    Phred+64
+    illumina_1_5,  // Illumina 1.5+,    Phred+64
+  };
+
+
   struct statistics {
     std::vector<uint64_t> sequence_chars;
     std::vector<uint64_t> quality_chars;
@@ -97,19 +109,47 @@ namespace {
     char fastq_ascii = '\0';
     char fastq_qmin = '\0';
     char fastq_qmax = '\0';
+    FastqEncoding encoding = FastqEncoding::sanger;  // set by guess_quality_offset()
   };
 
 
-  auto guess_quality_offset(struct statistics & stats) -> void {
+  auto classify_encoding(char const qmin, char const qmax) -> FastqEncoding {
     static constexpr auto lowerbound = ';';  // char 59 (-5 to offset +64)
     static constexpr auto upperbound = 'K';  // char 75 (+1 after offset +33 normal range)
+    static constexpr char first_char_in_Illumina_1_5 = 'B';  // 66th char
+    static constexpr char last_char_in_original_Sanger = 'I';  // 73th char
 
-    if ((stats.qmin < lowerbound) or (stats.qmax < upperbound)) {
-      stats.fastq_ascii = static_cast<char>(sanger_ascii_offset);  // +33
+    // Phred+33: a low qmin or a low qmax rules out the +64 offset
+    if ((qmin < lowerbound) or (qmax < upperbound)) {
+      return (qmax > last_char_in_original_Sanger) ? FastqEncoding::illumina_1_8
+                                                   : FastqEncoding::sanger;
     }
-    else {
-      stats.fastq_ascii = static_cast<char>(solexa_ascii_offset);  // +64
+    // Phred+64
+    if (qmin < static_cast<char>(solexa_ascii_offset)) {
+      return FastqEncoding::solexa;
     }
+    if (qmin < first_char_in_Illumina_1_5) {
+      return FastqEncoding::illumina_1_3;
+    }
+    return FastqEncoding::illumina_1_5;
+  }
+
+
+  constexpr auto is_phred64(FastqEncoding const encoding) -> bool {
+    return (encoding == FastqEncoding::solexa)
+        or (encoding == FastqEncoding::illumina_1_3)
+        or (encoding == FastqEncoding::illumina_1_5);
+  }
+
+
+  constexpr auto offset_of(FastqEncoding const encoding) -> int {
+    return is_phred64(encoding) ? solexa_ascii_offset : sanger_ascii_offset;
+  }
+
+
+  auto guess_quality_offset(struct statistics & stats) -> void {
+    stats.encoding = classify_encoding(stats.qmin, stats.qmax);
+    stats.fastq_ascii = static_cast<char>(offset_of(stats.encoding));
     stats.fastq_qmax = static_cast<char>(stats.qmax - stats.fastq_ascii);
     stats.fastq_qmin = static_cast<char>(stats.qmin - stats.fastq_ascii);
   }
@@ -169,8 +209,6 @@ namespace {
 
   auto stats_message(std::FILE * output_stream,
                      struct statistics const & stats) -> void {
-    static constexpr char first_char_in_Illumina_1_5 = 'B';  // 66th char
-    static constexpr char last_char_in_original_Sanger = 'I';  // 73th char
     assert(stats.sequence_chars['n'] == 0);  // sequences are uppercased, no results for lowercase symbols
     fprint(output_stream, "Read ");
     fprint_integer(output_stream, stats.seq_count);
@@ -196,34 +234,28 @@ namespace {
     fprint_integer(output_stream, static_cast<int>(stats.fastq_ascii));
     fprint(output_stream, '\n');
 
-    if (stats.fastq_ascii == solexa_ascii_offset)
+    // exhaustive switch, deliberately without a default case: -Wswitch then
+    // flags a newly added encoding that forgot its label here
+    switch (stats.encoding)
       {
-        if (stats.qmin < solexa_ascii_offset)
-          {
-            fprint(output_stream, "Guess: Solexa format (phred+64)\n");
-          }
-        else if (stats.qmin < first_char_in_Illumina_1_5)
-          {
-            fprint(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
-          }
-        else
-          {
-            // Illumina 1.5+ Phred+64, quality values ranging from 3 to 41 (ascii: 67 to 105)
-            // Q2 (ascii 66, 'B') is the Read Segment Quality Control Indicator
-            fprint(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
-          }
-      }
-    else
-      {
-        if (stats.qmax > last_char_in_original_Sanger)
-          {
-            fprint(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
-          }
-        else
-          {
-            // Sanger Phred+33, quality values ranging from 0 to 40 (ascii: 33 to 73)
-            fprint(output_stream, "Guess: Original Sanger format (phred+33)\n");
-          }
+      case FastqEncoding::sanger:
+        // Sanger Phred+33, quality values ranging from 0 to 40 (ascii: 33 to 73)
+        fprint(output_stream, "Guess: Original Sanger format (phred+33)\n");
+        break;
+      case FastqEncoding::illumina_1_8:
+        fprint(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
+        break;
+      case FastqEncoding::solexa:
+        fprint(output_stream, "Guess: Solexa format (phred+64)\n");
+        break;
+      case FastqEncoding::illumina_1_3:
+        fprint(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
+        break;
+      case FastqEncoding::illumina_1_5:
+        // Illumina 1.5+ Phred+64, quality values ranging from 3 to 41 (ascii: 67 to 105)
+        // Q2 (ascii 66, 'B') is the Read Segment Quality Control Indicator
+        fprint(output_stream, "Guess: Illumina 1.5+ format (phred+64)\n");
+        break;
       }
 
     fprint(output_stream, '\n');
