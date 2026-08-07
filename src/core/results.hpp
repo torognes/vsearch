@@ -66,6 +66,7 @@
 
 
 struct Database;
+struct hit;
 
 /* The query header and the query sequence (plus its reverse complement, when
    the minus strand was searched) are passed as views: the caller already knows
@@ -73,37 +74,51 @@ struct Database;
    std::strlen. A view carrying the length also removes the separate qseqlen
    argument wherever the sequence itself is passed. */
 
+/* Three shapes of hit argument, one per kind of writer, where the spelling used
+   to be `struct hit const *` for all three:
+
+   - View<struct hit>, for the writers that report a whole query at once. The
+     view is the hits to report, already cut to --maxhits by the caller; an
+     empty one is a query with no hit, which is not the same thing as a null
+     pointer and now cannot be confused with one.
+   - struct hit const &, for the per-hit writers the caller only ever reaches
+     with a hit in hand.
+   - struct hit const *, for the three per-hit writers that a caller does reach
+     with no hit at all, to emit the query's "no hit" record under
+     --output_no_hits. Null is a value here, not an oversight. */
+
 auto results_show_alnout(std::FILE * output_handle,
-                         struct hit const * hits,
-                         int hitcount,
+                         View<struct hit> hits,
                          View<char> query_head,
                          View<char> qsequence,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;
 
 auto results_show_lcaout(std::FILE * output_handle,
-                         struct hit const * hits,
-                         int hitcount,
+                         View<struct hit> hits,
                          View<char> query_head,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;
 
+/* hit == nullptr: the query matched nothing */
 auto results_show_blast6out_one(std::FILE * output_handle,
-                                struct hit const * hits,
+                                struct hit const * hit,
                                 View<char> query_head,
                                 int64_t qseqlen,
                                 struct Database const & db) -> void;
 
+/* hit == nullptr: the query matched nothing */
 auto results_show_uc_one(std::FILE * output_handle,
-                         struct hit const * hits,
+                         struct hit const * hit,
                          View<char> query_head,
                          int64_t qseqlen,
                          int clusterno,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void;
 
+/* hit == nullptr: the query matched nothing */
 auto results_show_userout_one(std::FILE * output_handle,
-                              struct hit const * hits,
+                              struct hit const * hit,
                               View<char> query_head,
                               View<char> qsequence,
                               View<char> qsequence_rc,
@@ -111,7 +126,7 @@ auto results_show_userout_one(std::FILE * output_handle,
                               struct Parameters const & parameters) -> void;
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
-                                 struct hit const * hits,
+                                 struct hit const & hit,
                                  View<char> query_head,
                                  View<char> qsequence,
                                  View<char> qsequence_rc,
@@ -119,14 +134,14 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  struct Parameters const & parameters) -> void;
 
 auto results_show_qsegout_one(std::FILE * output_handle,
-                              struct hit const * hits,
+                              struct hit const & hit,
                               View<char> query_head,
                               View<char> qsequence,
                               View<char> qsequence_rc,
                               struct Parameters const & parameters) -> void;
 
 auto results_show_tsegout_one(std::FILE * output_handle,
-                              struct hit const * hits,
+                              struct hit const & hit,
                               struct Database const & db,
                               struct Parameters const & parameters) -> void;
 
@@ -136,8 +151,7 @@ auto results_show_samheader(std::FILE * output_handle,
                             struct Parameters const & parameters) -> void;
 
 auto results_show_samout(std::FILE * output_handle,
-                         struct hit const * hits,
-                         int hitcount,
+                         View<struct hit> hits,
                          View<char> query_head,
                          View<char> qsequence,
                          View<char> qsequence_rc,

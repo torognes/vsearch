@@ -238,8 +238,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout,
-                          hits.data(),
-                          static_cast<int>(n_results_to_report),
+                          make_view(hits).first(static_cast<std::size_t>(n_results_to_report)),
                           query_head,
                           qsequence,
                           state.db,
@@ -249,8 +248,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout,
-                          hits.data(),
-                          static_cast<int>(n_results_to_report),
+                          make_view(hits).first(static_cast<std::size_t>(n_results_to_report)),
                           query_head,
                           qsequence,
                           qsequence_rc,
@@ -281,7 +279,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
           if (state.fp_fastapairs != nullptr)
             {
               results_show_fastapairs_one(state.fp_fastapairs,
-                                          &hit,
+                                          hit,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
@@ -292,7 +290,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
           if (state.fp_qsegout != nullptr)
             {
               results_show_qsegout_one(state.fp_qsegout,
-                                       &hit,
+                                       hit,
                                        query_head,
                                        qsequence,
                                        qsequence_rc,
@@ -302,7 +300,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
           if (state.fp_tsegout != nullptr)
             {
               results_show_tsegout_one(state.fp_tsegout,
-                                       &hit,
+                                       hit,
                                        state.db,
                                        parameters);
             }

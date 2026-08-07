@@ -87,23 +87,23 @@
 namespace {
 
   auto check_if_perfect_match(char const * opt_cluster_fast,
-                              struct hit const * hits) -> bool {
+                              struct hit const & hit) -> bool {
     if (opt_cluster_fast != nullptr) {
       /* cluster_fast */
       /* use '=' for identical sequences, ignoring terminal gaps */
-      return (hits->matches == hits->internal_alignmentlength);
+      return (hit.matches == hit.internal_alignmentlength);
     }
     /* cluster_size, cluster_smallmem, cluster_unoise */
     /* usearch_global, search_exact, allpairs_global */
     /* use '=' for strictly identical sequences */
-    return (hits->matches == hits->nwalignmentlength);
+    return (hit.matches == hit.nwalignmentlength);
   }
 
 }  // end of anonymous namespace
 
 
 auto results_show_fastapairs_one(std::FILE * output_handle,
-                                 struct hit const * hits,
+                                 struct hit const & hit,
                                  View<char> const query_head,
                                  View<char> const qsequence,
                                  View<char> const qsequence_rc,
@@ -112,18 +112,14 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 {
   /* http://www.drive5.com/usearch/manual/fastapairs.html */
 
-  if (hits == nullptr) {
-    return;
-  }
-
-  auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
+  auto const query = (hit.strand != 0) ? qsequence_rc : qsequence;
   auto const qrow = get_alignment_qrow(query,
-                                 make_view(hits->nwalignment),
-                                 hits->nwalignmentlength);
+                                 make_view(hit.nwalignment),
+                                 hit.nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      View<char>{&qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
-                                 static_cast<std::size_t>(hits->internal_alignmentlength)},
+                      View<char>{&qrow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
+                                 static_cast<std::size_t>(hit.internal_alignmentlength)},
                       query_head,
                       0,
                       0,
@@ -135,14 +131,14 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       0,
                       parameters);
 
-  auto const target = static_cast<uint64_t>(hits->target);
+  auto const target = static_cast<uint64_t>(hit.target);
   auto const trow = get_alignment_trow(db.sequence_view(target),
-                                 make_view(hits->nwalignment),
-                                 hits->nwalignmentlength);
+                                 make_view(hit.nwalignment),
+                                 hit.nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      View<char>{&trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
-                                 static_cast<std::size_t>(hits->internal_alignmentlength)},
+                      View<char>{&trow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
+                                 static_cast<std::size_t>(hit.internal_alignmentlength)},
                       db.header_view(target),
                       0,
                       0,
@@ -159,20 +155,16 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
 
 
 auto results_show_qsegout_one(std::FILE * output_handle,
-                              struct hit const * hits,
+                              struct hit const & hit,
                               View<char> const query_head,
                               View<char> const qsequence,
                               View<char> const qsequence_rc,
                               struct Parameters const & parameters) -> void
 {
-  if (hits == nullptr) {
-    return;
-  }
-
-  auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
+  auto const query = (hit.strand != 0) ? qsequence_rc : qsequence;
   auto const qseglen = static_cast<int64_t>(query.size())
-    - hits->trim_q_left - hits->trim_q_right;
-  auto const qseg = query.subspan(static_cast<std::size_t>(hits->trim_q_left),
+    - hit.trim_q_left - hit.trim_q_right;
+  auto const qseg = query.subspan(static_cast<std::size_t>(hit.trim_q_left),
                                   static_cast<std::size_t>(qseglen));
 
   fasta_print_general(output_handle,
@@ -192,18 +184,15 @@ auto results_show_qsegout_one(std::FILE * output_handle,
 
 
 auto results_show_tsegout_one(std::FILE * output_handle,
-                              struct hit const * hits,
+                              struct hit const & hit,
                               struct Database const & db,
                               struct Parameters const & parameters) -> void
 {
-  if (hits == nullptr) {
-    return;
-  }
-  auto const target = static_cast<uint64_t>(hits->target);
+  auto const target = static_cast<uint64_t>(hit.target);
   auto const target_sequence = db.sequence_view(target);
   auto const tseglen = static_cast<int64_t>(target_sequence.size())
-    - hits->trim_t_left - hits->trim_t_right;
-  auto const tseg = target_sequence.subspan(static_cast<std::size_t>(hits->trim_t_left),
+    - hit.trim_t_left - hit.trim_t_right;
+  auto const tseg = target_sequence.subspan(static_cast<std::size_t>(hit.trim_t_left),
                                             static_cast<std::size_t>(tseglen));
 
   fasta_print_general(output_handle,
@@ -223,7 +212,7 @@ auto results_show_tsegout_one(std::FILE * output_handle,
 
 
 auto results_show_blast6out_one(std::FILE * output_handle,
-                                struct hit const * hits,
+                                struct hit const * hit,
                                 View<char> const query_head,
                                 int64_t const qseqlen,
                                 struct Database const & db) -> void
@@ -249,28 +238,28 @@ auto results_show_blast6out_one(std::FILE * output_handle,
     but only 12 when there is a hit. Fixed in VSEARCH.
   */
 
-  if (hits == nullptr) {
+  if (hit == nullptr) {
     fprint(output_handle, query_head);
     fprint(output_handle, "\t*\t0.0\t0\t0\t0\t0\t0\t0\t0\t-1\t0\n");
     return;
   }
-  // if 'hp->strand' then 'minus strand' else 'plus strand'
-  auto const target = static_cast<uint64_t>(hits->target);
-  int const qstart = (hits->strand != 0) ? static_cast<int>(qseqlen) : 1;
-  int const qend = (hits->strand != 0) ? 1 : static_cast<int>(qseqlen);
+  // if 'hit->strand' then 'minus strand' else 'plus strand'
+  auto const target = static_cast<uint64_t>(hit->target);
+  int const qstart = (hit->strand != 0) ? static_cast<int>(qseqlen) : 1;
+  int const qend = (hit->strand != 0) ? 1 : static_cast<int>(qseqlen);
 
   OutputRecord record {output_handle};
   fprint(record, query_head);
   fprint(record, '\t');
   fprint(record, db.header_view(target));
   fprint(record, '\t');
-  std::fprintf(record.stream(), "%.1f", hits->id);
+  std::fprintf(record.stream(), "%.1f", hit->id);
   fprint(record, '\t');
-  fprint_integer(record, hits->internal_alignmentlength);
+  fprint_integer(record, hit->internal_alignmentlength);
   fprint(record, '\t');
-  fprint_integer(record, hits->mismatches);
+  fprint_integer(record, hit->mismatches);
   fprint(record, '\t');
-  fprint_integer(record, hits->internal_gaps);
+  fprint_integer(record, hit->internal_gaps);
   fprint(record, '\t');
   fprint_integer(record, qstart);
   fprint(record, '\t');
@@ -288,7 +277,7 @@ auto results_show_blast6out_one(std::FILE * output_handle,
 
 
 auto results_show_uc_one(std::FILE * output_handle,
-                         struct hit const * hits,
+                         struct hit const * hit,
                          View<char> const query_head,
                          int64_t const qseqlen,
                          int const clusterno,
@@ -311,14 +300,14 @@ auto results_show_uc_one(std::FILE * output_handle,
     target label
   */
 
-  if (hits == nullptr) {
+  if (hit == nullptr) {
     fprint(output_handle, "N\t*\t*\t*\t.\t*\t*\t*\t");
     fprint(output_handle, query_head);
     fprint(output_handle, "\t*\n");
     return;
   }
 
-  auto const is_perfect_match = check_if_perfect_match(parameters.opt_cluster_fast, hits);
+  auto const is_perfect_match = check_if_perfect_match(parameters.opt_cluster_fast, *hit);
 
   OutputRecord record {output_handle};
   fprint(record, "H\t");
@@ -326,17 +315,17 @@ auto results_show_uc_one(std::FILE * output_handle,
   fprint(record, '\t');
   fprint_integer(record, qseqlen);
   fprint(record, '\t');
-  std::fprintf(record.stream(), "%.1f", hits->id);
+  std::fprintf(record.stream(), "%.1f", hit->id);
   fprint(record, '\t');
-  fprint(record, (hits->strand != 0) ? '-' : '+');
+  fprint(record, (hit->strand != 0) ? '-' : '+');
   fprint(record, "\t0\t0\t");
   if (is_perfect_match) {
     fprint(record, "=");
   } else {
-    fprint(record, make_view(hits->nwalignment));
+    fprint(record, make_view(hit->nwalignment));
   }
   fprint(record, '\t');
-  auto const target = static_cast<uint64_t>(hits->target);
+  auto const target = static_cast<uint64_t>(hit->target);
   /* the two header fields come from a helper that writes to the stream, so the
      record flushes around them: three fwrites for this line instead of one,
      still against the 24 stdio calls the unbuffered form needs */
@@ -355,7 +344,7 @@ auto results_show_uc_one(std::FILE * output_handle,
 }
 
 
-auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits,
+auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
                               View<char> const query_head,
                               View<char> const qsequence,
                               View<char> const qsequence_rc,
@@ -384,9 +373,9 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
       int64_t tseqlen = 0;
       char const * t_head = nullptr;
 
-      if (hits != nullptr)
+      if (hit != nullptr)
         {
-          auto const target = static_cast<uint64_t>(hits->target);
+          auto const target = static_cast<uint64_t>(hit->target);
           tsequence = db.sequence_view(target);
           tseqlen = static_cast<int64_t>(db.getsequencelen(target));
           t_head = db.getheader(target);
@@ -399,113 +388,113 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           fprint(output_handle, query_head);
           break;
         case 1: /* target */
-          std::fputs((hits != nullptr) ? t_head : "*", output_handle);
+          std::fputs((hit != nullptr) ? t_head : "*", output_handle);
           break;
         case 2: /* evalue */
           fprint(output_handle, "-1");
           break;
         case 3: /* id */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id : 0.0);
           break;
         case 4: /* pctpv */
-          std::fprintf(output_handle, "%.1f", ((hits != nullptr) and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->matches / hits->internal_alignmentlength : 0.0);
+          std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->matches / hit->internal_alignmentlength : 0.0);
           break;
         case 5: /* pctgaps */
-          std::fprintf(output_handle, "%.1f", ((hits != nullptr) and (hits->internal_alignmentlength > 0)) ? 100.0 * hits->internal_indels / hits->internal_alignmentlength : 0.0);
+          std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->internal_indels / hit->internal_alignmentlength : 0.0);
           break;
         case 6: /* pairs */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->matches + hits->mismatches : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->matches + hit->mismatches : 0);
           break;
         case 7: /* gaps */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_indels : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels : 0);
           break;
         case 8: /* qlo */
-          fprint_integer(output_handle, (hits != nullptr) ? ((hits->strand != 0) ? qseqlen : 1) : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? qseqlen : 1) : 0);
           break;
         case 9: /* qhi */
-          fprint_integer(output_handle, (hits != nullptr) ? ((hits->strand != 0) ? 1 : qseqlen) : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? 1 : qseqlen) : 0);
           break;
         case 10: /* tlo */
-          fprint_integer(output_handle, (hits != nullptr) ? 1 : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? 1 : 0);
           break;
         case 11: /* thi */
           fprint_integer(output_handle, tseqlen);
           break;
         case 12: /* pv */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->matches : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
           break;
         case 13: /* ql */
           fprint_integer(output_handle, qseqlen);
           break;
         case 14: /* tl */
-          fprint_integer(output_handle, (hits != nullptr) ? tseqlen : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
           break;
         case 15: /* qs */
           fprint_integer(output_handle, qseqlen);
           break;
         case 16: /* ts */
-          fprint_integer(output_handle, (hits != nullptr) ? tseqlen : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
           break;
         case 17: /* alnlen */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_alignmentlength : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_alignmentlength : 0);
           break;
         case 18: /* opens */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_gaps : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_gaps : 0);
           break;
         case 19: /* exts */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->internal_indels - hits->internal_gaps : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels - hit->internal_gaps : 0);
           break;
         case 20: /* raw */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->nwscore : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->nwscore : 0);
           break;
         case 21: /* bits */
           fprint_integer(output_handle, 0);
           break;
         case 22: /* aln */
-          if (hits != nullptr)
+          if (hit != nullptr)
             {
-              print_uncompressed_cigar(output_handle, make_view(hits->nwalignment));
+              print_uncompressed_cigar(output_handle, make_view(hit->nwalignment));
             }
           break;
         case 23: /* caln */
-          if (hits != nullptr)
+          if (hit != nullptr)
             {
-              fprint(output_handle, make_view(hits->nwalignment));
+              fprint(output_handle, make_view(hit->nwalignment));
             }
           break;
         case 24: /* qstrand */
-          if (hits != nullptr)
+          if (hit != nullptr)
             {
-              fprint(output_handle, (hits->strand != 0) ? '-' : '+');
+              fprint(output_handle, (hit->strand != 0) ? '-' : '+');
             }
           break;
         case 25: /* tstrand */
-          if (hits != nullptr)
+          if (hit != nullptr)
             {
               fprint(output_handle, '+');
             }
           break;
         case 26: /* qrow */
-          if (hits != nullptr)
+          if (hit != nullptr)
             {
-              auto const query = (hits->strand != 0) ? qsequence_rc : qsequence;
+              auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
               auto const qrow = get_alignment_qrow(query,
-                                             make_view(hits->nwalignment),
-                                             hits->nwalignmentlength);
+                                             make_view(hit->nwalignment),
+                                             hit->nwalignmentlength);
               fprint(output_handle,
-                     View<char>{&qrow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
-                                static_cast<std::size_t>(hits->internal_alignmentlength)});
+                     View<char>{&qrow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
+                                static_cast<std::size_t>(hit->internal_alignmentlength)});
             }
           break;
         case 27: /* trow */
-          if (hits != nullptr)
+          if (hit != nullptr)
             {
               auto const trow = get_alignment_trow(tsequence,
-                                             make_view(hits->nwalignment),
-                                             hits->nwalignmentlength);
+                                             make_view(hit->nwalignment),
+                                             hit->nwalignmentlength);
               fprint(output_handle,
-                     View<char>{&trow[static_cast<std::size_t>(hits->trim_q_left + hits->trim_t_left)],
-                                static_cast<std::size_t>(hits->internal_alignmentlength)});
+                     View<char>{&trow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
+                                static_cast<std::size_t>(hit->internal_alignmentlength)});
             }
           break;
         case 28: /* qframe */
@@ -513,46 +502,46 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
           fprint(output_handle, "+0");
           break;
         case 30: /* mism */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->mismatches : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->mismatches : 0);
           break;
         case 31: /* ids */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->matches : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
           break;
         case 32: /* qcov */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(qseqlen) : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(qseqlen) : 0.0);
           break;
         case 33: /* tcov */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? 100.0 * (hits->matches + hits->mismatches) / static_cast<double>(tseqlen) : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(tseqlen) : 0.0);
           break;
         case 34: /* id0 */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id0 : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id0 : 0.0);
           break;
         case 35: /* id1 */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id1 : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id1 : 0.0);
           break;
         case 36: /* id2 */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id2 : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id2 : 0.0);
           break;
         case 37: /* id3 */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id3 : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id3 : 0.0);
           break;
         case 38: /* id4 */
-          std::fprintf(output_handle, "%.1f", (hits != nullptr) ? hits->id4 : 0.0);
+          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id4 : 0.0);
           break;
 
           /* new internal alignment coordinates */
 
         case 39: /* qilo */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->trim_q_left + 1 : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->trim_q_left + 1 : 0);
           break;
         case 40: /* qihi */
-          fprint_integer(output_handle, (hits != nullptr) ? qseqlen - hits->trim_q_right : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? qseqlen - hit->trim_q_right : 0);
           break;
         case 41: /* tilo */
-          fprint_integer(output_handle, (hits != nullptr) ? hits->trim_t_left + 1 : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? hit->trim_t_left + 1 : 0);
           break;
         case 42: /* tihi */
-          fprint_integer(output_handle, (hits != nullptr) ? tseqlen - hits->trim_t_right : 0);
+          fprint_integer(output_handle, (hit != nullptr) ? tseqlen - hit->trim_t_right : 0);
           break;
         default:
           /* userfields_requested only ever holds validated indices (0..42),
@@ -568,8 +557,7 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hits
 
 
 auto results_show_lcaout(std::FILE * output_handle,
-                         struct hit const * hits,
-                         int const hitcount,
+                         View<struct hit> const hits,
                          View<char> const query_head,
                          struct Database const & db,
                          struct Parameters const & parameters) -> void
@@ -583,7 +571,7 @@ auto results_show_lcaout(std::FILE * output_handle,
   fprint(output_handle, query_head);
   fprint(output_handle, '\t');
 
-  if (hitcount == 0) {
+  if (hits.empty()) {
     fprint(output_handle, '\n');
     return;
   }
@@ -596,21 +584,19 @@ auto results_show_lcaout(std::FILE * output_handle,
   std::array<std::array<int, tax_levels>, tax_levels> cand_level_len {{}};
   std::array<int, tax_levels> level_match {{}};
 
-  auto const top_hit_id = hits[0].id;
+  auto const top_hit_id = hits.front().id;
   auto tophitcount = 0;
 
-  for (auto t = 0; t < hitcount; ++t)
+  for (auto const & hit : hits)
     {
-      struct hit const * hp = hits + t;
-
-      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
         {
           break;
         }
 
       ++tophitcount;
 
-      int const seqno = hp->target;
+      int const seqno = hit.target;
       std::array<int, tax_levels> new_level_start {{}};  // refactoring: std::array<struct a_level{.start, .length}, tax_levels>
       std::array<int, tax_levels> new_level_len {{}};
       tax_split(seqno, new_level_start.data(), new_level_len.data(), db);
@@ -658,9 +644,9 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   /* count actual matches to the candidate at each level */
 
-  for (auto t = 0; t < tophitcount; ++t)
+  for (auto const & hit : hits.first(static_cast<std::size_t>(tophitcount)))
     {
-      auto const seqno = hits[t].target;
+      auto const seqno = hit.target;
       std::array<int, tax_levels> new_level_start {{}};
       std::array<int, tax_levels> new_level_len {{}};
       tax_split(seqno, new_level_start.data(), new_level_len.data(), db);
@@ -721,8 +707,7 @@ auto results_show_lcaout(std::FILE * output_handle,
 
 
 auto results_show_alnout(std::FILE * output_handle,
-                         struct hit const * hits,
-                         int const hitcount,
+                         View<struct hit> const hits,
                          View<char> const query_head,
                          View<char> const qsequence,
                          struct Database const & db,
@@ -731,7 +716,7 @@ auto results_show_alnout(std::FILE * output_handle,
   /* http://drive5.com/usearch/manual/alnout.html */
 
 
-  if (hitcount == 0) {
+  if (hits.empty()) {
     if (parameters.opt_output_no_hits != 0) {
       fprint(output_handle, '\n');
       fprint(output_handle, "Query >");
@@ -749,20 +734,18 @@ auto results_show_alnout(std::FILE * output_handle,
   fprint(output_handle, query_head);
   fprint(output_handle, "\n %Id   TLen  Target\n");
 
-  auto const top_hit_id = hits[0].id;
+  auto const top_hit_id = hits.front().id;
 
-  for (auto t = 0; t < hitcount; ++t)
+  for (auto const & hit : hits)
     {
-      auto const * hp = hits + t;
-
-      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
         {
           break;
         }
 
-      auto const target = static_cast<uint64_t>(hp->target);
+      auto const target = static_cast<uint64_t>(hit.target);
       OutputRecord record {output_handle};
-      std::fprintf(record.stream(), "%3.0f", hp->id);
+      std::fprintf(record.stream(), "%3.0f", hit.id);
       fprint(record, "% ");
       fprint_integer(record, db.getsequencelen(target), 6);
       fprint(record, "  ");
@@ -770,11 +753,9 @@ auto results_show_alnout(std::FILE * output_handle,
       fprint(record, '\n');
     }
 
-  for (auto t = 0; t < hitcount; ++t)
+  for (auto const & hit : hits)
     {
-      auto const * hp = hits + t;
-
-      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
         {
           break;
         }
@@ -782,7 +763,7 @@ auto results_show_alnout(std::FILE * output_handle,
       fprint(output_handle, '\n');
 
 
-      auto const target = static_cast<uint64_t>(hp->target);
+      auto const target = static_cast<uint64_t>(hit.target);
       auto const dseqlen = static_cast<int64_t>(db.getsequencelen(target));
 
       /* the width of the wider of the two lengths, in decimal digits. The
@@ -812,33 +793,33 @@ auto results_show_alnout(std::FILE * output_handle,
 
       align_show(output_handle,
                  qsequence,
-                 hp->trim_q_left,
+                 hit.trim_q_left,
                  "Qry",
                  db.sequence_view(target),
-                 hp->trim_t_left,
+                 hit.trim_t_left,
                  "Tgt",
-                 View<char>{std::next(hp->nwalignment.c_str(), hp->trim_aln_left),
-                            hp->nwalignment.size()
-                            - static_cast<std::size_t>(hp->trim_aln_left)
-                            - static_cast<std::size_t>(hp->trim_aln_right)},
+                 View<char>{std::next(hit.nwalignment.c_str(), hit.trim_aln_left),
+                            hit.nwalignment.size()
+                            - static_cast<std::size_t>(hit.trim_aln_left)
+                            - static_cast<std::size_t>(hit.trim_aln_right)},
                  numwidth,
                  3,
                  rowlen,
-                 hp->strand,
+                 hit.strand,
                  parameters);
 
       OutputRecord record {output_handle};
       fprint(record, '\n');
-      fprint_integer(record, hp->internal_alignmentlength);
+      fprint_integer(record, hit.internal_alignmentlength);
       fprint(record, " cols, ");
-      fprint_integer(record, hp->matches);
+      fprint_integer(record, hit.matches);
       fprint(record, " ids (");
-      std::fprintf(record.stream(), "%3.1f", hp->id);
+      std::fprintf(record.stream(), "%3.1f", hit.id);
       fprint(record, "%), ");
-      fprint_integer(record, hp->internal_indels);
+      fprint_integer(record, hit.internal_indels);
       fprint(record, " gaps (");
-      std::fprintf(record.stream(), "%3.1f", hp->internal_alignmentlength > 0 ?
-              100.0 * hp->internal_indels / hp->internal_alignmentlength :
+      std::fprintf(record.stream(), "%3.1f", hit.internal_alignmentlength > 0 ?
+              100.0 * hit.internal_indels / hit.internal_alignmentlength :
               0.0);
       fprint(record, "%)\n");
     }
@@ -1022,8 +1003,7 @@ auto results_show_samheader(std::FILE * output_handle,
 
 
 auto results_show_samout(std::FILE * output_handle,
-                         struct hit const * hits,
-                         int const hitcount,
+                         View<struct hit> const hits,
                          View<char> const query_head,
                          View<char> const qsequence,
                          View<char> const qsequence_rc,
@@ -1068,7 +1048,7 @@ auto results_show_samout(std::FILE * output_handle,
   */
 
 
-  if (hitcount == 0) {
+  if (hits.empty()) {
     if (parameters.opt_output_no_hits != 0) {
       fprint(output_handle, query_head);
       fprint(output_handle, '\t');
@@ -1094,13 +1074,16 @@ auto results_show_samout(std::FILE * output_handle,
     return;
   }
 
-  auto const top_hit_id = hits[0].id;
+  auto const top_hit_id = hits.front().id;
 
-  for (auto t = 0; t < hitcount; ++t)
+  /* indexed rather than a range-for: the SAM flag marks every hit after the
+     first as a secondary alignment (0x100), so the position is part of the
+     output */
+  for (std::size_t t = 0; t < hits.size(); ++t)
     {
-      auto const * hp = hits + t;
+      auto const & hit = hits[t];
 
-      if ((parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
+      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
         {
           break;
         }
@@ -1109,9 +1092,9 @@ auto results_show_samout(std::FILE * output_handle,
       std::string cigar;
       std::string md;
 
-      auto const target = static_cast<uint64_t>(hp->target);
-      auto const query = (hp->strand != 0) ? qsequence_rc : qsequence;
-      build_sam_strings(make_view(hp->nwalignment),
+      auto const target = static_cast<uint64_t>(hit.target);
+      auto const query = (hit.strand != 0) ? qsequence_rc : qsequence;
+      build_sam_strings(make_view(hit.nwalignment),
                         query,
                         db.sequence_view(target),
                         cigar,
@@ -1120,7 +1103,7 @@ auto results_show_samout(std::FILE * output_handle,
       OutputRecord record {output_handle};
       fprint(record, query_head);
       fprint(record, '\t');
-      fprint_integer(record, (0x10 * hp->strand) | (t > 0 ? 0x100 : 0));
+      fprint_integer(record, (0x10 * hit.strand) | (t > 0 ? 0x100 : 0));
       fprint(record, '\t');
       fprint(record, db.header_view(target));
       fprint(record, '\t');
@@ -1140,17 +1123,17 @@ auto results_show_samout(std::FILE * output_handle,
       fprint(record, '\t');
       fprint(record, "*");
       fprint(record, "\tAS:i:");
-      std::fprintf(record.stream(), "%.0f", hp->id);
+      std::fprintf(record.stream(), "%.0f", hit.id);
       fprint(record, "\tXN:i:");
       fprint_integer(record, 0);
       fprint(record, "\tXM:i:");
-      fprint_integer(record, hp->mismatches);
+      fprint_integer(record, hit.mismatches);
       fprint(record, "\tXO:i:");
-      fprint_integer(record, hp->internal_gaps);
+      fprint_integer(record, hit.internal_gaps);
       fprint(record, "\tXG:i:");
-      fprint_integer(record, hp->internal_indels);
+      fprint_integer(record, hit.internal_indels);
       fprint(record, "\tNM:i:");
-      fprint_integer(record, hp->mismatches + hp->internal_indels);
+      fprint_integer(record, hit.mismatches + hit.internal_indels);
       fprint(record, "\tMD:Z:");
       fprint(record, make_view(md));
       fprint(record, "\tYT:Z:");

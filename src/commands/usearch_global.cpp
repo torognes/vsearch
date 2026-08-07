@@ -172,8 +172,7 @@ static auto search_output_results(struct search_cli_state_s & state,
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout.get(),
-                          hits.data(),
-                          static_cast<int>(toreport),
+                          make_view(hits).first(static_cast<std::size_t>(toreport)),
                           query_head,
                           qsequence,
                           state.db,
@@ -183,8 +182,7 @@ static auto search_output_results(struct search_cli_state_s & state,
   if (state.fp_lcaout != nullptr)
     {
       results_show_lcaout(state.fp_lcaout.get(),
-                          hits.data(),
-                          static_cast<int>(toreport),
+                          make_view(hits).first(static_cast<std::size_t>(toreport)),
                           query_head,
                           state.db,
                           state.parameters);
@@ -193,8 +191,7 @@ static auto search_output_results(struct search_cli_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout.get(),
-                          hits.data(),
-                          static_cast<int>(toreport),
+                          make_view(hits).first(static_cast<std::size_t>(toreport)),
                           query_head,
                           qsequence,
                           qsequence_rc,
@@ -225,7 +222,7 @@ static auto search_output_results(struct search_cli_state_s & state,
           if (state.fp_fastapairs != nullptr)
             {
               results_show_fastapairs_one(state.fp_fastapairs.get(),
-                                          hp,
+                                          *hp,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
@@ -236,7 +233,7 @@ static auto search_output_results(struct search_cli_state_s & state,
           if (state.fp_qsegout != nullptr)
             {
               results_show_qsegout_one(state.fp_qsegout.get(),
-                                       hp,
+                                       *hp,
                                        query_head,
                                        qsequence,
                                        qsequence_rc,
@@ -246,7 +243,7 @@ static auto search_output_results(struct search_cli_state_s & state,
           if (state.fp_tsegout != nullptr)
             {
               results_show_tsegout_one(state.fp_tsegout.get(),
-                                       hp,
+                                       *hp,
                                        state.db,
                                        state.parameters);
             }

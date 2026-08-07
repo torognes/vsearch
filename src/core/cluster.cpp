@@ -459,7 +459,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout,
-                          best, 1, query_head,
+                          View<struct hit>{best, 1}, query_head,
                           qsequence,
                           db,
                           state.parameters);
@@ -468,7 +468,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout,
-                          best, 1, query_head,
+                          View<struct hit>{best, 1}, query_head,
                           qsequence, qsequence_rc,
                           db,
                           state.parameters);
@@ -477,7 +477,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_fastapairs != nullptr)
     {
       results_show_fastapairs_one(state.fp_fastapairs,
-                                  best,
+                                  *best,
                                   query_head,
                                   qsequence,
                                   qsequence_rc,
@@ -488,7 +488,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_qsegout != nullptr)
     {
       results_show_qsegout_one(state.fp_qsegout,
-                               best,
+                               *best,
                                query_head,
                                qsequence,
                                qsequence_rc,
@@ -498,7 +498,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
   if (state.fp_tsegout != nullptr)
     {
       results_show_tsegout_one(state.fp_tsegout,
-                               best,
+                               *best,
                                db,
                                state.parameters);
     }

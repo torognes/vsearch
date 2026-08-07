@@ -147,8 +147,7 @@ inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const 
 
 
 static auto allpairs_output_results(struct allpairs_state_s & state,
-                             int const hit_count,
-                             struct hit const * hits,
+                             View<struct hit> const hits,
                              View<char> const query_head,
                              View<char> const qsequence,
                              View<char> const qsequence_rc) -> void
@@ -156,13 +155,12 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
   auto const qseqlen = static_cast<int>(qsequence.size());
 
   /* show results */
-  auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hit_count));
+  auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
 
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout,
-                          hits,
-                          static_cast<int>(toreport),
+                          hits.first(static_cast<std::size_t>(toreport)),
                           query_head,
                           qsequence,
                           state.db,
@@ -172,8 +170,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout,
-                          hits,
-                          static_cast<int>(toreport),
+                          hits.first(static_cast<std::size_t>(toreport)),
                           query_head,
                           qsequence,
                           qsequence_rc,
@@ -183,11 +180,11 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
 
   if (toreport != 0)
     {
-      double const top_hit_id = hits[0].id;
+      double const top_hit_id = hits.front().id;
 
       for (int t = 0; t < toreport; t++)
         {
-          struct hit const * hp = hits + t;
+          struct hit const * hp = &hits[static_cast<std::size_t>(t)];
 
           if ((state.parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
             {
@@ -197,7 +194,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
           if (state.fp_fastapairs != nullptr)
             {
               results_show_fastapairs_one(state.fp_fastapairs,
-                                          hp,
+                                          *hp,
                                           query_head,
                                           qsequence,
                                           qsequence_rc,
@@ -208,7 +205,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
           if (state.fp_qsegout != nullptr)
             {
               results_show_qsegout_one(state.fp_qsegout,
-                                       hp,
+                                       *hp,
                                        query_head,
                                        qsequence,
                                        qsequence_rc,
@@ -218,7 +215,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
           if (state.fp_tsegout != nullptr)
             {
               results_show_tsegout_one(state.fp_tsegout,
-                                       hp,
+                                       *hp,
                                        state.db,
                                        state.parameters);
             }
@@ -292,7 +289,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
         }
     }
 
-  if (hit_count != 0)
+  if (not hits.empty())
     {
       ++state.count_matched;
       if (state.parameters.opt_matched != nullptr)
@@ -509,8 +506,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
     /* output results */
     allpairs_output_results(state,
-                            searchinfo.accepts,
-                            finalhits.data(),
+                            make_view(finalhits).first(static_cast<std::size_t>(searchinfo.accepts)),
                             searchinfo.query_head,
                             View<char>{searchinfo.qsequence},
                             View<char>{});
