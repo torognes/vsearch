@@ -351,6 +351,210 @@ auto results_show_uc_one(std::FILE * output_handle,
 }
 
 
+namespace {
+/* One --userout field, written as itself. Lifted verbatim out of the loop in
+   results_show_userout_one, whose only remaining job is the tab that separates
+   the fields -- which is what its index was for.
+
+   The three View<char> parameters are the same three, in the same order, that
+   the enclosing writer takes. `parameters` is deliberately not among them: none
+   of the cases reads it. */
+auto print_userfield(std::FILE * output_handle,
+                     int const field,
+                     struct hit const * const hit,
+                     View<char> const query_head,
+                     View<char> const qsequence,
+                     View<char> const qsequence_rc,
+                     struct Database const & db) -> void
+{
+  auto const qseqlen = static_cast<int64_t>(qsequence.size());
+
+  View<char> tsequence;
+  int64_t tseqlen = 0;
+  View<char> t_head;
+
+  if (hit != nullptr)
+    {
+      auto const target = static_cast<uint64_t>(hit->target);
+      tsequence = db.sequence_view(target);
+      tseqlen = static_cast<int64_t>(tsequence.size());
+      t_head = db.header_view(target);
+    }
+
+  switch (field)
+    {
+    case 0: /* query */
+      fprint(output_handle, query_head);
+      break;
+    case 1: /* target */
+      if (hit != nullptr) { fprint(output_handle, t_head); }
+      else { fprint(output_handle, '*'); }
+      break;
+    case 2: /* evalue */
+      fprint(output_handle, "-1");
+      break;
+    case 3: /* id */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id : 0.0);
+      break;
+    case 4: /* pctpv */
+      std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->matches / hit->internal_alignmentlength : 0.0);
+      break;
+    case 5: /* pctgaps */
+      std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->internal_indels / hit->internal_alignmentlength : 0.0);
+      break;
+    case 6: /* pairs */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->matches + hit->mismatches : 0);
+      break;
+    case 7: /* gaps */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels : 0);
+      break;
+    case 8: /* qlo */
+      fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? qseqlen : 1) : 0);
+      break;
+    case 9: /* qhi */
+      fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? 1 : qseqlen) : 0);
+      break;
+    case 10: /* tlo */
+      fprint_integer(output_handle, (hit != nullptr) ? 1 : 0);
+      break;
+    case 11: /* thi */
+      fprint_integer(output_handle, tseqlen);
+      break;
+    case 12: /* pv */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
+      break;
+    case 13: /* ql */
+      fprint_integer(output_handle, qseqlen);
+      break;
+    case 14: /* tl */
+      fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
+      break;
+    case 15: /* qs */
+      fprint_integer(output_handle, qseqlen);
+      break;
+    case 16: /* ts */
+      fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
+      break;
+    case 17: /* alnlen */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->internal_alignmentlength : 0);
+      break;
+    case 18: /* opens */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->internal_gaps : 0);
+      break;
+    case 19: /* exts */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels - hit->internal_gaps : 0);
+      break;
+    case 20: /* raw */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->nwscore : 0);
+      break;
+    case 21: /* bits */
+      fprint_integer(output_handle, 0);
+      break;
+    case 22: /* aln */
+      if (hit != nullptr)
+        {
+          print_uncompressed_cigar(output_handle, make_view(hit->nwalignment));
+        }
+      break;
+    case 23: /* caln */
+      if (hit != nullptr)
+        {
+          fprint(output_handle, make_view(hit->nwalignment));
+        }
+      break;
+    case 24: /* qstrand */
+      if (hit != nullptr)
+        {
+          fprint(output_handle, (hit->strand != 0) ? '-' : '+');
+        }
+      break;
+    case 25: /* tstrand */
+      if (hit != nullptr)
+        {
+          fprint(output_handle, '+');
+        }
+      break;
+    case 26: /* qrow */
+      if (hit != nullptr)
+        {
+          auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
+          auto const qrow = get_alignment_qrow(query,
+                                         make_view(hit->nwalignment),
+                                         hit->nwalignmentlength);
+          fprint(output_handle,
+                 View<char>{&qrow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
+                            static_cast<std::size_t>(hit->internal_alignmentlength)});
+        }
+      break;
+    case 27: /* trow */
+      if (hit != nullptr)
+        {
+          auto const trow = get_alignment_trow(tsequence,
+                                         make_view(hit->nwalignment),
+                                         hit->nwalignmentlength);
+          fprint(output_handle,
+                 View<char>{&trow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
+                            static_cast<std::size_t>(hit->internal_alignmentlength)});
+        }
+      break;
+    case 28: /* qframe */
+    case 29: /* tframe */
+      fprint(output_handle, "+0");
+      break;
+    case 30: /* mism */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->mismatches : 0);
+      break;
+    case 31: /* ids */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
+      break;
+    case 32: /* qcov */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(qseqlen) : 0.0);
+      break;
+    case 33: /* tcov */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(tseqlen) : 0.0);
+      break;
+    case 34: /* id0 */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id0 : 0.0);
+      break;
+    case 35: /* id1 */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id1 : 0.0);
+      break;
+    case 36: /* id2 */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id2 : 0.0);
+      break;
+    case 37: /* id3 */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id3 : 0.0);
+      break;
+    case 38: /* id4 */
+      std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id4 : 0.0);
+      break;
+
+      /* new internal alignment coordinates */
+
+    case 39: /* qilo */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->trim_q_left + 1 : 0);
+      break;
+    case 40: /* qihi */
+      fprint_integer(output_handle, (hit != nullptr) ? qseqlen - hit->trim_q_right : 0);
+      break;
+    case 41: /* tilo */
+      fprint_integer(output_handle, (hit != nullptr) ? hit->trim_t_left + 1 : 0);
+      break;
+    case 42: /* tihi */
+      fprint_integer(output_handle, (hit != nullptr) ? tseqlen - hit->trim_t_right : 0);
+      break;
+    default:
+      /* userfields_requested only ever holds validated indices (0..42),
+         so this is unreachable today. It guards against a userfields_names
+         entry being added or reordered in utils/userfields.cpp without a matching
+         case here — the positional coupling would otherwise print nothing
+         silently (E2). */
+      fatal("Internal error: unknown userfield index in results_show_userout_one");
+    }
+}
+}  // anonymous namespace
+
+
 auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
                               View<char> const query_head,
                               View<char> const qsequence,
@@ -364,202 +568,25 @@ auto results_show_userout_one(std::FILE * output_handle, struct hit const * hit,
     qlo, qhi, tlo, thi and raw are given more meaningful values here
   */
 
-  auto const qseqlen = static_cast<int64_t>(qsequence.size());
   auto const & userfields_requested = parameters.opt_userfields;
 
-  for (std::size_t c = 0; c < userfields_requested.size(); ++c)
+  /* The requested fields, tab-separated. The first field carries no leading
+     tab and the rest do, which is the whole of what the index this loop used to
+     carry was for; drop(1) is empty rather than out of range when a single
+     field was requested, but front() above it needs the guard. */
+  if (not userfields_requested.empty())
     {
-      if (c != 0)
-        {
-          fprint(output_handle, '\t');
-        }
-
-      auto const field = userfields_requested[c];
-
-      View<char> tsequence;
-      int64_t tseqlen = 0;
-      View<char> t_head;
-
-      if (hit != nullptr)
-        {
-          auto const target = static_cast<uint64_t>(hit->target);
-          tsequence = db.sequence_view(target);
-          tseqlen = static_cast<int64_t>(tsequence.size());
-          t_head = db.header_view(target);
-        }
-
-
-      switch (field)
-        {
-        case 0: /* query */
-          fprint(output_handle, query_head);
-          break;
-        case 1: /* target */
-          if (hit != nullptr) { fprint(output_handle, t_head); }
-          else { fprint(output_handle, '*'); }
-          break;
-        case 2: /* evalue */
-          fprint(output_handle, "-1");
-          break;
-        case 3: /* id */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id : 0.0);
-          break;
-        case 4: /* pctpv */
-          std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->matches / hit->internal_alignmentlength : 0.0);
-          break;
-        case 5: /* pctgaps */
-          std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->internal_indels / hit->internal_alignmentlength : 0.0);
-          break;
-        case 6: /* pairs */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->matches + hit->mismatches : 0);
-          break;
-        case 7: /* gaps */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels : 0);
-          break;
-        case 8: /* qlo */
-          fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? qseqlen : 1) : 0);
-          break;
-        case 9: /* qhi */
-          fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? 1 : qseqlen) : 0);
-          break;
-        case 10: /* tlo */
-          fprint_integer(output_handle, (hit != nullptr) ? 1 : 0);
-          break;
-        case 11: /* thi */
-          fprint_integer(output_handle, tseqlen);
-          break;
-        case 12: /* pv */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
-          break;
-        case 13: /* ql */
-          fprint_integer(output_handle, qseqlen);
-          break;
-        case 14: /* tl */
-          fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
-          break;
-        case 15: /* qs */
-          fprint_integer(output_handle, qseqlen);
-          break;
-        case 16: /* ts */
-          fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
-          break;
-        case 17: /* alnlen */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_alignmentlength : 0);
-          break;
-        case 18: /* opens */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_gaps : 0);
-          break;
-        case 19: /* exts */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels - hit->internal_gaps : 0);
-          break;
-        case 20: /* raw */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->nwscore : 0);
-          break;
-        case 21: /* bits */
-          fprint_integer(output_handle, 0);
-          break;
-        case 22: /* aln */
-          if (hit != nullptr)
-            {
-              print_uncompressed_cigar(output_handle, make_view(hit->nwalignment));
-            }
-          break;
-        case 23: /* caln */
-          if (hit != nullptr)
-            {
-              fprint(output_handle, make_view(hit->nwalignment));
-            }
-          break;
-        case 24: /* qstrand */
-          if (hit != nullptr)
-            {
-              fprint(output_handle, (hit->strand != 0) ? '-' : '+');
-            }
-          break;
-        case 25: /* tstrand */
-          if (hit != nullptr)
-            {
-              fprint(output_handle, '+');
-            }
-          break;
-        case 26: /* qrow */
-          if (hit != nullptr)
-            {
-              auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
-              auto const qrow = get_alignment_qrow(query,
-                                             make_view(hit->nwalignment),
-                                             hit->nwalignmentlength);
-              fprint(output_handle,
-                     View<char>{&qrow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
-                                static_cast<std::size_t>(hit->internal_alignmentlength)});
-            }
-          break;
-        case 27: /* trow */
-          if (hit != nullptr)
-            {
-              auto const trow = get_alignment_trow(tsequence,
-                                             make_view(hit->nwalignment),
-                                             hit->nwalignmentlength);
-              fprint(output_handle,
-                     View<char>{&trow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
-                                static_cast<std::size_t>(hit->internal_alignmentlength)});
-            }
-          break;
-        case 28: /* qframe */
-        case 29: /* tframe */
-          fprint(output_handle, "+0");
-          break;
-        case 30: /* mism */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->mismatches : 0);
-          break;
-        case 31: /* ids */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
-          break;
-        case 32: /* qcov */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(qseqlen) : 0.0);
-          break;
-        case 33: /* tcov */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(tseqlen) : 0.0);
-          break;
-        case 34: /* id0 */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id0 : 0.0);
-          break;
-        case 35: /* id1 */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id1 : 0.0);
-          break;
-        case 36: /* id2 */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id2 : 0.0);
-          break;
-        case 37: /* id3 */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id3 : 0.0);
-          break;
-        case 38: /* id4 */
-          std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id4 : 0.0);
-          break;
-
-          /* new internal alignment coordinates */
-
-        case 39: /* qilo */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->trim_q_left + 1 : 0);
-          break;
-        case 40: /* qihi */
-          fprint_integer(output_handle, (hit != nullptr) ? qseqlen - hit->trim_q_right : 0);
-          break;
-        case 41: /* tilo */
-          fprint_integer(output_handle, (hit != nullptr) ? hit->trim_t_left + 1 : 0);
-          break;
-        case 42: /* tihi */
-          fprint_integer(output_handle, (hit != nullptr) ? tseqlen - hit->trim_t_right : 0);
-          break;
-        default:
-          /* userfields_requested only ever holds validated indices (0..42),
-             so this is unreachable today. It guards against a userfields_names
-             entry being added or reordered in utils/userfields.cpp without a matching
-             case here — the positional coupling would otherwise print nothing
-             silently (E2). */
-          fatal("Internal error: unknown userfield index in results_show_userout_one");
-        }
+      print_userfield(output_handle, userfields_requested.front(),
+                      hit, query_head, qsequence, qsequence_rc, db);
     }
+
+  for (auto const field : make_view(userfields_requested).drop(1))
+    {
+      fprint(output_handle, '\t');
+      print_userfield(output_handle, field,
+                      hit, query_head, qsequence, qsequence_rc, db);
+    }
+
   fprint(output_handle, '\n');
 }
 
