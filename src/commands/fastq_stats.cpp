@@ -631,7 +631,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
             // increment quality observations if the current Q > 5, 10, 15, or 20
             std::transform(quality_thresholds.begin(), quality_thresholds.end(),
                            q_length_table[i].begin(), q_length_table[i].begin(),
-                           [qmin](uint64_t const threshold, uint64_t current_value) -> uint64_t {
+                           [qmin](uint64_t const threshold, uint64_t const current_value) -> uint64_t {
                              return current_value + (qmin > threshold ? 1 : 0);
                            });
 
@@ -642,7 +642,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
             // increment EE observations if the current EE <= 1.0, 0.5, 0.25, or 0.1
             std::transform(ee_thresholds.begin(), ee_thresholds.end(),
                            ee_length_table[i].begin(), ee_length_table[i].begin(),
-                           [expected_error](double const threshold, uint64_t current_value) -> uint64_t {
+                           [expected_error](double const threshold, uint64_t const current_value) -> uint64_t {
                              return current_value + (expected_error <= threshold ? 1 : 0);
                            });
           }

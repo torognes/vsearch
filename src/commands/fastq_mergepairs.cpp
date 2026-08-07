@@ -844,7 +844,7 @@ auto pair_all(struct mergepairs_cli_state_s & state) -> void
      cond_chunks until all chunks have been read, processed and written */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(state.parameters.opt_threads),
-                              [&state, &mutex_chunks, &cond_chunks](uint64_t nth_thread) -> void {
+                              [&state, &mutex_chunks, &cond_chunks](uint64_t const nth_thread) -> void {
                                 pair_worker(state, nth_thread, mutex_chunks, cond_chunks);
                               });
     threadrunner.run();

@@ -217,7 +217,7 @@ auto write_subsampling_stats(std::vector<uint64_t> const &deck,
                              uint64_t const n_reads,
                              struct Parameters const & parameters) -> void {
   int const samples = static_cast<int>(std::count_if(deck.begin(),
-                                    deck.end(), [](uint64_t abundance) -> bool { return abundance != 0; }));
+                                    deck.end(), [](uint64_t const abundance) -> bool { return abundance != 0; }));
   if (not parameters.opt_quiet) {
     fprint(stderr, "Subsampled ");
     fprint_integer(stderr, n_reads);

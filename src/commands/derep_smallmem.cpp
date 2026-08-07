@@ -177,7 +177,7 @@ auto find_median(std::vector<struct sm_bucket> const & hashtable) -> double
 }
 
 
-inline auto hash2bucket(uint128 hash, uint64_t const htsize) -> uint64_t
+inline auto hash2bucket(uint128 const hash, uint64_t const htsize) -> uint64_t
 {
   // extract hash's first uint64_t, cast to the size of the hash table
   return hash.first % htsize;

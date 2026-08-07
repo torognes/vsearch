@@ -3081,7 +3081,7 @@ namespace {
      Parameters field, record which options were seen in the returned
      vector (indexed by the option_* enum), and terminate on an ambiguous
      or illegal option or a stray non-option argument. */
-  auto parse_options(int argc, char ** argv,
+  auto parse_options(int const argc, char ** argv,
                      std::array<struct option, number_of_options> const & long_options,
                      struct Parameters & parameters) -> std::vector<bool>
   {
@@ -4322,7 +4322,7 @@ namespace {
   /* Resolve the thread count: validate the --threads range, use all cores for
      the multithreaded commands (otherwise force a single thread, warning if the
      user asked for more), and warn about --sintax --randseed across threads. */
-  auto configure_threads(int k,
+  auto configure_threads(int const k,
                          std::array<struct option, number_of_options> const & long_options,
                          struct Parameters & parameters) -> void
   {
@@ -4972,7 +4972,7 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto args_init(int argc, char ** argv, struct Parameters & parameters) -> Command
+auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> Command
 {
   validate_option_tables();
 

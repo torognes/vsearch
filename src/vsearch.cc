@@ -168,7 +168,7 @@ auto fill_prog_header(struct Parameters & parameters) -> void
 }
 
 
-auto getentirecommandline(int argc, char * const * argv) -> std::string
+auto getentirecommandline(int const argc, char * const * argv) -> std::string
 {
   std::string command_line;
   if (argc <= 0)
@@ -306,7 +306,7 @@ auto flush_stdout() -> void
 }  // end of anonymous namespace
 
 
-auto main(int argc, char** argv) -> int
+auto main(int const argc, char** argv) -> int
 {
   std::set_new_handler(vsearch_new_handler);
 
