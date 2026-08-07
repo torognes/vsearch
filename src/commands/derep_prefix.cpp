@@ -156,7 +156,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   std::vector<struct bucket> hashtable(static_cast<std::vector<struct bucket>::size_type>(hashtablesize));
 
-  int64_t clusters = 0;
+  uint64_t clusters = 0;
   int64_t sumsize = 0;
   uint64_t maxsize = 0;
   double median = 0.0;
@@ -349,12 +349,12 @@ auto derep_prefix(struct Parameters const & parameters) -> void
     {
       if ((clusters % 2) != 0)
         {
-          median = static_cast<double>(hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters - 1) / 2)].size);
+          median = static_cast<double>(hashtable[(clusters - 1) / 2].size);
         }
       else
         {
-          median = (static_cast<double>(hashtable[static_cast<std::vector<struct bucket>::size_type>((clusters / 2) - 1)].size) +
-                    static_cast<double>(hashtable[static_cast<std::vector<struct bucket>::size_type>(clusters / 2)].size)) / 2.0;
+          median = (static_cast<double>(hashtable[(clusters / 2) - 1].size) +
+                    static_cast<double>(hashtable[clusters / 2].size)) / 2.0;
         }
     }
 
@@ -399,14 +399,14 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* count selected */
 
-  int64_t selected = 0;
-  for (int64_t i = 0; i < clusters; i++)
+  uint64_t selected = 0;
+  for (uint64_t i = 0; i < clusters; i++)
     {
       auto const size = static_cast<int64_t>(hashtable[static_cast<std::vector<struct bucket>::size_type>(i)].size);
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
         {
           ++selected;
-          if (selected == parameters.opt_topn)
+          if (selected == static_cast<uint64_t>(parameters.opt_topn))
             {
               break;
             }
@@ -421,8 +421,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       int64_t relabel_count = 0;
       {
-        Progress progress("Writing output file", static_cast<uint64_t>(clusters), parameters);
-        for (int64_t i = 0; i < clusters; i++)
+        Progress progress("Writing output file", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             auto const size = static_cast<int64_t>(bp.size);
@@ -453,8 +453,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   if (parameters.opt_uc != nullptr)
     {
       {
-        Progress progress("Writing uc file, first part", static_cast<uint64_t>(clusters), parameters);
-        for (int64_t i = 0; i < clusters; i++)
+        Progress progress("Writing uc file, first part", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             auto const * h =  db.getheader(bp.seqno_first);
@@ -490,8 +490,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       }
 
       {
-        Progress progress("Writing uc file, second part", static_cast<uint64_t>(clusters), parameters);
-        for (int64_t i = 0; i < clusters; i++)
+        Progress progress("Writing uc file, second part", clusters, parameters);
+        for (uint64_t i = 0; i < clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             fprint(fp_uc, "C\t");
