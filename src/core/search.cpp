@@ -140,16 +140,13 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
   si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
-  /* kmers/hits/qsequence are backed by the searchinfo_s vectors (RAII), so a
-     fatal() unwinding out of a partial init or a query frees them; the raw
-     pointers below are views into that owned storage. */
+  /* kmers/hits/qsequence are the searchinfo_s vectors themselves (RAII), so a
+     fatal() unwinding out of a partial init or a query frees them. */
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si->kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
   si->kmers_v.resize(static_cast<size_t>(seqcount));
-  si->kmers = si->kmers_v.data();
   si->m = Minheap(tophits);
   si->hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
-  si->hits = si->hits_v.data();
   si->qsize = 1;
   si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
@@ -179,8 +176,9 @@ auto search_thread_exit(struct searchinfo_s * si) -> void
   si->s.reset();
   si->uh = Uniquer();
   si->m = Minheap();
-  /* kmers/hits/qsequence and query_head are views into the searchinfo_s vectors
-     (kmers_v/hits_v/qsequence_v/query_head_v), which free their own storage. */
+  /* the kmer counts, the hits and the query sequence and header live in the
+     searchinfo_s vectors (kmers_v/hits_v/qsequence_v/query_head_v), which free
+     their own storage. */
 }
 
 
@@ -331,17 +329,17 @@ auto search_session_single(struct search_session_s * ss,
     }
   *result_count = count;
 
-  /* Free alignment strings directly from si->hits (not the joinhits copy)
-     to avoid dangling pointers. Follows cluster_assign_single pattern. */
+  /* Free alignment strings directly from the si hit buffer (not the joinhits
+     copy) to avoid dangling pointers. Follows cluster_assign_single pattern. */
   for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
       struct searchinfo_s * strand_si =
         (s != 0) ? ss->si_minus.get() : ss->si_plus.get();
-      for (int i = 0; i < strand_si->hit_count; ++i)
+      for (auto & hit : make_hits_span(strand_si))
         {
-          if (strand_si->hits[i].aligned)
+          if (hit.aligned)
             {
-              strand_si->hits[i].nwalignment.clear();  // std::string; free after use
+              hit.nwalignment.clear();  // std::string; free after use
             }
         }
     }
@@ -482,16 +480,16 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
       }
     ctx.result_counts[qi] = count;
 
-    /* Free alignment strings from si->hits directly */
+    /* Free alignment strings from the si hit buffer directly */
     for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
       {
         struct searchinfo_s * strand_si =
           (s != 0) ? my_si_minus : my_si_plus;
-        for (int i = 0; i < strand_si->hit_count; ++i)
+        for (auto & hit : make_hits_span(strand_si))
           {
-            if (strand_si->hits[i].aligned)
+            if (hit.aligned)
               {
-                strand_si->hits[i].nwalignment.clear();  // std::string; free after use
+                hit.nwalignment.clear();  // std::string; free after use
               }
           }
       }

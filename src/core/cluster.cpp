@@ -238,9 +238,9 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   si->nw = nullptr;
   si->hit_count = 0;
 
-  /* allocate memory for sequence. kmers/hits/qsequence are backed by the
-     searchinfo_s vectors (RAII), so a fatal() unwinding out of a partial init
-     or a query frees them; the raw pointers are views into that owned storage. */
+  /* allocate memory for sequence. kmers/hits/qsequence are the searchinfo_s
+     vectors themselves (RAII), so a fatal() unwinding out of a partial init or
+     a query frees them. */
 
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si->seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
@@ -249,9 +249,7 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
 
   si->kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
   si->kmers_v.resize(static_cast<std::size_t>(seqcount));
-  si->kmers = si->kmers_v.data();
   si->hits_v.resize(static_cast<std::size_t>(tophits));
-  si->hits = si->hits_v.data();
 
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   si->m = Minheap(tophits);
@@ -282,8 +280,8 @@ auto cluster_query_exit(struct searchinfo_s * si) -> void
   si->uh = Uniquer();
   si->m = Minheap();
 
-  /* kmers/hits/qsequence are views into the searchinfo_s vectors
-     (kmers_v/hits_v/qsequence_v), which free their own storage. */
+  /* the kmer counts, the hits and the query sequence live in the searchinfo_s
+     vectors (kmers_v/hits_v/qsequence_v), which free their own storage. */
 }
 }  // anonymous namespace
 
@@ -618,7 +616,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 {
   int added = 0;
 
-  /* Keep at most this many hits. The list is the tophits-sized si->hits buffer,
+  /* Keep at most this many hits. The list is the tophits-sized si hit buffer,
      but tophits is clamped to seqcount; on a small dataset with large
      --maxaccepts/--maxrejects the raw bound (maxaccepts + maxrejects - 1) can
      exceed tophits, so the insertion/shift below would write past the buffer.
@@ -626,6 +624,11 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
   int const hit_capacity =
     static_cast<int>(std::min<int64_t>(si->parameters->opt_maxaccepts + si->parameters->opt_maxrejects - 1,
                                        tophits));
+
+  /* the whole buffer, not make_hits_span()'s live prefix: the insertion below
+     shifts into, and writes at, the slot one past the last hit so far */
+  auto const hit_buffer = make_span(si->hits_v);
+  assert(hit_capacity <= static_cast<int>(hit_buffer.size()));
 
   if (extra_count != 0)
     {
@@ -654,9 +657,9 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
               int x = si->hit_count;
               while ((x > 0) and
-                     ((si->hits[x - 1].count < shared) or
-                      ((si->hits[x - 1].count == shared) and
-                       (db.getsequencelen(static_cast<uint64_t>(si->hits[x - 1].target))
+                     ((hit_buffer[static_cast<std::size_t>(x - 1)].count < shared) or
+                      ((hit_buffer[static_cast<std::size_t>(x - 1)].count == shared) and
+                       (db.getsequencelen(static_cast<uint64_t>(hit_buffer[static_cast<std::size_t>(x - 1)].target))
                         > length))))
                 {
                   --x;
@@ -676,12 +679,12 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
                   /* move the rest down: std::move_backward steals each hit's
                      std::string cigar buffer instead of copying it */
-                  std::move_backward(std::next(si->hits, x),
-                                     std::next(si->hits, si->hit_count),
-                                     std::next(si->hits, si->hit_count + 1));
+                  std::move_backward(std::next(hit_buffer.begin(), x),
+                                     std::next(hit_buffer.begin(), si->hit_count),
+                                     std::next(hit_buffer.begin(), si->hit_count + 1));
 
                   /* init new hit */
-                  struct hit * hit = si->hits + x;
+                  struct hit * const hit = &hit_buffer[static_cast<std::size_t>(x)];
                   ++si->hit_count;
 
                   hit->target = sic->query_no;
@@ -708,10 +711,10 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
       /* set all statuses to undetermined */
 
-      for (int t = 0; t < si->hit_count; t++)
+      for (auto & hit : make_hits_span(si))
         {
-          si->hits[t].accepted = false;
-          si->hits[t].rejected = false;
+          hit.accepted = false;
+          hit.rejected = false;
         }
 
       for (int t = 0;
@@ -720,7 +723,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
              (t < si->hit_count);
            ++t)
         {
-          struct hit * hit = si->hits + t;
+          struct hit * const hit = &hit_buffer[static_cast<std::size_t>(t)];
 
           if (not hit->aligned)
             {
@@ -841,13 +844,13 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
       int new_hit_count = si->hit_count;
       for (int t = si->hit_count - 1; t >= 0; t--)
         {
-          struct hit const * hit = si->hits + t;
-          if (not hit->accepted and not hit->rejected)
+          auto & hit = hit_buffer[static_cast<std::size_t>(t)];
+          if (not hit.accepted and not hit.rejected)
             {
               new_hit_count = t;
-              if (hit->aligned)
+              if (hit.aligned)
                 {
-                  si->hits[t].nwalignment.clear();  // std::string; drop the undetermined alignment
+                  hit.nwalignment.clear();  // std::string; drop the undetermined alignment
                 }
             }
         }
@@ -863,11 +866,11 @@ static auto free_hit_alignments(struct searchinfo_s * si_p,
   for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
     {
       struct searchinfo_s * si = (s != 0) ? si_m : si_p;  // non-const: clear the strings
-      for (int j = 0; j < si->hit_count; j++)
+      for (auto & hit : make_hits_span(si))
         {
-          if (si->hits[j].aligned)
+          if (hit.aligned)
             {
-              si->hits[j].nwalignment.clear();  // std::string; free after use
+              hit.nwalignment.clear();  // std::string; free after use
             }
         }
     }

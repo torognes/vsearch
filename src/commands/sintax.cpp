@@ -327,9 +327,11 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
   /* count kmer hits in the database sequences */
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
+  auto const kmer_counts = make_span(searchinfo->kmers_v);
+  assert(indexed_count <= kmer_counts.size());
 
   /* zero counts */
-  std::fill_n(searchinfo->kmers, indexed_count, count_t{0});
+  std::fill_n(kmer_counts.begin(), indexed_count, count_t{0});
 
   for (auto i = 0U; i < searchinfo->kmersamplecount; i++)
     {
@@ -341,16 +343,16 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 #ifdef __x86_64__
           if (parameters.ssse3_present != 0)
             {
-              increment_counters_from_bitmap_ssse3(searchinfo->kmers,
+              increment_counters_from_bitmap_ssse3(kmer_counts.data(),
                                                    bitmap, indexed_count);
             }
           else
             {
-              increment_counters_from_bitmap_sse2(searchinfo->kmers,
+              increment_counters_from_bitmap_sse2(kmer_counts.data(),
                                                   bitmap, indexed_count);
             }
 #else
-          increment_counters_from_bitmap(searchinfo->kmers, bitmap, indexed_count);
+          increment_counters_from_bitmap(kmer_counts.data(), bitmap, indexed_count);
 #endif
         }
       else
@@ -359,7 +361,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
           auto const count = searchinfo->dbindex->getmatchcount(kmer);
           for (auto j = 0U; j < count; j++)
             {
-              searchinfo->kmers[list[j]]++;
+              kmer_counts[list[j]]++;
             }
         }
     }
@@ -373,7 +375,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
   for (auto i = 0U; i < indexed_count; i++)
     {
-      count_t const count = searchinfo->kmers[i];
+      count_t const count = kmer_counts[i];
       auto const seqno = searchinfo->dbindex->getmapping(i);
       auto const length = static_cast<unsigned int>(searchinfo->db->getsequencelen(seqno));
 
@@ -619,15 +621,13 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
   si->db = &state.db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
-  /* kmers is a view into the searchinfo_s kmers_v vector (RAII), matching
+  /* the kmer counts live in the searchinfo_s kmers_v vector (RAII), matching
      search/cluster; the reserve headroom keeps the SIMD counter stores that
      may run past the logical end in bounds. */
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
   si->kmers_v.reserve(static_cast<size_t>(state.seqcount) + overflow_padding);
   si->kmers_v.resize(static_cast<size_t>(state.seqcount));
-  si->kmers = si->kmers_v.data();
   si->m = Minheap(state.tophits);
-  si->hits = nullptr;
   si->qsize = 1;
   si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;
@@ -642,8 +642,9 @@ static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
   /* thread specific clean up */
   searchinfo->uh = Uniquer();
   searchinfo->m = Minheap();
-  /* kmers/query_head/qsequence are views; their owned storage
-     (kmers_v/query_head_v/qsequence_v) frees itself */
+  /* the kmer counts, the query header and the query sequence live in the
+     searchinfo_s vectors (kmers_v/query_head_v/qsequence_v), which free
+     their own storage */
 }
 
 

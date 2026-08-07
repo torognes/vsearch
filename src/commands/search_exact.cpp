@@ -151,7 +151,9 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
 {
   if (search_acceptable_unaligned(*si, static_cast<int>(seqno)))
     {
-      struct hit * hp = si->hits + si->hit_count;
+      /* the whole buffer, not make_hits_span()'s live prefix: this appends at
+         the fill position, one past the last hit of the query so far */
+      struct hit * const hp = &make_span(si->hits_v)[static_cast<std::size_t>(si->hit_count)];
       si->hit_count++;
 
       hp->target = static_cast<int>(seqno);
@@ -555,10 +557,8 @@ auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const 
   /* thread specific initialiation */
   si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
   si->uh = Uniquer();
-  si->kmers = nullptr;
   si->m = Minheap();
   si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
-  si->hits = si->hits_v.data();
   si->qsize = 1;
   si->query_head = View<char>{nullptr, 0};
   si->seq_alloc = 0;

@@ -67,6 +67,8 @@
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
+#include <cassert>
+#include <cstddef>  // std::size_t
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
 #include <vector>
@@ -155,11 +157,16 @@ struct searchinfo_s
                                        a caller-owned buffer */
   unsigned int kmersamplecount = 0; /* number of kmer samples from query */
   unsigned int const * kmersample = nullptr;    /* list of kmers sampled from query */
-  std::vector<count_t> kmers_v; /* vector of kmer counts */
-  count_t * kmers = nullptr;              /* list of kmer counts for each db seq */
-  std::vector<struct hit> hits_v; /* vector of hits */
-  struct hit * hits = nullptr;            /* list of hits */
-  int hit_count = 0;                /* number of hits in the above list */
+  /* one kmer-match counter per indexed database sequence. Sized by the
+     per-thread init, which also reserves headroom past the logical end for the
+     SIMD counter stores; readers take a Span over it once, rather than caching
+     a second pointer that a reallocation could leave stale */
+  std::vector<count_t> kmers_v;
+  /* the hit buffer, sized once by the per-thread init to the worst case and
+     reused across queries; hit_count is the live fill level, so the hits of the
+     query at hand are the first hit_count elements and no more */
+  std::vector<struct hit> hits_v;
+  int hit_count = 0;
   Uniquer uh {};  /* unique kmer finder instance (owned) */
   std::unique_ptr<s16info_s, s16info_deleter> s;   /* SIMD aligner instance (owned) */
   struct nwinfo_s * nw = nullptr;         /* NW aligner instance */
@@ -188,15 +195,38 @@ struct searchinfo_s
   struct Database const * db = nullptr;
 };
 
+/* The hits of the query at hand: the live prefix of the reused hit buffer.
+   Everything that reads or edits a query's hits goes through one of these two,
+   so that no caller has to pair hits_v with hit_count by hand -- the pairing
+   that the raw `struct hit * hits` member used to invite. Use the View form
+   unless the hits are to be modified. */
+inline auto make_hits_span(struct searchinfo_s * const search_info) -> Span<struct hit> {
+  assert(search_info != nullptr);
+  assert(search_info->hit_count >= 0);
+  auto const length = static_cast<std::size_t>(search_info->hit_count);
+  return make_span(search_info->hits_v).first(length);
+}
+
+inline auto make_hits_view(struct searchinfo_s const * const search_info) -> View<struct hit> {
+  assert(search_info != nullptr);
+  assert(search_info->hit_count >= 0);
+  auto const length = static_cast<std::size_t>(search_info->hit_count);
+  return make_view(search_info->hits_v).first(length);
+}
+
+
 auto search_topscores(struct searchinfo_s * searchinfo) -> void;
 
 auto search_onequery(struct searchinfo_s * searchinfo, Masking seqmask) -> void;
 
-auto search_findbest2_byid(struct searchinfo_s const * si_p,
-                           struct searchinfo_s const * si_m) -> struct hit *;
+/* both return a mutable pointer into si_p's or si_m's hit buffer -- the caller
+   moves the winning alignment string out of it -- so neither can take a
+   pointer-to-const searchinfo_s */
+auto search_findbest2_byid(struct searchinfo_s * si_p,
+                           struct searchinfo_s * si_m) -> struct hit *;
 
-auto search_findbest2_bysize(struct searchinfo_s const * si_p,
-                             struct searchinfo_s const * si_m) -> struct hit *;
+auto search_findbest2_bysize(struct searchinfo_s * si_p,
+                             struct searchinfo_s * si_m) -> struct hit *;
 
 auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int target) -> bool;
@@ -206,8 +236,10 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
 
 auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void;
 
-auto search_joinhits(struct searchinfo_s const * si_p,
-                     struct searchinfo_s const * si_m,
+/* copies the accepted and weak hits of both strands into `hits`, then drops the
+   alignment strings of the ones it did not copy -- hence the mutable si */
+auto search_joinhits(struct searchinfo_s * si_p,
+                     struct searchinfo_s * si_m,
                      std::vector<struct hit> & hits) -> void;
 
 auto search_enough_kmers(struct searchinfo_s const & searchinfo,

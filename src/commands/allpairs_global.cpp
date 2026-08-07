@@ -338,7 +338,6 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
   searchinfo.db = &state.db;  /* searchcore reads the sequences through the si */
 
   searchinfo.hits_v.resize(static_cast<std::size_t>(state.seqcount));
-  searchinfo.hits = searchinfo.hits_v.data();
 
   searchinfo.s.reset(search16_init(state.parameters.opt_match,
                         state.parameters.opt_mismatch,

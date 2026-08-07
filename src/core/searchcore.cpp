@@ -97,17 +97,9 @@ auto s16info_deleter::operator()(s16info_s * handle) const noexcept -> void { se
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto make_hits_span(struct searchinfo_s const * search_info) -> Span<struct hit> {
-    assert(search_info != nullptr);
-    assert(search_info->hit_count >= 0);
-    auto const length = static_cast<std::size_t>(search_info->hit_count);
-    return Span<struct hit>{search_info->hits, length};
-  }
-
-
   auto count_number_of_hits_to_keep(struct searchinfo_s const * search_info) -> std::size_t {
     if (search_info == nullptr) { return std::size_t{0}; }
-    auto const hits = make_hits_span(search_info);
+    auto const hits = make_hits_view(search_info);
     return static_cast<std::size_t>(std::count_if(hits.cbegin(), hits.cend(),
                                                   [](struct hit const & hit) -> bool {
                                                     return hit.accepted or hit.weak;
@@ -118,7 +110,7 @@ namespace {
   auto copy_over_hits_to_be_kept(std::vector<struct hit> & hits,
                                  struct searchinfo_s const * search_info) -> void {
     if (search_info == nullptr) { return; }
-    for (auto const & hit : make_hits_span(search_info)) {
+    for (auto const & hit : make_hits_view(search_info)) {
       if (hit.accepted or hit.weak) {
         hits.emplace_back(hit);
       }
@@ -126,7 +118,11 @@ namespace {
   }
 
 
-  auto free_rejected_alignments(struct searchinfo_s const * search_info) -> void {
+  /* takes a mutable searchinfo_s: it drops the alignment strings of the hits
+     the caller did not keep. The const spelling this had was only possible
+     because the hit list was reached through a raw pointer member, which a
+     const searchinfo_s made const-pointer rather than pointer-to-const. */
+  auto free_rejected_alignments(struct searchinfo_s * const search_info) -> void {
     if (search_info == nullptr) { return; }
     for (auto & hit : make_hits_span(search_info)) {
       if (not (hit.accepted or hit.weak) and hit.aligned) {
@@ -276,9 +272,11 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 
   /* count kmer hits in the database sequences */
   unsigned int const indexed_count = searchinfo->dbindex->getcount();
+  auto const kmer_counts = make_span(searchinfo->kmers_v);
+  assert(indexed_count <= kmer_counts.size());
 
   /* zero counts */
-  std::fill_n(searchinfo->kmers, indexed_count, count_t{0});
+  std::fill_n(kmer_counts.begin(), indexed_count, count_t{0});
 
   searchinfo->m.clear();
 
@@ -292,16 +290,16 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 #ifdef __x86_64__
           if (parameters.ssse3_present != 0)
             {
-              increment_counters_from_bitmap_ssse3(searchinfo->kmers,
+              increment_counters_from_bitmap_ssse3(kmer_counts.data(),
                                                    bitmap, indexed_count);
             }
           else
             {
-              increment_counters_from_bitmap_sse2(searchinfo->kmers,
+              increment_counters_from_bitmap_sse2(kmer_counts.data(),
                                                   bitmap, indexed_count);
             }
 #else
-          increment_counters_from_bitmap(searchinfo->kmers, bitmap, indexed_count);
+          increment_counters_from_bitmap(kmer_counts.data(), bitmap, indexed_count);
 #endif
         }
       else
@@ -318,7 +316,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
                  agree and neither can wrap a high-overlap target's count back
                  to ~0 and silently drop it from the candidate set (the cap is
                  far above any realistic minwordmatches). */
-              count_t & counter = searchinfo->kmers[list[j]];
+              count_t & counter = kmer_counts[list[j]];
               if (counter < INT16_MAX) { ++counter; }
             }
         }
@@ -328,7 +326,7 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 
   for (auto i = 0U; i < indexed_count; i++)
     {
-      auto const count = searchinfo->kmers[i];
+      auto const count = kmer_counts[i];
       if (count >= minmatches)
         {
           auto const seqno = searchinfo->dbindex->getmapping(i);
@@ -763,13 +761,14 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
   std::array<std::string, MAXDELAYED> nwcigar_list {};
 
   unsigned int target_count = 0;
+  auto const hits = make_hits_span(searchinfo);
 
-  for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
+  for (auto x = static_cast<std::size_t>(searchinfo->finalized); x < hits.size(); ++x)
     {
-      struct hit const * hit = searchinfo->hits + x;
-      if (not hit->rejected)
+      auto const & hit = hits[x];
+      if (not hit.rejected)
         {
-          target_list[target_count++] = static_cast<unsigned int>(hit->target);
+          target_list[target_count++] = static_cast<unsigned int>(hit.target);
         }
     }
 
@@ -789,12 +788,12 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
   unsigned int i = 0;
 
-  for (int x = searchinfo->finalized; x < searchinfo->hit_count; x++)
+  for (auto x = static_cast<std::size_t>(searchinfo->finalized); x < hits.size(); ++x)
     {
       /* maxrejects or maxaccepts reached - ignore remaining hits */
       if ((searchinfo->rejects < searchinfo->parameters->opt_maxrejects) and (searchinfo->accepts < searchinfo->parameters->opt_maxaccepts))
         {
-          struct hit * hit = searchinfo->hits + x;
+          struct hit * const hit = &hits[x];
 
           if (hit->rejected)
             {
@@ -917,7 +916,9 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
     {
       elem_t const e = searchinfo->m.pop_last();
 
-      struct hit * hit = searchinfo->hits + searchinfo->hit_count;
+      /* the whole buffer, not make_hits_span()'s live prefix: this appends at
+         the fill position, one past the last hit of the query so far */
+      struct hit * const hit = &make_span(searchinfo->hits_v)[static_cast<std::size_t>(searchinfo->hit_count)];
 
       hit->target = static_cast<int>(e.seqno);
       hit->count = e.count;
@@ -955,27 +956,27 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 }
 
 
-auto search_findbest2_byid(struct searchinfo_s const * si_p,
-                           struct searchinfo_s const * si_m) -> struct hit *
+auto search_findbest2_byid(struct searchinfo_s * const si_p,
+                           struct searchinfo_s * const si_m) -> struct hit *
 {
   struct Parameters const & parameters = *si_p->parameters;
   struct hit * best = nullptr;
 
-  for (int i = 0; i < si_p->hit_count; i++)
+  for (auto & hit : make_hits_span(si_p))
     {
-      if ((best == nullptr) or (hit_compare_byid_typed(si_p->hits + i, best) < 0))
+      if ((best == nullptr) or (hit_compare_byid_typed(&hit, best) < 0))
         {
-          best = si_p->hits + i;
+          best = &hit;
         }
     }
 
   if (parameters.opt_strand)
     {
-      for (int i = 0; i < si_m->hit_count; i++)
+      for (auto & hit : make_hits_span(si_m))
         {
-          if ((best == nullptr) or (hit_compare_byid_typed(si_m->hits + i, best) < 0))
+          if ((best == nullptr) or (hit_compare_byid_typed(&hit, best) < 0))
             {
-              best = si_m->hits + i;
+              best = &hit;
             }
         }
     }
@@ -989,27 +990,27 @@ auto search_findbest2_byid(struct searchinfo_s const * si_p,
 }
 
 
-auto search_findbest2_bysize(struct searchinfo_s const * si_p,
-                             struct searchinfo_s const * si_m) -> struct hit *
+auto search_findbest2_bysize(struct searchinfo_s * const si_p,
+                             struct searchinfo_s * const si_m) -> struct hit *
 {
   struct Parameters const & parameters = *si_p->parameters;
   struct hit * best = nullptr;
 
-  for (int i = 0; i < si_p->hit_count; i++)
+  for (auto & hit : make_hits_span(si_p))
     {
-      if ((best == nullptr) or (hit_compare_bysize_typed(si_p->hits + i, best, *si_p->db) < 0))
+      if ((best == nullptr) or (hit_compare_bysize_typed(&hit, best, *si_p->db) < 0))
         {
-          best = si_p->hits + i;
+          best = &hit;
         }
     }
 
   if (parameters.opt_strand)
     {
-      for (int i = 0; i < si_m->hit_count; i++)
+      for (auto & hit : make_hits_span(si_m))
         {
-          if ((best == nullptr) or (hit_compare_bysize_typed(si_m->hits + i, best, *si_p->db) < 0))
+          if ((best == nullptr) or (hit_compare_bysize_typed(&hit, best, *si_p->db) < 0))
             {
-              best = si_m->hits + i;
+              best = &hit;
             }
         }
     }
@@ -1023,8 +1024,8 @@ auto search_findbest2_bysize(struct searchinfo_s const * si_p,
 }
 
 
-auto search_joinhits(struct searchinfo_s const * si_plus,
-                     struct searchinfo_s const * si_minus,
+auto search_joinhits(struct searchinfo_s * const si_plus,
+                     struct searchinfo_s * const si_minus,
                      std::vector<struct hit> & hits) -> void
 {
   /* join and sort accepted and weak hits from both strands */

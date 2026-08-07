@@ -1982,10 +1982,8 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
   search_info->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
   search_info->db = &db;  /* searchcore reads the sequences through the si */
   search_info->hits_v.resize(static_cast<size_t>(tophits));
-  search_info->hits = search_info->hits_v.data();
   search_info->kmers_v.reserve(db.getsequencecount() + overflow_padding);
   search_info->kmers_v.resize(db.getsequencecount());
-  search_info->kmers = search_info->kmers_v.data();
   search_info->hit_count = 0;
   /* search_info->uh (a Uniquer value member) is ready to use as default-constructed */
   search_info->s.reset(search16_init(parameters.opt_match,
@@ -2017,8 +2015,7 @@ auto query_exit(struct searchinfo_s * search_info) -> void
   search_info->m = Minheap();
 
   search_info->qsequence = Span<char>{};
-  search_info->hits = nullptr;
-  search_info->kmers = nullptr;
+  /* the hit and kmer-count buffers (hits_v/kmers_v) free their own storage */
 }
 
 
