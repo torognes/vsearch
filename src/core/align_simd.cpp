@@ -174,31 +174,31 @@ inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
    any 128-bit vector and reinterpret it as bytes for the store, exactly as
    the former v_store macro did. */
 template <typename VectorType>
-inline auto v_store(VECTOR_SHORT * ptr, VectorType vector) -> void {
+inline auto v_store(VECTOR_SHORT * ptr, VectorType const vector) -> void {
   vec_st((__vector unsigned char) vector, 0, (__vector unsigned char *) ptr);
 }
-inline auto v_add(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_add(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vec_adds(lhs, rhs);
 }
 
-inline auto v_sub(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_sub(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vec_subs(lhs, rhs);
 }
 
-inline auto v_sub_unsigned(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_sub_unsigned(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return (VECTOR_SHORT) vec_subs((__vector unsigned short) lhs,
                                  (__vector unsigned short) rhs);
 }
 
-inline auto v_max(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_max(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vec_max(lhs, rhs);
 }
 
-inline auto v_min(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_min(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vec_min(lhs, rhs);
 }
 
-inline auto v_dup(short value) -> VECTOR_SHORT {
+inline auto v_dup(short const value) -> VECTOR_SHORT {
   return vec_splat((VECTOR_SHORT){value, 0, 0, 0, 0, 0, 0, 0}, 0);
 }
 
@@ -206,15 +206,15 @@ inline auto v_zero() -> VECTOR_SHORT {
   return vec_splat_s16(0);
 }
 
-inline auto v_and(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_and(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vec_and(lhs, rhs);
 }
 
-inline auto v_xor(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_xor(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vec_xor(lhs, rhs);
 }
 
-inline auto v_shift_left(VECTOR_SHORT operand) -> VECTOR_SHORT {
+inline auto v_shift_left(VECTOR_SHORT const operand) -> VECTOR_SHORT {
   return vec_sld(operand, v_zero(), 2);
 }
 
@@ -235,59 +235,59 @@ inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
   return vld1q_s16(reinterpret_cast<int16_t const *>(ptr));
 }
 
-inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT vector) -> void {
+inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT const vector) -> void {
   vst1q_s16(reinterpret_cast<int16_t *>(ptr), vector);
 }
-inline auto v_merge_lo_16(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_lo_16(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vzip1q_s16(lhs, rhs);
 }
 
-inline auto v_merge_hi_16(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_hi_16(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vzip2q_s16(lhs, rhs);
 }
 
-inline auto v_merge_lo_32(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_lo_32(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vreinterpretq_s16_s32(vzip1q_s32(vreinterpretq_s32_s16(lhs),
                                           vreinterpretq_s32_s16(rhs)));
 }
 
-inline auto v_merge_hi_32(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_hi_32(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vreinterpretq_s16_s32(vzip2q_s32(vreinterpretq_s32_s16(lhs),
                                           vreinterpretq_s32_s16(rhs)));
 }
 
-inline auto v_merge_lo_64(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_lo_64(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vreinterpretq_s16_s64(vcombine_s64(vget_low_s64(vreinterpretq_s64_s16(lhs)),
                                             vget_low_s64(vreinterpretq_s64_s16(rhs))));
 }
 
-inline auto v_merge_hi_64(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_hi_64(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vreinterpretq_s16_s64(vcombine_s64(vget_high_s64(vreinterpretq_s64_s16(lhs)),
                                             vget_high_s64(vreinterpretq_s64_s16(rhs))));
 }
 
-inline auto v_add(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_add(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vqaddq_s16(lhs, rhs);
 }
 
-inline auto v_sub(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_sub(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vqsubq_s16(lhs, rhs);
 }
 
-inline auto v_sub_unsigned(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_sub_unsigned(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vreinterpretq_s16_u16(vqsubq_u16(vreinterpretq_u16_s16(lhs),
                                           vreinterpretq_u16_s16(rhs)));
 }
 
-inline auto v_max(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_max(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vmaxq_s16(lhs, rhs);
 }
 
-inline auto v_min(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_min(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vminq_s16(lhs, rhs);
 }
 
-inline auto v_dup(short value) -> VECTOR_SHORT {
+inline auto v_dup(short const value) -> VECTOR_SHORT {
   return vdupq_n_s16(value);
 }
 
@@ -295,19 +295,19 @@ inline auto v_zero() -> VECTOR_SHORT {
   return v_dup(0);
 }
 
-inline auto v_and(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_and(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return vandq_s16(lhs, rhs);
 }
 
-inline auto v_xor(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_xor(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return veorq_s16(lhs, rhs);
 }
 
-inline auto v_shift_left(VECTOR_SHORT operand) -> VECTOR_SHORT {
+inline auto v_shift_left(VECTOR_SHORT const operand) -> VECTOR_SHORT {
   return vextq_s16(v_zero(), operand, 7);
 }
 
-inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> uint16_t {
+inline auto v_mask_gt(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> uint16_t {
   return vaddvq_u16(vandq_u16(vcgtq_s16(lhs, rhs), neon_mask));
 }
 
@@ -323,50 +323,50 @@ inline auto v_load(VECTOR_SHORT const * ptr) -> VECTOR_SHORT {
   return _mm_load_si128(ptr);
 }
 
-inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT vector) -> void {
+inline auto v_store(VECTOR_SHORT * ptr, VECTOR_SHORT const vector) -> void {
   _mm_store_si128(ptr, vector);
 }
-inline auto v_merge_lo_16(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_lo_16(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_unpacklo_epi16(lhs, rhs);
 }
 
-inline auto v_merge_hi_16(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_hi_16(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_unpackhi_epi16(lhs, rhs);
 }
 
-inline auto v_merge_lo_32(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_lo_32(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_unpacklo_epi32(lhs, rhs);
 }
 
-inline auto v_merge_hi_32(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_hi_32(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_unpackhi_epi32(lhs, rhs);
 }
 
-inline auto v_merge_lo_64(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_lo_64(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_unpacklo_epi64(lhs, rhs);
 }
 
-inline auto v_merge_hi_64(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_merge_hi_64(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_unpackhi_epi64(lhs, rhs);
 }
 
-inline auto v_add(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_add(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_adds_epi16(lhs, rhs);
 }
 
-inline auto v_sub(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_sub(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_subs_epi16(lhs, rhs);
 }
 
-inline auto v_sub_unsigned(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_sub_unsigned(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_subs_epu16(lhs, rhs);
 }
 
-inline auto v_max(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_max(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_max_epi16(lhs, rhs);
 }
 
-inline auto v_min(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_min(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_min_epi16(lhs, rhs);
 }
 
@@ -378,19 +378,19 @@ inline auto v_zero() -> VECTOR_SHORT {
   return v_dup(0);
 }
 
-inline auto v_and(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_and(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_and_si128(lhs, rhs);
 }
 
-inline auto v_xor(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
+inline auto v_xor(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> VECTOR_SHORT {
   return _mm_xor_si128(lhs, rhs);
 }
 
-inline auto v_shift_left(VECTOR_SHORT operand) -> VECTOR_SHORT {
+inline auto v_shift_left(VECTOR_SHORT const operand) -> VECTOR_SHORT {
   return _mm_slli_si128(operand, 2);
 }
 
-inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> unsigned short {
+inline auto v_mask_gt(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> unsigned short {
   return static_cast<unsigned short>(_mm_movemask_epi8(_mm_cmpgt_epi16(lhs, rhs)));
 }
 
@@ -737,7 +737,7 @@ auto dprofile_fill16(CELL * dprofile_word,
 constexpr __vector unsigned char perm  = { 120, 112, 104,  96,  88,  80,  72,  64,
   56,  48,  40,  32,  24,  16,   8,   0 };
 
-inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> unsigned short {
+inline auto v_mask_gt(VECTOR_SHORT const lhs, VECTOR_SHORT const rhs) -> unsigned short {
   /* Build the same per-element greater-than bitmask that x86_64 and aarch64
      obtain from movemask: compare, then gather one bit per byte with the
      byte-permute. vec_bperm leaves the 16 gathered bits in lane 4. */
@@ -757,13 +757,13 @@ inline auto v_mask_gt(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> unsigned short {
 inline auto onestep(VECTOR_SHORT & H,
                     VECTOR_SHORT & N,
                     VECTOR_SHORT & F,
-                    VECTOR_SHORT V,
+                    VECTOR_SHORT const V,
                     unsigned short * path,
                     VECTOR_SHORT & E,
-                    VECTOR_SHORT QR_q,
-                    VECTOR_SHORT R_q,
-                    VECTOR_SHORT QR_t,
-                    VECTOR_SHORT R_t,
+                    VECTOR_SHORT const QR_q,
+                    VECTOR_SHORT const R_q,
+                    VECTOR_SHORT const QR_t,
+                    VECTOR_SHORT const R_t,
                     VECTOR_SHORT & H_min,
                     VECTOR_SHORT & H_max) -> void
 {
@@ -788,18 +788,18 @@ inline auto onestep(VECTOR_SHORT & H,
 auto aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT * hep,
                         VECTOR_SHORT * const * qp,
-                        VECTOR_SHORT QR_q_i,
-                        VECTOR_SHORT R_q_i,
-                        VECTOR_SHORT QR_q_r,
-                        VECTOR_SHORT R_q_r,
+                        VECTOR_SHORT const QR_q_i,
+                        VECTOR_SHORT const R_q_i,
+                        VECTOR_SHORT const QR_q_r,
+                        VECTOR_SHORT const R_q_r,
                         VECTOR_SHORT QR_t_0,
-                        VECTOR_SHORT R_t_0,
+                        VECTOR_SHORT const R_t_0,
                         VECTOR_SHORT QR_t_1,
-                        VECTOR_SHORT R_t_1,
+                        VECTOR_SHORT const R_t_1,
                         VECTOR_SHORT QR_t_2,
-                        VECTOR_SHORT R_t_2,
+                        VECTOR_SHORT const R_t_2,
                         VECTOR_SHORT QR_t_3,
-                        VECTOR_SHORT R_t_3,
+                        VECTOR_SHORT const R_t_3,
                         VECTOR_SHORT h0,
                         VECTOR_SHORT h1,
                         VECTOR_SHORT h2,
@@ -810,11 +810,11 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT f3,
                         VECTOR_SHORT * _h_min,
                         VECTOR_SHORT * _h_max,
-                        VECTOR_SHORT Mm,
+                        VECTOR_SHORT const Mm,
                         VECTOR_SHORT M_QR_t_left,
                         VECTOR_SHORT M_R_t_left,
-                        VECTOR_SHORT M_QR_q_interior,
-                        VECTOR_SHORT M_QR_q_right,
+                        VECTOR_SHORT const M_QR_q_interior,
+                        VECTOR_SHORT const M_QR_q_right,
                         int64_t const ql,
                         unsigned short * dir) -> void
 {
@@ -918,18 +918,18 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
 auto aligncolumns_rest(VECTOR_SHORT * Sm,
                        VECTOR_SHORT * hep,
                        VECTOR_SHORT * const * qp,
-                       VECTOR_SHORT QR_q_i,
-                       VECTOR_SHORT R_q_i,
-                       VECTOR_SHORT QR_q_r,
-                       VECTOR_SHORT R_q_r,
+                       VECTOR_SHORT const QR_q_i,
+                       VECTOR_SHORT const R_q_i,
+                       VECTOR_SHORT const QR_q_r,
+                       VECTOR_SHORT const R_q_r,
                        VECTOR_SHORT QR_t_0,
-                       VECTOR_SHORT R_t_0,
+                       VECTOR_SHORT const R_t_0,
                        VECTOR_SHORT QR_t_1,
-                       VECTOR_SHORT R_t_1,
+                       VECTOR_SHORT const R_t_1,
                        VECTOR_SHORT QR_t_2,
-                       VECTOR_SHORT R_t_2,
+                       VECTOR_SHORT const R_t_2,
                        VECTOR_SHORT QR_t_3,
-                       VECTOR_SHORT R_t_3,
+                       VECTOR_SHORT const R_t_3,
                        VECTOR_SHORT h0,
                        VECTOR_SHORT h1,
                        VECTOR_SHORT h2,
