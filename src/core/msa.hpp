@@ -61,7 +61,6 @@
 #include "utils/view.hpp"  // View
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
-#include <vector>
 
 
 struct Database;
@@ -76,9 +75,12 @@ struct msa_target_s
   int strand;
 };
 
+/* the targets of one cluster, centroid first. A view rather than the caller's
+   container: that container is sized once to the largest cluster of the run and
+   reused, so only its first elements belong to the cluster at hand */
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int cluster,
-         int target_count, std::vector<struct msa_target_s> const & target_list_v,
+         View<struct msa_target_s> targets,
          int64_t totalabundance,
          struct Database const & db,
          struct Parameters const & parameters) -> void;

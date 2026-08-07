@@ -1536,7 +1536,7 @@ auto cluster(char const * dbname,
                     /* compute msa & consensus */
                     msa(fp_msaout, fp_consout, fp_profile,
                         lastcluster,
-                        msa_target_count, msa_target_list_v,
+                        make_view(msa_target_list_v).first(static_cast<std::size_t>(msa_target_count)),
                         cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
                         state.db,
                         parameters);
@@ -1561,7 +1561,7 @@ auto cluster(char const * dbname,
             /* compute msa & consensus */
             msa(fp_msaout, fp_consout, fp_profile,
                 lastcluster,
-                msa_target_count, msa_target_list_v,
+                make_view(msa_target_list_v).first(static_cast<std::size_t>(msa_target_count)),
                 cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
                 state.db,
                 parameters);

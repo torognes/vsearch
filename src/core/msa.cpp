@@ -155,19 +155,14 @@ namespace {
 
 
 namespace {
-auto find_max_insertions_per_position(int const target_count,
-                                      std::vector<struct msa_target_s> const & target_list_v,
+auto find_max_insertions_per_position(View<struct msa_target_s> const targets,
                                       int const centroid_len) -> std::vector<int> {
   std::vector<int> max_insertions(static_cast<std::vector<int>::size_type>(centroid_len + 1));
 
-  // refactoring: with template Span<T>
-  // auto target_list_view = Span<struct msa_target_s const>{target_list_v.data(), target_list_v.size()};
-  // for (auto const & a_msa_target : target_list_view.subspan(1, target_count) { }
-  // assert(static_cast<size_t>(target_count), target_list_v.size());
-
-  for (auto i = 1; i < target_count; ++i) {
+  // the centroid (targets.front()) carries no cigar string, hence drop(1)
+  for (auto const & a_msa_target : targets.drop(1)) {
     auto position = 0LL;
-    auto const cigar_pairs = parse_cigar_string(target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)].cigar);
+    auto const cigar_pairs = parse_cigar_string(a_msa_target.cigar);
 
     for (auto const & a_pair: cigar_pairs) {
       auto const operation = a_pair.first;
@@ -202,13 +197,11 @@ auto find_total_alignment_length(std::vector<int> const & max_insertions) -> int
 }
 
 
-auto find_longest_target_on_reverse_strand(int const target_count,
-                                           std::vector<struct msa_target_s> const & target_list_v,
+auto find_longest_target_on_reverse_strand(View<struct msa_target_s> const targets,
                                            struct Database const & db) -> int64_t {
   int64_t longest_reversed = 0;
-  for (auto i = 0; i < target_count; ++i)
+  for (auto const & target : targets)
     {
-      auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       if (target.strand == 0) { continue; }
       auto const len = static_cast<int64_t>(db.getsequencelen(static_cast<uint64_t>(target.seqno)));
       longest_reversed = std::max(len, longest_reversed);
@@ -217,12 +210,11 @@ auto find_longest_target_on_reverse_strand(int const target_count,
 }
 
 
-auto allocate_buffer_for_reverse_strand_target(int const target_count,
-                                               std::vector<struct msa_target_s> const & target_list_v,
+auto allocate_buffer_for_reverse_strand_target(View<struct msa_target_s> const targets,
                                                std::vector<char> & rc_buffer_v,
                                                struct Database const & db) -> Span<char> {
   /* Find longest target sequence on reverse strand and allocate buffer */
-  auto const longest_reversed = find_longest_target_on_reverse_strand(target_count, target_list_v, db);
+  auto const longest_reversed = find_longest_target_on_reverse_strand(targets, db);
   if (longest_reversed > 0)
     {
       rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed + 1));
@@ -264,7 +256,7 @@ auto reverse_complement_target_if_need_be(int const strand, Span<char> const rc_
 
 
 auto process_and_print_centroid(Span<char> const rc_buffer,
-                                std::vector<struct msa_target_s> const &target_list_v,
+                                View<struct msa_target_s> const targets,
                                 std::vector<int> const &max_insertions,
                                 std::vector<prof_type> &profile,
                                 std::vector<char> &aln_v,
@@ -272,7 +264,7 @@ auto process_and_print_centroid(Span<char> const rc_buffer,
                                 struct Database const & db,
                                 struct Parameters const & parameters) -> void {
   auto const centroid_len = static_cast<int>(max_insertions.size() - 1);
-  auto const & target = target_list_v.front();
+  auto const & target = targets.front();
   auto const target_seqno = target.seqno;
   auto const target_seq = reverse_complement_target_if_need_be(target.strand, rc_buffer,
                                                                db.sequence_view(static_cast<uint64_t>(target_seqno)));
@@ -319,8 +311,7 @@ auto insert_gaps_in_alignment_and_profile(bool const is_inserted,
 }
 
 
-auto compute_and_print_msa(int const target_count,
-                           std::vector<struct msa_target_s> const & target_list_v,
+auto compute_and_print_msa(View<struct msa_target_s> const targets,
                            std::vector<int> const &max_insertions,
                            std::vector<prof_type> &profile,
                            std::vector<char> &aln_v,
@@ -332,16 +323,15 @@ auto compute_and_print_msa(int const target_count,
 
   /* Find longest target sequence on reverse strand and allocate buffer */
   std::vector<char> rc_buffer_v;
-  auto const rc_buffer = allocate_buffer_for_reverse_strand_target(target_count, target_list_v, rc_buffer_v, db);
+  auto const rc_buffer = allocate_buffer_for_reverse_strand_target(targets, rc_buffer_v, db);
 
   // ------------------------------------------------------- deal with centroid
-  process_and_print_centroid(rc_buffer, target_list_v, max_insertions,
+  process_and_print_centroid(rc_buffer, targets, max_insertions,
                              profile, aln_v, fp_msaout, db, parameters);
 
   // --------------------------------- deal with other sequences in the cluster
-  for (auto i = 1; i < target_count; ++i)
+  for (auto const & target : targets.drop(1))
     {
-      auto const & target = target_list_v[static_cast<std::vector<struct msa_target_s>::size_type>(i)];
       auto const target_seqno = target.seqno;
       auto const target_seq = reverse_complement_target_if_need_be(target.strand, rc_buffer,
                                                                    db.sequence_view(static_cast<uint64_t>(target_seqno)));
@@ -564,16 +554,19 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
 
 auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
          int const cluster,
-         int const target_count, std::vector<struct msa_target_s> const & target_list_v,
+         View<struct msa_target_s> const targets,
          int64_t const totalabundance,
          struct Database const & db,
          struct Parameters const & parameters) -> void
 {
-  int const centroid_seqno = target_list_v[0].seqno;
+  assert(not targets.empty());  // a cluster always holds at least its centroid
+  assert(targets.size() <= static_cast<std::size_t>(std::numeric_limits<int>::max()));
+  auto const target_count = static_cast<int>(targets.size());  // reported as 'seqs=' below
+  int const centroid_seqno = targets.front().seqno;
   auto const centroid_length = static_cast<int>(db.getsequencelen(static_cast<uint64_t>(centroid_seqno)));
 
   /* find max insertions in front of each position in the centroid sequence */
-  auto const max_insertions = find_max_insertions_per_position(target_count, target_list_v, centroid_length);
+  auto const max_insertions = find_max_insertions_per_position(targets, centroid_length);
   auto const alignment_length = find_total_alignment_length(max_insertions);
 
   /* allocate memory for profile (for consensus) and aligned seq */
@@ -582,7 +575,7 @@ auto msa(std::FILE * fp_msaout, std::FILE * fp_consout, std::FILE * fp_profile,
   std::vector<char> cons_v(static_cast<std::vector<char>::size_type>(alignment_length + 1));
 
   /* msaout: multiple sequence alignment ... */
-  compute_and_print_msa(target_count, target_list_v, max_insertions,
+  compute_and_print_msa(targets, max_insertions,
                         profile, aln_v,
                         fp_msaout, db, parameters);
 
