@@ -451,6 +451,11 @@ struct s16info_s
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  /* On every supported architecture VECTOR_SHORT is a 128-bit register of
+     CHANNELS 16-bit lanes; the lane arithmetic below relies on it. */
+  static_assert(sizeof(VECTOR_SHORT) == CHANNELS * sizeof(CELL),
+                "VECTOR_SHORT must hold exactly CHANNELS cells");
+
   /* Read and write a single 16-bit channel (lane) of a SIMD vector.
 
      The DP vectors hold CHANNELS independent alignments. Accessing a lane
@@ -1333,7 +1338,13 @@ auto search16_init(int64_t const score_match,
             {
               value = mismatch;
             }
-          (reinterpret_cast<CELL *>(s->matrix.data()))[(matrix_size * i) + j] = value;
+          /* s->matrix is a flat matrix_size x matrix_size array of cells held
+             as whole vectors: write it through set_channel rather than a
+             (CELL *) cast, for the strict-aliasing reason documented there */
+          auto const cell_index = (matrix_size * i) + j;
+          set_channel(s->matrix[cell_index / CHANNELS],
+                      static_cast<int>(cell_index % CHANNELS),
+                      value);
         }
     }
 
