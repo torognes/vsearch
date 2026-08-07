@@ -61,6 +61,7 @@
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "core/db.hpp"
+#include "core/derep_stats.hpp"  // Derep_stats, report_*
 #include "core/fasta.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
@@ -157,9 +158,11 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   std::vector<struct bucket> hashtable(static_cast<std::vector<struct bucket>::size_type>(hashtablesize));
 
-  uint64_t clusters = 0;
-  int64_t sumsize = 0;
-  uint64_t maxsize = 0;
+  /* only clusters, sumsize and maxsize apply here: this engine dereplicates a
+     database already read into memory, so it has no input-scanning phase to
+     report on and no length filtering of its own. The other six members keep
+     their defaults and are never read. */
+  Derep_stats stats;
   double median = 0.0;
   double average = 0.0;
 
@@ -187,7 +190,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         string_normalize(make_span(seq_up).first(static_cast<std::size_t>(seqlen) + 1), View<char>{seq, static_cast<std::size_t>(seqlen)});
 
         auto const abundance = parameters.opt_sizein ? db.getabundance(static_cast<uint64_t>(i)) : uint64_t{1};
-        sumsize += static_cast<int64_t>(abundance);
+        stats.sumsize += static_cast<int64_t>(abundance);
 
         /*
           Look for matching identical or prefix sequences.
@@ -245,7 +248,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             nextseqtab[last] = static_cast<unsigned int>(i);
             bp->seqno_last = static_cast<unsigned int>(i);
 
-            maxsize = std::max<uint64_t>(bp->size, maxsize);
+            stats.maxsize = std::max<uint64_t>(bp->size, stats.maxsize);
           }
         else
           {
@@ -290,7 +293,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 nextseqtab[static_cast<std::vector<unsigned int>::size_type>(i)] = first;
                 bp->seqno_last = last;
 
-                maxsize = std::max<uint64_t>(bp->size, maxsize);
+                stats.maxsize = std::max<uint64_t>(bp->size, stats.maxsize);
               }
             else
               {
@@ -300,8 +303,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 orig_bp->seqno_first = static_cast<unsigned int>(i);
                 orig_bp->seqno_last = static_cast<unsigned int>(i);
 
-                maxsize = std::max(abundance, maxsize);
-                ++clusters;
+                stats.maxsize = std::max(abundance, stats.maxsize);
+                ++stats.clusters;
               }
           }
 
@@ -348,54 +351,19 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* the live clusters are the leading 'clusters' entries: compare_prefix puts
      the not-deleted buckets first and orders them by decreasing size, and
-     'clusters' counts exactly those (it is incremented only when no prefix
+     'stats.clusters' counts exactly those (it is incremented only when no prefix
      match was found, never on the path that marks a bucket deleted) */
-  median = median_of_descending(make_view(hashtable).first(clusters),
+  median = median_of_descending(make_view(hashtable).first(stats.clusters),
                                 [](struct bucket const & entry) { return entry.size; });
 
-  average = 1.0 * static_cast<double>(sumsize) / static_cast<double>(clusters);
+  average = 1.0 * static_cast<double>(stats.sumsize) / static_cast<double>(stats.clusters);
 
-  if (clusters < 1)
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint(stderr, "0 unique sequences\n");
-        }
-      if (parameters.opt_log != nullptr)
-        {
-          fprint(parameters.fp_log, "0 unique sequences\n\n");
-        }
-    }
-  else
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint_integer(stderr, clusters);
-          fprint(stderr, " unique sequences, avg cluster ");
-          std::fprintf(stderr, "%.1lf", average);
-          fprint(stderr, ", median ");
-          std::fprintf(stderr, "%.0f", median);
-          fprint(stderr, ", max ");
-          fprint_integer(stderr, maxsize);
-          fprint(stderr, '\n');
-        }
-      if (parameters.opt_log != nullptr)
-        {
-          fprint_integer(parameters.fp_log, clusters);
-          fprint(parameters.fp_log, " unique sequences, avg cluster ");
-          std::fprintf(parameters.fp_log, "%.1lf", average);
-          fprint(parameters.fp_log, ", median ");
-          std::fprintf(parameters.fp_log, "%.0f", median);
-          fprint(parameters.fp_log, ", max ");
-          fprint_integer(parameters.fp_log, maxsize);
-          fprint(parameters.fp_log, "\n\n");
-        }
-    }
+  report_unique_summary(stats, average, median, parameters);
 
   /* count selected */
 
   uint64_t selected = 0;
-  for (uint64_t i = 0; i < clusters; i++)
+  for (uint64_t i = 0; i < stats.clusters; i++)
     {
       auto const size = static_cast<int64_t>(hashtable[static_cast<std::vector<struct bucket>::size_type>(i)].size);
       if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
@@ -416,8 +384,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
       int64_t relabel_count = 0;
       {
-        Progress progress("Writing output file", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; i++)
+        Progress progress("Writing output file", stats.clusters, parameters);
+        for (uint64_t i = 0; i < stats.clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             auto const size = static_cast<int64_t>(bp.size);
@@ -448,8 +416,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   if (parameters.opt_uc != nullptr)
     {
       {
-        Progress progress("Writing uc file, first part", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; i++)
+        Progress progress("Writing uc file, first part", stats.clusters, parameters);
+        for (uint64_t i = 0; i < stats.clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             auto const * h =  db.getheader(bp.seqno_first);
@@ -485,8 +453,8 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       }
 
       {
-        Progress progress("Writing uc file, second part", clusters, parameters);
-        for (uint64_t i = 0; i < clusters; i++)
+        Progress progress("Writing uc file, second part", stats.clusters, parameters);
+        for (uint64_t i = 0; i < stats.clusters; i++)
           {
             auto const & bp = hashtable[static_cast<std::vector<struct bucket>::size_type>(i)];
             fprint(fp_uc, "C\t");
@@ -502,28 +470,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       }
     }
 
-  if (selected < clusters)
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint_integer(stderr, selected);
-          fprint(stderr, " uniques written, ");
-          fprint_integer(stderr, clusters - selected);
-          fprint(stderr, " clusters discarded (");
-          std::fprintf(stderr, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
-          fprint(stderr, "%)\n");
-        }
-
-      if (parameters.opt_log != nullptr)
-        {
-          fprint_integer(parameters.fp_log, selected);
-          fprint(parameters.fp_log, " uniques written, ");
-          fprint_integer(parameters.fp_log, clusters - selected);
-          fprint(parameters.fp_log, " clusters discarded (");
-          std::fprintf(parameters.fp_log, "%.1f", 100.0 * static_cast<double>(clusters - selected) / static_cast<double>(clusters));
-          fprint(parameters.fp_log, "%)\n\n");
-        }
-    }
+  report_selected(selected, stats, parameters);
 
   db.clear();
 }
