@@ -610,10 +610,12 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
 }
 }  // anonymous namespace
 
+/* `extra_list` holds the query numbers of the non-matching sequences of this
+   round: the filled prefix of the caller's reused max_queries-sized buffer,
+   whose fill level used to be handed over beside the pointer as extra_count. */
 static auto evaluate_extra_hits(struct searchinfo_s * si,
                                 struct searchinfo_s const * si_plus,
-                                const int * extra_list,
-                                int const extra_count,
+                                View<int> const extra_list,
                                 LinearMemoryAligner & lma,
                                 int const tophits,
                                 struct Database const & db) -> void
@@ -634,14 +636,14 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
   auto const hit_buffer = make_span(si->hits_v);
   assert(hit_capacity <= static_cast<int>(hit_buffer.size()));
 
-  if (extra_count != 0)
+  if (not extra_list.empty())
     {
       /* Check if there is a hit with one of the non-matching
          extra sequences just analysed in this round */
 
-      for (int j = 0; j < extra_count; j++)
+      for (auto const extra_query : extra_list)
         {
-          struct searchinfo_s const * sic = si_plus + extra_list[j];
+          struct searchinfo_s const * sic = si_plus + extra_query;
 
           /* find the number of shared unique kmers */
           auto const shared
@@ -961,7 +963,9 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
           for (auto * const si : make_view(strands)
                  .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
             {
-              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, tophits, db);
+              evaluate_extra_hits(si, si_plus,
+                                  make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
+                                  lma, tophits, db);
             }
 
           /* find best hit */
@@ -1287,13 +1291,14 @@ auto cluster(char const * dbname,
   std::vector<int64_t> cluster_abundance_v(static_cast<std::size_t>(clusters));
   std::vector<int> cluster_size_v(static_cast<std::size_t>(clusters));
 
-  for (int i = 0; i < seqcount; i++)
+  for (auto const & entry : clusterinfo_v)
     {
-      int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
-      int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
-      cluster_abundance_v[static_cast<std::size_t>(clusterno)] +=
-        parameters.opt_sizein ? static_cast<int64_t>(state.db.getabundance(static_cast<uint64_t>(seqno))) : 1;
-      ++cluster_size_v[static_cast<std::size_t>(clusterno)];
+      auto const clusterno = static_cast<std::size_t>(entry.clusterno);
+      cluster_abundance_v[clusterno] +=
+        parameters.opt_sizein
+          ? static_cast<int64_t>(state.db.getabundance(static_cast<uint64_t>(entry.seqno)))
+          : 1;
+      ++cluster_size_v[clusterno];
     }
 
   // refactoring: isolate in a function (returns struct abundance_stats)
@@ -1356,10 +1361,13 @@ auto cluster(char const * dbname,
 
   {
     Progress progress("Writing clusters", static_cast<uint64_t>(seqcount), parameters);
-    for (int i = 0; i < seqcount; i++)
+    /* indexed rather than a range-for over clusterinfo_v (whose size is
+       seqcount): the counter is also the ordinal the progress bar is updated
+       with below, so here the index is data */
+    for (std::size_t i = 0; i < clusterinfo_v.size(); ++i)
       {
-        int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
-        int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
+        int const seqno = clusterinfo_v[i].seqno;
+        int const clusterno = clusterinfo_v[i].clusterno;
 
         if (clusterno != lastcluster)
           {
@@ -1525,17 +1533,19 @@ auto cluster(char const * dbname,
 
       {
         Progress progress("Multiple alignments", static_cast<uint64_t>(seqcount), parameters);
-        for (int i = 0; i < seqcount; i++)
+        /* indexed for the same reason as the "Writing clusters" loop above:
+           the counter is the progress bar's ordinal */
+        for (std::size_t i = 0; i < clusterinfo_v.size(); ++i)
           {
-            int const clusterno = clusterinfo_v[static_cast<std::size_t>(i)].clusterno;
-            int const seqno = clusterinfo_v[static_cast<std::size_t>(i)].seqno;
+            int const clusterno = clusterinfo_v[i].clusterno;
+            int const seqno = clusterinfo_v[i].seqno;
             /* msa_target_list_v[].cigar is a non-owning view; borrow the
                clusterinfo std::string, which outlives the msa() calls below
                (the seed's empty cigar sits at index 0, which msa() never
                parses) */
-            auto const & cigar_string = clusterinfo_v[static_cast<std::size_t>(i)].cigar;
+            auto const & cigar_string = clusterinfo_v[i].cigar;
             auto const cigar = make_view(cigar_string);
-            int const strand = clusterinfo_v[static_cast<std::size_t>(i)].strand;
+            int const strand = clusterinfo_v[i].strand;
 
             if (clusterno != lastcluster)
               {
@@ -1870,7 +1880,9 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
           for (auto * const si : make_view(strands)
                  .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
             {
-              evaluate_extra_hits(si, si_plus, extra_list.data(), extra_count, lma, cs->tophits, *cs->db);
+              evaluate_extra_hits(si, si_plus,
+                                  make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
+                                  lma, cs->tophits, *cs->db);
             }
 
           /* Find best hit across strands */
