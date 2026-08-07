@@ -65,7 +65,6 @@
 #include <algorithm>  // std::min, std::fill_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <iterator>  // std::next
 
 
 /*

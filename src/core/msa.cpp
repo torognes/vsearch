@@ -466,14 +466,15 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
       /* find most common symbol of A, C, G and T. Strictly-greater kept the
          first of a tie, which is what max_element returns; a column with no
          nucleotide at all leaves best_sym at 0, so the count is tested. */
-      auto const most_common =
+      auto const * const most_common =
         std::max_element(counters.begin(), std::next(counters.begin(), U_counter + 1));
       char best_sym = 0;
       auto best_count = *most_common;
       if (best_count > 0)
         {
           // 1, 2, 4, or 8 -- A_counter..U_counter are sym_nt_4bit's bit positions
-          best_sym = static_cast<char>(1U << std::distance(counters.begin(), most_common));
+          best_sym = static_cast<char>(
+            1U << static_cast<unsigned int>(std::distance(counters.begin(), most_common)));
         }
 
       /* if no A, C, G, or T, check if there are any N's */

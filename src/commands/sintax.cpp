@@ -248,7 +248,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
              candidate for candidate -- but max_element over an all-zero range
              would report candidate 0, where the loop left level_best at -1,
              hence the explicit test. */
-          auto const largest_group =
+          auto * const largest_group =
             std::max_element(cand_matchcount.begin(),
                              std::next(cand_matchcount.begin(),
                                        static_cast<std::ptrdiff_t>(candidates.size())));

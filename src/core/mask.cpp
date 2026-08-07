@@ -59,6 +59,7 @@
 */
 
 #include "utils/span.hpp"
+#include "utils/view.hpp"  // View, make_view
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
 #include "core/mask.hpp"
@@ -68,6 +69,7 @@
 #include "utils/threads.hpp"
 #include "utils/worker_loop.hpp"
 #include <algorithm>  // std::copy_n, std::fill, std::transform
+#include <cassert>
 #include <iterator>  // std::next
 #include <array>
 #include <cstddef>
@@ -184,9 +186,15 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
 
       if (worst.score > dust_level)
         {
-          /* the low-complexity region wo() found, in sequence coordinates */
-          auto const region = sequence.subspan(static_cast<std::size_t>(worst.begin + i),
-                                               static_cast<std::size_t>(worst.end - worst.begin + 1));
+          /* the low-complexity region wo() found, in sequence coordinates.
+             Each bound is widened before the arithmetic rather than after it,
+             and the subtraction is safe unsigned because wo() returns an end
+             at or past its begin (it is begin + bestj, with bestj >= 0). */
+          assert(worst.end >= worst.begin);
+          auto const region = sequence.subspan(static_cast<std::size_t>(worst.begin)
+                                               + static_cast<std::size_t>(i),
+                                               static_cast<std::size_t>(worst.end)
+                                               - static_cast<std::size_t>(worst.begin) + 1);
           if (use_hardmask)
             {
               std::fill(region.begin(), region.end(), 'N');
