@@ -104,8 +104,11 @@
 #include "utils/random.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/print_view.hpp"  // fprint
-#include <algorithm>  // std::copy_n, std::fill_n, std::min, std::max, std::transform
+#include <algorithm>  // std::copy_n, std::fill_n, std::max, std::max_element, std::min, std::transform
 #include <array>
+#include <cassert>
+#include <cstddef>  // std::ptrdiff_t, std::size_t
+#include <iterator>  // std::distance, std::next
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <mutex>  // std::mutex, std::lock_guard, std::unique_lock
@@ -146,14 +149,17 @@ struct sintax_state_s
 };
 
 
+/* `candidates` is the seqno of the best hit of each successful bootstrap: the
+   filled prefix of one row of the caller's all_seqno, whose fill level used to
+   be handed over beside the pointer as a separate `count`. */
 static auto sintax_analyse(struct sintax_state_s & state,
                     char const * query_head,
                     int const strand,
-                    int const * all_seqno,
-                    int const count) -> void
+                    View<int> const candidates) -> void
 {
   std::FILE * const fp_tabbedout = state.fp_tabbedout;
 
+  constexpr auto levels = static_cast<std::size_t>(tax_levels);
   std::array<int, tax_levels> level_matchcount {{}};
   std::array<int, tax_levels> level_best {{}};
   /* the taxonomy name of each candidate at each rank, as a window into that
@@ -163,37 +169,46 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
   /* Check number of successful bootstraps, must be at least half */
 
-  auto const is_enough = count >= (bootstrap_count + 1) / 2;
+  auto const is_enough =
+    candidates.size() >= static_cast<std::size_t>((bootstrap_count + 1) / 2);
 
   if (is_enough)
     {
+      /* which makes the range every algorithm below runs over non-empty, and
+         no longer than the per-candidate arrays, since a bootstrap contributes
+         at most one candidate */
+      assert(not candidates.empty());
+      assert(candidates.size() <= cand_level_name.size());
+
       /* Find the most common name at each taxonomic rank,
          but with the same names at higher ranks. */
 
-      for (auto i = 0; i < count ; i++)
-        {
-          /* Split headers of all candidates by taxonomy ranks */
+      /* Split headers of all candidates by taxonomy ranks */
 
-          auto const seqno = all_seqno[i];
-          std::array<TaxLevel, tax_levels> new_levels {{}};
-          tax_split(seqno, new_levels, state.db);
-          auto const header = state.db.header_view(static_cast<uint64_t>(seqno));
-          std::transform(new_levels.begin(), new_levels.end(),
-                         cand_level_name[static_cast<std::size_t>(i)].begin(),
-                         [header](TaxLevel const & rank) -> View<char> {
-                           return header.subspan(static_cast<std::size_t>(rank.start),
-                                                 static_cast<std::size_t>(rank.length));
-                         });
-        }
+      std::transform(candidates.begin(), candidates.end(), cand_level_name.begin(),
+                     [&state](int const seqno) -> std::array<View<char>, tax_levels> {
+                       std::array<TaxLevel, tax_levels> ranks {{}};
+                       tax_split(seqno, ranks, state.db);
+                       auto const header = state.db.header_view(static_cast<uint64_t>(seqno));
+                       std::array<View<char>, tax_levels> names {{}};
+                       std::transform(ranks.begin(), ranks.end(), names.begin(),
+                                      [header](TaxLevel const & rank) -> View<char> {
+                                        return header.subspan(static_cast<std::size_t>(rank.start),
+                                                              static_cast<std::size_t>(rank.length));
+                                      });
+                       return names;
+                     });
 
       std::array<bool, bootstrap_count> cand_included {{}};
       cand_included.fill(true);
 
       /* Count matching names among candidates */
 
-      for (auto k = 0; k < tax_levels; k++)
+      /* indexed rather than a range-for: the rank is the position shared by
+         level_best, level_matchcount, taxonomic_fields and the second subscript
+         of cand_level_name, so here the index is data */
+      for (std::size_t level = 0; level < levels; ++level)
         {
-          auto const level = static_cast<std::size_t>(k);
           level_best[level] = -1;
           level_matchcount[level] = 0;
 
@@ -201,40 +216,58 @@ static auto sintax_analyse(struct sintax_state_s & state,
           cand_match.fill(-1);
           std::array<int, bootstrap_count> cand_matchcount {{}};
 
-          for (auto i = 0; i < count ; i++) {
-            auto const cand_i = static_cast<std::size_t>(i);
-            if (cand_included[cand_i]) {
-              for (auto j = 0; j <= i ; j++) {
-                auto const cand_j = static_cast<std::size_t>(j);
-                if (cand_included[cand_j])
+          /* the first still-included candidate, at or before `cand_i`, carrying
+             the same name at this rank -- the candidate that stands for the
+             group. A candidate always matches itself, so for an included cand_i
+             the search cannot fail; naming it is what removes the break from
+             the middle of the nested loop this used to be. */
+          auto const group_of = [&](std::size_t const cand_i) -> std::size_t {
+            for (std::size_t cand_j = 0; cand_j <= cand_i; ++cand_j)
+              {
+                if (cand_included[cand_j] and
+                    (cand_level_name[cand_i][level] == cand_level_name[cand_j][level]))
                   {
-                    /* check match at current level */
-                    if (cand_level_name[cand_i][level] == cand_level_name[cand_j][level])
-                      {
-                        cand_match[cand_i] = j;
-                        cand_matchcount[cand_j]++;
-                        break; /* stop at first match */
-                      }
+                    return cand_j;
                   }
               }
-            }
-          }
+            return cand_i;  /* unreachable: cand_i matches itself */
+          };
 
-          for (auto i = 0; i < count ; i++) {
-            auto const cand_i = static_cast<std::size_t>(i);
-            if (cand_matchcount[cand_i] > level_matchcount[level])
-              {
-                level_best[level] = i;
-                level_matchcount[level] = cand_matchcount[cand_i];
-              }
-          }
-
-          for (auto i = 0; i < count; i++) {
-            auto const cand_i = static_cast<std::size_t>(i);
-            if (cand_match[cand_i] != level_best[level]) {
-              cand_included[cand_i] = false;
+          for (std::size_t cand_i = 0; cand_i < candidates.size(); ++cand_i)
+            {
+              if (cand_included[cand_i])
+                {
+                  auto const group = group_of(cand_i);
+                  cand_match[cand_i] = static_cast<int>(group);
+                  ++cand_matchcount[group];
+                }
             }
-          }
+
+          /* the largest group at this rank. Strictly-greater kept the first of
+             a tie, which is what max_element returns, so the two agree
+             candidate for candidate -- but max_element over an all-zero range
+             would report candidate 0, where the loop left level_best at -1,
+             hence the explicit test. */
+          auto const largest_group =
+            std::max_element(cand_matchcount.begin(),
+                             std::next(cand_matchcount.begin(),
+                                       static_cast<std::ptrdiff_t>(candidates.size())));
+          if (*largest_group > 0)
+            {
+              level_best[level] =
+                static_cast<int>(std::distance(cand_matchcount.begin(), largest_group));
+              level_matchcount[level] = *largest_group;
+            }
+
+          /* indexed for the same reason: cand_match and cand_included are two
+             arrays indexed by the same candidate number */
+          for (std::size_t cand_i = 0; cand_i < candidates.size(); ++cand_i)
+            {
+              if (cand_match[cand_i] != level_best[level])
+                {
+                  cand_included[cand_i] = false;
+                }
+            }
         }
     }
 
@@ -250,9 +283,11 @@ static auto sintax_analyse(struct sintax_state_s & state,
       state.classified++;
 
       auto comma = false;
-      for (auto j = 0; j < tax_levels; j++)
+      for (std::size_t level = 0; level < levels; ++level)
         {
-          auto const level = static_cast<std::size_t>(j);
+          /* every rank has a largest group once is_enough holds: candidate 0
+             stays included at every rank, matching itself */
+          assert(level_best[level] >= 0);
           auto const best = static_cast<std::size_t>(level_best[level]);
           auto const & level_name = cand_level_name[best][level];
           if (not level_name.empty())
@@ -262,7 +297,8 @@ static auto sintax_analyse(struct sintax_state_s & state,
               fprint(fp_tabbedout, ':');
               fprint(fp_tabbedout, level_name);
               fprint(fp_tabbedout, '(');
-              std::fprintf(fp_tabbedout, "%.2f", 1.0 * level_matchcount[level] / count);
+              std::fprintf(fp_tabbedout, "%.2f",
+                           1.0 * level_matchcount[level] / static_cast<double>(candidates.size()));
               fprint(fp_tabbedout, ')');
               comma = true;
             }
@@ -275,13 +311,14 @@ static auto sintax_analyse(struct sintax_state_s & state,
         {
           fprint(fp_tabbedout, '\t');
           auto comma_cutoff = false;
-          for (auto j = 0; j < tax_levels; j++)
+          for (std::size_t level = 0; level < levels; ++level)
             {
-              auto const level = static_cast<std::size_t>(j);
+              assert(level_best[level] >= 0);
               auto const best = static_cast<std::size_t>(level_best[level]);
               auto const & level_name = cand_level_name[best][level];
               if ((not level_name.empty()) &&
-                  (1.0 * level_matchcount[level] / count >= state.parameters.opt_sintax_cutoff))
+                  (1.0 * level_matchcount[level] / static_cast<double>(candidates.size())
+                   >= state.parameters.opt_sintax_cutoff))
                 {
                   std::fputs((comma_cutoff ? "," : ""), fp_tabbedout);
                   fprint(fp_tabbedout, static_cast<char>(taxonomic_fields[level]));
@@ -522,11 +559,12 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
         }
     }
 
+  auto const winner = static_cast<std::size_t>(best_strand);
   sintax_analyse(state,
                  query_head,
                  best_strand,
-                 all_seqno[static_cast<std::size_t>(best_strand)].data(),
-                 boot_count[static_cast<std::size_t>(best_strand)]);
+                 make_view(all_seqno[winner])
+                   .first(static_cast<std::size_t>(boot_count[winner])));
 }
 
 
