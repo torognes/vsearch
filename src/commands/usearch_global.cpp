@@ -166,13 +166,17 @@ static auto search_output_results(struct search_cli_state_s & state,
   std::lock_guard<std::mutex> const lock(state.mutex_output);
   auto const qseqlen = static_cast<int>(qsequence.size());
 
-  /* show results */
-  auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
+  /* show results: the hits --maxhits keeps, of which the per-hit writers below
+     report the --top_hits_only prefix. The whole clamp is named once here
+     rather than spelled at each of the four writers that used it. */
+  auto const to_report = make_view(hits)
+    .first(static_cast<std::size_t>(std::min(state.parameters.opt_maxhits,
+                                             static_cast<int64_t>(hits.size()))));
 
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout.get(),
-                          make_view(hits).first(static_cast<std::size_t>(toreport)),
+                          to_report,
                           query_head,
                           qsequence,
                           state.db,
@@ -182,7 +186,7 @@ static auto search_output_results(struct search_cli_state_s & state,
   if (state.fp_lcaout != nullptr)
     {
       results_show_lcaout(state.fp_lcaout.get(),
-                          make_view(hits).first(static_cast<std::size_t>(toreport)),
+                          to_report,
                           query_head,
                           state.db,
                           state.parameters);
@@ -191,7 +195,7 @@ static auto search_output_results(struct search_cli_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout.get(),
-                          make_view(hits).first(static_cast<std::size_t>(toreport)),
+                          to_report,
                           query_head,
                           qsequence,
                           qsequence_rc,
@@ -199,9 +203,9 @@ static auto search_output_results(struct search_cli_state_s & state,
                           state.parameters);
     }
 
-  if (toreport != 0)  // hits.size() >=1 and <= opt_maxhits
+  if (not to_report.empty())  // hits.size() >=1 and <= opt_maxhits
     {
-      double const top_hit_id = hits[0].id;
+      auto const top = top_hits(to_report, state.parameters.opt_top_hits_only != 0);
 
       if ((state.parameters.opt_otutabout != nullptr) || (state.parameters.opt_mothur_shared_out != nullptr) || (state.parameters.opt_biomout != nullptr))
         {
@@ -210,14 +214,11 @@ static auto search_output_results(struct search_cli_state_s & state,
                        qsize);
         }
 
-      for (int64_t t = 0; t < toreport; t++)
+      /* indexed rather than a range-for: --uc reports the best hit only,
+         unless --uc_allhits, so the position is part of the output */
+      for (std::size_t t = 0; t < top.size(); ++t)
         {
-          auto const * hp = &hits[static_cast<std::size_t>(t)];
-
-          if ((state.parameters.opt_top_hits_only != 0) && (hp->id < top_hit_id))
-            {
-              break;
-            }
+          auto const * hp = &top[t];
 
           if (state.fp_fastapairs != nullptr)
             {

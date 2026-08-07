@@ -62,7 +62,7 @@
 #include "core/attributes.hpp"
 #include "core/db.hpp"  // Database
 #include "core/fasta.hpp"  // fasta_print_general
-#include "core/searchcore.hpp"  // struct hit
+#include "core/searchcore.hpp"  // struct hit, top_hits
 #include "core/showalign.hpp"
 #include "core/tax.hpp"
 #include "utils/cigar.hpp"
@@ -584,18 +584,10 @@ auto results_show_lcaout(std::FILE * output_handle,
   std::array<std::array<int, tax_levels>, tax_levels> cand_level_len {{}};
   std::array<int, tax_levels> level_match {{}};
 
-  auto const top_hit_id = hits.front().id;
-  auto tophitcount = 0;
+  auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
 
-  for (auto const & hit : hits)
+  for (auto const & hit : top)
     {
-      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
-        {
-          break;
-        }
-
-      ++tophitcount;
-
       int const seqno = hit.target;
       std::array<int, tax_levels> new_level_start {{}};  // refactoring: std::array<struct a_level{.start, .length}, tax_levels>
       std::array<int, tax_levels> new_level_len {{}};
@@ -644,7 +636,7 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   /* count actual matches to the candidate at each level */
 
-  for (auto const & hit : hits.first(static_cast<std::size_t>(tophitcount)))
+  for (auto const & hit : top)
     {
       auto const seqno = hit.target;
       std::array<int, tax_levels> new_level_start {{}};
@@ -677,14 +669,14 @@ auto results_show_lcaout(std::FILE * output_handle,
 
   /* output results */
 
-  if (tophitcount == 0) {
+  if (top.empty()) {
     fprint(output_handle, '\n');
     return;
   }
   auto comma = false;
   for (std::size_t j = 0; j < levels; ++j)
     {
-      if (1.0 * level_match[j] / tophitcount < parameters.opt_lca_cutoff)
+      if (1.0 * level_match[j] / static_cast<double>(top.size()) < parameters.opt_lca_cutoff)
         {
           break;
         }
@@ -734,15 +726,10 @@ auto results_show_alnout(std::FILE * output_handle,
   fprint(output_handle, query_head);
   fprint(output_handle, "\n %Id   TLen  Target\n");
 
-  auto const top_hit_id = hits.front().id;
+  auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
 
-  for (auto const & hit : hits)
+  for (auto const & hit : top)
     {
-      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
-        {
-          break;
-        }
-
       auto const target = static_cast<uint64_t>(hit.target);
       OutputRecord record {output_handle};
       std::fprintf(record.stream(), "%3.0f", hit.id);
@@ -753,13 +740,8 @@ auto results_show_alnout(std::FILE * output_handle,
       fprint(record, '\n');
     }
 
-  for (auto const & hit : hits)
+  for (auto const & hit : top)
     {
-      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
-        {
-          break;
-        }
-
       fprint(output_handle, '\n');
 
 
@@ -1073,20 +1055,14 @@ auto results_show_samout(std::FILE * output_handle,
     return;
   }
 
-  auto const top_hit_id = hits.front().id;
+  auto const top = top_hits(hits, parameters.opt_top_hits_only != 0);
 
   /* indexed rather than a range-for: the SAM flag marks every hit after the
      first as a secondary alignment (0x100), so the position is part of the
      output */
-  for (std::size_t t = 0; t < hits.size(); ++t)
+  for (std::size_t t = 0; t < top.size(); ++t)
     {
-      auto const & hit = hits[t];
-
-      if ((parameters.opt_top_hits_only != 0) and (hit.id < top_hit_id))
-        {
-          break;
-        }
-
+      auto const & hit = top[t];
 
       std::string cigar;
       std::string md;

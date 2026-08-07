@@ -232,13 +232,17 @@ auto search_exact_output_results(struct search_exact_state_s & state,
   std::lock_guard<std::mutex> const lock(state.mutex_output);
   auto const qseqlen = static_cast<int>(qsequence.size());
 
-  /* show results */
-  auto const n_results_to_report = std::min(parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
+  /* show results: the hits --maxhits keeps, of which the per-hit writers below
+     report the --top_hits_only prefix. The whole clamp is named once here
+     rather than spelled at each of the three writers that used it. */
+  auto const to_report = make_view(hits)
+    .first(static_cast<std::size_t>(std::min(parameters.opt_maxhits,
+                                             static_cast<int64_t>(hits.size()))));
 
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout,
-                          make_view(hits).first(static_cast<std::size_t>(n_results_to_report)),
+                          to_report,
                           query_head,
                           qsequence,
                           state.db,
@@ -248,7 +252,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout,
-                          make_view(hits).first(static_cast<std::size_t>(n_results_to_report)),
+                          to_report,
                           query_head,
                           qsequence,
                           qsequence_rc,
@@ -256,9 +260,9 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                           parameters);
     }
 
-  if (n_results_to_report != 0)
+  if (not to_report.empty())
     {
-      double const top_hit_id = hits[0].id;
+      auto const top = top_hits(to_report, parameters.opt_top_hits_only != 0);
 
       if ((parameters.opt_otutabout != nullptr) || (parameters.opt_mothur_shared_out != nullptr) || (parameters.opt_biomout != nullptr))
         {
@@ -267,14 +271,11 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                        qsize);
         }
 
-      for (int64_t t = 0; t < n_results_to_report; t++)
+      /* indexed rather than a range-for: --uc reports the best hit only,
+         unless --uc_allhits, so the position is part of the output */
+      for (std::size_t t = 0; t < top.size(); ++t)
         {
-          auto const & hit = hits[static_cast<std::size_t>(t)];
-
-          if ((parameters.opt_top_hits_only != 0) && (hit.id < top_hit_id))
-            {
-              break;
-            }
+          auto const & hit = top[t];
 
           if (state.fp_fastapairs != nullptr)
             {

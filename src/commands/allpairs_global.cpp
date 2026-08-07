@@ -154,13 +154,17 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
 {
   auto const qseqlen = static_cast<int>(qsequence.size());
 
-  /* show results */
-  auto const toreport = std::min(state.parameters.opt_maxhits, static_cast<int64_t>(hits.size()));
+  /* show results: the hits --maxhits keeps, of which the per-hit writers below
+     report the --top_hits_only prefix. The whole clamp is named once here
+     rather than spelled at each of the three writers that used it. */
+  auto const to_report = hits
+    .first(static_cast<std::size_t>(std::min(state.parameters.opt_maxhits,
+                                             static_cast<int64_t>(hits.size()))));
 
   if (state.fp_alnout != nullptr)
     {
       results_show_alnout(state.fp_alnout,
-                          hits.first(static_cast<std::size_t>(toreport)),
+                          to_report,
                           query_head,
                           qsequence,
                           state.db,
@@ -170,7 +174,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
   if (state.fp_samout != nullptr)
     {
       results_show_samout(state.fp_samout,
-                          hits.first(static_cast<std::size_t>(toreport)),
+                          to_report,
                           query_head,
                           qsequence,
                           qsequence_rc,
@@ -178,18 +182,15 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                           state.parameters);
     }
 
-  if (toreport != 0)
+  if (not to_report.empty())
     {
-      double const top_hit_id = hits.front().id;
+      auto const top = top_hits(to_report, state.parameters.opt_top_hits_only != 0);
 
-      for (int t = 0; t < toreport; t++)
+      /* indexed rather than a range-for: --uc reports the best hit only,
+         unless --uc_allhits, so the position is part of the output */
+      for (std::size_t t = 0; t < top.size(); ++t)
         {
-          struct hit const * hp = &hits[static_cast<std::size_t>(t)];
-
-          if ((state.parameters.opt_top_hits_only != 0) and (hp->id < top_hit_id))
-            {
-              break;
-            }
+          struct hit const * hp = &top[t];
 
           if (state.fp_fastapairs != nullptr)
             {

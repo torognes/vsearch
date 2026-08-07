@@ -66,9 +66,11 @@
 #include "core/unique.hpp"  // Uniquer
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
+#include <algorithm>  // std::find_if
 #include <array>
 #include <cassert>
 #include <cstddef>  // std::size_t
+#include <iterator>  // std::distance
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
 #include <vector>
@@ -215,6 +217,26 @@ inline auto make_hits_view(struct searchinfo_s const * const search_info) -> Vie
   assert(search_info->hit_count >= 0);
   auto const length = static_cast<std::size_t>(search_info->hit_count);
   return make_view(search_info->hits_v).first(length);
+}
+
+/* The hits to report for this query: all of them, or -- under --top_hits_only
+   -- only the leading run tied with the best identity. --top_hits_only does not
+   filter the hits, it truncates them at the first one that is not tied with the
+   best, so the answer is a prefix and therefore a View.
+
+   Seven writers used to spell this as a break in the middle of their loop.
+   find_if stops at the first hit that fails the test, exactly as the break did,
+   so the result is unchanged even for an unsorted list. */
+inline auto top_hits(View<struct hit> const hits, bool const top_hits_only)
+  -> View<struct hit> {
+  if ((not top_hits_only) or hits.empty()) { return hits; }
+  auto const best_id = hits.front().id;
+  auto const * const first_worse =
+    std::find_if(hits.begin(), hits.end(),
+                 [best_id](struct hit const & candidate) -> bool {
+                   return candidate.id < best_id;
+                 });
+  return hits.first(static_cast<std::size_t>(std::distance(hits.begin(), first_worse)));
 }
 
 
