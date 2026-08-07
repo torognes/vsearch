@@ -79,8 +79,9 @@
 #include "utils/reverse_complement.hpp"
 #include <array>  // std::array
 #include <cassert>
-#include <algorithm>  // std::copy_n
+#include <algorithm>  // std::copy_n, std::min, std::transform
 #include <cstddef>  // std::ptrdiff_t, std::size_t
+#include <iterator>  // std::next
 #include <cstdint>  // uint64_t, int64_t
 #include <memory>  // std::unique_ptr
 #include <mutex>  // std::mutex
@@ -251,6 +252,42 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
 }
 
 
+namespace {
+/* Copy the hits of one query into the caller's result span -- as many as the
+   span has room for -- and return how many were written. The two library entry
+   points, the session one and the batch worker, had a hand-rolled copy of this
+   each, differing only in where the span and the query length come from; the
+   bound is known before the loop, so it is a std::min and a std::transform
+   rather than a counter tested inside the body. */
+auto fill_results(View<struct hit> const hits,
+                  Span<struct search_result_s> const results,
+                  int const query_length,
+                  struct Database const & db) -> int
+{
+  auto const reported = std::min(hits.size(), results.size());
+  std::transform(hits.begin(),
+                 std::next(hits.begin(), static_cast<std::ptrdiff_t>(reported)),
+                 results.begin(),
+                 [query_length, &db](struct hit const & hit) -> struct search_result_s {
+                   struct search_result_s result {};
+                   result.target = hit.target;
+                   result.id = hit.id;
+                   result.matches = hit.matches;
+                   result.mismatches = hit.mismatches;
+                   result.gaps = hit.nwgaps;
+                   result.alignment_length = hit.nwalignmentlength;
+                   result.query_length = query_length;
+                   result.target_length =
+                     static_cast<int>(db.getsequencelen(static_cast<uint64_t>(hit.target)));
+                   result.accepted = hit.accepted;
+                   result.strand = hit.strand;
+                   return result;
+                 });
+  return static_cast<int>(reported);
+}
+}  // anonymous namespace
+
+
 auto search_session_single(struct search_session_s * ss,
                            struct query_record_s const & query,
                            Span<struct search_result_s> const results) -> int
@@ -300,26 +337,10 @@ auto search_session_single(struct search_session_s * ss,
                   hits);
 
   /* Populate results (search_joinhits returns only accepted/weak hits) */
-  int count = 0;
-  for (auto const & h : hits)
-    {
-      if (static_cast<std::size_t>(count) >= results.size())
-        {
-          break;
-        }
-      auto & r = results[static_cast<std::size_t>(count)];
-      r.target = h.target;
-      r.id = h.id;
-      r.matches = h.matches;
-      r.mismatches = h.mismatches;
-      r.gaps = h.nwgaps;
-      r.alignment_length = h.nwalignmentlength;
-      r.query_length = static_cast<int>(si->qsequence.size());
-      r.target_length = static_cast<int>(si->db->getsequencelen(static_cast<uint64_t>(h.target)));
-      r.accepted = h.accepted;
-      r.strand = h.strand;
-      ++count;
-    }
+  auto const count = fill_results(make_view(hits),
+                                  results,
+                                  static_cast<int>(si->qsequence.size()),
+                                  *si->db);
 
   /* Free alignment strings directly from the si hit buffer (not the joinhits
      copy) to avoid dangling pointers. Follows cluster_assign_single pattern. */
@@ -449,27 +470,11 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     auto const qresults =
       ctx.results.subspan(static_cast<std::size_t>(qi) * static_cast<std::size_t>(ctx.max_results_per_query),
                           static_cast<std::size_t>(ctx.max_results_per_query));
-    int count = 0;
-    for (auto const & h : hits)
-      {
-        if (count >= ctx.max_results_per_query)
-          {
-            break;
-          }
-        auto & r = qresults[static_cast<std::size_t>(count)];
-        r.target = h.target;
-        r.id = h.id;
-        r.matches = h.matches;
-        r.mismatches = h.mismatches;
-        r.gaps = h.nwgaps;
-        r.alignment_length = h.nwalignmentlength;
-        r.query_length = static_cast<int>(seq_v.size());
-        r.target_length = static_cast<int>(my_si_plus->db->getsequencelen(static_cast<uint64_t>(h.target)));
-        r.accepted = h.accepted;
-        r.strand = h.strand;
-        ++count;
-      }
-    ctx.result_counts[static_cast<std::size_t>(qi)] = count;
+    ctx.result_counts[static_cast<std::size_t>(qi)] =
+      fill_results(make_view(hits),
+                   qresults,
+                   static_cast<int>(seq_v.size()),
+                   *my_si_plus->db);
 
     /* Free alignment strings from the si hit buffer directly */
     for (auto * const strand_si : make_view(strands)
