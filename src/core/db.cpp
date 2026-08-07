@@ -165,7 +165,7 @@ auto Database::udb_finalize(uint64_t const count,
 }
 
 
-auto Database::getquality(uint64_t seqno) const -> char const *
+auto Database::getquality(uint64_t const seqno) const -> char const *
 {
   if (fastq_format)
     {
@@ -263,7 +263,7 @@ auto Database::add(bool const is_fastq_record,
 }
 
 
-auto Database::read(const char * filename, int upcase, struct Parameters const & parameters) -> void
+auto Database::read(const char * filename, int const upcase, struct Parameters const & parameters) -> void
 {
   /* fastx_open hands back an owning unique_ptr, so the handle is freed
      automatically both when next() fatal()s on a malformed record (the stack

@@ -370,7 +370,7 @@ inline auto v_min(VECTOR_SHORT lhs, VECTOR_SHORT rhs) -> VECTOR_SHORT {
   return _mm_min_epi16(lhs, rhs);
 }
 
-inline auto v_dup(short value) -> VECTOR_SHORT {
+inline auto v_dup(short const value) -> VECTOR_SHORT {
   return _mm_set1_epi16(value);
 }
 
@@ -815,7 +815,7 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
                         VECTOR_SHORT M_R_t_left,
                         VECTOR_SHORT M_QR_q_interior,
                         VECTOR_SHORT M_QR_q_right,
-                        int64_t ql,
+                        int64_t const ql,
                         unsigned short * dir) -> void
 {
 
@@ -940,7 +940,7 @@ auto aligncolumns_rest(VECTOR_SHORT * Sm,
                        VECTOR_SHORT f3,
                        VECTOR_SHORT * _h_min,
                        VECTOR_SHORT * _h_max,
-                       int64_t ql,
+                       int64_t const ql,
                        unsigned short * dir) -> void
 {
   VECTOR_SHORT h4;

@@ -168,12 +168,12 @@ public:
   auto sortbylength_shortest_first(struct Parameters const & parameters) -> void;
   auto sortbyabundance(struct Parameters const & parameters) -> void;
 
-  auto getheader(uint64_t seqno) const -> char const *
+  auto getheader(uint64_t const seqno) const -> char const *
   {
     return data_.data() + seqindex_[seqno].header_p;
   }
 
-  auto getsequence(uint64_t seqno) const -> char const *
+  auto getsequence(uint64_t const seqno) const -> char const *
   {
     return data_.data() + seqindex_[seqno].seq_p;
   }
@@ -183,12 +183,12 @@ public:
      borrowed by allpairs_global into its writable qsequence buffer. Only a
      non-const Database exposes it, so read-only holders (e.g. the search worker
      threads) cannot mutate the database. */
-  auto mutatesequence(uint64_t seqno) -> char *
+  auto mutatesequence(uint64_t const seqno) -> char *
   {
     return data_.data() + seqindex_[seqno].seq_p;
   }
 
-  auto getabundance(uint64_t seqno) const -> uint64_t
+  auto getabundance(uint64_t const seqno) const -> uint64_t
   {
     return seqindex_[seqno].size;
   }
@@ -204,12 +204,12 @@ public:
     seqindex_[seqno].size = static_cast<uint64_t>(abundance);
   }
 
-  auto getsequencelen(uint64_t seqno) const -> uint64_t
+  auto getsequencelen(uint64_t const seqno) const -> uint64_t
   {
     return seqindex_[seqno].seqlen;
   }
 
-  auto getheaderlen(uint64_t seqno) const -> uint64_t
+  auto getheaderlen(uint64_t const seqno) const -> uint64_t
   {
     return seqindex_[seqno].headerlen;
   }
@@ -226,19 +226,19 @@ public:
      non-owning window into the shared buffer, so callers no longer thread a
      (pointer, length) pair. They are header-inline like the raw accessors, so
      returning the small (16-byte) value costs no more than the bare pointer. */
-  auto sequence_view(uint64_t seqno) const -> View<char>
+  auto sequence_view(uint64_t const seqno) const -> View<char>
   {
     return View<char>{getsequence(seqno), getsequencelen(seqno)};
   }
 
-  auto header_view(uint64_t seqno) const -> View<char>
+  auto header_view(uint64_t const seqno) const -> View<char>
   {
     return View<char>{getheader(seqno), getheaderlen(seqno)};
   }
 
   /* A FASTA database has no quality, so the view is empty; for FASTQ the
      quality string has the same length as the sequence. */
-  auto quality_view(uint64_t seqno) const -> View<char>
+  auto quality_view(uint64_t const seqno) const -> View<char>
   {
     return View<char>{getquality(seqno),
                       fastq_format ? getsequencelen(seqno) : uint64_t{0}};
@@ -247,12 +247,12 @@ public:
   /* Writable companion to mutatesequence(): only a non-const Database exposes
      it, so read-only holders (e.g. search worker threads) cannot obtain a
      mutable window into the stored sequence. */
-  auto mutable_sequence(uint64_t seqno) -> Span<char>
+  auto mutable_sequence(uint64_t const seqno) -> Span<char>
   {
     return Span<char>{mutatesequence(seqno), getsequencelen(seqno)};
   }
 
-  auto record(uint64_t seqno) const -> SeqRecord
+  auto record(uint64_t const seqno) const -> SeqRecord
   {
     return SeqRecord{header_view(seqno), sequence_view(seqno), quality_view(seqno)};
   }

@@ -151,7 +151,7 @@ struct CompressedStreamDeleter
   Format format = Format::undefined;
 
   CompressedStreamDeleter() = default;  // empty handle: never invoked
-  CompressedStreamDeleter(DynamicLibraries const * libs, Format fmt) noexcept
+  CompressedStreamDeleter(DynamicLibraries const * libs, Format const fmt) noexcept
     : libraries(libs), format(fmt) {}
 
   auto operator()(void * stream) const noexcept -> void;
@@ -255,7 +255,7 @@ public:
   // Count one invalid character stripped from the input (for the end-of-input
   // report_stripped_warning()). Used by the FASTA/FASTQ sequence/quality
   // filters, which run over every input byte.
-  auto record_stripped(unsigned char symbol) noexcept -> void
+  auto record_stripped(unsigned char const symbol) noexcept -> void
   {
     ++stripped_all;
     ++stripped[symbol];

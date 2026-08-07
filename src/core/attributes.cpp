@@ -80,7 +80,7 @@ namespace {
     int length = 0;  // length of the text field
     bool allow_decimal = false;  // integer or float
 
-    constexpr Attribute(char const * new_text, int new_length, bool new_allow_decimal)
+    constexpr Attribute(char const * new_text, int const new_length, bool const new_allow_decimal)
       : text(new_text), length(new_length), allow_decimal(new_allow_decimal) {}
 
     /* the name as a window, for the scans below; the members stay a pointer and

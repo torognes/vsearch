@@ -218,7 +218,7 @@ auto fastx_s::next(bool const truncateatspace, unsigned char const * char_mappin
 }
 
 
-auto find_header_end_first_blank(Span<char> raw_header) -> std::size_t {
+auto find_header_end_first_blank(Span<char> const raw_header) -> std::size_t {
   static const std::vector<char> blanks {' ', '\t', '\0', '\r', '\n'};
   auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
                                      blanks.begin(), blanks.end());
@@ -229,7 +229,7 @@ auto find_header_end_first_blank(Span<char> raw_header) -> std::size_t {
 }
 
 
-auto find_header_end(Span<char> raw_header) -> std::size_t {
+auto find_header_end(Span<char> const raw_header) -> std::size_t {
   static const std::vector<char> blanks {'\0', '\r', '\n'};
   auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
                                      blanks.begin(), blanks.end());

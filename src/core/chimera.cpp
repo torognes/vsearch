@@ -2462,7 +2462,7 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      is exhausted. chimera_thread_core returns a value that the previous
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
-                            [&state, &mutex_input](uint64_t nth_thread) -> void {
+                            [&state, &mutex_input](uint64_t const nth_thread) -> void {
                               chimera_thread_core(state, state.cia + nth_thread, mutex_input, state.db);
                             });
   threadrunner.run();
@@ -3062,7 +3062,7 @@ struct chimera_batch_context_s {
 
 
 static auto chimera_batch_worker_fn(struct chimera_batch_context_s & ctx,
-                                    uint64_t tid) -> void
+                                    uint64_t const tid) -> void
 {
   struct chimera_info_s * ci = ctx.ci_array[tid].get();
 
@@ -3119,7 +3119,7 @@ auto chimera_detect_batch(struct Parameters const & parameters,
   /* run all queries through the worker pool (work-stealing on next_query) */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
-                              [&ctx](uint64_t tid) -> void {
+                              [&ctx](uint64_t const tid) -> void {
                                 chimera_batch_worker_fn(ctx, tid);
                               });
     threadrunner.run();

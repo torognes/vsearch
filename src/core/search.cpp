@@ -381,7 +381,7 @@ struct search_batch_context_s {
 
 
 static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
-                                   uint64_t tid) -> void
+                                   uint64_t const tid) -> void
 {
   struct searchinfo_s * my_si_plus = &ctx.batch_si_plus[tid];
   struct searchinfo_s * my_si_minus =
@@ -539,7 +539,7 @@ auto search_batch(struct Parameters const & parameters,
   /* run all queries through the worker pool (work-stealing on next_query) */
   {
     ThreadRunner threadrunner(static_cast<std::size_t>(nthreads),
-                              [&ctx](uint64_t tid) -> void {
+                              [&ctx](uint64_t const tid) -> void {
                                 search_batch_worker_fn(ctx, tid);
                               });
     threadrunner.run();

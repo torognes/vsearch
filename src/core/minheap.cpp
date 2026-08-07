@@ -101,7 +101,7 @@ auto elem_less(elem_t const & lhs, elem_t const & rhs) -> bool
 }  // namespace
 
 
-Minheap::Minheap(int capacity)
+Minheap::Minheap(int const capacity)
   : capacity_(static_cast<std::size_t>(capacity))
 {
   array_.reserve(capacity_);
@@ -120,7 +120,7 @@ auto Minheap::clear() -> void
 }
 
 
-auto Minheap::replace_root(elem_t tmp) -> void
+auto Minheap::replace_root(elem_t const tmp) -> void
 {
   /* remove the element at the root, then swap children up
      to the root and insert tmp at suitable place */
