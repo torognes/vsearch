@@ -818,7 +818,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
                   /* trim alignment and compute numbers
                      excluding terminal gaps */
-                  align_trim(hit, *si->parameters);
+                  align_trim(*hit, *si->parameters);
                 }
               else
                 {
@@ -831,7 +831,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
           if (not hit->rejected)
             {
               /* test accept/reject criteria after alignment */
-              if (search_acceptable_aligned(*si, hit))
+              if (search_acceptable_aligned(*si, *hit))
                 {
                   ++si->accepts;
                 }

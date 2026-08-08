@@ -257,9 +257,9 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int target) -> bool;
 
 auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
-                               struct hit * hit) -> bool;
+                               struct hit & hit) -> bool;
 
-auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void;
+auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void;
 
 /* copies the accepted and weak hits of both strands into `hits`, then drops the
    alignment strings of the ones it did not copy -- hence the mutable si */

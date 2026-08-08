@@ -351,23 +351,23 @@ auto search_topscores(struct searchinfo_s * searchinfo) -> void
 }
 
 
-auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
+auto align_trim(struct hit & hit, struct Parameters const & parameters) -> void
 {
   /* trim alignment and fill in info */
   /* assumes that the hit has been aligned */
 
   /* info for semi-global alignment (without gaps at ends) */
 
-  hit->trim_aln_left = 0;
-  hit->trim_q_left = 0;
-  hit->trim_t_left = 0;
-  hit->trim_aln_right = 0;
-  hit->trim_q_right = 0;
-  hit->trim_t_right = 0;
+  hit.trim_aln_left = 0;
+  hit.trim_q_left = 0;
+  hit.trim_t_left = 0;
+  hit.trim_aln_right = 0;
+  hit.trim_q_right = 0;
+  hit.trim_t_right = 0;
 
   /* left trim alignment */
 
-  auto const * const cigar = hit->nwalignment.c_str();
+  auto const * const cigar = hit.nwalignment.c_str();
   auto const * p = cigar;
   auto op = '\0';
   int64_t run = 0;
@@ -379,21 +379,21 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
       op = *next_operation;
       if (op != 'M')
         {
-          hit->trim_aln_left = 1 + scanlength;
+          hit.trim_aln_left = 1 + scanlength;
           if (op == 'D')
             {
-              hit->trim_q_left = static_cast<int>(run);
+              hit.trim_q_left = static_cast<int>(run);
             }
           else
             {
-              hit->trim_t_left = static_cast<int>(run);
+              hit.trim_t_left = static_cast<int>(run);
             }
         }
     }
 
   /* right trim alignment */
 
-  auto const * e = cigar + hit->nwalignment.size();
+  auto const * e = cigar + hit.nwalignment.size();
   if (e > cigar)
     {
       p = e - 1;
@@ -406,71 +406,71 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
             }
           char const * next_operation = nullptr;
           run = find_runlength_of_leftmost_operation(p, next_operation);
-          hit->trim_aln_right = static_cast<int>(std::distance(p, e));
+          hit.trim_aln_right = static_cast<int>(std::distance(p, e));
           if (op == 'D')
             {
-              hit->trim_q_right = static_cast<int>(run);
+              hit.trim_q_right = static_cast<int>(run);
             }
           else
             {
-              hit->trim_t_right = static_cast<int>(run);
+              hit.trim_t_right = static_cast<int>(run);
             }
         }
     }
 
-  if (hit->trim_q_left >= hit->nwalignmentlength)
+  if (hit.trim_q_left >= hit.nwalignmentlength)
     {
-      hit->trim_q_right = 0;
+      hit.trim_q_right = 0;
     }
 
-  if (hit->trim_t_left >= hit->nwalignmentlength)
+  if (hit.trim_t_left >= hit.nwalignmentlength)
     {
-      hit->trim_t_right = 0;
+      hit.trim_t_right = 0;
     }
 
-  hit->internal_alignmentlength = hit->nwalignmentlength
-    - hit->trim_q_left - hit->trim_t_left
-    - hit->trim_q_right - hit->trim_t_right;
+  hit.internal_alignmentlength = hit.nwalignmentlength
+    - hit.trim_q_left - hit.trim_t_left
+    - hit.trim_q_right - hit.trim_t_right;
 
-  hit->internal_indels = hit->nwindels
-    - hit->trim_q_left - hit->trim_t_left
-    - hit->trim_q_right - hit->trim_t_right;
+  hit.internal_indels = hit.nwindels
+    - hit.trim_q_left - hit.trim_t_left
+    - hit.trim_q_right - hit.trim_t_right;
 
-  hit->internal_gaps = hit->nwgaps
-    - ((hit->trim_q_left  + hit->trim_t_left)  > 0 ? 1 : 0)
-    - ((hit->trim_q_right + hit->trim_t_right) > 0 ? 1 : 0);
+  hit.internal_gaps = hit.nwgaps
+    - ((hit.trim_q_left  + hit.trim_t_left)  > 0 ? 1 : 0)
+    - ((hit.trim_q_right + hit.trim_t_right) > 0 ? 1 : 0);
 
   /* CD-HIT */
-  hit->id0 = hit->shortest > 0 ? 100.0 * hit->matches / hit->shortest : 0.0;
+  hit.id0 = hit.shortest > 0 ? 100.0 * hit.matches / hit.shortest : 0.0;
   /* all diffs */
-  hit->id1 = hit->nwalignmentlength > 0 ?
-    100.0 * hit->matches / hit->nwalignmentlength : 0.0;
+  hit.id1 = hit.nwalignmentlength > 0 ?
+    100.0 * hit.matches / hit.nwalignmentlength : 0.0;
   /* internal diffs */
-  hit->id2 = hit->internal_alignmentlength > 0 ?
-    100.0 * hit->matches / hit->internal_alignmentlength : 0.0;
+  hit.id2 = hit.internal_alignmentlength > 0 ?
+    100.0 * hit.matches / hit.internal_alignmentlength : 0.0;
   /* Marine Biology Lab */
-  hit->id3 = std::max(0.0, 100.0 * (1.0 - (1.0 * (hit->mismatches + hit->nwgaps) /
-                                      hit->longest)));
+  hit.id3 = std::max(0.0, 100.0 * (1.0 - (1.0 * (hit.mismatches + hit.nwgaps) /
+                                      hit.longest)));
   /* BLAST */
-  hit->id4 = hit->nwalignmentlength > 0 ?
-    100.0 * hit->matches / hit->nwalignmentlength : 0.0;
+  hit.id4 = hit.nwalignmentlength > 0 ?
+    100.0 * hit.matches / hit.nwalignmentlength : 0.0;
 
   switch (parameters.opt_iddef)
     {
     case 0:
-      hit->id = hit->id0;
+      hit.id = hit.id0;
       break;
     case 1:
-      hit->id = hit->id1;
+      hit.id = hit.id1;
       break;
     case 2:
-      hit->id = hit->id2;
+      hit.id = hit.id2;
       break;
     case 3:
-      hit->id = hit->id3;
+      hit.id = hit.id3;
       break;
     case 4:
-      hit->id = hit->id4;
+      hit.id = hit.id4;
       break;
     default:
       break;
@@ -676,77 +676,77 @@ namespace {
 
 
 auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
-                               struct hit * hit) -> bool
+                               struct hit & hit) -> bool
 {
   struct Parameters const & parameters = *searchinfo.parameters;
   /* opt_weak_id and opt_id are read through `parameters`: the chimera path threads
      a detection copy that overrides them via si->parameters, so the engine sees
      the detection values without a mutated global (E1). */
   if (/* weak_id */
-      (hit->id >= 100.0 * parameters.opt_weak_id) and
+      (hit.id >= 100.0 * parameters.opt_weak_id) and
       /* maxsubs */
-      (hit->mismatches <= parameters.opt_maxsubs) and
+      (hit.mismatches <= parameters.opt_maxsubs) and
       /* maxgaps */
-      (hit->internal_gaps <= parameters.opt_maxgaps) and
+      (hit.internal_gaps <= parameters.opt_maxgaps) and
       /* '*' infinite gap penalties forbid a whole gap class (open) or gaps
          longer than one (extension); reject an alignment that used one */
       ((not parameters.opt_gap_penalty_has_infinite) or
-       (not alignment_uses_forbidden_gap(hit->nwalignment.c_str(), parameters))) and
+       (not alignment_uses_forbidden_gap(hit.nwalignment.c_str(), parameters))) and
       /* mincols */
-      (hit->internal_alignmentlength >= parameters.opt_mincols) and
+      (hit.internal_alignmentlength >= parameters.opt_mincols) and
       /* leftjust */
-      ((parameters.opt_leftjust == 0) or (hit->trim_q_left +
-                           hit->trim_t_left == 0)) and
+      ((parameters.opt_leftjust == 0) or (hit.trim_q_left +
+                           hit.trim_t_left == 0)) and
       /* rightjust */
-      ((parameters.opt_rightjust == 0) or (hit->trim_q_right +
-                            hit->trim_t_right == 0)) and
+      ((parameters.opt_rightjust == 0) or (hit.trim_q_right +
+                            hit.trim_t_right == 0)) and
       /* query_cov */
-      (hit->matches + hit->mismatches >= parameters.opt_query_cov * static_cast<int>(searchinfo.qsequence.size())) and
+      (hit.matches + hit.mismatches >= parameters.opt_query_cov * static_cast<int>(searchinfo.qsequence.size())) and
       /* target_cov */
-      (hit->matches + hit->mismatches >=
-       parameters.opt_target_cov * static_cast<double>(searchinfo.db->getsequencelen(static_cast<uint64_t>(hit->target)))) and
+      (hit.matches + hit.mismatches >=
+       parameters.opt_target_cov * static_cast<double>(searchinfo.db->getsequencelen(static_cast<uint64_t>(hit.target)))) and
       /* maxid */
-      (hit->id <= 100.0 * parameters.opt_maxid) and
+      (hit.id <= 100.0 * parameters.opt_maxid) and
       /* mid */
-      (100.0 * hit->matches / (hit->matches + hit->mismatches) >= parameters.opt_mid) and
+      (100.0 * hit.matches / (hit.matches + hit.mismatches) >= parameters.opt_mid) and
       /* maxdiffs */
-      (hit->mismatches + hit->internal_indels <= parameters.opt_maxdiffs))
+      (hit.mismatches + hit.internal_indels <= parameters.opt_maxdiffs))
     {
       if (parameters.opt_cluster_unoise != nullptr)
         {
-          const auto mismatches = hit->mismatches;
-          auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(searchinfo.db->getabundance(static_cast<uint64_t>(hit->target)));
+          const auto mismatches = hit.mismatches;
+          auto const skew = 1.0 * static_cast<double>(searchinfo.qsize) / static_cast<double>(searchinfo.db->getabundance(static_cast<uint64_t>(hit.target)));
           auto const beta = 1.0 / std::pow(2, (1.0 * parameters.opt_unoise_alpha * mismatches) + 1);
 
           if (skew <= beta or mismatches == 0)
             {
               /* accepted */
-              hit->accepted = true;
-              hit->weak = false;
+              hit.accepted = true;
+              hit.weak = false;
               return true;
             }
           /* rejected, but weak hit */
-          hit->rejected = true;
-          hit->weak = true;
+          hit.rejected = true;
+          hit.weak = true;
           return false;
         }
 
-      if (hit->id >= 100.0 * parameters.opt_id)
+      if (hit.id >= 100.0 * parameters.opt_id)
         {
           /* accepted */
-          hit->accepted = true;
-          hit->weak = false;
+          hit.accepted = true;
+          hit.weak = false;
           return true;
         }
       /* rejected, but weak hit */
-      hit->rejected = true;
-      hit->weak = true;
+      hit.rejected = true;
+      hit.weak = true;
       return false;
     }
 
   /* rejected */
-  hit->rejected = true;
-  hit->weak = false;
+  hit.rejected = true;
+  hit.weak = false;
   return false;
 }
 
@@ -862,10 +862,10 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
               hit.mismatches = hit.nwdiff - hit.nwindels;
 
               /* trim alignment and compute numbers excluding terminal gaps */
-              align_trim(&hit, *searchinfo->parameters);
+              align_trim(hit, *searchinfo->parameters);
 
               /* test accept/reject criteria after alignment */
-              if (search_acceptable_aligned(*searchinfo, &hit))
+              if (search_acceptable_aligned(*searchinfo, hit))
                 {
                   searchinfo->accepts++;
                 }

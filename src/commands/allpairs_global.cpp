@@ -482,10 +482,10 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
             hit->longest = std::max(static_cast<int>(searchinfo.qsequence.size()), dseqlen);
 
             /* trim alignment, compute numbers excluding terminal gaps */
-            align_trim(hit, state.parameters);
+            align_trim(*hit, state.parameters);
 
             /* test accept/reject criteria after alignment */
-            if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, hit))
+            if ((state.parameters.opt_acceptall != 0) or search_acceptable_aligned(searchinfo, *hit))
               {
                 finalhits[static_cast<std::size_t>(searchinfo.accepts)] = *hit;
                 ++searchinfo.accepts;

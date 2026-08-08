@@ -199,7 +199,7 @@ auto add_hit(struct searchinfo_s * si, uint64_t const seqno) -> void
       hp->accepted = false;
       hp->rejected = false;
       hp->weak = false;
-      (void) search_acceptable_aligned(*si, hp);
+      (void) search_acceptable_aligned(*si, *hp);
     }
 }
 
