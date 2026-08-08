@@ -2011,15 +2011,15 @@ static auto query_init(struct searchinfo_s * search_info, int const tophits,
 
 
 namespace {
-auto query_exit(struct searchinfo_s * search_info) -> void
+auto query_exit(struct searchinfo_s & search_info) -> void
 {
   /* The handles are also freed by ~searchinfo_s if an exception unwinds
      before this runs. */
-  search_info->s.reset();
-  search_info->uh = Uniquer();
-  search_info->m = Minheap();
+  search_info.s.reset();
+  search_info.uh = Uniquer();
+  search_info.m = Minheap();
 
-  search_info->qsequence = Span<char>{};
+  search_info.qsequence = Span<char>{};
   /* the hit and kmer-count buffers (hits_v/kmers_v) free their own storage */
 }
 
@@ -2086,7 +2086,7 @@ auto chimera_thread_exit(struct chimera_info_s * ci) -> void
   search16_exit(ci->s);
 
   for (auto & a_search_info : ci->si) {
-    query_exit(&a_search_info);
+    query_exit(a_search_info);
   }
 }
 }  // anonymous namespace
