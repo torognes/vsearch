@@ -74,8 +74,8 @@
 // very similar to header_find_attribute() in attributes.cc
 namespace {
 auto tax_parse(View<char> const header,
-               int * tax_start,
-               int * tax_end) -> bool
+               int & tax_start,
+               int & tax_end) -> bool
 {
   /*
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
@@ -113,17 +113,17 @@ auto tax_parse(View<char> const header,
           continue;
         }
 
-      *tax_start = offset;
+      tax_start = offset;
 
       /* find end (semicolon or end of header) */
       auto const * const terminus = std::find(header.begin() + offset + attribute_length, header.end(), ';');
       if (terminus == header.end())
         {
-          *tax_end = header_length;
+          tax_end = header_length;
         }
       else
         {
-          *tax_end = static_cast<int>(std::distance(header.begin(), terminus));
+          tax_end = static_cast<int>(std::distance(header.begin(), terminus));
         }
 
       return true;
@@ -151,7 +151,7 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
   auto tax_start = 0;
   auto tax_end = 0;
   auto const header = db.header_view(static_cast<uint64_t>(seqno));
-  auto const attribute_is_present = tax_parse(header, & tax_start, & tax_end);
+  auto const attribute_is_present = tax_parse(header, tax_start, tax_end);
   if (not attribute_is_present) { return; }
   auto offset = tax_start + length_of_attribute_name;
 

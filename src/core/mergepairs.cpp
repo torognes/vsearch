@@ -216,39 +216,39 @@ auto precompute_qual(struct Parameters const & parameters) -> QualityTables
 
 
 namespace {
-auto merge_sym(char * sym,       char * qual,
+auto merge_sym(char & sym,       char & qual,
                char const fwd_sym,     char const rev_sym,
                char const fwd_qual,    char const rev_qual,
                QualityTables const & tables) -> void
 {
   if (rev_sym == 'N')
     {
-      * sym = fwd_sym;
-      * qual = fwd_qual;
+      sym = fwd_sym;
+      qual = fwd_qual;
     }
   else if (fwd_sym == 'N')
     {
-      * sym = rev_sym;
-      * qual = rev_qual;
+      sym = rev_sym;
+      qual = rev_qual;
     }
   else if (fwd_sym == rev_sym)
     {
       /* agreement */
-      * sym = fwd_sym;
-      * qual = tables.merge_qual_same[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))][static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
+      sym = fwd_sym;
+      qual = tables.merge_qual_same[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))][static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
     }
   else
     {
       /* disagreement */
       if (fwd_qual > rev_qual)
         {
-          * sym = fwd_sym;
-          * qual = tables.merge_qual_diff[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))][static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
+          sym = fwd_sym;
+          qual = tables.merge_qual_diff[static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))][static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))];
         }
       else
         {
-          * sym = rev_sym;
-          * qual = tables.merge_qual_diff[static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))][static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))];
+          sym = rev_sym;
+          qual = tables.merge_qual_diff[static_cast<std::size_t>(static_cast<unsigned char>(rev_qual))][static_cast<std::size_t>(static_cast<unsigned char>(fwd_qual))];
         }
     }
 }
@@ -313,8 +313,8 @@ auto merge(merge_data_t & a_read_pair, QualityTables const & tables,
       auto fwd_qual = a_read_pair.fwd_quality[static_cast<std::size_t>(fwd_pos)];
       auto rev_qual = a_read_pair.rev_quality[static_cast<std::size_t>(rev_pos)];
 
-      merge_sym(& sym,
-                & qual,
+      merge_sym(sym,
+                qual,
                 fwd_qual < 2 ? 'N' : fwd_sym,
                 rev_qual < 2 ? 'N' : rev_sym,
                 fwd_qual,

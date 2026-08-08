@@ -495,8 +495,8 @@ auto scan_matches(struct chimera_info_s * ci,
                   int const * matches,
                   int const len,
                   double const percentage,
-                  int * best_start,
-                  int * best_len) -> bool
+                  int & best_start,
+                  int & best_len) -> bool
 {
   /*
     Scan matches array of zeros and ones, and find the longest subsequence
@@ -549,8 +549,8 @@ auto scan_matches(struct chimera_info_s * ci,
 
   if (best_c >= 0.0)
     {
-      *best_start = best_i - 1;
-      *best_len = best_d;
+      best_start = best_i - 1;
+      best_len = best_d;
       return true;
     }
   return false;
@@ -607,8 +607,8 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
                                    &ci->match[static_cast<size_t>((i * ci->query_len) + start)],
                                    len,
                                    parameters.opt_chimeras_diff_pct,
-                                   & scan_best_start,
-                                   & scan_best_len) and (scan_best_len > best_len))
+                                   scan_best_start,
+                                   scan_best_len) and (scan_best_len > best_len))
                     {
                       best_cand = i;
                       best_start = start + scan_best_start;
