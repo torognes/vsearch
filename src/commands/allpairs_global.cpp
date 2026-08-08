@@ -120,24 +120,24 @@ struct allpairs_state_s
 
 
 namespace {
-inline auto allpairs_hit_compare_typed(struct hit const * lhs, struct hit const * rhs) -> int
+inline auto allpairs_hit_compare_typed(struct hit const & lhs, struct hit const & rhs) -> int
 {
   // high id, then low id
   // early target, then late target
 
-  if (lhs->id > rhs->id)
+  if (lhs.id > rhs.id)
     {
       return -1;
     }
-  if (lhs->id < rhs->id)
+  if (lhs.id < rhs.id)
     {
       return +1;
     }
-  if (lhs->target < rhs->target)
+  if (lhs.target < rhs.target)
     {
       return -1;
     }
-  if (lhs->target > rhs->target)
+  if (lhs.target > rhs.target)
     {
       return +1;
     }
@@ -496,7 +496,7 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
         std::sort(finalhits.begin(),
                   std::next(finalhits.begin(), static_cast<std::ptrdiff_t>(searchinfo.accepts)),
                   [](struct hit const & lhs, struct hit const & rhs) -> bool {
-                    return allpairs_hit_compare_typed(&lhs, &rhs) < 0;
+                    return allpairs_hit_compare_typed(lhs, rhs) < 0;
                   });
       }
 

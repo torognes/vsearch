@@ -138,7 +138,7 @@ namespace {
 /* per thread data */
 
 namespace {
-inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rhs) -> int
+inline auto hit_compare_byid_typed(struct hit const & lhs, struct hit const & rhs) -> int
 {
   /*
     Order:
@@ -147,39 +147,39 @@ inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rh
     early target, then late target
   */
 
-  if ((not lhs->rejected) and rhs->rejected)
+  if ((not lhs.rejected) and rhs.rejected)
     {
       return -1;
     }
-  if (lhs->rejected and (not rhs->rejected))
+  if (lhs.rejected and (not rhs.rejected))
     {
       return +1;
     }
-  if (lhs->aligned and (not rhs->aligned))
+  if (lhs.aligned and (not rhs.aligned))
     {
       return -1;
     }
-  if ((not lhs->aligned) and rhs->aligned)
+  if ((not lhs.aligned) and rhs.aligned)
     {
       return +1;
     }
-  if (not lhs->aligned)
+  if (not lhs.aligned)
     {
       return 0;
     }
-  if (lhs->id > rhs->id)
+  if (lhs.id > rhs.id)
     {
       return -1;
     }
-  if (lhs->id < rhs->id)
+  if (lhs.id < rhs.id)
     {
       return +1;
     }
-  if (lhs->target < rhs->target)
+  if (lhs.target < rhs.target)
     {
       return -1;
     }
-  if (lhs->target > rhs->target)
+  if (lhs.target > rhs.target)
     {
       return +1;
     }
@@ -187,40 +187,40 @@ inline auto hit_compare_byid_typed(struct hit const * lhs, struct hit const * rh
 }
 
 
-inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * rhs, struct Database const & db) -> int
+inline auto hit_compare_bysize_typed(struct hit const & lhs, struct hit const & rhs, struct Database const & db) -> int
 {
   // high abundance, then low abundance
   // high id, then low id
   // early target, then late target
 
-  if ((not lhs->rejected) and rhs->rejected)
+  if ((not lhs.rejected) and rhs.rejected)
     {
       return -1;
     }
-  if (lhs->rejected and (not rhs->rejected))
+  if (lhs.rejected and (not rhs.rejected))
     {
       return +1;
     }
-  if (lhs->rejected)
+  if (lhs.rejected)
     {
       return 0;
     }
 
-  if (lhs->aligned and (not rhs->aligned))
+  if (lhs.aligned and (not rhs.aligned))
     {
       return -1;
     }
-  if ((not lhs->aligned) and rhs->aligned)
+  if ((not lhs.aligned) and rhs.aligned)
     {
       return +1;
     }
-  if (not lhs->aligned)
+  if (not lhs.aligned)
     {
       return 0;
     }
 
-  auto const lhs_abundance = db.getabundance(static_cast<uint64_t>(lhs->target));
-  auto const rhs_abundance = db.getabundance(static_cast<uint64_t>(rhs->target));
+  auto const lhs_abundance = db.getabundance(static_cast<uint64_t>(lhs.target));
+  auto const rhs_abundance = db.getabundance(static_cast<uint64_t>(rhs.target));
   if (lhs_abundance > rhs_abundance)
     {
       return -1;
@@ -230,20 +230,20 @@ inline auto hit_compare_bysize_typed(struct hit const * lhs, struct hit const * 
       return +1;
     }
 
-  if (lhs->id > rhs->id)
+  if (lhs.id > rhs.id)
     {
       return -1;
     }
-  if (lhs->id < rhs->id)
+  if (lhs.id < rhs.id)
     {
       return +1;
     }
 
-  if (lhs->target < rhs->target)
+  if (lhs.target < rhs.target)
     {
       return -1;
     }
-  if (lhs->target > rhs->target)
+  if (lhs.target > rhs.target)
     {
       return +1;
     }
@@ -969,7 +969,7 @@ auto search_findbest2_byid(struct searchinfo_s * const si_p,
 
   for (auto & hit : make_hits_span(si_p))
     {
-      if ((best == nullptr) or (hit_compare_byid_typed(&hit, best) < 0))
+      if ((best == nullptr) or (hit_compare_byid_typed(hit, *best) < 0))
         {
           best = &hit;
         }
@@ -979,7 +979,7 @@ auto search_findbest2_byid(struct searchinfo_s * const si_p,
     {
       for (auto & hit : make_hits_span(si_m))
         {
-          if ((best == nullptr) or (hit_compare_byid_typed(&hit, best) < 0))
+          if ((best == nullptr) or (hit_compare_byid_typed(hit, *best) < 0))
             {
               best = &hit;
             }
@@ -1003,7 +1003,7 @@ auto search_findbest2_bysize(struct searchinfo_s * const si_p,
 
   for (auto & hit : make_hits_span(si_p))
     {
-      if ((best == nullptr) or (hit_compare_bysize_typed(&hit, best, *si_p->db) < 0))
+      if ((best == nullptr) or (hit_compare_bysize_typed(hit, *best, *si_p->db) < 0))
         {
           best = &hit;
         }
@@ -1013,7 +1013,7 @@ auto search_findbest2_bysize(struct searchinfo_s * const si_p,
     {
       for (auto & hit : make_hits_span(si_m))
         {
-          if ((best == nullptr) or (hit_compare_bysize_typed(&hit, best, *si_p->db) < 0))
+          if ((best == nullptr) or (hit_compare_bysize_typed(hit, *best, *si_p->db) < 0))
             {
               best = &hit;
             }
@@ -1050,6 +1050,6 @@ auto search_joinhits(struct searchinfo_s * const si_plus,
   /* last, sort the hits */
   std::sort(hits.begin(), hits.end(),
             [](struct hit const & lhs, struct hit const & rhs) -> bool {
-              return hit_compare_byid_typed(&lhs, &rhs) < 0;
+              return hit_compare_byid_typed(lhs, rhs) < 0;
             });
 }
