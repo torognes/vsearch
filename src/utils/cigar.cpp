@@ -144,7 +144,6 @@ auto read_runlength(char const * first_character,
 }
 
 
-// duplicate: msa.cc
 auto find_runlength_of_leftmost_operation(char const * first_character,
                                           char const * & first_non_digit) -> long long {
   // in cigar strings, runlength of 1 are implicit (no digit)
