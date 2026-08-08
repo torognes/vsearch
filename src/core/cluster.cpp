@@ -227,7 +227,7 @@ inline auto cluster_query_core(struct searchinfo_s * si, struct Database const &
 }
 
 
-auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const tophits,
+auto cluster_query_init(struct searchinfo_s & si, int const seqcount, int const tophits,
                         struct Database const & db,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex) -> void
@@ -235,29 +235,29 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
   /* initialisation of data for one thread; run once for each thread */
   /* thread specific initialiation */
 
-  si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
-  si->db = &db;  /* searchcore reads the sequences through the si */
-  si->qsize = 1;
-  si->nw = nullptr;
-  si->hit_count = 0;
+  si.parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  si.dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
+  si.db = &db;  /* searchcore reads the sequences through the si */
+  si.qsize = 1;
+  si.nw = nullptr;
+  si.hit_count = 0;
 
   /* allocate memory for sequence. kmers/hits/qsequence are the searchinfo_s
      vectors themselves (RAII), so a fatal() unwinding out of a partial init or
      a query frees them. */
 
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si->seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
-  si->qsequence_v.resize(static_cast<std::size_t>(si->seq_alloc));
-  si->qsequence = make_span(si->qsequence_v).first(0);
+  si.seq_alloc = static_cast<int>(db.getlongestsequence() + 1);
+  si.qsequence_v.resize(static_cast<std::size_t>(si.seq_alloc));
+  si.qsequence = make_span(si.qsequence_v).first(0);
 
-  si->kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
-  si->kmers_v.resize(static_cast<std::size_t>(seqcount));
-  si->hits_v.resize(static_cast<std::size_t>(tophits));
+  si.kmers_v.reserve(static_cast<std::size_t>(seqcount) + overflow_padding);
+  si.kmers_v.resize(static_cast<std::size_t>(seqcount));
+  si.hits_v.resize(static_cast<std::size_t>(tophits));
 
-  /* si->uh (a Uniquer value member) is ready to use as default-constructed */
-  si->m = Minheap(tophits);
-  si->s.reset(search16_init(parameters.opt_match,
+  /* si.uh (a Uniquer value member) is ready to use as default-constructed */
+  si.m = Minheap(tophits);
+  si.s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
                         parameters.opt_gap_open_query_left,
                         parameters.opt_gap_open_target_left,
@@ -275,14 +275,14 @@ auto cluster_query_init(struct searchinfo_s * si, int const seqcount, int const 
 }
 
 
-auto cluster_query_exit(struct searchinfo_s * si) -> void
+auto cluster_query_exit(struct searchinfo_s & si) -> void
 {
   /* clean up after thread execution; called once per thread. The handles are
      also freed by ~searchinfo_s if an exception unwinds before this runs. */
 
-  si->s.reset();
-  si->uh = Uniquer();
-  si->m = Minheap();
+  si.s.reset();
+  si.uh = Uniquer();
+  si.m = Minheap();
 
   /* the kmer counts, the hits and the query sequence live in the searchinfo_s
      vectors (kmers_v/hits_v/qsequence_v), which free their own storage. */
@@ -326,12 +326,12 @@ struct cluster_work_pool_s
   {
     for (auto & si : si_plus)
       {
-        cluster_query_init(&si, seqcount, tophits, db, parameters, dbindex);
+        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex);
         si.strand = 0;
       }
     for (auto & si : si_minus)
       {
-        cluster_query_init(&si, seqcount, tophits, db, parameters, dbindex);
+        cluster_query_init(si, seqcount, tophits, db, parameters, dbindex);
         si.strand = 1;
       }
     runner = make_unique<ThreadRunner>(static_cast<std::size_t>(nthreads),
@@ -341,8 +341,8 @@ struct cluster_work_pool_s
   ~cluster_work_pool_s()
   {
     runner.reset();  // join the workers before freeing the buffers they read
-    for (auto & si : si_plus) { cluster_query_exit(&si); }
-    for (auto & si : si_minus) { cluster_query_exit(&si); }
+    for (auto & si : si_plus) { cluster_query_exit(si); }
+    for (auto & si : si_minus) { cluster_query_exit(si); }
   }
 
   cluster_work_pool_s(cluster_work_pool_s const &) = delete;
@@ -1048,10 +1048,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
   std::array<struct searchinfo_s, 1> si_p {{}};  // refactoring: direct initialization?
   std::array<struct searchinfo_s, 1> si_m {{}};
 
-  cluster_query_init(si_p.data(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
+  cluster_query_init(si_p.front(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
   if (state.parameters.opt_strand)
     {
-      cluster_query_init(si_m.data(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
+      cluster_query_init(si_m.front(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
     }
 
   auto lastlength = std::numeric_limits<int>::max();
@@ -1128,10 +1128,10 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
       progress.update(static_cast<uint64_t>(seqno));
     }
 
-  cluster_query_exit(si_p.data());
+  cluster_query_exit(si_p.front());
   if (state.parameters.opt_strand)
     {
-      cluster_query_exit(si_m.data());
+      cluster_query_exit(si_m.front());
     }
 }
 }  // anonymous namespace
@@ -1700,13 +1700,13 @@ auto cluster_session_init(struct cluster_session_s * cs, struct Parameters const
   cs->tophits = std::min(cs->tophits, cs->seqcount);
 
   cs->si = make_unique<searchinfo_s>();
-  cluster_query_init(cs->si.get(), cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);
+  cluster_query_init(*cs->si, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);
   cs->si->strand = 0;
 
   if (parameters.opt_strand)
     {
       cs->si_minus = make_unique<searchinfo_s>();
-      cluster_query_init(cs->si_minus.get(), cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);
+      cluster_query_init(*cs->si_minus, cs->seqcount, cs->tophits, db, parameters, *cs->dbindex);
       cs->si_minus->strand = 1;
     }
 
@@ -1943,12 +1943,12 @@ auto cluster_session_cleanup(struct cluster_session_s * cs) -> void
 {
   if (cs->si)
     {
-      cluster_query_exit(cs->si.get());
+      cluster_query_exit(*cs->si);
       cs->si.reset();
     }
   if (cs->si_minus)
     {
-      cluster_query_exit(cs->si_minus.get());
+      cluster_query_exit(*cs->si_minus);
       cs->si_minus.reset();
     }
 }
