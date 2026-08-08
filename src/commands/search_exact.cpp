@@ -214,11 +214,11 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
 
   si->hit_count = 0;
 
-  int64_t ret = dbhash.search_first(make_view(normalized).first(seqlen), & info, *si->db);
+  int64_t ret = dbhash.search_first(make_view(normalized).first(seqlen), info, *si->db);
   while (ret >= 0)
     {
       add_hit(si, static_cast<uint64_t>(ret));
-      ret = dbhash.search_next(&info, *si->db);
+      ret = dbhash.search_next(info, *si->db);
     }
 }
 

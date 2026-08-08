@@ -110,7 +110,7 @@ public:
   auto add_all(struct Database const & db, struct Parameters const & parameters) -> void;
 
   auto search_first(View<char> seq,
-                    struct dbhash_search_info_s * info,
+                    struct dbhash_search_info_s & info,
                     struct Database const & db) const -> int64_t;
-  auto search_next(struct dbhash_search_info_s * info, struct Database const & db) const -> int64_t;
+  auto search_next(struct dbhash_search_info_s & info, struct Database const & db) const -> int64_t;
 };

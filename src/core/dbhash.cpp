@@ -109,12 +109,12 @@ auto Dbhash::clear() -> void
 
 
 auto Dbhash::search_first(View<char> const seq,
-                          struct dbhash_search_info_s * info,
+                          struct dbhash_search_info_s & info,
                           struct Database const & db) const -> int64_t
 {
   auto const hash = hash_cityhash64(seq);
-  info->hash = hash;
-  info->seq = seq;
+  info.hash = hash;
+  info.seq = seq;
   auto index = hash & mask_;
   auto const * bp = &table_[index];
 
@@ -128,7 +128,7 @@ auto Dbhash::search_first(View<char> const seq,
       bp = &table_[index];
     }
 
-  info->index = index;
+  info.index = index;
 
   if (bitmap_.is_set(static_cast<unsigned int>(index)))
     {
@@ -138,11 +138,11 @@ auto Dbhash::search_first(View<char> const seq,
 }
 
 
-auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database const & db) const -> int64_t
+auto Dbhash::search_next(struct dbhash_search_info_s & info, struct Database const & db) const -> int64_t
 {
-  auto const hash = info->hash;
-  auto const seq = info->seq;
-  auto index = (info->index + 1) & mask_;
+  auto const hash = info.hash;
+  auto const seq = info.seq;
+  auto index = (info.index + 1) & mask_;
   auto const * bp = &table_[index];
 
   while (bitmap_.is_set(static_cast<unsigned int>(index))
@@ -155,7 +155,7 @@ auto Dbhash::search_next(struct dbhash_search_info_s * info, struct Database con
       bp = &table_[index];
     }
 
-  info->index = index;
+  info.index = index;
 
   if (bitmap_.is_set(static_cast<unsigned int>(index)))
     {
@@ -169,10 +169,10 @@ auto Dbhash::add(View<char> const seq, uint64_t const seqno, struct Database con
 {
   struct dbhash_search_info_s info;
 
-  auto ret = search_first(seq, &info, db);
+  auto ret = search_first(seq, info, db);
   while (ret >= 0)
     {
-      ret = search_next(&info, db);
+      ret = search_next(info, db);
     }
 
   bitmap_.set(static_cast<unsigned int>(info.index));
