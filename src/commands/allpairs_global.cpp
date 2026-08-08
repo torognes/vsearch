@@ -441,14 +441,12 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
                 auto const qseq = View<char>{searchinfo.qsequence};
 
                 nwcigar = lma.align(qseq, tseq);
-                lma.alignstats(nwcigar.c_str(),
-                               qseq,
-                               tseq,
-                               & nwscore,
-                               & nwalignmentlength,
-                               & nwmatches,
-                               & nwmismatches,
-                               & nwgaps);
+                auto const stats = lma.alignstats(nwcigar.c_str(), qseq, tseq);
+                nwscore = stats.score;
+                nwalignmentlength = stats.alignmentlength;
+                nwmatches = stats.matches;
+                nwmismatches = stats.mismatches;
+                nwgaps = stats.gaps;
               }
             else
               {

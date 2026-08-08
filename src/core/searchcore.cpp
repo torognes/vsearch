@@ -831,14 +831,12 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
                   nwcigar = searchinfo->lma->align(qseq, dseq);
 
-                  searchinfo->lma->alignstats(nwcigar.c_str(),
-                                      qseq,
-                                      dseq,
-                                      & nwscore,
-                                      & nwalignmentlength,
-                                      & nwmatches,
-                                      & nwmismatches,
-                                      & nwgaps);
+                  auto const stats = searchinfo->lma->alignstats(nwcigar.c_str(), qseq, dseq);
+                  nwscore = stats.score;
+                  nwalignmentlength = stats.alignmentlength;
+                  nwmatches = stats.matches;
+                  nwmismatches = stats.mismatches;
+                  nwgaps = stats.gaps;
                 }
               else
                 {

@@ -96,6 +96,19 @@ struct Scoring {
 auto scoring_from_options(struct Parameters const & parameters) -> struct Scoring;
 
 
+/* What alignstats() reads out of a cigar. These five used to be five
+   int64_t* out-parameters, which every caller had to declare, address and
+   pass in the right order -- five interchangeable arguments distinguished by
+   position only. */
+struct AlignStats {
+  int64_t score = 0;
+  int64_t alignmentlength = 0;
+  int64_t matches = 0;
+  int64_t mismatches = 0;
+  int64_t gaps = 0;
+};
+
+
 class LinearMemoryAligner
 {
 private:
@@ -169,12 +182,9 @@ public:
      interchangeable arguments whose pairing was positional only. */
   auto align(View<char> a_sequence, View<char> b_sequence) -> char *;
 
+  /* not const: it caches the two sequences in a_seq/b_seq before walking
+     the cigar */
   auto alignstats(char const * cigar,
                   View<char> a_sequence,
-                  View<char> b_sequence,
-                  int64_t * nwscore,
-                  int64_t * nwalignmentlength,
-                  int64_t * nwmatches,
-                  int64_t * nwmismatches,
-                  int64_t * nwgaps) -> void;
+                  View<char> b_sequence) -> AlignStats;
 };

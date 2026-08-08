@@ -700,12 +700,7 @@ auto LinearMemoryAligner::align(View<char> const a_sequence,
 
 auto LinearMemoryAligner::alignstats(char const * cigar,
                                      View<char> const a_sequence,
-                                     View<char> const b_sequence,
-                                     int64_t * _nwscore,
-                                     int64_t * _nwalignmentlength,
-                                     int64_t * _nwmatches,
-                                     int64_t * _nwmismatches,
-                                     int64_t * _nwgaps) -> void
+                                     View<char> const b_sequence) -> AlignStats
 {
   static constexpr auto is_N = 15;  // 4-bit code for 'N' or 'n'
   a_seq = a_sequence;
@@ -803,11 +798,15 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
         }  // end of switch
     }  // end of cigar parsing
 
-  *_nwscore = nwscore;
-  *_nwalignmentlength = nwalignmentlength;
-  *_nwmatches = nwmatches;
-  *_nwmismatches = nwmismatches;
-  *_nwgaps = nwgaps;
+  /* not brace-initialized: AlignStats has default member initializers, which
+     in C++11 make it a non-aggregate (relaxed only in C++14) */
+  AlignStats stats;
+  stats.score = nwscore;
+  stats.alignmentlength = nwalignmentlength;
+  stats.matches = nwmatches;
+  stats.mismatches = nwmismatches;
+  stats.gaps = nwgaps;
+  return stats;
 }
 
 

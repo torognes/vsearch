@@ -779,14 +779,12 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
                       nwcigar = lma.align(qseq, tseq);
 
-                      lma.alignstats(nwcigar.c_str(),
-                                     qseq,
-                                     tseq,
-                                     & nwscore,
-                                     & nwalignmentlength,
-                                     & nwmatches,
-                                     & nwmismatches,
-                                     & nwgaps);
+                      auto const stats = lma.alignstats(nwcigar.c_str(), qseq, tseq);
+                      nwscore = stats.score;
+                      nwalignmentlength = stats.alignmentlength;
+                      nwmatches = stats.matches;
+                      nwmismatches = stats.mismatches;
+                      nwgaps = stats.gaps;
                     }
                   else
                     {

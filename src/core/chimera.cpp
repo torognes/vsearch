@@ -2195,14 +2195,12 @@ static auto chimera_process_query(struct chimera_info_s * ci,
           auto const qseq = make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len));
 
           nwcigar = lma.align(qseq, tseq);
-          lma.alignstats(nwcigar.c_str(),
-                         qseq,
-                         tseq,
-                         & nwscore,
-                         & nwalignmentlength,
-                         & nwmatches,
-                         & nwmismatches,
-                         & nwgaps);
+          auto const stats = lma.alignstats(nwcigar.c_str(), qseq, tseq);
+          nwscore = stats.score;
+          nwalignmentlength = stats.alignmentlength;
+          nwmatches = stats.matches;
+          nwmismatches = stats.mismatches;
+          nwgaps = stats.gaps;
 
           ci->nwcigar[static_cast<size_t>(i)] = std::move(nwcigar);
           ci->nwscore[static_cast<size_t>(i)] = nwscore;
