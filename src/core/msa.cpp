@@ -372,10 +372,10 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
           // Consume digits (if any), return the position of the
           // first char (M, D, or I), store it, move cursor to the next byte.
           // Operations: match (M), insertion (I), or deletion (D)
-          auto ** next_operation = &position_in_cigar;
+          char const * next_operation = nullptr;
           auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
-          auto const operation = **next_operation;
-          position_in_cigar = std::next(position_in_cigar);
+          auto const operation = *next_operation;
+          position_in_cigar = std::next(next_operation);
 
           switch (operation) {
           case 'D':

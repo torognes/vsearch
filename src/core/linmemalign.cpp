@@ -727,7 +727,7 @@ auto LinearMemoryAligner::alignstats(char const * cigar,
   while (*p != '\0')
     {
       char const * next_operation = nullptr;
-      auto const runlength = find_runlength_of_leftmost_operation(p, &next_operation);
+      auto const runlength = find_runlength_of_leftmost_operation(p, next_operation);
       p = next_operation;
       auto const operation = *p;
       p = std::next(p);

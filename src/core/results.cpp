@@ -873,7 +873,7 @@ auto build_sam_strings(View<char> const alignment,
          the latter clamps to 1, which would hide the malformed run lengths the
          guard below reports */
       char const * next_operation = nullptr;
-      auto const scanned_run = read_runlength(p, &next_operation);
+      auto const scanned_run = read_runlength(p, next_operation);
       /* no run-length number: the cigar convention is an implicit run of 1 */
       auto const run = (next_operation == p) ? 1LL : scanned_run;
       p = next_operation;

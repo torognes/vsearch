@@ -374,7 +374,7 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
   if (*p != 0)
     {
       char const * next_operation = nullptr;
-      run = find_runlength_of_leftmost_operation(p, &next_operation);
+      run = find_runlength_of_leftmost_operation(p, next_operation);
       auto const scanlength = static_cast<int>(std::distance(p, next_operation));
       op = *next_operation;
       if (op != 'M')
@@ -405,7 +405,7 @@ auto align_trim(struct hit * hit, struct Parameters const & parameters) -> void
               --p;
             }
           char const * next_operation = nullptr;
-          run = find_runlength_of_leftmost_operation(p, &next_operation);
+          run = find_runlength_of_leftmost_operation(p, next_operation);
           hit->trim_aln_right = static_cast<int>(std::distance(p, e));
           if (op == 'D')
             {
@@ -642,7 +642,7 @@ namespace {
     while (*cursor != '\0')
       {
         char const * next_operation = nullptr;
-        auto const run = find_runlength_of_leftmost_operation(cursor, &next_operation);
+        auto const run = find_runlength_of_leftmost_operation(cursor, next_operation);
         cursor = next_operation;
         char const operation = *cursor;
         cursor = std::next(cursor);

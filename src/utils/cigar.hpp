@@ -72,14 +72,14 @@
    at all it returns 0 and leaves 'first_non_digit' at 'first_character', which
    is how a caller tells an absent run length from a literal zero. */
 auto read_runlength(char const * first_character,
-                    char const ** first_non_digit) -> long long;
+                    char const * & first_non_digit) -> long long;
 
 /* read_runlength() plus the cigar convention: an absent run length reads as 1,
    because "M" means "1M". Prefer this unless the run length has to be
    validated -- the clamp also turns a negative or zero run into 1, which hides
    a malformed cigar rather than reporting it. */
 auto find_runlength_of_leftmost_operation(char const * first_character,
-                                          char const ** first_non_digit) -> long long;
+                                          char const * & first_non_digit) -> long long;
 
 auto parse_cigar_string(View<char> cigar_string) -> std::vector<std::pair<Operation, long long>>;
 
