@@ -2178,12 +2178,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
   for (auto i = 0; i < ci->cand_count; ++i)
     {
       int64_t const target = ci->cand_list[static_cast<size_t>(i)];
-      int64_t nwscore = ci->snwscore[static_cast<size_t>(i)];
-      std::string nwcigar;
-      int64_t nwalignmentlength = 0;
-      int64_t nwmatches = 0;
-      int64_t nwmismatches = 0;
-      int64_t nwgaps = 0;
+      int64_t const nwscore = ci->snwscore[static_cast<size_t>(i)];
 
       if (nwscore == std::numeric_limits<short>::max())
         {
@@ -2194,20 +2189,15 @@ static auto chimera_process_query(struct chimera_info_s * ci,
           auto const tseq = db.sequence_view(static_cast<uint64_t>(target));
           auto const qseq = make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len));
 
-          nwcigar = lma.align(qseq, tseq);
+          std::string nwcigar = lma.align(qseq, tseq);
           auto const stats = lma.alignstats(nwcigar.c_str(), qseq, tseq);
-          nwscore = stats.score;
-          nwalignmentlength = stats.alignmentlength;
-          nwmatches = stats.matches;
-          nwmismatches = stats.mismatches;
-          nwgaps = stats.gaps;
 
           ci->nwcigar[static_cast<size_t>(i)] = std::move(nwcigar);
-          ci->nwscore[static_cast<size_t>(i)] = nwscore;
-          ci->nwalignmentlength[static_cast<size_t>(i)] = nwalignmentlength;
-          ci->nwmatches[static_cast<size_t>(i)] = nwmatches;
-          ci->nwmismatches[static_cast<size_t>(i)] = nwmismatches;
-          ci->nwgaps[static_cast<size_t>(i)] = nwgaps;
+          ci->nwscore[static_cast<size_t>(i)] = stats.score;
+          ci->nwalignmentlength[static_cast<size_t>(i)] = stats.alignmentlength;
+          ci->nwmatches[static_cast<size_t>(i)] = stats.matches;
+          ci->nwmismatches[static_cast<size_t>(i)] = stats.mismatches;
+          ci->nwgaps[static_cast<size_t>(i)] = stats.gaps;
         }
       else
         {
