@@ -528,14 +528,28 @@ specifically, right about the other three.
   informative ones. No wall-clock benchmark was run, deliberately: at this
   instruction delta any hyperfine reading would be measuring code placement.
 
+### The A2 second comment, resolved afterwards (`a6e1c01f`)
+
+The A2 decision had left `// duplicate: msa.cc` (`utils/cigar.cpp:146`)
+untouched. On a follow-up instruction it was deleted rather than reworded,
+because there is nothing left to reword *to*: the marker came from
+`3172ba45` ("factorize cigar string functions"), which created
+`utils/cigar.cpp` and noted that `msa.cc` still held its own copy of the
+run-length reader. That copy is gone. `utils/cigar.cpp` is now the only
+implementation in the tree — the sole other `std::strtoll` is
+`attributes.cpp`'s abundance parser, which is unrelated — and `msa.cpp` is
+one of five ordinary callers. It was a task marker whose task is finished.
+
 ### Left for the maintainer
 
-- `read_runlength`'s `// duplicate: msa.cc` comment (`utils/cigar.cpp:146`)
-  is untouched per the A2 decision, but now reads more stale than before:
-  `msa.cpp` no longer carries anything resembling a copy.
 - Group D is untouched and still worth doing, D1 (`search16` → `Span`)
   most of all — it is what would let the three remaining `alignstats`
   call sites drop their locals the way chimera's did in 4b.
+- Unrelated to this campaign, noticed while checking the above:
+  `msa.cpp` walks cigars two different ways — `parse_cigar_string()` at
+  `:192`, but a hand-rolled `find_runlength_of_leftmost_operation()` loop
+  at `:370-378`. Not a duplicate implementation, just an inconsistent use
+  of the two APIs `utils/cigar.hpp` offers. Left alone.
 
 
 ## Decisions (settled 2026-08-08, before any code was written)
