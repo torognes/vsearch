@@ -241,8 +241,8 @@ auto buffer_filter_extend(fastx_handle input_handle,
                           View<char> const source,
                           Action const * char_action,
                           unsigned char const * char_mapping,
-                          bool * ok,
-                          char * illegal_char) -> void
+                          bool & ok,
+                          char & illegal_char) -> void
 {
   dest_buffer.makespace(source.size() + 1);
 
@@ -252,7 +252,7 @@ auto buffer_filter_extend(fastx_handle input_handle,
   auto * d = std::next(dest_buffer.data(),
                        static_cast<std::ptrdiff_t>(dest_buffer.length));
   auto * q = d;
-  *ok = true;
+  ok = true;
 
   for (auto const symbol : source)
     {
@@ -277,11 +277,11 @@ auto buffer_filter_extend(fastx_handle input_handle,
 
             case Action::reject:
               /* fatal character */
-              if (*ok)
+              if (ok)
                 {
-                  *illegal_char = symbol;
+                  illegal_char = symbol;
                 }
-              *ok = false;
+              ok = false;
               break;
 
             case Action::skip:
@@ -411,7 +411,7 @@ auto fastq_next(fastx_handle input_handle,
                            input_handle->sequence_buffer,
                            fragment.view,
                            char_fq_action_seq.data(), char_mapping,
-                           &ok, &illegal_char);
+                           ok, illegal_char);
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
@@ -522,7 +522,7 @@ auto fastq_next(fastx_handle input_handle,
                            input_handle->quality_buffer,
                            fragment.view,
                            char_fq_action_qual.data(), chrmap_identity.data(),
-                           &ok, &illegal_char);
+                           ok, illegal_char);
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {
