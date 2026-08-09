@@ -456,8 +456,8 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
 
 static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> void
 {
-  struct searchinfo_s * const si_plus = state.si_plus.data();
-  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
 
   std::array<std::array<int, bootstrap_count>, 2> all_seqno {{}};
   std::array<int, 2> boot_count = {0, 0};
@@ -477,7 +477,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
      boot_count and best_count below), so here the index is data */
   for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
     {
-      struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
+      struct searchinfo_s * const si = (s != 0) ? &si_minus[t] : &si_plus[t];
 
       /* perform search */
 
@@ -573,8 +573,8 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
   std::mutex & mutex_input = state.mutex_input;
   std::mutex & mutex_output = state.mutex_output;
   struct fastx_s * const query_fastx_h = state.query_fastx_h;
-  struct searchinfo_s * const si_plus = state.si_plus.data();
-  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
 
   uint64_t progress = 0;
 
@@ -600,7 +600,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
        stored as si->strand, so here the index is data */
     for (auto s = 0; s < number_of_strands(state.parameters.opt_strand); s++)
       {
-        struct searchinfo_s * si = (s != 0) ? si_minus + t : si_plus + t;
+        struct searchinfo_s * const si = (s != 0) ? &si_minus[t] : &si_plus[t];
 
         si->query_no = query_no;
         si->qsize = qsize;
@@ -653,34 +653,34 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 }
 
 
-static auto sintax_thread_init(struct sintax_state_s const & state, struct searchinfo_s * si) -> void
+static auto sintax_thread_init(struct sintax_state_s const & state, struct searchinfo_s & si) -> void
 {
   /* thread specific initialiation */
-  si->parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
-  si->dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
-  si->db = &state.db;  /* searchcore reads the sequences through the si */
+  si.parameters = &state.parameters;  /* searchcore reads config through the si (E1) */
+  si.dbindex = &state.dbindex;  /* searchcore reads the k-mer index through the si */
+  si.db = &state.db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   /* the kmer counts live in the searchinfo_s kmers_v vector (RAII), matching
      search/cluster; the reserve headroom keeps the SIMD counter stores that
      may run past the logical end in bounds. */
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si->kmers_v.reserve(static_cast<size_t>(state.seqcount) + overflow_padding);
-  si->kmers_v.resize(static_cast<size_t>(state.seqcount));
-  si->m = Minheap(state.tophits);
-  si->qsize = 1;
-  si->query_head = View<char>{nullptr, 0};
-  si->seq_alloc = 0;
-  si->qsequence = Span<char>{};
-  si->nw = nullptr;
-  si->s.reset();
+  si.kmers_v.reserve(static_cast<size_t>(state.seqcount) + overflow_padding);
+  si.kmers_v.resize(static_cast<size_t>(state.seqcount));
+  si.m = Minheap(state.tophits);
+  si.qsize = 1;
+  si.query_head = View<char>{nullptr, 0};
+  si.seq_alloc = 0;
+  si.qsequence = Span<char>{};
+  si.nw = nullptr;
+  si.s.reset();
 }
 
 
-static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
+static auto sintax_thread_exit(struct searchinfo_s & searchinfo) -> void
 {
   /* thread specific clean up */
-  searchinfo->uh = Uniquer();
-  searchinfo->m = Minheap();
+  searchinfo.uh = Uniquer();
+  searchinfo.m = Minheap();
   /* the kmer counts, the query header and the query sequence live in the
      searchinfo_s vectors (kmers_v/query_head_v/qsequence_v), which free
      their own storage */
@@ -689,16 +689,16 @@ static auto sintax_thread_exit(struct searchinfo_s * searchinfo) -> void
 
 static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
 {
-  struct searchinfo_s * const si_plus = state.si_plus.data();
-  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
 
   /* init per-thread search state before the workers start */
   for (auto t = 0; t < state.parameters.opt_threads; t++)
     {
-      sintax_thread_init(state, si_plus + t);
-      if (si_minus != nullptr)
+      sintax_thread_init(state, si_plus[static_cast<std::size_t>(t)]);
+      if (not si_minus.empty())
         {
-          sintax_thread_init(state, si_minus + t);
+          sintax_thread_init(state, si_minus[static_cast<std::size_t>(t)]);
         }
     }
 
@@ -713,10 +713,10 @@ static auto sintax_thread_worker_run(struct sintax_state_s & state) -> void
   /* clean up per-thread search state */
   for (auto t = 0; t < state.parameters.opt_threads; t++)
     {
-      sintax_thread_exit(si_plus + t);
-      if (si_minus != nullptr)
+      sintax_thread_exit(si_plus[static_cast<std::size_t>(t)]);
+      if (not si_minus.empty())
         {
-          sintax_thread_exit(si_minus + t);
+          sintax_thread_exit(si_minus[static_cast<std::size_t>(t)]);
         }
     }
 }

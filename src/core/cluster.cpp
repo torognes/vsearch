@@ -195,34 +195,34 @@ namespace {
     return source.size() > room;
   }
 
-inline auto cluster_query_core(struct searchinfo_s * si, struct Database const & db, struct Parameters const & parameters) -> void
+inline auto cluster_query_core(struct searchinfo_s & si, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* the main core function for clustering */
 
   /* get sequence etc */
-  const int seqno = si->query_no;
+  const int seqno = si.query_no;
   auto const useqno = static_cast<uint64_t>(seqno);
   /* read-only borrow into the (const) database; query_head is a const view, so
      no copy or cast is needed */
-  si->query_head = db.header_view(useqno);
-  si->qsize = static_cast<int64_t>(db.getabundance(useqno));
+  si.query_head = db.header_view(useqno);
+  si.qsize = static_cast<int64_t>(db.getabundance(useqno));
   auto const seqlen = db.getsequencelen(useqno);
-  if (si->strand != 0)
+  if (si.strand != 0)
     {
-      reverse_complement(make_span(si->qsequence_v).first(static_cast<std::size_t>(seqlen) + 1), db.sequence_view(useqno));
+      reverse_complement(make_span(si.qsequence_v).first(static_cast<std::size_t>(seqlen) + 1), db.sequence_view(useqno));
     }
   else
     {
       /* copy the bases and write the terminator here, rather than reading a
          seqlen + 1'th byte the view does not cover (as populate_si does) */
       auto const dbseq = db.sequence_view(useqno);
-      std::copy(dbseq.cbegin(), dbseq.cend(), si->qsequence_v.begin());
-      si->qsequence_v[dbseq.size()] = '\0';
+      std::copy(dbseq.cbegin(), dbseq.cend(), si.qsequence_v.begin());
+      si.qsequence_v[dbseq.size()] = '\0';
     }
-  si->qsequence = make_span(si->qsequence_v).first(static_cast<std::size_t>(seqlen));
+  si.qsequence = make_span(si.qsequence_v).first(static_cast<std::size_t>(seqlen));
 
   /* perform search */
-  search_onequery(si, parameters.opt_qmask);
+  search_onequery(&si, parameters.opt_qmask);
 }
 
 
@@ -355,10 +355,11 @@ struct cluster_work_pool_s
     auto const & work = thread_work[t];
     for (int q = 0; q < work.query_count; q++)
       {
-        cluster_query_core(si_plus.data() + work.query_first + q, db, parameters);
+        auto const query = static_cast<std::size_t>(work.query_first + q);
+        cluster_query_core(si_plus[query], db, parameters);
         if (not si_minus.empty())
           {
-            cluster_query_core(si_minus.data() + work.query_first + q, db, parameters);
+            cluster_query_core(si_minus[query], db, parameters);
           }
       }
   }
@@ -612,8 +613,8 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
 /* `extra_list` holds the query numbers of the non-matching sequences of this
    round: the filled prefix of the caller's reused max_queries-sized buffer,
    whose fill level used to be handed over beside the pointer as extra_count. */
-static auto evaluate_extra_hits(struct searchinfo_s * si,
-                                struct searchinfo_s const * si_plus,
+static auto evaluate_extra_hits(struct searchinfo_s & si,
+                                View<struct searchinfo_s> const si_plus,
                                 View<int> const extra_list,
                                 LinearMemoryAligner & lma,
                                 int const tophits,
@@ -627,12 +628,12 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
      exceed tophits, so the insertion/shift below would write past the buffer.
      Clamp the bound to the actual capacity (S10). */
   int const hit_capacity =
-    static_cast<int>(std::min<int64_t>(si->parameters->opt_maxaccepts + si->parameters->opt_maxrejects - 1,
+    static_cast<int>(std::min<int64_t>(si.parameters->opt_maxaccepts + si.parameters->opt_maxrejects - 1,
                                        tophits));
 
   /* the whole buffer, not make_hits_span()'s live prefix: the insertion below
      shifts into, and writes at, the slot one past the last hit so far */
-  auto const hit_buffer = make_span(si->hits_v);
+  auto const hit_buffer = make_span(si.hits_v);
   assert(hit_capacity <= static_cast<int>(hit_buffer.size()));
 
   if (not extra_list.empty())
@@ -642,24 +643,24 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
       for (auto const extra_query : extra_list)
         {
-          struct searchinfo_s const * sic = si_plus + extra_query;
+          auto const & sic = si_plus[static_cast<std::size_t>(extra_query)];
 
           /* find the number of shared unique kmers */
           auto const shared
-            = si->uh.count_shared(static_cast<int>(si->dbindex->wordlength),
-                                  sic->kmersample);
+            = si.uh.count_shared(static_cast<int>(si.dbindex->wordlength),
+                                  sic.kmersample);
 
           /* check if min number of shared kmers is satisfied */
-          if (search_enough_kmers(*si, shared))
+          if (search_enough_kmers(si, shared))
             {
-              auto const length = static_cast<unsigned int>(sic->qsequence.size());
+              auto const length = static_cast<unsigned int>(sic.qsequence.size());
 
               /* Go through the list of hits and see if the current
                  match is better than any on the list in terms of
                  more shared kmers (or shorter length if equal
                  no of kmers). Determine insertion point (x). */
 
-              int x = si->hit_count;
+              int x = si.hit_count;
               while ((x > 0) and
                      ((hit_buffer[static_cast<std::size_t>(x - 1)].count < shared) or
                       ((hit_buffer[static_cast<std::size_t>(x - 1)].count == shared) and
@@ -674,25 +675,25 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   /* insert into list at position x */
 
                   /* trash bottom element if no more space */
-                  if (si->hit_count >= hit_capacity)
+                  if (si.hit_count >= hit_capacity)
                     {
                       /* the evicted slot's std::string cigar is freed when the
                          shift/init below overwrites it */
-                      --si->hit_count;
+                      --si.hit_count;
                     }
 
                   /* move the rest down: std::move_backward steals each hit's
                      std::string cigar buffer instead of copying it */
                   std::move_backward(std::next(hit_buffer.begin(), x),
-                                     std::next(hit_buffer.begin(), si->hit_count),
-                                     std::next(hit_buffer.begin(), si->hit_count + 1));
+                                     std::next(hit_buffer.begin(), si.hit_count),
+                                     std::next(hit_buffer.begin(), si.hit_count + 1));
 
                   /* init new hit */
                   struct hit * const hit = &hit_buffer[static_cast<std::size_t>(x)];
-                  ++si->hit_count;
+                  ++si.hit_count;
 
-                  hit->target = sic->query_no;
-                  hit->strand = si->strand;
+                  hit->target = sic.query_no;
+                  hit->strand = si.strand;
                   hit->count = shared;
                   hit->accepted = false;
                   hit->rejected = false;
@@ -710,21 +711,21 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
 
   if (added != 0)
     {
-      si->rejects = 0;
-      si->accepts = 0;
+      si.rejects = 0;
+      si.accepts = 0;
 
       /* set all statuses to undetermined */
 
-      for (auto & hit : make_hits_span(si))
+      for (auto & hit : make_hits_span(&si))
         {
           hit.accepted = false;
           hit.rejected = false;
         }
 
       for (int t = 0;
-           (si->accepts < si->parameters->opt_maxaccepts) and
-             (si->rejects < si->parameters->opt_maxrejects) and
-             (t < si->hit_count);
+           (si.accepts < si.parameters->opt_maxaccepts) and
+             (si.rejects < si.parameters->opt_maxrejects) and
+             (t < si.hit_count);
            ++t)
         {
           struct hit * const hit = &hit_buffer[static_cast<std::size_t>(t)];
@@ -733,7 +734,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
             {
               /* Test accept/reject criteria before alignment */
               auto const target = static_cast<unsigned int>(hit->target);
-              if (search_acceptable_unaligned(*si, static_cast<int>(target)))
+              if (search_acceptable_unaligned(si, static_cast<int>(target)))
                 {
                   /* perform vectorized alignment */
                   /* but only using 1 sequence ! */
@@ -754,7 +755,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                   unsigned short snwmismatches = 0;
                   unsigned short snwgaps = 0;
 
-                  search16(si->s.get(),
+                  search16(si.s.get(),
                            1,
                            & nwtarget,
                            & snwscore,
@@ -774,7 +775,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                          linear memory aligner */
 
                       auto const tseq = db.sequence_view(target);
-                      auto const qseq = View<char>{si->qsequence};
+                      auto const qseq = View<char>{si.qsequence};
 
                       nwcigar = lma.align(qseq, tseq);
 
@@ -812,39 +813,39 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                     static_cast<double>(nwalignmentlength - hit->nwdiff) /
                     static_cast<double>(nwalignmentlength);
 
-                  hit->shortest = std::min(static_cast<int>(si->qsequence.size()), static_cast<int>(tseqlen));
-                  hit->longest = std::max(static_cast<int>(si->qsequence.size()), static_cast<int>(tseqlen));
+                  hit->shortest = std::min(static_cast<int>(si.qsequence.size()), static_cast<int>(tseqlen));
+                  hit->longest = std::max(static_cast<int>(si.qsequence.size()), static_cast<int>(tseqlen));
 
                   /* trim alignment and compute numbers
                      excluding terminal gaps */
-                  align_trim(*hit, *si->parameters);
+                  align_trim(*hit, *si.parameters);
                 }
               else
                 {
                   /* rejection without alignment */
                   hit->rejected = true;
-                  ++si->rejects;
+                  ++si.rejects;
                 }
             }
 
           if (not hit->rejected)
             {
               /* test accept/reject criteria after alignment */
-              if (search_acceptable_aligned(*si, *hit))
+              if (search_acceptable_aligned(si, *hit))
                 {
-                  ++si->accepts;
+                  ++si.accepts;
                 }
               else
                 {
-                  ++si->rejects;
+                  ++si.rejects;
                 }
             }
         }
 
       /* delete all undetermined hits */
 
-      int new_hit_count = si->hit_count;
-      for (int t = si->hit_count - 1; t >= 0; t--)
+      int new_hit_count = si.hit_count;
+      for (int t = si.hit_count - 1; t >= 0; t--)
         {
           auto & hit = hit_buffer[static_cast<std::size_t>(t)];
           if (not hit.accepted and not hit.rejected)
@@ -856,7 +857,7 @@ static auto evaluate_extra_hits(struct searchinfo_s * si,
                 }
             }
         }
-      si->hit_count = new_hit_count;
+      si.hit_count = new_hit_count;
     }
 }
 
@@ -892,8 +893,8 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
      The local si_plus/si_minus aliases let the loops below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(state.parameters.opt_threads), seqcount, tophits,
                            state.parameters.opt_strand, state.effective_parameters, state.dbindex, db);
-  searchinfo_s * const si_plus = pool.si_plus.data();
-  searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
+  auto & si_plus = pool.si_plus;
+  auto & si_minus = pool.si_minus;
 
   std::vector<int> extra_list(static_cast<std::size_t>(max_queries));
 
@@ -931,13 +932,14 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
               lastlength = length;
 
-              si_plus[i].query_no = seqno;
-              si_plus[i].strand = 0;
+              auto const query = static_cast<std::size_t>(i);
+              si_plus[query].query_no = seqno;
+              si_plus[query].strand = 0;
 
               if (state.parameters.opt_strand)
                 {
-                  si_minus[i].query_no = seqno;
-                  si_minus[i].strand = 1;
+                  si_minus[query].query_no = seqno;
+                  si_minus[query].strand = 1;
                 }
 
               ++queries;
@@ -953,14 +955,16 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
       for (int i = 0; i < queries; i++)
         {
-          struct searchinfo_s * si_p = si_plus + i;
-          struct searchinfo_s * si_m = state.parameters.opt_strand ? si_minus + i : nullptr;
+          auto const query = static_cast<std::size_t>(i);
+          struct searchinfo_s * const si_p = &si_plus[query];
+          struct searchinfo_s * const si_m =
+            state.parameters.opt_strand ? &si_minus[query] : nullptr;
 
           std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
           for (auto * const si : make_view(strands)
                  .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
             {
-              evaluate_extra_hits(si, si_plus,
+              evaluate_extra_hits(*si, make_view(si_plus),
                                   make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
                                   lma, tophits, db);
             }
@@ -1069,13 +1073,13 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
 
       si_p[0].query_no = seqno;
       si_p[0].strand = 0;
-      cluster_query_core(si_p.data(), db, state.parameters);
+      cluster_query_core(si_p.front(), db, state.parameters);
 
       if (state.parameters.opt_strand)
         {
           si_m[0].query_no = seqno;
           si_m[0].strand = 1;
-          cluster_query_core(si_m.data(), db, state.parameters);
+          cluster_query_core(si_m.front(), db, state.parameters);
         }
 
       struct hit * best = nullptr;
@@ -1714,13 +1718,13 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
   cs->si->query_no = seqno;
   cs->si->strand = 0;
-  cluster_query_core(cs->si.get(), *cs->db, parameters);
+  cluster_query_core(*cs->si, *cs->db, parameters);
 
   if (parameters.opt_strand)
     {
       cs->si_minus->query_no = seqno;
       cs->si_minus->strand = 1;
-      cluster_query_core(cs->si_minus.get(), *cs->db, parameters);
+      cluster_query_core(*cs->si_minus, *cs->db, parameters);
     }
 
   struct hit const * best = nullptr;
@@ -1809,8 +1813,8 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
      si_minus aliases let the loop below read unchanged. */
   cluster_work_pool_s pool(static_cast<int>(parameters.opt_threads), cs->seqcount,
                            cs->tophits, parameters.opt_strand, parameters, *cs->dbindex, *cs->db);
-  searchinfo_s * const si_plus = pool.si_plus.data();
-  searchinfo_s * const si_minus = pool.si_minus.empty() ? nullptr : pool.si_minus.data();
+  auto & si_plus = pool.si_plus;
+  auto & si_minus = pool.si_minus;
 
   /* Scoring for intra-batch fixup alignment */
   struct Scoring const scoring = scoring_from_options(parameters);
@@ -1830,13 +1834,14 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
         {
           if (seqno < end_seqno)
             {
-              si_plus[i].query_no = seqno;
-              si_plus[i].strand = 0;
+              auto const query = static_cast<std::size_t>(i);
+              si_plus[query].query_no = seqno;
+              si_plus[query].strand = 0;
 
               if (parameters.opt_strand)
                 {
-                  si_minus[i].query_no = seqno;
-                  si_minus[i].strand = 1;
+                  si_minus[query].query_no = seqno;
+                  si_minus[query].strand = 1;
                 }
 
               ++queries;
@@ -1853,15 +1858,16 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
 
       for (int i = 0; i < queries; i++)
         {
-          struct searchinfo_s * si_p = si_plus + i;
-          struct searchinfo_s * si_m =
-            parameters.opt_strand ? si_minus + i : nullptr;
+          auto const query = static_cast<std::size_t>(i);
+          struct searchinfo_s * const si_p = &si_plus[query];
+          struct searchinfo_s * const si_m =
+            parameters.opt_strand ? &si_minus[query] : nullptr;
 
           std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
           for (auto * const si : make_view(strands)
                  .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
             {
-              evaluate_extra_hits(si, si_plus,
+              evaluate_extra_hits(*si, make_view(si_plus),
                                   make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
                                   lma, cs->tophits, *cs->db);
             }

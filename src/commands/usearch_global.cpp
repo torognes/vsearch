@@ -372,11 +372,11 @@ static auto search_output_results(struct search_cli_state_s & state,
 
 static auto search_query(struct search_cli_state_s & state, uint64_t const t) -> int
 {
-  struct searchinfo_s * const si_plus = state.si_plus.data();
-  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
 
   std::array<struct searchinfo_s *, 2> const strands
-    {{si_plus + t, (si_minus != nullptr) ? si_minus + t : nullptr}};
+    {{&si_plus[t], si_minus.empty() ? nullptr : &si_minus[t]}};
   for (auto * const si : make_view(strands)
          .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
     {
@@ -396,8 +396,8 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
 
   std::vector<struct hit> hits;
 
-  search_joinhits(si_plus + t,
-                  state.parameters.opt_strand ? si_minus + t : nullptr,
+  search_joinhits(&si_plus[t],
+                  state.parameters.opt_strand ? &si_minus[t] : nullptr,
                   hits);
 
   auto const qsequence = View<char>{si_plus[t].qsequence};
@@ -421,7 +421,8 @@ static auto search_query(struct search_cli_state_s & state, uint64_t const t) ->
 static auto search_thread_run(struct search_cli_state_s & state, uint64_t const t) -> void
 {
   auto * const query_fastx_h = state.query_fastx_h;
-  struct searchinfo_s * const si_plus = state.si_plus.data();
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
 
   int query_no = 0;
   int64_t qsize = 0;
@@ -438,7 +439,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
     query_no = static_cast<int>(query_fastx_h->get_seqno());
     qsize = query_fastx_h->get_abundance();
 
-    populate_si(si_plus + t,
+    populate_si(si_plus[t],
                 query_fastx_h->header_view(),
                 query_fastx_h->sequence_view(),
                 query_no,
@@ -453,7 +454,7 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
   auto const process_query = [&]() -> void {
     if (state.parameters.opt_strand)
       {
-        populate_si(state.si_minus.data() + t,
+        populate_si(si_minus[t],
                     si_plus[t].query_head,
                     View<char>{si_plus[t].qsequence},
                     query_no,
@@ -486,18 +487,18 @@ static auto search_thread_run(struct search_cli_state_s & state, uint64_t const 
 
 static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
 {
-  struct searchinfo_s * const si_plus = state.si_plus.data();
-  struct searchinfo_s * const si_minus = state.si_minus.empty() ? nullptr : state.si_minus.data();
+  auto & si_plus = state.si_plus;
+  auto & si_minus = state.si_minus;
   int const seqcount = state.seqcount;
   int const tophits = state.tophits;
 
   /* init per-thread search state before the workers start */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_init(si_plus + t, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
-      if (si_minus != nullptr)
+      search_thread_init(si_plus[static_cast<std::size_t>(t)], seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+      if (not si_minus.empty())
         {
-          search_thread_init(si_minus + t, seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
+          search_thread_init(si_minus[static_cast<std::size_t>(t)], seqcount, tophits, state.effective_parameters, state.dbindex, state.db);
         }
     }
 
@@ -512,10 +513,10 @@ static auto search_thread_worker_run(struct search_cli_state_s & state) -> void
   /* clean up per-thread search state */
   for (int t = 0; t < state.parameters.opt_threads; t++)
     {
-      search_thread_exit(si_plus + t);
-      if (si_minus != nullptr)
+      search_thread_exit(si_plus[static_cast<std::size_t>(t)]);
+      if (not si_minus.empty())
         {
-          search_thread_exit(si_minus + t);
+          search_thread_exit(si_minus[static_cast<std::size_t>(t)]);
         }
     }
 }

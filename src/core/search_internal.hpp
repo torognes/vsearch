@@ -68,16 +68,16 @@
 #include "utils/view.hpp"
 #include <cstdint>  // int64_t
 
-auto populate_si(struct searchinfo_s * si,
+auto populate_si(struct searchinfo_s & si,
                  View<char> head,
                  View<char> seq,
                  int query_no,
                  int64_t qsize,
                  int strand) -> void;
 
-auto search_thread_init(struct searchinfo_s * si, int seqcount, int tophits,
+auto search_thread_init(struct searchinfo_s & si, int seqcount, int tophits,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex,
                         struct Database const & db) -> void;
 
-auto search_thread_exit(struct searchinfo_s * si) -> void;
+auto search_thread_exit(struct searchinfo_s & si) -> void;

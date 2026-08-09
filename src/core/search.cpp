@@ -88,73 +88,73 @@
 #include <vector>
 
 
-auto populate_si(struct searchinfo_s * si,
+auto populate_si(struct searchinfo_s & si,
                  View<char> const head,
                  View<char> const seq,
                  int const query_no,
                  int64_t const qsize,
                  int const strand) -> void
 {
-  si->query_no = query_no;
-  si->qsize = qsize;
-  si->strand = strand;
+  si.query_no = query_no;
+  si.qsize = qsize;
+  si.strand = strand;
 
   /* allocate more memory for the sequence, if necessary */
 
   auto const seq_len = static_cast<int>(seq.size());
-  if (seq_len + 1 > si->seq_alloc)
+  if (seq_len + 1 > si.seq_alloc)
     {
-      si->seq_alloc = seq_len + buffer_headroom;
-      si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
+      si.seq_alloc = seq_len + buffer_headroom;
+      si.qsequence_v.resize(static_cast<size_t>(si.seq_alloc));
     }
 
   /* copy the header into owned storage, then point the read-only view at it.
      The copy is head.size() bytes plus a terminator written here, rather than
      head.size() + 1 bytes read from the source: the callers all happen to pass
      a NUL-terminated header, but that byte is outside the view they hand over. */
-  si->query_head_v.resize(head.size() + 1);
-  std::copy(head.cbegin(), head.cend(), si->query_head_v.begin());
-  si->query_head_v[head.size()] = '\0';
-  si->query_head = make_view(si->query_head_v).first(head.size());
+  si.query_head_v.resize(head.size() + 1);
+  std::copy(head.cbegin(), head.cend(), si.query_head_v.begin());
+  si.query_head_v[head.size()] = '\0';
+  si.query_head = make_view(si.query_head_v).first(head.size());
 
   /* copy or reverse-complement sequence into the owned buffer, then point the
      span at it (length == seq.size(); the NUL at [seq.size()] sits just past
      the span) */
   if (strand == 0)
     {
-      std::copy(seq.cbegin(), seq.cend(), si->qsequence_v.begin());
-      si->qsequence_v[seq.size()] = '\0';
+      std::copy(seq.cbegin(), seq.cend(), si.qsequence_v.begin());
+      si.qsequence_v[seq.size()] = '\0';
     }
   else
     {
-      reverse_complement(make_span(si->qsequence_v).first(seq.size() + 1), seq);
+      reverse_complement(make_span(si.qsequence_v).first(seq.size() + 1), seq);
     }
-  si->qsequence = make_span(si->qsequence_v).first(seq.size());
+  si.qsequence = make_span(si.qsequence_v).first(seq.size());
 }
 
 
-auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const tophits,
+auto search_thread_init(struct searchinfo_s & si, int const seqcount, int const tophits,
                         struct Parameters const & parameters,
                         struct Dbindex const & dbindex,
                         struct Database const & db) -> void
 {
   /* thread specific initialiation */
-  si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  si->dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
-  si->db = &db;  /* searchcore reads the sequences through the si */
+  si.parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  si.dbindex = &dbindex;  /* searchcore reads the k-mer index through the si */
+  si.db = &db;  /* searchcore reads the sequences through the si */
   /* si->uh (a Uniquer value member) is ready to use as default-constructed */
   /* kmers/hits/qsequence are the searchinfo_s vectors themselves (RAII), so a
      fatal() unwinding out of a partial init or a query frees them. */
   static constexpr auto overflow_padding = 16U;  // 16 * sizeof(count_t) = 32 bytes headroom
-  si->kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
-  si->kmers_v.resize(static_cast<size_t>(seqcount));
-  si->m = Minheap(tophits);
-  si->hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
-  si->qsize = 1;
-  si->query_head = View<char>{nullptr, 0};
-  si->seq_alloc = 0;
-  si->qsequence = Span<char>{};
-  si->s.reset(search16_init(parameters.opt_match,
+  si.kmers_v.reserve(static_cast<size_t>(seqcount) + overflow_padding);
+  si.kmers_v.resize(static_cast<size_t>(seqcount));
+  si.m = Minheap(tophits);
+  si.hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
+  si.qsize = 1;
+  si.query_head = View<char>{nullptr, 0};
+  si.seq_alloc = 0;
+  si.qsequence = Span<char>{};
+  si.s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,
                         parameters.opt_gap_open_query_left,
                         parameters.opt_gap_open_target_left,
@@ -172,13 +172,13 @@ auto search_thread_init(struct searchinfo_s * si, int const seqcount, int const 
 }
 
 
-auto search_thread_exit(struct searchinfo_s * si) -> void
+auto search_thread_exit(struct searchinfo_s & si) -> void
 {
   /* thread specific clean up. The handles are also freed by ~searchinfo_s if an
      exception unwinds before this runs. */
-  si->s.reset();
-  si->uh = Uniquer();
-  si->m = Minheap();
+  si.s.reset();
+  si.uh = Uniquer();
+  si.m = Minheap();
   /* the kmer counts, the hits and the query sequence and header live in the
      searchinfo_s vectors (kmers_v/hits_v/qsequence_v/query_head_v), which free
      their own storage. */
@@ -240,13 +240,13 @@ auto search_session_init(struct search_session_s * ss, struct Parameters const &
   ss->tophits = std::min(ss->tophits, ss->seqcount);
 
   ss->si_plus = make_unique<searchinfo_s>();
-  search_thread_init(ss->si_plus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
+  search_thread_init(*ss->si_plus, ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
   ss->si_plus->strand = 0;
 
   if (parameters.opt_strand)
     {
       ss->si_minus = make_unique<searchinfo_s>();
-      search_thread_init(ss->si_minus.get(), ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
+      search_thread_init(*ss->si_minus, ss->seqcount, ss->tophits, parameters, *ss->dbindex, *ss->db);
       ss->si_minus->strand = 1;
     }
 }
@@ -295,7 +295,7 @@ auto search_session_single(struct search_session_s * ss,
   struct searchinfo_s const * si = ss->si_plus.get();
   struct Parameters const & parameters = *ss->parameters;
 
-  populate_si(ss->si_plus.get(),
+  populate_si(*ss->si_plus,
               query.header,
               query.sequence,
               0,
@@ -304,7 +304,7 @@ auto search_session_single(struct search_session_s * ss,
 
   if (parameters.opt_strand)
     {
-      populate_si(ss->si_minus.get(),
+      populate_si(*ss->si_minus,
                   query.header,
                   query.sequence,
                   0,
@@ -364,12 +364,12 @@ auto search_session_cleanup(struct search_session_s * ss) -> void
 {
   if (ss->si_plus)
     {
-      search_thread_exit(ss->si_plus.get());
+      search_thread_exit(*ss->si_plus);
       ss->si_plus.reset();
     }
   if (ss->si_minus)
     {
-      search_thread_exit(ss->si_minus.get());
+      search_thread_exit(*ss->si_minus);
       ss->si_minus.reset();
     }
 }
@@ -426,7 +426,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
     auto const seq_v = query.sequence;
     int64_t const qsize = query.abundance;
 
-    populate_si(my_si_plus,
+    populate_si(*my_si_plus,
                 head_v,
                 seq_v,
                 qi,
@@ -435,7 +435,7 @@ static auto search_batch_worker_fn(struct search_batch_context_s & ctx,
 
     if (my_si_minus != nullptr)
       {
-        populate_si(my_si_minus,
+        populate_si(*my_si_minus,
                     head_v,
                     seq_v,
                     qi,
@@ -534,10 +534,10 @@ auto search_batch(struct Parameters const & parameters,
   /* Init per-thread search state before the workers start */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_init(&ctx.batch_si_plus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
+      search_thread_init(ctx.batch_si_plus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
       if (not ctx.batch_si_minus.empty())
         {
-          search_thread_init(&ctx.batch_si_minus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
+          search_thread_init(ctx.batch_si_minus[static_cast<std::size_t>(t)], seqcount, tophits, parameters, dbindex, db);
         }
     }
 
@@ -554,10 +554,10 @@ auto search_batch(struct Parameters const & parameters,
      would run these searchinfo_s destructors on an exception unwind). */
   for (int t = 0; t < nthreads; t++)
     {
-      search_thread_exit(&ctx.batch_si_plus[static_cast<std::size_t>(t)]);
+      search_thread_exit(ctx.batch_si_plus[static_cast<std::size_t>(t)]);
       if (not ctx.batch_si_minus.empty())
         {
-          search_thread_exit(&ctx.batch_si_minus[static_cast<std::size_t>(t)]);
+          search_thread_exit(ctx.batch_si_minus[static_cast<std::size_t>(t)]);
         }
     }
 }
