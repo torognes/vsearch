@@ -157,22 +157,23 @@ auto wo(View<char> const window) -> DustRegion
 
 /* Core DUST implementation with explicit hardmask parameter.
    Thread-safe: does not read any globals. */
-static auto dust_core(char * seq, int const len, bool const use_hardmask) -> void
+static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> void
 {
   static constexpr auto dust_level = 20;
   static constexpr auto half_dust_window = dust_window / 2;
 
-  /* make a local copy of the original sequence */
-  std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
-  std::copy_n(seq, static_cast<std::size_t>(len) + 1, local_seq.data());
+  auto const len = static_cast<int>(sequence.size());
 
-  auto const sequence = Span<char>{seq, static_cast<std::size_t>(len)};
+  /* make a local copy of the original sequence, including the terminator that
+     sits just past the span (see the write below) */
+  std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
+  std::copy_n(sequence.data(), static_cast<std::size_t>(len) + 1, local_seq.data());
 
   if (!use_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
       std::transform(sequence.begin(), sequence.end(), sequence.begin(), to_upper);
-      seq[len] = 0;  /* the terminator, which sits just past the span */
+      sequence.data()[len] = 0;  /* the terminator, which sits just past the span */
     }
 
   /* indexed, and the index is mutated in the body: a masked region short
@@ -220,7 +221,7 @@ static auto dust_core(char * seq, int const len, bool const use_hardmask) -> voi
 
 auto dust(Span<char> const seq, struct Parameters const & parameters) -> void
 {
-  dust_core(seq.data(), static_cast<int>(seq.size()), parameters.opt_hardmask);
+  dust_core(seq, parameters.opt_hardmask);
 }
 
 
@@ -300,5 +301,5 @@ auto hardmask_all(struct Database & db) -> void
 
 auto dust_single(char * seq, int const len, bool const use_hardmask) -> void
 {
-  dust_core(seq, len, use_hardmask);
+  dust_core(Span<char>{seq, static_cast<std::size_t>(len)}, use_hardmask);
 }
