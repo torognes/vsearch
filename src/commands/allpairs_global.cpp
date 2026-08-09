@@ -406,15 +406,16 @@ static auto allpairs_thread_run(struct allpairs_state_s & state, uint64_t const 
 
         search16_qprep(searchinfo.s.get(), View<char>{searchinfo.qsequence});
 
+        /* the hits accumulated above, not the whole maxhits buffers */
+        auto const found = static_cast<std::size_t>(searchinfo.hit_count);
         search16(searchinfo.s.get(),
-                 static_cast<unsigned int>(searchinfo.hit_count),
-                 pseqnos.data(),
-                 pscores.data(),
-                 paligned.data(),
-                 pmatches.data(),
-                 pmismatches.data(),
-                 pgaps.data(),
-                 pcigar.data(),
+                 make_view(pseqnos).first(found),
+                 make_span(pscores).first(found),
+                 make_span(paligned).first(found),
+                 make_span(pmatches).first(found),
+                 make_span(pmismatches).first(found),
+                 make_span(pgaps).first(found),
+                 make_span(pcigar).first(found),
                  state.db);
 
         /* convert to hit structure */

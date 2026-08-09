@@ -1059,15 +1059,24 @@ inline auto finishop(s16info_s * s) -> void
 }
 
 
+/* The four 16-bit statistics backtrack16() reports for one aligned pair. They
+   used to leave through four adjacent unsigned short * out-parameters, which
+   is the shape LinearMemoryAligner::alignstats() was given a return value for;
+   this is the same change, forced here because the caller's arrays are now
+   spans and `paligned + cand_id` would be pointer arithmetic over one. */
+struct Backtrack16Stats {
+  unsigned short aligned = 0;
+  unsigned short matches = 0;
+  unsigned short mismatches = 0;
+  unsigned short gaps = 0;
+};
+
+
 auto backtrack16(s16info_s * s,
                  char const * dseq,
                  uint64_t const dlen,
                  uint64_t const offset,
-                 uint64_t const channel,
-                 unsigned short * paligned,
-                 unsigned short * pmatches,
-                 unsigned short * pmismatches,
-                 unsigned short * pgaps) -> void
+                 uint64_t const channel) -> Backtrack16Stats
 {
   unsigned short const * dirbuffer = s->dir.data();
   uint64_t const qlen = s->qseq.size();
@@ -1248,10 +1257,15 @@ auto backtrack16(s16info_s * s,
   int const cigarlen = static_cast<int>(s->cigar.data() + s->qseq.size() + s->maxdlen - s->cigarend);
   std::memmove(s->cigar.data(), s->cigarend, static_cast<size_t>(cigarlen + 1));
 
-  * paligned = aligned;
-  * pmatches = matches;
-  * pmismatches = mismatches;
-  * pgaps = gaps;
+  /* named, not brace-initialised: the members have default initialisers, which
+     under C++11 makes this a non-aggregate -- and naming them is what keeps
+     four same-typed values from being transposed on the way out */
+  Backtrack16Stats stats;
+  stats.aligned = aligned;
+  stats.matches = matches;
+  stats.mismatches = mismatches;
+  stats.gaps = gaps;
+  return stats;
 }
 
 
@@ -1425,16 +1439,26 @@ auto compute_score_min(struct s16info_s const & alignment) -> short {
 
 
 auto search16(s16info_s * s,
-              unsigned int const sequences,
-              unsigned int const * seqnos,
-              CELL * pscores,
-              unsigned short * paligned,
-              unsigned short * pmatches,
-              unsigned short * pmismatches,
-              unsigned short * pgaps,
-              std::string * pcigar,
+              View<unsigned int> const seqnos,
+              Span<CELL> const pscores,
+              Span<unsigned short> const paligned,
+              Span<unsigned short> const pmatches,
+              Span<unsigned short> const pmismatches,
+              Span<unsigned short> const pgaps,
+              Span<std::string> const pcigar,
               struct Database const & db) -> void
 {
+  /* the eight arrays are indexed by the same candidate number, so they must
+     describe the same extent; that used to be a promise between the caller's
+     seven pointers and its `sequences` argument */
+  auto const sequences = seqnos.size();
+  assert(pscores.size() == sequences);
+  assert(paligned.size() == sequences);
+  assert(pmatches.size() == sequences);
+  assert(pmismatches.size() == sequences);
+  assert(pgaps.size() == sequences);
+  assert(pcigar.size() == sequences);
+
   CELL ** q_start = reinterpret_cast<CELL **>(s->qtable.data());
   CELL * dprofile = reinterpret_cast<CELL *>(s->dprofile.data());
   CELL * hearray = reinterpret_cast<CELL *>(s->hearray.data());
@@ -1446,7 +1470,7 @@ auto search16(s16info_s * s,
          infinite gap penalty). Report every pair as unrepresentable via the
          SHRT_MAX sentinel so the caller re-aligns it with the exact scalar
          (linear-memory) aligner, exactly as the size guard does. */
-      for (auto cand_id = 0U; cand_id < sequences; cand_id++)
+      for (std::size_t cand_id = 0; cand_id < sequences; ++cand_id)
         {
           pscores[cand_id] = std::numeric_limits<short>::max();
           paligned[cand_id] = 0;
@@ -1460,7 +1484,7 @@ auto search16(s16info_s * s,
 
   if (qlen == 0)
     {
-      for (auto cand_id = 0U; cand_id < sequences; cand_id++)
+      for (std::size_t cand_id = 0; cand_id < sequences; ++cand_id)
         {
           auto const seqno = seqnos[cand_id];
           auto const length = static_cast<int64_t>(db.getsequencelen(seqno));
@@ -1513,7 +1537,7 @@ auto search16(s16info_s * s,
 
   /* find longest target sequence and reallocate direction buffer */
   uint64_t maxdlen = 0;
-  for (int64_t i = 0; i < sequences; i++)
+  for (std::size_t i = 0; i < sequences; ++i)
     {
       uint64_t const dlen = db.getsequencelen(seqnos[i]);
       /* skip sequences the SIMD aligner cannot handle (product/sum limits) */
@@ -1799,24 +1823,27 @@ auto search16(s16info_s * s,
                       int64_t const z = (dbseqlen + 3) % 4;
                       int64_t const score = get_channel(S[static_cast<size_t>(z)], c);
 
+                      auto const slot = static_cast<std::size_t>(cand_id);
+
                       if (overflow[cc])
                         {
-                          pscores[cand_id] = std::numeric_limits<short>::max();
-                          paligned[cand_id] = 0;
-                          pmatches[cand_id] = 0;
-                          pmismatches[cand_id] = 0;
-                          pgaps[cand_id] = 0;
-                          pcigar[cand_id].clear();
+                          pscores[slot] = std::numeric_limits<short>::max();
+                          paligned[slot] = 0;
+                          pmatches[slot] = 0;
+                          pmismatches[slot] = 0;
+                          pgaps[slot] = 0;
+                          pcigar[slot].clear();
                         }
                       else
                         {
-                          pscores[cand_id] = static_cast<CELL>(score);
-                          backtrack16(s, dbseq, static_cast<uint64_t>(dbseqlen), d_offset[cc], cc,
-                                      paligned + cand_id,
-                                      pmatches + cand_id,
-                                      pmismatches + cand_id,
-                                      pgaps + cand_id);
-                          pcigar[cand_id].assign(s->cigar.data());
+                          pscores[slot] = static_cast<CELL>(score);
+                          auto const stats = backtrack16(s, dbseq, static_cast<uint64_t>(dbseqlen),
+                                                         d_offset[cc], cc);
+                          paligned[slot] = stats.aligned;
+                          pmatches[slot] = stats.matches;
+                          pmismatches[slot] = stats.mismatches;
+                          pgaps[slot] = stats.gaps;
+                          pcigar[slot].assign(s->cigar.data());
                         }
 
                       done++;
@@ -1828,16 +1855,17 @@ auto search16(s16info_s * s,
 
                   while ((length == 0) and (next_id < sequences))
                     {
-                      cand_id = static_cast<int64_t>(next_id++);
-                      length = static_cast<int64_t>(db.getsequencelen(seqnos[cand_id]));
+                      auto const next_slot = next_id++;
+                      cand_id = static_cast<int64_t>(next_slot);
+                      length = static_cast<int64_t>(db.getsequencelen(seqnos[next_slot]));
                       if ((length == 0) or (not search16_fits(qlen, static_cast<uint64_t>(length))))
                         {
-                          pscores[cand_id] = std::numeric_limits<short>::max();
-                          paligned[cand_id] = 0;
-                          pmatches[cand_id] = 0;
-                          pmismatches[cand_id] = 0;
-                          pgaps[cand_id] = 0;
-                          pcigar[cand_id].clear();
+                          pscores[next_slot] = std::numeric_limits<short>::max();
+                          paligned[next_slot] = 0;
+                          pmatches[next_slot] = 0;
+                          pmismatches[next_slot] = 0;
+                          pgaps[next_slot] = 0;
+                          pcigar[next_slot].clear();
                           length = 0;
                           done++;
                         }
@@ -1846,7 +1874,7 @@ auto search16(s16info_s * s,
                   if (length > 0)
                     {
                       seq_id[cc] = cand_id;
-                      char const * address = db.getsequence(seqnos[cand_id]);
+                      char const * address = db.getsequence(seqnos[static_cast<std::size_t>(cand_id)]);
                       d_address[cc] = reinterpret_cast<BYTE const *>(address);
                       d_length[cc] = static_cast<uint64_t>(length);
                       d_begin[cc] = reinterpret_cast<unsigned char const *>(address);

@@ -755,15 +755,16 @@ static auto evaluate_extra_hits(struct searchinfo_s & si,
                   unsigned short snwmismatches = 0;
                   unsigned short snwgaps = 0;
 
+                  /* one candidate, so each span is one element over the
+                     local above; search16 asserts that the seven agree */
                   search16(si.s.get(),
-                           1,
-                           & nwtarget,
-                           & snwscore,
-                           & snwalignmentlength,
-                           & snwmatches,
-                           & snwmismatches,
-                           & snwgaps,
-                           & nwcigar,
+                           View<unsigned int>{& nwtarget, 1},
+                           Span<CELL>{& snwscore, 1},
+                           Span<unsigned short>{& snwalignmentlength, 1},
+                           Span<unsigned short>{& snwmatches, 1},
+                           Span<unsigned short>{& snwmismatches, 1},
+                           Span<unsigned short>{& snwgaps, 1},
+                           Span<std::string>{& nwcigar, 1},
                            db);
 
                   auto const tseqlen = static_cast<int64_t>(db.getsequencelen(target));

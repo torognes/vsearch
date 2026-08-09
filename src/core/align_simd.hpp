@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "utils/span.hpp"  // Span (search16's output arrays)
 #include "utils/view.hpp"
 #include <cstdint>  // int64_t
 #include <string>  // std::string
@@ -98,13 +99,22 @@ auto search16_exit(s16info_s * searchinfo) -> void;
 auto search16_qprep(s16info_s * searchinfo, View<char> qseq) -> void;
 
 
+/* Align the query prepared by search16_qprep() against each database sequence
+   in seqnos, writing one element into each output span per candidate.
+
+   The spans replace eight raw pointers whose common extent arrived beside them
+   as `sequences`. That count was not the size of the caller's buffers: three
+   of the four callers fill the first N entries of arrays sized for the
+   worst case (MAXDELAYED, maxcandidates, maxhits) and passed N, so the extent
+   and the storage were two separate facts that nothing checked against each
+   other. Now the extent travels with the storage and the callee asserts that
+   all seven agree. */
 auto search16(s16info_s * searchinfo,
-              unsigned int sequences,
-              unsigned int const * seqnos,
-              CELL * pscores,
-              unsigned short * paligned,
-              unsigned short * pmatches,
-              unsigned short * pmismatches,
-              unsigned short * pgaps,
-              std::string * pcigar,
+              View<unsigned int> seqnos,
+              Span<CELL> pscores,
+              Span<unsigned short> paligned,
+              Span<unsigned short> pmatches,
+              Span<unsigned short> pmismatches,
+              Span<unsigned short> pgaps,
+              Span<std::string> pcigar,
               struct Database const & db) -> void;

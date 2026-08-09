@@ -784,15 +784,17 @@ auto align_delayed(struct searchinfo_s * searchinfo) -> void
 
   if (target_count != 0)
     {
+      /* the filled prefix of the round's buffers, not the whole MAXDELAYED
+         arrays: target_count is how many the loop above wrote */
+      auto const filled = static_cast<std::size_t>(target_count);
       search16(searchinfo->s.get(),
-               target_count,
-               target_list.data(),
-               nwscore_list.data(),
-               nwalignmentlength_list.data(),
-               nwmatches_list.data(),
-               nwmismatches_list.data(),
-               nwgaps_list.data(),
-               nwcigar_list.data(),
+               make_view(target_list).first(filled),
+               make_span(nwscore_list).first(filled),
+               make_span(nwalignmentlength_list).first(filled),
+               make_span(nwmatches_list).first(filled),
+               make_span(nwmismatches_list).first(filled),
+               make_span(nwgaps_list).first(filled),
+               make_span(nwcigar_list).first(filled),
                *searchinfo->db);
     }
 

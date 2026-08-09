@@ -2164,15 +2164,16 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   search16_qprep(ci->s, make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)));
 
+  /* the candidates found above, not the whole maxcandidates buffers */
+  auto const candidates = static_cast<std::size_t>(ci->cand_count);
   search16(ci->s,
-           static_cast<unsigned int>(ci->cand_count),
-           ci->cand_list.data(),
-           ci->snwscore.data(),
-           ci->snwalignmentlength.data(),
-           ci->snwmatches.data(),
-           ci->snwmismatches.data(),
-           ci->snwgaps.data(),
-           ci->nwcigar.data(),
+           make_view(ci->cand_list).first(candidates),
+           make_span(ci->snwscore).first(candidates),
+           make_span(ci->snwalignmentlength).first(candidates),
+           make_span(ci->snwmatches).first(candidates),
+           make_span(ci->snwmismatches).first(candidates),
+           make_span(ci->snwgaps).first(candidates),
+           make_span(ci->nwcigar).first(candidates),
            db);
 
   for (auto i = 0; i < ci->cand_count; ++i)
