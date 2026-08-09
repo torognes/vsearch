@@ -247,11 +247,16 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking seqmask) -> void;
 /* both return a mutable pointer into si_p's or si_m's hit buffer -- the caller
    moves the winning alignment string out of it -- so neither can take a
    pointer-to-const searchinfo_s */
-auto search_findbest2_byid(struct searchinfo_s * si_p,
-                           struct searchinfo_s * si_m) -> struct hit *;
+/* si_m is the reverse strand and is a Span, not a pointer, because it is
+   absent unless --strand both is in effect: an empty span says so, where the
+   null pointer these took before said nothing the callee could check. The
+   caller's own opt_strand and the span's emptiness are the same fact, and the
+   assert inside says so. */
+auto search_findbest2_byid(struct searchinfo_s & si_p,
+                           Span<struct searchinfo_s> si_m) -> struct hit *;
 
-auto search_findbest2_bysize(struct searchinfo_s * si_p,
-                             struct searchinfo_s * si_m) -> struct hit *;
+auto search_findbest2_bysize(struct searchinfo_s & si_p,
+                             Span<struct searchinfo_s> si_m) -> struct hit *;
 
 auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
                                  int target) -> bool;

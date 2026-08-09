@@ -861,23 +861,28 @@ static auto evaluate_extra_hits(struct searchinfo_s & si,
     }
 }
 
-static auto free_hit_alignments(struct searchinfo_s * si_p,
-                                struct searchinfo_s * si_m,
-                                struct Parameters const & parameters) -> void
+/* si_m is the reverse strand, empty when only the plus strand was searched.
+   That emptiness is what the Parameters argument used to be read for (via
+   number_of_strands), so the span replaces it and the parameter is gone. */
+static auto free_hit_alignments(struct searchinfo_s & si_p,
+                                Span<struct searchinfo_s> const si_m) -> void
 {
   /* free alignments */
   // non-const elements: the loop clears the strings
-  std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
-  for (auto * const si : make_view(strands)
-         .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
+  auto const free_one = [](struct searchinfo_s & searchinfo) -> void
     {
-      for (auto & hit : make_hits_span(si))
+      for (auto & hit : make_hits_span(&searchinfo))
         {
           if (hit.aligned)
             {
               hit.nwalignment.clear();  // std::string; free after use
             }
         }
+    };
+  free_one(si_p);
+  for (auto & minus_strand : si_m)
+    {
+      free_one(minus_strand);
     }
 }
 
@@ -956,11 +961,14 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
       for (int i = 0; i < queries; i++)
         {
           auto const query = static_cast<std::size_t>(i);
-          struct searchinfo_s * const si_p = &si_plus[query];
-          struct searchinfo_s * const si_m =
-            state.parameters.opt_strand ? &si_minus[query] : nullptr;
+          auto & si_p = si_plus[query];
+          /* empty unless the reverse strand was searched too */
+          auto const si_m = state.parameters.opt_strand
+            ? make_span(si_minus).subspan(query, 1)
+            : Span<struct searchinfo_s>{};
 
-          std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
+          std::array<struct searchinfo_s *, 2> const strands
+            {{&si_p, si_m.empty() ? nullptr : &si_m[0]}};
           for (auto * const si : make_view(strands)
                  .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
             {
@@ -980,7 +988,7 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               best = search_findbest2_byid(si_p, si_m);
             }
 
-          int const myseqno = si_p->query_no;
+          int const myseqno = si_p.query_no;
 
           if (best != nullptr)
             {
@@ -990,12 +998,12 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
               /* output intermediate results to uc etc */
               cluster_core_results_hit(state, best,
                                        state.clusterinfo[target].clusterno,
-                                       si_p->query_head,
-                                       View<char>{si_p->qsequence},
+                                       si_p.query_head,
+                                       View<char>{si_p.qsequence},
                                        (best->strand != 0)
-                                         ? View<char>{si_m->qsequence}
+                                         ? View<char>{si_m[0].qsequence}
                                          : View<char>{},
-                                       si_p->qsize,
+                                       si_p.qsize,
                                        db);
 
               /* update cluster info about this sequence */
@@ -1025,16 +1033,16 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
 
               /* output intermediate results to uc etc */
               cluster_core_results_nohit(state, state.clusters,
-                                         si_p->query_head,
-                                         View<char>{si_p->qsequence},
+                                         si_p.query_head,
+                                         View<char>{si_p.qsequence},
                                          View<char>{},
-                                         si_p->qsize);
+                                         si_p.qsize);
               ++state.clusters;
             }
 
-          free_hit_alignments(si_p, si_m, state.parameters);
+          free_hit_alignments(si_p, si_m);
 
-          sum_nucleotides += static_cast<int>(si_p->qsequence.size());
+          sum_nucleotides += static_cast<int>(si_p.qsequence.size());
         }
 
       progress.update(static_cast<uint64_t>(sum_nucleotides));
@@ -1056,6 +1064,14 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
     {
       cluster_query_init(si_m.front(), seqcount, tophits, db, state.effective_parameters, state.dbindex);
     }
+
+  /* si_m is a one-element array whether or not the reverse strand is searched,
+     but it is only cluster_query_init()ed above when it is -- so what the
+     search helpers are handed is the span, empty when the object exists but
+     must not be read. */
+  auto const minus_strand = state.parameters.opt_strand
+    ? make_span(si_m)
+    : Span<struct searchinfo_s>{};
 
   auto lastlength = std::numeric_limits<int>::max();
 
@@ -1085,11 +1101,11 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
       struct hit * best = nullptr;
       if (state.parameters.opt_sizeorder)
         {
-          best = search_findbest2_bysize(si_p.data(), si_m.data());
+          best = search_findbest2_bysize(si_p.front(), minus_strand);
         }
       else
         {
-          best = search_findbest2_byid(si_p.data(), si_m.data());
+          best = search_findbest2_byid(si_p.front(), minus_strand);
         }
 
       if (best != nullptr)
@@ -1126,7 +1142,7 @@ auto cluster_core_serial(struct cluster_cli_state_s & state,
           ++state.clusters;
         }
 
-      free_hit_alignments(si_p.data(), si_m.data(), state.parameters);
+      free_hit_alignments(si_p.front(), minus_strand);
 
       progress.update(static_cast<uint64_t>(seqno));
     }
@@ -1716,6 +1732,12 @@ auto cluster_assign_single(struct cluster_session_s * cs,
   *result = {};
   struct Parameters const & parameters = *cs->parameters;
 
+  /* the reverse strand, when the session searches one: an empty span otherwise,
+     which is what the unique_ptr's null used to mean at the call sites below */
+  auto const minus_strand = (cs->si_minus != nullptr)
+    ? Span<struct searchinfo_s>{cs->si_minus.get(), 1}
+    : Span<struct searchinfo_s>{};
+
   cs->si->query_no = seqno;
   cs->si->strand = 0;
   cluster_query_core(*cs->si, *cs->db, parameters);
@@ -1730,11 +1752,11 @@ auto cluster_assign_single(struct cluster_session_s * cs,
   struct hit const * best = nullptr;
   if (parameters.opt_sizeorder)
     {
-      best = search_findbest2_bysize(cs->si.get(), cs->si_minus.get());
+      best = search_findbest2_bysize(*cs->si, minus_strand);
     }
   else
     {
-      best = search_findbest2_byid(cs->si.get(), cs->si_minus.get());
+      best = search_findbest2_byid(*cs->si, minus_strand);
     }
 
   if (best != nullptr)
@@ -1770,7 +1792,7 @@ auto cluster_assign_single(struct cluster_session_s * cs,
 
   /* Free ALL hit alignments for both strands.
      search_onequery / align_delayed allocates nwalignment for each aligned hit. */
-  free_hit_alignments(cs->si.get(), cs->si_minus.get(), parameters);
+  free_hit_alignments(*cs->si, minus_strand);
 }
 
 
@@ -1859,11 +1881,14 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
       for (int i = 0; i < queries; i++)
         {
           auto const query = static_cast<std::size_t>(i);
-          struct searchinfo_s * const si_p = &si_plus[query];
-          struct searchinfo_s * const si_m =
-            parameters.opt_strand ? &si_minus[query] : nullptr;
+          auto & si_p = si_plus[query];
+          /* empty unless the reverse strand was searched too */
+          auto const si_m = parameters.opt_strand
+            ? make_span(si_minus).subspan(query, 1)
+            : Span<struct searchinfo_s>{};
 
-          std::array<struct searchinfo_s *, 2> const strands {{si_p, si_m}};
+          std::array<struct searchinfo_s *, 2> const strands
+            {{&si_p, si_m.empty() ? nullptr : &si_m[0]}};
           for (auto * const si : make_view(strands)
                  .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
             {
@@ -1883,7 +1908,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               best = search_findbest2_byid(si_p, si_m);
             }
 
-          int const myseqno = si_p->query_no;
+          int const myseqno = si_p.query_no;
           auto & result = results[static_cast<std::size_t>(myseqno - start_seqno)];
           result = {};
 
@@ -1920,7 +1945,7 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
               ++cs->cluster_count;
             }
 
-          free_hit_alignments(si_p, si_m, parameters);
+          free_hit_alignments(si_p, si_m);
         }
     }
 
