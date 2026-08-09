@@ -65,5 +65,5 @@
 
 auto derep_id(struct Parameters const & parameters) -> void
 {
-  derep(parameters, parameters.opt_derep_id, Derep_mode::id);
+  derep(parameters, Derep_mode::id);
 }

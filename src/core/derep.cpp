@@ -78,6 +78,7 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::count_if, std::min, std::sort
+#include <cassert>  // assert
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -812,9 +813,36 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
 
 
-// used by --derep_fulllength, --derep_id, and --fastx_uniques
-auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode const mode) -> void
+namespace {
+
+// The input file is the argument of the very option that selects the mode, so
+// the two are one choice: derep() used to take both, leaving three call sites
+// free to pass a file name and a mode that disagree, and nothing to catch it.
+// Same derivation derep_smallmem.cpp:225 already makes for its own option.
+auto derep_input_filename(struct Parameters const & parameters,
+                          Derep_mode const mode) -> char const *
 {
+  switch (mode)
+    {
+    case Derep_mode::fulllength:
+      return parameters.opt_derep_fulllength;
+    case Derep_mode::id:
+      return parameters.opt_derep_id;
+    case Derep_mode::uniques:
+      return parameters.opt_fastx_uniques;
+    }
+  assert(false);  // unreachable: -Wswitch checks that every Derep_mode is listed
+  return nullptr;
+}
+
+}  // end of anonymous namespace
+
+
+// used by --derep_fulllength, --derep_id, and --fastx_uniques
+auto derep(struct Parameters const & parameters, Derep_mode const mode) -> void
+{
+  auto * const input_filename = derep_input_filename(parameters, mode);
+
   /* dereplicate full length sequences, optionally require identical headers */
 
   /*

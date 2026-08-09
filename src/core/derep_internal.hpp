@@ -73,4 +73,6 @@
 enum struct Derep_mode : std::uint8_t { fulllength, id, uniques };
 
 // used by --derep_fulllength, --derep_id, and --fastx_uniques
-auto derep(struct Parameters const & parameters, char const * input_filename, Derep_mode mode) -> void;
+// The input file name is not a parameter: it is the argument of the option
+// that selects the mode, and derep() reads it out of parameters accordingly.
+auto derep(struct Parameters const & parameters, Derep_mode mode) -> void;

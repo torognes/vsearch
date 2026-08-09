@@ -65,5 +65,5 @@
 
 auto fastx_uniques(struct Parameters const & parameters) -> void
 {
-  derep(parameters, parameters.opt_fastx_uniques, Derep_mode::uniques);
+  derep(parameters, Derep_mode::uniques);
 }

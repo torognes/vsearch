@@ -65,5 +65,5 @@
 
 auto derep_fulllength(struct Parameters const & parameters) -> void
 {
-  derep(parameters, parameters.opt_derep_fulllength, Derep_mode::fulllength);
+  derep(parameters, Derep_mode::fulllength);
 }
