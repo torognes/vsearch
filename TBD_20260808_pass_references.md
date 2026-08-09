@@ -2,14 +2,39 @@
 
 ## Status (2026-08-09)
 
-**Phases 1-9 are done**, on `tmp_20260806093624` rather than the
-`tmp_<ts>_references` branch the plan proposed (the maintainer asked for the
-current branch). Eleven commits, `1f9b22aa`..`e3f17082`. Counted the same way
-as the census above: `.data()` 236 -> 188, `.c_str()` 39 -> 14.
+**Phases 1-9, C4 and C9 are all done**, on `tmp_20260806093624` rather than the
+three branches the plan proposed (the maintainer asked for the current branch,
+then approved C4 and C9 there too). Fifteen commits, `1f9b22aa`..`6bb4fc67`.
+Counted the same way as the census above: `.data()` 236 -> 153,
+`.c_str()` 39 -> 14.
 
-**C4 (`search16`) and C9 (`largeread`/`largewrite`) are not done** and still
-want the separate branches the plan describes. So do groups D, E and C8, which
-this plan does not schedule.
+**Not done, by design:** groups D (the rest), E and C8, which this plan does
+not schedule. C8 belongs to `TBD_20260808_msa_cigar.md`.
+
+**C4's open question is answered.** The extent convention is
+`make_span(v).first(count)` at every call site, including `cluster.cpp`'s
+one-candidate caller, which now builds seven one-element spans inside the
+clustering hot loop. Callgrind says that costs nothing: `cluster_fast`
+-0.007%, `usearch_global` -0.007%, `allpairs_global` -0.056%,
+`uchime_denovo` +0.003%, and the two SIMD kernels are byte-identical in
+instruction count (`aligncolumns_rest` 716,014,380 and `aligncolumns_first`
+101,829,876 in both builds). The `sequences` parameter plus an
+`assert(span.size() >= sequences)` was not needed.
+
+**C4 also converted `backtrack16`**, which the plan did not mention: it wrote
+four adjacent `unsigned short *` out-parameters, and with spans those call
+sites would have become pointer arithmetic over one. It returns a small struct
+instead, the shape `alignstats()` was given. That is where the
+`bugprone-easily-swappable-parameters` drop the Verification section predicts
+actually shows up -- clang-tidy reported "4 adjacent parameters of similar type
+('unsigned short *')" on `backtrack16` before and does not after. Note that it
+never flagged `search16` itself, and still does not: what `search16`'s
+conversion fixes is the extent, not the transposability of four same-typed
+spans.
+
+**C9's `static_assert` lives twice**, once beside `largeread` and once beside
+`largewrite`, with the same message -- there is still no shared UDB header, so
+the plan's guess was right.
 
 Four places where the plan was wrong or incomplete, corrected in the work:
 
@@ -54,9 +79,22 @@ binary itself); and callgrind instruction counts within 0.005% on
 `usearch_global`, `cluster_fast` and `uchime_denovo`, and -0.016% on
 `dust_core`'s own benchmark.
 
-One measurement note for whoever reads a `--log` diff: the "Max memory" line
-varies by 0.1-0.2 MB between runs of the *same* binary, so it is not a
-comparable field.
+For C4 and C9 specifically, on top of the above: every `search16` special path
+confirmed reached with temporary markers before being compared (the `*` scalar
+fallback, the empty-query branch, the does-not-fit sentinel, and the 16-bit
+saturation path, which needs `--match 20` on a 1700 nt pair -- no
+default-scoring input reaches it); UDB files byte-identical across two
+databases x three `--wordlength` values plus a 109 MB multi-block file; all
+four {old,new} writer x {old,new} reader combinations agreeing; and ten
+hand-crafted plus 300 randomly corrupted UDB files producing identical exit
+codes, messages and output, with no span assert firing on any of them.
+
+Two measurement notes for whoever reads a diff of these outputs:
+
+- the "Max memory" line in `--log` varies by 0.1-0.2 MB between runs of the
+  *same* binary, so it is not a comparable field;
+- `--biomout` embeds a `"date"` field and the output file's own path, so two
+  runs a minute apart differ there and nowhere else.
 
 ---
 
