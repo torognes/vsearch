@@ -69,6 +69,7 @@
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include "utils/span.hpp"  // Span, make_span
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // uint64_t
@@ -76,6 +77,7 @@
 #include <fstream>  // std::ifstream
 #include <ios>
 #include <istream>  // std::istream
+#include <iterator>  // std::next
 #include <limits>
 #include <string>  // std::string
 #include <sys/stat.h>
@@ -97,15 +99,38 @@ static_assert(__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__,
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto largeread(std::istream & input, void * buf, uint64_t const nbyte, uint64_t const offset, Progress & progress_bar) -> uint64_t
+  /* The UDB format's integer fields are 4 bytes by definition of the format,
+     not because sizeof(unsigned int) happens to be 4 on this host. Taking the
+     byte count from the span below makes that dependency implicit, so state
+     it here: every cross-compilation target vsearch supports has a 32-bit
+     int, so none of them would catch it. */
+  static_assert(sizeof(unsigned int) == 4, "UDB stores 32-bit fields");
+
+  /* Read buf.size() elements from the UDB file. A span rather than a
+     (void *, nbyte) pair: the byte count and the destination used to be
+     separate arguments, so a mismatch -- a count in bytes where elements were
+     meant, a buffer sized seqcount + 1 read as seqcount, a scratch vector
+     reused for a shorter field -- produced a file that still looked valid and
+     desynchronised every later offset. Now the extent comes from the
+     destination and the call site says how much of it is being filled. */
+  template <typename Type>
+  auto largeread(std::istream & input, Span<Type> const buf, uint64_t const offset,
+                 Progress & progress_bar) -> uint64_t
   {
     /* read the file in blocks and update progress */
 
+    auto const nbyte = static_cast<uint64_t>(buf.size_bytes());
+    /* the destination as raw bytes: std::istream reads chars, whatever the
+       span's element type is. Cast inside the loop rather than into a local,
+       which cppcheck reads as a pointer that could be const -- it cannot, it
+       is what read() writes through. */
     auto progress = offset;
     for (uint64_t i = 0; i < nbyte; i += blocksize)
       {
         auto const rem = std::min(blocksize, nbyte - i);
-        input.read((static_cast<char *>(buf)) + i, static_cast<std::streamsize>(rem));
+        input.read(std::next(reinterpret_cast<char *>(buf.data()),
+                             static_cast<std::ptrdiff_t>(i)),
+                   static_cast<std::streamsize>(rem));
         if (static_cast<uint64_t>(input.gcount()) != rem)
           {
             fatal("Unable to read from UDB file or invalid UDB file");
@@ -247,7 +272,7 @@ auto udb_read(const char * filename,
   auto longest = 0U;
   {
     Progress progress_bar(prompt, filesize, parameters);
-    pos += largeread(in_stream, buffer.data(), uint64_t{4} * 50, pos, progress_bar);
+    pos += largeread(in_stream, make_span(buffer), pos, progress_bar);
 
     if ((buffer[0]  != 0x55444246) or
         (buffer[2] != 32) or
@@ -293,7 +318,7 @@ auto udb_read(const char * filename,
     dbindex.kmerhash.resize(dbindex.hashsize);
     dbindex.kmerbitmap = std::vector<Bitmap>(dbindex.hashsize);
 
-    pos += largeread(in_stream, dbindex.kmercount.data(), uint64_t{4} * dbindex.hashsize, pos, progress_bar);
+    pos += largeread(in_stream, make_span(dbindex.kmercount).first(dbindex.hashsize), pos, progress_bar);
 
     dbindex.indexsize = 0;
     for (uint64_t i = 0; i < dbindex.hashsize; i++)
@@ -313,7 +338,7 @@ auto udb_read(const char * filename,
 
     /* signature */
 
-    pos += largeread(in_stream, buffer.data(), 4, pos, progress_bar);
+    pos += largeread(in_stream, make_span(buffer).first(1), pos, progress_bar);
 
     if (buffer[0] != 0x55444233)
       {
@@ -324,7 +349,7 @@ auto udb_read(const char * filename,
 
     dbindex.kmerindex.resize(dbindex.indexsize);
 
-    pos += largeread(in_stream, dbindex.kmerindex.data(), 4 * dbindex.indexsize, pos, progress_bar);
+    pos += largeread(in_stream, make_span(dbindex.kmerindex).first(dbindex.indexsize), pos, progress_bar);
 
     /* Every entry is a sequence number used both as a bit offset in the
        per-word bitmaps (Bitmap::set writes bitmap[value >> 3], no bounds
@@ -342,7 +367,7 @@ auto udb_read(const char * filename,
 
     /* new header */
 
-    pos += largeread(in_stream, buffer.data(), uint64_t{4} * 8, pos, progress_bar);
+    pos += largeread(in_stream, make_span(buffer).first(8), pos, progress_bar);
 
     if ((buffer[0] != 0x55444234) or
         (buffer[1] != 0x005e0db3) or
@@ -370,11 +395,21 @@ auto udb_read(const char * filename,
     datap = db.data_.data();
     seqindex = db.seqindex_.data();
 
+    /* The reserved sequence-data buffer, as one span the two reads below take
+       their slices from. Both extents (udb_headerchars, nucleotides) come out
+       of the file, and datap_bytes is their checked sum, so this is where a
+       length the buffer cannot hold is caught -- at the read, not at the use. */
+    auto const data_buffer = Span<char>{datap, static_cast<std::size_t>(datap_bytes)};
+
     /* header index */
 
     std::vector<unsigned int> header_index(seqcount + 1);
 
-    pos += largeread(in_stream, header_index.data(), uint64_t{4} * seqcount, pos, progress_bar);
+    /* .first(seqcount), not the whole vector: header_index holds
+       seqcount + 1 entries and the last one is filled by hand below, from the
+       header-section length rather than from the file. Reading the whole
+       vector would take one element too many and shift every later offset. */
+    pos += largeread(in_stream, make_span(header_index).first(seqcount), pos, progress_bar);
 
     header_index[seqcount] = static_cast<unsigned int>(udb_headerchars);
 
@@ -405,7 +440,7 @@ auto udb_read(const char * filename,
 
     /* headers */
 
-    pos += largeread(in_stream, datap, udb_headerchars, pos, progress_bar);
+    pos += largeread(in_stream, data_buffer.first(static_cast<std::size_t>(udb_headerchars)), pos, progress_bar);
 
     for (auto i = 0U; i < seqcount; i++)
       {
@@ -416,7 +451,7 @@ auto udb_read(const char * filename,
 
     std::vector<unsigned int> sequence_lengths(seqcount);
 
-    pos += largeread(in_stream, sequence_lengths.data(), uint64_t{4} * seqcount, pos, progress_bar);
+    pos += largeread(in_stream, make_span(sequence_lengths), pos, progress_bar);
 
     uint64_t sum = 0;
 
@@ -452,7 +487,10 @@ auto udb_read(const char * filename,
 
     /* sequences */
 
-    pos += largeread(in_stream, datap + udb_headerchars, nucleotides, pos, progress_bar);
+    pos += largeread(in_stream,
+                     data_buffer.subspan(static_cast<std::size_t>(udb_headerchars),
+                                         static_cast<std::size_t>(nucleotides)),
+                     pos, progress_bar);
 
     if (pos != filesize)
       {

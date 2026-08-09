@@ -65,9 +65,12 @@
 #include "core/dbindex.hpp"
 #include "utils/fatal.hpp"
 #include "utils/progress.hpp"
-#include <algorithm>  // std::max
+#include "utils/view.hpp"  // View, make_view
+#include <algorithm>  // std::max, std::fill_n
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <fstream>  // std::ofstream
+#include <iterator>  // std::next
 #include <ios>
 #include <ostream>  // std::ostream
 #include <vector>
@@ -79,15 +82,33 @@ constexpr auto blocksize = uint64_t{4096UL * 4096UL};
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto largewrite(std::ostream & output, void const * buf, uint64_t const nbyte, uint64_t const offset, Progress & progress_bar) -> uint64_t
+  /* The UDB format's integer fields are 4 bytes by definition of the format,
+     not because sizeof(unsigned int) happens to be 4 on this host. The byte
+     count now comes from the view below, which makes that dependency
+     implicit, so state it -- the cross-compilation targets all have a 32-bit
+     int and would not catch it. Same assertion as in core/udb.cpp; there is
+     no shared UDB header to put it in. */
+  static_assert(sizeof(unsigned int) == 4, "UDB stores 32-bit fields");
+
+  /* Write buf.size() elements to the UDB file. A view rather than a
+     (void const *, nbyte) pair, for the reason given at largeread() in
+     core/udb.cpp: one scratch vector is reused here for six different fields
+     of six different lengths, and the length used to travel beside the
+     pointer instead of with it. */
+  template <typename Type>
+  auto largewrite(std::ostream & output, View<Type> const buf, uint64_t const offset,
+                  Progress & progress_bar) -> uint64_t
   {
     /* call write multiple times and update progress */
 
+    auto const nbyte = static_cast<uint64_t>(buf.size_bytes());
+    auto const * const bytes = reinterpret_cast<char const *>(buf.data());
     auto progress = offset;
     for (uint64_t i = 0; i < nbyte; i += blocksize)
       {
         auto const rem = std::min(blocksize, nbyte - i);
-        output.write((static_cast<char const *>(buf)) + i, static_cast<std::streamsize>(rem));
+        output.write(std::next(bytes, static_cast<std::ptrdiff_t>(i)),
+                     static_cast<std::streamsize>(rem));
         if (not output)
           {
             fatal("Unable to write to UDB file");
@@ -164,6 +185,8 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     ntcount;
 
 
+  /* the UDB file header is 50 32-bit words */
+  static constexpr auto header_words = std::size_t{50};
   uint64_t const buffersize = std::max(50U, seqcount);
   std::vector<unsigned int> buffer(buffersize);
 
@@ -179,21 +202,23 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
   buffer[49] = 0x55444266; /* fBDU UDBf */
   {
     Progress progress_bar("Writing UDB file", progress_all, parameters);
-    pos += largewrite(out_stream, buffer.data(), uint64_t{50} * 4, 0, progress_bar);
+    /* the 50-word file header, not the whole scratch vector: buffer is
+       sized max(50, seqcount) and is reused below for five more fields */
+    pos += largewrite(out_stream, make_view(buffer).first(header_words), 0, progress_bar);
 
     /* write 4^wordlength uint32_t's with word match counts */
-    pos += largewrite(out_stream, dbindex.kmercount.data(), 4 * kmerhash_entries, pos, progress_bar);
+    pos += largewrite(out_stream, make_view(dbindex.kmercount).first(kmerhash_entries), pos, progress_bar);
 
     /* 3BDU */
     buffer[0] = 0x55444233; /* 3BDU UDB3 */
-    pos += largewrite(out_stream, buffer.data(), uint64_t{1} * 4, pos, progress_bar);
+    pos += largewrite(out_stream, make_view(buffer).first(1), pos, progress_bar);
 
     /* lists of sequence no's with matches for all words */
     for (auto i = 0U; i < kmerhash_entries; i++)
       {
         if (not dbindex.kmerbitmap[i].empty())
           {
-            std::fill_n(buffer.data(), dbindex.kmercount[i], 0U);
+            std::fill_n(buffer.begin(), dbindex.kmercount[i], 0U);
             auto elements = 0U;
             for (auto j = 0U; j < seqcount; j++)
               {
@@ -202,15 +227,18 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
                     buffer[elements++] = j;
                   }
               }
-            pos += largewrite(out_stream, buffer.data(), uint64_t{4} * elements, pos, progress_bar);
+            pos += largewrite(out_stream, make_view(buffer).first(elements), pos, progress_bar);
           }
         else
           {
             if (dbindex.kmercount[i] > 0)
               {
+                /* a window into kmerindex, not a pointer plus a count:
+                   subspan checks the offset, which is a stored index value
+                   rather than a constant */
                 pos += largewrite(out_stream,
-                                  dbindex.kmerindex.data() + dbindex.kmerhash[i],
-                                  uint64_t{4} * dbindex.kmercount[i],
+                                  make_view(dbindex.kmerindex)
+                                    .subspan(dbindex.kmerhash[i], dbindex.kmercount[i]),
                                   pos,
                                   progress_bar);
               }
@@ -231,7 +259,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
     buffer[6] = static_cast<unsigned int>(header_characters >> 32U);
     /* 0x005e0db4 */
     buffer[7] = 0x005e0db4;
-    pos += largewrite(out_stream, buffer.data(), uint64_t{4} * 8, pos, progress_bar);
+    pos += largewrite(out_stream, make_view(buffer).first(8), pos, progress_bar);
 
     /* indices to headers (uint32_t) */
     auto sum = 0U;
@@ -240,13 +268,21 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
         buffer[i] = sum;
         sum += static_cast<unsigned int>(db.getheaderlen(i) + 1);
       }
-    pos += largewrite(out_stream, buffer.data(), uint64_t{4} * seqcount, pos, progress_bar);
+    pos += largewrite(out_stream, make_view(buffer).first(seqcount), pos, progress_bar);
 
     /* headers (ascii, zero terminated, not padded) */
+    /* the terminator is written here rather than read out of Database's
+       buffer. That byte is real -- Database::add appends it -- but it is a
+       property of the UDB format, not of how Database happens to store a
+       header, and reading a len + 1'th byte through db.getheader(i) coupled
+       this writer to that layout. It goes through largewrite so it keeps both
+       things a bare out_stream.put() would drop: the stream check, and the
+       pos accounting every later offset depends on. */
+    static constexpr char terminator = '\0';
     for (auto i = 0U; i < seqcount; i++)
       {
-        auto const len = static_cast<unsigned int>(db.getheaderlen(i));
-        pos += largewrite(out_stream, db.getheader(i), len + 1, pos, progress_bar);
+        pos += largewrite(out_stream, db.header_view(i), pos, progress_bar);
+        pos += largewrite(out_stream, View<char>{& terminator, 1}, pos, progress_bar);
       }
 
     /* sequence lengths (uint32_t) */
@@ -254,13 +290,12 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
       {
         buffer[i] = static_cast<unsigned int>(db.getsequencelen(i));
       }
-    pos += largewrite(out_stream, buffer.data(), uint64_t{4} * seqcount, pos, progress_bar);
+    pos += largewrite(out_stream, make_view(buffer).first(seqcount), pos, progress_bar);
 
     /* sequences (ascii, no term, no pad) */
     for (auto i = 0U; i < seqcount; i++)
       {
-        auto const len = static_cast<unsigned int>(db.getsequencelen(i));
-        pos += largewrite(out_stream, db.getsequence(i), len, pos, progress_bar);
+        pos += largewrite(out_stream, db.sequence_view(i), pos, progress_bar);
       }
 
     out_stream.close();
