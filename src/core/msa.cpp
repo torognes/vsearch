@@ -507,7 +507,12 @@ auto compute_and_print_consensus(std::vector<int> const &max_insertions,
 
   if (fp_msaout != nullptr)
     {
-      fasta_print(fp_msaout, "consensus", aln_v.data(), static_cast<uint64_t>(alignment_length), parameters);
+      /* short enough for the small-string optimisation, so naming the label
+         costs no allocation and gives fasta_print an extent for it */
+      std::string const label {"consensus"};
+      fasta_print(fp_msaout, make_view(label),
+                  make_view(aln_v).first(static_cast<std::size_t>(alignment_length)),
+                  parameters);
     }
 }
 

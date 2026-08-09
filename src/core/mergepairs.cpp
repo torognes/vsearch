@@ -777,8 +777,10 @@ auto MergePairs::merge(struct Parameters const & parameters,
     {
       auto const len = static_cast<std::size_t>(md.merged_length);
       result.merged_length = static_cast<int>(md.merged_length);
-      result.sequence.assign(md.merged_sequence.data(), len);
-      result.quality.assign(md.merged_quality_v.data(), len);
+      auto const merged_sequence = make_view(md.merged_sequence).first(len);
+      auto const merged_quality = make_view(md.merged_quality_v).first(len);
+      result.sequence.assign(merged_sequence.cbegin(), merged_sequence.cend());
+      result.quality.assign(merged_quality.cbegin(), merged_quality.cend());
       result.ee_merged = md.ee_merged;
       result.ee_fwd = md.ee_fwd;
       result.ee_rev = md.ee_rev;

@@ -431,10 +431,15 @@ auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters co
 auto write_report(std::FILE * output_stream,
                   struct sff_header_s const & sff_header,
                   struct sff_read_stats const & sff_stats,
-                  char const * index_kind) -> void {
+                  std::array<char, index_header_length + 1> const & index_kind) -> void {
   if (sff_header.index_length != 0) {
     fprint(output_stream, "Index type:      ");
-    std::fputs(index_kind, output_stream);
+    /* the buffer, not a View over it: its content is a NUL-terminated string
+       that can be shorter than the array -- it is all-zero when the index
+       block was never reached ("SFF index missing"), and the eight bytes are
+       read raw from the file, so nothing rules out an embedded NUL. fputs
+       stopping at the terminator is the behaviour being kept. */
+    std::fputs(index_kind.data(), output_stream);
     fprint(output_stream, '\n');
   }
   fprint(output_stream, "\nSFF file read successfully.\n");
@@ -697,11 +702,11 @@ auto sff_convert(struct Parameters const & parameters) -> void
   check_for_additional_tail_data(fp_sff.get(), parameters);  // rename to warn_if_additional_tail_data()?
 
   if (not parameters.opt_quiet) {
-    write_report(stderr, sff_header, sff_stats, index_kind.data());
+    write_report(stderr, sff_header, sff_stats, index_kind);
   }
 
   if (parameters.opt_log != nullptr) {
-    write_report(parameters.fp_log, sff_header, sff_stats, index_kind.data());
+    write_report(parameters.fp_log, sff_header, sff_stats, index_kind);
   }
 
 }

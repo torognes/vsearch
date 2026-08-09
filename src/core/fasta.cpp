@@ -386,15 +386,14 @@ auto fasta_print_sequence(std::FILE * output_handle, View<char> const seq, std::
 }  // anonymous namespace
 
 
-auto fasta_print(std::FILE * output_handle, char const * header,
-                 char const * seq, uint64_t const len,
+auto fasta_print(std::FILE * output_handle, View<char> const header,
+                 View<char> const seq,
                  struct Parameters const & parameters) -> void
 {
   fprint(output_handle, '>');
-  std::fputs(header, output_handle);
+  fprint(output_handle, header);
   fprint(output_handle, '\n');
-  fasta_print_sequence(output_handle, View<char>{seq, static_cast<std::size_t>(len)},
-                       static_cast<std::size_t>(len),
+  fasta_print_sequence(output_handle, seq, seq.size(),
                        static_cast<int>(parameters.opt_fasta_width));
 }
 

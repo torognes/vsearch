@@ -1054,7 +1054,10 @@ auto derep_add_sequence(struct derep_session_s * ds,
       /* New unique sequence */
       bp->size = static_cast<uint64_t>(abundance);
       bp->hash = hash;
-      bp->seq = ds->seq_up.data();
+      /* seq_up_v, not seq_up.data(): the normalized sequence's length is
+         already known here, so the assignment does not have to find the
+         terminator again for every unique record */
+      bp->seq.assign(seq_up_v.cbegin(), seq_up_v.cend());
       bp->header = header;
       bp->count = 1;
       bp->seqlen = static_cast<unsigned int>(seqlen);

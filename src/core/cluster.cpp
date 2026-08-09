@@ -80,7 +80,7 @@
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"
 #include "utils/open_file.hpp"
-#include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
+#include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/number_of_strands.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/threads.hpp"
@@ -92,7 +92,6 @@
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <limits>
 #include <map>
@@ -1345,15 +1344,6 @@ auto cluster(char const * dbname,
 
   /* allocate memory for full file name of the clusters files */
   OutputFileHandle fp_clusters;
-  static constexpr auto space_for_cluster_id = 25;  // up to 25 digits
-  std::vector<char> fn_clusters;
-  if (parameters.opt_clusters != nullptr) {
-    /* resize, not reserve: the name is built in this buffer and read back
-       through data(), and writing past size() is undefined however much has
-       been reserved */
-    fn_clusters.resize(std::strlen(parameters.opt_clusters) + space_for_cluster_id);
-  }
-
   int lastcluster = -1;
   uint64_t ordinal = 0;
 
@@ -1413,23 +1403,16 @@ auto cluster(char const * dbname,
 
                 ordinal = 0;
                 /* "%s%d": the prefix, then the cluster number in decimal.
-                   space_for_cluster_id above is what guarantees the digits
-                   fit. */
-                decimal::Buffer digits {};
-                auto const number = decimal::to_decimal(digits, clusterno);
-                auto const prefix_length = std::strlen(parameters.opt_clusters);
-                auto cursor = std::copy(parameters.opt_clusters,
-                                        std::next(parameters.opt_clusters,
-                                                  static_cast<std::ptrdiff_t>(prefix_length)),
-                                        fn_clusters.begin());
-                cursor = std::copy(number.cbegin(), number.cend(), cursor);
-                *cursor = '\0';
-                fp_clusters = open_output_file(fn_clusters.data());
+                   A std::string sizes itself, so there is no buffer to get
+                   wrong; std::fopen needs the terminator, which is what
+                   c_str() is for. */
+                std::string const filename =
+                  std::string(parameters.opt_clusters) + decimal::to_text(clusterno);
+                fp_clusters = open_output_file(filename.c_str());
                 if (not fp_clusters)
                   {
-                    fatal(std::string("Unable to open clusters file for writing (")
-                          + std::string(fn_clusters.data())
-                          + ")");
+                    fatal("Unable to open clusters file for writing ("
+                          + filename + ")");
                   }
               }
 

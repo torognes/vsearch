@@ -82,9 +82,8 @@ auto fasta_next(fastx_handle input_handle,
 /* fasta output */
 
 auto fasta_print(std::FILE * output_handle,
-                 char const * header,
-                 char const * seq,
-                 uint64_t len,
+                 View<char> header,
+                 View<char> seq,
                  struct Parameters const & parameters) -> void;
 
 auto fasta_print_general(std::FILE * output_handle,
