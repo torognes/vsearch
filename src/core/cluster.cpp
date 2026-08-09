@@ -967,14 +967,16 @@ auto cluster_core_parallel(struct cluster_cli_state_s & state,
             ? make_span(si_minus).subspan(query, 1)
             : Span<struct searchinfo_s>{};
 
-          std::array<struct searchinfo_s *, 2> const strands
-            {{&si_p, si_m.empty() ? nullptr : &si_m[0]}};
-          for (auto * const si : make_view(strands)
-                 .first(static_cast<std::size_t>(number_of_strands(state.parameters.opt_strand))))
+          auto const evaluate = [&](struct searchinfo_s & searchinfo) -> void
             {
-              evaluate_extra_hits(*si, make_view(si_plus),
+              evaluate_extra_hits(searchinfo, make_view(si_plus),
                                   make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
                                   lma, tophits, db);
+            };
+          evaluate(si_p);
+          for (auto & minus_strand : si_m)
+            {
+              evaluate(minus_strand);
             }
 
           /* find best hit */
@@ -1887,14 +1889,16 @@ auto cluster_assign_batch(struct cluster_session_s * cs,
             ? make_span(si_minus).subspan(query, 1)
             : Span<struct searchinfo_s>{};
 
-          std::array<struct searchinfo_s *, 2> const strands
-            {{&si_p, si_m.empty() ? nullptr : &si_m[0]}};
-          for (auto * const si : make_view(strands)
-                 .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
+          auto const evaluate = [&](struct searchinfo_s & searchinfo) -> void
             {
-              evaluate_extra_hits(*si, make_view(si_plus),
+              evaluate_extra_hits(searchinfo, make_view(si_plus),
                                   make_view(extra_list).first(static_cast<std::size_t>(extra_count)),
                                   lma, cs->tophits, *cs->db);
+            };
+          evaluate(si_p);
+          for (auto & minus_strand : si_m)
+            {
+              evaluate(minus_strand);
             }
 
           /* Find best hit across strands */
