@@ -567,7 +567,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
   uint64_t maxsize = 0;
 
   {
-    Progress progress(prompt.c_str(), filesize, parameters);
+    Progress progress(prompt, filesize, parameters);
     while (input_handle->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
         auto const seqlen = static_cast<int64_t>(input_handle->get_sequence_length());

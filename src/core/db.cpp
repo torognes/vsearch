@@ -292,7 +292,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
   seqindex_.clear();
 
   {
-    Progress progress(prompt.c_str(), static_cast<uint64_t>(filesize), parameters);
+    Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
     while (input_handle->next(
                      not parameters.opt_notrunclabels,
                       (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))

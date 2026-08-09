@@ -246,7 +246,7 @@ auto udb_read(const char * filename,
   auto shortest = std::numeric_limits<unsigned int>::max();
   auto longest = 0U;
   {
-    Progress progress_bar(prompt.c_str(), filesize, parameters);
+    Progress progress_bar(prompt, filesize, parameters);
     pos += largeread(in_stream, buffer.data(), uint64_t{4} * 50, pos, progress_bar);
 
     if ((buffer[0]  != 0x55444246) or

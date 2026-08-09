@@ -61,29 +61,36 @@
 #include "print_view.hpp"  // fprint
 #include "vsearch.hpp"  // struct Parameters
 
-#include <cassert>
+#include "view.hpp"  // View, make_view
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf
+#include <string>  // std::string
+#include <utility>  // std::move
 
 
 class Progress {
 public:
-  explicit Progress(char const * prompt, std::uint64_t const max_size,
+  /* The prompt is owned, not borrowed: it is printed again on every update and
+     once more from the destructor, so a Progress built from a std::string used
+     to require that string to outlive it -- a requirement no signature stated
+     and four callers met only by accident of scope. A Progress is built once
+     per phase, never per record, so the copy is unmeasurable; the ~60 callers
+     passing a string literal are unchanged in source. */
+  explicit Progress(std::string prompt, std::uint64_t const max_size,
                     struct Parameters const & parameters)
-      : prompt_{prompt},
+      : prompt_{std::move(prompt)},
         max_size_{max_size},
         stderr_is_tty_(parameters.opt_stderr_is_tty),
         is_quiet_(parameters.opt_quiet),
         no_progress_(parameters.opt_no_progress) {
-    assert(prompt != nullptr);
     is_visible_ = check_if_visible();
     if (is_quiet_) { return; }
-    std::fputs(prompt, stderr);
+    fprint(stderr, make_view(prompt_));
     if (not is_visible_) { return; }
     fprint(stderr, " 0%");
     if (max_size_ == 0) {
       fprint(stderr, "  \r");
-      std::fputs(prompt_, stderr);
+      fprint(stderr, make_view(prompt_));
       fprint(stderr, " 0%");
       return;
     }
@@ -101,7 +108,7 @@ public:
     if ((not is_visible_) or (counter_ < next_threshold_)) { return; }
     current_percentage_ = calculate_percentage();
     fprint(stderr, "  \r");
-    std::fputs(prompt_, stderr);
+    fprint(stderr, make_view(prompt_));
     fprint(stderr, ' ');
     fprint_integer(stderr, current_percentage_);
     fprint(stderr, '%');
@@ -121,7 +128,7 @@ private:
   static constexpr auto one_hundred_percent = 100UL;
 
   // Construction-time parameters
-  char const * prompt_ {};
+  std::string prompt_;
   std::uint64_t max_size_ {};
   bool stderr_is_tty_ {};
   bool is_quiet_ {};
@@ -155,7 +162,7 @@ private:
     if (is_quiet_) { return; }
     if (is_visible_) {
       fprint(stderr, "  \r");
-      std::fputs(prompt_, stderr);
+      fprint(stderr, make_view(prompt_));
     }
     fprint(stderr, ' ');
     fprint_integer(stderr, one_hundred_percent);
