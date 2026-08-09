@@ -65,6 +65,7 @@
 #include <limits>  // std::numeric_limits
 #include <utility> // std::swap
 #include "fatal.hpp" // fatal() (used by the templates below)
+#include "span.hpp" // Span (the shuffled range)
 
 
 /* ---- Cross-platform reproducible RNG ------------------------------------
@@ -145,12 +146,12 @@ auto random_bounded(URBG & generator, uint64_t const range) -> uint64_t
 #endif
 }
 
-/* Portable in-place Fisher-Yates shuffle over data[0 .. count), replacing
+/* Portable in-place Fisher-Yates shuffle over data, replacing
    std::shuffle (which is implementation-defined). */
-template <typename T, typename URBG>
-auto random_shuffle(T * data, std::size_t const count, URBG & generator) -> void
+template <typename Type, typename URBG>
+auto random_shuffle(Span<Type> const data, URBG & generator) -> void
 {
-  for (std::size_t i = count; i > 1; --i)
+  for (std::size_t i = data.size(); i > 1; --i)
     {
       auto const j = static_cast<std::size_t>(random_bounded(generator, i));  /* [0, i) */
       std::swap(data[i - 1], data[j]);

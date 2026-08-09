@@ -90,7 +90,7 @@ namespace {
        identical across platforms for a given seed (see util.h) */
     RandomSeed const seed(parameters);
     std::mt19937_64 uniform_generator(seed.value());
-    random_shuffle(deck.data(), deck.size(), uniform_generator);
+    random_shuffle(make_span(deck), uniform_generator);
   }
 
 
