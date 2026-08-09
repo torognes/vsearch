@@ -129,7 +129,7 @@ namespace {
     assert(filename != nullptr);
     std::string const message = std::string("unable to open output file for ")
       + option.name + " (" + filename + ")";
-    fatal(message.c_str());
+    fatal(message);
   }
 
 }  // end of anonymous namespace

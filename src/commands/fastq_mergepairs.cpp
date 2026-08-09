@@ -143,16 +143,16 @@ public:
       // text is unchanged). Called on the main thread after the worker pool has
       // joined, so throwing in a library session is safe.
       case MergeAbortReason::quality_below_qmin:
-        fatal(("FASTQ quality value (" + std::to_string(value_) + ") below qmin ("
-               + std::to_string(parameters.opt_fastq_qmin) + ")").c_str());
+        fatal("FASTQ quality value (" + std::to_string(value_) + ") below qmin ("
+              + std::to_string(parameters.opt_fastq_qmin) + ")");
         break;
 
       case MergeAbortReason::quality_above_qmax:
-        fatal(("FASTQ quality value (" + std::to_string(value_) + ") above qmax ("
-               + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-               "By default, quality values range from 0 to 41.\n"
-               "To allow higher quality values, "
-               "please use the option --fastq_qmax " + std::to_string(value_)).c_str());
+        fatal("FASTQ quality value (" + std::to_string(value_) + ") above qmax ("
+              + std::to_string(parameters.opt_fastq_qmax) + ")\n"
+              "By default, quality values range from 0 to 41.\n"
+              "To allow higher quality values, "
+              "please use the option --fastq_qmax " + std::to_string(value_));
         break;
 
       case MergeAbortReason::more_fwd_than_rev:

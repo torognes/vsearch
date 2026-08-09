@@ -134,7 +134,7 @@ namespace {
       "Please adjust the FASTQ quality base character or range with the\n" +
       "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
       "diagnosis with suggested values, please run vsearch --fastq_chars file.";
-    fatal(message.c_str());
+    fatal(message);
   }
 
 

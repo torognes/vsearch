@@ -89,16 +89,16 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
   // unchanged.
   if (quality_score < parameters.opt_fastq_qmin)
     {
-      fatal(("FASTQ quality value (" + std::to_string(quality_score) + ") below qmin ("
-             + std::to_string(parameters.opt_fastq_qmin) + ")").c_str());
+      fatal("FASTQ quality value (" + std::to_string(quality_score) + ") below qmin ("
+            + std::to_string(parameters.opt_fastq_qmin) + ")");
     }
   else if (quality_score > parameters.opt_fastq_qmax)
     {
-      fatal(("FASTQ quality value (" + std::to_string(quality_score) + ") above qmax ("
-             + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-             "By default, quality values range from 0 to 41.\n"
-             "To allow higher quality values, "
-             "please use the option --fastq_qmax " + std::to_string(quality_score)).c_str());
+      fatal("FASTQ quality value (" + std::to_string(quality_score) + ") above qmax ("
+            + std::to_string(parameters.opt_fastq_qmax) + ")\n"
+            "By default, quality values range from 0 to 41.\n"
+            "To allow higher quality values, "
+            "please use the option --fastq_qmax " + std::to_string(quality_score));
     }
   return quality_score;
 }

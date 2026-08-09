@@ -89,7 +89,7 @@ auto validate_thread_count(int64_t const threads) -> void
       std::string const message =
         "The argument to --threads must be in the range 0 (default) to "
         + std::to_string(n_threads_max);
-      fatal(message.c_str());
+      fatal(message);
     }
 }
 
@@ -178,7 +178,7 @@ auto parameters_validate(struct Parameters const & parameters) -> void
       std::string const message =
         "The argument to --chimeras_parents_max must be in the range 2 to "
         + std::to_string(maxparents);
-      fatal(message.c_str());
+      fatal(message);
     }
 }
 

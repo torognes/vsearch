@@ -295,7 +295,7 @@ namespace {
                   "A finite gap penalty must be in the range 0 to "
                   + std::to_string(max_gap_penalty)
                   + "; use '*' to declare an infinite penalty";
-                fatal(message.c_str());
+                fatal(message);
               }
           }
         else if (*cursor == '*')
@@ -4630,7 +4630,7 @@ namespace {
           + " (INT_MAX - "
           + std::string(headroom.data(), headroom.size())
           + ")";
-        fatal(message.c_str());
+        fatal(message);
       }
 
     if ((parameters.opt_chimeras_denovo != nullptr) and (not options_selected[option_alignwidth]))

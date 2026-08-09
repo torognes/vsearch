@@ -232,7 +232,7 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * 
       input_handle->set_deferred_error(message.c_str());
       return;
     }
-  fatal(message.c_str());
+  fatal(message);
 }
 
 
