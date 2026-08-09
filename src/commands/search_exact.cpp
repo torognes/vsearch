@@ -103,8 +103,8 @@ struct search_exact_state_s
   struct Database db;  /* the sequence database this run owns (RAII); si->db points here */
   struct Dbhash dbhash;  /* the exact-match hash index this run owns (RAII) */
 
-  struct searchinfo_s * si_plus = nullptr;
-  struct searchinfo_s * si_minus = nullptr;
+  std::vector<searchinfo_s> si_plus;
+  std::vector<searchinfo_s> si_minus;  /* empty unless --strand both */
 
   /* set once before the worker pool runs, then read-only: no synchronization needed */
   int tophits = 0; /* the maximum number of hits to keep */
@@ -430,7 +430,7 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
 {
   struct Parameters const & parameters = state.parameters;
   std::array<struct searchinfo_s *, 2> const strands
-    {{state.si_plus + t, (state.si_minus != nullptr) ? state.si_minus + t : nullptr}};
+    {{&state.si_plus[t], state.si_minus.empty() ? nullptr : &state.si_minus[t]}};
   for (auto * const si : make_view(strands)
          .first(static_cast<std::size_t>(number_of_strands(parameters.opt_strand))))
     {
@@ -450,8 +450,8 @@ auto search_exact_query(uint64_t const t, struct search_exact_state_s & state) -
 
   std::vector<struct hit> hits;
 
-  search_joinhits(state.si_plus + t,
-                  parameters.opt_strand ? state.si_minus + t : nullptr,
+  search_joinhits(&state.si_plus[t],
+                  parameters.opt_strand ? &state.si_minus[t] : nullptr,
                   hits);
 
   auto const qsequence = View<char>{state.si_plus[t].qsequence};
@@ -493,7 +493,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
        stored as si->strand, so here the index is data */
     for (int s = 0; s < number_of_strands(parameters.opt_strand); s++)
       {
-        struct searchinfo_s * si = (s != 0) ? state.si_minus + t : state.si_plus + t;
+        struct searchinfo_s * const si = (s != 0) ? &state.si_minus[t] : &state.si_plus[t];
 
         si->query_no = query_no;
         si->qsize = qsize;
@@ -555,22 +555,22 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
   run_worker_loop(state.mutex_input, has_work_to_claim, process_query);
 }
 
-auto search_exact_thread_init(struct searchinfo_s * si, struct Parameters const & parameters, int const tophits) -> void
+auto search_exact_thread_init(struct searchinfo_s & si, struct Parameters const & parameters, int const tophits) -> void
 {
   /* thread specific initialiation */
-  si->parameters = &parameters;  /* searchcore reads config through the si (E1) */
-  si->uh = Uniquer();
-  si->m = Minheap();
-  si->hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
-  si->qsize = 1;
-  si->query_head = View<char>{nullptr, 0};
-  si->seq_alloc = 0;
-  si->qsequence = Span<char>{};
-  si->nw = nullptr;
-  si->s = nullptr;
+  si.parameters = &parameters;  /* searchcore reads config through the si (E1) */
+  si.uh = Uniquer();
+  si.m = Minheap();
+  si.hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
+  si.qsize = 1;
+  si.query_head = View<char>{nullptr, 0};
+  si.seq_alloc = 0;
+  si.qsequence = Span<char>{};
+  si.nw = nullptr;
+  si.s = nullptr;
 }
 
-auto search_exact_thread_exit(struct searchinfo_s * /* si */) -> void
+auto search_exact_thread_exit(struct searchinfo_s & /* si */) -> void
 {
   /* thread specific clean up: query_head/qsequence are views and the hit/kmer
      buffers are RAII vectors that free themselves, so nothing to release here.
@@ -591,14 +591,14 @@ auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void
   effective.opt_id = 1.0;
 
   /* init per-thread search state before the workers start */
-  for (int t = 0; t < parameters.opt_threads; t++)
+  for (std::size_t t = 0; t < state.si_plus.size(); ++t)
     {
-      search_exact_thread_init(state.si_plus + t, effective, state.tophits);
-      (state.si_plus + t)->db = &state.db;  /* searchcore reads the sequences through the si */
-      if (state.si_minus != nullptr)
+      search_exact_thread_init(state.si_plus[t], effective, state.tophits);
+      state.si_plus[t].db = &state.db;  /* searchcore reads the sequences through the si */
+      if (not state.si_minus.empty())
         {
-          search_exact_thread_init(state.si_minus + t, effective, state.tophits);
-          (state.si_minus + t)->db = &state.db;
+          search_exact_thread_init(state.si_minus[t], effective, state.tophits);
+          state.si_minus[t].db = &state.db;
         }
     }
 
@@ -611,12 +611,12 @@ auto search_exact_thread_worker_run(struct search_exact_state_s & state) -> void
   }
 
   /* clean up per-thread search state */
-  for (int t = 0; t < parameters.opt_threads; t++)
+  for (std::size_t t = 0; t < state.si_plus.size(); ++t)
     {
-      search_exact_thread_exit(state.si_plus + t);
-      if (state.si_minus != nullptr)
+      search_exact_thread_exit(state.si_plus[t]);
+      if (not state.si_minus.empty())
         {
-          search_exact_thread_exit(state.si_minus + t);
+          search_exact_thread_exit(state.si_minus[t]);
         }
     }
 }
@@ -729,13 +729,10 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.query_fastx_h->enable_deferred_errors();
 
   /* allocate memory for thread info */
-  std::vector<struct searchinfo_s> si_plus_v(static_cast<std::size_t>(parameters.opt_threads));
-  state.si_plus = si_plus_v.data();
-  std::vector<struct searchinfo_s> si_minus_v;
+  state.si_plus.resize(static_cast<std::size_t>(parameters.opt_threads));
   if (parameters.opt_strand)
     {
-      si_minus_v.resize(static_cast<std::size_t>(parameters.opt_threads));
-      state.si_minus = si_minus_v.data();
+      state.si_minus.resize(static_cast<std::size_t>(parameters.opt_threads));
     }
 
   {

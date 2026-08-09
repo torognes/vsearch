@@ -266,7 +266,7 @@ struct chimera_cli_state_s
   std::FILE * fp_chimeras = nullptr;
   std::FILE * fp_nonchimeras = nullptr;
   std::FILE * fp_borderline = nullptr;
-  struct chimera_info_s * cia = nullptr;
+  std::vector<struct chimera_info_s> cia;  /* one per worker thread */
 
   Progress * progress_bar = nullptr;  /* owner progress bar; worker updates it under output_lock (state.progress is the counter) */
 
@@ -2457,7 +2457,7 @@ static auto chimera_threads_run(struct chimera_cli_state_s & state) -> void
      pthread_join already discarded, so it is ignored here too. */
   ThreadRunner threadrunner(static_cast<std::size_t>(state.detection_parameters.opt_threads),
                             [&state, &mutex_input](uint64_t const nth_thread) -> void {
-                              chimera_thread_core(state, state.cia + nth_thread, mutex_input, state.db);
+                              chimera_thread_core(state, &state.cia[nth_thread], mutex_input, state.db);
                             });
   threadrunner.run();
 }
@@ -2523,8 +2523,7 @@ auto chimera(struct Parameters const & parameters) -> void
   state.seqno = 0;
 
   /* prepare per-thread chimera detection state */
-  std::vector<struct chimera_info_s> cia_v(static_cast<size_t>(state.detection_parameters.opt_threads));
-  state.cia = cia_v.data();
+  state.cia.resize(static_cast<size_t>(state.detection_parameters.opt_threads));
 
   char const * denovo_dbname = nullptr;
 
