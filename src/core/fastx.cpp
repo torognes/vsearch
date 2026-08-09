@@ -86,6 +86,7 @@
 #include <iterator> // std::next, std::distance
 #include <limits>  // std::numeric_limits
 #include <memory>  // std::unique_ptr
+#include <string>  // std::string
 #include <vector>
 
 
@@ -179,7 +180,7 @@ auto fastx_s::get_abundance_and_presence() const -> int64_t
 }
 
 
-auto fastx_s::set_deferred_error(char const * const message) -> void
+auto fastx_s::record_deferred_error(View<char> const message) -> void
 {
   /* record the first deferred parse error and flag the handle (see the
      deferred-error note in fastx.hpp). First error wins; later ones are
@@ -188,12 +189,23 @@ auto fastx_s::set_deferred_error(char const * const message) -> void
     {
       /* a truncating copy, which is all snprintf("%s", ...) was doing here:
          at most errmsg.size() - 1 characters, always NUL-terminated */
-      auto const length = std::min(std::strlen(message), errmsg.size() - 1);
-      std::copy(message, std::next(message, static_cast<std::ptrdiff_t>(length)),
-                errmsg.begin());
+      auto const length = std::min(message.size(), errmsg.size() - 1);
+      std::copy_n(message.cbegin(), length, errmsg.begin());
       errmsg[length] = '\0';
       error = true;
     }
+}
+
+
+auto fastx_s::set_deferred_error(char const * const message) -> void
+{
+  record_deferred_error(View<char>{message, std::strlen(message)});
+}
+
+
+auto fastx_s::set_deferred_error(std::string const & message) -> void
+{
+  record_deferred_error(make_view(message));
 }
 
 
@@ -240,23 +252,30 @@ auto find_header_end(Span<char> const raw_header) -> std::size_t {
 }
 
 
+namespace {
 // Emit a pre-formatted warning line to stderr and, when open, the log file.
 // The caller formats the message itself (mirroring the snprintf-into-a-buffer
 // idiom used by the fatal()/deferred paths below), so this stays a simple
 // reporter and the message's format string is validated by -Wformat at the
 // call site instead of being forwarded as a runtime argument to fprintf.
-auto warn(char const * const message) -> void {
+//
+// It is declared in no header and has a single caller, 80 lines below, so it
+// belongs in this file's internal linkage rather than exporting a name as
+// common as "warn" to every TU. Taking the message the caller already holds
+// also drops the two std::fputs calls, which had to re-measure it.
+auto warn(std::string const & message) -> void {
   fprint(stderr, "\nWARNING: ");
-  std::fputs(message, stderr);
+  fprint(stderr, make_view(message));
   fprint(stderr, '\n');
 
   auto * const log = log_file::handle();
   if (log != nullptr) {
     fprint(log, "\nWARNING: ");
-    std::fputs(message, log);
+    fprint(log, make_view(message));
     fprint(log, '\n');
   }
 }
+}  // anonymous namespace
 
 
 auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
@@ -282,7 +301,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
       + ".\nHeaders longer than " + decimal::to_text(static_cast<uint64_t>(max_header_length))
       + " bytes are not supported.";
     if (input_handle->defer_errors) {
-      input_handle->set_deferred_error(message.c_str());
+      input_handle->set_deferred_error(message);
       return;
     }
     fatal(message);
@@ -302,7 +321,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
           "Illegal character encountered in FASTA/FASTQ header.\n"
           "Unprintable ASCII character no " + decimal::to_text(static_cast<int>(symbol))
           + " on line " + decimal::to_text(input_handle->lineno_start) + ".";
-        input_handle->set_deferred_error(message.c_str());
+        input_handle->set_deferred_error(message);
         return;
       }
       fatal(std::string("Illegal character encountered in FASTA/FASTQ header.\nUnprintable ASCII character no ")
@@ -325,7 +344,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
         "Character no " + decimal::to_text(symbol_unsigned)
         + " (0x" + hex.data() + ") on line "
         + decimal::to_text(input_handle->lineno_start) + ".";
-      warn(message.c_str());
+      warn(message);
     }
   }
 }
@@ -753,7 +772,7 @@ auto fastx_filter_sequence_length(fastx_handle input_handle) -> void
     + " nt are not supported.";
   if (input_handle->defer_errors)
     {
-      input_handle->set_deferred_error(message.c_str());
+      input_handle->set_deferred_error(message);
       return;
     }
   fatal(message);

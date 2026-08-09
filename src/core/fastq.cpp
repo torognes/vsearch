@@ -216,7 +216,12 @@ namespace {
 
 
 namespace {
-auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * msg) -> void
+/* msg is a std::string rather than a char const *: two of the eight callers
+   assemble it by concatenation and used to hand over msg.c_str(), only for the
+   line below to concatenate it back into another string. The six callers
+   passing a literal build one temporary instead, on a path that has already
+   given up on the file. */
+auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, std::string const & msg) -> void
 {
   /* decimal::to_text, not std::to_string: on libstdc++ <= 10 the latter is a
      std::vsnprintf call with a format string (see decimal_digits.hpp). */
@@ -229,7 +234,7 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, const char * 
      after this call. */
   if (input_handle->defers_errors())
     {
-      input_handle->set_deferred_error(message.c_str());
+      input_handle->set_deferred_error(message);
       return;
     }
   fatal(message);
@@ -426,7 +431,7 @@ auto fastq_next(fastx_handle input_handle,
             ? "Illegal sequence character '" + std::string(1, illegal_char) + "'"
             : "Illegal sequence character (unprintable, no "
               + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
-          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.c_str());
+          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message);
           return false;
         }
     }
@@ -543,7 +548,7 @@ auto fastq_next(fastx_handle input_handle,
             ? "Illegal quality character '" + std::string(1, illegal_char) + "'"
             : "Illegal quality character (unprintable, no "
               + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
-          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message.c_str());
+          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message);
           return false;
         }
     }

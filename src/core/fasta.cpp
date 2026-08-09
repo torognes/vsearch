@@ -149,7 +149,7 @@ namespace {
     /* deferred-error mode (see fastx.h): record and return instead of
        exiting, so a worker thread does not std::exit() with siblings live */
     if (input_handle->defers_errors()) {
-      input_handle->set_deferred_error(message.c_str());
+      input_handle->set_deferred_error(message);
       return;
     }
     fatal(message);
@@ -162,7 +162,7 @@ namespace {
       + " in sequence on line " + decimal::to_text(line_number)
       + " of FASTA file";
     if (input_handle->defers_errors()) {
-      input_handle->set_deferred_error(message.c_str());
+      input_handle->set_deferred_error(message);
       return;
     }
     fatal(message);

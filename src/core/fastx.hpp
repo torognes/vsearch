@@ -229,6 +229,10 @@ private:
   bool error = false;
   std::array<char, 512> errmsg {{}};
 
+  // The shared body of the two set_deferred_error() overloads below: the
+  // message arrives already measured, so neither of them needs std::strlen.
+  auto record_deferred_error(View<char> message) -> void;
+
 public:
   /* Read API, mirroring Database's accessors. The former fastx_get_, fasta_get_
      and fastq_get_ free functions were three near-identical families dispatching
@@ -311,6 +315,14 @@ public:
   auto get_error() const noexcept -> bool { return error; }
   auto get_errmsg() const noexcept -> char const * { return errmsg.data(); }
   auto set_deferred_error(char const * message) -> void;
+  // The assembled-message form, for the callers that build the text with
+  // std::string concatenation: the string knows its own length, so the copy
+  // below takes it from size() instead of measuring the same bytes again with
+  // std::strlen -- and stays correct if a message ever carries an embedded
+  // '\0'. A string literal still selects the overload above (array-to-pointer
+  // is an exact match, the std::string conversion is user-defined), exactly as
+  // described for fatal() in utils/fatal.hpp.
+  auto set_deferred_error(std::string const & message) -> void;
 
   // Advance to the next record, dispatching to the FASTA or FASTQ parser by
   // format. Returns false at end of input or on a deferred parse error.
