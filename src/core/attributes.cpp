@@ -216,8 +216,13 @@ auto header_get_size(View<char> const header) -> int64_t {
   char * next_character = nullptr;
   // C++17 refactoring: replace strtoll with std::from_chars
   auto const value_offset = annotation.start + attributes.size.view().size();
-  auto const * const value = std::next(header.data(),
-                                       static_cast<std::ptrdiff_t>(value_offset));
+  /* subspan rather than std::next(header.data(), ...): the offset comes from a
+     match position inside the header, and subspan is where an out-of-range one
+     would be caught. std::strtoll still needs the bare pointer, and stops at
+     the first non-digit -- the ';' or the terminator that follows the
+     annotation in the reader's and the Database's buffers alike. */
+  auto const * const value =
+    header.subspan(value_offset, header.size() - value_offset).data();
   auto const abundance = std::strtoll(value, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 

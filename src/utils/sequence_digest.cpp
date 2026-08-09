@@ -61,6 +61,7 @@
 #include "sequence_digest.hpp"
 #include "fatal.hpp"  // fatal
 #include "string_normalize.hpp"  // string_normalize
+#include "utils/print_view.hpp"  // fprint
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "vendored/md5.h"  // MD5_CTX, MD5_Init, MD5_Update, MD5_Final
@@ -172,7 +173,9 @@ auto fprint_seq_digest_sha1(std::FILE * output_handle, View<char> const seq) -> 
 {
   std::array<char, len_hex_dig_sha1> hex_digest {{}};
   get_hex_seq_digest_sha1(hex_digest, seq);
-  std::fputs(hex_digest.data(), output_handle);
+  /* size() - 1: the last byte is the '\0' the writer above appends, and is
+     not part of the digest */
+  fprint(output_handle, make_view(hex_digest).first(hex_digest.size() - 1));
 }
 
 
@@ -180,5 +183,7 @@ auto fprint_seq_digest_md5(std::FILE * output_handle, View<char> const seq) -> v
 {
   std::array<char, len_hex_dig_md5> hex_digest {{}};
   get_hex_seq_digest_md5(hex_digest, seq);
-  std::fputs(hex_digest.data(), output_handle);
+  /* size() - 1: the last byte is the '\0' the writer above appends, and is
+     not part of the digest */
+  fprint(output_handle, make_view(hex_digest).first(hex_digest.size() - 1));
 }

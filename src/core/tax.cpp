@@ -81,7 +81,11 @@ auto tax_parse(View<char> const header,
     Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
   */
 
-  if (header.data() == nullptr)
+  /* empty(), not data() == nullptr: the two differ for a present-but-empty
+     header (a '>' alone on the line), and here they cannot -- a header with no
+     bytes holds no "tax=" either, so the loop below would fall through to the
+     same false. */
+  if (header.empty())
     {
       return false;
     }
@@ -107,7 +111,7 @@ auto tax_parse(View<char> const header,
       offset = static_cast<int>(std::distance(header.begin(), first_occurence));
 
       /* check for ';' in front */
-      if ((offset > 0) and (header.data()[offset - 1] != ';'))
+      if ((offset > 0) and (header[static_cast<std::size_t>(offset) - 1] != ';'))
         {
           offset += attribute_length + 1;
           continue;
@@ -158,13 +162,20 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
   while (offset < tax_end)
     {
       /* Is the next char a recognized tax level letter? */
-      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(), to_lower(header.data()[offset]));
+      auto const * next_level = std::find(taxonomic_fields.begin(), taxonomic_fields.end(),
+                                          to_lower(header[static_cast<std::size_t>(offset)]));
       if (next_level != taxonomic_fields.end())
         {
           auto const level = static_cast<std::size_t>(std::distance(taxonomic_fields.begin(), next_level));
 
           /* Is there a colon after it? */
-          if (header.data()[offset + 1] == ':')
+          /* the level letter can be the header's last byte (">s;tax=d"), so
+             the position after it is outside the view. Reading it used to work
+             only because Database NUL-terminates its headers, and a '\0' is
+             not a ':' -- the bounds test makes that explicit and keeps the
+             same answer. */
+          auto const after_level = static_cast<std::size_t>(offset) + 1;
+          if ((after_level < header.size()) and (header[after_level] == ':'))
             {
               levels[level].start = offset + 2;
 

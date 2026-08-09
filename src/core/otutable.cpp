@@ -338,9 +338,8 @@ auto OtuTable::print_mothur_shared_out(std::FILE * output_handle, struct Paramet
   int64_t numotus = 0;
   for (auto const & it_otu : otu_set_)
     {
-      char const * otu_name = it_otu.c_str();
       fprint(output_handle, '\t');
-      std::fputs(otu_name, output_handle);
+      fprint(output_handle, make_view(it_otu));
       ++numotus;
     }
   fprint(output_handle, '\n');

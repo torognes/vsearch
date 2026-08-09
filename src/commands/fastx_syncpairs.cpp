@@ -181,7 +181,7 @@ namespace {
   // when its separator belongs to the configured set.
   auto matching_key(View<char> const header,
                     std::string const & separators) -> std::string {
-    std::string key {header.data(), header.size()};
+    std::string key {header.begin(), header.end()};
 
     auto const blank = key.find_first_of(" \t");
     if (blank != std::string::npos) {
@@ -204,10 +204,10 @@ namespace {
   auto store_record(fastx_handle handle, bool const is_fastq) -> read_record {
     read_record record;
     auto const stored = handle->record();
-    record.header.assign(stored.header.data(), stored.header.size());
-    record.sequence.assign(stored.sequence.data(), stored.sequence.size());
+    record.header.assign(stored.header.begin(), stored.header.end());
+    record.sequence.assign(stored.sequence.begin(), stored.sequence.end());
     if (is_fastq) {
-      record.quality.assign(stored.quality.data(), stored.quality.size());
+      record.quality.assign(stored.quality.begin(), stored.quality.end());
     }
     record.abundance = handle->get_abundance();
     return record;

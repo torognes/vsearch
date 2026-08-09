@@ -638,7 +638,7 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
           fprint(stdout, ' ');
           fprint_integer(stdout, best_len);
           fprint(stdout, ' ');
-          std::fputs(ci->query_head.data(), stdout);
+          fprint(stdout, ci->query_head);
           fprint(stdout, ' ');
           fprint(stdout, ci->db->header_view(ci->cand_list[best_cand]));
           fprint(stdout, '\n');

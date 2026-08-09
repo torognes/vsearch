@@ -4620,15 +4620,11 @@ namespace {
       std::numeric_limits<int>::max() - buffer_headroom;
     if (parameters.opt_maxseqlength > maxseqlength_limit)
       {
-        decimal::Buffer limit_digits {};
-        decimal::Buffer headroom_digits {};
-        auto const limit = decimal::to_decimal(limit_digits, maxseqlength_limit);
-        auto const headroom = decimal::to_decimal(headroom_digits, buffer_headroom);
         std::string const message =
           std::string("The argument to --maxseqlength cannot exceed ")
-          + std::string(limit.data(), limit.size())
+          + decimal::to_text(maxseqlength_limit)
           + " (INT_MAX - "
-          + std::string(headroom.data(), headroom.size())
+          + decimal::to_text(buffer_headroom)
           + ")";
         fatal(message);
       }

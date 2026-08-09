@@ -159,12 +159,10 @@ auto fill_prog_header(struct Parameters & parameters) -> void
   static_cast<void>(std::snprintf(
       gigabytes.data(), gigabytes.size(), "%.1f",
       static_cast<double>(system_get_memtotal()) / one_gigabyte));
-  decimal::Buffer core_digits {};
-  auto const cores = decimal::to_decimal(core_digits, system_get_cores());
   parameters.prog_header =
     std::string(PROG_NAME) + " v" + PROG_VERSION + "_" + PROG_ARCH + ", "
     + gigabytes.data() + "GB RAM, "
-    + std::string(cores.data(), cores.size()) + " cores";
+    + decimal::to_text(system_get_cores()) + " cores";
 }
 
 

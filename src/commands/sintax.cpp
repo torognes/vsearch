@@ -153,7 +153,7 @@ struct sintax_state_s
    filled prefix of one row of the caller's all_seqno, whose fill level used to
    be handed over beside the pointer as a separate `count`. */
 static auto sintax_analyse(struct sintax_state_s & state,
-                    char const * query_head,
+                    View<char> const query_head,
                     int const strand,
                     View<int> const candidates) -> void
 {
@@ -273,7 +273,7 @@ static auto sintax_analyse(struct sintax_state_s & state,
 
   /* write to tabbedout file */
   std::lock_guard<std::mutex> const output_lock(state.mutex_output);
-  std::fputs(query_head, fp_tabbedout);
+  fprint(fp_tabbedout, query_head);
   fprint(fp_tabbedout, '\t');
 
   state.queries++;
@@ -463,7 +463,7 @@ static auto sintax_query(struct sintax_state_s & state, uint64_t const t) -> voi
   std::array<int, 2> boot_count = {0, 0};
   std::array<unsigned int, 2> best_count = {0, 0};
   int const qseqlen = static_cast<int>(si_plus[t].qsequence.size());
-  char const * query_head = si_plus[t].query_head.data();
+  auto const query_head = si_plus[t].query_head;
 
   /* Per-query RNG: seed from the run's base seed and this query's input
      number, so the random subsampling and tie-breaking are reproducible
