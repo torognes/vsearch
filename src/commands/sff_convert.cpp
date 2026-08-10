@@ -68,6 +68,7 @@
 #include "utils/os_byteswap.hpp"
 #include "utils/span.hpp"  // Span, make_span
 #include "utils/view.hpp"
+#include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::min, std::max, std::transform
 #include <array>
 #include <cassert>
@@ -406,25 +407,12 @@ auto compute_padding_length(uint32_t const section_length) -> uint32_t {
 // static_assert(compute_index_padding(std::numeric_limits<uint32_t>::max()) == 1U, "error: wrong padding value (expect 1)");
 
 
-auto warn_if(struct Parameters const & parameters, bool const condition, char const * const message) -> void {
-  if (condition) {
-    return;
-  };
-  fprint(stderr, "WARNING: ");
-  std::fputs(message, stderr);
-  fprint(stderr, '\n');
-  if (parameters.opt_log != nullptr) {
-    fprint(parameters.fp_log, "WARNING: ");
-    std::fputs(message, parameters.fp_log);
-    fprint(parameters.fp_log, '\n');
-  }
-}
-
-
-auto check_for_additional_tail_data(std::FILE * sff_handle, struct Parameters const & parameters) -> void {
+auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
   // try to read another byte
   auto const n_bytes_read = fskip(sff_handle, byte_size);
-  warn_if(parameters, n_bytes_read == 0, "Additional data at end of SFF file ignored");
+  if (n_bytes_read != 0) {
+    vsearch::warn("Additional data at end of SFF file ignored");
+  }
 }
 
 
@@ -693,13 +681,17 @@ auto sff_convert(struct Parameters const & parameters) -> void
         }
     }
 
-  warn_if(parameters, index_is_done, "SFF index missing");
-  warn_if(parameters, not index_is_odd, "Index at unusual position in file");
+  if (not index_is_done) {
+    vsearch::warn("SFF index missing");
+  }
+  if (index_is_odd) {
+    vsearch::warn("Index at unusual position in file");
+  }
 
 
   /* ignore the rest of file */
 
-  check_for_additional_tail_data(fp_sff.get(), parameters);  // rename to warn_if_additional_tail_data()?
+  check_for_additional_tail_data(fp_sff.get());  // rename to warn_if_additional_tail_data()?
 
   if (not parameters.opt_quiet) {
     write_report(stderr, sff_header, sff_stats, index_kind);

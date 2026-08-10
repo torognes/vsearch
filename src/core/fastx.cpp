@@ -67,12 +67,12 @@
 #include "os/dynlibs.hpp"
 #include "os/system.hpp"  // xstat_t, xfstat, xlseek, xftello, S_ISREG
 #include "utils/fatal.hpp"
-#include "utils/logfile.hpp"  // log_file::handle
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/open_file.hpp"  // open_input_file
 #include "utils/print_view.hpp"  // fprint
 #include "utils/span.hpp"
 #include "utils/view.hpp"  // View
+#include "utils/warn.hpp"  // vsearch::warn
 #include <sys/stat.h>
 #include <unistd.h>  // dup, STDOUT_FILENO
 #include <algorithm>  // std::copy, std::equal, std::find_first_of
@@ -252,32 +252,6 @@ auto find_header_end(Span<char> const raw_header) -> std::size_t {
 }
 
 
-namespace {
-// Emit a pre-formatted warning line to stderr and, when open, the log file.
-// The caller formats the message itself (mirroring the snprintf-into-a-buffer
-// idiom used by the fatal()/deferred paths below), so this stays a simple
-// reporter and the message's format string is validated by -Wformat at the
-// call site instead of being forwarded as a runtime argument to fprintf.
-//
-// It is declared in no header and has a single caller, 80 lines below, so it
-// belongs in this file's internal linkage rather than exporting a name as
-// common as "warn" to every TU. Taking the message the caller already holds
-// also drops the two std::fputs calls, which had to re-measure it.
-auto warn(std::string const & message) -> void {
-  fprint(stderr, "\nWARNING: ");
-  fprint(stderr, make_view(message));
-  fprint(stderr, '\n');
-
-  auto * const log = log_file::handle();
-  if (log != nullptr) {
-    fprint(log, "\nWARNING: ");
-    fprint(log, make_view(message));
-    fprint(log, '\n');
-  }
-}
-}  // anonymous namespace
-
-
 auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
   // truncate header (in-place)
   auto raw_header = input_handle->header_buffer.span();
@@ -344,7 +318,7 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
         "Character no " + decimal::to_text(symbol_unsigned)
         + " (0x" + hex.data() + ") on line "
         + decimal::to_text(input_handle->lineno_start) + ".";
-      warn(message);
+      vsearch::warn(message);
     }
   }
 }
@@ -624,44 +598,30 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
 
   if (stripped_all != 0U)
     {
-      fprint(stderr, "WARNING: ");
-      fprint_integer(stderr, stripped_all);
-      fprint(stderr, " invalid characters stripped from ");
-      std::fputs((is_fastq ? "FASTQ" : "FASTA"), stderr);
-      fprint(stderr, " file:");
-      for (int i = 0; i < 256; i++)
+      /* Composed once, then handed to the shared reporter, which writes stderr
+         and the log itself: the message and the 256-entry loop that builds it
+         used to be spelled out twice, once per destination. */
+      std::string message = decimal::to_text(stripped_all)
+        + " invalid characters stripped from "
+        + (is_fastq ? "FASTQ" : "FASTA") + " file:";
+      for (auto symbol = std::size_t{0}; symbol < byte_range; ++symbol)
         {
-          if (stripped[static_cast<std::size_t>(i)] != 0U)
+          if (stripped[symbol] != 0U)
             {
-              fprint(stderr, ' ');
-              fprint(stderr, static_cast<char>(i));
-              fprint(stderr, '(');
-              fprint_integer(stderr, stripped[static_cast<std::size_t>(i)]);
-              fprint(stderr, ')');
+              message += ' ';
+              message += static_cast<char>(symbol);
+              message += '(';
+              message += decimal::to_text(stripped[symbol]);
+              message += ')';
             }
         }
-      fprint(stderr, '\n');
-      fprint(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
+      vsearch::warn(message);
 
+      /* Not a warning, so it stays a separate emission rather than joining the
+         message above: it must keep its own prefix. */
+      fprint(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
       if (parameters.opt_log != nullptr)
         {
-          fprint(parameters.fp_log, "WARNING: ");
-          fprint_integer(parameters.fp_log, stripped_all);
-          fprint(parameters.fp_log, " invalid characters stripped from ");
-          std::fputs((is_fastq ? "FASTQ" : "FASTA"), parameters.fp_log);
-          fprint(parameters.fp_log, " file:");
-          for (int i = 0; i < 256; i++)
-            {
-              if (stripped[static_cast<std::size_t>(i)] != 0U)
-                {
-                  fprint(parameters.fp_log, ' ');
-                  fprint(parameters.fp_log, static_cast<char>(i));
-                  fprint(parameters.fp_log, '(');
-                  fprint_integer(parameters.fp_log, stripped[static_cast<std::size_t>(i)]);
-                  fprint(parameters.fp_log, ')');
-                }
-            }
-          fprint(parameters.fp_log, '\n');
           fprint(parameters.fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }
     }
