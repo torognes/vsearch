@@ -198,6 +198,7 @@ utils/threads.hpp \
 utils/timestamp.hpp \
 utils/userfields.hpp \
 utils/view.hpp \
+utils/warn.hpp \
 utils/worker_loop.hpp \
 commands/version.hpp \
 vsearch.hpp \
@@ -372,6 +373,7 @@ utils/random.cpp \
 utils/reverse_complement.cpp \
 utils/sequence_digest.cpp \
 utils/string_normalize.cpp \
+utils/warn.cpp \
 commands/version.cpp
 
 # Per-architecture sources. Runtime SIMD detection via CPUID only makes

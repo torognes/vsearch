@@ -58,46 +58,50 @@
 
 */
 
-#include "open_file.hpp"  // OutputFileHandle
-#include <chrono>  // std::chrono::steady_clock
-#include <cstdio>  // std::FILE
+#pragma once
 
-struct Parameters;
+#include <string>  // std::string
 
 
-/* Accessor for the optional --log file handle, used by the process-wide
-   error/warning reporters (fatal(), utils/warn.hpp's vsearch::warn()) that run
-   with no Parameters in scope. The handle is owned and published by the LogFile RAII
-   object below; handle() returns nullptr when no --log file is open. Code that
-   already holds a Parameters should read parameters.fp_log directly instead. */
-namespace log_file
+/* The process-wide warning reporter, the non-fatal counterpart of fatal()
+   (utils/fatal.hpp): it emits the message and returns, where fatal() exits or
+   throws. Both write the same two places, so a warning reaches the --log file
+   whenever one is open -- which is what the fifteen hand-written warning sites
+   this replaced only did at six of them.
+
+   In namespace vsearch, unlike fatal(): "warn" is a far more common identifier
+   than "fatal", the header is reachable from library consumers, and an
+   unqualified call in consumer code could otherwise be captured silently by
+   ADL. A new header costs nothing to be born namespaced (no call sites to
+   convert later), so it is the first file to adopt the decision recorded in
+   TBD_20260725_vsearch_namespace.md. */
+namespace vsearch
 {
-  auto handle() noexcept -> std::FILE *;
-  auto set_handle(std::FILE * new_handle) noexcept -> void;
-}
 
+  /* Emits "\nWARNING: " + message + "\n" to stderr, and the same to the --log
+     file when one is open (log_file::handle(), utils/logfile.hpp).
 
-/* RAII owner of the optional --log file. When --log is given, the constructor
-   opens the file, publishes it through parameters.fp_log (for code that holds a
-   Parameters) and log_file::set_handle() (for the Parameters-less reporters)
-   so the rest of the program logs to it, and writes the program header, the
-   command line and the "Started" timestamp; the destructor writes the
-   "Finished"/elapsed-time/max-memory footer and closes the file. Co-locating
-   open and close keeps the two halves of the log lifecycle together and emits
-   the footer on every exit path out of the enclosing scope. Without --log the
-   object owns no file and both halves are no-ops. */
-class LogFile
-{
-public:
-  explicit LogFile(struct Parameters & parameters);
-  ~LogFile();
+     The leading newline is unconditional: it separates the warning from
+     whatever preceded it, typically a progress line still missing its own
+     terminator, which is what two of the original sites spelled out by hand and
+     the other thirteen wanted too.
 
-  LogFile(LogFile const &) = delete;
-  LogFile(LogFile &&) = delete;
-  auto operator=(LogFile const &) -> LogFile & = delete;
-  auto operator=(LogFile &&) -> LogFile & = delete;
+     Never consults --quiet: warnings survive it by documented contract
+     ("Suppress messages to stdout and stderr, except for warnings and error
+     messages", man/commands/fragments/option_quiet.md), which is also why this
+     needs no Parameters. fatal() has never consulted it either.
 
-private:
-  OutputFileHandle handle;
-  std::chrono::steady_clock::time_point start_time;
-};
+     The caller keeps any interior newlines: exactly one "WARNING: " prefix and
+     exactly one trailing newline are added, so a multi-line message such as
+     "... does not support multithreading.\nOnly 1 thread used." arrives
+     unchanged, and a companion line that is *not* a warning (fastx.cpp's
+     "REMINDER: ...") stays a separate emission rather than gaining the prefix.
+
+     A string literal selects the char const * overload, not the std::string
+     one: array-to-pointer is an exact match and the std::string conversion is
+     user-defined. The pair mirrors fatal.hpp's, for the same reason -- the
+     literal sites stay literal and only the composed ones allocate. */
+  auto warn(char const * message) -> void;
+  auto warn(std::string const & message) -> void;
+
+}  // namespace vsearch

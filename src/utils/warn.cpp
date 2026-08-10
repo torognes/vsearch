@@ -58,46 +58,44 @@
 
 */
 
-#include "open_file.hpp"  // OutputFileHandle
-#include <chrono>  // std::chrono::steady_clock
-#include <cstdio>  // std::FILE
+#include "warn.hpp"  // vsearch::warn
+#include "logfile.hpp"  // log_file::handle
+#include "print_view.hpp"  // fprint
+#include <cstdio>  // std::FILE, std::fputs, stderr
+#include <string>  // std::string
 
-struct Parameters;
 
-
-/* Accessor for the optional --log file handle, used by the process-wide
-   error/warning reporters (fatal(), utils/warn.hpp's vsearch::warn()) that run
-   with no Parameters in scope. The handle is owned and published by the LogFile RAII
-   object below; handle() returns nullptr when no --log file is open. Code that
-   already holds a Parameters should read parameters.fp_log directly instead. */
-namespace log_file
+namespace vsearch
 {
-  auto handle() noexcept -> std::FILE *;
-  auto set_handle(std::FILE * new_handle) noexcept -> void;
-}
+
+  namespace {
+
+    /* The shared emitter. std::fputs for the message itself, as in fatal.cpp:
+       fprint() has no char const * overload by design (its literal overload
+       takes the array by reference so the length is a compile-time constant),
+       and measuring the message with std::strlen just to build a View would buy
+       nothing on a path that runs at most a handful of times per run. */
+    auto emit(std::FILE * output_handle, char const * message) -> void {
+      fprint(output_handle, "\nWARNING: ");
+      std::fputs(message, output_handle);
+      fprint(output_handle, '\n');
+    }
+
+  }  // anonymous namespace
 
 
-/* RAII owner of the optional --log file. When --log is given, the constructor
-   opens the file, publishes it through parameters.fp_log (for code that holds a
-   Parameters) and log_file::set_handle() (for the Parameters-less reporters)
-   so the rest of the program logs to it, and writes the program header, the
-   command line and the "Started" timestamp; the destructor writes the
-   "Finished"/elapsed-time/max-memory footer and closes the file. Co-locating
-   open and close keeps the two halves of the log lifecycle together and emits
-   the footer on every exit path out of the enclosing scope. Without --log the
-   object owns no file and both halves are no-ops. */
-class LogFile
-{
-public:
-  explicit LogFile(struct Parameters & parameters);
-  ~LogFile();
+  auto warn(char const * message) -> void {
+    emit(stderr, message);
 
-  LogFile(LogFile const &) = delete;
-  LogFile(LogFile &&) = delete;
-  auto operator=(LogFile const &) -> LogFile & = delete;
-  auto operator=(LogFile &&) -> LogFile & = delete;
+    auto * const log = log_file::handle();
+    if (log != nullptr) {
+      emit(log, message);
+    }
+  }
 
-private:
-  OutputFileHandle handle;
-  std::chrono::steady_clock::time_point start_time;
-};
+
+  auto warn(std::string const & message) -> void {
+    warn(message.c_str());
+  }
+
+}  // namespace vsearch
