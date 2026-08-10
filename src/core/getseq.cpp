@@ -78,6 +78,7 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
+#include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
 #include <array>
 #include <cassert>
@@ -220,15 +221,9 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
   static constexpr auto max_label_length = std::size_t{1023};
   if (labels_longest >= max_label_length)
     {
-      if (not parameters.opt_quiet)
-        {
-          fprint(stderr, "WARNING: Labels longer than 1023 characters are not supported\n");
-        }
-
-      if (parameters.opt_log != nullptr)
-        {
-          fprint(parameters.fp_log, "WARNING: Labels longer than 1023 characters are not supported\n");
-        }
+      /* No --quiet guard: warnings survive it by documented contract, and the
+         shared reporter writes stderr and the log in one call. */
+      vsearch::warn("Labels longer than 1023 characters are not supported");
     }
 }
 

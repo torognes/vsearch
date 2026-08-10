@@ -65,6 +65,7 @@
 #include "utils/progress.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/warn.hpp"  // vsearch::warn
 #include <cstdio>  // std::FILE
 #include <cstdint>  // int64_t
 
@@ -115,12 +116,16 @@ auto rereplicate(struct Parameters const & parameters) -> void
       }
   }
 
+  /* Outside the --quiet block below, and emitted once for both destinations:
+     warnings survive --quiet by documented contract, and the shared reporter
+     writes stderr and the log itself. */
+  if (missing_abundance)
+    {
+      vsearch::warn("Missing abundance information for some input sequences, assumed 1");
+    }
+
   if (not parameters.opt_quiet)
     {
-      if (missing_abundance)
-        {
-          fprint(stderr, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
-        }
       fprint(stderr, "Rereplicated ");
       fprint_integer(stderr, n_reads);
       fprint(stderr, " reads from ");
@@ -130,10 +135,6 @@ auto rereplicate(struct Parameters const & parameters) -> void
 
   if (parameters.opt_log != nullptr)
     {
-      if (missing_abundance)
-        {
-          fprint(parameters.fp_log, "WARNING: Missing abundance information for some input sequences, assumed 1\n");
-        }
       fprint(parameters.fp_log, "Rereplicated ");
       fprint_integer(parameters.fp_log, n_reads);
       fprint(parameters.fp_log, " reads from ");
