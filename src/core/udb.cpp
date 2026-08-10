@@ -66,10 +66,12 @@
 #include "core/db.hpp"  // Database, seqinfo_t
 #include "core/dbindex.hpp"
 #include "os/system.hpp"  // xstat_t, xstat, xfstat, S_ISREG, S_ISFIFO
+#include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/span.hpp"  // Span, make_span
+#include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::min, std::max
 #include <array>
 #include <cstdint>  // uint64_t
@@ -305,9 +307,8 @@ auto udb_read(const char * filename,
        configured value. */
     if (udb_wordlength != static_cast<unsigned int>(parameters.opt_wordlength))
       {
-        fprint(stderr, "\nWARNING: Wordlength adjusted to ");
-        fprint_integer(stderr, udb_wordlength);
-        fprint(stderr, " as indicated in UDB file\n");
+        vsearch::warn("Wordlength adjusted to " + decimal::to_text(udb_wordlength)
+                      + " as indicated in UDB file");
       }
     dbindex.wordlength = udb_wordlength;
 

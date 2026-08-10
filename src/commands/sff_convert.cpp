@@ -676,7 +676,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
           uint64_t const got = fskip(fp_sff.get(), index_padding);
           if ((got < index_padding) and (got != 0))
             {
-              fprint(stderr, "WARNING: Additional data at end of SFF file ignored\n"); // refactoring: should be "missing padding"!
+              vsearch::warn("Additional data at end of SFF file ignored"); // refactoring: should be "missing padding"!
             }
         }
     }
