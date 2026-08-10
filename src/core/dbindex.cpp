@@ -179,7 +179,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   /* allocate memory for kmer count array */
   kmercount.assign(hashsize, 0U);
 
-  /* first scan, just count occurences */
+  /* first scan, just count occurrences */
   {
     Progress progress("Counting k-mers", seqcount, parameters);
     for (auto seqno = 0U; seqno < seqcount ; seqno++)

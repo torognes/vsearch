@@ -99,16 +99,16 @@ auto tax_parse(View<char> const header,
 
   while (offset < header_length - attribute_length)
     {
-      auto const * const first_occurence = std::search(header.begin() + offset, header.end(),
+      auto const * const first_occurrence = std::search(header.begin() + offset, header.end(),
                                                         attribute.begin(), attribute.end());
 
       /* no match */
-      if (first_occurence == header.end())
+      if (first_occurrence == header.end())
         {
           break;
         }
 
-      offset = static_cast<int>(std::distance(header.begin(), first_occurence));
+      offset = static_cast<int>(std::distance(header.begin(), first_occurrence));
 
       /* check for ';' in front */
       if ((offset > 0) and (header[static_cast<std::size_t>(offset) - 1] != ';'))

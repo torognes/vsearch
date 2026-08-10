@@ -153,17 +153,17 @@ namespace {
       {
         /* find the next occurrence of the attribute text, bounded by the
            header's size (no dependence on a trailing '\0') */
-        auto const * const first_occurence
+        auto const * const first_occurrence
           = std::search(std::next(header.cbegin(), static_cast<std::ptrdiff_t>(offset)),
                         header.cend(), name.cbegin(), name.cend());
 
         /* no match */
-        if (first_occurence == header.cend())
+        if (first_occurrence == header.cend())
           {
             break;
           }
 
-        offset = static_cast<std::size_t>(std::distance(header.cbegin(), first_occurence));
+        offset = static_cast<std::size_t>(std::distance(header.cbegin(), first_occurrence));
 
         /* check for ';' in front */
         if ((offset > 0) and (header[offset - 1] != ';'))
