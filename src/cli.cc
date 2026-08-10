@@ -71,6 +71,7 @@
 #include "utils/compare_strings_nocase.hpp"  // are_same_string
 #include "utils/fatal.hpp"  // fatal
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset
+#include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::count, std::any_of
 #include <array>
 #include <getopt.h>  // getopt_long_only, optarg, optind, opterr, struct option
@@ -3153,7 +3154,7 @@ namespace {
 
           case option_fulldp:
             parameters.opt_fulldp = 1;
-            fprint(stderr, "WARNING: Option --fulldp is ignored\n");
+            vsearch::warn("Option --fulldp is ignored");
             break;
 
           case option_strand:
@@ -3485,7 +3486,7 @@ namespace {
             break;
 
           case option_cons_truncate:
-            fprint(stderr, "WARNING: Option --cons_truncate is ignored\n");
+            vsearch::warn("Option --cons_truncate is ignored");
             parameters.opt_cons_truncate = 1;
             break;
 
@@ -3506,12 +3507,12 @@ namespace {
             break;
 
           case option_slots:
-            fprint(stderr, "WARNING: Option --slots is ignored\n");
+            vsearch::warn("Option --slots is ignored");
             parameters.opt_slots = static_cast<int>(args_getlong(optarg));
             break;
 
           case option_pattern:
-            fprint(stderr, "WARNING: Option --pattern is ignored\n");
+            vsearch::warn("Option --pattern is ignored");
             parameters.opt_pattern = optarg;
             break;
 
@@ -3877,22 +3878,22 @@ namespace {
 
           case option_xdrop_nw:
             /* xdrop_nw ignored */
-            fprint(stderr, "WARNING: Option --xdrop_nw is ignored\n");
+            vsearch::warn("Option --xdrop_nw is ignored");
             break;
 
           case option_minhsp:
             /* minhsp ignored */
-            fprint(stderr, "WARNING: Option --minhsp is ignored\n");
+            vsearch::warn("Option --minhsp is ignored");
             break;
 
           case option_band:
             /* band ignored */
-            fprint(stderr, "WARNING: Option --band is ignored\n");
+            vsearch::warn("Option --band is ignored");
             break;
 
           case option_hspw:
             /* hspw ignored */
-            fprint(stderr, "WARNING: Option --hspw is ignored\n");
+            vsearch::warn("Option --hspw is ignored");
             break;
 
           case option_gzip_decompress:
@@ -4254,7 +4255,7 @@ namespace {
           }
         if (any_options)
           {
-            fprint(stderr, "WARNING: Options given, but no valid command specified.\n");
+            vsearch::warn("Options given, but no valid command specified.");
           }
       }
     else
@@ -4348,15 +4349,15 @@ namespace {
            crashed here instead of reaching the usage summary. */
         if ((parameters.opt_threads > 1) and (k >= 0))
           {
-            fprint(stderr, "WARNING: The ");
-            std::fputs(long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name, stderr);
-            fprint(stderr, " command does not support multithreading.\nOnly 1 thread used.\n");
+            vsearch::warn(std::string("The ")
+                          + long_options[static_cast<size_t>(valid_options[static_cast<size_t>(k)][0])].name
+                          + " command does not support multithreading.\nOnly 1 thread used.");
           }
         parameters.opt_threads = 1;
       }
     if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
       {
-        fprint(stderr, "WARNING: Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.\n");
+        vsearch::warn("Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.");
       }
   }
 
