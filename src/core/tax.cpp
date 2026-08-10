@@ -78,7 +78,7 @@ auto tax_parse(View<char> const header,
                int & tax_end) -> bool
 {
   /*
-    Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
+    Identify the first occurrence of the pattern (^|;)tax=([^;]*)(;|$)
   */
 
   /* empty(), not data() == nullptr: the two differ for a present-but-empty
