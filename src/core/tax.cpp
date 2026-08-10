@@ -73,7 +73,7 @@ auto tax_parse(char const * header,
                int * tax_end) -> bool
 {
   /*
-    Identify the first occurence of the pattern (^|;)tax=([^;]*)(;|$)
+    Identify the first occurrence of the pattern (^|;)tax=([^;]*)(;|$)
   */
 
   if (header == nullptr)

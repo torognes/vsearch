@@ -102,7 +102,7 @@ namespace {
                              int * end) -> bool
   {
     /*
-      Identify the first occurence of the pattern (^|;)size=([0-9]+)(;|$)
+      Identify the first occurrence of the pattern (^|;)size=([0-9]+)(;|$)
       in the header string, where "size=" is the specified attribute.
       If allow_decimal is true, a dot (.) is allowed within the digits.
     */

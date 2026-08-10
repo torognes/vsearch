@@ -70,8 +70,8 @@
 
 /*
   Find the unique kmers or words in a given sequence.
-  Unique is now defined as all different words occuring at least once.
-  Earlier it was defined as those words occuring exactly once, but
+  Unique is now defined as all different words occurring at least once.
+  Earlier it was defined as those words occurring exactly once, but
   that caused a problem when searching for sequences with many repeats.
 */
 
