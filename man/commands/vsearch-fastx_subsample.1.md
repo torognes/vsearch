@@ -42,6 +42,13 @@ sampling pool. The selected sequences are written to `--fastaout`
 and/or `--fastqout`. Sequences not selected can be written to
 `--fastaout_discarded` and/or `--fastqout_discarded`.
 
+The subset size must not exceed the number of input reads (the total
+abundance when `--sizein` is used), otherwise vsearch reports a fatal
+error and stops. That limit can only be reached with `--sample_size`,
+since a percentage of the input is never greater than the input itself.
+Use `--allow_fewer` to output all the available reads instead of
+stopping.
+
 Use `--randseed` to set a fixed seed for reproducible results (identical
 on any platform).
 
@@ -59,6 +66,8 @@ Exactly one of `--sample_pct` or `--sample_size` must be specified.
 
 
 ## core options
+
+#(./fragments/option_allow_fewer.md)
 
 `--fastaout` *filename*
 : Write the selected sequences to *filename*, in fasta format.
