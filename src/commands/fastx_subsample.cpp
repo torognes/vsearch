@@ -62,18 +62,19 @@
 #include "core/db.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
+#include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/fatal.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/random.hpp"
-#include <algorithm>  // std::count_if
+#include <algorithm>  // std::count_if, std::fill, std::min
 #include <cassert>
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
 #include <cstdio>  // std::FILE
 #include <functional>  // std::minus
-#include <numeric>  // std::fill
+#include <numeric>  // std::accumulate
 #include <random>  // std::mt19937_64
 #include <vector>
 
@@ -388,14 +389,40 @@ auto subsample(struct Parameters const & parameters) -> void {
 
   write_original_stats(original_abundances, mass_total, parameters);  // refactoring: move up?
 
-  auto const n_reads = number_of_reads_to_sample(parameters, mass_total);
+  auto const requested_reads = number_of_reads_to_sample(parameters, mass_total);
 
-  if (n_reads > mass_total)
+  if ((requested_reads > mass_total) and (not parameters.opt_allow_fewer))
     {
-      fatal("Cannot subsample more reads than in the original sample");
+      fatal("Cannot subsample " + decimal::to_text(requested_reads)
+            + " reads from a sample of " + decimal::to_text(mass_total)
+            + " (use --allow_fewer to keep them all)");
     }
 
-  random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein, db, parameters);  // refactoring: pass & original, copy, subsample, return new (const) vector
+  /* --allow_fewer turns --sample_size into an upper bound: take at most N
+     reads, and keep them all when fewer are available. Clamping (rather than
+     dropping the guard above) is what keeps random_subsampling() correct --
+     n_reads > mass_total would exhaust the input before n_reads_left reached 0
+     and then call random_bounded() with a range of 0, which is fatal. */
+  auto const n_reads = std::min(requested_reads, mass_total);
+
+  if (n_reads == mass_total)
+    {
+      /* Every read is selected, which the loop below would reach the long way
+         round: mass_total draws whose selection probability is 1 at every step.
+         Also the guard that keeps an empty input (mass_total == 0, reachable
+         only with --allow_fewer) out of random_subsampling(), whose first act
+         is to read db.getabundance(0) when --sizein is given.
+
+         The Progress is what random_subsampling() would have constructed, kept
+         so that the pre-existing --sample_size == input case still prints its
+         "Subsampling" line: the shortcut is meant to be invisible there. */
+      Progress const progress("Subsampling", mass_total, parameters);
+      subsampled_abundances = original_abundances;
+    }
+  else
+    {
+      random_subsampling(subsampled_abundances, mass_total, n_reads, parameters.opt_sizein, db, parameters);  // refactoring: pass & original, copy, subsample, return new (const) vector
+    }
 
   // write output files
   writing_fasta_output(subsampled_abundances, ouput_files.fasta.kept, db, parameters);

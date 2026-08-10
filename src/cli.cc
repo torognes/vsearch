@@ -515,7 +515,7 @@ namespace {
 
 
   constexpr auto number_of_commands = std::size_t{51};
-  constexpr auto number_of_options = std::size_t{254};
+  constexpr auto number_of_options = std::size_t{255};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -523,6 +523,7 @@ namespace {
       option_abskew,
       option_acceptall,
       option_alignwidth,
+      option_allow_fewer,
       option_allpairs_global,
       option_alnout,
       option_band,
@@ -798,6 +799,7 @@ namespace {
       {"abskew",                     true },
       {"acceptall",                  false },
       {"alignwidth",                 true },
+      {"allow_fewer",                false },
       {"allpairs_global",            true },
       {"alnout",                     true },
       {"band",                       true },
@@ -2220,6 +2222,7 @@ namespace {
         -1, },
 
       { option_fastx_subsample,
+        option_allow_fewer,
         option_bzip2_decompress,
         option_fasta_width,
         option_fastaout,
@@ -3580,6 +3583,10 @@ namespace {
             parameters.opt_acceptall = 1;
             break;
 
+          case option_allow_fewer:
+            parameters.opt_allow_fewer = true;
+            break;
+
           case option_cluster_size:
             parameters.opt_cluster_size = optarg;
             break;
@@ -4877,6 +4884,17 @@ namespace {
         if ((parameters.opt_sample_pct > 0) == (parameters.opt_sample_size > 0))
           {
             fatal("Specify either --sample_pct or --sample_size");
+          }
+
+        /* --allow_fewer reinterprets --sample_size as an upper bound, and a
+           percentage of the input can never exceed it, so the flag is a strict
+           no-op here; the combination signals a misunderstanding of
+           --sample_pct worth pointing out. Checked here rather than in the
+           switch above because it depends on a second option, which may still
+           be unparsed when this one is seen. */
+        if (parameters.opt_allow_fewer and (parameters.opt_sample_pct > 0))
+          {
+            vsearch::warn("Option --allow_fewer is ignored with --sample_pct");
           }
       }
 

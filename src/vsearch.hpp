@@ -211,6 +211,7 @@ public:
   int64_t opt_sample_size = 0;
   int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
+  bool opt_allow_fewer = false;
   bool opt_bzip2_decompress = false;
   bool opt_clusterout_id = false;
   bool opt_clusterout_sort = false;
