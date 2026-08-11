@@ -60,15 +60,18 @@
 
 #include "utils/view.hpp"
 #include "core/attributes.hpp"  // View<char>
+#include "vsearch.hpp"  // struct Parameters
 #include "utils/fatal.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include "utils/sequence_digest.hpp"  // fprint_seq_digest_sha1, fprint_seq_digest_md5
 #include <algorithm>  // std::find_if, std::search, std::sort
 #include <array>
 #include <cerrno>  // errno
 #include <cstddef>  // std::ptrdiff_t, std::size_t
-#include <cstdint>  // int64_t
-#include <cstdio>  // std::FILE, std::fprintf
+#include <cstdint>  // int64_t, uint64_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <cstdlib>  // std::strtoll
+#include <cstring>  // std::strlen
 #include <iterator>  // std::next, std::distance
 
 
@@ -328,4 +331,163 @@ auto header_fprint_strip(std::FILE * output_handle,
 
   /* report whether the last emitted character is the annotation separator */
   return (not last_emitted.empty()) and (last_emitted.back() == ';');
+}
+
+
+auto fprint_header_annotations(std::FILE * const output_handle,
+                               View<char> const sequence,
+                               View<char> const header,
+                               OutputAnnotations const & annotations,
+                               struct Parameters const & parameters) -> void
+{
+  // track whether the text printed so far ends with the annotation
+  // separator ';', so that appended annotations are merged with a single
+  // separator instead of producing ";;" (see issue #271)
+  auto trailing_separator = false;
+
+  if (parameters.opt_relabel_self)
+    {
+      /* normalize first? */
+      fprint(output_handle, sequence);
+    }
+  else if (parameters.opt_relabel_sha1)
+    {
+      fprint_seq_digest_sha1(output_handle, sequence);
+    }
+  else if (parameters.opt_relabel_md5)
+    {
+      fprint_seq_digest_md5(output_handle, sequence);
+    }
+  else if ((parameters.opt_relabel != nullptr) and (annotations.ordinal > 0))
+    {
+      std::fputs(parameters.opt_relabel, output_handle);
+      fprint_integer(output_handle, annotations.ordinal);
+    }
+  else
+    {
+      bool const strip_size = parameters.opt_xsize or (parameters.opt_sizeout and (annotations.abundance > 0));
+      bool const strip_ee = parameters.opt_xee or ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (annotations.expected_error >= 0.0));
+      bool const strip_length = parameters.opt_xlength or parameters.opt_lengthout;
+      trailing_separator = header_fprint_strip(output_handle,
+                                               header,
+                                               strip_size,
+                                               strip_ee,
+                                               strip_length);
+    }
+
+  if (parameters.opt_label_suffix != nullptr)
+    {
+      std::fputs(parameters.opt_label_suffix, output_handle);
+      if (*parameters.opt_label_suffix != '\0')
+        {
+          trailing_separator = (parameters.opt_label_suffix[std::strlen(parameters.opt_label_suffix) - 1] == ';');
+        }
+    }
+
+  if (parameters.opt_sample != nullptr)
+    {
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "sample=");
+      std::fputs(parameters.opt_sample, output_handle);
+    }
+
+  if (annotations.clustersize > 0)
+    {
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "seqs=");
+      fprint_integer(output_handle, annotations.clustersize);
+    }
+
+  if (annotations.clusterid >= 0)
+    {
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "clusterid=");
+      fprint_integer(output_handle, annotations.clusterid);
+    }
+
+  if (parameters.opt_sizeout and (annotations.abundance > 0))
+    {
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "size=");
+      fprint_integer(output_handle, annotations.abundance);
+    }
+
+  if (parameters.opt_centroid_sizeout and (annotations.centroid_size > 0))
+    {
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "centroid_size=");
+      fprint_integer(output_handle, annotations.centroid_size);
+    }
+
+  if ((parameters.opt_eeout or parameters.opt_fastq_eeout) and (annotations.expected_error >= 0.0))
+    {
+      auto const expected_error = annotations.expected_error;
+      auto const * separator = annotation_separator(trailing_separator);
+      if (expected_error < 0.000000001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.13lf", expected_error);
+      } else if (expected_error < 0.00000001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.12lf", expected_error);
+      } else if (expected_error < 0.0000001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.11lf", expected_error);
+      } else if (expected_error < 0.000001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.10lf", expected_error);
+      } else if (expected_error < 0.00001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.9lf", expected_error);
+      } else if (expected_error < 0.0001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.8lf", expected_error);
+      } else if (expected_error < 0.001) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.7lf", expected_error);
+      } else if (expected_error < 0.01) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.6lf", expected_error);
+      } else if (expected_error < 0.1) {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.5lf", expected_error);
+      } else {
+        std::fputs(separator, output_handle);
+        fprint(output_handle, "ee=");
+        std::fprintf(output_handle, "%.4lf", expected_error);
+      }
+    }
+
+  if (parameters.opt_lengthout)
+    {
+      /* widened by assignment, not by a cast: std::size_t already is
+         uint64_t on a 64-bit target, where a cast would be flagged useless */
+      uint64_t const sequence_length = sequence.size();
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      fprint(output_handle, "length=");
+      fprint_integer(output_handle, sequence_length);
+    }
+
+  if (annotations.score_name != nullptr)
+    {
+      std::fputs(annotation_separator(trailing_separator), output_handle);
+      std::fputs(annotations.score_name, output_handle);
+      fprint(output_handle, '=');
+      std::fprintf(output_handle, "%.4lf", annotations.score);
+    }
+
+  if (parameters.opt_relabel_keep and
+      (((parameters.opt_relabel != nullptr) and (annotations.ordinal > 0)) or parameters.opt_relabel_sha1 or parameters.opt_relabel_md5 or parameters.opt_relabel_self))
+    {
+      fprint(output_handle, ' ');
+      fprint(output_handle, header);
+    }
 }

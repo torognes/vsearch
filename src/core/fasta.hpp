@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fastx.hpp"  // fastx_handle, struct fastx_s
 #include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE
@@ -90,6 +91,26 @@ auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          View<char> seq,
                          View<char> header,
+                         OutputAnnotations const & annotations,
+                         struct Parameters const & parameters) -> void;
+
+/* Convenience overload for callers emitting a whole record: it forwards the
+   record's header and sequence views to the primary overload above, which takes
+   the same two Views. The annotations stay a separate argument, because callers
+   often display a computed abundance rather than the record's own. The record
+   comes from Database::record() or a reader's record(). */
+auto fasta_print_general(std::FILE * output_handle,
+                         char const * prefix,
+                         SeqRecord const & record,
+                         OutputAnnotations const & annotations,
+                         struct Parameters const & parameters) -> void;
+
+/* Transitional: the eight-value forms, kept while the call sites move over to
+   OutputAnnotations one directory tier at a time. */
+auto fasta_print_general(std::FILE * output_handle,
+                         char const * prefix,
+                         View<char> seq,
+                         View<char> header,
                          uint64_t abundance,
                          int64_t ordinal,
                          double expected_error,
@@ -100,11 +121,6 @@ auto fasta_print_general(std::FILE * output_handle,
                          uint64_t centroid_size,
                          struct Parameters const & parameters) -> void;
 
-/* Convenience overload for callers emitting a whole record: it forwards the
-   record's header and sequence views to the primary overload above, which takes
-   the same two Views. Abundance stays a separate argument, because callers often
-   display a computed abundance rather than the record's own. The record comes
-   from Database::record() or a reader's record(). */
 auto fasta_print_general(std::FILE * output_handle,
                          char const * prefix,
                          SeqRecord const & record,

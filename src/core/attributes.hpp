@@ -61,7 +61,7 @@
 #pragma once
 
 #include "utils/view.hpp"  // View<char>
-#include <cstdint>  // int64_t
+#include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
 
 
@@ -74,3 +74,44 @@ auto header_fprint_strip(std::FILE * output_handle,
                          bool strip_size,
                          bool strip_ee,
                          bool strip_length) -> bool;
+
+
+/* The values a print helper may append to a record's header, as opposed to the
+   record's own stored fields. Deliberately separate from SeqRecord for the
+   reason SeqRecord's own comment gives about abundance: these are all output
+   decisions (a match count, a summed cluster size, a per-run ordinal, a
+   detection score), not properties of the record that was read. The defaults
+   are the "not applicable" sentinels, so a caller names only what it means. */
+struct OutputAnnotations
+{
+  uint64_t abundance = 0;
+  int64_t  ordinal = 0;
+  double   expected_error = -1.0;
+  int64_t  clustersize = -1;
+  int      clusterid = -1;
+  char const * score_name = nullptr;
+  double   score = 0.0;
+  uint64_t centroid_size = 0;
+
+  /* The default member initializers above cost the C++11 aggregate-init that
+     SeqRecord keeps, so the two-value form most of the call sites want is a
+     constructor instead. Everything else default-constructs and assigns the
+     field it means by name. */
+  OutputAnnotations() = default;
+  OutputAnnotations(uint64_t const new_abundance, int64_t const new_ordinal)
+    : abundance {new_abundance}, ordinal {new_ordinal} {}
+};
+
+
+/* Emit the annotated header for one record: everything between the '>' or '@'
+   the caller has already written and the newline before the payload. Returns
+   nothing -- the two trailers differ and stay with their own printer.
+
+   'sequence' is a parameter even though the header does not print it: the
+   --relabel_self label and the --relabel_sha1/--relabel_md5 digests are
+   computed from it, and --lengthout reports its length. */
+auto fprint_header_annotations(std::FILE * output_handle,
+                               View<char> sequence,
+                               View<char> header,
+                               OutputAnnotations const & annotations,
+                               struct Parameters const & parameters) -> void;
