@@ -1571,9 +1571,9 @@ libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
 # -Wno-conversion -Wno-sign-conversion: city.cc is vendored upstream
 # (Google CityHash) and is kept verbatim for easy resynchronisation;
 # its many implicit integer conversions are not ours to fix.
-@TARGET_WIN_TRUE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -I$(srcdir)/vendored
+@TARGET_WIN_TRUE@libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -I$(srcdir)/vendored
 @TARGET_WIN_FALSE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC -I$(srcdir)/vendored
-@TARGET_WIN_TRUE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC -I$(srcdir)/vendored
+@TARGET_WIN_TRUE@libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC -I$(srcdir)/vendored
 @TARGET_WIN_TRUE@__top_builddir__bin_vsearch_LDFLAGS = -static
 @TARGET_WIN_FALSE@@TARGET_X86_64_FALSE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu.a
 @TARGET_WIN_FALSE@@TARGET_X86_64_TRUE@__top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a

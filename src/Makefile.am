@@ -246,8 +246,8 @@ if TARGET_WIN
 # -Wno-conversion -Wno-sign-conversion: city.cc is vendored upstream
 # (Google CityHash) and is kept verbatim for easy resynchronisation;
 # its many implicit integer conversions are not ours to fix.
-libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -I$(srcdir)/vendored
-libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -D_MSC_VER -fPIC -I$(srcdir)/vendored
+libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -I$(srcdir)/vendored
+libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC -I$(srcdir)/vendored
 __top_builddir__bin_vsearch_LDFLAGS = -static
 __top_builddir__bin_vsearch_LDADD = libcityhash.a libcpu_ssse3.a libcpu_sse2.a
 VSEARCH_PIC_LIBS = libcityhash_pic.a libcpu_ssse3_pic.a libcpu_sse2_pic.a
