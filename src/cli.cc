@@ -4409,16 +4409,9 @@ namespace {
           }
       }
 
-  #if 0
-
-    if (parameters.opt_match <= 0)
-      fatal("The argument to --match must be positive");
-
-    if (parameters.opt_mismatch >= 0)
-      fatal("The argument to --mismatch must be negative");
-
-  #endif
-
+    /* Both scores take the full 16-bit signed range on
+       purpose: a zero or negative --match and a positive
+       --mismatch are accepted (see the manual). */
     if ((parameters.opt_match > max_alignment_score) or
         (parameters.opt_match < -max_alignment_score))
       {
