@@ -62,7 +62,8 @@ All fields not listed explicitly are reserved and set to zero.
 - The `dbstep` field is always 1 and the `dbaccelpct` field is always
   100, reflecting that every sequence is indexed with full coverage.
 - The `number of sequences` field gives the total number of sequences
-  stored in the file.
+  stored in the file. It is never zero: vsearch rejects a UDB file
+  declaring no sequence when reading it, and refuses to write one.
 - The `alphabet` field value is 0x0000746e, the little-endian encoding
   of the ASCII string "nt" (nucleotide), indicating that this is a
   nucleotide database.

@@ -24,6 +24,11 @@ same database is searched repeatedly with `--usearch_global` or
 
 Both `--makeudb_usearch` and `--output` must be specified.
 
+The database must contain at least one sequence. vsearch reports a fatal
+error and stops if *fastafile* is empty, or if all of its sequences are
+discarded by `--minseqlength` (32 nucleotides by default for this
+command), since a UDB file recording no sequence cannot be read back.
+
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
 of the UDB file format.
 
