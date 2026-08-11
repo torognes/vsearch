@@ -626,24 +626,6 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
           best_parents[static_cast<size_t>(f)].len = best_len;
           ++parents_found;
 
-#if 0
-          if (f == 0)
-            fprint(stdout, '\n');
-          fprint(stdout, "Best parents long: ");
-          fprint_integer(stdout, f);
-          fprint(stdout, ' ');
-          fprint_integer(stdout, best_cand);
-          fprint(stdout, ' ');
-          fprint_integer(stdout, best_start);
-          fprint(stdout, ' ');
-          fprint_integer(stdout, best_len);
-          fprint(stdout, ' ');
-          fprint(stdout, ci->query_head);
-          fprint(stdout, ' ');
-          fprint(stdout, ci->db->header_view(ci->cand_list[best_cand]));
-          fprint(stdout, '\n');
-#endif
-
           /* mark positions used */
           for (int j = best_start; j < best_start + best_len; ++j)
             {
@@ -670,15 +652,6 @@ auto find_best_parents_long(struct chimera_info_s * ci) -> int
       ci->best_start[static_cast<size_t>(f)] = best_parents[static_cast<size_t>(f)].start;
       ci->best_len[static_cast<size_t>(f)] = best_parents[static_cast<size_t>(f)].len;
     }
-
-#if 0
-  if (pos_remaining == 0)
-    fprint(stdout, "Fully covered!\n");
-  else
-    fprint(stdout, "Not covered completely (");
-    fprint_integer(stdout, pos_remaining);
-    fprint(stdout, ").\n");
-#endif
 
   return static_cast<int>((parents_found > 1) and (pos_remaining == 0));
 }
@@ -800,18 +773,6 @@ auto find_best_parents(struct chimera_info_s * ci) -> int
       if (best_parent_cand[static_cast<size_t>(f)] < 0) {
         break;
       }
-
-#if 0
-      fprint(stdout, "Query ");
-      fprint_integer(stdout, ci->query_no);
-      fprint(stdout, ": Best parent (");
-      fprint_integer(stdout, f);
-      fprint(stdout, ") candidate: ");
-      fprint_integer(stdout, best_parent_cand[f]);
-      fprint(stdout, ". Wins: ");
-      fprint_integer(stdout, maxwins);
-      fprint(stdout, '\n');
-#endif
 
       ci->best_parents[static_cast<size_t>(f)] = best_parent_cand[static_cast<size_t>(f)];
       cand_selected[static_cast<size_t>(best_parent_cand[static_cast<size_t>(f)])] = true;

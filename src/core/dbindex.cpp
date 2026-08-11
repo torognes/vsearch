@@ -122,14 +122,6 @@ auto fprint_kmer(std::FILE * output_handle, unsigned int const kmer_length, uint
 
 auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, struct Database const & db) -> void
 {
-#if 0
-  fprint(stdout, "Adding seqno ");
-  fprint_integer(stdout, seqno);
-  fprint(stdout, " as index element no ");
-  fprint_integer(stdout, count);
-  fprint(stdout, '\n');
-#endif
-
   auto const uniquelist = uhandle.count(static_cast<int>(wordlength),
                                         db.sequence_view(seqno), seqmask);
   map[count] = seqno;
@@ -194,20 +186,6 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
       }
   }
 
-#if 0
-  /* dump kmer counts */
-  auto const kmercounts_handle = open_output_file("kmercounts.txt");
-  for (auto kmer = 0U; kmer < hashsize; kmer++)
-    {
-      fprint_kmer(kmercounts_handle.get(), 8, kmer);
-      fprint(kmercounts_handle.get(), '\t');
-      fprint_integer(kmercounts_handle.get(), kmer);
-      fprint(kmercounts_handle.get(), '\t');
-      fprint_integer(kmercounts_handle.get(), kmercount[kmer]);
-      fprint(kmercounts_handle.get(), '\n');
-    }
-#endif
-
   /* determine minimum kmer count for bitmap usage */
   unsigned int const bitmap_mincount = (use_bitmap != 0) ? (seqcount / bitmap_threshold) : (seqcount + 1);
 
@@ -232,15 +210,6 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
     }
   indexsize = sum;
   kmerhash[hashsize] = sum;
-
-#if 0
-  if (not parameters.opt_quiet)
-    fprint(stderr, "Unique ");
-    fprint_integer(stderr, wordlength);
-    fprint(stderr, "-mers: ");
-    fprint_integer(stderr, indexsize);
-    fprint(stderr, '\n');
-#endif
 
   /* reset counts */
   kmercount.assign(hashsize, 0U);
