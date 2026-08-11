@@ -62,6 +62,7 @@
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/derep.hpp"
 #include "core/derep_internal.hpp"
 #include "core/derep_stats.hpp"
@@ -257,11 +258,7 @@ namespace {
                                   nullptr,
                                   make_view(cluster.seq),
                                   make_view(cluster.header),
-                                  static_cast<uint64_t>(size),
-                                  relabel_count,
-                                  -1.0,
-                                  -1, -1, nullptr, 0.0,
-                                  0,
+                                  OutputAnnotations{static_cast<uint64_t>(size), relabel_count},
                                   parameters);
               if (relabel_count == parameters.opt_topn)
                 {
@@ -293,9 +290,7 @@ namespace {
                                   make_view(cluster.seq),
                                   make_view(cluster.header),
                                   make_view(cluster.qual),
-                                  static_cast<uint64_t>(size),
-                                  relabel_count,
-                                  -1.0,
+                                  OutputAnnotations{static_cast<uint64_t>(size), relabel_count},
                                   parameters);
               if (relabel_count == parameters.opt_topn)
                 {

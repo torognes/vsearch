@@ -129,14 +129,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       View<char>{&qrow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
                                  static_cast<std::size_t>(hit.internal_alignmentlength)},
                       query_head,
-                      0,
-                      0,
-                      -1.0,
-                      -1,
-                      -1,
-                      nullptr,
-                      0.0,
-                      0,
+                      OutputAnnotations{},
                       parameters);
 
   auto const target = static_cast<uint64_t>(hit.target);
@@ -148,14 +141,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                       View<char>{&trow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
                                  static_cast<std::size_t>(hit.internal_alignmentlength)},
                       db.header_view(target),
-                      0,
-                      0,
-                      -1.0,
-                      -1,
-                      -1,
-                      nullptr,
-                      0.0,
-                      0,
+                      OutputAnnotations{},
                       parameters);
 
   fprint(output_handle, '\n');
@@ -179,14 +165,7 @@ auto results_show_qsegout_one(std::FILE * output_handle,
                       nullptr,
                       qseg,
                       query_head,
-                      0,
-                      0,
-                      -1.0,
-                      -1,
-                      -1,
-                      nullptr,
-                      0.0,
-                      0,
+                      OutputAnnotations{},
                       parameters);
 }
 
@@ -207,14 +186,7 @@ auto results_show_tsegout_one(std::FILE * output_handle,
                       nullptr,
                       tseg,
                       db.header_view(target),
-                      0,
-                      0,
-                      -1.0,
-                      -1,
-                      -1,
-                      nullptr,
-                      0.0,
-                      0,
+                      OutputAnnotations{},
                       parameters);
 }
 

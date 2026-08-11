@@ -2277,6 +2277,17 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
     ++state.total_count;
     state.total_abundance += ci->query_size;
 
+    /* the three FASTA outputs below annotate the same query the same way and
+       differ only in the per-status counter that supplies the ordinal */
+    auto const query_annotations = [&](int64_t const ordinal) -> OutputAnnotations {
+      OutputAnnotations annotations {static_cast<uint64_t>(ci->query_size), ordinal};
+      annotations.score_name = state.parameters.opt_fasta_score ?
+        ( (state.parameters.opt_uchime_ref != nullptr) ?
+          "uchime_ref" : "uchime_denovo" ) : nullptr;
+      annotations.score = ci->best_h;
+      return annotations;
+    };
+
     if (status == Status::chimeric)
       {
         ++state.chimera_count;
@@ -2288,16 +2299,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                 nullptr,
                                 make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
                                 ci->query_head,
-                                static_cast<uint64_t>(ci->query_size),
-                                state.chimera_count,
-                                -1.0,
-                                -1,
-                                -1,
-                                state.parameters.opt_fasta_score ?
-                                ( (state.parameters.opt_uchime_ref != nullptr) ?
-                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                ci->best_h,
-                                0,
+                                query_annotations(state.chimera_count),
                                 state.parameters);
 
           }
@@ -2314,16 +2316,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                 nullptr,
                                 make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
                                 ci->query_head,
-                                static_cast<uint64_t>(ci->query_size),
-                                state.borderline_count,
-                                -1.0,
-                                -1,
-                                -1,
-                                state.parameters.opt_fasta_score ?
-                                ( (state.parameters.opt_uchime_ref != nullptr) ?
-                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                ci->best_h,
-                                0,
+                                query_annotations(state.borderline_count),
                                 state.parameters);
 
           }
@@ -2362,16 +2355,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
                                 nullptr,
                                 make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
                                 ci->query_head,
-                                static_cast<uint64_t>(ci->query_size),
-                                state.nonchimera_count,
-                                -1.0,
-                                -1,
-                                -1,
-                                state.parameters.opt_fasta_score ?
-                                ( (state.parameters.opt_uchime_ref != nullptr) ?
-                                  "uchime_ref" : "uchime_denovo" ) : nullptr,
-                                ci->best_h,
-                                0,
+                                query_annotations(state.nonchimera_count),
                                 state.parameters);
           }
       }

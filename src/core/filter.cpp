@@ -61,6 +61,7 @@
 #include "core/filter.hpp"
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -369,20 +370,17 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
 
             ++discarded;
 
+            OutputAnnotations forward_annotations {
+              static_cast<uint64_t>(forward_handle->get_abundance()), discarded};
+            forward_annotations.expected_error = res1.ee;
+
             if (parameters.opt_fastaout_discarded != nullptr)
               {
                 fasta_print_general(fp_fastaout_discarded.get(),
                                     nullptr,
                                     res1.sequence,
                                     forward_handle->header_view(),
-                                    static_cast<uint64_t>(forward_handle->get_abundance()),
-                                    discarded,
-                                    res1.ee,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0,
-                                    0,
+                                    forward_annotations,
                                     parameters);
               }
 
@@ -392,28 +390,23 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                     res1.sequence,
                                     forward_handle->header_view(),
                                     res1.quality,
-                                    static_cast<uint64_t>(forward_handle->get_abundance()),
-                                    discarded,
-                                    res1.ee,
+                                    forward_annotations,
                                     parameters);
               }
 
             if (reverse_handle != nullptr)
               {
+                OutputAnnotations reverse_annotations {
+                  static_cast<uint64_t>(reverse_handle->get_abundance()), discarded};
+                reverse_annotations.expected_error = res2.ee;
+
                 if (parameters.opt_fastaout_discarded_rev != nullptr)
                   {
                     fasta_print_general(fp_fastaout_discarded_rev.get(),
                                         nullptr,
                                         res2.sequence,
                                         reverse_handle->header_view(),
-                                        static_cast<uint64_t>(reverse_handle->get_abundance()),
-                                        discarded,
-                                        res2.ee,
-                                        -1,
-                                        -1,
-                                        nullptr,
-                                        0.0,
-                                        0,
+                                        reverse_annotations,
                                         parameters);
                   }
 
@@ -423,9 +416,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                         res2.sequence,
                                         reverse_handle->header_view(),
                                         res2.quality,
-                                        static_cast<uint64_t>(reverse_handle->get_abundance()),
-                                        discarded,
-                                        res2.ee,
+                                        reverse_annotations,
                                         parameters);
                   }
               }
@@ -441,20 +432,17 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                 ++truncated;
               }
 
+            OutputAnnotations forward_annotations {
+              static_cast<uint64_t>(forward_handle->get_abundance()), kept};
+            forward_annotations.expected_error = res1.ee;
+
             if (parameters.opt_fastaout != nullptr)
               {
                 fasta_print_general(fp_fastaout.get(),
                                     nullptr,
                                     res1.sequence,
                                     forward_handle->header_view(),
-                                    static_cast<uint64_t>(forward_handle->get_abundance()),
-                                    kept,
-                                    res1.ee,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0,
-                                    0,
+                                    forward_annotations,
                                     parameters);
               }
 
@@ -464,28 +452,23 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                     res1.sequence,
                                     forward_handle->header_view(),
                                     res1.quality,
-                                    static_cast<uint64_t>(forward_handle->get_abundance()),
-                                    kept,
-                                    res1.ee,
+                                    forward_annotations,
                                     parameters);
               }
 
             if (reverse_handle != nullptr)
               {
+                OutputAnnotations reverse_annotations {
+                  static_cast<uint64_t>(reverse_handle->get_abundance()), kept};
+                reverse_annotations.expected_error = res2.ee;
+
                 if (parameters.opt_fastaout_rev != nullptr)
                   {
                     fasta_print_general(fp_fastaout_rev.get(),
                                         nullptr,
                                         res2.sequence,
                                         reverse_handle->header_view(),
-                                        static_cast<uint64_t>(reverse_handle->get_abundance()),
-                                        kept,
-                                        res2.ee,
-                                        -1,
-                                        -1,
-                                        nullptr,
-                                        0.0,
-                                        0,
+                                        reverse_annotations,
                                         parameters);
                   }
 
@@ -495,9 +478,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                                         res2.sequence,
                                         reverse_handle->header_view(),
                                         res2.quality,
-                                        static_cast<uint64_t>(reverse_handle->get_abundance()),
-                                        kept,
-                                        res2.ee,
+                                        reverse_annotations,
                                         parameters);
                   }
               }

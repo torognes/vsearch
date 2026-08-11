@@ -61,6 +61,7 @@
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "core/msa.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/fasta.hpp"
 #include "utils/ascii_case.hpp"  // to_upper
@@ -265,8 +266,8 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
                       header_prefix,
                       make_view(aln_v).first(aln_v.size() - 1),
                       db.header_view(static_cast<uint64_t>(target_seqno)),
-                      db.getabundance(static_cast<uint64_t>(target_seqno)),
-                      0, -1.0, -1, -1, nullptr, 0.0, 0, parameters);
+                      OutputAnnotations{db.getabundance(static_cast<uint64_t>(target_seqno)), 0},
+                      parameters);
 }
 
 
@@ -524,17 +525,14 @@ auto print_consensus_sequence(std::FILE *fp_consout, std::vector<char> const & c
                               struct Database const & db,
                               struct Parameters const & parameters) -> void {
   if (fp_consout == nullptr) { return ; }
+  OutputAnnotations annotations {static_cast<uint64_t>(totalabundance), cluster + 1};
+  annotations.clustersize = target_count;
+  annotations.clusterid = parameters.opt_clusterout_id ? cluster : -1;
   fasta_print_general(fp_consout,
                       "centroid=",
                       make_view(cons_v).first(cons_v.size() - 1),  // exclude the '\0' terminator slot
                       db.header_view(static_cast<uint64_t>(centroid_seqno)),
-                      static_cast<uint64_t>(totalabundance),
-                      cluster + 1,
-                      -1.0,
-                      target_count,
-                      parameters.opt_clusterout_id ? cluster : -1,
-                      nullptr, 0.0,
-                      0,
+                      annotations,
                       parameters);
 }
 
@@ -551,17 +549,14 @@ auto print_alignment_profile(std::FILE *fp_profile, std::vector<char> &aln_v,
   // Note: gaps before Ns in profile output
   // 0 = A, 1 = C, 2 = G, 3 = T, 4 = N, 5 = '-' (gap)
   static const std::array<int, 6> symbol_indexes = {0, 1, 2, 3, 5, 4};
+  OutputAnnotations annotations {static_cast<uint64_t>(totalabundance), cluster + 1};
+  annotations.clustersize = target_count;
+  annotations.clusterid = parameters.opt_clusterout_id ? cluster : -1;
   fasta_print_general(fp_profile,
                       "centroid=",
                       View<char>{},  // the profile output carries no centroid sequence
                       db.header_view(static_cast<uint64_t>(centroid_seqno)),
-                      static_cast<uint64_t>(totalabundance),
-                      cluster + 1,
-                      -1.0,
-                      target_count,
-                      parameters.opt_clusterout_id ? cluster : -1,
-                      nullptr, 0.0,
-                      0,
+                      annotations,
                       parameters);
 
   aln_v.pop_back(); // remove last element ('\0')

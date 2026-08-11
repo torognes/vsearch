@@ -504,12 +504,7 @@ auto fasta_print_db_relabel(std::FILE * output_handle,
   fasta_print_general(output_handle,
                       nullptr,
                       db.record(seqno),
-                      db.getabundance(seqno),
-                      static_cast<int64_t>(ordinal),
-                      -1.0,
-                      -1, -1,
-                      nullptr, 0.0,
-                      0,
+                      OutputAnnotations{db.getabundance(seqno), static_cast<int64_t>(ordinal)},
                       parameters);
 }
 
@@ -521,11 +516,6 @@ auto fasta_print_db(std::FILE * output_handle, uint64_t const seqno,
   fasta_print_general(output_handle,
                       nullptr,
                       db.record(seqno),
-                      db.getabundance(seqno),
-                      0,
-                      -1.0,
-                      -1, -1,
-                      nullptr, 0.0,
-                      0,
+                      OutputAnnotations{db.getabundance(seqno), 0},
                       parameters);
 }

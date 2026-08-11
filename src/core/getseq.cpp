@@ -66,6 +66,7 @@
 #include <iterator>
 #include <cstddef>
 #include <memory>  // std::unique_ptr
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -466,14 +467,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                     nullptr,
                                     sequence,
                                     h1->header_view(),
-                                    static_cast<uint64_t>(h1->get_abundance()),
-                                    kept,
-                                    -1.0,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0,
-                                    0,
+                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
                                     parameters);
               }
 
@@ -483,9 +477,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                                     sequence,
                                     h1->header_view(),
                                     h1->quality_view().subspan(window_start, window_length),
-                                    static_cast<uint64_t>(h1->get_abundance()),
-                                    kept,
-                                    -1.0,
+                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), kept},
                                     parameters);
               }
           }
@@ -502,14 +494,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
                 fasta_print_general(fp_notmatched,
                                     nullptr,
                                     h1->record(),
-                                    static_cast<uint64_t>(h1->get_abundance()),
-                                    discarded,
-                                    -1.0,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0,
-                                    0,
+                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
                                     parameters);
               }
 
@@ -517,9 +502,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
               {
                 fastq_print_general(fp_notmatchedfq,
                                     h1->record(),
-                                    static_cast<uint64_t>(h1->get_abundance()),
-                                    discarded,
-                                    -1.0,
+                                    OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
                                     parameters);
               }
           }

@@ -528,11 +528,7 @@ auto cluster_core_results_hit(struct cluster_cli_state_s & state,
                           nullptr,
                           qsequence,
                           query_head,
-                          static_cast<uint64_t>(qsize),
-                          state.count_matched,
-                          -1.0,
-                          -1, -1, nullptr, 0.0,
-                          0,
+                          OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
                           state.parameters);
     }
 }
@@ -600,11 +596,7 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                           nullptr,
                           qsequence,
                           query_head,
-                          static_cast<uint64_t>(qsize),
-                          state.count_notmatched,
-                          -1.0,
-                          -1, -1, nullptr, 0.0,
-                          0,
+                          OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
                           state.parameters);
     }
 }
@@ -1388,16 +1380,15 @@ auto cluster(char const * dbname,
 
             if (parameters.opt_centroids != nullptr)
               {
+                OutputAnnotations annotations {
+                  static_cast<uint64_t>(cluster_abundance_v[static_cast<std::size_t>(clusterno)]),
+                  clusterno + 1};
+                annotations.clusterid = parameters.opt_clusterout_id ? clusterno : -1;
+                annotations.centroid_size = state.db.getabundance(static_cast<uint64_t>(seqno));
                 fasta_print_general(fp_centroids,
                                     nullptr,
                                     state.db.record(static_cast<uint64_t>(seqno)),
-                                    static_cast<uint64_t>(cluster_abundance_v[static_cast<std::size_t>(clusterno)]),
-                                    clusterno + 1,
-                                    -1.0,
-                                    -1,
-                                    parameters.opt_clusterout_id ? clusterno : -1,
-                                    nullptr, 0.0,
-                                    state.db.getabundance(static_cast<uint64_t>(seqno)),
+                                    annotations,
                                     parameters);
               }
 
