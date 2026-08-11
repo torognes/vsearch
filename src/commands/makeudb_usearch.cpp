@@ -142,6 +142,25 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
 
   db.read(parameters.opt_makeudb_usearch, 1, parameters);
 
+  /* Every reader rejects a UDB whose header declares no sequences (the
+     buffer[13] == 0 term of udb_read()'s "Invalid UDB file" test), so writing
+     one produces a file vsearch cannot open again -- and the abort then blames
+     the format of a file vsearch itself wrote, at whatever command later tries
+     to use it rather than here. Reachable from an empty input, and more easily
+     from an input whose every sequence was discarded by --minseqlength, which
+     defaults to 32 for this command: a file of shorter sequences used to yield
+     an unreadable database and exit 0, announced only by the informational
+     "N sequences discarded" line. usearch aborts in the same situation, with
+     "Empty database" (verified on 9.2.64, 10.0.240 and 11.0.667).
+
+     Placed before the index is built, so an empty run also stops short of
+     writing the 4^wordlength-entry k-mer table. --output is opened above, so
+     an aborted run leaves it created but empty, as usearch does too. */
+  if (db.getsequencecount() == 0)
+    {
+      fatal("Cannot write a UDB file for an empty database");
+    }
+
   if (parameters.opt_dbmask == Masking::dust)
     {
       dust_all(db, parameters);
