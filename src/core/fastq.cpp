@@ -403,7 +403,7 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end when new line starting with + is seen */
-      if (previous_line_complete && (input_handle->file_buffer.peek() == '+'))
+      if (previous_line_complete and (input_handle->file_buffer.peek() == '+'))
         {
           break;
         }
@@ -422,7 +422,7 @@ auto fastq_next(fastx_handle input_handle,
         }
       previous_line_complete = fragment.has_newline;
 
-      if (! ok)
+      if (not ok)
         {
           std::string const message =
             ((illegal_char >= 32) and (illegal_char < 127))
@@ -512,8 +512,8 @@ auto fastq_next(fastx_handle input_handle,
         }
 
       /* end if next entry starts : LF + '@' + correct length */
-      if (last_line_complete &&
-          (input_handle->file_buffer.peek() == '@') &&
+      if (last_line_complete and
+          (input_handle->file_buffer.peek() == '@') and
           (input_handle->quality_buffer.length == input_handle->sequence_buffer.length))
         {
           break;
@@ -539,7 +539,7 @@ auto fastq_next(fastx_handle input_handle,
           break;
         }
 
-      if (! ok)
+      if (not ok)
         {
           std::string const message =
             ((illegal_char >= 32) and (illegal_char < 127))
