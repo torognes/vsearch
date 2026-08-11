@@ -98,6 +98,12 @@ namespace {
   }
 
 
+  /* Little-endian only, for both functions below: core/udb.cpp:95 and
+     commands/sff_convert.cpp:105 static_assert on __BYTE_ORDER__, so a
+     big-endian build fails to compile before it can reach these and
+     produce different CityHash values. (Upstream's WORDS_BIGENDIAN
+     arms, which configure never enabled, are in git history.) */
+
   // C++23 refactoring:
   //   #include <bit>
   //   constexpr auto uint32_in_expected_order(uint32_t x) noexcept -> uint32_t {
@@ -107,20 +113,12 @@ namespace {
   //         return x; }
   // }
   constexpr auto uint32_in_expected_order(uint32_t src) noexcept -> uint32_t {
-#ifdef WORDS_BIGENDIAN
-    return bswap_32(src);
-#else
     return src;
-#endif
   }
 
 
   constexpr auto uint64_in_expected_order(uint64_t src) noexcept -> uint64_t {
-#ifdef WORDS_BIGENDIAN
-    return bswap_64(src);
-#else
     return src;
-#endif
   }
 
 
@@ -301,17 +299,6 @@ namespace {
   }
 
 
-  constexpr auto likely(bool condition) noexcept -> bool {
-#if HAVE_BUILTIN_EXPECT
-    static constexpr auto is_expected_to_be_true = 1L;
-    // !!condition converts to a strict boolean value
-    return __builtin_expect(!!condition, is_expected_to_be_true);
-#else
-    return condition;
-#endif
-  }
-
-
   auto CityHash128WithSeed(const char * seq, std::size_t len, uint128 seed) -> uint128 {
     if (len < 128) {
       return CityMurmur(seq, len, seed);
@@ -350,7 +337,7 @@ namespace {
       std::swap(z, x);
       seq += 64;
       len -= 128;
-    } while (likely(len >= 128));  // hot path
+    } while (len >= 128);  // hot path
     x += Rotate(v.first + z, fortynine) * k0;
     y = (y * k0) + Rotate(w.second, thirtyseven);
     z = (z * k0) + Rotate(w.first, twentyseven);
