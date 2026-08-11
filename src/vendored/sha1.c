@@ -75,6 +75,15 @@ move public api to sha1.h
 */
 
 /*
+vsearch: this file is a fork of upstream, not a verbatim copy -- upstream's
+SHA1Transform is spelled SHA1_Transform here, and the two main() functions the
+changelog above refers to (the file-hashing demo, and the #ifdef TEST self-test
+that checked the vectors below) were removed along with the #ifdef VERBOSE
+tracing, because no build ever defined their guards. Retrieve them with
+  git log -S "Public domain SHA-1 implementation" -- src/vendored/sha1.c
+*/
+
+/*
 Test Vectors (from FIPS PUB 180-1)
 "abc"
   A9993E36 4706816A BA3E2571 7850C26C 9CD0D89D
@@ -257,7 +266,7 @@ void SHA1_Final(SHA1_CTX* context, uint8_t digest[SHA1_DIGEST_SIZE])
     memset(context->count, 0, 8);
     memset(finalcount, 0, 8);   /* SWR */
 
-#ifdef SHA1HANDSOFF  /* make SHA1Transform overwrite its own static vars */
+#ifdef SHA1HANDSOFF  /* make SHA1_Transform overwrite its own static vars */
     SHA1_Transform(context->state, context->buffer);
 #endif
 }

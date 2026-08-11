@@ -244,8 +244,11 @@ libcityhash_pic_a_SOURCES = vendored/city.cc vendored/city.h
 if TARGET_WIN
 
 # -Wno-conversion -Wno-sign-conversion: city.cc is vendored upstream
-# (Google CityHash) and is kept verbatim for easy resynchronisation;
-# its many implicit integer conversions are not ours to fix.
+# (Google CityHash) and its many implicit integer conversions are
+# intrinsic to that code, not ours to fix. It is no longer kept verbatim,
+# though: it has had the constexpr/trailing-return treatment, and the arms
+# configure never enabled (WORDS_BIGENDIAN, HAVE_BUILTIN_EXPECT) are gone,
+# so resynchronising with upstream would be a merge rather than a copy.
 libcityhash_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -I$(srcdir)/vendored
 libcityhash_pic_a_CXXFLAGS = $(AM_CXXFLAGS) -Wno-sign-compare -Wno-conversion -Wno-sign-conversion -fPIC -I$(srcdir)/vendored
 __top_builddir__bin_vsearch_LDFLAGS = -static
