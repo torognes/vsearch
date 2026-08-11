@@ -64,14 +64,12 @@
 #include "core/seq_record.hpp"  // struct SeqRecord (for the record overload)
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
-#include "utils/sequence_digest.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include <array>
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
-#include <cstring>  // std::strlen
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
@@ -573,139 +571,51 @@ auto fastq_print_general(FILE * output_handle,
                          View<char> const seq,
                          View<char> const header,
                          View<char> const quality,
-                         uint64_t const abundance,
-                         int64_t const ordinal,
-                         double const expected_error,
+                         OutputAnnotations const & annotations,
                          struct Parameters const & parameters) -> void
 {
   fprint(output_handle, '@');
 
-  // track whether the text printed so far ends with the annotation
-  // separator ';', so that appended annotations are merged with a single
-  // separator instead of producing ";;" (see issue #271)
-  auto trailing_separator = false;
-
-  if (parameters.opt_relabel_self)
-    {
-      /* normalize first? */
-      fprint(output_handle, seq);
-    }
-  else if (parameters.opt_relabel_sha1)
-    {
-      fprint_seq_digest_sha1(output_handle, seq);
-    }
-  else if (parameters.opt_relabel_md5)
-    {
-      fprint_seq_digest_md5(output_handle, seq);
-    }
-  else if ((parameters.opt_relabel != nullptr) && (ordinal > 0))
-    {
-      std::fputs(parameters.opt_relabel, output_handle);
-      fprint_integer(output_handle, ordinal);
-    }
-  else
-    {
-      auto const xsize = parameters.opt_xsize || (parameters.opt_sizeout && (abundance > 0));
-      auto const xee = parameters.opt_xee || ((parameters.opt_eeout || parameters.opt_fastq_eeout) && (expected_error >= 0.0));
-      auto const xlength = parameters.opt_xlength || parameters.opt_lengthout;
-      trailing_separator = header_fprint_strip(output_handle,
-                                               header,
-                                               xsize,
-                                               xee,
-                                               xlength);
-    }
-
-  if (parameters.opt_label_suffix != nullptr)
-    {
-      std::fputs(parameters.opt_label_suffix, output_handle);
-      if (*parameters.opt_label_suffix != '\0')
-        {
-          trailing_separator = (parameters.opt_label_suffix[std::strlen(parameters.opt_label_suffix) - 1] == ';');
-        }
-    }
-
-  if (parameters.opt_sample != nullptr)
-    {
-      std::fputs(annotation_separator(trailing_separator), output_handle);
-      fprint(output_handle, "sample=");
-      std::fputs(parameters.opt_sample, output_handle);
-    }
-
-  if (parameters.opt_sizeout && (abundance > 0))
-    {
-      std::fputs(annotation_separator(trailing_separator), output_handle);
-      fprint(output_handle, "size=");
-      fprint_integer(output_handle, abundance);
-    }
-
-  if ((parameters.opt_eeout || parameters.opt_fastq_eeout) && (expected_error >= 0.0))
-    {
-      auto const * separator = annotation_separator(trailing_separator);
-      if (expected_error < 0.000000001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.13lf", expected_error);
-      } else if (expected_error < 0.00000001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.12lf", expected_error);
-      } else if (expected_error < 0.0000001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.11lf", expected_error);
-      } else if (expected_error < 0.000001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.10lf", expected_error);
-      } else if (expected_error < 0.00001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.9lf", expected_error);
-      } else if (expected_error < 0.0001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.8lf", expected_error);
-      } else if (expected_error < 0.001) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.7lf", expected_error);
-      } else if (expected_error < 0.01) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.6lf", expected_error);
-      } else if (expected_error < 0.1) {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.5lf", expected_error);
-      } else {
-        std::fputs(separator, output_handle);
-        fprint(output_handle, "ee=");
-        std::fprintf(output_handle, "%.4lf", expected_error);
-      }
-    }
-
-  if (parameters.opt_lengthout)
-    {
-      /* widened by assignment, not by a cast: std::size_t already is
-         uint64_t on a 64-bit target, where a cast would be flagged useless */
-      uint64_t const sequence_length = seq.size();
-      std::fputs(annotation_separator(trailing_separator), output_handle);
-      fprint(output_handle, "length=");
-      fprint_integer(output_handle, sequence_length);
-    }
-
-  if (parameters.opt_relabel_keep &&
-      (((parameters.opt_relabel != nullptr) && (ordinal > 0)) || parameters.opt_relabel_sha1 || parameters.opt_relabel_md5 || parameters.opt_relabel_self))
-    {
-      fprint(output_handle, ' ');
-      fprint(output_handle, header);
-    }
+  /* the same chain as the FASTA writer, and the five fields FASTQ output has
+     no caller for suppress themselves at their sentinel defaults */
+  fprint_header_annotations(output_handle, seq, header, annotations, parameters);
 
   fprint(output_handle, '\n');
   fprint(output_handle, seq);
   fprint(output_handle, "\n+\n");
   fprint(output_handle, quality);
   fprint(output_handle, '\n');
+}
+
+
+auto fastq_print_general(std::FILE * output_handle,
+                         SeqRecord const & record,
+                         OutputAnnotations const & annotations,
+                         struct Parameters const & parameters) -> void
+{
+  fastq_print_general(output_handle,
+                      record.sequence,
+                      record.header,
+                      record.quality,
+                      annotations,
+                      parameters);
+}
+
+
+/* Transitional: the three-value forms, kept while the call sites move over to
+   OutputAnnotations one directory tier at a time. */
+auto fastq_print_general(std::FILE * output_handle,
+                         View<char> const seq,
+                         View<char> const header,
+                         View<char> const quality,
+                         uint64_t const abundance,
+                         int64_t const ordinal,
+                         double const expected_error,
+                         struct Parameters const & parameters) -> void
+{
+  OutputAnnotations annotations {abundance, ordinal};
+  annotations.expected_error = expected_error;
+  fastq_print_general(output_handle, seq, header, quality, annotations, parameters);
 }
 
 
