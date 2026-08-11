@@ -82,10 +82,11 @@ namespace log_file
    Parameters) and log_file::set_handle() (for the Parameters-less reporters)
    so the rest of the program logs to it, and writes the program header, the
    command line and the "Started" timestamp; the destructor writes the
-   "Finished"/elapsed-time/max-memory footer and closes the file. Co-locating
-   open and close keeps the two halves of the log lifecycle together and emits
-   the footer on every exit path out of the enclosing scope. Without --log the
-   object owns no file and both halves are no-ops. */
+   "Finished"/elapsed-time/max-memory footer, withdraws both publications and
+   closes the file. Co-locating open and close keeps the two halves of the log
+   lifecycle together and emits the footer on every exit path out of the
+   enclosing scope. Without --log the object owns no file and both halves are
+   no-ops. */
 class LogFile
 {
 public:
@@ -98,6 +99,12 @@ public:
   auto operator=(LogFile &&) -> LogFile & = delete;
 
 private:
+  /* Borrowed for the object's whole lifetime, so that the destructor can
+     withdraw the handle it published into parameters.fp_log. It used to clear
+     only log_file's copy, leaving fp_log pointing at a closed std::FILE. A
+     reference is safe here: LogFile is neither copyable nor movable (above) and
+     is always a scoped local outlived by the Parameters it logs for. */
+  struct Parameters & parameters_;
   OutputFileHandle handle;
   std::chrono::steady_clock::time_point start_time;
 };
