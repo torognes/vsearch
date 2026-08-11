@@ -70,6 +70,7 @@
 #include "utils/view.hpp"
 #include <algorithm>  // std::copy_backward, std::min, std::max, std::sort
 #include <array>  // std::array
+#include <cassert>  // assert
 #include <cstdint>  // int64_t, uint64_t
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdio>  // std::fprintf, std::snprintf, std::size_t
@@ -137,6 +138,16 @@ auto Database::udb_finalize(uint64_t const count,
                             struct Parameters const & parameters) -> void
 {
   /* move sequences and insert zero at end of each sequence */
+
+  /* Both spelled out because this function is where a zero count would do the
+     damage, while the guard against one lives in another translation unit:
+     udb_read() rejects a file whose header declares no sequences (the
+     buffer[13] == 0 term of its "Invalid UDB file" test). Without that, the
+     count - 1 below wraps to 2^64-1 on the first iteration and the seqindex_[0]
+     after the loop indexes an empty vector. The second assert pairs the count
+     with the extent udb_reserve() was given. */
+  assert(count > 0);
+  assert(count <= seqindex_.size());
 
   {
     Progress progress("Reorganizing data in memory", count, parameters);
