@@ -434,62 +434,6 @@ auto fasta_print_general(std::FILE * output_handle,
 }
 
 
-/* Transitional: the eight-value forms, kept while the call sites move over to
-   OutputAnnotations one directory tier at a time. */
-auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
-                         View<char> const seq,
-                         View<char> const header,
-                         uint64_t const abundance,
-                         int64_t const ordinal,
-                         double const expected_error,
-                         int64_t const clustersize,
-                         int const clusterid,
-                         char const * score_name,
-                         double const score,
-                         uint64_t const centroid_size,
-                         struct Parameters const & parameters) -> void
-{
-  OutputAnnotations annotations {abundance, ordinal};
-  annotations.expected_error = expected_error;
-  annotations.clustersize = clustersize;
-  annotations.clusterid = clusterid;
-  annotations.score_name = score_name;
-  annotations.score = score;
-  annotations.centroid_size = centroid_size;
-  fasta_print_general(output_handle, prefix, seq, header, annotations, parameters);
-}
-
-
-auto fasta_print_general(std::FILE * output_handle,
-                         char const * prefix,
-                         SeqRecord const & record,
-                         uint64_t const abundance,
-                         int64_t const ordinal,
-                         double const expected_error,
-                         int64_t const clustersize,
-                         int const clusterid,
-                         char const * score_name,
-                         double const score,
-                         uint64_t const centroid_size,
-                         struct Parameters const & parameters) -> void
-{
-  fasta_print_general(output_handle,
-                      prefix,
-                      record.sequence,
-                      record.header,
-                      abundance,
-                      ordinal,
-                      expected_error,
-                      clustersize,
-                      clusterid,
-                      score_name,
-                      score,
-                      centroid_size,
-                      parameters);
-}
-
-
 // A single uint64_t ordinal parameter: it is the widest unsigned type, so
 // every caller (passing int, size_t or uint64_t, all non-negative 1-based
 // counters) converts without narrowing or sign-change. Two overloads taking

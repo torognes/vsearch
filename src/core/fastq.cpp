@@ -68,7 +68,7 @@
 #include <array>
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t
-#include <cstdint> // int64_t, uint64_t
+#include <cstdint> // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::snprintf, std::size_t
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
@@ -598,41 +598,6 @@ auto fastq_print_general(std::FILE * output_handle,
                       record.header,
                       record.quality,
                       annotations,
-                      parameters);
-}
-
-
-/* Transitional: the three-value forms, kept while the call sites move over to
-   OutputAnnotations one directory tier at a time. */
-auto fastq_print_general(std::FILE * output_handle,
-                         View<char> const seq,
-                         View<char> const header,
-                         View<char> const quality,
-                         uint64_t const abundance,
-                         int64_t const ordinal,
-                         double const expected_error,
-                         struct Parameters const & parameters) -> void
-{
-  OutputAnnotations annotations {abundance, ordinal};
-  annotations.expected_error = expected_error;
-  fastq_print_general(output_handle, seq, header, quality, annotations, parameters);
-}
-
-
-auto fastq_print_general(std::FILE * output_handle,
-                         SeqRecord const & record,
-                         uint64_t const abundance,
-                         int64_t const ordinal,
-                         double const expected_error,
-                         struct Parameters const & parameters) -> void
-{
-  fastq_print_general(output_handle,
-                      record.sequence,
-                      record.header,
-                      record.quality,
-                      abundance,
-                      ordinal,
-                      expected_error,
                       parameters);
 }
 

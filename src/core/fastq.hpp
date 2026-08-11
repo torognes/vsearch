@@ -92,21 +92,3 @@ auto fastq_print_general(std::FILE * output_handle,
                          SeqRecord const & record,
                          OutputAnnotations const & annotations,
                          struct Parameters const & parameters) -> void;
-
-/* Transitional: the three-value forms, kept while the call sites move over to
-   OutputAnnotations one directory tier at a time. */
-auto fastq_print_general(std::FILE * output_handle,
-                         View<char> seq,
-                         View<char> header,
-                         View<char> quality,
-                         uint64_t abundance,
-                         int64_t ordinal,
-                         double expected_error,
-                         struct Parameters const & parameters) -> void;
-
-auto fastq_print_general(std::FILE * output_handle,
-                         SeqRecord const & record,
-                         uint64_t abundance,
-                         int64_t ordinal,
-                         double expected_error,
-                         struct Parameters const & parameters) -> void;
