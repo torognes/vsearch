@@ -522,7 +522,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fprint(stderr, " sequences discarded.\n");
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint_integer(parameters.fp_log, kept);
       fprint(parameters.fp_log, " sequences kept (of which ");

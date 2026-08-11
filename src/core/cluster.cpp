@@ -1272,7 +1272,7 @@ auto cluster(char const * dbname,
   std::vector<clusterinfo_t> clusterinfo_v(static_cast<std::size_t>(seqcount));
   clusterinfo = clusterinfo_v.data();
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       uint64_t const slots = 1ULL << (static_cast<uint64_t>(parameters.opt_wordlength) << 1ULL);
       fprint(parameters.fp_log, '\n');
@@ -1471,7 +1471,7 @@ auto cluster(char const * dbname,
           fprint(stderr, "Clusters: 0\n");
           fprint(stderr, "Singletons: 0\n");
         }
-      if (parameters.opt_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
           fprint(parameters.fp_log, "Clusters: 0\n");
           fprint(parameters.fp_log, "Singletons: 0\n");
@@ -1499,7 +1499,7 @@ auto cluster(char const * dbname,
           fprint(stderr, "% of clusters\n");
         }
 
-      if (parameters.opt_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
           fprint(parameters.fp_log, "Clusters: ");
           fprint_integer(parameters.fp_log, clusters);

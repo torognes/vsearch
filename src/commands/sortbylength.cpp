@@ -168,7 +168,7 @@ namespace {
       {
         std::fprintf(stderr, "Median length: %.0f\n", median);
       }
-    if (parameters.opt_log != nullptr)
+    if (parameters.fp_log != nullptr)
       {
         std::fprintf(parameters.fp_log, "Median length: %.0f\n", median);
       }

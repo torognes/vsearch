@@ -2603,7 +2603,7 @@ auto chimera(struct Parameters const & parameters) -> void
       progress_total = state.db.getnucleotidecount();
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       if ((parameters.opt_uchime_ref != nullptr) or (parameters.opt_uchime_denovo != nullptr))
         {
@@ -2781,7 +2781,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       if (parameters.opt_uchime_ref != nullptr)
         {

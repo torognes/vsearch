@@ -194,7 +194,7 @@ auto write_original_stats(std::vector<uint64_t> const & deck,
     fprint_integer(stderr, static_cast<int>(deck.size()));
     fprint(stderr, " amplicons\n");
   }
-  if (parameters.opt_log != nullptr) {
+  if (parameters.fp_log != nullptr) {
     fprint(parameters.fp_log, "Got ");
     fprint_integer(parameters.fp_log, mass_total);
     fprint(parameters.fp_log, " reads from ");
@@ -226,7 +226,7 @@ auto write_subsampling_stats(std::vector<uint64_t> const &deck,
     fprint_integer(stderr, samples);
     fprint(stderr, " amplicons\n");
   }
-  if (parameters.opt_log != nullptr) {
+  if (parameters.fp_log != nullptr) {
     fprint(parameters.fp_log, "Subsampled ");
     fprint_integer(parameters.fp_log, n_reads);
     fprint(parameters.fp_log, " reads from ");

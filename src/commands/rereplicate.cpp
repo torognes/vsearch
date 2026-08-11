@@ -133,7 +133,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
       fprint(stderr, " amplicons\n");
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "Rereplicated ");
       fprint_integer(parameters.fp_log, n_reads);

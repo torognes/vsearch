@@ -317,10 +317,13 @@ namespace {
   }
 
 
-  auto output_stats_message(struct Parameters const & parameters,
-                            struct statistics const & stats,
-                            char const * log_filename) -> void {
-    if (log_filename == nullptr) {
+  /* The --log destination for stats_message() above; output_stats_message()
+     below is the stderr one. Named rather than distinguished from it by an
+     extra argument: it used to take parameters.opt_log and test *that* for
+     null -- a filename standing in for the handle it then wrote to. */
+  auto log_stats_message(struct Parameters const & parameters,
+                         struct statistics const & stats) -> void {
+    if (parameters.fp_log == nullptr) {
       return;
     }
     stats_message(parameters.fp_log, stats);
@@ -411,5 +414,5 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   guess_quality_offset(stats);
 
   output_stats_message(parameters, stats);
-  output_stats_message(parameters, stats, parameters.opt_log);
+  log_stats_message(parameters, stats);
 }

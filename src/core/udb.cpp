@@ -587,7 +587,7 @@ auto udb_read(const char * filename,
         }
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       if (seqcount > 0)
         {

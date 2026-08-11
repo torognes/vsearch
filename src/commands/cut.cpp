@@ -391,10 +391,13 @@ namespace {
   }
 
 
-  auto output_stats_message(struct Parameters const & parameters,
-                            struct statistics const & counters,
-                            char const * filename) -> void {
-    if (filename == nullptr) {
+  /* The --log destination for stats_message() above; output_stats_message()
+     below is the stderr one. Named rather than distinguished from it by an
+     extra argument: it used to take parameters.opt_log and test *that* for
+     null -- a filename standing in for the handle it then wrote to. */
+  auto log_stats_message(struct Parameters const & parameters,
+                         struct statistics const & counters) -> void {
+    if (parameters.fp_log == nullptr) {
       return;
     }
     stats_message(parameters.fp_log, counters);
@@ -459,7 +462,7 @@ auto cut(struct Parameters const & parameters) -> void {
     }
 
   output_stats_message(parameters, counters);
-  output_stats_message(parameters, counters, parameters.opt_log);
+  log_stats_message(parameters, counters);
 
   close_output_files(fastaout);
   input_handle->report_stripped_warning(parameters);

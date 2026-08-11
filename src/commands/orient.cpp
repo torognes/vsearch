@@ -500,7 +500,7 @@ auto orient(struct Parameters const & parameters) -> void
       fprint(stderr, '\n');
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "Forward oriented sequences: ");
       fprint_integer(parameters.fp_log, matches_fwd);

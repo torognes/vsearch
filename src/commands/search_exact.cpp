@@ -783,7 +783,7 @@ auto search_exact(struct Parameters const & parameters) -> void
         }
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "Matching unique query sequences: ");
       fprint_integer(parameters.fp_log, state.qmatches);

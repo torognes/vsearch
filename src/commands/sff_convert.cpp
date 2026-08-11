@@ -493,7 +493,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
       fprint(stderr, '\n');
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "Number of reads: ");
       fprint_integer(parameters.fp_log, sff_header.number_of_reads);
@@ -697,7 +697,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
     write_report(stderr, sff_header, sff_stats, index_kind);
   }
 
-  if (parameters.opt_log != nullptr) {
+  if (parameters.fp_log != nullptr) {
     write_report(parameters.fp_log, sff_header, sff_stats, index_kind);
   }
 

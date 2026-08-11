@@ -543,7 +543,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       fprint(stderr, '\n');
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint_integer(parameters.fp_log, kept);
       fprint(parameters.fp_log, " of ");

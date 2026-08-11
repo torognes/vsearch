@@ -94,7 +94,7 @@ auto report_input_stats(Derep_stats const & stats,
     {
       emit(stderr);
     }
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       emit(parameters.fp_log);
     }
@@ -121,7 +121,7 @@ auto report_length_filtered(struct Parameters const & parameters,
     fprint(fp, " discarded.\n");
   };
   emit(stderr);
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       emit(parameters.fp_log);
       fprint(parameters.fp_log, '\n');
@@ -155,7 +155,7 @@ auto report_unique_summary(Derep_stats const & stats,
     {
       emit(stderr);
     }
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       emit(parameters.fp_log);
       fprint(parameters.fp_log, '\n');
@@ -183,7 +183,7 @@ auto report_selected(uint64_t const selected,
     {
       emit(stderr);
     }
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       emit(parameters.fp_log);
       fprint(parameters.fp_log, '\n');

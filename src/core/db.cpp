@@ -352,7 +352,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
         }
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       if (sequences > 0)
         {
@@ -388,7 +388,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
       std::fputs((discarded_short == 1 ? "sequence" : "sequences"), stderr);
       fprint(stderr, " discarded.\n");
 
-      if (parameters.opt_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
           fprint(parameters.fp_log, "minseqlength ");
           fprint_integer(parameters.fp_log, parameters.opt_minseqlength);
@@ -410,7 +410,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
       std::fputs((discarded_long == 1 ? "sequence" : "sequences"), stderr);
       fprint(stderr, " discarded.\n");
 
-      if (parameters.opt_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
           fprint(parameters.fp_log, "maxseqlength ");
           fprint_integer(parameters.fp_log, parameters.opt_maxseqlength);
@@ -432,7 +432,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
       std::fputs((discarded_unoise == 1 ? "sequence" : "sequences"), stderr);
       fprint(stderr, " discarded.\n");
 
-      if (parameters.opt_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
           fprint(parameters.fp_log, "minsize ");
           fprint_integer(parameters.fp_log, parameters.opt_minsize);

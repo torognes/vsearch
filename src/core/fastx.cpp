@@ -620,7 +620,7 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
       /* Not a warning, so it stays a separate emission rather than joining the
          message above: it must keep its own prefix. */
       fprint(stderr, "REMINDER: vsearch does not support amino acid sequences\n");
-      if (parameters.opt_log != nullptr)
+      if (parameters.fp_log != nullptr)
         {
           fprint(parameters.fp_log, "REMINDER: vsearch does not support amino acid sequences\n");
         }

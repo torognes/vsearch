@@ -162,7 +162,7 @@ auto udbinfo(struct Parameters const & parameters) -> void
       fprint(stderr, "%\n");
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "           Seqs  ");
       fprint_integer(parameters.fp_log, buffer[13]);

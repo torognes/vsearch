@@ -191,7 +191,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       fprint(stderr, " sequences kept\n");
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       if (parameters.opt_min_unmasked_pct > 0.0)
         {

@@ -638,7 +638,7 @@ auto allpairs_global(struct Parameters const & parameters) -> void
       fprint(stderr, '\n');
     }
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "Matching query sequences: ");
       fprint_integer(parameters.fp_log, qmatches);

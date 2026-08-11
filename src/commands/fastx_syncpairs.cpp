@@ -379,7 +379,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   if (not parameters.opt_quiet) {
     stats_message(stderr, pairs, orphans_fwd, orphans_rev);
   }
-  if (parameters.opt_log != nullptr) {
+  if (parameters.fp_log != nullptr) {
     stats_message(parameters.fp_log, pairs, orphans_fwd, orphans_rev);
   }
 

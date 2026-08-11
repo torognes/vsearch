@@ -145,11 +145,9 @@ LogFile::~LogFile()
      library session that does not ask for a log.
 
      parameters.opt_log is deliberately left alone: it is the filename the user
-     asked for, part of the parsed configuration rather than a resource. The 33
-     sites that gate a log write on "opt_log != nullptr" would therefore reach a
-     null fp_log if one of them ever ran after this destructor -- a prompt crash
-     instead of a write to a closed stream, which is the better of the two
-     failures; testing fp_log at those sites instead is a separate change. */
+     asked for, part of the parsed configuration rather than a resource. Every
+     site that writes to the log gates on fp_log rather than on opt_log, so
+     clearing this one field is enough to make them all no-ops again. */
   parameters_.fp_log = nullptr;
   log_file::set_handle(nullptr);
   handle.reset();

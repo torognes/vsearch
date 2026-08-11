@@ -131,7 +131,7 @@ auto udbstats(struct Parameters const & parameters) -> void
 
   /* show stats */
 
-  if (parameters.opt_log != nullptr)
+  if (parameters.fp_log != nullptr)
     {
       fprint(parameters.fp_log, "      Alphabet  nt\n");
       fprint(parameters.fp_log, "    Word width  ");
