@@ -61,6 +61,7 @@
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/derep_stats.hpp"  // Derep_stats, report_*
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"
@@ -467,11 +468,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
                                     nullptr,
                                     View<char>{seq, static_cast<std::size_t>(seqlen)},
                                     View<char>{header, static_cast<std::size_t>(headerlen)},
-                                    static_cast<uint64_t>(size),
-                                    static_cast<int64_t>(selected),
-                                    -1.0,
-                                    -1, -1, nullptr, 0.0,
-                                    0,
+                                    OutputAnnotations{static_cast<uint64_t>(size),
+                                                      static_cast<int64_t>(selected)},
                                     parameters);
               }
             bp->size = static_cast<uint64_t>(-1);

@@ -62,6 +62,7 @@
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "commands/usearch_global.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"
@@ -335,11 +336,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                               nullptr,
                               qsequence,
                               query_head,
-                              static_cast<uint64_t>(qsize),
-                              state.count_matched,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
+                              OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
                               state.parameters);
         }
     }
@@ -352,11 +349,7 @@ static auto search_output_results(struct search_cli_state_s & state,
                               nullptr,
                               qsequence,
                               query_head,
-                              static_cast<uint64_t>(qsize),
-                              state.count_notmatched,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
+                              OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
                               state.parameters);
         }
     }
@@ -792,11 +785,8 @@ auto usearch_global(struct Parameters const & parameters) -> void
                   fasta_print_general(fp_dbmatched.get(),
                                       nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
-                                      dbmatched[static_cast<std::size_t>(i)],
-                                      count_dbmatched,
-                                      -1.0,
-                                      -1, -1, nullptr, 0.0,
-                                      0,
+                                      OutputAnnotations{dbmatched[static_cast<std::size_t>(i)],
+                                                        count_dbmatched},
                                       parameters);
                 }
             }
@@ -808,11 +798,8 @@ auto usearch_global(struct Parameters const & parameters) -> void
                   fasta_print_general(fp_dbnotmatched.get(),
                                       nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
-                                      state.db.getabundance(static_cast<uint64_t>(i)),
-                                      count_dbnotmatched,
-                                      -1.0,
-                                      -1, -1, nullptr, 0.0,
-                                      0,
+                                      OutputAnnotations{state.db.getabundance(static_cast<uint64_t>(i)),
+                                                        count_dbnotmatched},
                                       parameters);
                 }
             }

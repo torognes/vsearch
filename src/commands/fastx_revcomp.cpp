@@ -62,6 +62,7 @@
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -157,11 +158,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
                                 nullptr,
                                 make_view(seq_buffer).first(static_cast<std::size_t>(length)),
                                 View<char>{header, static_cast<std::size_t>(hlen)},
-                                static_cast<uint64_t>(abundance),
-                                count,
-                                -1.0,
-                                -1, -1, nullptr, 0.0,
-                                0,
+                                OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
 
@@ -171,9 +168,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
                                 make_view(seq_buffer).first(static_cast<std::size_t>(length)),
                                 View<char>{header, static_cast<std::size_t>(hlen)},
                                 make_view(qual_buffer).first(static_cast<std::size_t>(length)),
-                                static_cast<uint64_t>(abundance),
-                                count,
-                                -1.0,
+                                OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
 

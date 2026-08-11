@@ -63,6 +63,7 @@
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "utils/progress.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/fasta.hpp"
@@ -286,14 +287,7 @@ auto orient(struct Parameters const & parameters) -> void
                 fasta_print_general(fp_fastaout,
                                     nullptr,
                                     query_h->record(),
-                                    static_cast<uint64_t>(qsize),
-                                    qmatches,
-                                    -1.0,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0,
-                                    0,
+                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
                                     parameters);
               }
 
@@ -301,9 +295,7 @@ auto orient(struct Parameters const & parameters) -> void
               {
                 fastq_print_general(fp_fastqout,
                                     query_h->record(),
-                                    static_cast<uint64_t>(qsize),
-                                    qmatches,
-                                    -1.0,
+                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
                                     parameters);
               }
           }
@@ -341,14 +333,7 @@ auto orient(struct Parameters const & parameters) -> void
                                     nullptr,
                                     rc_sequence,
                                     query_head,
-                                    static_cast<uint64_t>(qsize),
-                                    qmatches,
-                                    -1.0,
-                                    -1,
-                                    -1,
-                                    nullptr,
-                                    0.0,
-                                    0,
+                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
                                     parameters);
               }
 
@@ -370,9 +355,7 @@ auto orient(struct Parameters const & parameters) -> void
                                     rc_sequence,
                                     query_head,
                                     make_view(query_qual_rev).first(query_sequence.size()),
-                                    static_cast<uint64_t>(qsize),
-                                    qmatches,
-                                    -1.0,
+                                    OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
                                     parameters);
               }
           }
@@ -389,9 +372,7 @@ auto orient(struct Parameters const & parameters) -> void
                   {
                     fastq_print_general(fp_notmatched,
                                         query_h->record(),
-                                        static_cast<uint64_t>(qsize),
-                                        notmatched,
-                                        -1.0,
+                                        OutputAnnotations{static_cast<uint64_t>(qsize), notmatched},
                                         parameters);
                   }
                 else
@@ -399,14 +380,7 @@ auto orient(struct Parameters const & parameters) -> void
                     fasta_print_general(fp_notmatched,
                                         nullptr,
                                         query_h->record(),
-                                        static_cast<uint64_t>(qsize),
-                                        notmatched,
-                                        -1.0,
-                                        -1,
-                                        -1,
-                                        nullptr,
-                                        0.0,
-                                        0,
+                                        OutputAnnotations{static_cast<uint64_t>(qsize), notmatched},
                                         parameters);
                   }
               }

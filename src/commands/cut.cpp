@@ -61,6 +61,7 @@
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
@@ -166,14 +167,8 @@ namespace {
                                 sequence.subspan(static_cast<std::size_t>(frag_start),
                                                  static_cast<std::size_t>(frag_length)),
                                 input_handle->header_view(),
-                                static_cast<uint64_t>(input_handle->get_abundance()),
-                                ++counters.fragment_no,
-                                -1.0,
-                                -1,
-                                -1,
-                                nullptr,
-                                0.0,
-                                0,
+                                OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                                  ++counters.fragment_no},
                                 parameters);
           }
 
@@ -184,14 +179,8 @@ namespace {
                                 rc_sequence.subspan(static_cast<std::size_t>(rc_start),
                                                     static_cast<std::size_t>(rc_length)),
                                 input_handle->header_view(),
-                                static_cast<uint64_t>(input_handle->get_abundance()),
-                                ++counters.fragment_rev_no,
-                                -1.0,
-                                -1,
-                                -1,
-                                nullptr,
-                                0.0,
-                                0,
+                                OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                                  ++counters.fragment_rev_no},
                                 parameters);
           }
 
@@ -213,14 +202,8 @@ namespace {
                             sequence.subspan(static_cast<std::size_t>(frag_start),
                                              static_cast<std::size_t>(frag_length)),
                             input_handle->header_view(),
-                            static_cast<uint64_t>(input_handle->get_abundance()),
-                            ++counters.fragment_no,
-                            -1.0,
-                            -1,
-                            -1,
-                            nullptr,
-                            0.0,
-                            0,
+                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                              ++counters.fragment_no},
                             parameters);
       }
 
@@ -231,14 +214,8 @@ namespace {
                             rc_sequence.subspan(static_cast<std::size_t>(rc_start),
                                                 static_cast<std::size_t>(rc_length)),
                             input_handle->header_view(),
-                            static_cast<uint64_t>(input_handle->get_abundance()),
-                            ++counters.fragment_rev_no,
-                            -1.0,
-                            -1,
-                            -1,
-                            nullptr,
-                            0.0,
-                            0,
+                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                              ++counters.fragment_rev_no},
                             parameters);
       }
 
@@ -252,14 +229,8 @@ namespace {
         fasta_print_general(fastaout.discarded.forward.handle.get(),
                             nullptr,
                             input_handle->record(),
-                            static_cast<uint64_t>(input_handle->get_abundance()),
-                            ++counters.fragment_discarded_no,
-                            -1.0,
-                            -1,
-                            -1,
-                            nullptr,
-                            0.0,
-                            0,
+                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                              ++counters.fragment_discarded_no},
                             parameters);
       }
 
@@ -269,14 +240,8 @@ namespace {
                             nullptr,
                             rc_sequence,
                             input_handle->header_view(),
-                            static_cast<uint64_t>(input_handle->get_abundance()),
-                            ++counters.fragment_discarded_rev_no,
-                            -1.0,
-                            -1,
-                            -1,
-                            nullptr,
-                            0.0,
-                            0,
+                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                              ++counters.fragment_discarded_rev_no},
                             parameters);
       }
 

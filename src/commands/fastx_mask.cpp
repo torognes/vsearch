@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include "commands/fastx_mask.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
@@ -148,11 +149,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
                 fasta_print_general(fp_fastaout.get(),
                                     nullptr,
                                     db.record(i),
-                                    db.getabundance(i),
-                                    kept,
-                                    -1.0,
-                                    -1, -1, nullptr, 0.0,
-                                    0,
+                                    OutputAnnotations{db.getabundance(i), kept},
                                     parameters);
               }
 
@@ -160,9 +157,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
               {
                 fastq_print_general(fp_fastqout.get(),
                                     db.record(i),
-                                    db.getabundance(i),
-                                    kept,
-                                    -1.0,
+                                    OutputAnnotations{db.getabundance(i), kept},
                                     parameters);
               }
           }

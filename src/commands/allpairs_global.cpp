@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include "utils/progress.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/align_simd.hpp"
 #include "core/linmemalign.hpp"
 #include "core/mask.hpp"
@@ -299,11 +300,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               nullptr,
                               qsequence,
                               query_head,
-                              0,
-                              state.count_matched,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
+                              OutputAnnotations{0, state.count_matched},
                               state.parameters);
         }
     }
@@ -316,11 +313,7 @@ static auto allpairs_output_results(struct allpairs_state_s & state,
                               nullptr,
                               qsequence,
                               query_head,
-                              0,
-                              state.count_notmatched,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
+                              OutputAnnotations{0, state.count_notmatched},
                               state.parameters);
         }
     }

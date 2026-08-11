@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
@@ -104,11 +105,7 @@ auto rereplicate(struct Parameters const & parameters) -> void
             fasta_print_general(output_handle.get(),
                                 nullptr,
                                 input_handle->record(),
-                                1,
-                                n_reads,
-                                -1.0,
-                                -1, -1, nullptr, 0.0,
-                                0,
+                                OutputAnnotations{1, n_reads},
                                 parameters);
           }
 

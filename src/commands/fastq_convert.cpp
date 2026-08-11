@@ -60,6 +60,7 @@
 
 #include "commands/fastq_convert.hpp"
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fastq.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
@@ -157,14 +158,14 @@ auto fastq_convert(struct Parameters const & parameters) -> void
           });
 
         int const hlen = static_cast<int>(input_handle->get_header_length());
+        OutputAnnotations annotations {static_cast<uint64_t>(abundance), n_entries};
+        annotations.expected_error = default_expected_error;
         fastq_print_general(fp_fastqout,
                             View<char>{sequence, static_cast<std::size_t>(length)},
                             View<char>{header, static_cast<std::size_t>(hlen)},
                             make_view(normalized_quality).first(static_cast<std::size_t>(length)),
-                            static_cast<uint64_t>(abundance),
-                            n_entries,
-                            default_expected_error,
-                            parameters);  // refactoring: prefer function overload?
+                            annotations,
+                            parameters);
 
         ++n_entries;
         normalized_quality.clear();

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fastq.hpp"
 #include "utils/ascii_case.hpp"  // to_lower, to_upper
 #include "utils/print_view.hpp"  // fprint
@@ -637,7 +638,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
                             make_view(read_name).first(read_name.size() - 1),
                             View<char>{std::next(quality_scores.data(), clip_start),
                                        static_cast<std::size_t>(length)},
-                            1, read_no + 1, -1.0,
+                            OutputAnnotations{1, read_no + 1},
                             parameters);
 
 

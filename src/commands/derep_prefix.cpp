@@ -60,6 +60,7 @@
 
 #include "utils/view.hpp"
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/derep_stats.hpp"  // Derep_stats, report_*
 #include "core/fasta.hpp"
@@ -396,11 +397,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                 fasta_print_general(fp_output,
                                     nullptr,
                                     db.record(bp.seqno_first),
-                                    static_cast<uint64_t>(size),
-                                    relabel_count,
-                                    -1.0,
-                                    -1, -1, nullptr, 0.0,
-                                    0,
+                                    OutputAnnotations{static_cast<uint64_t>(size), relabel_count},
                                     parameters);
                 if (relabel_count == parameters.opt_topn)
                   {

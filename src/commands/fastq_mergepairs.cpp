@@ -64,6 +64,7 @@
 #include "utils/progress.hpp"
 #include "commands/fastq_mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -303,15 +304,18 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
   state.sum_errors_fwd += static_cast<uint64_t>(a_read_pair.fwd_errors);
   state.sum_errors_rev += static_cast<uint64_t>(a_read_pair.rev_errors);
 
+  /* the FASTA and FASTQ writers below annotate the merged read identically */
+  OutputAnnotations merged_annotations {
+    static_cast<uint64_t>(a_read_pair.fwd_abundance), state.merged};
+  merged_annotations.expected_error = a_read_pair.ee_merged;
+
   if (state.parameters.opt_fastqout != nullptr)
     {
       fastq_print_general(state.fp_fastqout,
                           make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
                           make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
                           make_view(a_read_pair.merged_quality_v).first(static_cast<std::size_t>(a_read_pair.merged_length)),
-                          static_cast<uint64_t>(a_read_pair.fwd_abundance),
-                          state.merged,
-                          a_read_pair.ee_merged,
+                          merged_annotations,
                           state.parameters);
     }
 
@@ -321,14 +325,7 @@ auto keep(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_pai
                           nullptr,
                           make_view(a_read_pair.merged_sequence).first(static_cast<std::size_t>(a_read_pair.merged_length)),
                           make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
-                          static_cast<uint64_t>(a_read_pair.fwd_abundance),
-                          state.merged,
-                          a_read_pair.ee_merged,
-                          -1,
-                          -1,
-                          nullptr,
-                          0.0,
-                          0,
+                          merged_annotations,
                           state.parameters);
     }
 
@@ -422,9 +419,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
                           make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
                           make_view(a_read_pair.fwd_quality).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
-                          static_cast<uint64_t>(a_read_pair.fwd_abundance),
-                          state.notmerged,
-                          -1.0,
+                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.fwd_abundance), state.notmerged},
                           state.parameters);
     }
 
@@ -434,9 +429,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
                           make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
                           make_view(a_read_pair.rev_quality).first(static_cast<std::size_t>(a_read_pair.rev_length)),
-                          static_cast<uint64_t>(a_read_pair.rev_abundance),
-                          state.notmerged,
-                          -1.0,
+                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.rev_abundance), state.notmerged},
                           state.parameters);
     }
 
@@ -446,12 +439,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           nullptr,
                           make_view(a_read_pair.fwd_sequence).first(static_cast<std::size_t>(a_read_pair.fwd_length)),
                           make_view(a_read_pair.fwd_header).first(static_cast<std::size_t>(a_read_pair.fwd_header_length)),
-                          static_cast<uint64_t>(a_read_pair.fwd_abundance),
-                          state.notmerged,
-                          -1.0,
-                          -1, -1,
-                          nullptr, 0.0,
-                          0,
+                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.fwd_abundance), state.notmerged},
                           state.parameters);
     }
 
@@ -461,12 +449,7 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
                           nullptr,
                           make_view(a_read_pair.rev_sequence).first(static_cast<std::size_t>(a_read_pair.rev_length)),
                           make_view(a_read_pair.rev_header).first(static_cast<std::size_t>(a_read_pair.rev_header_length)),
-                          static_cast<uint64_t>(a_read_pair.rev_abundance),
-                          state.notmerged,
-                          -1.0,
-                          -1, -1,
-                          nullptr, 0.0,
-                          0,
+                          OutputAnnotations{static_cast<uint64_t>(a_read_pair.rev_abundance), state.notmerged},
                           state.parameters);
     }
 }

@@ -62,6 +62,7 @@
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/dbhash.hpp"
 #include "core/fasta.hpp"
@@ -392,11 +393,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                               nullptr,
                               qsequence,
                               query_head,
-                              static_cast<uint64_t>(qsize),
-                              state.count_matched,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
+                              OutputAnnotations{static_cast<uint64_t>(qsize), state.count_matched},
                               parameters);
         }
     }
@@ -409,11 +406,7 @@ auto search_exact_output_results(struct search_exact_state_s & state,
                               nullptr,
                               qsequence,
                               query_head,
-                              static_cast<uint64_t>(qsize),
-                              state.count_notmatched,
-                              -1.0,
-                              -1, -1, nullptr, 0.0,
-                              0,
+                              OutputAnnotations{static_cast<uint64_t>(qsize), state.count_notmatched},
                               parameters);
         }
     }
@@ -854,11 +847,8 @@ auto search_exact(struct Parameters const & parameters) -> void
                   fasta_print_general(state.fp_dbmatched,
                                       nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
-                                      state.dbmatched[static_cast<std::size_t>(i)],
-                                      count_dbmatched,
-                                      -1.0,
-                                      -1, -1, nullptr, 0.0,
-                                      0,
+                                      OutputAnnotations{state.dbmatched[static_cast<std::size_t>(i)],
+                                                        count_dbmatched},
                                       parameters);
                 }
             }
@@ -870,11 +860,7 @@ auto search_exact(struct Parameters const & parameters) -> void
                   fasta_print_general(state.fp_dbnotmatched,
                                       nullptr,
                                       state.db.record(static_cast<uint64_t>(i)),
-                                      0,
-                                      count_dbnotmatched,
-                                      -1.0,
-                                      -1, -1, nullptr, 0.0,
-                                      0,
+                                      OutputAnnotations{0, count_dbnotmatched},
                                       parameters);
                 }
             }

@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/db.hpp"
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
@@ -328,11 +329,7 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
       fasta_print_general(fasta_file.handle.get(),
                           nullptr,
                           db.record(counter),
-                          new_abundance,
-                          amplicons_printed,
-                          -1.0,
-                          -1, -1, nullptr, 0.0,
-                          0,
+                          OutputAnnotations{new_abundance, amplicons_printed},
                           parameters);
       progress.update(counter);
       ++counter;
@@ -359,9 +356,7 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
       ++amplicons_printed;
       fastq_print_general(fastq_file.handle.get(),
                           db.record(counter),
-                          new_abundance,
-                          amplicons_printed,
-                          -1.0,
+                          OutputAnnotations{new_abundance, amplicons_printed},
                           parameters);
       progress.update(counter);
       ++counter;

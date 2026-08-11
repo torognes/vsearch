@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_handle
@@ -225,9 +226,7 @@ namespace {
                           sequence,
                           header,
                           make_view(record.quality),
-                          static_cast<uint64_t>(record.abundance),
-                          ordinal,
-                          -1.0,
+                          OutputAnnotations{static_cast<uint64_t>(record.abundance), ordinal},
                           parameters);
     }
     if (destination.fasta.handle != nullptr) {
@@ -235,14 +234,7 @@ namespace {
                           nullptr,
                           sequence,
                           header,
-                          static_cast<uint64_t>(record.abundance),
-                          ordinal,
-                          -1.0,
-                          -1,
-                          -1,
-                          nullptr,
-                          0,
-                          0,
+                          OutputAnnotations{static_cast<uint64_t>(record.abundance), ordinal},
                           parameters);
     }
   }

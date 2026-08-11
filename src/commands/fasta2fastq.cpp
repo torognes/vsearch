@@ -59,6 +59,7 @@
 */
 
 #include "vsearch.hpp"
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "utils/maps.hpp"
@@ -108,9 +109,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
                           fp_input->sequence_view(),
                           fp_input->header_view(),
                           make_view(quality).first(length),
-                          static_cast<uint64_t>(fp_input->get_abundance()),
-                          counter,
-                          -1.0,
+                          OutputAnnotations{static_cast<uint64_t>(fp_input->get_abundance()), counter},
                           parameters);
 
       progress.update(fp_input->get_position());

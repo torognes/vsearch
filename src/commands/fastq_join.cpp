@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
+#include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"  // fasta_print_general, fasta_get_abundance
 #include "core/fastq.hpp"  // fastq_open, fastq_get_sequence, fastq_get_quality
 #include "core/fastx.hpp"  // fastx_handle
@@ -278,9 +279,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
                                 make_view(final_sequence).first(needed),
                                 infiles.forward.handle->header_view(),
                                 make_view(final_quality).first(needed),
-                                static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
-                                static_cast<int>(total + 1),
-                                -1.0,
+                                OutputAnnotations{static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
+                                                  static_cast<int>(total + 1)},
                                 parameters);
           }
 
@@ -290,14 +290,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
                                 nullptr,
                                 make_view(final_sequence).first(needed),
                                 infiles.forward.handle->header_view(),
-                                static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
-                                static_cast<int>(total + 1),
-                                -1.0,
-                                -1,
-                                -1,
-                                nullptr,
-                                0,
-                                0,
+                                OutputAnnotations{static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
+                                                  static_cast<int>(total + 1)},
                                 parameters);
           }
 
