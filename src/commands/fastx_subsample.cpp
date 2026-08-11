@@ -240,11 +240,24 @@ auto random_subsampling(std::vector<uint64_t> & deck, uint64_t const mass_total,
                         uint64_t const n_reads, bool const sizein_requested,
                         Database const & db,
                         struct Parameters const & parameters) -> void {
+  /* The clamp the caller applies (see subsample()): with n_reads > mass_total
+     the loop below cannot terminate within mass_total iterations, and
+     random_bounded() is eventually handed a range of 0, which is fatal. */
+  assert(n_reads <= mass_total);
+
   auto n_reads_left = n_reads;
   uint64_t amplicon_number = 0;
   uint64_t n_read_being_checked = 0;
   uint64_t accumulated_mass = 0;
-  auto amplicon_mass = sizein_requested ? db.getabundance(0) : 1;
+  /* Priming read of the first amplicon's mass, guarded exactly like the
+     equivalent read inside the loop below: an empty database has no first
+     amplicon, and db.getabundance() indexes seqindex_ unchecked. The loop never
+     runs when mass_total is 0, so the value is unused -- but the read happened
+     anyway, one element past the end of an empty vector. The in-loop copy was
+     guarded for the symmetrical one-past-the-end case (S20); this one was
+     missed, and the same expression is now used for both. */
+  auto amplicon_mass = (sizein_requested and (amplicon_number < db.getsequencecount()))
+    ? db.getabundance(amplicon_number) : 1;
 
   /* reproducible across platforms and seeds (see util.h) */
   RandomSeed const seed(parameters);
