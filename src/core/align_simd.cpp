@@ -68,7 +68,7 @@
 #include <array>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::printf, std::snprintf, std::fputc
+#include <cstdio>  // std::snprintf
 #include <cstring>  // std::memcpy, std::memmove, std::memset
 #include <iterator>  // std::next
 #include <limits>
@@ -90,14 +90,6 @@ constexpr auto CHANNELS = 8;
 constexpr auto CDEPTH = 4;
 constexpr auto maxseqlenproduct = 25000000LL;
 constexpr auto maxseqlensum = 65535LL;
-
-
-// anonymous namespace: limit visibility and usage to this translation unit
-namespace {
-
-  constexpr std::array<char, 16> sym_nt_4bit = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
-
-}  // end of anonymous namespace
 
 
 /*
@@ -485,75 +477,10 @@ namespace {
 }  // end of anonymous namespace
 
 
-auto mm_print(VECTOR_SHORT const x) -> void
-{
-  auto const * y = reinterpret_cast<unsigned short const *>(&x);
-  for (int i = 0; i < 8; i++)
-    {
-      std::printf("%s%6d", (i > 0 ? " " : ""), y[7 - i]);
-    }
-}
-
-
-auto mm_print2(VECTOR_SHORT const x) -> void
-{
-  auto const * y = reinterpret_cast<signed short const *>(&x);
-  for (int i = 0; i < 8; i++)
-    {
-      std::printf("%s%2d", (i > 0 ? " " : ""), y[7 - i]);
-    }
-}
-
-
-auto dprofile_dump16(CELL const * dprofile) -> void
-{
-  std::printf("\ndprofile:\n");
-  for (int i = 0; i < matrix_size; i++)
-    {
-      std::printf("%c: ", sym_nt_4bit[static_cast<size_t>(i)]);
-      for (int k = 0; k < CDEPTH; k++)
-        {
-          std::printf("[");
-          for (int j = 0; j < CHANNELS; j++)
-            {
-              std::printf(" %3d", dprofile[(CHANNELS * CDEPTH * i) + (CHANNELS * k) + j]);
-            }
-          std::printf("]");
-        }
-      std::printf("\n");
-    }
-}
-
-
-auto dumpscorematrix(CELL const * score_matrix) -> void
-{
-  for (auto i = 0; i < matrix_size; ++i)
-    {
-      std::printf("%2d %c", i, sym_nt_4bit[static_cast<size_t>(i)]);
-      for (auto j = 0; j < matrix_size; ++j)
-        {
-          std::printf(" %2d", score_matrix[(matrix_size * i) + j]);
-        }
-      std::printf("\n");
-    }
-}
-
-
 auto dprofile_fill16(CELL * dprofile_word,
                      CELL const * score_matrix_word,
                      BYTE const * dseq) -> void
 {
-#if 0
-  dumpscorematrix(score_matrix_word);
-
-  for (int j = 0; j < CDEPTH; j++)
-    {
-      for (int z = 0; z < CHANNELS; z++)
-        std::fprintf(stderr, " [%c]", sym_nt_4bit[dseq[j * CHANNELS + z]]);
-      std::fputc('\n', stderr);
-    }
-#endif
-
   for (int j = 0; j < CDEPTH; j++)
     {
       std::array<int, CHANNELS> d {{}};
@@ -711,9 +638,6 @@ auto dprofile_fill16(CELL * dprofile_word,
           v_store(cast_vector16(std::next(dprofile_word, (CDEPTH * CHANNELS * (i + 7)) + (CHANNELS * j))), reg31);
         }
     }
-#if 0
-  dprofile_dump16(dprofile_word);
-#endif
 }
 
 
@@ -1087,66 +1011,6 @@ auto backtrack16(s16info_s * s,
   uint64_t const maskleft    = 3ULL << ((2 * channel) + 16);
   uint64_t const maskextup   = 3ULL << ((2 * channel) + 32);
   uint64_t const maskextleft = 3ULL << ((2 * channel) + 48);
-
-#if 0
-
-  std::printf("Dumping backtracking array\n");
-
-  for (uint64_t i = 0; i < qlen; i++)
-    {
-      for (uint64_t j = 0; j < dlen; j++)
-        {
-          uint64_t d = *((uint64_t const *) (dirbuffer +
-                                       (offset + matrix_size * qlen * (j / 4) +
-                                        matrix_size * i + 4 * (j & 3)) % dirbuffersize));
-          if (d & maskup)
-            {
-              if (d & maskleft)
-                std::printf("+");
-              else
-                std::printf("^");
-            }
-          else if (d & maskleft)
-            {
-              std::printf("<");
-            }
-          else
-            {
-              std::printf("\\");
-            }
-        }
-      std::printf("\n");
-    }
-
-  std::printf("Dumping gap extension array\n");
-
-  for (uint64_t i = 0; i < qlen; i++)
-    {
-      for (uint64_t j = 0; j < dlen; j++)
-        {
-          uint64_t d = *((uint64_t const *) (dirbuffer +
-                                       (offset + matrix_size * qlen * (j / 4) +
-                                        matrix_size * i + 4 * (j & 3)) % dirbuffersize));
-          if (d & maskextup)
-            {
-              if (d & maskextleft)
-                std::printf("+");
-              else
-                std::printf("^");
-            }
-          else if (d & maskextleft)
-            {
-              std::printf("<");
-            }
-          else
-            {
-              std::printf("\\");
-            }
-        }
-      std::printf("\n");
-    }
-
-#endif
 
   unsigned short aligned = 0;
   unsigned short matches = 0;
