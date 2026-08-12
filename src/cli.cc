@@ -3034,6 +3034,93 @@ namespace {
     },};
 
   /*
+    The options that name a result file, and the Parameters field holding the
+    filename the parser stored there. This is the third piece of option
+    metadata, alongside option_specs (name, argument) and valid_options (which
+    command accepts what): it says which options *are* outputs, once, for every
+    command. --log is deliberately absent, it is a report about the run rather
+    than one of its results.
+  */
+  struct OutputOptionSpec
+  {
+    int option;
+    char * Parameters::* filename;
+  };
+
+  constexpr std::array<OutputOptionSpec, 34> output_options =
+    {{
+      {option_alnout,            &Parameters::opt_alnout},
+      {option_biomout,           &Parameters::opt_biomout},
+      {option_blast6out,         &Parameters::opt_blast6out},
+      {option_borderline,        &Parameters::opt_borderline},
+      {option_centroids,         &Parameters::opt_centroids},
+      {option_chimeras,          &Parameters::opt_chimeras},
+      {option_clusters,          &Parameters::opt_clusters},
+      {option_consout,           &Parameters::opt_consout},
+      {option_dbmatched,         &Parameters::opt_dbmatched},
+      {option_dbnotmatched,      &Parameters::opt_dbnotmatched},
+      {option_fastapairs,        &Parameters::opt_fastapairs},
+      {option_lcaout,            &Parameters::opt_lcaout},
+      {option_matched,           &Parameters::opt_matched},
+      {option_mothur_shared_out, &Parameters::opt_mothur_shared_out},
+      {option_msaout,            &Parameters::opt_msaout},
+      {option_nonchimeras,       &Parameters::opt_nonchimeras},
+      {option_notmatched,        &Parameters::opt_notmatched},
+      {option_otutabout,         &Parameters::opt_otutabout},
+      {option_profile,           &Parameters::opt_profile},
+      {option_qsegout,           &Parameters::opt_qsegout},
+      {option_samout,            &Parameters::opt_samout},
+      {option_tabbedout,         &Parameters::opt_tabbedout},
+      {option_tsegout,           &Parameters::opt_tsegout},
+      {option_uc,                &Parameters::opt_uc},
+      {option_uchimealns,        &Parameters::opt_uchimealns},
+      {option_uchimeout,         &Parameters::opt_uchimeout},
+      {option_userout,           &Parameters::opt_userout},
+      /* --fastq_mergepairs writes its own family of result files */
+      {option_eetabbedout,       &Parameters::opt_eetabbedout},
+      {option_fastaout,          &Parameters::opt_fastaout},
+      {option_fastaout_notmerged_fwd, &Parameters::opt_fastaout_notmerged_fwd},
+      {option_fastaout_notmerged_rev, &Parameters::opt_fastaout_notmerged_rev},
+      {option_fastqout,          &Parameters::opt_fastqout},
+      {option_fastqout_notmerged_fwd, &Parameters::opt_fastqout_notmerged_fwd},
+      {option_fastqout_notmerged_rev, &Parameters::opt_fastqout_notmerged_rev},
+    },};
+
+  /*
+    Commands that refuse to run unless at least one of the output options they
+    accept names a file. Every other command writes to stdout, or reports
+    statistics, so giving it no output option is not an error. Which options
+    count is not spelled out here: it follows from output_options above and
+    from the command's own valid_options row.
+  */
+  constexpr std::array<int, 13> commands_requiring_an_output =
+    {{
+      option_allpairs_global,
+      option_chimeras_denovo,
+      option_cluster_fast,
+      option_cluster_size,
+      option_cluster_smallmem,
+      option_cluster_unoise,
+      option_fastq_mergepairs,
+      option_search_exact,
+      option_uchime2_denovo,
+      option_uchime3_denovo,
+      option_uchime_denovo,
+      option_uchime_ref,
+      option_usearch_global,
+    },};
+
+  /* Does this valid_options row accept that option? A row is terminated by -1,
+     and the entries past the terminator are value-initialised zeros, which
+     would otherwise read as option_abskew -- so the search stops there. */
+  auto command_accepts_option(std::array<int, max_number_of_options_per_command> const & row,
+                              int const option) -> bool
+  {
+    auto const end_of_row = std::find(row.begin(), row.end(), -1);
+    return std::find(row.begin(), end_of_row, option) != end_of_row;
+  }
+
+  /*
     Startup consistency check for the option metadata that must stay in sync:
     the option_* enum (parser), the valid_options matrix (validator), and
     command_of_row (dispatcher). C++11's std::array::operator[] is not constexpr
@@ -3075,6 +3162,43 @@ namespace {
         if (command == Command::none)
           {
             fatal("internal error: command_of_row has an unmapped row");
+          }
+      }
+
+    /* every output option is a real option, and each is declared once */
+    for (auto const & spec : output_options)
+      {
+        if ((spec.option < 0) or (spec.option >= option_count))
+          {
+            fatal("internal error: output_options holds an out-of-range option index");
+          }
+        auto const same_option = [&](OutputOptionSpec const & other) -> bool {
+          return other.option == spec.option;
+        };
+        if (std::count_if(output_options.begin(), output_options.end(), same_option) != 1)
+          {
+            fatal("internal error: output_options lists an option twice");
+          }
+      }
+
+    /* every command required to produce an output is a real command, and
+       accepts at least one output option -- otherwise it could never run */
+    for (int const command_option : commands_requiring_an_output)
+      {
+        auto const is_the_command = [&](std::array<int, max_number_of_options_per_command> const & row) -> bool {
+          return row[0] == command_option;
+        };
+        auto const row = std::find_if(valid_options.begin(), valid_options.end(), is_the_command);
+        if (row == valid_options.end())
+          {
+            fatal("internal error: commands_requiring_an_output names an unknown command");
+          }
+        auto const accepted = [&](OutputOptionSpec const & spec) -> bool {
+          return command_accepts_option(*row, spec.option);
+        };
+        if (std::none_of(output_options.begin(), output_options.end(), accepted))
+          {
+            fatal("internal error: a command required to produce an output accepts no output option");
           }
       }
   }
@@ -4752,13 +4876,6 @@ namespace {
         return;
       }
 
-    if ((parameters.opt_chimeras == nullptr)  and (parameters.opt_nonchimeras == nullptr) and
-        (parameters.opt_uchimeout == nullptr) and (parameters.opt_uchimealns == nullptr) and
-        (parameters.opt_tabbedout == nullptr) and (parameters.opt_alnout == nullptr))
-      {
-        fatal("No output files specified");
-      }
-
     if ((parameters.opt_uchime_ref != nullptr) and (parameters.opt_db == nullptr))
       {
         fatal("Database filename not specified with --db");
@@ -4799,6 +4916,41 @@ namespace {
   }
 
 
+  /* A command listed in commands_requiring_an_output must be given at least one
+     of the output options its valid_options row accepts. Both halves of that
+     sentence are read from the option tables, so an output option added to a
+     command's row counts here as soon as it is declared in output_options --
+     the six hand-maintained option chains this replaced had each drifted from
+     the rows they were meant to mirror. `row` is the index resolve_command()
+     returned; a negative value means no command was given, which the parser
+     has already reported. */
+  auto validate_outputs_specified(int const row, struct Parameters const & parameters) -> void
+  {
+    if (row < 0)
+      {
+        return;
+      }
+    auto const & accepted_options = valid_options[static_cast<std::size_t>(row)];
+    auto const requires_an_output =
+      std::find(commands_requiring_an_output.begin(),
+                commands_requiring_an_output.end(),
+                accepted_options[0]) != commands_requiring_an_output.end();
+    if (not requires_an_output)
+      {
+        return;
+      }
+
+    auto const is_specified = [&](OutputOptionSpec const & spec) -> bool {
+      return (parameters.*spec.filename != nullptr) and
+        command_accepts_option(accepted_options, spec.option);
+    };
+    if (std::none_of(output_options.begin(), output_options.end(), is_specified))
+      {
+        fatal("No output files specified");
+      }
+  }
+
+
   /* Validate the requirements of the remaining commands. Relocated from the
      former cmd_* dispatch wrappers so that all command-line validation happens
      during args_init(); each block runs only when its command is active and
@@ -4806,37 +4958,14 @@ namespace {
      sees exactly the configuration the command dispatch used to. */
   auto validate_command_requirements(struct Parameters const & parameters) -> void
   {
-    if (parameters.opt_allpairs_global != nullptr)
+    if ((parameters.opt_allpairs_global != nullptr) and
+        (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0)))))
       {
-        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-            (parameters.opt_samout == nullptr) and (parameters.opt_fastapairs == nullptr) and
-            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
-          {
-            fatal("No output files specified");
-          }
-
-        if (not ((parameters.opt_acceptall != 0) or ((parameters.opt_id >= 0.0) and (parameters.opt_id <= 1.0))))
-          {
-            fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
-          }
+        fatal("Specify either --acceptall or --id with an identity from 0.0 to 1.0");
       }
 
     if (parameters.opt_usearch_global != nullptr)
       {
-        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-            (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
-            (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
-            (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr) and
-            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
-          {
-            fatal("No output files specified");
-          }
-
         if (parameters.opt_db == nullptr)
           {
             fatal("Database filename not specified with --db");
@@ -4848,24 +4977,9 @@ namespace {
           }
       }
 
-    if (parameters.opt_search_exact != nullptr)
+    if ((parameters.opt_search_exact != nullptr) and (parameters.opt_db == nullptr))
       {
-        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-            (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
-            (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
-            (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-            (parameters.opt_fastapairs == nullptr) and
-            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
-          {
-            fatal("No output files specified");
-          }
-
-        if (parameters.opt_db == nullptr)
-          {
-            fatal("Database filename not specified with --db");
-          }
+        fatal("Database filename not specified with --db");
       }
 
     if (parameters.opt_fastx_subsample != nullptr)
@@ -4892,26 +5006,12 @@ namespace {
           }
       }
 
-    if ((parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_smallmem != nullptr) or
-        (parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr))
+    if (((parameters.opt_cluster_fast != nullptr) or (parameters.opt_cluster_smallmem != nullptr) or
+         (parameters.opt_cluster_size != nullptr) or (parameters.opt_cluster_unoise != nullptr)) and
+        (parameters.opt_cluster_unoise == nullptr) and
+        ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0)))
       {
-        if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
-            (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
-            (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-            (parameters.opt_centroids == nullptr) and (parameters.opt_clusters == nullptr) and
-            (parameters.opt_consout == nullptr) and (parameters.opt_msaout == nullptr) and
-            (parameters.opt_samout == nullptr) and (parameters.opt_profile == nullptr) and
-            (parameters.opt_otutabout == nullptr) and (parameters.opt_biomout == nullptr) and
-            (parameters.opt_mothur_shared_out == nullptr) and (parameters.opt_fastapairs == nullptr) and
-            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
-          {
-            fatal("No output files specified");
-          }
-
-        if ((parameters.opt_cluster_unoise == nullptr) and ((parameters.opt_id < 0.0) or (parameters.opt_id > 1.0)))
-          {
-            fatal("Identity between 0.0 and 1.0 must be specified with --id");
-          }
+        fatal("Identity between 0.0 and 1.0 must be specified with --id");
       }
 
     if (parameters.opt_fastq_mergepairs != nullptr)
@@ -4919,16 +5019,6 @@ namespace {
         if (parameters.opt_reverse == nullptr)
           {
             fatal("No reverse reads file specified with --reverse");
-          }
-        if ((parameters.opt_fastqout == nullptr) and
-            (parameters.opt_fastaout == nullptr) and
-            (parameters.opt_fastqout_notmerged_fwd == nullptr) and
-            (parameters.opt_fastqout_notmerged_rev == nullptr) and
-            (parameters.opt_fastaout_notmerged_fwd == nullptr) and
-            (parameters.opt_fastaout_notmerged_rev == nullptr) and
-            (parameters.opt_eetabbedout == nullptr))
-          {
-            fatal("No output files specified");
           }
         if (parameters.opt_fastq_maxdiffs < 0) {
           fatal("Argument to --fastq_maxdiffs must be positive");
@@ -5016,6 +5106,8 @@ auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> 
   validate_option_values(options_selected, parameters);
 
   apply_command_defaults(options_selected, parameters);
+
+  validate_outputs_specified(k, parameters);
 
   validate_chimera_options(parameters);
 
