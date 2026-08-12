@@ -295,7 +295,9 @@ jobs:
                 fifoow_pids=$(ps -U runner -o pid,wchan 2>/dev/null | awk '$2 == "fifoow" { print $1 }')
                 if [ -n "$fifoow_pids" ]; then
                   echo "[$(date -u +%H:%M:%S)] reaping orphaned fifoow <() writers: $(echo $fifoow_pids | tr '\n' ' ')"
-                  echo "$fifoow_pids" | xargs kill 2>/dev/null
+                  # `|| true`: under `set -eu` a kill that races a writer
+                  # already gone would otherwise abort the whole script.
+                  echo "$fifoow_pids" | xargs kill 2>/dev/null || true
                   reaped=1
                 else
                   # Stalled but nothing is blocked in fifoow: not the known
@@ -313,10 +315,16 @@ jobs:
           # VM teardown — the background job is detached from the SSH stdio so the
           # session still closes cleanly and vmactions runs copyback.
           for _ in $(seq 1 20); do kill -0 "$suite_pid" 2>/dev/null || break; sleep 1; done
+          # vmactions runs this script under `set -eu`, so any status-bearing
+          # command must be neutralized with `|| true`: on a red suite, a bare
+          # `wait` returns the suite's non-zero status and aborts the script
+          # right here — skipping the FAIL summary, test.status, and the
+          # `exit 0` that lets vmactions copy test.log back (which is why red
+          # runs used to lose their test.log artifact).
           if kill -0 "$suite_pid" 2>/dev/null; then
             echo "suite process still alive after reap; abandoning it to VM teardown."
           else
-            wait "$suite_pid" 2>/dev/null
+            wait "$suite_pid" 2>/dev/null || true
           fi
           echo "========== Tests finished =========="
           # Pass/fail = did any test report FAIL. The teardown stall is not a
