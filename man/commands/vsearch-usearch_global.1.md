@@ -143,7 +143,7 @@ option.
 
 #(./fragments/option_minqt.md)
 
-#(./fragments/option_minseqlength_1.md)
+#(./fragments/option_minseqlength_32.md)
 
 #(./fragments/option_minsizeratio.md)
 
