@@ -4813,7 +4813,8 @@ namespace {
         if ((parameters.opt_alnout == nullptr) and (parameters.opt_userout == nullptr) and
             (parameters.opt_uc == nullptr) and (parameters.opt_blast6out == nullptr) and
             (parameters.opt_matched == nullptr) and (parameters.opt_notmatched == nullptr) and
-            (parameters.opt_samout == nullptr) and (parameters.opt_fastapairs == nullptr))
+            (parameters.opt_samout == nullptr) and (parameters.opt_fastapairs == nullptr) and
+            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
           {
             fatal("No output files specified");
           }
@@ -4832,7 +4833,8 @@ namespace {
             (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
             (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
             (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
+            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr) and
+            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
           {
             fatal("No output files specified");
           }
@@ -4856,7 +4858,8 @@ namespace {
             (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
             (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
             (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr))
+            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr) and
+            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
           {
             fatal("No output files specified");
           }
@@ -4901,7 +4904,8 @@ namespace {
             (parameters.opt_consout == nullptr) and (parameters.opt_msaout == nullptr) and
             (parameters.opt_samout == nullptr) and (parameters.opt_profile == nullptr) and
             (parameters.opt_otutabout == nullptr) and (parameters.opt_biomout == nullptr) and
-            (parameters.opt_mothur_shared_out == nullptr))
+            (parameters.opt_mothur_shared_out == nullptr) and (parameters.opt_fastapairs == nullptr) and
+            (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
           {
             fatal("No output files specified");
           }
