@@ -511,7 +511,7 @@ auto udb_read(const char * filename,
 
   if (create_bitmaps)
     {
-      auto const bitmap_mincount = seqcount / 8;
+      auto const bitmap_mincount = bitmap_min_matches(seqcount);
       {
         Progress progress("Creating bitmaps", dbindex.hashsize, parameters);
         for (auto i = 0U; i < dbindex.hashsize; i++)

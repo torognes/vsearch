@@ -66,6 +66,7 @@
 #include "core/unique.hpp"
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include <algorithm>  // std::max
 #include <array>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE
@@ -74,6 +75,22 @@
 
 
 constexpr unsigned int bitmap_threshold = 8;
+
+
+auto bitmap_min_matches(unsigned int const seqcount) noexcept -> unsigned int
+{
+  /* A bitmap pays for itself only for a k-mer shared by a large share of the
+     database, and never for a k-mer that does not occur at all, hence the floor
+     of one match. Without it a database of fewer than bitmap_threshold
+     sequences divides down to a threshold of zero, which every one of the
+     4^wordlength slots meets, absent k-mers included: at --orient's default
+     word length of 12 that is 16.7 M bitmaps (+0.5 GB, and a full SIMD scan
+     per absent k-mer at search time) in place of the handful of k-mers the
+     sequences really contain. The floor cannot change which k-mers get a
+     bitmap: a k-mer that occurs has one match or more, so it falls on the same
+     side of a threshold of zero and of one alike. */
+  return std::max(1U, seqcount / bitmap_threshold);
+}
 
 
 auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char const *
@@ -187,7 +204,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   }
 
   /* determine minimum kmer count for bitmap usage */
-  unsigned int const bitmap_mincount = (use_bitmap != 0) ? (seqcount / bitmap_threshold) : (seqcount + 1);
+  unsigned int const bitmap_mincount = (use_bitmap != 0) ? bitmap_min_matches(seqcount) : (seqcount + 1);
 
   /* allocate empty (list-form) bitmap slots for every kmer */
   kmerbitmap = std::vector<Bitmap>(hashsize);

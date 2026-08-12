@@ -123,3 +123,11 @@ struct Dbindex
 
 
 auto fprint_kmer(std::FILE * output_handle, unsigned int kmer_length, uint64_t kmer) -> void;
+
+
+/* Smallest number of matching sequences that earns a k-mer a bitmap instead of
+   the list form (kmerindex). Shared by the two index builders -- prepare() for
+   a FASTA database and udb_read() for a UDB one, which fills the same bitmaps
+   from the stored index -- so the rule cannot drift between them.
+   noexcept: integer arithmetic on a by-value argument. */
+auto bitmap_min_matches(unsigned int seqcount) noexcept -> unsigned int;
