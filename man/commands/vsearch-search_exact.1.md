@@ -9,7 +9,7 @@ vsearch \-\-search_exact --- search for exact full-length matches against a data
 
 # SYNOPSIS
 
-| **vsearch** **\-\-search_exact** _fastxfile_ **\-\-db** _filename_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-search_exact** _fastxfile_ **\-\-db** _filename_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-dbmatched** | **\-\-dbnotmatched** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION

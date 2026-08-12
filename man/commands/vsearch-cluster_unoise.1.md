@@ -9,7 +9,7 @@ vsearch \-\-cluster_unoise --- denoise amplicon sequences using the UNOISE3 algo
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cluster_unoise** _fastafile_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-fastapairs** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-cluster_unoise** _fastafile_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION

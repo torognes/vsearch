@@ -9,7 +9,7 @@ vsearch \-\-usearch_global --- search sequences against a reference database
 
 # SYNOPSIS
 
-| **vsearch** **\-\-usearch_global** _fastxfile_ **\-\-db** _filename_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-usearch_global** _fastxfile_ **\-\-db** _filename_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-dbmatched** | **\-\-dbnotmatched** | **\-\-fastapairs** | **\-\-lcaout** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION

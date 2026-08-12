@@ -9,7 +9,7 @@ vsearch \-\-cluster_smallmem --- clusterize pre-sorted sequences
 
 # SYNOPSIS
 
-| **vsearch** **\-\-cluster_smallmem** _fastafile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-fastapairs** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-cluster_smallmem** _fastafile_ **\-\-id** _real_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-centroids** | **\-\-clusters** | **\-\-consout** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-msaout** | **\-\-notmatched** | **\-\-otutabout** | **\-\-profile** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
