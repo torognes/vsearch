@@ -3256,6 +3256,15 @@ namespace {
 
           case option_maxrejects:
             parameters.opt_maxrejects = args_getlong(optarg);
+            /* -1 is reserved as the "not set" sentinel (resolved later
+               to a command-specific default: 8 for --cluster_fast, 32
+               otherwise). Reject negative values here, before that
+               fixup, so that an explicit -1 is refused like any other
+               negative value instead of being read as "unset". */
+            if (parameters.opt_maxrejects < 0)
+              {
+                fatal("The argument to --maxrejects must not be negative");
+              }
             break;
 
           case option_wordlength:
