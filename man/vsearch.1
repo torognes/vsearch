@@ -1388,7 +1388,10 @@ corresponding to its number of occurrences in the input file.
 .TP
 .BI \-\-strand\~ "plus|both"
 When searching for strictly identical sequences, check the \fIplus\fR
-strand only (default) or check \fIboth\fR strands.
+strand only (default) or check \fIboth\fR strands. The
+\-\-derep_prefix command only accepts \fIplus\fR and rejects \fIboth\fR
+with a fatal error, as reverse-complementation does not preserve the
+prefix relation.
 .TAG tabbedout
 .TP
 .BI \-\-tabbedout \0filename

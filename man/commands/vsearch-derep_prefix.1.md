@@ -67,7 +67,7 @@ of the input formats.
 
 #(./fragments/option_sizeout.md)
 
-#(./fragments/option_strand.md)
+#(./fragments/option_strand_plus_only.md)
 
 #(./fragments/option_topn.md)
 
@@ -141,6 +141,7 @@ vsearch \
 [`vsearch-derep_id(1)`](./vsearch-derep_id.1.md),
 [`vsearch-derep_smallmem(1)`](./vsearch-derep_smallmem.1.md),
 [`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md),
+[`vsearch-orient(1)`](./vsearch-orient.1.md),
 [`vsearch-rereplicate(1)`](./vsearch-rereplicate.1.md),
 [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
