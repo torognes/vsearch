@@ -2451,8 +2451,6 @@ namespace {
         option_gzip_decompress,
         option_hardmask,
         option_label_suffix,
-        option_lca_cutoff,
-        option_lcaout,
         option_lengthout,
         option_log,
         option_match,
@@ -4858,7 +4856,7 @@ namespace {
             (parameters.opt_dbmatched == nullptr) and (parameters.opt_dbnotmatched == nullptr) and
             (parameters.opt_samout == nullptr) and (parameters.opt_otutabout == nullptr) and
             (parameters.opt_biomout == nullptr) and (parameters.opt_mothur_shared_out == nullptr) and
-            (parameters.opt_fastapairs == nullptr) and (parameters.opt_lcaout == nullptr) and
+            (parameters.opt_fastapairs == nullptr) and
             (parameters.opt_qsegout == nullptr) and (parameters.opt_tsegout == nullptr))
           {
             fatal("No output files specified");

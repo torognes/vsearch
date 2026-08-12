@@ -9,7 +9,7 @@ vsearch \-\-search_exact --- search for exact full-length matches against a data
 
 # SYNOPSIS
 
-| **vsearch** **\-\-search_exact** _fastxfile_ **\-\-db** _filename_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-samout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
+| **vsearch** **\-\-search_exact** _fastxfile_ **\-\-db** _filename_ (**\-\-alnout** | **\-\-biomout** | **\-\-blast6out** | **\-\-fastapairs** | **\-\-matched** | **\-\-mothur_shared_out** | **\-\-notmatched** | **\-\-otutabout** | **\-\-qsegout** | **\-\-samout** | **\-\-tsegout** | **\-\-uc** | **\-\-userout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
@@ -27,12 +27,6 @@ complement.
 
 At least one output option must be specified. This command is
 multi-threaded.
-
-The `--qsegout` and `--tsegout` options do not count as sole output
-options: when either is used on its own, vsearch rejects the run
-with "No output files specified". They can still be used, but only
-in combination with one of the output options listed in the
-SYNOPSIS.
 
 
 # OPTIONS
@@ -78,10 +72,6 @@ SYNOPSIS.
 #(./fragments/option_hardmask.md)
 
 #(./fragments/option_label_suffix.md)
-
-#(./fragments/option_lca_cutoff.md)
-
-#(./fragments/option_lcaout.md)
 
 #(./fragments/option_lengthout.md)
 
