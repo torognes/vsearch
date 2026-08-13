@@ -96,6 +96,14 @@ namespace compression
 #else
   constexpr bool bzip2_supported = false;
 #endif
+
+  /* How gz_open() must decode the stream it is handed. 'strict' rejects
+     anything that is not a gzip member; 'allow_transparent' keeps zlib's
+     auto-detection, which passes uncompressed data through unchanged. The
+     choice belongs to the caller because it depends on whether the gzip
+     format was established by reading the magic bytes or merely asserted
+     by the user (see gz_open() in dynlibs.cpp). */
+  enum struct GzipDecoding { strict, allow_transparent };
 }
 
 class DynamicLibraries
@@ -112,7 +120,7 @@ public:
 
   // gzip: handles are the opaque zlib gzFile, exposed here as void*
   auto gzip_available() const noexcept -> bool { return gz_lib != nullptr; }
-  auto gz_open(int file_descriptor) const noexcept -> void *;
+  auto gz_open(int file_descriptor, compression::GzipDecoding decoding) const noexcept -> void *;
   auto gz_close(void * stream) const noexcept -> int;
   auto gz_read(void * stream, void * buffer, unsigned length) const noexcept -> int;
   // returns the stream's zlib error code (0 == Z_OK == no error); needed

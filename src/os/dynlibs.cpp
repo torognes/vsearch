@@ -186,7 +186,8 @@ auto DynamicLibraries::gzip_compile_flags() const noexcept -> unsigned long
 
 #ifdef HAVE_ZLIB_H
 
-auto DynamicLibraries::gz_open(int const file_descriptor) const noexcept -> void *
+auto DynamicLibraries::gz_open(int const file_descriptor,
+                               compression::GzipDecoding const decoding) const noexcept -> void *
 {
   auto * const open_fn = reinterpret_cast<gzFile (*)(int, char const *)>(gzdopen_p);
   /* "G" = gzip only, no transparent-read auto-detection. zlib's development
@@ -194,9 +195,15 @@ auto DynamicLibraries::gz_open(int const file_descriptor) const noexcept -> void
      first gzip member that errors before producing any output as trailing
      garbage: gzread() then reports a corrupted file as an empty one, with no
      error. "G" restores strict decoding of the first member; released zlibs
-     document unknown mode letters as ignored. The caller has already checked
-     the two magic bytes, so transparent reads are never wanted here. */
-  return open_fn(file_descriptor, "rbG");
+     document unknown mode letters as ignored.
+
+     "G" is only correct when the caller has read the two magic bytes and
+     knows the stream is gzip. When the format was merely asserted with
+     --gzip_decompress on a stream that cannot be peeked (stdin), transparent
+     reads are what lets uncompressed input through, which is a documented
+     and tested behaviour of that option. */
+  auto const * const mode = (decoding == compression::GzipDecoding::strict) ? "rbG" : "rb";
+  return open_fn(file_descriptor, mode);
 }
 
 
@@ -224,7 +231,7 @@ auto DynamicLibraries::gz_error_code(void * const stream) const noexcept -> int
 
 #else
 
-auto DynamicLibraries::gz_open(int) const noexcept -> void * { return nullptr; }
+auto DynamicLibraries::gz_open(int, compression::GzipDecoding) const noexcept -> void * { return nullptr; }
 auto DynamicLibraries::gz_close(void *) const noexcept -> int { return -1; }
 auto DynamicLibraries::gz_read(void *, void *, unsigned) const noexcept -> int { return -1; }
 auto DynamicLibraries::gz_error_code(void *) const noexcept -> int { return 0; }

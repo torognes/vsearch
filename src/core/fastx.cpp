@@ -373,6 +373,12 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   bool const is_stdin = (std::strcmp(filename, "-") == 0);
 
+  /* strict unless the gzip format is established without reading the magic
+     bytes (--gzip_decompress on stdin, below): that is the only case where
+     zlib's transparent read must stay on, so that an uncompressed stream
+     still goes through */
+  auto gzip_decoding = compression::GzipDecoding::strict;
+
   if (input_handle->is_pipe and is_stdin)
     {
       /* stdin cannot be rewound or peeked without consuming bytes,
@@ -380,6 +386,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
       if (parameters.opt_gzip_decompress)
         {
           input_handle->format = Format::gzip;
+          gzip_decoding = compression::GzipDecoding::allow_transparent;
         }
       else if (parameters.opt_bzip2_decompress)
         {
@@ -451,7 +458,7 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
           fatal("Files compressed with gzip are not supported");
         }
       input_handle->compressed_stream = CompressedStream(
-          input_handle->libraries->gz_open(fileno(input_handle->fp)),
+          input_handle->libraries->gz_open(fileno(input_handle->fp), gzip_decoding),
           CompressedStreamDeleter{input_handle->libraries, Format::gzip});
       if (input_handle->compressed_stream == nullptr)
         { // dup?
