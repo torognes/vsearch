@@ -99,14 +99,25 @@ auto Dbindex::bitmap_slots_reset(unsigned int const slots) -> void
   kmerbitmap_slot.assign(slots, 0U);
   bitmap_pool.clear();
   bitmap_pool.shrink_to_fit();
+  bitmap_width = 0;
 }
 
 
-auto Dbindex::bitmap_create(unsigned int const kmer, unsigned int const size) -> Bitmap &
+auto Dbindex::set_bitmap_width(unsigned int const sequences) -> void
+{
+  /* pad for xmm: the SIMD counter routines read whole registers, so they may
+     touch up to 127 bits past the last sequence */
+  static constexpr unsigned int simd_padding = 127;
+  bitmap_width = sequences + simd_padding;
+}
+
+
+auto Dbindex::bitmap_create(unsigned int const kmer) -> Bitmap &
 {
   assert(kmer < kmerbitmap_slot.size());
   assert(kmerbitmap_slot[kmer] == 0U);  /* at most one bitmap per k-mer */
-  bitmap_pool.emplace_back(size);
+  assert(bitmap_width != 0U);  /* set_bitmap_width comes first */
+  bitmap_pool.emplace_back(bitmap_width);
   /* at most one bitmap per slot, so the 1-based index fits an unsigned int for
      every supported word length (4^15 slots at most) */
   assert(bitmap_pool.size() <= kmerbitmap_slot.size());
@@ -251,6 +262,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
 
   /* allocate empty (list-form) bitmap slots for every kmer */
   bitmap_slots_reset(hashsize);
+  set_bitmap_width(seqcount);
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
@@ -261,7 +273,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
       kmerhash[i] = sum;
       if (kmercount[i] >= bitmap_mincount)
         {
-          bitmap_create(i, seqcount + 127); // pad for xmm
+          bitmap_create(i);
         }
       else
         {
@@ -302,6 +314,7 @@ auto Dbindex::clear() -> void
 
   kmerbitmap_slot.clear();  kmerbitmap_slot.shrink_to_fit();
   bitmap_pool.clear();      bitmap_pool.shrink_to_fit();
+  bitmap_width = 0;
 
   uhandle = Uniquer();
 

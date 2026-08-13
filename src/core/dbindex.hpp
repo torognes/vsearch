@@ -94,6 +94,7 @@ struct Dbindex
      growing the pool cannot leave a dangling reference behind. */
   std::vector<unsigned int, FatalAllocator<unsigned int>> kmerbitmap_slot;
   std::vector<Bitmap> bitmap_pool;
+  unsigned int bitmap_width = 0;  /* bits in each pooled bitmap; see set_bitmap_width */
   std::vector<unsigned int, FatalAllocator<unsigned int>> map;  /* mapping from index element number to seqno */
   Uniquer uhandle {};  /* unique-kmer finder, used while building */
   unsigned int count = 0;  /* number of sequences added to the index */
@@ -128,10 +129,19 @@ struct Dbindex
      drop any bitmaps from a previous build. */
   auto bitmap_slots_reset(unsigned int slots) -> void;
 
-  /* Give kmer a bitmap of size bits and return it, for the caller to fill. The
-     reference is invalidated by the next bitmap_create, which may grow the
-     pool, so fill it before creating the next one. */
-  auto bitmap_create(unsigned int kmer, unsigned int size) -> Bitmap &;
+  /* Width every bitmap in this index will have, as a number of database
+     sequences: one bit each, plus the padding the SIMD counter routines need to
+     read whole xmm registers past the last sequence. Call before the first
+     bitmap_create. Recording it once, rather than passing a size to each
+     bitmap_create, is what makes the widths uniform -- search scans every
+     bitmap to the same indexed_count bound, so a short one would be read out of
+     bounds. */
+  auto set_bitmap_width(unsigned int sequences) -> void;
+
+  /* Give kmer a bitmap of the recorded width and return it, for the caller to
+     fill. The reference is invalidated by the next bitmap_create, which may
+     grow the pool, so fill it before creating the next one. */
+  auto bitmap_create(unsigned int kmer) -> Bitmap &;
 
   auto has_bitmap(unsigned int kmer) const -> bool;
 

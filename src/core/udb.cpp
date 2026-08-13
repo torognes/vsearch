@@ -512,13 +512,14 @@ auto udb_read(const char * filename,
   if (create_bitmaps)
     {
       auto const bitmap_mincount = bitmap_min_matches(seqcount);
+      dbindex.set_bitmap_width(seqcount);
       {
         Progress progress("Creating bitmaps", dbindex.hashsize, parameters);
         for (auto i = 0U; i < dbindex.hashsize; i++)
           {
             if (dbindex.kmercount[i] >= bitmap_mincount)
               {
-                auto & bitmap = dbindex.bitmap_create(i, seqcount + 127); // pad for xmm
+                auto & bitmap = dbindex.bitmap_create(i);
                 for (auto j = 0U; j < dbindex.kmercount[i]; j++)
                   {
                     bitmap.set(dbindex.kmerindex[dbindex.kmerhash[i]+j]);
