@@ -84,8 +84,8 @@ namespace {
     warn,    // (0) symbol is stripped, with a warning
     accept,  // (1)
     reject,  // (2) fatal printable symbol ('.', '-')
-    show,    // (3) fatal non-printable symbol (1-8, 14-31)
-    skip,    // (4) symbol is stripped, silently (NUL, tab, VT, FF, CR)
+    show,    // (3) fatal non-printable symbol (0-8, 14-31, but not 127)
+    skip,    // (4) symbol is stripped, silently (tab, VT, FF, CR)
     count,    // (5) track the number of lines
   };
 
@@ -95,7 +95,7 @@ namespace {
 
     0=warn, 1=accept, 2=reject, 3=show, 4=skip, 5=count
 
-    4,  3,  3,  3,  3,  3,  3,  3,  3,  4,  5,  4,  4,  4,  3,  3,    // 0-15
+    3,  3,  3,  3,  3,  3,  3,  3,  3,  4,  5,  4,  4,  4,  3,  3,    // 0-15
     3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,    // 16-31
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,    // 32-47
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,    // 48-63
@@ -114,7 +114,7 @@ namespace {
   */
   const std::vector<Action> char_actions =
     {
-      Action::skip,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::skip,  Action::count,  Action::skip,  Action::skip,  Action::skip,  Action::show,  Action::show,  // 0-15
+      Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::skip,  Action::count,  Action::skip,  Action::skip,  Action::skip,  Action::show,  Action::show,  // 0-15
       Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  // 16-31
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::reject,  Action::reject,  Action::warn,  // 32-47
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  // 48-63
@@ -198,8 +198,10 @@ auto fasta_filter_sequence(fastx_handle input_handle,
 
   /* bounded by the recorded length, not by a NUL terminator: a NUL inside a
      sequence line used to end the scan, silently dropping the rest of the
-     record (and leaving it unchecked for illegal characters). Writes trail
-     reads by construction, so the filtering stays in place. */
+     record (and leaving it unchecked for illegal characters). The length bound
+     is what lets byte 0 reach the table, which reports it like the other
+     unprintable symbols. Writes trail reads by construction, so the filtering
+     stays in place. */
   for (auto const symbol : input_handle->sequence_buffer.view())
     {
       auto const current_char = static_cast<unsigned char>(symbol);
