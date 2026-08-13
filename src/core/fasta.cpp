@@ -84,8 +84,8 @@ namespace {
     warn,    // (0) symbol is stripped, with a warning
     accept,  // (1)
     reject,  // (2) fatal printable symbol ('.', '-')
-    show,    // (3) fatal non-printable symbol (0-32, but not 127?)
-    skip,    // (4) symbol is stripped, silently
+    show,    // (3) fatal non-printable symbol (1-8, 14-31)
+    skip,    // (4) symbol is stripped, silently (NUL, tab, VT, FF, CR)
     count,    // (5) track the number of lines
   };
 
@@ -95,7 +95,7 @@ namespace {
 
     0=warn, 1=accept, 2=reject, 3=show, 4=skip, 5=count
 
-    3,  3,  3,  3,  3,  3,  3,  3,  3,  4,  5,  4,  4,  4,  3,  3,    // 0-15
+    4,  3,  3,  3,  3,  3,  3,  3,  3,  4,  5,  4,  4,  4,  3,  3,    // 0-15
     3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,    // 16-31
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,    // 32-47
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,    // 48-63
@@ -114,7 +114,7 @@ namespace {
   */
   const std::vector<Action> char_actions =
     {
-      Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::skip,  Action::count,  Action::skip,  Action::skip,  Action::skip,  Action::show,  Action::show,  // 0-15
+      Action::skip,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::skip,  Action::count,  Action::skip,  Action::skip,  Action::skip,  Action::show,  Action::show,  // 0-15
       Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  // 16-31
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::reject,  Action::reject,  Action::warn,  // 32-47
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  // 48-63
@@ -194,13 +194,16 @@ auto fasta_filter_sequence(fastx_handle input_handle,
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
 
-  auto * source = input_handle->sequence_buffer.data();
-  auto * dest = source;
+  auto * dest = input_handle->sequence_buffer.data();
 
-  while (*source != '\0')
+  /* bounded by the recorded length, not by a NUL terminator: a NUL inside a
+     sequence line used to end the scan, silently dropping the rest of the
+     record (and leaving it unchecked for illegal characters). Writes trail
+     reads by construction, so the filtering stays in place. */
+  for (auto const symbol : input_handle->sequence_buffer.view())
     {
-      auto const current_char = static_cast<unsigned char>(*source);
-      auto const action = map_action(*source);
+      auto const current_char = static_cast<unsigned char>(symbol);
+      auto const action = map_action(symbol);
 
       /* Fast path: nucleotides dominate the input, so test the common
          'accept' action with a single, well-predicted branch. Handling it
@@ -247,7 +250,6 @@ auto fasta_filter_sequence(fastx_handle input_handle,
               break;
             }
         }
-      source = std::next(source);
     }
 
   /* add nullchar after sequence */
