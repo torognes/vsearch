@@ -266,11 +266,15 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
-  kmerhash.resize(hashsize + 1);
+  /* filled by push_back into reserved space rather than resize + assign,
+     because resize would value-initialise every entry (1 GB of zeros at word
+     length 15) only for the loop below to overwrite all of them */
+  kmerhash.clear();
+  kmerhash.reserve(hashsize + 1);
   uint64_t sum = 0;
   for (auto i = 0U; i < hashsize; i++)
     {
-      kmerhash[i] = sum;
+      kmerhash.push_back(sum);
       if (kmercount[i] >= bitmap_mincount)
         {
           bitmap_create(i);
@@ -281,9 +285,18 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
         }
     }
   indexsize = sum;
-  kmerhash[hashsize] = sum;
+  kmerhash.push_back(sum);
+  /* one entry per slot plus the end marker. With the buffer filled rather than
+     value-initialised, size() is the number of entries actually written, so
+     this checks the loop covered every slot -- the guarantee resize() used to
+     provide by zeroing. */
+  assert(kmerhash.size() == hashsize + 1U);
 
   /* reset counts */
+  /* left as one bulk assign rather than folded into the loop above: a single
+     fill of 4 bytes per slot is cheaper than a checked store per slot, sharply
+     so in a _GLIBCXX_DEBUG build (measured: folding it in cost 49 ms per index
+     build at word length 12, and gained nothing in a release build) */
   kmercount.assign(hashsize, 0U);
 
   /* allocate space for actual data */

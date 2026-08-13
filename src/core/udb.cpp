@@ -74,6 +74,7 @@
 #include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::min, std::max
 #include <array>
+#include <cassert>  // assert
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
 #include <fstream>  // std::ifstream
@@ -316,17 +317,24 @@ auto udb_read(const char * filename,
 
     dbindex.hashsize = 1U << (2 * udb_wordlength);
     dbindex.kmercount.resize(dbindex.hashsize);
-    dbindex.kmerhash.resize(dbindex.hashsize);
     dbindex.bitmap_slots_reset(dbindex.hashsize);
+    /* filled by push_back into reserved space below, not resized here: the loop
+       writes every entry, so value-initialising them first is 8 bytes per slot
+       of zeros nobody reads */
+    dbindex.kmerhash.clear();
+    dbindex.kmerhash.reserve(dbindex.hashsize);
 
     pos += largeread(in_stream, make_span(dbindex.kmercount).first(dbindex.hashsize), pos, progress_bar);
 
     dbindex.indexsize = 0;
     for (uint64_t i = 0; i < dbindex.hashsize; i++)
       {
-        dbindex.kmerhash[i] = dbindex.indexsize;
+        dbindex.kmerhash.push_back(dbindex.indexsize);
         dbindex.indexsize = udb_checked_add(dbindex.indexsize, dbindex.kmercount[i]);
       }
+    /* one entry per slot: size() counts what the loop wrote, so this checks it
+       covered every slot (this path stores no end marker, unlike prepare) */
+    assert(dbindex.kmerhash.size() == dbindex.hashsize);
 
     /* The word-list section stores 4 bytes per index entry, so a file can
        hold at most filesize/4 entries; a larger total means the kmercount[]
