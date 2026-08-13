@@ -82,13 +82,15 @@ namespace {
   // How to handle an input character, mirroring fasta.cc's Action. The tables
   // below map every byte to one of these; buffer_filter_extend() switches on
   // it. Unlike fasta, 'reject' is deferred (recorded and reported by the
-  // caller) and 'newline' is a no-op here (the caller keeps the line count).
+  // caller), 'newline' is a no-op here (the caller keeps the line count), and
+  // there is no 'warn': FASTQ strips nothing with a warning ("Rest is fatal",
+  // see the tables below), so no byte maps to it and record_stripped() is
+  // reached from the FASTA parser only.
   enum struct Action : unsigned char {
-    warn,     // (0) symbol is stripped, with a warning
-    accept,   // (1) legal character
-    reject,   // (2) fatal character (recorded, reported by the caller)
-    skip,     // (3) silently stripped (e.g. CR)
-    newline,   // (4) LF; silently stripped here
+    accept,   // (0) legal character
+    reject,   // (1) fatal character (recorded, reported by the caller)
+    skip,     // (2) silently stripped (e.g. CR)
+    newline,   // (3) LF; silently stripped here
   };
 
 
@@ -155,7 +157,7 @@ namespace {
         LF is newline.
         Rest is fatal
 
-        0=warn, 1=accept, 2=reject, 3=skip, 4=newline (see the Action enum)
+        0=accept, 1=reject, 2=skip, 3=newline (see the Action enum)
 
         @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
         P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
@@ -239,8 +241,9 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, std::string c
 }
 
 
-auto buffer_filter_extend(fastx_handle input_handle,
-                          FastxBuffer & dest_buffer,
+// no fastx_handle parameter: with no 'warn' action there is nothing to record
+// on the handle, so this is a pure transform over the two buffers
+auto buffer_filter_extend(FastxBuffer & dest_buffer,
                           View<char> const source,
                           Action const * char_action,
                           unsigned char const * char_mapping,
@@ -249,8 +252,8 @@ auto buffer_filter_extend(fastx_handle input_handle,
 {
   dest_buffer.makespace(source.size() + 1);
 
-  /* Strip unwanted characters from the string and raise warnings or
-     errors on certain characters. */
+  /* Strip unwanted characters from the string and record the first illegal
+     one for the caller to report. */
 
   auto * d = std::next(dest_buffer.data(),
                        static_cast<std::ptrdiff_t>(dest_buffer.length));
@@ -273,11 +276,6 @@ auto buffer_filter_extend(fastx_handle input_handle,
         {
           switch (action)
             {
-            case Action::warn:
-              /* stripped */
-              input_handle->record_stripped(static_cast<unsigned char>(symbol));
-              break;
-
             case Action::reject:
               /* fatal character */
               if (ok)
@@ -411,8 +409,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to sequence buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      buffer_filter_extend(input_handle,
-                           input_handle->sequence_buffer,
+      buffer_filter_extend(input_handle->sequence_buffer,
                            fragment.view,
                            char_fq_action_seq.data(), char_mapping,
                            ok, illegal_char);
@@ -522,8 +519,7 @@ auto fastq_next(fastx_handle input_handle,
 
       /* copy to quality buffer */
       auto const fragment = scan_line_fragment(input_handle);
-      buffer_filter_extend(input_handle,
-                           input_handle->quality_buffer,
+      buffer_filter_extend(input_handle->quality_buffer,
                            fragment.view,
                            char_fq_action_qual.data(), chrmap_identity.data(),
                            ok, illegal_char);

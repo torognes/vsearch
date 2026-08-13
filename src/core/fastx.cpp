@@ -607,10 +607,14 @@ auto fastx_s::report_stripped_warning(struct Parameters const & parameters) cons
     {
       /* Composed once, then handed to the shared reporter, which writes stderr
          and the log itself: the message and the 256-entry loop that builds it
-         used to be spelled out twice, once per destination. */
+         used to be spelled out twice, once per destination.
+
+         Always "FASTA": record_stripped() is called from the FASTA filter
+         only. The FASTQ tables map every byte to accept, reject, skip or
+         newline ("Rest is fatal"), so a FASTQ input can never get here and
+         the FASTQ wording this used to select was unreachable. */
       std::string message = decimal::to_text(stripped_all)
-        + " invalid characters stripped from "
-        + (is_fastq ? "FASTQ" : "FASTA") + " file:";
+        + " invalid characters stripped from FASTA file:";
       for (auto symbol = std::size_t{0}; symbol < byte_range; ++symbol)
         {
           if (stripped[symbol] != 0U)
