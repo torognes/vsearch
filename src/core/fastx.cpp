@@ -669,6 +669,14 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
         {
           fatal("Unable to read gzip compressed file");
         }
+      /* gzread() reports a truncated gzip stream as a normal end of file
+         (it only sets Z_BUF_ERROR, "unexpected end of file"), so a clean
+         zero-byte read must be told apart from one that ended mid-stream */
+      if ((bytes_read == 0)
+          and (input_handle->libraries->gz_error_code(input_handle->compressed_stream.get()) != 0))
+        {
+          fatal("gzip compressed file is truncated or corrupt");
+        }
       break;
 
     case Format::bzip:
