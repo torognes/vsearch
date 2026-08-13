@@ -83,7 +83,17 @@ struct Dbindex
   std::vector<unsigned int, FatalAllocator<unsigned int>> kmercount; /* number of matching seqnos for each kmer */
   std::vector<uint64_t, FatalAllocator<uint64_t>> kmerhash;  /* index into the list below for each kmer */
   std::vector<unsigned int, FatalAllocator<unsigned int>> kmerindex; /* the list of matching seqnos for kmers */
-  std::vector<Bitmap> kmerbitmap;  /* one bit-set per kmer; an empty() slot means the kmer uses the list form (kmerindex) instead */
+  /* Which k-mers use the bitmap form, and their bit-sets. kmerbitmap_slot has
+     one entry per k-mer slot holding a 1-based index into bitmap_pool, or zero
+     when the k-mer uses the list form (kmerindex) instead; bitmap_pool holds
+     only the k-mers that earn a bitmap. Storing a 4-byte index per slot rather
+     than a whole Bitmap object (24 bytes, or 56 under _GLIBCXX_DEBUG) keeps
+     the dense array cheap: at word length 12 it is 64 MB instead of 384 MB
+     (896 MB debug), allocated and zeroed on every index build, however few
+     k-mers the database really contains. Indices rather than pointers, so
+     growing the pool cannot leave a dangling reference behind. */
+  std::vector<unsigned int, FatalAllocator<unsigned int>> kmerbitmap_slot;
+  std::vector<Bitmap> bitmap_pool;
   std::vector<unsigned int, FatalAllocator<unsigned int>> map;  /* mapping from index element number to seqno */
   Uniquer uhandle {};  /* unique-kmer finder, used while building */
   unsigned int count = 0;  /* number of sequences added to the index */
@@ -113,6 +123,22 @@ struct Dbindex
   auto add_sequence(unsigned int seqno, Masking seqmask, struct Database const & db) -> void;
   auto add_all_sequences(Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void;
   auto clear() -> void;
+
+  /* Size the k-mer -> bitmap lookup to slots entries, all on the list form, and
+     drop any bitmaps from a previous build. */
+  auto bitmap_slots_reset(unsigned int slots) -> void;
+
+  /* Give kmer a bitmap of size bits and return it, for the caller to fill. The
+     reference is invalidated by the next bitmap_create, which may grow the
+     pool, so fill it before creating the next one. */
+  auto bitmap_create(unsigned int kmer, unsigned int size) -> Bitmap &;
+
+  auto has_bitmap(unsigned int kmer) const -> bool;
+
+  /* The bitmap of a k-mer that has one (assert): for the index builders and the
+     UDB writer. Search reads bitmaps through getbitmap() instead. */
+  auto bitmap_of(unsigned int kmer) -> Bitmap &;
+  auto bitmap_of(unsigned int kmer) const -> Bitmap const &;
 
   auto getbitmap(unsigned int kmer) const -> unsigned char const *;
   auto getmatchcount(unsigned int kmer) const -> unsigned int;

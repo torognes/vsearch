@@ -68,6 +68,7 @@
 #include "utils/progress.hpp"
 #include <algorithm>  // std::max
 #include <array>
+#include <cassert>  // assert
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE
 #include <iterator>  // std::next
@@ -93,12 +94,54 @@ auto bitmap_min_matches(unsigned int const seqcount) noexcept -> unsigned int
 }
 
 
+auto Dbindex::bitmap_slots_reset(unsigned int const slots) -> void
+{
+  kmerbitmap_slot.assign(slots, 0U);
+  bitmap_pool.clear();
+  bitmap_pool.shrink_to_fit();
+}
+
+
+auto Dbindex::bitmap_create(unsigned int const kmer, unsigned int const size) -> Bitmap &
+{
+  assert(kmer < kmerbitmap_slot.size());
+  assert(kmerbitmap_slot[kmer] == 0U);  /* at most one bitmap per k-mer */
+  bitmap_pool.emplace_back(size);
+  /* at most one bitmap per slot, so the 1-based index fits an unsigned int for
+     every supported word length (4^15 slots at most) */
+  assert(bitmap_pool.size() <= kmerbitmap_slot.size());
+  kmerbitmap_slot[kmer] = static_cast<unsigned int>(bitmap_pool.size());
+  return bitmap_pool.back();
+}
+
+
+auto Dbindex::has_bitmap(unsigned int const kmer) const -> bool
+{
+  assert(kmer < kmerbitmap_slot.size());
+  return kmerbitmap_slot[kmer] != 0U;
+}
+
+
+auto Dbindex::bitmap_of(unsigned int const kmer) -> Bitmap &
+{
+  assert(has_bitmap(kmer));
+  return bitmap_pool[kmerbitmap_slot[kmer] - 1];
+}
+
+
+auto Dbindex::bitmap_of(unsigned int const kmer) const -> Bitmap const &
+{
+  assert(has_bitmap(kmer));
+  return bitmap_pool[kmerbitmap_slot[kmer] - 1];
+}
+
+
 auto Dbindex::getbitmap(unsigned int const kmer) const -> unsigned char const *
 {
-  auto const & a_bitmap = kmerbitmap[kmer];
-  if (not a_bitmap.empty())
+  auto const slot = kmerbitmap_slot[kmer];
+  if (slot != 0U)
     {
-      return a_bitmap.data();
+      return bitmap_pool[slot - 1].data();
     }
   return nullptr;
 }
@@ -144,10 +187,10 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
   map[count] = seqno;
   for (auto const kmer : uniquelist)
     {
-      if (not kmerbitmap[kmer].empty())
+      if (has_bitmap(kmer))
         {
           ++kmercount[kmer];
-          kmerbitmap[kmer].set(count);
+          bitmap_of(kmer).set(count);
         }
       else
         {
@@ -207,7 +250,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   unsigned int const bitmap_mincount = (use_bitmap != 0) ? bitmap_min_matches(seqcount) : (seqcount + 1);
 
   /* allocate empty (list-form) bitmap slots for every kmer */
-  kmerbitmap = std::vector<Bitmap>(hashsize);
+  bitmap_slots_reset(hashsize);
 
   /* hash / bitmap setup */
   /* convert hash counts to position in index */
@@ -218,7 +261,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
       kmerhash[i] = sum;
       if (kmercount[i] >= bitmap_mincount)
         {
-          kmerbitmap[i] = Bitmap(seqcount + 127); // pad for xmm
+          bitmap_create(i, seqcount + 127); // pad for xmm
         }
       else
         {
@@ -257,8 +300,8 @@ auto Dbindex::clear() -> void
   kmercount.clear();  kmercount.shrink_to_fit();
   map.clear();        map.shrink_to_fit();
 
-  kmerbitmap.clear();
-  kmerbitmap.shrink_to_fit();
+  kmerbitmap_slot.clear();  kmerbitmap_slot.shrink_to_fit();
+  bitmap_pool.clear();      bitmap_pool.shrink_to_fit();
 
   uhandle = Uniquer();
 

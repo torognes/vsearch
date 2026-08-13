@@ -317,7 +317,7 @@ auto udb_read(const char * filename,
     dbindex.hashsize = 1U << (2 * udb_wordlength);
     dbindex.kmercount.resize(dbindex.hashsize);
     dbindex.kmerhash.resize(dbindex.hashsize);
-    dbindex.kmerbitmap = std::vector<Bitmap>(dbindex.hashsize);
+    dbindex.bitmap_slots_reset(dbindex.hashsize);
 
     pos += largeread(in_stream, make_span(dbindex.kmercount).first(dbindex.hashsize), pos, progress_bar);
 
@@ -518,10 +518,10 @@ auto udb_read(const char * filename,
           {
             if (dbindex.kmercount[i] >= bitmap_mincount)
               {
-                dbindex.kmerbitmap[i] = Bitmap(seqcount + 127); // pad for xmm
+                auto & bitmap = dbindex.bitmap_create(i, seqcount + 127); // pad for xmm
                 for (auto j = 0U; j < dbindex.kmercount[i]; j++)
                   {
-                    dbindex.kmerbitmap[i].set(dbindex.kmerindex[dbindex.kmerhash[i]+j]);
+                    bitmap.set(dbindex.kmerindex[dbindex.kmerhash[i]+j]);
                   }
               }
             progress.update(i + 1);
