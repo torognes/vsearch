@@ -115,6 +115,10 @@ public:
   auto gz_open(int file_descriptor) const noexcept -> void *;
   auto gz_close(void * stream) const noexcept -> int;
   auto gz_read(void * stream, void * buffer, unsigned length) const noexcept -> int;
+  // returns the stream's zlib error code (0 == Z_OK == no error); needed
+  // because gzread() reports a truncated gzip stream as a normal end of
+  // file, the Z_BUF_ERROR is only visible through gzerror()
+  auto gz_error_code(void * stream) const noexcept -> int;
   auto gzip_version() const noexcept -> char const *;
   auto gzip_compile_flags() const noexcept -> unsigned long;
 
@@ -136,6 +140,7 @@ private:
   void (*gzdopen_p)() = nullptr;
   void (*gzclose_p)() = nullptr;
   void (*gzread_p)() = nullptr;
+  void (*gzerror_p)() = nullptr;
   void (*bz_read_open_p)() = nullptr;
   void (*bz_read_close_p)() = nullptr;
   void (*bz_read_p)() = nullptr;

@@ -119,7 +119,9 @@ DynamicLibraries::DynamicLibraries() noexcept
       gzdopen_p = dynlib::symbol(gz_lib, "gzdopen");
       gzclose_p = dynlib::symbol(gz_lib, "gzclose");
       gzread_p = dynlib::symbol(gz_lib, "gzread");
-      if (not ((gzdopen_p != nullptr) && (gzclose_p != nullptr) && (gzread_p != nullptr)))
+      gzerror_p = dynlib::symbol(gz_lib, "gzerror");
+      if (not ((gzdopen_p != nullptr) && (gzclose_p != nullptr)
+               && (gzread_p != nullptr) && (gzerror_p != nullptr)))
         {
           fatal("Invalid compression library (zlib)");
         }
@@ -187,7 +189,14 @@ auto DynamicLibraries::gzip_compile_flags() const noexcept -> unsigned long
 auto DynamicLibraries::gz_open(int const file_descriptor) const noexcept -> void *
 {
   auto * const open_fn = reinterpret_cast<gzFile (*)(int, char const *)>(gzdopen_p);
-  return open_fn(file_descriptor, "rb");
+  /* "G" = gzip only, no transparent-read auto-detection. zlib's development
+     branch (shipped by FreeBSD as "1.3.2") extends auto-detection to treat a
+     first gzip member that errors before producing any output as trailing
+     garbage: gzread() then reports a corrupted file as an empty one, with no
+     error. "G" restores strict decoding of the first member; released zlibs
+     document unknown mode letters as ignored. The caller has already checked
+     the two magic bytes, so transparent reads are never wanted here. */
+  return open_fn(file_descriptor, "rbG");
 }
 
 
@@ -204,11 +213,21 @@ auto DynamicLibraries::gz_read(void * const stream, void * const buffer, unsigne
   return read_fn(static_cast<gzFile>(stream), buffer, length);
 }
 
+
+auto DynamicLibraries::gz_error_code(void * const stream) const noexcept -> int
+{
+  auto * const error_fn = reinterpret_cast<char const * (*)(gzFile, int *)>(gzerror_p);
+  int error_code = Z_OK;
+  static_cast<void>(error_fn(static_cast<gzFile>(stream), &error_code));
+  return error_code;
+}
+
 #else
 
 auto DynamicLibraries::gz_open(int) const noexcept -> void * { return nullptr; }
 auto DynamicLibraries::gz_close(void *) const noexcept -> int { return -1; }
 auto DynamicLibraries::gz_read(void *, void *, unsigned) const noexcept -> int { return -1; }
+auto DynamicLibraries::gz_error_code(void *) const noexcept -> int { return 0; }
 
 #endif
 
