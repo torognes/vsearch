@@ -70,7 +70,7 @@
 #include <array>
 #include <cassert>  // assert
 #include <cstdint> // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstdio>  // std::FILE, std::size_t
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <vector>
@@ -278,17 +278,12 @@ auto fasta_next(fastx_handle input_handle,
 
   /* check initial > character */
 
-  if (input_handle->file_buffer.peek() != '>')
-    {
-      if (input_handle->defers_errors())
-        {
-          input_handle->set_deferred_error("Invalid FASTA - header must start with > character");
-          return false;
-        }
-      std::fprintf(stderr, "Found character %02x\n",
-                   static_cast<unsigned char>(input_handle->file_buffer.peek()));
-      fatal("Invalid FASTA - header must start with > character");
-    }
+  /* guaranteed by two invariants, so an assertion rather than a check:
+     fastx_open() rejects any input whose first byte is neither '>' nor '@'
+     ("File type not recognized."), and the sequence loop below stops only at
+     end of file or at the '>' starting the next record -- so every call lands
+     on '>' or on end of file (returned above) */
+  assert(input_handle->file_buffer.peek() == '>');
   ++input_handle->file_buffer.position;
 
   bool header_complete = false;

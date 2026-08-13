@@ -359,11 +359,12 @@ auto fastq_next(fastx_handle input_handle,
 
   /* check initial @ character */
 
-  if (input_handle->file_buffer.peek() != '@')
-    {
-      fastq_fatal(input_handle, input_handle->lineno, "Header line must start with '@' character");
-      return false;
-    }
+  /* guaranteed, so an assertion rather than a check: fastx_open() sets
+     is_fastq (which is what routes here) only when the first byte is '@', and
+     the quality loop below returns true only after stopping on a '@' whose
+     record had equal sequence and quality lengths -- every other ending is
+     reported as "Sequence and quality lines must be equally long" first */
+  assert(input_handle->file_buffer.peek() == '@');
   input_handle->file_buffer.position++;
 
   bool header_complete = false;
