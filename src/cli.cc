@@ -1632,6 +1632,7 @@ namespace {
         option_sample,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xlength,
         option_xsize,
@@ -3463,18 +3464,34 @@ namespace {
 
           case option_query_cov:
             parameters.opt_query_cov = args_getdouble(optarg);
+            if ((parameters.opt_query_cov < 0.0) or (parameters.opt_query_cov > 1.0))
+              {
+                fatal("The argument to --query_cov must be in the range 0.0 to 1.0");
+              }
             break;
 
           case option_target_cov:
             parameters.opt_target_cov = args_getdouble(optarg);
+            if ((parameters.opt_target_cov < 0.0) or (parameters.opt_target_cov > 1.0))
+              {
+                fatal("The argument to --target_cov must be in the range 0.0 to 1.0");
+              }
             break;
 
           case option_idprefix:
             parameters.opt_idprefix = args_getlong(optarg);
+            if (parameters.opt_idprefix < 0)
+              {
+                fatal("The argument to --idprefix must not be negative");
+              }
             break;
 
           case option_idsuffix:
             parameters.opt_idsuffix = args_getlong(optarg);
+            if (parameters.opt_idsuffix < 0)
+              {
+                fatal("The argument to --idsuffix must not be negative");
+              }
             break;
 
           case option_minqt:
@@ -3519,26 +3536,50 @@ namespace {
 
           case option_maxdiffs:
             parameters.opt_maxdiffs = args_getlong(optarg);
+            if (parameters.opt_maxdiffs < 0)
+              {
+                fatal("The argument to --maxdiffs must not be negative");
+              }
             break;
 
           case option_maxsubs:
             parameters.opt_maxsubs = args_getlong(optarg);
+            if (parameters.opt_maxsubs < 0)
+              {
+                fatal("The argument to --maxsubs must not be negative");
+              }
             break;
 
           case option_maxgaps:
             parameters.opt_maxgaps = args_getlong(optarg);
+            if (parameters.opt_maxgaps < 0)
+              {
+                fatal("The argument to --maxgaps must not be negative");
+              }
             break;
 
           case option_mincols:
             parameters.opt_mincols = args_getlong(optarg);
+            if (parameters.opt_mincols < 0)
+              {
+                fatal("The argument to --mincols must not be negative");
+              }
             break;
 
           case option_maxqsize:
             parameters.opt_maxqsize = args_getlong(optarg);
+            if (parameters.opt_maxqsize < 0)
+              {
+                fatal("The argument to --maxqsize must not be negative");
+              }
             break;
 
           case option_mintsize:
             parameters.opt_mintsize = args_getlong(optarg);
+            if (parameters.opt_mintsize < 0)
+              {
+                fatal("The argument to --mintsize must not be negative");
+              }
             break;
 
           case option_mid:
@@ -4136,6 +4177,11 @@ namespace {
 
           case option_fastq_maxdiffpct:
             parameters.opt_fastq_maxdiffpct = args_getdouble(optarg);
+            if ((parameters.opt_fastq_maxdiffpct < 0.0) or
+                (parameters.opt_fastq_maxdiffpct > 100.0))
+              {
+                fatal("The argument to --fastq_maxdiffpct must be in the range 0.0 to 100.0");
+              }
             break;
 
           case option_fastq_join:
@@ -4859,11 +4905,16 @@ namespace {
       }
 
     if ((parameters.opt_fastq_join != nullptr) and
-        (not parameters.opt_join_padgapq_set_by_user) and
-        (parameters.opt_fastq_ascii != sanger_ascii_offset))
+        (not parameters.opt_join_padgapq_set_by_user))
       {
-        std::string const alternative_quality_padding = "hhhhhhhh";  // Q40 with an offset of 64
-        parameters.opt_join_padgapq = alternative_quality_padding;
+        // Q40 with an offset of 33 ('I') or of 64 ('h'); the default
+        // quality padding always matches the sequence padding in length
+        // (the manual documents this, and --join_padgap alone used to be
+        // fatal when its length differed from the fixed 8-char default)
+        auto const quality_padding_symbol =
+          (parameters.opt_fastq_ascii != sanger_ascii_offset) ? 'h' : 'I';
+        parameters.opt_join_padgapq =
+          std::string(parameters.opt_join_padgap.length(), quality_padding_symbol);
       }
   }
 
