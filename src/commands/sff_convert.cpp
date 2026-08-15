@@ -122,8 +122,13 @@ struct sff_header_s
   // automatic padding: +1 byte
 };
 
-constexpr std::size_t n_bytes_in_header = sizeof(struct sff_header_s);
-static_assert(n_bytes_in_header == 32, "sff header has a first part of size 31 + 1 padding byte");
+/* the on-disk header is 31 bytes; sizeof(struct sff_header_s) is 32 because
+   of the trailing padding byte. Reading sizeof() bytes consumed the first
+   flow character into the padding, shifting the reported key sequence by one
+   byte and rejecting spec-valid files whose 31 + flows + key is a multiple
+   of 8. All size arithmetic below must use the on-disk size. */
+constexpr std::size_t n_bytes_in_header = 31;
+static_assert(sizeof(struct sff_header_s) == n_bytes_in_header + 1, "sff header has a first part of size 31 + 1 padding byte");
 
 struct sff_read_header_s
 {
