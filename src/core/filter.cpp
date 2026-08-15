@@ -281,6 +281,16 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fatal("No output files specified");
     }
 
+  /* the manual says the *_rev output options require --reverse; without
+     this check they were counted as valid outputs above but never opened,
+     so a *_rev option as sole output silently wrote nothing and exited 0 */
+  if ((parameters.opt_reverse == nullptr) and
+      ((parameters.opt_fastqout_rev != nullptr) or (parameters.opt_fastaout_rev != nullptr) or
+       (parameters.opt_fastqout_discarded_rev != nullptr) or (parameters.opt_fastaout_discarded_rev != nullptr)))
+    {
+      fatal("Output files for reverse reads (fastaout_rev, fastqout_rev, fastaout_discarded_rev, fastqout_discarded_rev) require the --reverse option");
+    }
+
   auto forward_handle = fastx_open(filename, parameters);
   std::unique_ptr<fastx_s> reverse_handle;
 
@@ -302,7 +312,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                (parameters.opt_fastqout_discarded_rev != nullptr) or
                (parameters.opt_fastqout_rev != nullptr))
         {
-          fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_minqual, fastq_out, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncee_rate, fastq_truncqual,  fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
+          fatal("The following options are not accepted with the fastx_filter command when the input is a FASTA file, because quality scores are not available: eeout, fastq_ascii, fastq_eeout, fastq_maxee, fastq_maxee_rate, fastq_minqual, fastq_qmax, fastq_qmin, fastq_truncee, fastq_truncee_rate, fastq_truncqual, fastqout, fastqout_discarded, fastqout_discarded_rev, fastqout_rev");
         }
     }
 
