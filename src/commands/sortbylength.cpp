@@ -78,8 +78,12 @@ namespace {
 
   struct sortinfo_length_s
   {
+    /* abundance, as wide as the ;size= annotation it comes from
+       (Database::getabundance() returns uint64_t). A 32-bit field truncated
+       any annotation above 4294967295 silently, which broke the documented
+       tie-break by decreasing abundance (sortbysize carries the same fix). */
+    uint64_t size = 0;
     unsigned int length = 0;
-    unsigned int size = 0;
     unsigned int seqno = 0;
   };
 
@@ -93,7 +97,7 @@ namespace {
     for (auto & sequence: deck) {
       sequence.seqno = static_cast<unsigned int>(counter);
       sequence.length = static_cast<unsigned int>(db.getsequencelen(counter));
-      sequence.size = static_cast<unsigned int>(db.getabundance(counter));
+      sequence.size = db.getabundance(counter);
       progress.update(counter);
       ++counter;
     }
