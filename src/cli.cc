@@ -1641,6 +1641,7 @@ namespace {
         option_bzip2_decompress,
         option_fasta_width,
         option_gzip_decompress,
+        option_label_suffix,
         option_lengthout,
         option_log,
         option_maxseqlength,
