@@ -21,7 +21,7 @@ for a total of n\*(n-1)/2 comparisons where n is the number of sequences.
 
 Sequences are compared on their *plus* strand only. Either `--acceptall`
 (to write all alignments to output) or `--id` (to set a minimum identity
-threshold) must be specified. Most accept/reject options from the searching
+threshold) must be specified. Many accept/reject options from the searching
 section also apply.
 
 Masking is applied as specified with `--qmask` and `--hardmask`.
@@ -58,10 +58,6 @@ output option.
 ## core options
 
 #(./fragments/option_iddef.md)
-
-#(./fragments/option_maxaccepts.md)
-
-#(./fragments/option_maxrejects.md)
 
 #(./fragments/option_qmask.md)
 
@@ -132,8 +128,6 @@ output option.
 
 #(./fragments/option_mintsize.md)
 
-#(./fragments/option_minwordmatches.md)
-
 #(./fragments/option_n_mismatch.md)
 
 #(./fragments/option_no_progress.md)
@@ -190,10 +184,6 @@ output option.
 
 #(./fragments/option_userout.md)
 
-#(./fragments/option_weak_id.md)
-
-#(./fragments/option_wordlength_8.md)
-
 #(./fragments/option_xee.md)
 
 #(./fragments/option_xlength.md)
@@ -217,10 +207,28 @@ caution.
 
 ## ignored options
 
-These options are accepted for compatibility with usearch but have no
-effect.
+These options are accepted for compatibility with usearch or with the
+other search commands, but have no effect with `--allpairs_global`.
 
 #(./fragments/option_band.md)
+
+#(./fragments/option_maxaccepts.md)
+: Ignored: every following sequence is aligned, with no early
+  termination.
+
+#(./fragments/option_maxrejects.md)
+: Ignored: every following sequence is aligned, with no early
+  termination.
+
+#(./fragments/option_minwordmatches.md)
+: Ignored: `--allpairs_global` has no *k*-mer pre-filtering stage.
+
+#(./fragments/option_weak_id.md)
+: Ignored: only accepted alignments are reported; weak hits are never
+  written.
+
+#(./fragments/option_wordlength_8.md)
+: Ignored: `--allpairs_global` builds no *k*-mer index.
 
 #(./fragments/option_fulldp.md)
 

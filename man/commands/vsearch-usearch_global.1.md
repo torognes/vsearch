@@ -42,8 +42,8 @@ To illustrate a search at 97% identity:
 Query file:    Database:       Results (--blast6out):
 
 >q1            >t1             q1  t1  97.5  ...
-ACGTACGT  -->  ACGTAGGT  -->   q2  *   *     ... (no hit)
->q2            >t2
+ACGTACGT  -->  ACGTAGGT  -->   q2  *   *     ... (no hit; this line is
+>q2            >t2                 only written with --output_no_hits)
 TTTTTTTT       ACGTACGT
 ```
 

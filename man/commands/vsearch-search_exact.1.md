@@ -20,10 +20,14 @@ reporting only 100% exact full-length matches. It is much faster than
 `--usearch_global` for this use case.
 
 Because only exact matches are reported, `--id`, `--maxaccepts`, and
-`--maxrejects` do not apply and are not accepted. Masking is controlled
-with `--qmask` (queries) and `--dbmask` (database). By default only the
-*plus* strand is searched; use `--strand both` to also check the reverse
-complement.
+`--maxrejects` do not apply and are not accepted. Matching is
+case-insensitive and treats `U` and `T` as equivalent. Both sides are
+normalized before hashing, so the masking options (`--qmask`,
+`--dbmask`) never change which matches are found: they only affect the
+case of sequences in the output files --- except `--hardmask` combined
+with soft masking, which replaces masked residues with `N` and does
+prevent matches. By default only the *plus* strand is searched; use
+`--strand both` to also check the reverse complement.
 
 At least one output option must be specified. This command is
 multi-threaded.

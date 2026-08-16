@@ -17,10 +17,12 @@ vsearch \-\-orient --- use a reference database to orient fasta or fastq sequenc
 The vsearch command `--orient` detects the orientation of input sequences by
 comparing them to a reference database specified with `--db`. The two strands
 of each input sequence are decomposed into words (*k*-mers) of length
-`--wordlength` (default 12) and compared against words from the database. If
-one strand matches at least 4 times as many words as the other, that strand is
-selected as the correct orientation. Otherwise, the orientation is reported as
-undetermined (?).
+`--wordlength` (default 12) and compared against words from the database. A
+word counts for a strand only when it is at least 8 times more frequent in
+the database than its reverse complement. If one strand has at least one
+such decisive word and at least 4 times as many as the other strand, that
+strand is selected as the correct orientation. Otherwise, the orientation
+is reported as undetermined (?).
 
 Correctly oriented sequences are written with `--fastaout` or `--fastqout`.
 Sequences with undetermined orientation are written with `--notmatched`. A

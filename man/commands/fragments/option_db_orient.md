@@ -1,6 +1,8 @@
 `--db` *filename*
 : Read reference sequences from *filename*, in fasta, fastq, or UDB
-  format. UDB files must have been created with `--wordlength` 12 (see
+  format. A UDB file may have been created with any `--wordlength`: the
+  word length stored in the file is used, overriding the configured one
+  with a warning (see
   [`vsearch-makeudb_usearch(1)`](./vsearch-makeudb_usearch.1.md)). This
   option is mandatory. `--db` accepts `-` to read the database from
   standard input, as well as an explicit stream path such as

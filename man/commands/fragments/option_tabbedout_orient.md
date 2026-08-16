@@ -4,5 +4,6 @@
 
     1. query label;
     2. orientation (+, -, or ?);
-    3. number of matching words on the forward strand;
-    4. number of matching words on the reverse-complementary strand.
+    3. number of decisive words supporting the forward strand;
+    4. number of decisive words supporting the reverse-complementary
+       strand (see the strand-selection rule in the DESCRIPTION).

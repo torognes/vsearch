@@ -21,10 +21,16 @@ specified with `--db`. Results are written to `--tabbedout`.
 
 Classification works by finding the database sequence with the most shared
 k-mers with each query across 100 bootstrap resamples of the query's k-mers.
-For each bootstrap replicate, the taxonomy of the best-matching database
-sequence is recorded. The frequency of agreement at each taxonomic rank across
-the 100 replicates is reported as a bootstrap confidence value. Use
-`--sintax_cutoff` to filter ranks below a confidence threshold.
+Each replicate draws 32 of the query's *unique* k-mers (queries with fewer
+than 32 unique k-mers are never classified), and only counts when the
+best-matching database sequence shares at least 2 of the drawn k-mers with
+the query; the taxonomy of that sequence is then recorded. A query is
+classified when at least half of the 100 replicates counted; the frequency
+of agreement at each taxonomic rank, divided by the number of counted
+replicates, is reported as a bootstrap confidence value. Unclassified
+queries produce an output line with empty taxonomy, strand and cutoff
+columns. Use `--sintax_cutoff` to filter ranks below a confidence
+threshold.
 
 The reference database must contain taxonomic annotations in the sequence
 headers. Each header must include a `;tax=` field followed by a
@@ -112,6 +118,8 @@ is multi-threaded.
 #(./fragments/option_no_progress.md)
 
 #(./fragments/option_notrunclabels.md)
+: Always implied with `--sintax` (headers are never truncated, so that
+  taxonomy annotations may contain spaces); it cannot be disabled.
 
 #(./fragments/option_quiet.md)
 
