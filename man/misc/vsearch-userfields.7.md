@@ -35,15 +35,16 @@ for a description of the alignment model and identity definitions.
 `aln`
 : Pairwise alignment encoded as a string of operation characters: `M`
   (match or mismatch, i.e. not a gap), `D` (deletion, i.e. a gap in
-  the query), `I` (insertion, i.e. a gap in the target). Empty if
+  the target), `I` (insertion, i.e. a gap in the query). Empty if
   there is no alignment. See
   [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a description
   of the operation alphabet.
 
 `caln`
 : Compact pairwise alignment in CIGAR format (Compact Idiosyncratic
-  Gapped Alignment Report): `M` (match or mismatch), `D` (deletion),
-  `I` (insertion). Explicit operations are always written (the `=`
+  Gapped Alignment Report): `M` (match or mismatch), `D` (deletion, a
+  gap in the target), `I` (insertion, a gap in the query). Explicit
+  operations are always written (the `=`
   exact-match shorthand appears only in `--uc` output). Empty if
   there is no alignment. See
   [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a complete
@@ -88,19 +89,21 @@ for a description of the alignment model and identity definitions.
 
 The following fields report the first and last aligned positions in the
 query (q) or target (t) sequence, using 1-based nucleotide positions.
-The `lo`/`hi` variants always span the full alignment including terminal
-gaps; the `ilo`/`ihi` variants exclude terminal gaps and report the
-span of the actual aligned residues.
+The `lo`/`hi` variants span the whole sequence, from 1 to its length
+(swapped for the query on minus-strand hits); the `ilo`/`ihi` variants
+exclude terminal gaps and report the span of the actual aligned
+residues.
 
 `qlo`
-: First nucleotide of the query aligned with the target. Always 1 when
-  there is an alignment (including terminal gaps at the left). See
+: First nucleotide of the query aligned with the target: 1 when there
+  is an alignment on the plus strand; on minus-strand hits `qlo` and
+  `qhi` are swapped (`qlo` is then the query sequence length). See
   `qilo` to exclude initial gaps.
 
 `qhi`
-: Last nucleotide of the query aligned with the target. Always equal to
-  the alignment length when there is an alignment (including terminal
-  gaps at the right). See `qihi` to exclude terminal gaps.
+: Last nucleotide of the query aligned with the target: the *query
+  sequence length* when there is an alignment on the plus strand (1 on
+  minus-strand hits). See `qihi` to exclude terminal gaps.
 
 `qilo`
 : First nucleotide of the query aligned with the target, ignoring
@@ -116,9 +119,9 @@ span of the actual aligned residues.
   `tilo` to exclude initial gaps.
 
 `thi`
-: Last nucleotide of the target aligned with the query. Always equal to
-  the alignment length when there is an alignment (including terminal
-  gaps at the right). See `tihi` to exclude terminal gaps.
+: Last nucleotide of the target aligned with the query: the *target
+  sequence length* when there is an alignment. See `tihi` to exclude
+  terminal gaps.
 
 `tilo`
 : First nucleotide of the target aligned with the query, ignoring
@@ -132,8 +135,8 @@ span of the actual aligned residues.
 ## Alignment statistics
 
 `alnlen`
-: Length of the pairwise alignment (number of columns, including
-  gap-only columns).
+: Length of the pairwise alignment: the number of columns, excluding
+  terminal gaps.
 
 `ids`
 : Number of matching columns in the alignment (zero or positive

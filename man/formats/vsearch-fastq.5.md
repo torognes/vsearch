@@ -40,12 +40,13 @@ effect.
 
 ## Sequence
 
-#(./fragments/format_sequence.md)
+#(./fragments/format_sequence_fastq.md)
 
 ## Quality header
 
-The *quality header* is the line starting with '+'. Any text after '+'
-on this line is ignored by vsearch.
+The *quality header* is the line starting with '+'. The text after
+'+' must be empty or repeat the sequence header line exactly; anything
+else causes a fatal error.
 
 ## Quality string
 
@@ -63,18 +64,26 @@ offset is set with `--fastq_ascii` (default 33):
   `--fastq_qmax`).
 
 - **phred+64** (offset 64): Solexa, Illumina 1.3+, and Illumina 1.5+
-  formats. Valid quality characters range from '@' (Q=0) to '~' (Q=62).
+  formats. Valid quality characters range from '@' (Q=0) to '~' (Q=62);
+  negative Solexa scores (down to -31, e.g. ';' for the historical -5)
+  are representable by lowering `--fastq_qmin`.
 
-vsearch silently ignores ASCII characters 9–13 (tab and whitespace) in
-quality strings, and exits with an error if ASCII characters 0–8, 14–31,
-'.' or '-' are present. All other unexpected characters are stripped with
-a warning.
+The parser accepts every printable ASCII character (values 33–126) in
+quality strings --- '.' and '-' are ordinary quality symbols (Q=13 and
+Q=12 at offset 33). Carriage returns before the newline are accepted;
+any other character (tabulations, spaces, control characters, values
+128–255) causes a fatal error; nothing is stripped or warned about.
+The `--fastq_qmin`/`--fastq_qmax` score bounds are enforced by the
+commands that interpret quality values, not by the parser itself.
 
 ## Header annotations
 
 vsearch reads and writes several annotations embedded in sequence headers,
 following the pattern `[@;]key=value[;]`. Annotations can appear in any
-order after the label:
+order, but must be joined to the label by ';' without any whitespace:
+with the default header truncation, an annotation separated from the
+label by a space is part of the discarded remainder and is silently
+invisible (unless `--notrunclabels` is used).
 
 `[@;]size=integer[;]`
 : Abundance (number of occurrences of the sequence in the study). Read by

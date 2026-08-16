@@ -214,7 +214,7 @@ reverse-strand hit for a second query, and one unmapped query
 ```text
 @HD	VN:1.0	SO:unsorted	GO:query
 @SQ	SN:ref1	LN:10	M5:0123456789abcdef0123456789abcdef	UR:file:refs.fasta
-@SQ	SN:ref2	LN:12	M5:fedcba9876543210fedcba9876543210	UR:file:refs.fasta
+@SQ	SN:ref2	LN:11	M5:fedcba9876543210fedcba9876543210	UR:file:refs.fasta
 @PG	ID:vsearch	VN:2.30.6	CL:vsearch --usearch_global queries.fasta --db refs.fasta --id 0.9 --samout out.sam --samheader
 q1	0	ref1	1	255	10M	*	0	0	ACGTACGTAC	*	AS:i:100	XN:i:0	XM:i:0	XO:i:0	XG:i:0	NM:i:0	MD:Z:10	YT:Z:UU
 q2	16	ref2	1	255	5M1I6M	*	0	0	ACGTAGCGTACG	*	AS:i:92	XN:i:0	XM:i:0	XO:i:1	XG:i:1	NM:i:1	MD:Z:11	YT:Z:UU

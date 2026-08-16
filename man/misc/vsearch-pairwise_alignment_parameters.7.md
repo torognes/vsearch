@@ -48,7 +48,9 @@ identical, their alignment results in a negative mismatch score
 (default -4, see option `--mismatch`). Aligning a pair of symbols
 where at least one of them is an ambiguous symbol (BDHKMNRSVWY) will
 always result in a score of zero. Alignment of two identical ambiguous
-symbols (for example, R vs R) also receives a score of zero.
+symbols (for example, R vs R) also receives a score of zero. As an
+exception, when `--n_mismatch` is given, any pairing involving an `N`
+is scored as a mismatch instead of zero.
 
 Once the optimal pairwise alignment has been found, when computing the
 amount of similarity by counting matches and mismatches **after**
@@ -85,8 +87,9 @@ positive integers, and `/` is used as a separator.
 
 
 To simplify declarations, the symbol (E) can be used to treat both
-extremities (L and R) equally, and the symbols Q and T can be omitted
-to treat query and target sequences equally.
+extremities (L and R) equally --- combining E with L or R in the same
+penalty string is a fatal error --- and the symbols Q and T can be
+omitted to treat query and target sequences equally.
 
 `--gapopen` *20I/2E*
 : Set the six gap opening penalties using a penalty of 20 for opening

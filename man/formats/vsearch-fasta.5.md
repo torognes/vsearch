@@ -41,7 +41,10 @@ effect.
 
 vsearch reads and writes several annotations embedded in sequence headers,
 following the pattern `[>;]key=value[;]`. Annotations can appear in any
-order after the label:
+order, but must be joined to the label by ';' without any whitespace:
+with the default header truncation, an annotation separated from the
+label by a space is part of the discarded remainder and is silently
+invisible (unless `--notrunclabels` is used).
 
 `[>;]size=integer[;]`
 : Abundance (number of occurrences of the sequence in the study). Read by
@@ -57,6 +60,11 @@ order after the label:
 
 `[>;]sample=string[;]`
 : Sample identifier. Written by `--sample`.
+
+The clustering commands can write three more annotations on centroid
+headers: `seqs=integer` (`--clusterout_size`), `clusterid=integer`
+(`--clusterout_id`), and `centroid_size=integer`
+(`--centroid_sizeout`); see the clustering pages for details.
 
 ## Case and masking
 

@@ -31,8 +31,9 @@ indicating the *operation type*:
 ```
 
 For example, `3M2I3MD` describes an alignment that starts with three
-matches or mismatches, followed by two query insertions, three matches
-or mismatches, and a single deletion.
+matches or mismatches, followed by two insertions (residues present
+only in the target), three matches or mismatches, and a single
+deletion (a residue present only in the query).
 
 
 ## Operations
@@ -47,12 +48,14 @@ possible column types in a gapped pairwise alignment (see
   in its CIGAR strings.
 
 `I`
-: Insertion. A residue is present in the query but absent from the
-  target (a gap in the target).
+: Insertion. A residue is present in the target but absent from the
+  query (a gap in the query); it must be inserted into the query to
+  equal the target.
 
 `D`
-: Deletion. A residue is present in the target but absent from the
-  query (a gap in the query).
+: Deletion. A residue is present in the query but absent from the
+  target (a gap in the target); it must be deleted from the query to
+  equal the target.
 
 Other operation letters defined by the SAM specification (`X`, `=`,
 `N`, `S`, `H`, `P`) are never produced by vsearch.
@@ -109,20 +112,20 @@ The following alignment of an 8-nt query against a 9-nt target
 ```text
 query:     ACGT--TACG
 target:    AC-TGGTTCG
-alignment: MMIMDDMMMM
-cigar:     2M1I1M2D4M
+alignment: MMDMIIMMMM
+cigar:     2M1D1M2I4M
 ```
 
 contains, from left to right:
 
 - 2 columns with matching residues (`AC` / `AC`),
-- 1 insertion in the target (`G` present only in the query),
+- 1 deletion (`G` present only in the query, a gap in the target),
 - 1 column with matching residues (`T` / `T`),
-- 2 deletions from the query (`GG` present only in the target),
+- 2 insertions (`GG` present only in the target, gaps in the query),
 - 4 columns with matching residues (`TACG` / `TTCG`).
 
-Without run-length encoding, the alignment reads `MMIMDDMMMM`, after
-encoding it reads `2M1I1M2D4M`. Note that `M` does not distinguish
+Without run-length encoding, the alignment reads `MMDMIIMMMM`, after
+encoding it reads `2M1D1M2I4M`. Note that `M` does not distinguish
 matches from mismatches; a mismatching column is encoded with the same
 operation letter.
 

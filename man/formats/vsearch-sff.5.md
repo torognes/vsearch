@@ -270,6 +270,18 @@ accessing each read's data:
       processing the read data if the section is read.
 
 
+# VSEARCH BEHAVIOUR
+
+vsearch (`--sff_convert`) enforces a few restrictions beyond this
+specification: it rejects files whose version is not 1, whose flowgram
+format code is not 1, or whose key length is not 4 (the specification
+allows any length, but 4 is universal in practice); an index length
+between 1 and 7 bytes is also rejected as invalid. An index located in
+the middle of the file triggers the warning "Index at unusual position
+in file", and bytes following the last read section trigger
+"Additional data at end of SFF file ignored".
+
+
 # SEE ALSO
 
 [`vsearch-sff_convert(1)`](../commands/vsearch-sff_convert.1.md),

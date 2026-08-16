@@ -36,6 +36,9 @@ reproduced here in the form of a manpage for ease-of-use:
 | -      | Gap                           |                  |            |
 
 Note that the symbol 'X' (*Masked*) is **not** accepted by vsearch.
+The gap symbol '-' is listed for completeness only: vsearch *writes*
+it in alignment outputs, but never accepts it in input sequences
+(a fatal error in both fasta and fastq files).
 
 # SEE ALSO
 

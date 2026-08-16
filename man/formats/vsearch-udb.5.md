@@ -15,12 +15,13 @@ file from a fasta reference database with `--makeudb_usearch` allows
 subsequent search commands (such as `--usearch_global`) to load the index
 directly, avoiding the cost of recomputing it at each run.
 
-UDB files are not portable across machines with different native byte
-orders. All multi-byte numeric values are stored in *little-endian* byte
-order (the least significant byte first), which is the native byte order
-of x86 and ARM processors. This contrasts with *big-endian* order (most
-significant byte first), which is used for example by the SFF format (see
-[`vsearch-sff(5)`](./vsearch-sff.5.md)).
+Multi-byte numeric values are stored in the machine's *native* byte
+order; every platform vsearch currently supports is *little-endian*
+(least significant byte first, as on x86 and ARM processors), so in
+practice UDB files are little-endian and are not portable to
+big-endian machines. This contrasts with *big-endian* order (most
+significant byte first), which is used for example by the SFF format
+(see [`vsearch-sff(5)`](./vsearch-sff.5.md)).
 
 UDB files cannot be read from pipes; a seekable file path must be
 provided.
@@ -55,8 +56,9 @@ The main header is exactly 200 bytes long (50 × `uint32_t`):
 
 All fields not listed explicitly are reserved and set to zero.
 
-- The `magic number` field value is 0x55444246, the little-endian
-  encoding of the ASCII string "UDBF".
+- The `magic number` field value is 0x55444246. Stored little-endian,
+  its on-disk bytes read "FBDU"; the value spells "UDBF" when written
+  most significant byte first.
 - The `word length` field stores the k-mer size used to build the index
   (between 3 and 15, default 8; controllable with `--wordlength`).
 - The `dbstep` field is always 1 and the `dbaccelpct` field is always
@@ -67,8 +69,9 @@ All fields not listed explicitly are reserved and set to zero.
 - The `alphabet` field value is 0x0000746e, the little-endian encoding
   of the ASCII string "nt" (nucleotide), indicating that this is a
   nucleotide database.
-- The `end marker` field value is 0x55444266, the little-endian encoding
-  of the ASCII string "UDBf", marking the end of the main header.
+- The `end marker` field value is 0x55444266 (on-disk bytes "fBDU";
+  "UDBf" most significant byte first), marking the end of the main
+  header.
 
 
 ## Section 2 --- Word Match Counts
