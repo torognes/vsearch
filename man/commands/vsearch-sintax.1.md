@@ -69,6 +69,10 @@ is multi-threaded.
 ## core options
 
 #(./fragments/option_dbmask.md)
+: Note: `--sintax` does not run the DUST algorithm on the database:
+  masking only controls whether lowercase regions of the reference
+  sequences are ignored when indexing, so `dust` (the default) behaves
+  like `soft`.
 
 #(./fragments/option_randseed.md)
 

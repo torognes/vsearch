@@ -78,11 +78,20 @@ At least one of the following output options is required:
 
 #(./fragments/option_log.md)
 
+#(./fragments/option_maxseqlength.md)
+
+#(./fragments/option_minseqlength_1.md)
+
 #(./fragments/option_no_progress.md)
 
 #(./fragments/option_notrunclabels.md)
 
 #(./fragments/option_qmask.md)
+: Note: `--orient` does not run the DUST algorithm on the queries:
+  masking only controls whether lowercase regions of the query
+  sequences are ignored when counting words, so `dust` (the default)
+  behaves like `soft`. The database side does run DUST as documented
+  under `--dbmask`.
 
 #(./fragments/option_quiet.md)
 

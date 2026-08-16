@@ -115,6 +115,10 @@ Exactly one of `--sample_pct` or `--sample_size` must be specified.
 
 #(./fragments/option_log.md)
 
+#(./fragments/option_maxseqlength.md)
+
+#(./fragments/option_minseqlength_1.md)
+
 #(./fragments/option_no_progress.md)
 
 #(./fragments/option_notrunclabels.md)
