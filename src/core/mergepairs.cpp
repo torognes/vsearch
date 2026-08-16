@@ -573,13 +573,6 @@ auto process(merge_data_t & a_read_pair,
       skip = true;
     }
 
-  if ((a_read_pair.fwd_length > parameters.opt_fastq_maxlen) or
-      (a_read_pair.rev_length > parameters.opt_fastq_maxlen))
-    {
-      a_read_pair.reason = Reason::maxlen;
-      skip = true;
-    }
-
   /* truncate sequences by quality */
 
   int64_t fwd_trunc = a_read_pair.fwd_length;
@@ -633,6 +626,20 @@ auto process(merge_data_t & a_read_pair,
     }
 
   a_read_pair.rev_trunc = rev_trunc;
+
+  /* the manual and the "reads too long (after truncation)" discard
+     reason both promise that --fastq_maxlen applies to the truncated
+     lengths, as in fastq_filter; the raw lengths were checked before
+     the truncation loops until the 2026-08 documentation audit */
+  if (not skip)
+    {
+      if ((fwd_trunc > parameters.opt_fastq_maxlen) or
+          (rev_trunc > parameters.opt_fastq_maxlen))
+        {
+          a_read_pair.reason = Reason::maxlen;
+          skip = true;
+        }
+    }
 
   /* count n's */
 
