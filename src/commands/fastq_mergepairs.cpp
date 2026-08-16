@@ -1101,7 +1101,9 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
   if (parameters.fp_log != nullptr) {
     print_stats(state, parameters.fp_log);
   }
-  else {
+  else if (not parameters.opt_quiet) {
+    /* --quiet suppresses the stderr report, as documented and as
+       fastq_filter and fastq_join already do */
     print_stats(state, stderr);
   }
 
