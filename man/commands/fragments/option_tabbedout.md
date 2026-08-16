@@ -7,6 +7,7 @@
        possibly relabelled);
     3. cluster number (zero-based);
     4. sequence number within the cluster (zero-based);
-    5. cluster size;
+    5. cluster size (the number of sequences merged into the
+       cluster, whether or not `--sizein` is used);
     6. original label of the first sequence in the cluster (before
        any relabelling).

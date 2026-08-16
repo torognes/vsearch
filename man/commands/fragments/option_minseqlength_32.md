@@ -1,3 +1,3 @@
-`--minseqlength` *positive integer*
-: Discard sequences shorter than *positive integer* (32 nucleotides by
-  default).
+`--minseqlength` *non-negative integer*
+: Discard sequences shorter than *non-negative integer* (32
+  nucleotides by default). A value of 0 retains empty sequences.

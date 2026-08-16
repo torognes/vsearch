@@ -69,7 +69,7 @@ At least one of `--fastaout` or `--fastqout` must be specified.
 
 #(./fragments/option_sizein.md)
 
-#(./fragments/option_sizeout.md)
+#(./fragments/option_sizeout_derep.md)
 
 #(./fragments/option_strand.md)
 
@@ -90,11 +90,11 @@ At least one of `--fastaout` or `--fastqout` must be specified.
 
 #(./fragments/option_fastq_asciiout.md)
 
-#(./fragments/option_fastq_qmax.md)
+#(./fragments/option_fastq_qmax_ignored.md)
 
 #(./fragments/option_fastq_qmaxout.md)
 
-#(./fragments/option_fastq_qmin.md)
+#(./fragments/option_fastq_qmin_ignored.md)
 
 #(./fragments/option_fastq_qminout.md)
 

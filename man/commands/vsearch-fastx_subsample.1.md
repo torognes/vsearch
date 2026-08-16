@@ -92,7 +92,7 @@ Exactly one of `--sample_pct` or `--sample_size` must be specified.
 
 #(./fragments/option_sizein.md)
 
-#(./fragments/option_sizeout.md)
+#(./fragments/option_sizeout_subsample.md)
 
 
 ## secondary options
@@ -103,9 +103,9 @@ Exactly one of `--sample_pct` or `--sample_size` must be specified.
 
 #(./fragments/option_fastq_ascii.md)
 
-#(./fragments/option_fastq_qmax.md)
+#(./fragments/option_fastq_qmax_ignored.md)
 
-#(./fragments/option_fastq_qmin.md)
+#(./fragments/option_fastq_qmin_ignored.md)
 
 #(./fragments/option_gzip_decompress.md)
 

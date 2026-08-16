@@ -83,7 +83,7 @@ description of the input format.
 
 #(./fragments/option_sizeorder.md)
 
-#(./fragments/option_sizeout.md)
+#(./fragments/option_sizeout_cluster.md)
 
 #(./fragments/option_strand.md)
 
@@ -226,7 +226,9 @@ description of the input format.
 
 #(./fragments/option_weak_id.md)
 
-#(./fragments/option_wordlength.md)
+#(./fragments/option_wordlength_8.md)
+
+#(./fragments/option_xee.md)
 
 #(./fragments/option_xlength.md)
 

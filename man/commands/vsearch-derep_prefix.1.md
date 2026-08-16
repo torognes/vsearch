@@ -65,7 +65,7 @@ of the input formats.
 
 #(./fragments/option_sizein.md)
 
-#(./fragments/option_sizeout.md)
+#(./fragments/option_sizeout_derep.md)
 
 #(./fragments/option_strand_plus_only.md)
 

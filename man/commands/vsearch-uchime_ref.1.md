@@ -77,6 +77,8 @@ At least one of the following output options must be specified:
 
 #(./fragments/option_selfid_uchime_ref.md)
 
+#(./fragments/option_strand_uchime_ref.md)
+
 #(./fragments/option_threads.md)
 
 #(./fragments/option_uchimeout5.md)
@@ -88,7 +90,7 @@ At least one of the following output options must be specified:
 
 #(./fragments/option_alignwidth_80.md)
 
-#(./fragments/option_fasta_score.md)
+#(./fragments/option_fasta_score_uchime_ref.md)
 
 #(./fragments/option_fasta_width.md)
 

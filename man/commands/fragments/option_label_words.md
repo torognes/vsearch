@@ -3,4 +3,5 @@
   sequences of alphanumeric characters (A-Z, a-z, 0-9) delimited by a
   non-alphanumeric character or the start or end of the header. The
   comparison is case-sensitive. See `--label_field` to restrict
-  matching to a named field.
+  matching to a named field. Lines longer than 1023 characters are
+  not supported (a warning is emitted); empty lines are skipped.
