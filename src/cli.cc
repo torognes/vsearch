@@ -2175,7 +2175,9 @@ namespace {
         option_lengthout,
         option_log,
         option_max_unmasked_pct,
+        option_maxseqlength,
         option_min_unmasked_pct,
+        option_minseqlength,
         option_no_progress,
         option_notrunclabels,
         option_qmask,
@@ -2238,6 +2240,8 @@ namespace {
         option_label_suffix,
         option_lengthout,
         option_log,
+        option_maxseqlength,
+        option_minseqlength,
         option_no_progress,
         option_notrunclabels,
         option_quiet,
@@ -2393,6 +2397,8 @@ namespace {
         option_label_suffix,
         option_lengthout,
         option_log,
+        option_maxseqlength,
+        option_minseqlength,
         option_no_progress,
         option_notmatched,
         option_notrunclabels,
@@ -4540,10 +4546,10 @@ namespace {
           }
         parameters.opt_threads = 1;
       }
-    if ((parameters.opt_sintax != nullptr) and (parameters.opt_randseed != 0) and (parameters.opt_threads > 1))
-      {
-        vsearch::warn("Using the --sintax command with the --randseed option may not work as intended with multiple threads. Use a single thread (--threads 1) to ensure reproducible results.");
-      }
+    /* a stale warning about --sintax --randseed with multiple threads was
+       removed here: the per-query RNG is seeded from a per-query substream,
+       so the classification is reproducible whatever the thread count (as
+       the manual states, and as tested) */
   }
 
   /* Validate option value ranges (fatal on out-of-range input) and resolve the
