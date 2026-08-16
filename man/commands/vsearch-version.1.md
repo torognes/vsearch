@@ -47,7 +47,6 @@ None
 # EXAMPLES
 
 Use the `--version` command to get vsearch's version number:
-:
 
 ```sh
 vsearch \

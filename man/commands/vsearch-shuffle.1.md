@@ -86,6 +86,9 @@ the same order on any platform.
 #(./fragments/option_sample.md)
 
 #(./fragments/option_sizein.md)
+: Has no effect with this command: abundance annotations are always
+  parsed (`--sizeout` therefore writes the true abundances whether or
+  not `--sizein` is given).
 
 #(./fragments/option_sizeout.md)
 

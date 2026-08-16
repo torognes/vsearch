@@ -17,8 +17,12 @@ abundance
 
 The vsearch command `--sortbysize` sorts fasta or fastq sequences by
 decreasing abundance and writes them to the file specified with
-`--output`, in fasta format. Sequences without abundance annotations
-are assumed to have abundance 1. To illustrate:
+`--output`, in fasta format. Abundance annotations are always parsed,
+with or without `--sizein`; sequences without annotations are assumed
+to have abundance 1. After filtering with `--minsize`/`--maxsize`
+(but before `--topn`), the median abundance is reported on the
+standard error (unless `--quiet`) and in the log file. To
+illustrate:
 
 ```text
 >s1;size=1                >s3;size=10
@@ -94,6 +98,9 @@ information on input formats.
 #(./fragments/option_sample.md)
 
 #(./fragments/option_sizein.md)
+: Has no effect with this command: abundance annotations are always
+  parsed (`--sizeout` therefore writes the true abundances whether or
+  not `--sizein` is given).
 
 #(./fragments/option_sizeout.md)
 

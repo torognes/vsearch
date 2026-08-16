@@ -29,10 +29,13 @@ TTTTTTTT           AAAA
 ```
 
 When two sequences have the same length, ties are broken first by
-decreasing abundance (if present) and then by label in alphanumerical
-order. Sequences can be filtered by length with `--minseqlength` and
-`--maxseqlength`. The output can be limited to the first *n* sequences
-with `--topn`.
+decreasing abundance (annotations are always parsed, with or without
+`--sizein`) and then by label in alphanumerical order. Sequences can
+be filtered by length with `--minseqlength` and `--maxseqlength`. The
+output can be limited to the first *n* sequences with `--topn`. After
+filtering (but before `--topn`), the median sequence length is
+reported on the standard error (unless `--quiet`) and in the log
+file.
 
 See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
 [`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for more
@@ -90,6 +93,9 @@ information on input formats.
 #(./fragments/option_sample.md)
 
 #(./fragments/option_sizein.md)
+: Has no effect with this command: abundance annotations are always
+  parsed (`--sizeout` therefore writes the true abundances whether or
+  not `--sizein` is given).
 
 #(./fragments/option_sizeout.md)
 

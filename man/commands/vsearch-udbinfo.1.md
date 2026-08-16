@@ -16,8 +16,12 @@ vsearch \-\-udbinfo --- show information about a UDB database file
 
 The vsearch command `--udbinfo` reads a UDB database file and writes
 information about it to the *standard error* `stderr(3)`. The
-information includes the number of sequences, the word length used for
-the index, and masking settings.
+information includes the number of sequences (Seqs), the number of
+bits per sequence index entry (SeqIx bits), the alphabet (Alpha), the
+word length used for the index (Word width), the number of index slots
+(Slots), the dictionary size (Dict size), and the DBstep and DBAccel
+settings. Masking information is not stored in UDB files and is
+therefore not reported.
 
 See [`vsearch-udb(5)`](../formats/vsearch-udb.5.md) for a description
 of the UDB file format.
