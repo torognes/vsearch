@@ -37,9 +37,13 @@ Guess: Original Sanger format (phred+33)
 ```
 
 For each sequence symbol, `--fastq_chars` gives the number of
-occurrences of the symbol, its relative frequency, and the length of
-the longest run of that symbol (lowercase symbols are converted to
-uppercase). For example:
+occurrences of the symbol, its relative frequency, and the number of
+consecutive repetitions after the first occurrence in the longest run
+of that symbol — that is, the longest run length minus one, so a
+symbol that never appears twice in a row scores 0 (lowercase symbols
+are converted to uppercase). This matches usearch's MaxRun column,
+except that vsearch also counts a run ending with the read. For
+example:
 
 ```text
 Letter          N   Freq MaxRun

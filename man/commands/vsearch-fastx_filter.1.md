@@ -51,10 +51,11 @@ When the input is in fasta format, the following options are not
 accepted because quality scores are not available: `--eeout`,
 `--fastq_eeout`, `--fastq_maxee`, `--fastq_maxee_rate`,
 `--fastq_minqual`, `--fastq_truncee`, `--fastq_truncee_rate`,
-`--fastqout`, `--fastqout_discarded`, `--fastqout_discarded_rev`, and
-`--fastqout_rev`. The following options are silently ignored when
-reading fasta: `--fastq_ascii`, `--fastq_qmax`, `--fastq_qmin`, and
-`--fastq_truncqual`.
+`--fastq_truncqual`, `--fastqout`, `--fastqout_discarded`,
+`--fastqout_discarded_rev`, and `--fastqout_rev`. The options
+`--fastq_ascii`, `--fastq_qmax`, and `--fastq_qmin` are also rejected
+with fasta input when set to a value other than their default (33, 41,
+and 0, respectively).
 
 Sequence headers are not truncated at whitespace by this command,
 regardless of input format. The `--notrunclabels` option is therefore
