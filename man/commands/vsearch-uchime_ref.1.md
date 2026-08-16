@@ -63,8 +63,6 @@ At least one of the following output options must be specified:
 
 ## core options
 
-#(./fragments/option_abskew_2.md)
-
 #(./fragments/option_dbmask.md)
 
 #(./fragments/option_dn.md)
@@ -150,6 +148,10 @@ Modify with caution.
 
 
 ## ignored options
+
+#(./fragments/option_abskew_2.md)
+: Ignored by `--uchime_ref`: the abundance-skew rule applies to the
+  *de novo* commands only.
 
 #(./fragments/option_sizein.md)
 : Ignored by `--uchime_ref`.

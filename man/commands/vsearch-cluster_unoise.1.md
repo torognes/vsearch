@@ -84,6 +84,8 @@ are excluded before denoising.
 
 #(./fragments/option_sizein.md)
 
+#(./fragments/option_sizeorder.md)
+
 #(./fragments/option_sizeout.md)
 
 #(./fragments/option_strand.md)

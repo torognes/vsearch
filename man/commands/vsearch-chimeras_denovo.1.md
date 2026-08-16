@@ -94,8 +94,6 @@ At least one of the following output options must be specified:
 #(./fragments/option_sizein.md)
 : Always implied.
 
-#(./fragments/option_xn.md)
-
 
 ## secondary options
 
@@ -161,6 +159,10 @@ model. Modify with caution.
 ## ignored options
 
 #(./fragments/option_threads_not_multithreaded.md)
+
+#(./fragments/option_xn.md)
+: Ignored by `--chimeras_denovo`: only the UCHIME scoring function
+  reads this weight.
 
 
 # EXAMPLES
