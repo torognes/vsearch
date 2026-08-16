@@ -107,7 +107,8 @@ Positions in reads are sorted in increasing order.
 4.  P(AvgQ): error probability corresponding to AvgQ
 5.  AvgP: average error probability at this position
 6.  AvgEE: average expected error over all reads up to this position
-7.  Rate: growth rate of AvgEE between the current and previous position
+7.  Rate: AvgEE divided by the position, i.e. the average expected
+    error accumulated per base up to this position
 8.  RatePct: Rate (as explained above) expressed as a percentage
 
 ```text
@@ -172,8 +173,10 @@ using the same length L and maximum expected error parameters.
 ## Effect of minimum quality and length filtering (table 5)
 
 Positions in reads are sorted in decreasing order, starting with the
-largest read length (Len), and limited to the top *n* lengths, where
-*n* = floor(largest read length / 2) + 1. The next four columns
+largest read length (Len) and going down to half of it (rounded down,
+with a minimum of 1), so the table has
+largest length - floor(largest length / 2) + 1 rows. The next four
+columns
 indicate the fraction of reads that would be retained by the command
 [`vsearch-fastq_filter(1)`](./commands/vsearch-fastq_filter.1.md) if
 the reads were truncated at length Len with the option

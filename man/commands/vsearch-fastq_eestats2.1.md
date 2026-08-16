@@ -21,7 +21,9 @@ output is useful for choosing values for `--fastq_trunclen` and
 `--fastq_maxee` when running `--fastx_filter` (see
 [`vsearch-fastx_filter(1)`](./vsearch-fastx_filter.1.md)).
 
-The output is a tab-separated table written to `--output`. Each row
+The output is a space-aligned table written to `--output`, preceded by
+a one-line summary (number of reads, maximum and average length) and a
+dashed rule. Each row
 corresponds to a truncation length and each column (after the first) to an EE
 threshold. Each cell shows the number of reads that would be retained and, in
 parentheses, the corresponding percentage.
@@ -30,11 +32,15 @@ To illustrate with the default cutoffs (`--length_cutoffs 50,*,50` and
 `--ee_cutoffs 0.5,1.0,2.0`):
 
 ```text
-Length  0.500              1.000              2.000
-    50  28595(100.0%)  28595(100.0%)  28595(100.0%)
-   100   9854( 34.5%)  15240( 53.3%)  21567( 75.4%)
-   150   3022( 10.6%)   6250( 21.9%)  11230( 39.3%)
+Length         MaxEE 0.50         MaxEE 1.00         MaxEE 2.00
+------   ----------------   ----------------   ----------------
+    50     28595(100.0%)      28595(100.0%)      28595(100.0%)
+   100      9854( 34.5%)      15240( 53.3%)      21567( 75.4%)
+   150      3022( 10.6%)       6250( 21.9%)      11230( 39.3%)
 ```
+
+Rows are always printed for every cutoff length, even when no read
+reaches it (with zero counts).
 
 The length cutoffs are set with `--length_cutoffs` (default `50,*,50`,
 meaning 50, 100, 150, ..., up to the longest sequence in the file). The EE

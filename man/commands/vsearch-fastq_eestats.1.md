@@ -20,16 +20,17 @@ cumulative expected errors. The output is a 21-column tab-separated table
 written to `--output`, with one row per read position. The columns are:
 
 - **Pos**: position in the reads (1-based).
-- **Reads**: number of reads extending to or past this position.
+- **Recs**: number of reads extending to or past this position.
 - **PctRecs**: percentage of reads reaching this position.
-- **Q\_Min**, **Q\_Low**, **Q\_Med**, **Q\_Mean**, **Q\_Hi**, **Q\_Max**:
+- **Min\_Q**, **Low\_Q**, **Med\_Q**, **Mean\_Q**, **Hi\_Q**, **Max\_Q**:
   distribution of the Phred quality score at this position (minimum, lower
   quartile, median, mean, upper quartile, maximum).
-- **Pe\_Min**, **Pe\_Low**, **Pe\_Med**, **Pe\_Mean**, **Pe\_Hi**, **Pe\_Max**:
-  distribution of the per-base error probability at this position.
-- **EE\_Min**, **EE\_Low**, **EE\_Med**, **EE\_Mean**, **EE\_Hi**, **EE\_Max**:
-  distribution of the cumulative expected errors accumulated from position 1
-  to this position.
+- **Min\_Pe**, **Low\_Pe**, **Med\_Pe**, **Mean\_Pe**, **Hi\_Pe**,
+  **Max\_Pe**: distribution of the per-base error probability at this
+  position.
+- **Min\_EE**, **Low\_EE**, **Med\_EE**, **Mean\_EE**, **Hi\_EE**,
+  **Max\_EE**: distribution of the cumulative expected errors accumulated
+  from position 1 to this position.
 
 The quality encoding and accepted score range can be set with `--fastq_ascii`,
 `--fastq_qmin`, and `--fastq_qmax`.

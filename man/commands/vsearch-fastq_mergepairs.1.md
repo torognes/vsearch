@@ -9,7 +9,7 @@ vsearch \-\-fastq_mergepairs --- merge paired-end reads into one sequence
 
 # SYNOPSIS
 
-| **vsearch** **\-\-fastq_mergepairs** _fwdfile_ **\-\-reverse** _revfile_ (**\-\-fastaout** | **\-\-fastqout**) _filename_ \[_options_]
+| **vsearch** **\-\-fastq_mergepairs** _fwdfile_ **\-\-reverse** _revfile_ (**\-\-fastaout** | **\-\-fastqout** | _other output options_) _filename_ \[_options_]
 
 
 # DESCRIPTION
@@ -20,8 +20,8 @@ their overlapping regions. The forward reads are specified as the argument to
 this option; the reverse reads are specified with `--reverse`. Reads are
 matched by position: the first forward read is paired with the first reverse
 read, the second with the second, and so on. Labels are not used for
-matching, but a warning is emitted if the two files contain different numbers
-of reads.
+matching; the run stops with a fatal error if the two files contain
+different numbers of reads.
 
 The reverse read is reverse-complemented before alignment. Merging requires
 an overlap between the two reads of at least `--fastq_minovlen` bases
@@ -32,36 +32,41 @@ heuristics prevent merging of read pairs that cannot be aligned reliably.
 
 In the merged region, quality scores from the two reads are combined using
 the Phred score formula. Outside the overlap, the quality scores from the
-contributing read are used directly. Output quality scores can be clamped
+contributing read are used directly. The quality score of `N` bases is
+replaced by the minimum score (Q0) in every output, including the
+not-merged output files. Output quality scores can be clamped
 with `--fastq_qmaxout` and `--fastq_qminout` (these apply only to the
 merged region).
 
 Staggered pairs — where the 3' end of the reverse read extends past the 5'
 end of the forward read — are discarded by default. Use
-`--fastq_allowmergestagger` to allow them; the overhanging portion is
-excluded from the merged sequence.
+`--fastq_allowmergestagger` to allow them; the overhanging portions of
+both reads are excluded from the merged sequence, which then covers the
+overlap only.
 
-Reads can be pre-filtered with `--fastq_truncqual`, `--fastq_maxee`,
-`--fastq_minlen`, `--fastq_maxlen`, and `--fastq_maxns`. Bounds on the
-merged sequence length are set with `--fastq_minmergelen` and
-`--fastq_maxmergelen`.
+Reads can be pre-filtered with `--fastq_truncqual`, `--fastq_minlen`,
+`--fastq_maxlen` (the length bounds apply after truncation), and
+`--fastq_maxns`; the expected-error filter `--fastq_maxee` applies to
+the *merged* sequence. Bounds on the merged sequence length are set
+with `--fastq_minmergelen` and `--fastq_maxmergelen`.
 
 To illustrate a merge with a 6-base overlap:
 
 ```text
-Forward (5'→3'):   AAAAAAAAATTTTTTTGGG
-Reverse (5'→3'):   CCCCCCCCCCGGGGGG         (reverse complement of rev read)
+Forward (5'→3'):   AAAATTTTTT
+Reverse (5'→3'):   GGGGAAAAAA
 
 Aligned:
-  Forward:    AAAAAAAAATTTTTTTGGG
-  Rev-comp:         TTTTTTTGGGCCCCCCCCCC
+  Forward:      AAAATTTTTT
+  Rev-comp:         TTTTTTCCCC   (reverse complement of the reverse read)
 
-Overlap:            TTTTTTTGGG  (6 bases; scores combined)
-Merged:       AAAAAAAAATTTTTTTGGGCCCCCCCCCC
+Overlap:            TTTTTT      (6 bases; scores combined)
+Merged:         AAAATTTTTTCCCC
 ```
 
-At the end of the run, vsearch prints a report — to standard error,
-or to the log file when `--log` is used — giving the number of merged
+At the end of the run, vsearch prints a report — to standard error
+(unless `--quiet` is given), or to the log file when `--log` is used —
+giving the number of merged
 pairs and, for the pairs that could not be merged, a breakdown by
 reason. Most reasons correspond directly to a user-adjustable
 threshold: `reads too short (after truncation)` (`--fastq_minlen`),
@@ -98,7 +103,11 @@ controllable:
 
 #(./fragments/option_reverse.md)
 
-At least one of the following output options is required:
+At least one output option is required: one of the merged-read
+outputs below, one of the not-merged outputs
+(`--fastaout_notmerged_fwd`, `--fastaout_notmerged_rev`,
+`--fastqout_notmerged_fwd`, `--fastqout_notmerged_rev`), or
+`--eetabbedout` (see the following sections).
 
 #(./fragments/option_fastaout_mergepairs.md)
 

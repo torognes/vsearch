@@ -1,3 +1,4 @@
 `--output` *filename*
-: Write the statistics table to *filename*, in a tab-separated format.
+: Write the statistics table to *filename* (tab-separated for
+  `--fastq_eestats`, space-aligned for `--fastq_eestats2`).
   This option is mandatory.

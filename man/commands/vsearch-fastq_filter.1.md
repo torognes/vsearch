@@ -44,6 +44,12 @@ For paired-end reads, the file with reverse reads is specified with
 `--fastqout_discarded_rev`. Both reads of a pair must pass all filters
 for either to be retained; if one fails, both are discarded.
 
+Discarded sequences are written to the `*_discarded` files in their
+trimmed form: truncation (e.g. `--fastq_truncqual`) is applied before
+the filters, so a read truncated and then rejected appears truncated
+in the discarded output. With `--reverse`, the kept/discarded counts
+in the final report refer to pairs, not to individual reads.
+
 After processing, vsearch reports the number of sequences kept and
 discarded, and how many of the kept sequences were trimmed. Use
 `--eeout` or `--fastq_eeout` to annotate output headers with the

@@ -47,6 +47,12 @@ For paired-end reads, the file with reverse reads is specified with
 `--fastqout_discarded_rev`. Both reads of a pair must pass all filters
 for either to be retained; if one fails, both are discarded.
 
+Discarded sequences are written to the `*_discarded` files in their
+trimmed form: truncation (e.g. `--fastq_truncqual`) is applied before
+the filters, so a read truncated and then rejected appears truncated
+in the discarded output. With `--reverse`, the kept/discarded counts
+in the final report refer to pairs, not to individual reads.
+
 When the input is in fasta format, the following options are not
 accepted because quality scores are not available: `--eeout`,
 `--fastq_eeout`, `--fastq_maxee`, `--fastq_maxee_rate`,

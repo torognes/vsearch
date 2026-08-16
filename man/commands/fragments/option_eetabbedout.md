@@ -1,5 +1,6 @@
 `--eetabbedout` *filename*
-: Write per-pair expected error statistics to *filename*, in a
+: Write expected error statistics for each successfully *merged* pair
+  to *filename* (pairs that could not be merged are not reported), in a
   tab-separated format with four columns: the expected errors in the
   forward read, the expected errors in the reverse read, the observed
   differences in the forward read within the overlap region, and the

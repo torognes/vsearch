@@ -23,7 +23,8 @@ fastq file (see below for an example). Results are written to the
 
 The command `--fastq_chars` tries to automatically detect the quality
 offset (33 or 64) and the fastq format (Solexa, Illumina 1.3+,
-Illumina 1.5+ or Illumina 1.8+/Sanger) by analyzing the range of
+Illumina 1.5+, Illumina 1.8+, or the original Sanger format) by
+analyzing the range of
 observed quality score values. In case of success, `--fastq_chars`
 suggests values for the quality offset `--fastq_ascii` (33 or 64), as
 well as `--fastq_qmin` and `--fastq_qmax` values that could be used
@@ -31,7 +32,7 @@ with other commands. If the quality encoding is ambiguous, an offset
 of 33 is favored. For example:
 
 ```text
-Qmin 45, QMax 73, Range 29
+Qmin 45, Qmax 73, Range 29
 Guess: -fastq_qmin 12 -fastq_qmax 40 -fastq_ascii 33
 Guess: Original Sanger format (phred+33)
 ```
@@ -53,6 +54,9 @@ Letter          N   Freq MaxRun
      G    8731373  24.9%     11
      T   11610889  33.1%     24
 ```
+
+When `N` symbols are present, their row also reports the range of
+quality values observed at `N` positions (`Q=min..max`).
 
 For each quality symbol, `--fastq_chars` gives the ASCII value of the
 symbol (see `ascii(7)`), its relative frequency, and the number of

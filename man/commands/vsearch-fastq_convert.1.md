@@ -20,10 +20,13 @@ quality-score encoding to another. The input encoding is specified with
 `--fastq_asciiout` (default: 33). Both accept the values 33 (phred+33,
 Sanger/Illumina 1.8+) and 64 (phred+64, Solexa/Illumina 1.3+/1.5+).
 
-Quality scores are remapped during conversion. Output scores can be
-clamped to a valid range with `--fastq_qminout` and `--fastq_qmaxout`.
-The input score range is validated against `--fastq_qmin` and
-`--fastq_qmax`.
+Quality scores are remapped during conversion. Output scores are
+always clamped to the range set by `--fastq_qminout` and
+`--fastq_qmaxout`, whose defaults are 0 and 41: scores above 41 are
+silently reduced to 41 and negative scores (e.g. Solexa scores read
+with `--fastq_ascii 64 --fastq_qmin -5`) are raised to 0, unless the
+bounds are changed. The input score range is validated against
+`--fastq_qmin` and `--fastq_qmax`.
 
 Use `--fastq_chars` (see
 [`vsearch-fastq_chars(1)`](./vsearch-fastq_chars.1.md)) to detect the
@@ -32,11 +35,12 @@ encoding of an unknown fastq file before converting.
 To illustrate a conversion from phred+64 to phred+33:
 
 ```text
-Input (phred+64):   --fastq_ascii 64 --fastq_asciiout 33:
+Input (phred+64):    Output (--fastq_ascii 64 --fastq_asciiout 33):
 
->s1                 >s1
-ACGTACGT            ACGTACGT
-hijk                IJKL       (same Phred scores, different ASCII offset)
+@s1                  @s1
+ACGT                 ACGT
++                    +
+hijk                 IJKL    (same Phred scores, different ASCII offset)
 ```
 
 

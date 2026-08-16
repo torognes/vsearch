@@ -21,7 +21,16 @@ Roche 454 and early Ion Torrent PGM sequencing platforms (see
 
 The output fastq file is written to `--fastqout`. The quality encoding
 offset can be set with `--fastq_asciiout` (default 33, phred+33). Output
-quality scores can be clamped with `--fastq_qminout` and `--fastq_qmaxout`.
+quality scores are always clamped to the range set by `--fastq_qminout`
+and `--fastq_qmaxout`, whose defaults are 0 and 41: SFF quality values
+above 41 are silently reduced to 41 unless `--fastq_qmaxout` is raised.
+
+While converting, vsearch reports the number of reads, the flows per
+read, the key sequence, the index type (when an index is present) and
+the minimal, average and maximal read lengths --- to standard error, or
+to the log file when `--log` is used. A warning is emitted when the
+SFF index is missing, when the index is at an unusual position in the
+file, or when additional data follow the end of the SFF content.
 
 Each SFF read stores clipping coordinates that indicate low-quality or
 adapter regions at the ends of the sequence. By default, no clipping is
