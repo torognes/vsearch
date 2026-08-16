@@ -152,7 +152,10 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 man1dir = $(mandir)/man1
-am__installdirs = "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"
+am__installdirs = "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" \
+	"$(DESTDIR)$(man7dir)" "$(DESTDIR)$(docdir)"
+man5dir = $(mandir)/man5
+man7dir = $(mandir)/man7
 NROFF = nroff
 MANS = $(dist_man_MANS)
 DATA = $(doc_DATA)
@@ -267,7 +270,75 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-dist_man_MANS = vsearch.1
+
+# The modular manual pages are generated from the markdown sources in
+# commands/, formats/ and misc/ by scripts/generate_manpages.sh (which
+# needs pandoc). They are shipped pregenerated in release tarballs, so
+# building from a tarball does not require pandoc; in a git checkout
+# the stamp rule below builds them on demand.
+GENERATED_MANS = \
+  manpages/vsearch-allpairs_global.1 \
+  manpages/vsearch-chimeras_denovo.1 \
+  manpages/vsearch-cigar.5 \
+  manpages/vsearch-cluster_fast.1 \
+  manpages/vsearch-cluster_size.1 \
+  manpages/vsearch-cluster_smallmem.1 \
+  manpages/vsearch-cluster_unoise.1 \
+  manpages/vsearch-cut.1 \
+  manpages/vsearch-derep_fulllength.1 \
+  manpages/vsearch-derep_id.1 \
+  manpages/vsearch-derep_prefix.1 \
+  manpages/vsearch-derep_smallmem.1 \
+  manpages/vsearch-expected_error.7 \
+  manpages/vsearch-fasta.5 \
+  manpages/vsearch-fasta2fastq.1 \
+  manpages/vsearch-fastq.5 \
+  manpages/vsearch-fastq_chars.1 \
+  manpages/vsearch-fastq_convert.1 \
+  manpages/vsearch-fastq_eestats.1 \
+  manpages/vsearch-fastq_eestats2.1 \
+  manpages/vsearch-fastq_filter.1 \
+  manpages/vsearch-fastq_join.1 \
+  manpages/vsearch-fastq_mergepairs.1 \
+  manpages/vsearch-fastq_stats.1 \
+  manpages/vsearch-fastx_filter.1 \
+  manpages/vsearch-fastx_getseq.1 \
+  manpages/vsearch-fastx_getseqs.1 \
+  manpages/vsearch-fastx_getsubseq.1 \
+  manpages/vsearch-fastx_mask.1 \
+  manpages/vsearch-fastx_revcomp.1 \
+  manpages/vsearch-fastx_subsample.1 \
+  manpages/vsearch-fastx_syncpairs.1 \
+  manpages/vsearch-fastx_uniques.1 \
+  manpages/vsearch-help.1 \
+  manpages/vsearch-makeudb_usearch.1 \
+  manpages/vsearch-maskfasta.1 \
+  manpages/vsearch-nucleotides.7 \
+  manpages/vsearch-orient.1 \
+  manpages/vsearch-pairwise_alignment_parameters.7 \
+  manpages/vsearch-rereplicate.1 \
+  manpages/vsearch-sam.5 \
+  manpages/vsearch-search_exact.1 \
+  manpages/vsearch-sff.5 \
+  manpages/vsearch-sff_convert.1 \
+  manpages/vsearch-shuffle.1 \
+  manpages/vsearch-sintax.1 \
+  manpages/vsearch-sortbylength.1 \
+  manpages/vsearch-sortbysize.1 \
+  manpages/vsearch-uchime2_denovo.1 \
+  manpages/vsearch-uchime3_denovo.1 \
+  manpages/vsearch-uchime_denovo.1 \
+  manpages/vsearch-uchime_ref.1 \
+  manpages/vsearch-udb.5 \
+  manpages/vsearch-udb2fasta.1 \
+  manpages/vsearch-udbinfo.1 \
+  manpages/vsearch-udbstats.1 \
+  manpages/vsearch-usearch_global.1 \
+  manpages/vsearch-userfields.7 \
+  manpages/vsearch-version.1
+
+dist_man_MANS = vsearch.1 $(GENERATED_MANS)
+MAINTAINERCLEANFILES = manpages.stamp
 doc_DATA = $(am__append_1) $(am__append_3)
 CLEANFILES = $(am__append_2) $(am__append_4)
 all: all-am
@@ -345,6 +416,92 @@ uninstall-man1:
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^1][0-9a-z]*$$,1,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man1dir)'; $(am__uninstall_files_from_dir)
+install-man5: $(dist_man_MANS)
+	@$(NORMAL_INSTALL)
+	@list1=''; \
+	list2='$(dist_man_MANS)'; \
+	test -n "$(man5dir)" \
+	  && test -n "`echo $$list1$$list2`" \
+	  || exit 0; \
+	echo " $(MKDIR_P) '$(DESTDIR)$(man5dir)'"; \
+	$(MKDIR_P) "$(DESTDIR)$(man5dir)" || exit 1; \
+	{ for i in $$list1; do echo "$$i"; done;  \
+	if test -n "$$list2"; then \
+	  for i in $$list2; do echo "$$i"; done \
+	    | sed -n '/\.5[a-z]*$$/p'; \
+	fi; \
+	} | while read p; do \
+	  if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; echo "$$p"; \
+	done | \
+	sed -e 'n;s,.*/,,;p;h;s,.*\.,,;s,^[^5][0-9a-z]*$$,5,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,' | \
+	sed 'N;N;s,\n, ,g' | { \
+	list=; while read file base inst; do \
+	  if test "$$base" = "$$inst"; then list="$$list $$file"; else \
+	    echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man5dir)/$$inst'"; \
+	    $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man5dir)/$$inst" || exit $$?; \
+	  fi; \
+	done; \
+	for i in $$list; do echo "$$i"; done | $(am__base_list) | \
+	while read files; do \
+	  test -z "$$files" || { \
+	    echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(man5dir)'"; \
+	    $(INSTALL_DATA) $$files "$(DESTDIR)$(man5dir)" || exit $$?; }; \
+	done; }
+
+uninstall-man5:
+	@$(NORMAL_UNINSTALL)
+	@list=''; test -n "$(man5dir)" || exit 0; \
+	files=`{ for i in $$list; do echo "$$i"; done; \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	  sed -n '/\.5[a-z]*$$/p'; \
+	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^5][0-9a-z]*$$,5,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
+	dir='$(DESTDIR)$(man5dir)'; $(am__uninstall_files_from_dir)
+install-man7: $(dist_man_MANS)
+	@$(NORMAL_INSTALL)
+	@list1=''; \
+	list2='$(dist_man_MANS)'; \
+	test -n "$(man7dir)" \
+	  && test -n "`echo $$list1$$list2`" \
+	  || exit 0; \
+	echo " $(MKDIR_P) '$(DESTDIR)$(man7dir)'"; \
+	$(MKDIR_P) "$(DESTDIR)$(man7dir)" || exit 1; \
+	{ for i in $$list1; do echo "$$i"; done;  \
+	if test -n "$$list2"; then \
+	  for i in $$list2; do echo "$$i"; done \
+	    | sed -n '/\.7[a-z]*$$/p'; \
+	fi; \
+	} | while read p; do \
+	  if test -f $$p; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; echo "$$p"; \
+	done | \
+	sed -e 'n;s,.*/,,;p;h;s,.*\.,,;s,^[^7][0-9a-z]*$$,7,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,' | \
+	sed 'N;N;s,\n, ,g' | { \
+	list=; while read file base inst; do \
+	  if test "$$base" = "$$inst"; then list="$$list $$file"; else \
+	    echo " $(INSTALL_DATA) '$$file' '$(DESTDIR)$(man7dir)/$$inst'"; \
+	    $(INSTALL_DATA) "$$file" "$(DESTDIR)$(man7dir)/$$inst" || exit $$?; \
+	  fi; \
+	done; \
+	for i in $$list; do echo "$$i"; done | $(am__base_list) | \
+	while read files; do \
+	  test -z "$$files" || { \
+	    echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(man7dir)'"; \
+	    $(INSTALL_DATA) $$files "$(DESTDIR)$(man7dir)" || exit $$?; }; \
+	done; }
+
+uninstall-man7:
+	@$(NORMAL_UNINSTALL)
+	@list=''; test -n "$(man7dir)" || exit 0; \
+	files=`{ for i in $$list; do echo "$$i"; done; \
+	l2='$(dist_man_MANS)'; for i in $$l2; do echo "$$i"; done | \
+	  sed -n '/\.7[a-z]*$$/p'; \
+	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^7][0-9a-z]*$$,7,;x' \
+	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
+	dir='$(DESTDIR)$(man7dir)'; $(am__uninstall_files_from_dir)
 install-docDATA: $(doc_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(doc_DATA)'; test -n "$(docdir)" || list=; \
@@ -409,7 +566,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(MANS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(docdir)"; do \
+	for dir in "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man7dir)" "$(DESTDIR)$(docdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -443,6 +600,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-generic mostlyclean-am
@@ -479,7 +637,7 @@ install-info: install-info-am
 
 install-info-am:
 
-install-man: install-man1
+install-man: install-man1 install-man5 install-man7
 
 install-pdf: install-pdf-am
 
@@ -509,7 +667,7 @@ ps-am:
 
 uninstall-am: uninstall-docDATA uninstall-man
 
-uninstall-man: uninstall-man1
+uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7
 
 .MAKE: install-am install-strip
 
@@ -519,14 +677,22 @@ uninstall-man: uninstall-man1
 	install-data-am install-docDATA install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man install-man1 \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic pdf pdf-am ps ps-am tags-am uninstall \
-	uninstall-am uninstall-docDATA uninstall-man uninstall-man1
+	install-man5 install-man7 install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
+	pdf-am ps ps-am tags-am uninstall uninstall-am \
+	uninstall-docDATA uninstall-man uninstall-man1 uninstall-man5 \
+	uninstall-man7
 
 .PRECIOUS: Makefile
 
+
+$(GENERATED_MANS): manpages.stamp
+	@:
+manpages.stamp:
+	cd $(srcdir) && bash scripts/generate_manpages.sh
+	touch $@
 
 @HAVE_MAN_HTML_TRUE@vsearch_manual.html : vsearch.1
 @HAVE_MAN_HTML_TRUE@	sed -e 's/\\-/-/g' $< | \
