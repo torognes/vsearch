@@ -869,10 +869,8 @@ auto derep(struct Parameters const & parameters, Derep_mode const mode) -> void
             fatal("Cannot write FASTQ output when input file is not in FASTQ "
                   "format");
           }
-          if (parameters.opt_tabbedout != nullptr) {
-            fatal("Cannot write tab separated output file when input file is "
-                  "not in FASTQ format");
-          }
+          /* --tabbedout used to be rejected here too, but none of its six
+             columns depends on quality data, so fasta input is accepted */
         }
     }
 
