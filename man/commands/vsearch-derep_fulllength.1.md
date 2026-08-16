@@ -84,6 +84,8 @@ of the input formats.
 
 #(./fragments/option_gzip_decompress.md)
 
+#(./fragments/option_label_suffix.md)
+
 #(./fragments/option_lengthout.md)
 
 #(./fragments/option_log.md)

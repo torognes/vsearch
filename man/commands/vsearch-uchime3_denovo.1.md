@@ -9,13 +9,14 @@ vsearch \-\-uchime3_denovo --- detect chimeras *de novo* using the UCHIME2 algor
 
 # SYNOPSIS
 
-| **vsearch** **\-\-uchime3_denovo** _fastafile_ (**\-\-borderline** | **\-\-chimeras** | **\-\-nonchimeras** | **\-\-uchimealns** | **\-\-uchimeout**) _filename_ \[_options_]
+| **vsearch** **\-\-uchime3_denovo** _fastxfile_ (**\-\-borderline** | **\-\-chimeras** | **\-\-nonchimeras** | **\-\-uchimealns** | **\-\-uchimeout**) _filename_ \[_options_]
 
 
 # DESCRIPTION
 
 The vsearch command `--uchime3_denovo` detects chimeric sequences
-present in the fasta-formatted *fastafile*, without the use of
+present in the fasta- or fastq-formatted *fastxfile* (quality
+values are ignored), without the use of
 external references (*de novo*). It uses the UCHIME2 algorithm, which
 is designed for denoised amplicons (see `--cluster_unoise`). The only
 difference from `--uchime2_denovo` is that the default minimum
@@ -45,8 +46,9 @@ See also `--uchime_denovo` for the original UCHIME algorithm and
 
 ## mandatory options
 
-`--uchime3_denovo` *fastafile*
-: Detect chimeras *de novo* in the fasta-formatted *fastafile* using
+`--uchime3_denovo` *fastxfile*
+: Detect chimeras *de novo* in the fasta- or fastq-formatted
+  *fastxfile* (quality values are ignored) using
   the UCHIME2 algorithm with a stricter default abundance skew. This
   option is mandatory.
 

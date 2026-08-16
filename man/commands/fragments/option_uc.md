@@ -5,7 +5,9 @@
 
     1. record type (`S`, `H`, or `C`);
     2. cluster number (zero-based);
-    3. centroid length (`S`), query length (`H`), or cluster size (`C`);
+    3. centroid length (`S`), query length (`H`), or cluster size (`C`):
+       the number of sequences in the cluster, or their total abundance
+       when `--sizein` is used;
     4. percent identity with centroid (`H`), or `*` (`S`, `C`);
     5. match orientation `+` or `-` (`H`), or `*` (`S`, `C`);
     6. not used; always `0` (`H`) or `*` (`S`, `C`);

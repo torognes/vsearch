@@ -4,18 +4,20 @@
 
 # NAME
 
-vsearch \-\-makeudb_usearch --- create a UDB database file from a fasta file
+vsearch \-\-makeudb_usearch --- create a UDB database file from a fasta
+or fastq file
 
 
 # SYNOPSIS
 
-| **vsearch** **\-\-makeudb_usearch** _fastafile_ **\-\-output** _dbfile_ \[_options_]
+| **vsearch** **\-\-makeudb_usearch** _fastxfile_ **\-\-output** _dbfile_ \[_options_]
 
 
 # DESCRIPTION
 
 The vsearch command `--makeudb_usearch` creates a UDB database file
-from the FASTA-formatted sequences in *fastafile*. The UDB file is a
+from the sequences in *fastxfile*, in fasta or fastq format (quality
+values are ignored and are not stored in the database). The UDB file is a
 binary format that contains the sequences together with a *k*-mer
 index, and can be quickly loaded into memory. Using a UDB file avoids
 re-indexing the database on every run, which is worthwhile when the
@@ -25,7 +27,7 @@ same database is searched repeatedly with `--usearch_global` or
 Both `--makeudb_usearch` and `--output` must be specified.
 
 The database must contain at least one sequence. vsearch reports a fatal
-error and stops if *fastafile* is empty, or if all of its sequences are
+error and stops if *fastxfile* is empty, or if all of its sequences are
 discarded by `--minseqlength` (32 nucleotides by default for this
 command), since a UDB file recording no sequence cannot be read back.
 
@@ -37,9 +39,9 @@ of the UDB file format.
 
 ## mandatory options
 
-`--makeudb_usearch` *fastafile*
-: Read fasta sequences from *fastafile* and create a UDB database.
-  This option is mandatory.
+`--makeudb_usearch` *fastxfile*
+: Read fasta or fastq sequences from *fastxfile* and create a UDB
+  database (quality values are ignored). This option is mandatory.
 
 #(./fragments/option_output_makeudb.md)
 

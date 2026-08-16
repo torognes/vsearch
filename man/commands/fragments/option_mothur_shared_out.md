@@ -5,4 +5,8 @@
   subsequent line starts with `vsearch`, the sample identifier, the
   total number of OTUs, and the abundance of each OTU in that sample.
   Sample and OTU identifiers are extracted from FASTA headers. OTUs
-  are represented by the cluster centroids.
+  are represented by the cluster centroids. Abundance annotations
+  (`;size=integer`) present in sequence headers are always used when
+  filling the table, whether or not `--sizein` is given (unlike the
+  `--uc` cluster summaries, which count each sequence as 1 without
+  `--sizein`).

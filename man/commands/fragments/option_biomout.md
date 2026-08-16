@@ -6,4 +6,8 @@
   header). OTU identifiers are extracted from centroid headers
   (`;otu=def789;` pattern, or the initial part of the header, or via
   relabelling options). Taxonomy information is extracted from centroid
-  headers (`;tax=...;` pattern) if available.
+  headers (`;tax=...;` pattern) if available. Abundance annotations
+  (`;size=integer`) present in sequence headers are always used when
+  filling the table, whether or not `--sizein` is given (unlike the
+  `--uc` cluster summaries, which count each sequence as 1 without
+  `--sizein`).
