@@ -19,7 +19,11 @@ The vsearch command `--fastx_uniques` groups strictly identical
 sequences from a fasta or fastq file, like `--derep_fulllength` (see
 [`vsearch-derep_fulllength(1)`](./vsearch-derep_fulllength.1.md)).
 The unique sequences are written to `--fastaout` and/or `--fastqout`,
-sorted by decreasing abundance.
+sorted by decreasing abundance (ties are broken by header, in
+alphanumerical order, then by input order). `--fastqout` requires
+fastq input; `--maxuniquesize`, `--minuniquesize` and `--topn` filter
+the fasta and fastq outputs only, while the `--uc` and `--tabbedout`
+outputs always list all clusters.
 
 When the input is a fastq file, quality scores in the output
 correspond by default to the average error probability at each
@@ -41,7 +45,8 @@ of the input formats.
 
 ## mandatory options
 
-At least one of `--fastaout` or `--fastqout` must be specified.
+At least one of `--fastaout`, `--fastqout`, `--tabbedout`, or `--uc`
+must be specified.
 
 
 ## core options

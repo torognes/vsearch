@@ -87,6 +87,8 @@ command `--fastx_uniques` (see
 #(./fragments/option_xlength.md)
 
 #(./fragments/option_xsize.md)
+: Always implied: abundance annotations are always stripped from the
+  output, whether or not `--xsize` is given.
 
 
 ## ignored options

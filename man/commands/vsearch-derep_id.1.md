@@ -4,13 +4,13 @@
 
 # NAME
 
-vsearch \-\-derep_id --- merge identical fasta or fastq sequences sharing
-the same label
+vsearch \-\-derep_id --- merge identical fasta sequences sharing the
+same label
 
 
 # SYNOPSIS
 
-| **vsearch** **\-\-derep_id** _fastxfile_ \-\-output _filename_ \[_options_]
+| **vsearch** **\-\-derep_id** _fastafile_ \-\-output _filename_ \[_options_]
 
 
 # DESCRIPTION
@@ -21,22 +21,29 @@ the unique sequences to `--output`, in fasta format, sorted by
 decreasing abundance. It behaves like `--derep_fulllength` (see
 [`vsearch-derep_fulllength(1)`](./vsearch-derep_fulllength.1.md)),
 with the additional requirement that the sequence label (the first
-word of the header line) must be identical across all sequences in
-a group. Sequences with identical nucleotides but different labels are
-not grouped.
+word of the header line, or the whole line under `--notrunclabels`)
+must be identical across all sequences in a group. Abundance
+annotations embedded in the label (such as `;size=`) count as part of
+it: `>a;size=5` and `>a;size=9` are different labels. Sequences with
+identical nucleotides but different labels are not grouped.
 
 This command is not multithreaded. The inverse operation is
 `--rereplicate` (see
 [`vsearch-rereplicate(1)`](./vsearch-rereplicate.1.md)).
 
-See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
-[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for a description
-of the input formats.
+Fastq input is rejected: use `--fastx_uniques` (see
+[`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md)) to
+dereplicate fastq files. See
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) for a description
+of the input format.
 
 
 # OPTIONS
 
 ## mandatory options
+
+At least one of `--output` or `--uc` (see core options) must be
+specified.
 
 #(./fragments/option_output.md)
 

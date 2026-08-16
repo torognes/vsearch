@@ -4,20 +4,21 @@
 
 # NAME
 
-vsearch \-\-derep_fulllength --- merge strictly identical fasta or fastq
+vsearch \-\-derep_fulllength --- merge strictly identical fasta
 sequences
 
 
 # SYNOPSIS
 
-| **vsearch** **\-\-derep_fulllength** _fastxfile_ \-\-output _filename_ \[_options_]
+| **vsearch** **\-\-derep_fulllength** _fastafile_ \-\-output _filename_ \[_options_]
 
 
 # DESCRIPTION
 
 The vsearch command `--derep_fulllength` groups strictly identical
-sequences from *fastxfile* and writes the unique sequences to
-`--output`, in fasta format, sorted by decreasing abundance. Two
+sequences from *fastafile* and writes the unique sequences to
+`--output`, in fasta format, sorted by decreasing abundance (ties are
+broken by header, in alphanumerical order, then by input order). Two
 sequences are identical if they have the same length and the same
 nucleotide string (comparison is case-insensitive; T and U are treated
 as equivalent). Each unique sequence retains the header of the first
@@ -28,7 +29,7 @@ Input:           Output (--sizeout):
 
 >s1              >s1;size=2
 AAAA             AAAA
->s2    -->       >s3
+>s2    -->       >s3;size=1
 AAAA             TTTT
 >s3
 TTTT
@@ -41,20 +42,27 @@ Use `--sizein` to take existing abundance annotations into account when
 counting. Use `--sizeout` to add abundance annotations to output
 sequences. Use `--maxuniquesize` and `--minuniquesize` to filter on
 post-dereplication abundance. Additional output in uclust-like format
-is available with `--uc`.
+is available with `--uc`. Note that `--maxuniquesize`,
+`--minuniquesize` and `--topn` filter the fasta output only: the
+`--uc` output always lists all clusters.
 
 This command is not multithreaded. The inverse operation is
 `--rereplicate` (see
 [`vsearch-rereplicate(1)`](./vsearch-rereplicate.1.md)).
 
-See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) and
-[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md) for a description
-of the input formats.
+Fastq input is rejected: use `--fastx_uniques` (see
+[`vsearch-fastx_uniques(1)`](./vsearch-fastx_uniques.1.md)) to
+dereplicate fastq files. See
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) for a description
+of the input format.
 
 
 # OPTIONS
 
 ## mandatory options
+
+At least one of `--output` or `--uc` (see core options) must be
+specified.
 
 #(./fragments/option_output.md)
 

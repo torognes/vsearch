@@ -26,7 +26,7 @@ Input:                Output (--sizeout):
 
 >long                 >long;size=2
 AAAACCCG              AAAACCCG
->short    -->         >other
+>short    -->         >other;size=1
 AAAA                  TTTT
 >other
 TTTT
@@ -38,8 +38,13 @@ grouped with 'long'.
 If a short sequence is a prefix of multiple longer sequences, it is
 grouped with the shortest. Ties in length are resolved by decreasing
 abundance, then by header in alphanumerical order, then by input
-order. The unique sequences are written to `--output`, in fasta
-format, sorted by decreasing abundance.
+order. Note that these length ties consider abundance annotations
+even without `--sizein` (`--sizein` only controls how abundances are
+counted). The unique sequences are written to `--output`, in fasta
+format, sorted by decreasing abundance (ties broken by header, then
+input order). `--maxuniquesize`, `--minuniquesize` and `--topn`
+filter the fasta output only: the `--uc` output always lists all
+clusters.
 
 This command is not multithreaded. The inverse operation is
 `--rereplicate` (see
@@ -53,6 +58,9 @@ of the input formats.
 # OPTIONS
 
 ## mandatory options
+
+At least one of `--output` or `--uc` (see core options) must be
+specified.
 
 #(./fragments/option_output.md)
 
