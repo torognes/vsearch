@@ -26,10 +26,16 @@ algorithm identifies candidate chimeras by finding three-way
 alignments where a query sequence can be modelled as a mosaic of two
 parent sequences.
 
-Input sequences must carry abundance annotations in their headers
+Input sequences should carry abundance annotations in their headers
 (e.g. `;size=integer;`). `--sizein` is always implied; it does not
-need to be specified. Sequences are automatically sorted by decreasing
-abundance before chimera detection. The assumption is that chimeras
+need to be specified. Entries without annotations silently count as
+`size=1`: when no sequence carries an annotation, no candidate can
+pass the default abundance-skew requirement (see `--abskew`) and no
+chimera is ever reported. Sequences are automatically sorted by
+decreasing abundance before chimera detection, and each sequence is
+compared only against the previously processed, more abundant
+sequences that were classified non-chimeric (borderline and chimeric
+sequences are never used as parents). The assumption is that chimeras
 appear later in the PCR amplification process and are therefore less
 abundant than their parents (see `--abskew`).
 

@@ -25,7 +25,10 @@ sequence headers are taken into account by default. This means that
 option `--sizein` is always implied, and does not need to be
 specified.
 
-Sequences are sorted into chimeras and non-chimeras, and can be
+Input sequences are automatically sorted by decreasing abundance
+before detection, and each sequence is compared only against the
+previously processed, more abundant sequences that were classified
+non-chimeric. Sequences are sorted into chimeras and non-chimeras, and can be
 written to fasta files (see output options `--chimeras`,
 `--nonchimeras`). Additional information on each chimera can be
 collected with the output options `--tabbedout` and `--alnout`. The

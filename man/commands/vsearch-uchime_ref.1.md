@@ -156,7 +156,9 @@ Modify with caution.
   *de novo* commands only.
 
 #(./fragments/option_sizein.md)
-: Ignored by `--uchime_ref`.
+: Has no effect with `--uchime_ref`: abundance annotations are always
+  parsed (entries without annotations count as 1) and feed the summary
+  counts and `--sizeout`.
 
 
 # EXAMPLES
