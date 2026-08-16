@@ -1,8 +1,11 @@
 `--consout` *filename*
 : Write cluster consensus sequences to *filename*. For each cluster, a
   center-star multiple sequence alignment is computed with the centroid
-  as the center, using a fast algorithm. A consensus sequence is
-  constructed by taking the majority symbol (nucleotide or gap) from
-  each column of the alignment. Columns containing a majority of gaps
-  are skipped, except for terminal gaps. If `--sizein` is specified,
-  sequence abundances are taken into account.
+  as the center, using a fast algorithm. The consensus record's header
+  is `>centroid=<label>;seqs=<n>`, where *n* is the number of
+  sequences in the cluster. Each alignment column within the
+  centroid's span contributes its most frequent nucleotide, or nothing
+  when gaps outnumber every nucleotide; columns outside the centroid's
+  span (terminal extensions contributed by longer members) are always
+  omitted. If `--sizein` is specified, sequence abundances are taken
+  into account.

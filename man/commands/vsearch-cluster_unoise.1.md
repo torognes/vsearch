@@ -21,16 +21,22 @@ chimera removal step may be performed separately with
 `--uchime3_denovo` (see
 [`vsearch-uchime3_denovo(1)`](./vsearch-uchime3_denovo.1.md)).
 
-The input sequences are expected to be sorted by decreasing abundance,
-and must carry abundance annotations in their headers (e.g.
-`;size=integer;`). Use `--sizein` to read this information.
+The input sequences are automatically sorted by decreasing abundance
+before denoising, and should carry abundance annotations in their
+headers (e.g. `;size=integer;`). Annotations are read whether or not
+`--sizein` is given --- they drive the sorting, the `--minsize` filter
+and the abundance-ratio rule below; `--sizein` only controls how
+abundances are counted in the outputs (see `--sizeout`). Entries
+without annotations count as 1 and are therefore discarded by the
+default `--minsize` of 8.
 
 At least one output option must be specified.
 
 Unlike the standard clustering commands, `--cluster_unoise` does not
 use a fixed identity threshold (`--id`). Instead, a sequence is
 assigned to an existing cluster if two conditions are met: (1) the
-sequence identity with the centroid is high enough, and (2) the
+sequence identity with the centroid is at least 90% (the default
+identity floor, adjustable with `--weak_id`), and (2) the
 abundance ratio (the abundance of the candidate divided by the
 abundance of the centroid) does not exceed *beta*. Beta is computed as
 2^(-1 - alpha × distance), where *alpha* is set with `--unoise_alpha`
@@ -38,7 +44,9 @@ abundance of the centroid) does not exceed *beta*. Beta is computed as
 alignment, ignoring gaps. As a result, sequences must be exponentially
 less abundant as their distance from the centroid increases in order to
 be grouped together; more abundant sequences at any distance will form
-their own new clusters.
+their own new clusters. A candidate whose alignment with the centroid
+contains no mismatches (only gaps) is always merged, whatever the
+abundance ratio.
 
 The minimum abundance threshold for input sequences is controlled by
 `--minsize` (default 8). Sequences with an abundance below this value
@@ -116,8 +124,6 @@ are excluded before denoising.
 #(./fragments/option_gzip_decompress.md)
 
 #(./fragments/option_hardmask.md)
-
-#(./fragments/option_id.md)
 
 #(./fragments/option_idprefix.md)
 
@@ -244,6 +250,11 @@ are excluded before denoising.
 
 #(./fragments/option_band.md)
 
+#(./fragments/option_id.md)
+: Ignored by `--cluster_unoise`: the UNOISE acceptance rule uses the
+  fixed identity floor described above (see `--weak_id`), never
+  `--id`.
+
 #(./fragments/option_cons_truncate.md)
 
 #(./fragments/option_fulldp.md)
@@ -282,7 +293,7 @@ vsearch \
     --nonchimeras amplicons.fasta
 ```
 
-Denoise with a stricter minimum abundance threshold:
+Denoise with a lower (more permissive) minimum abundance threshold:
 
 ```sh
 vsearch \

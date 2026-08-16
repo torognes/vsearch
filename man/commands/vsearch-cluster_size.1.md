@@ -16,9 +16,10 @@ vsearch \-\-cluster_size --- clusterize sequences sorted by decreasing abundance
 
 The vsearch command `--cluster_size` groups the fasta sequences in
 *fastafile* into clusters using a greedy, heuristic, centroid-based
-algorithm, also known as abundance-based greedy clustering (AGC). Input
-sequences are automatically sorted by decreasing abundance before
-clustering. At least one output option must be specified.
+algorithm. Input sequences are automatically sorted by decreasing
+abundance before clustering (a query joins the *closest* compatible
+centroid by default; abundance-based greedy clustering, AGC, where it
+joins the most abundant one, is only enabled by `--sizeorder`). At least one output option must be specified.
 
 For each query sequence (in order of decreasing abundance), vsearch
 compares it to all existing cluster centroids. If the query is similar
@@ -31,11 +32,13 @@ Sequences are compared using global pairwise alignment
 (Needleman-Wunsch). The number of comparisons is limited by
 `--maxaccepts` and `--maxrejects`.
 
-Abundance information must be present in the fasta headers (e.g.
-`;size=integer;`). Use `--sizein` to read this information. If no
-abundance information is present, all sequences are considered equally
-abundant and the clustering result will be equivalent to
-`--cluster_fast`.
+Abundance annotations (`;size=integer`) present in the fasta headers
+are always used for the initial sorting, whether or not `--sizein` is
+given (`--sizein` controls how abundances are counted in the outputs,
+see `--sizeout`). Sequences without annotations count as 1; ties are
+broken by header label, in alphanumerical order, then by input order
+--- never by length, so the result is not equivalent to
+`--cluster_fast` even when no annotations are present.
 
 `--cluster_fast` (see
 [`vsearch-cluster_fast(1)`](./vsearch-cluster_fast.1.md)) performs the
@@ -45,7 +48,8 @@ of abundance.
 `--cluster_smallmem` (see
 [`vsearch-cluster_smallmem(1)`](./vsearch-cluster_smallmem.1.md))
 performs the same clustering but skips the initial sorting step,
-expecting the input to be already sorted.
+expecting the input to be already sorted by decreasing length (or use
+`--usersort`).
 
 See [`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md) for a
 description of the input format.
