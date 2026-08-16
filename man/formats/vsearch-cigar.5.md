@@ -55,24 +55,18 @@ possible column types in a gapped pairwise alignment (see
   query (a gap in the query).
 
 Other operation letters defined by the SAM specification (`X`, `=`,
-`N`, `S`, `H`, `P`) are not produced by vsearch and are rejected when
-reading CIGAR strings.
+`N`, `S`, `H`, `P`) are never produced by vsearch.
 
 
 ## Run-length encoding
 
 Consecutive columns of the same operation type are grouped into a
 single run. The number of columns in a run is written as a decimal
-integer immediately before the operation letter. A run-length of 1 is
-implicit and may be omitted: `M` is equivalent to `1M`, and `MID` is
-equivalent to `1M1I1D`. Leading zeros are accepted (`03M` is
-equivalent to `3M`). A run-length of 0 is accepted and produces a
-zero-length operation.
-
-Run-lengths are positive integers at most equal to the largest value
-representable by the C `int` type (2,147,483,647 on most platforms,
-see `limits.h(0p)`). There is no maximum total length for a CIGAR
-string.
+integer immediately before the operation letter, without leading
+zeros. A run-length of 1 is implicit and omitted: vsearch writes `M`,
+not `1M`, and `MID` rather than `1M1I1D`. Run-lengths are positive and
+bounded by the alignment length; there is no maximum total length for
+a CIGAR string.
 
 
 ## Empty and missing alignments
@@ -85,27 +79,27 @@ output format:
 
 - the `aln` and `caln` [userfields](../misc/vsearch-userfields.7.md)
   (`--userout`) produce an empty field;
-- the `--blast6out` tabular output produces an empty field;
 - the `--samout` (SAM) and `--uc` (UCLUST-like) outputs produce the
   single character `*`.
+
+(The `--blast6out` tabular output contains no CIGAR field at all.)
 
 
 ## Exact-match shorthand
 
 As a vsearch-specific convention, a CIGAR string consisting of the
-single character `=` is emitted in `--uc` and `--userout`
-(`--userfields caln`) outputs when the query is identical to the
-target, ignoring terminal gaps. This shorthand is not part of the SAM
-specification and is not produced in `--samout` or `--blast6out`
-outputs, which always emit explicit operations.
+single character `=` is emitted in the `--uc` output (and only there)
+when the query and the target sequences are strictly identical; with
+`--cluster_fast`, terminal gaps are ignored when deciding identity.
+This shorthand is not part of the SAM specification; `--samout` and
+the `caln` userfield always emit explicit operations.
 
 
 ## Ill-formed strings
 
-vsearch reports a fatal error when reading a CIGAR string that ends
-with one or more digits not followed by an operation letter (for
-example `12M1`), or that contains any character other than the digits
-`0`--`9` and the letters `M`, `I`, and `D`.
+vsearch never reads CIGAR strings from its input files: the strings
+it writes are always well-formed as described above, and there is no
+user-facing path that parses one back.
 
 
 # EXAMPLES

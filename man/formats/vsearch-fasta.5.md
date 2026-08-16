@@ -24,8 +24,14 @@ between '>' and the first space, tab, or newline, unless `--notrunclabels`
 is in effect, in which case the entire line after '>' is used as the label.
 
 The header should contain printable ASCII characters (values 33–126, see
-`ascii(7)`). Unprintable characters (values 0–32 and 127) cause a fatal
-error. Non-ASCII characters (values 128–255) trigger a warning.
+`ascii(7)`). The control characters 1–8, 11–12, 14–31 and 127 cause a
+fatal error; the tabulation (9) is accepted; a NUL byte (0) silently
+truncates the label; carriage returns (13) and newlines (10) terminate
+the line. Non-ASCII characters (values 128–255) trigger a warning.
+This check covers the part of the header the command retains: the
+label by default, or the whole header line for the filtering commands
+(`--fastq_filter`, `--fastx_filter`) and when `--notrunclabels` is in
+effect.
 
 ## Sequence
 

@@ -43,8 +43,8 @@ for a description of the alignment model and identity definitions.
 `caln`
 : Compact pairwise alignment in CIGAR format (Compact Idiosyncratic
   Gapped Alignment Report): `M` (match or mismatch), `D` (deletion),
-  `I` (insertion). The equal sign `=` indicates that the query is
-  identical to the centroid sequence (ignoring terminal gaps). Empty if
+  `I` (insertion). Explicit operations are always written (the `=`
+  exact-match shorthand appears only in `--uc` output). Empty if
   there is no alignment. See
   [`vsearch-cigar(5)`](../formats/vsearch-cigar.5.md) for a complete
   description.
