@@ -159,6 +159,12 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
   if (not attribute_is_present) { return; }
   auto offset = tax_start + length_of_attribute_name;
 
+  /* taxon names cannot contain commas or semicolons (see the manual), so
+     the comma searches below must stop at the end of the tax= field: an
+     unbounded search used to extend the last taxon name across the closing
+     ';' when a later header field contained a comma */
+  auto const * const field_end = header.begin() + tax_end;
+
   while (offset < tax_end)
     {
       /* Is the next char a recognized tax level letter? */
@@ -179,8 +185,8 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
             {
               levels[level].start = offset + 2;
 
-              auto const * const next_comma = std::find(header.begin() + offset + 2, header.end(), ',');
-              if (next_comma != header.end())
+              auto const * const next_comma = std::find(header.begin() + offset + 2, field_end, ',');
+              if (next_comma != field_end)
                 {
                   levels[level].length = static_cast<int>(std::distance(header.begin(), next_comma)) - offset - 2;
                 }
@@ -192,8 +198,8 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
         }
 
       /* skip past next comma */
-      auto const * const next_comma_bis = std::find(header.begin() + offset, header.end(), ',');
-      if (next_comma_bis != header.end())
+      auto const * const next_comma_bis = std::find(header.begin() + offset, field_end, ',');
+      if (next_comma_bis != field_end)
         {
           offset = static_cast<int>(std::distance(header.begin(), next_comma_bis)) + 1;
         }
