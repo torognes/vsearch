@@ -19,6 +19,7 @@
 /bin
 /docs
 /man/manpages
+/man/manpages.stamp
 /config.h
 /config.log
 /config.status
