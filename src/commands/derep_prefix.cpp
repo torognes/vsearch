@@ -134,6 +134,14 @@ auto derep_prefix(struct Parameters const & parameters) -> void
       fatal("Option '--strand both' not supported with --derep_prefix");
     }
 
+  /* same output requirement as derep_fulllength and derep_id (the manual
+     lists --output as mandatory); without it a run with no output option
+     was a silent no-op that exited 0 */
+  if ((parameters.opt_output == nullptr) and (parameters.opt_uc == nullptr)) {
+    fatal("Output file for dereplication must be specified with --output "
+          "or --uc");
+  }
+
   auto output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
   std::FILE * const fp_output = output_handle.get();
   auto uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
