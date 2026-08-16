@@ -659,6 +659,8 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             bp = &hashtable[j];
           }
 
+        auto matched_minus_strand = false;
+
         if (parameters.opt_strand and (bp->size == 0U))
           {
             /* no match on plus strand */
@@ -683,6 +685,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
               {
                 bp = rc_bp;
                 j = k;
+                matched_minus_strand = true;
                 if (extra_info)
                   {
                     match_strand[sequencecount] = 1;
@@ -710,11 +713,16 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
             if (parameters.opt_fastqout != nullptr)
               {
-                /* update quality scores */
+                /* update quality scores; a member grouped through its
+                   reverse complement aligns position i of the stored (plus
+                   strand) sequence with position seqlen - 1 - i of its own
+                   quality string, so read that string reversed (quality
+                   symbols carry no complement, only position) */
                 for (int i = 0; i < seqlen; i++)
                   {
                     int const q1 = static_cast<unsigned char>(bp->qual[static_cast<std::size_t>(i)]);
-                    int const q2 = static_cast<unsigned char>(qual[i]);
+                    auto const member_position = matched_minus_strand ? (seqlen - 1 - i) : i;
+                    int const q2 = static_cast<unsigned char>(qual[member_position]);
                     auto const p1 = convert_quality_symbol_to_probability(q1, parameters);
                     auto const p2 = convert_quality_symbol_to_probability(q2, parameters);
                     auto p3 = 0.0;
