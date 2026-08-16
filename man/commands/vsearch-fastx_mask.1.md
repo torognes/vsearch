@@ -26,7 +26,10 @@ low-complexity regions are identified with the DUST algorithm
 (R. Tatusov and D.J. Lipman, unpublished) and represented as lowercase
 letters in the output. With `soft`, lowercase letters in the input are
 treated as masked and preserved as-is. With `none`, no masking is
-applied.
+applied. Note that with `dust` and soft masking (the default), the
+whole sequence is first converted to uppercase, so unmasked regions
+lose any lowercase they had in the input; with `--hardmask`, the
+case of unmasked regions is preserved.
 
 By default, masked regions are written as lowercase letters (soft
 masking). When `--hardmask` is specified, masked regions are replaced
@@ -50,7 +53,7 @@ To illustrate the effect of DUST masking on a fasta file:
 Input:                    --qmask dust:             --qmask dust --hardmask:
 
 >s1                       >s1                       >s1
-AAAAAAAAACGTACGT   -->    aaaaaaaaACGTACGT   -->    NNNNNNNNACGTACGT
+AAAAAAAAACGTACGT   -->    aaaaaaaaaCGTACGT   -->    NNNNNNNNNCGTACGT
 >s2                       >s2                       >s2
 ACGTACGTACGTACGT          ACGTACGTACGTACGT          ACGTACGTACGTACGT
 ```

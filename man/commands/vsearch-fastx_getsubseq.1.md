@@ -24,7 +24,10 @@ label given with `--label`. The input format is detected automatically
 This command is similar to `--fastx_getseq` (see
 [`vsearch-fastx_getseq(1)`](./vsearch-fastx_getseq.1.md)), but
 instead of writing the full matching sequence, it writes only the
-region specified by `--subseq_start` and `--subseq_end`. Positions
+region specified by `--subseq_start` and `--subseq_end` (the start
+position may not be larger than the end position). When the requested
+window lies entirely beyond the end of a matched sequence, a
+header-only record with an empty sequence is written. Positions
 are 1-based: the first base is at position 1. By default, extraction
 starts at position 1 and ends at the last position of the sequence.
 

@@ -40,7 +40,10 @@ according to their abundances, then subsampled, then dereplicated. For
 example, a sequence with `;size=10` contributes 10 slots to the
 sampling pool. The selected sequences are written to `--fastaout`
 and/or `--fastqout`. Sequences not selected can be written to
-`--fastaout_discarded` and/or `--fastqout_discarded`.
+`--fastaout_discarded` and/or `--fastqout_discarded`. With `--sizein`,
+a sequence whose abundance was only partially sampled appears in
+*both* files, with complementary `;size=` values when `--sizeout` is
+also given.
 
 The subset size must not exceed the number of input reads (the total
 abundance when `--sizein` is used), otherwise vsearch reports a fatal

@@ -68,8 +68,6 @@ None
   command `--fastx_revcomp`, sequence headers are never truncated, so
   this option has no visible effect.
 
-#(./fragments/option_notrunclabels.md)
-
 #(./fragments/option_quiet.md)
 
 #(./fragments/option_relabel.md)
