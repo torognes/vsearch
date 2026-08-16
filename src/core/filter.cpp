@@ -306,7 +306,7 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                (parameters.opt_fastq_qmax < 41) or (parameters.opt_fastq_qmin > 0) or
                (parameters.opt_fastq_truncee < dbl_max_local) or
                (parameters.opt_fastq_truncee_rate < dbl_max_local) or
-               (parameters.opt_fastq_truncqual < long_min) or
+               (parameters.opt_fastq_truncqual != long_min) or
                (parameters.opt_fastq_minqual > 0) or
                (parameters.opt_fastqout_discarded != nullptr) or
                (parameters.opt_fastqout_discarded_rev != nullptr) or
