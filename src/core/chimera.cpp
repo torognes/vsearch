@@ -2000,6 +2000,8 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
       search_info.strand = 0;
       search_info.qsize = chimera_info->query_size;
       search_info.query_head = chimera_info->query_head;
+      search_info.full_qsequence =
+        make_span(chimera_info->query_seq).first(static_cast<std::size_t>(chimera_info->query_len));
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
       search_info.qsequence_v[static_cast<size_t>(length)] = '\0';

@@ -571,6 +571,12 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
   auto const dseq = searchinfo.db->sequence_view(target_seqno);
   auto const dseqlen = static_cast<int64_t>(dseq.size());
   auto const tsize = static_cast<int64_t>(searchinfo.db->getabundance(target_seqno));
+  /* the selfid gate must compare the whole query: in chimera mode qsequence
+     holds only a query part, which is always shorter than a full-length
+     identical reference, so the part-based comparison never excluded it */
+  auto const selfid_qseq = searchinfo.full_qsequence.empty()
+    ? qseq : View<char>{searchinfo.full_qsequence};
+  auto const selfid_qseqlen = static_cast<int64_t>(selfid_qseq.size());
 
   return (
           /* maxqsize */
@@ -618,8 +624,8 @@ auto search_acceptable_unaligned(struct searchinfo_s const & searchinfo,
           and
           /* selfid */
           ((parameters.opt_selfid == 0) or
-           (qseqlen != dseqlen) or
-           (seqcmp(qseq, dseq.first(static_cast<std::size_t>(qseqlen))) != 0))
+           (selfid_qseqlen != dseqlen) or
+           (seqcmp(selfid_qseq, dseq.first(static_cast<std::size_t>(selfid_qseqlen))) != 0))
           );
 }
 

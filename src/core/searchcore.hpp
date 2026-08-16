@@ -157,6 +157,11 @@ struct searchinfo_s
   Span<char> qsequence;          /* query sequence (length == query length):
                                        a span over qsequence_v, the database, or
                                        a caller-owned buffer */
+  Span<char> full_qsequence;     /* the whole query when qsequence holds only a
+                                       part of it (the chimera path partitions
+                                       each query); empty everywhere else. Read
+                                       by the --selfid gate, which compares the
+                                       full-length query against the candidate */
   /* the kmers sampled from the query. A view into whatever produced them: the
      Uniquer's own list_ buffer for a plain search, or -- in the sintax
      bootstrap -- a caller-owned subset array that must outlive the search it
