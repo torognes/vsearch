@@ -1632,6 +1632,7 @@ namespace {
         option_sample,
         option_sizein,
         option_sizeout,
+        option_threads,
         option_xee,
         option_xlength,
         option_xsize,
@@ -4553,7 +4554,14 @@ namespace {
   {
     if (parameters.opt_cluster_unoise != nullptr)
       {
-        parameters.opt_weak_id = 0.90;
+        /* 0.90 is the UNOISE default identity floor, not a forced value:
+           a user-supplied --weak_id takes precedence (it used to be
+           silently overwritten). The clamp below is skipped for unoise,
+           whose --id is unused and left at its sentinel. */
+        if (not options_selected[option_weak_id])
+          {
+            parameters.opt_weak_id = 0.90;
+          }
       }
     else
       if (parameters.opt_weak_id > parameters.opt_id)
