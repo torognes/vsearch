@@ -2815,7 +2815,17 @@ static auto chimera_detection_parameters(struct Parameters const & parameters) -
   /* For denovo mode, set opt_self/opt_selfid so sequences don't match
      themselves as candidate parents, and set opt_maxsizeratio for
      abundance skew filtering. */
-  if (parameters.opt_uchime_ref == nullptr)
+  /* Denovo mode is identified by its explicit command options, not by
+     opt_uchime_ref being null: on the library path no command option is set
+     at all, and the documented default there is reference-based detection
+     (LIBRARY_API.md), so a null opt_uchime_ref must not select the denovo
+     knobs. On the CLI the two tests are equivalent, as chimera() only runs
+     with exactly one of the five chimera commands set. */
+  auto const denovo_mode = (parameters.opt_uchime_denovo != nullptr) or
+    (parameters.opt_uchime2_denovo != nullptr) or
+    (parameters.opt_uchime3_denovo != nullptr) or
+    (parameters.opt_chimeras_denovo != nullptr);
+  if (denovo_mode)
     {
       detection.opt_self = 1;
       detection.opt_selfid = 1;
