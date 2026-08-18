@@ -59,7 +59,7 @@
 */
 
 #include "core/kmerhash.hpp"
-#include "vendored/city.h"
+#include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include "utils/view.hpp"  // View<char>
@@ -68,8 +68,8 @@
 #include <vector>
 
 
-using Hash = decltype(&CityHash64);
-static constexpr Hash hash_function = CityHash64;
+using Hash = decltype(&hash_packed_kmer);
+static constexpr Hash hash_function = hash_packed_kmer;
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -91,7 +91,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
                            unsigned int const pos) -> void
 {
   /* find free bucket in hash */
-  auto bucket = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask;
+  auto bucket = hash_function(kmer, k_offset) & kmer_hash.hash_mask;
   while (kmer_hash.hash[bucket].pos != 0U)
     {
       bucket = (bucket + 1) & kmer_hash.hash_mask;
@@ -194,7 +194,7 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
       if (bad == 0U)
         {
           /* find matching buckets in hash */
-          auto j = static_cast<unsigned int>(hash_function(reinterpret_cast<char const *>(&kmer), static_cast<std::size_t>((k_offset + 3) / 4)) & kmer_hash.hash_mask);
+          auto j = static_cast<unsigned int>(hash_function(kmer, k_offset) & kmer_hash.hash_mask);
           while (kmer_hash.hash[j].pos != 0U)
             {
               if (kmer_hash.hash[j].kmer == kmer)

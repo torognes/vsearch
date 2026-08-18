@@ -59,7 +59,7 @@
 */
 
 #include "core/unique.hpp"
-#include "vendored/city.h"
+#include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "core/mask.hpp"  // Masking
 #include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
 #include <algorithm>  // std::min, std::fill_n
@@ -82,8 +82,8 @@ namespace {
   // replace with std::unordered_map (default hashing)
   // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
   // then make a CityHash hasher object and use it with std::unordered_map
-  using Hash = decltype(&CityHash64);
-  constexpr Hash hash_function = CityHash64;
+  using Hash = decltype(&hash_packed_kmer);
+  constexpr Hash hash_function = hash_packed_kmer;
 
 }  // end of anonymous namespace
 
@@ -228,7 +228,7 @@ auto Uniquer::count_hash(int const wordlength,
       if (bad == 0U)
         {
           /* find free appropriate bucket in hash */
-          uint64_t j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & hash_mask_;
+          uint64_t j = hash_function(kmer, wordlength) & hash_mask_;
           while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
             {
               j = (j + 1) & hash_mask_;
@@ -286,7 +286,7 @@ auto Uniquer::count_shared(int const wordlength,
       auto const * const hash = hash_.data();
       for (auto kmer : list)
         {
-          uint64_t j = hash_function(reinterpret_cast<char const *>(&kmer), static_cast<size_t>((wordlength + 3) / 4)) & hash_mask_;
+          uint64_t j = hash_function(kmer, wordlength) & hash_mask_;
           while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
             {
               j = (j + 1) & hash_mask_;

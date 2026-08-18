@@ -371,7 +371,6 @@ utils/number_of_strands.cpp \
 utils/timestamp.cpp \
 utils/logfile.cpp \
 utils/userfields.cpp \
-utils/cityhash.cpp \
 utils/random.cpp \
 utils/reverse_complement.cpp \
 utils/sequence_digest.cpp \

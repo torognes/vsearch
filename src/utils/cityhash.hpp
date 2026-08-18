@@ -61,9 +61,51 @@
 #pragma once
 
 #include "utils/view.hpp"
-#include "vendored/city.h"  // uint128
+#include "vendored/city.h"  // CityHash64, CityHash128, uint128
+#include <cassert>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 
 
-auto hash_cityhash64(View<char> sequence) -> uint64_t;
-auto hash_cityhash128(View<char> sequence) -> uint128;
+/* The project's hashing entry points. Defined inline rather than in a
+   translation unit of their own: each is a single forwarding call, they sit
+   in the inner loop of dereplication, of the k-mer index and of read
+   merging, and vsearch is not built with link-time optimisation -- an
+   out-of-line one-line forwarder would add a call per hash that the compiler
+   could not see through. */
+
+inline auto hash_cityhash64(View<char> const sequence) -> uint64_t
+{
+  return CityHash64(sequence.data(), sequence.size());
+}
+
+
+inline auto hash_cityhash128(View<char> const sequence) -> uint128
+{
+  return CityHash128(sequence.data(), sequence.size());
+}
+
+
+/* Hash a 2-bit-packed k-mer held in an unsigned int, reading only the bytes
+   its 2 * kmer_length significant bits occupy -- ceil(2 * kmer_length / 8),
+   which is (kmer_length + 3) / 4.
+
+   Reading fewer bytes than the unsigned int holds makes the result depend on
+   the host's byte order (see View::as_bytes() in utils/view.hpp, which views
+   the object representation): on a little-endian host these are the bytes
+   that carry the significant bits, on a big-endian one they would be the
+   zero padding, and every k-mer of a given length would hash alike. Every
+   target vsearch supports is little-endian, and core/udb.cpp asserts as much
+   for the UDB format. Both callers (core/kmerhash.cpp, core/unique.cpp)
+   probe linearly and compare the full k-mer on the way, so a big-endian port
+   would lose the hash's spread, not its correctness.
+
+   The k-mer is taken by reference because the byte view must name a live
+   object; the view never escapes this function. */
+inline auto hash_packed_kmer(unsigned int const & kmer, int const kmer_length) -> uint64_t
+{
+  assert(kmer_length > 0);
+  auto const significant_bytes = static_cast<std::size_t>((kmer_length + 3) / 4);
+  assert(significant_bytes <= sizeof(kmer));
+  return hash_cityhash64(View<unsigned int>{&kmer, 1}.as_bytes().first(significant_bytes));
+}
