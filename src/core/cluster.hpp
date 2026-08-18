@@ -91,7 +91,7 @@ auto cluster_session_free(struct cluster_session_s * cs) -> void;
    Requires: parameters configured (same one passed to the VsearchSession
    constructor, including opt_id for the identity threshold), database loaded,
    masked, and
-   dbindex.prepare() called with bitmap=1. The session stores references to
+   dbindex.prepare() called. The session stores references to
    parameters and dbindex, which must outlive the session.
    Do NOT call dbindex.add_all_sequences() — centroids are indexed
    incrementally into dbindex as they are discovered.
