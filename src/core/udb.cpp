@@ -80,7 +80,6 @@
 #include <fstream>  // std::ifstream
 #include <ios>
 #include <istream>  // std::istream
-#include <iterator>  // std::next
 #include <limits>
 #include <string>  // std::string
 #include <sys/stat.h>
@@ -122,18 +121,21 @@ namespace {
   {
     /* read the file in blocks and update progress */
 
-    auto const nbyte = static_cast<uint64_t>(buf.size_bytes());
     /* the destination as raw bytes: std::istream reads chars, whatever the
-       span's element type is. Cast inside the loop rather than into a local,
-       which cppcheck reads as a pointer that could be const -- it cannot, it
-       is what read() writes through. */
+       span's element type is. as_writable_bytes() is the one audited rebind
+       (see utils/span.hpp), and the block below is a subspan of it, so the
+       destination and its length can no longer drift apart within the loop
+       either. The local is const -- it is the Span that does not move, not
+       the bytes it writes through -- which is also what cppcheck asked for. */
+    auto const bytes = buf.as_writable_bytes();
+    auto const nbyte = static_cast<uint64_t>(bytes.size());
     auto progress = offset;
     for (uint64_t i = 0; i < nbyte; i += blocksize)
       {
         auto const rem = std::min(blocksize, nbyte - i);
-        input.read(std::next(reinterpret_cast<char *>(buf.data()),
-                             static_cast<std::ptrdiff_t>(i)),
-                   static_cast<std::streamsize>(rem));
+        auto const block = bytes.subspan(static_cast<std::size_t>(i),
+                                         static_cast<std::size_t>(rem));
+        input.read(block.data(), static_cast<std::streamsize>(block.size()));
         if (static_cast<uint64_t>(input.gcount()) != rem)
           {
             fatal("Unable to read from UDB file or invalid UDB file");

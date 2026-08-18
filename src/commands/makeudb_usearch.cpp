@@ -70,7 +70,6 @@
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <fstream>  // std::ofstream
-#include <iterator>  // std::next
 #include <ios>
 #include <ostream>  // std::ostream
 #include <vector>
@@ -101,14 +100,19 @@ namespace {
   {
     /* call write multiple times and update progress */
 
-    auto const nbyte = static_cast<uint64_t>(buf.size_bytes());
-    auto const * const bytes = reinterpret_cast<char const *>(buf.data());
+    /* the source as raw bytes: std::ostream writes chars, whatever the
+       view's element type is; as_bytes() is the one audited rebind (see
+       utils/view.hpp) and the block below is a subspan of it, so the source
+       and its length cannot drift apart within the loop either. */
+    auto const bytes = buf.as_bytes();
+    auto const nbyte = static_cast<uint64_t>(bytes.size());
     auto progress = offset;
     for (uint64_t i = 0; i < nbyte; i += blocksize)
       {
         auto const rem = std::min(blocksize, nbyte - i);
-        output.write(std::next(bytes, static_cast<std::ptrdiff_t>(i)),
-                     static_cast<std::streamsize>(rem));
+        auto const block = bytes.subspan(static_cast<std::size_t>(i),
+                                         static_cast<std::size_t>(rem));
+        output.write(block.data(), static_cast<std::streamsize>(block.size()));
         if (not output)
           {
             fatal("Unable to write to UDB file");

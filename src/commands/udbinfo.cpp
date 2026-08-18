@@ -63,7 +63,9 @@
 #include "os/system.hpp"
 #include "utils/fatal.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include "utils/span.hpp"  // Span, make_span
 #include <array>
+#include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::fprintf
 #include <fstream>  // std::ifstream
@@ -97,6 +99,15 @@ auto udbinfo(struct Parameters const & parameters) -> void
 
   auto const filesize = static_cast<uint64_t>(fs.st_size);
 
+  /* The UDB format's integer fields are 4 bytes by definition of the format,
+     not because sizeof(unsigned int) happens to be 4 on this host. The read
+     length below now comes from the buffer rather than from a literal, which
+     makes that dependency implicit, so state it -- the cross-compilation
+     targets all have a 32-bit int and would not catch it. Same assertion as
+     in core/udb.cpp and commands/makeudb_usearch.cpp; there is no shared UDB
+     header to put it in. */
+  static_assert(sizeof(unsigned int) == 4, "UDB stores 32-bit fields");
+
   std::array<unsigned int, 50> buffer {{}};
 
   std::ifstream in_stream(filename, std::ios::binary);
@@ -105,8 +116,15 @@ auto udbinfo(struct Parameters const & parameters) -> void
       fatal("Unable to open UDB file for reading");
     }
 
-  in_stream.read(reinterpret_cast<char *>(buffer.data()), 4 * 50);
-  if (static_cast<uint64_t>(in_stream.gcount()) != 4 * 50)
+  /* the destination as raw bytes: std::istream reads chars, whatever the
+     span's element type is. The length travels with the destination instead
+     of beside it as the literal 4 * 50 it used to be, so the two cannot
+     disagree; see largeread() in core/udb.cpp for the same reasoning. */
+  auto const header_bytes = make_span(buffer).as_writable_bytes();
+
+  in_stream.read(header_bytes.data(),
+                 static_cast<std::streamsize>(header_bytes.size()));
+  if (static_cast<std::size_t>(in_stream.gcount()) != header_bytes.size())
     {
       fatal("Unable to read from UDB file or invalid UDB file");
     }
