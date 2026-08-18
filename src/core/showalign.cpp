@@ -157,9 +157,22 @@ namespace {
   }
 
 
+  // 'insertion_equivalent' is a template parameter rather than a function
+  // one: the two wrappers below are its only callers, each passing the enum
+  // constant adapt_to_viewpoint() already folds at compile time, so the
+  // runtime parameter only ever carried a compile-time fact. GCC 13 at -O2
+  // did not exploit that on its own -- it emitted one generic body that
+  // compared against the spilled parameter on every cigar pair
+  // (cmp 0xf(%rsp),%dl) -- whereas each specialisation compares against
+  // immediates, and the target viewpoint collapses to one AND plus one
+  // compare because 'M' and 'I' differ only in bit 2. The trade is
+  // duplication: two 681-byte bodies inlined into the wrappers where one
+  // 705-byte body and two 67-byte wrappers stood before, +672 bytes of
+  // .text in this TU. Cheap, because the cigar walk runs once per printed
+  // alignment (--alnout), not per byte.
+  template <Operation insertion_equivalent>
   auto get_alignment_row(View<char> const seq_view, View<char> const cigar_view,
-                         int const alignlen,
-                         Operation const insertion_equivalent) -> std::vector<char> {
+                         int const alignlen) -> std::vector<char> {
     std::vector<char> row(static_cast<size_t>(alignlen) + 1);
     auto cursor_src = size_t{0};
     auto cursor_dest = size_t{0};
@@ -396,13 +409,11 @@ auto align_show(std::FILE * output_handle,
 
 auto get_alignment_qrow(View<char> const seq_view, View<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
-  static constexpr auto insertion_equivalent = adapt_to_viewpoint(Viewpoint::query);
-  return get_alignment_row(seq_view, cigar_view, alignlen, insertion_equivalent);
+  return get_alignment_row<adapt_to_viewpoint(Viewpoint::query)>(seq_view, cigar_view, alignlen);
 }
 
 
 auto get_alignment_trow(View<char> const seq_view, View<char> const cigar_view,
                         int const alignlen) -> std::vector<char> {
-  static constexpr auto insertion_equivalent = adapt_to_viewpoint(Viewpoint::target);
-  return get_alignment_row(seq_view, cigar_view, alignlen, insertion_equivalent);
+  return get_alignment_row<adapt_to_viewpoint(Viewpoint::target)>(seq_view, cigar_view, alignlen);
 }
