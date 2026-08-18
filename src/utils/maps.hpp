@@ -60,6 +60,48 @@
 
 #pragma once
 
+
+#include <cassert>  // assert
+
+
+/* Which of the two character maps a parser applies to the bases it accepts.
+   Passed as a template argument rather than as the table pointer it stands
+   for, because every call site knows the answer at compile time: 22 of the 30
+   fastx_s::next() calls name chrmap_no_change(), 7 name chrmap_upcase(), and
+   Database::read() chooses between them from its own literal argument. */
+enum struct Mapping : unsigned char {
+  none,    /* the accepted byte is written through unchanged */
+  upcase,  /* ... after ASCII case folding */
+};
+
+
+/* Map one byte that a fastx parser has already classified as Action::accept.
+   Both cases replace a 256-byte table lookup, and are equivalences rather
+   than approximations because of what can reach them:
+
+   - the FASTA and FASTQ sequence accept sets are the same 32 IUPAC letters
+     (ABCDGHKMNRSTUVWY and their lowercase, verified byte-for-byte), and on
+     that set chrmap_no_change() is the identity and chrmap_upcase() is plain
+     ASCII case folding;
+   - the FASTQ quality accept set is bytes 33 to 126, and the map it used was
+     the identity on all 256 values, so Mapping::none covers it too.
+
+   Only Mapping::upcase constrains its input, and the assert states that. */
+template <Mapping mapping>
+inline auto map_accepted_base(char const base) -> char {
+  if (mapping == Mapping::none) {
+    return base;
+  }
+  assert(((base >= 'A') and (base <= 'Z')) or ((base >= 'a') and (base <= 'z')));
+  /* clearing the 'a' - 'A' bit upper-cases an ASCII letter and leaves an
+     already upper-case one alone; unsigned throughout, because char is signed
+     on x86-64 and Windows and a bitwise operator on a signed operand is a
+     trap even where the value cannot reach the sign bit */
+  static constexpr auto lowercase_bit = 0x20U;
+  return static_cast<char>(static_cast<unsigned char>(base) & ~lowercase_bit);
+}
+
+
 auto chrmap_no_change() -> unsigned char const *;
 
 auto chrmap_normalize() -> unsigned char const *;

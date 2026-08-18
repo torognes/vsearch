@@ -62,6 +62,7 @@
 
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/maps.hpp"  // Mapping
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
@@ -178,7 +179,8 @@ private:
   friend auto fastx_filter_header(fastx_s * input_handle, bool truncateatspace) -> void;
   friend auto fastx_filter_sequence_length(fastx_s * input_handle) -> void;
   friend auto fasta_next(fastx_s * input_handle, bool truncateatspace, unsigned char const * char_mapping) -> bool;
-  friend auto fasta_filter_sequence(fastx_s * input_handle, unsigned char const * char_mapping) -> void;
+  template <Mapping mapping>
+  friend auto fasta_filter_sequence(fastx_s * input_handle) -> void;
   friend auto fastq_next(fastx_s * input_handle, bool truncateatspace, unsigned char const * char_mapping) -> bool;
   friend auto scan_line_fragment(fastx_s * input_handle) -> Line_fragment;
   friend auto consume_fragment(fastx_s * input_handle, Line_fragment const & fragment) -> void;

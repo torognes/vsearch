@@ -65,6 +65,7 @@
 #include "core/db.hpp"
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
+#include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_view.hpp"  // fprint
 #include <algorithm>  // std::min
 #include <array>
@@ -188,8 +189,8 @@ auto fasta_open(const char * filename, struct Parameters const & parameters) -> 
 }
 
 
-auto fasta_filter_sequence(fastx_handle input_handle,
-                           unsigned char const * char_mapping) -> void
+template <Mapping mapping>
+auto fasta_filter_sequence(fastx_handle input_handle) -> void
 {
   /* Strip unwanted characters from the sequence and raise warnings or
      errors on certain characters. */
@@ -214,7 +215,7 @@ auto fasta_filter_sequence(fastx_handle input_handle,
       if (action == Action::accept)
         {
           /* legal character */
-          *dest = static_cast<char>(char_mapping[current_char]);
+          *dest = map_accepted_base<mapping>(symbol);
           dest = std::next(dest);
         }
       else
@@ -346,7 +347,20 @@ auto fasta_next(fastx_handle input_handle,
   ++input_handle->seqno;
 
   fastx_filter_header(input_handle, truncateatspace);
-  fasta_filter_sequence(input_handle, char_mapping);
+  /* The mapping is a compile-time fact at every caller (see maps.hpp), and
+     these are the only two tables in the tree, so the dispatch here is
+     exhaustive -- the assert says so, because a third table would otherwise
+     take the pass-through path in silence. One pointer comparison per record
+     replaces a table load per accepted byte. */
+  assert((char_mapping == chrmap_no_change()) or (char_mapping == chrmap_upcase()));
+  if (char_mapping == chrmap_upcase())
+    {
+      fasta_filter_sequence<Mapping::upcase>(input_handle);
+    }
+  else
+    {
+      fasta_filter_sequence<Mapping::none>(input_handle);
+    }
   fastx_filter_sequence_length(input_handle);
 
   return true;
