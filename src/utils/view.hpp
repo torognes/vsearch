@@ -183,6 +183,25 @@ public:
   }
   constexpr auto empty() const noexcept -> bool { return size() == 0; }
 
+  // Byte view
+  //
+  // A read-only view of the elements' object representation -- the
+  // C++11 analogue of std::as_bytes (C++20), whose specified behaviour
+  // is this same reinterpret_cast over data() and size_bytes(), with
+  // char standing in for C++17's std::byte. Reading any object through
+  // a char pointer is the access the aliasing rules always allow (the
+  // reverse direction, viewing bytes as a wider type, is the undefined
+  // one and is deliberately not offered here). The bytes seen are the
+  // elements' object representation, so their order is the host's --
+  // a caller that reads fewer bytes than an element holds depends on
+  // the endianness; see kh_insert_kmer() in core/kmerhash.cpp.
+  //
+  // Not constexpr: C++11 forbids reinterpret_cast in constant
+  // expressions.
+  auto as_bytes() const noexcept -> View<char> {
+    return View<char>{reinterpret_cast<char const *>(data()), size_bytes()};
+  }
+
   // Subviews
   auto subspan(std::size_t const offset, std::size_t const count) const noexcept -> View {
     assert(offset <= size());

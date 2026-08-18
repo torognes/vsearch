@@ -68,7 +68,7 @@
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdlib>  // std::size_t
 #include <iterator> // std::prev, std::next
-#include <type_traits>  // std::is_arithmetic, std::remove_cv
+#include <type_traits>  // std::is_arithmetic, std::is_const, std::remove_cv
 
 #ifndef NDEBUG
 #include <limits>
@@ -207,6 +207,27 @@ public:
     return size() * sizeof(Type);
   }
   constexpr auto empty() const noexcept -> bool { return size() == 0; }
+
+  // Byte view
+  //
+  // A writable view of the elements' object representation -- the C++11
+  // analogue of std::as_writable_bytes (C++20), with char standing in
+  // for C++17's std::byte. The read-only direction lives on View (see
+  // as_bytes() there, which also carries the aliasing rationale); this
+  // one exists because std::istream::read() writes chars whatever the
+  // destination's element type is.
+  //
+  // static_assert: writing through the returned span must not invent a
+  // permission the Span did not hold, so a Span over a const element
+  // type has no writable byte view.
+  //
+  // Not constexpr: C++11 forbids reinterpret_cast in constant
+  // expressions.
+  auto as_writable_bytes() const noexcept -> Span<char> {
+    static_assert(not std::is_const<Type>::value,
+                  "a Span over const elements has no writable byte view");
+    return Span<char>{reinterpret_cast<char *>(data()), size_bytes()};
+  }
 
   // Subviews
   auto subspan(std::size_t const offset, std::size_t const count) const noexcept -> Span {
