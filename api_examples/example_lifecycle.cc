@@ -222,7 +222,7 @@ static int test_nonchimera_result_zeroed(struct Parameters const & parameters)
                           View<char>{}}, 1);
   dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.prepare(parameters.opt_dbmask, db, parameters);
   dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   struct chimera_info_s * const info = chimera_info_alloc();

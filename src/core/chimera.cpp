@@ -2497,7 +2497,7 @@ auto chimera(struct Parameters const & parameters) -> void
             {
               hardmask_all(state.db);
             }
-          state.dbindex.prepare(1, parameters.opt_dbmask, state.db, parameters);
+          state.dbindex.prepare(parameters.opt_dbmask, state.db, parameters);
           state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
         }
 
@@ -2546,7 +2546,7 @@ auto chimera(struct Parameters const & parameters) -> void
         }
 
       state.db.sortbyabundance(parameters);
-      state.dbindex.prepare(1, parameters.opt_qmask, state.db, parameters);
+      state.dbindex.prepare(parameters.opt_qmask, state.db, parameters);
       progress_total = state.db.getnucleotidecount();
     }
 

@@ -1236,7 +1236,7 @@ auto cluster(char const * dbname,
       state.db.sortbyabundance(parameters);
     }
 
-  state.dbindex.prepare(1, parameters.opt_qmask, state.db, parameters);
+  state.dbindex.prepare(parameters.opt_qmask, state.db, parameters);
 
   /* tophits = the maximum number of hits we need to store */
 

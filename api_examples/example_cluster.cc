@@ -66,7 +66,7 @@ static int run_cluster_uc() {
     dust_all(db, parameters);
     db.sortbylength(parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_qmask, db, parameters);
+    dbindex.prepare(parameters.opt_qmask, db, parameters);
 
     struct cluster_session_s * cs = cluster_session_alloc();
     cluster_session_init(cs, parameters, dbindex, db);
@@ -152,7 +152,7 @@ static int run_batch_tests()
 
   /* Sequential: use cluster_assign_single one at a time */
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_qmask, db, parameters);
+  dbindex.prepare(parameters.opt_qmask, db, parameters);
   struct cluster_session_s * cs_seq = cluster_session_alloc();
   cluster_session_init(cs_seq, parameters, dbindex, db);
 
@@ -167,7 +167,7 @@ static int run_batch_tests()
   dbindex.clear();
 
   /* Batch: use cluster_assign_batch for all at once */
-  dbindex.prepare(1, parameters.opt_qmask, db, parameters);
+  dbindex.prepare(parameters.opt_qmask, db, parameters);
   struct cluster_session_s * cs_batch = cluster_session_alloc();
   cluster_session_init(cs_batch, parameters, dbindex, db);
 

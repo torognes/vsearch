@@ -332,7 +332,7 @@ After loading sequences, apply masking and build the k-mer index:
 ```cpp
 dust_all(db, parameters);                              // DUST low-complexity masking
 Dbindex dbindex;                                       // the k-mer index (owns its buffers, RAII)
-dbindex.prepare(1, opt_dbmask, db, parameters);        // allocate index (1 = use bitmap)
+dbindex.prepare(opt_dbmask, db, parameters);           // allocate index
 dbindex.add_all_sequences(opt_dbmask, db, parameters); // index all sequences
 ```
 
@@ -384,7 +384,7 @@ db.clear();
 | Function | Description |
 |----------|-------------|
 | `Dbindex dbindex;` | The k-mer index, an owned object (RAII, non-copyable). Pass it by reference to the session/batch entry points below. |
-| `dbindex.prepare(bitmap, mask, db, parameters)` | Allocate k-mer index. `bitmap=1` enables bitmap mode (required for clustering). |
+| `dbindex.prepare(mask, db, parameters)` | Allocate k-mer index. Took a leading `bitmap` flag before API 0.19.0; every caller passed `1`, so the flag was removed and bitmap mode is unconditional. |
 | `dbindex.add_all_sequences(mask, db, parameters)` | Index all loaded sequences. |
 | `dbindex.add_sequence(seqno, mask, db)` | Index a single sequence (for incremental indexing). |
 | `dbindex.clear()` | Free k-mer index memory (also done automatically by the destructor). |
@@ -625,7 +625,7 @@ db.sortbylength(parameters);          // for cluster_fast behavior
 // Prepare index — do NOT call dbindex.add_all_sequences().
 // Centroids are indexed incrementally during clustering.
 Dbindex dbindex;
-dbindex.prepare(1, opt_qmask, db, parameters);
+dbindex.prepare(opt_qmask, db, parameters);
 
 // Allocate and initialize session
 struct cluster_session_s * cs = cluster_session_alloc();
@@ -1212,7 +1212,7 @@ int main() {
                             View<char>{}}, 1);
     dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.prepare(parameters.opt_dbmask, db, parameters);
     dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     // Search

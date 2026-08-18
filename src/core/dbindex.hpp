@@ -120,7 +120,7 @@ struct Dbindex
   Dbindex(Dbindex &&) = delete;
   auto operator=(Dbindex &&) -> Dbindex & = delete;
 
-  auto prepare(int use_bitmap, Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void;
+  auto prepare(Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void;
   auto add_sequence(unsigned int seqno, Masking seqmask, struct Database const & db) -> void;
   auto add_all_sequences(Masking seqmask, struct Database const & db, struct Parameters const & parameters) -> void;
   auto clear() -> void;

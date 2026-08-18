@@ -208,7 +208,7 @@ auto orient(struct Parameters const & parameters) -> void
         {
           hardmask_all(db);
         }
-      dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+      dbindex.prepare(parameters.opt_dbmask, db, parameters);
       dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
     }
 

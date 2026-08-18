@@ -88,7 +88,7 @@ static int run_search_tsv() {
     }
     dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.prepare(parameters.opt_dbmask, db, parameters);
     dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     struct search_session_s * ss = search_session_alloc();
@@ -149,7 +149,7 @@ static int run_batch_tests()
     }
   dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.prepare(parameters.opt_dbmask, db, parameters);
   dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   /* Sequential: search each query one-by-one */
@@ -260,7 +260,7 @@ static bool search_rc_finds_hit(const std::string & fwd,
                           View<char>{}}, 1);
   dust_all(db, parameters);
   Dbindex dbindex;
-  dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+  dbindex.prepare(parameters.opt_dbmask, db, parameters);
   dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
   struct search_session_s * ss = search_session_alloc();

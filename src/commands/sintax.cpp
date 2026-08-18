@@ -766,7 +766,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! is_udb)
     {
-      state.dbindex.prepare(1, parameters.opt_dbmask, state.db, parameters);
+      state.dbindex.prepare(parameters.opt_dbmask, state.db, parameters);
       state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
     }
 

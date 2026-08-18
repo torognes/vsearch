@@ -225,7 +225,7 @@ auto Dbindex::add_all_sequences(Masking const seqmask, struct Database const & d
 }
 
 
-auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Database const & db, struct Parameters const & parameters) -> void
+auto Dbindex::prepare(Masking const seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
   /* Release any state from a previous prepare first (mirrors Database::init ->
      clear()), so a second prepare without an intervening clear() does
@@ -258,7 +258,7 @@ auto Dbindex::prepare(int const use_bitmap, Masking const seqmask, struct Databa
   }
 
   /* determine minimum kmer count for bitmap usage */
-  unsigned int const bitmap_mincount = (use_bitmap != 0) ? bitmap_min_matches(seqcount) : (seqcount + 1);
+  unsigned int const bitmap_mincount = bitmap_min_matches(seqcount);
 
   /* allocate empty (list-form) bitmap slots for every kmer */
   bitmap_slots_reset(hashsize);

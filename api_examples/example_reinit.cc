@@ -94,7 +94,7 @@ static session_results run_session(
     }
     dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.prepare(parameters.opt_dbmask, db, parameters);
     dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     /* Detect chimeras */
@@ -225,7 +225,7 @@ int main() {
     }
     dust_all(db, parameters);
     Dbindex dbindex;
-    dbindex.prepare(1, parameters.opt_dbmask, db, parameters);
+    dbindex.prepare(parameters.opt_dbmask, db, parameters);
     dbindex.add_all_sequences(parameters.opt_dbmask, db, parameters);
 
     /* Session init once, then two per-thread handles */
