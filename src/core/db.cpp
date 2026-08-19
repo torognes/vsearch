@@ -100,6 +100,17 @@ namespace {
     vec.reserve(chunked_bytes / item_size);
   }
 
+
+  /* The label of an index entry, as a view into the sequence buffer. The buffer
+     is a parameter rather than something read from the object, so that the
+     three comparators below keep hoisting the pointer out of the comparison
+     loop -- which is what the lambda each of them used to define did. */
+  auto header_view_at(char const * const buffer, seqinfo_t const & info) -> View<char>
+  {
+    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
+    return View<char>{std::next(buffer, offset), info.headerlen};
+  }
+
 }  // end of anonymous namespace
 
 
@@ -480,28 +491,28 @@ Database::~Database()
 }
 
 
-/* The sort comparators need the data buffer to compare header strings. Each is
-   a lambda capturing that buffer, so no file-scope pointer is needed. header_p
-   increases with input order, so comparing it is a deterministic tie-break that
-   keeps equal records in their original order (std::sort is not stable, so the
+/* The sort comparators need the data buffer to compare header strings, and
+   each hoists the pointer out of its comparison and hands it to
+   header_view_at(), so no file-scope pointer is needed. header_p increases
+   with input order, so comparing it is a deterministic tie-break that keeps
+   equal records in their original order (std::sort is not stable, so the
    comparator has to provide that ordering itself). */
 
-auto Database::sortbylength(struct Parameters const & parameters) -> void
+template <bool longest_first>
+auto Database::sort_by_length(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by length", 100, parameters);
 
-  /* longest first, then by abundance, then by label, otherwise keep order */
+  /* by length, then by abundance, then by label, otherwise keep order */
   auto const * const buffer = data_.data();
-  auto const header_of = [buffer](seqinfo_t const & info) -> View<char>
+  auto const by_length = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
-    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
-    return View<char>{std::next(buffer, offset), info.headerlen};
-  };
-  auto const by_length = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
-  {
-    if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen > rhs.seqlen; }
+    if (lhs.seqlen != rhs.seqlen) {
+      /* the whole difference between the two length orderings */
+      return longest_first ? (lhs.seqlen > rhs.seqlen) : (lhs.seqlen < rhs.seqlen);
+    }
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = header_of(lhs).compare(header_of(rhs));
+    auto const order = header_view_at(buffer, lhs).compare(header_view_at(buffer, rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };
@@ -510,45 +521,34 @@ auto Database::sortbylength(struct Parameters const & parameters) -> void
 }
 
 
-auto Database::sortbylength_shortest_first(struct Parameters const & parameters) -> void
+auto Database::sortbylength(struct Parameters const & parameters) -> void
 {
-  Progress const progress("Sorting by length", 100, parameters);
-
-  /* shortest first, then by abundance, then by label, otherwise keep order */
-  auto const * const buffer = data_.data();
-  auto const header_of = [buffer](seqinfo_t const & info) -> View<char>
-  {
-    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
-    return View<char>{std::next(buffer, offset), info.headerlen};
-  };
-  auto const by_length_shortest = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
-  {
-    if (lhs.seqlen != rhs.seqlen) { return lhs.seqlen < rhs.seqlen; }
-    if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = header_of(lhs).compare(header_of(rhs));
-    if (order != 0) { return order < 0; }
-    return lhs.header_p < rhs.header_p;
-  };
-
-  std::sort(seqindex_.begin(), seqindex_.end(), by_length_shortest);
+  /* longest first */
+  sort_by_length<true>(parameters);
 }
 
 
+auto Database::sortbylength_shortest_first(struct Parameters const & parameters) -> void
+{
+  /* shortest first */
+  sort_by_length<false>(parameters);
+}
+
+
+/* Not folded into sort_by_length above: this ordering has no leading seqlen
+   tier at all, and its progress line differs, so sharing the body would cost a
+   second compile-time parameter and an empty leading comparison to save seven
+   lines. */
 auto Database::sortbyabundance(struct Parameters const & parameters) -> void
 {
   Progress const progress("Sorting by abundance", 100, parameters);
 
   /* most abundant first, then by label, otherwise keep order */
   auto const * const buffer = data_.data();
-  auto const header_of = [buffer](seqinfo_t const & info) -> View<char>
-  {
-    auto const offset = static_cast<std::ptrdiff_t>(info.header_p);
-    return View<char>{std::next(buffer, offset), info.headerlen};
-  };
-  auto const by_abundance = [&header_of](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
+  auto const by_abundance = [buffer](seqinfo_t const & lhs, seqinfo_t const & rhs) -> bool
   {
     if (lhs.size != rhs.size) { return lhs.size > rhs.size; }
-    auto const order = header_of(lhs).compare(header_of(rhs));
+    auto const order = header_view_at(buffer, lhs).compare(header_view_at(buffer, rhs));
     if (order != 0) { return order < 0; }
     return lhs.header_p < rhs.header_p;
   };

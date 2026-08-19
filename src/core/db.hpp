@@ -168,6 +168,19 @@ public:
   auto sortbylength_shortest_first(struct Parameters const & parameters) -> void;
   auto sortbyabundance(struct Parameters const & parameters) -> void;
 
+private:
+  /* Shared body of the two length sorts, which differed by one character: the
+     '>' or '<' on the leading seqlen comparison. That is a compile-time fact
+     at both call sites -- each public member above is one call passing one
+     constant -- so it arrives as a template parameter and the comparison the
+     other ordering would make is not generated at all, rather than left as a
+     branch inside a comparator std::sort calls O(n log n) times. Defined in
+     db.cpp, whose two wrappers are the only instantiation points. */
+  template <bool longest_first>
+  auto sort_by_length(struct Parameters const & parameters) -> void;
+
+public:
+
   auto getheader(uint64_t const seqno) const -> char const *
   {
     return data_.data() + seqindex_[seqno].header_p;
