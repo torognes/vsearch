@@ -108,14 +108,14 @@ auto Dbhash::clear() -> void
 }
 
 
-auto Dbhash::search_first(View<char> const seq,
-                          struct dbhash_search_info_s & info,
-                          struct Database const & db) const -> int64_t
+auto Dbhash::probe_from(uint64_t index,
+                        struct dbhash_search_info_s & info,
+                        struct Database const & db) const -> int64_t
 {
-  auto const hash = hash_cityhash64(seq);
-  info.hash = hash;
-  info.seq = seq;
-  auto index = hash & mask_;
+  /* read out of info once rather than per iteration, as both callers did
+     before they shared this body; nothing in the walk writes to info */
+  auto const hash = info.hash;
+  auto const seq = info.seq;
   auto const * bp = &table_[index];
 
   while (bitmap_.is_set(static_cast<unsigned int>(index))
@@ -138,30 +138,20 @@ auto Dbhash::search_first(View<char> const seq,
 }
 
 
+auto Dbhash::search_first(View<char> const seq,
+                          struct dbhash_search_info_s & info,
+                          struct Database const & db) const -> int64_t
+{
+  info.hash = hash_cityhash64(seq);
+  info.seq = seq;
+  return probe_from(info.hash & mask_, info, db);
+}
+
+
 auto Dbhash::search_next(struct dbhash_search_info_s & info, struct Database const & db) const -> int64_t
 {
-  auto const hash = info.hash;
-  auto const seq = info.seq;
-  auto index = (info.index + 1) & mask_;
-  auto const * bp = &table_[index];
-
-  while (bitmap_.is_set(static_cast<unsigned int>(index))
-         and
-         ((bp->hash != hash) or
-          (seq.size() != db.getsequencelen(bp->seqno)) or
-          (seqcmp(seq, db.sequence_view(bp->seqno)) != 0)))
-    {
-      index = (index + 1) & mask_;
-      bp = &table_[index];
-    }
-
-  info.index = index;
-
-  if (bitmap_.is_set(static_cast<unsigned int>(index)))
-    {
-      return static_cast<int64_t>(bp->seqno);
-    }
-  return -1;
+  /* resume one slot past where the last call stopped */
+  return probe_from((info.index + 1) & mask_, info, db);
 }
 
 

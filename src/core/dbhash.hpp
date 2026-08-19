@@ -113,4 +113,17 @@ public:
                     struct dbhash_search_info_s & info,
                     struct Database const & db) const -> int64_t;
   auto search_next(struct dbhash_search_info_s & info, struct Database const & db) const -> int64_t;
+
+private:
+  /* Shared probe of the two entry points above, which held a character-identical
+     copy of it each. Walk forward from 'index' to the first slot that is either
+     free or holds info.seq, record where the scan stopped, and report the
+     sequence found there (-1 for a free slot). Both callers have already put the
+     query's hash and sequence in info -- search_first computes them,
+     search_next carries them over from the previous call -- so the only thing
+     that differs is where the walk starts, and that is the argument: the hash's
+     own slot, or one past the last stop. */
+  auto probe_from(uint64_t index,
+                  struct dbhash_search_info_s & info,
+                  struct Database const & db) const -> int64_t;
 };
