@@ -57,41 +57,39 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
-
 #include "os/system.hpp"
-#include "utils/fatal.hpp"
-#include <cstddef>  // std::size_t
-#include <cstdint>  // uint64_t
-#include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
-#include <sys/sysctl.h>  // sysctlbyname
+#include <algorithm>  // std::min
+#include <windows.h>  // DWORD_PTR, GetProcessAffinityMask, GetCurrentProcess
 
 
-auto system_get_memused() -> uint64_t
+auto system_get_available_cores() -> long
 {
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  /* FreeBSD: ru_maxrss gives the size in kilobytes */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
-}
+  auto const cores = system_get_cores();
+  if (cores < 1) { return cores; }
 
+  /* The processors this process may be scheduled on, which is what
+     "start /affinity" and SetProcessAffinityMask restrict it to. The Windows
+     counterpart of Linux's sched_getaffinity() (os/linux/system_cpu.cc).
 
-auto system_get_memtotal() -> uint64_t
-{
-  /* sysctlbyname("hw.physmem") writes a uint64_t directly, avoiding the
-     32-bit overflow of the older sysctl({CTL_HW, HW_PHYSMEM}) interface
-     on hosts with >= 4 GB */
-  uint64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-}
+     A failure is not an error: the call has no defined mask to return for a
+     process spread over more than one processor group, and such a host is not
+     one whose core count we need to reduce. Windows also caps a group of
+     processes with a job object, whose CPU rate control is not read here --
+     it needs QueryInformationJobObject and expresses a share of the machine
+     rather than a set of processors. */
+  DWORD_PTR process_mask = 0;
+  DWORD_PTR system_mask = 0;
+  if (GetProcessAffinityMask(GetCurrentProcess(), &process_mask, &system_mask) == 0)
+    {
+      return cores;
+    }
 
+  long allowed = 0;
+  for (DWORD_PTR remaining = process_mask; remaining != 0; remaining >>= 1U)
+    {
+      allowed += static_cast<long>(remaining & 1U);
+    }
+  if (allowed < 1) { return cores; }
 
-auto system_get_memlimit() -> uint64_t
-{
-  /* A FreeBSD jail can carry an rctl 'memoryuse' limit, which is not read
-     here: it needs librctl and a rule-string parse, and no vsearch user has
-     asked for it. Until then the machine's memory is also the limit. */
-  return system_get_memtotal();
+  return std::min(cores, allowed);
 }

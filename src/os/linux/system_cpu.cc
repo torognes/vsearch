@@ -57,78 +57,65 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
-
 #include "cgroup.hpp"
 #include "os/system.hpp"
-#include "utils/fatal.hpp"
-#include <algorithm>  // std::min
-#include <cstdint>  // int64_t, uint64_t
-#include <string>
-#include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
-#include <unistd.h>  // sysconf, _SC_PHYS_PAGES, _SC_PAGESIZE
+#include <algorithm>  // std::min, std::max
 
-/* <unistd.h> above defines _SC_PHYS_PAGES; sysconf() is preferred and the
-   sysinfo() branch is the fallback for the rare Unix that lacks it. This file
-   also serves as the generic-Unix backend (the build's default when the host
-   is neither Windows, macOS nor FreeBSD). */
-#if ! (defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE))
-#include <sys/sysinfo.h>  // sysinfo
+/* sched_getaffinity() and CPU_COUNT are Linux interfaces, and this file also
+   serves as the generic-Unix backend (the build's default when the host is
+   neither Windows, macOS nor FreeBSD), so the affinity mask is read only where
+   it exists. Everything else here is portable: the cgroup files are simply
+   absent on a host without them, which cgroup.hpp reports as "no limit". */
+#ifdef __linux__
+#include <sched.h>  // sched_getaffinity, cpu_set_t, CPU_ZERO, CPU_COUNT
 #endif
 
 
-auto system_get_memused() -> uint64_t
+auto system_get_available_cores() -> long
 {
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  /* Linux: ru_maxrss gives the size in kilobytes  */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
-}
+  auto const online = system_get_cores();
 
+  /* sysconf() could not say, and there is then nothing to reduce. Passed
+     through rather than corrected, so that this reports exactly what
+     system_get_cores() has always reported on such a host. */
+  if (online < 1) { return online; }
 
-auto system_get_memtotal() -> uint64_t
-{
-#if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
+  auto available = online;
 
-  int64_t const phys_pages = sysconf(_SC_PHYS_PAGES);
-  int64_t const pagesize = sysconf(_SC_PAGESIZE);
-  if ((phys_pages == -1) or (pagesize == -1))
+#if defined(__linux__) && defined(CPU_COUNT)
+  /* The CPUs this process may actually be scheduled on. This covers taskset,
+     a cpuset cgroup, Slurm's --cpu-bind and "docker run --cpuset-cpus" in one
+     reading, and it is authoritative: the kernel will not schedule us
+     elsewhere however many threads we start.
+
+     A failure is not an error. In particular sched_getaffinity() reports
+     EINVAL on a machine with more CPUs than a cpu_set_t can hold (1024), and
+     such a host is not one whose core count we need to reduce. */
+  cpu_set_t mask;
+  CPU_ZERO(&mask);
+  if (sched_getaffinity(0, sizeof(mask), &mask) == 0)
     {
-      fatal("Cannot determine amount of RAM");
+      auto const allowed = CPU_COUNT(&mask);
+      if (allowed > 0)
+        {
+          available = std::min(available, static_cast<long>(allowed));
+        }
     }
-  return static_cast<uint64_t>(pagesize * phys_pages);
-
-#else
-
-  struct sysinfo si;
-  if (sysinfo(&si))
-    fatal("Cannot determine amount of RAM");
-  return si.totalram * si.mem_unit;
-
 #endif
-}
 
+  /* The tightest CPU quota on this process's cgroup path, in cores: what
+     "docker run --cpus", a Kubernetes CPU limit and a Slurm cgroup with a CPU
+     quota set. Confinement to a set of CPUs is not here, it is in the affinity
+     mask read above. See os/linux/cgroup.hpp. */
+  auto const quota = vsearch::cgroup::smallest_core_quota(
+      vsearch::cgroup::own_hierarchy(vsearch::cgroup::default_locations(), "cpu"));
+  if (quota != vsearch::cgroup::no_limit)
+    {
+      /* The quota is a core count derived from microseconds and cannot exceed
+         what a long holds on any host that could also report 'online'. */
+      available = std::min(available, static_cast<long>(quota));
+    }
 
-auto system_get_memlimit() -> uint64_t
-{
-  auto const physical = system_get_memtotal();
-
-  /* The tightest memory limit set anywhere on this process's cgroup path --
-     including its ancestors, which is where Kubernetes puts it. cgroup v2
-     spells it memory.max and cgroup v1 memory.limit_in_bytes; both hold a
-     single byte count, or a marker that reads as "no limit here". See
-     os/linux/cgroup.hpp.
-
-     memory.high is deliberately not read: it throttles reclaim rather than
-     capping the cgroup, so a run may legitimately sit above it and still be
-     running. */
-  auto const own = vsearch::cgroup::own_hierarchy(vsearch::cgroup::default_locations(),
-                                                 "memory");
-  auto const limit = vsearch::cgroup::smallest_limit(own, own.unified
-                                                     ? "memory.max"
-                                                     : "memory.limit_in_bytes");
-  if (limit == vsearch::cgroup::no_limit) { return physical; }
-
-  /* A cgroup limit larger than the machine's memory is not usable memory, so
-     the answer is never larger than system_get_memtotal() reports. */
-  return std::min(limit, physical);
+  static constexpr long at_least_one_core {1};
+  return std::max(available, at_least_one_core);
 }

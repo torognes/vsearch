@@ -57,41 +57,18 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
-
 #include "os/system.hpp"
-#include "utils/fatal.hpp"
-#include <cstddef>  // std::size_t
-#include <cstdint>  // uint64_t
-#include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
-#include <sys/sysctl.h>  // sysctlbyname
 
 
-auto system_get_memused() -> uint64_t
+auto system_get_available_cores() -> long
 {
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  /* FreeBSD: ru_maxrss gives the size in kilobytes */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
-}
-
-
-auto system_get_memtotal() -> uint64_t
-{
-  /* sysctlbyname("hw.physmem") writes a uint64_t directly, avoiding the
-     32-bit overflow of the older sysctl({CTL_HW, HW_PHYSMEM}) interface
-     on hosts with >= 4 GB */
-  uint64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-}
-
-
-auto system_get_memlimit() -> uint64_t
-{
-  /* A FreeBSD jail can carry an rctl 'memoryuse' limit, which is not read
-     here: it needs librctl and a rule-string parse, and no vsearch user has
-     asked for it. Until then the machine's memory is also the limit. */
-  return system_get_memtotal();
+  /* A FreeBSD jail, and cpuset(1) outside one, confine a process to a set of
+     CPUs that cpuset_getaffinity(2) would report, the way Linux's
+     sched_getaffinity() does in os/linux/system_cpu.cc. It is not read here
+     for one reason only: no FreeBSD host or cross-compiler is available to
+     build it against, and an interface that cannot be compiled is not an
+     interface this file should be claiming to use. Until then the machine's
+     core count is also the limit, which is what vsearch reported everywhere
+     before this file existed. */
+  return system_get_cores();
 }

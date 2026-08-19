@@ -77,7 +77,8 @@
 #include "commands/derep_prefix.hpp"
 #include "commands/derep_smallmem.hpp"
 #include "os/dynlibs.hpp"
-#include "os/system.hpp"  // system_get_cores, system_get_memtotal
+#include "os/system.hpp"  // system_get_cores, system_get_available_cores,
+                          // system_get_memtotal, system_get_memlimit
 #include "commands/fastq_eestats.hpp"
 #include "commands/fastq_eestats2.hpp"
 #include "commands/fasta2fastq.hpp"
@@ -121,6 +122,7 @@
 #include "utils/view.hpp"
 #include <array>
 #include <cerrno>  // errno, ERANGE
+#include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::size_t, std::snprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strlen
@@ -142,27 +144,73 @@ auto usage_hint(struct Parameters const & parameters) -> void {
 }
 
 
-auto fill_prog_header(struct Parameters & parameters) -> void
+auto one_decimal(double const value) -> std::string
 {
-  static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
   /* One snprintf, for the "%.1f" alone: formatting a fixed-precision double
      byte-identically is the one thing nothing simpler does, which is why a
      double field keeps its own std::fprintf everywhere in the tree.
-     Everything around it is text.
+     Everything around it is text. */
+  static constexpr std::size_t digits_width = 32;
+  std::array<char, digits_width> digits {{}};
+  static_cast<void>(std::snprintf(digits.data(), digits.size(), "%.1f", value));
+  return {digits.data()};
+}
+
+
+auto gigabytes_text(uint64_t const bytes) -> std::string
+{
+  static constexpr auto one_gigabyte = double{1024 * 1024 * 1024};
+  return one_decimal(static_cast<double>(bytes) / one_gigabyte) + "GB";
+}
+
+
+auto memory_limit_text(uint64_t const bytes) -> std::string
+{
+  /* A cgroup limit can be a few tens of megabytes -- the reporter of issue
+     #584 had 50 MB -- which "%.1f" gigabytes renders as "0.0GB". Below one
+     gigabyte the limit is therefore given in megabytes, the same switch the
+     --log file's "Max memory" line makes (utils/logfile.cpp).
+
+     The machine's own figure keeps its unit unconditionally, so the header of a
+     run that no limit applies to is byte-identical to what it has always been,
+     on a host of any size. */
+  static constexpr uint64_t bytes_per_gibibyte {uint64_t{1} << 30U};
+  if (bytes >= bytes_per_gibibyte) { return gigabytes_text(bytes); }
+  static constexpr auto one_megabyte = double{1024 * 1024};
+  return one_decimal(static_cast<double>(bytes) / one_megabyte) + "MB";
+}
+
+
+auto fill_prog_header(struct Parameters & parameters) -> void
+{
+  /* Both figures are reported as "limit/total" when a limit applies to this
+     run, and as the machine's figure alone when none does -- so an unconfined
+     run's header is what it has always been, and a confined one says so
+     instead of silently overstating the machine by orders of magnitude (issue
+     #584: a session held to 50 MB and one core was told it had 500+ GB and 128
+     cores). Both halves are what makes the confinement diagnosable; the limit
+     alone would read as a machine that small.
 
      The header is built as a std::string rather than into an 80-character
      buffer that was then copied into one, so the line can no longer be
-     silently truncated; at 24 cores and 125 GB it is about 50 characters, so
-     no reachable input was being truncated before either. */
-  static constexpr std::size_t gigabytes_width = 32;
-  std::array<char, gigabytes_width> gigabytes {{}};
-  static_cast<void>(std::snprintf(
-      gigabytes.data(), gigabytes.size(), "%.1f",
-      static_cast<double>(system_get_memtotal()) / one_gigabyte));
+     silently truncated; at 24 cores and 125 GB it is about 50 characters, and
+     the widest form this adds is about 20 more, so no reachable input was
+     being truncated before either. */
+  auto const memtotal = system_get_memtotal();
+  auto const memlimit = system_get_memlimit();
+  auto const memory = (memlimit < memtotal)
+    ? memory_limit_text(memlimit) + "/" + gigabytes_text(memtotal)
+    : gigabytes_text(memtotal);
+
+  auto const cores = system_get_cores();
+  auto const available_cores = system_get_available_cores();
+  auto const processors = (available_cores < cores)
+    ? decimal::to_text(available_cores) + "/" + decimal::to_text(cores)
+    : decimal::to_text(cores);
+
   parameters.prog_header =
     std::string(PROG_NAME) + " v" + PROG_VERSION + "_" + PROG_ARCH + ", "
-    + gigabytes.data() + "GB RAM, "
-    + decimal::to_text(system_get_cores()) + " cores";
+    + memory + " RAM, " + processors + " cores";
 }
 
 

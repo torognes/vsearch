@@ -134,9 +134,9 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 @ENABLE_DEBUG_TRUE@am__append_7 = -Wcast-qual -Wconversion -Wnon-virtual-dtor -Wold-style-cast \
 @ENABLE_DEBUG_TRUE@               -Woverloaded-virtual -Wsign-conversion -Wuseless-cast
 
-@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__append_8 = os/macos/system_memory.cc
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__append_9 = os/freebsd/system_memory.cc
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__append_10 = os/linux/system_memory.cc
+@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__append_8 = os/macos/system_memory.cc os/macos/system_cpu.cc
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__append_9 = os/freebsd/system_memory.cc os/freebsd/system_cpu.cc
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__append_10 = os/linux/system_memory.cc os/linux/system_cpu.cc os/linux/cgroup.cc
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -208,10 +208,10 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -280,10 +280,10 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -351,10 +351,10 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -416,10 +416,10 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -481,10 +481,10 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -546,10 +546,10 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -610,10 +610,10 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -673,10 +673,12 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/string_normalize.cpp utils/warn.cpp commands/version.cpp \
 	arch/generic/cpu_features.cpp arch/x86_64/cpu_features.cpp \
 	os/posix/dynlib_loader.cc os/posix/system.cc \
-	os/macos/system_memory.cc os/freebsd/system_memory.cc \
-	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
+	os/macos/system_memory.cc os/macos/system_cpu.cc \
+	os/freebsd/system_memory.cc os/freebsd/system_cpu.cc \
+	os/linux/system_memory.cc os/linux/system_cpu.cc \
+	os/linux/cgroup.cc os/windows/dynlib_loader.cc \
 	os/windows/system.cc os/windows/system_memory.cc \
-	utils/fatal_throw.cpp
+	os/windows/system_cpu.cc utils/fatal_throw.cpp
 am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-allpairs_global.$(OBJEXT) \
 	core/libvsearch_core_a-attributes.$(OBJEXT) \
@@ -780,9 +782,13 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-version.$(OBJEXT)
 @TARGET_X86_64_FALSE@am__objects_3 = arch/generic/libvsearch_core_a-cpu_features.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_3 = arch/x86_64/libvsearch_core_a-cpu_features.$(OBJEXT)
-@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_4 = os/macos/libvsearch_core_a-system_memory.$(OBJEXT)
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__objects_5 = os/freebsd/libvsearch_core_a-system_memory.$(OBJEXT)
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__objects_6 = os/linux/libvsearch_core_a-system_memory.$(OBJEXT)
+@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_4 = os/macos/libvsearch_core_a-system_memory.$(OBJEXT) \
+@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@	os/macos/libvsearch_core_a-system_cpu.$(OBJEXT)
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__objects_5 = os/freebsd/libvsearch_core_a-system_memory.$(OBJEXT) \
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@	os/freebsd/libvsearch_core_a-system_cpu.$(OBJEXT)
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__objects_6 = os/linux/libvsearch_core_a-system_memory.$(OBJEXT) \
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@	os/linux/libvsearch_core_a-system_cpu.$(OBJEXT) \
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@	os/linux/libvsearch_core_a-cgroup.$(OBJEXT)
 @TARGET_WIN_FALSE@am__objects_7 = os/posix/libvsearch_core_a-dynlib_loader.$(OBJEXT) \
 @TARGET_WIN_FALSE@	os/posix/libvsearch_core_a-system.$(OBJEXT) \
 @TARGET_WIN_FALSE@	$(am__objects_4) $(am__objects_5) \
@@ -790,6 +796,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 @TARGET_WIN_TRUE@am__objects_7 = os/windows/libvsearch_core_a-dynlib_loader.$(OBJEXT) \
 @TARGET_WIN_TRUE@	os/windows/libvsearch_core_a-system.$(OBJEXT) \
 @TARGET_WIN_TRUE@	os/windows/libvsearch_core_a-system_memory.$(OBJEXT) \
+@TARGET_WIN_TRUE@	os/windows/libvsearch_core_a-system_cpu.$(OBJEXT) \
 @TARGET_WIN_TRUE@	$(am__objects_4) $(am__objects_5) \
 @TARGET_WIN_TRUE@	$(am__objects_6)
 am_libvsearch_core_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
@@ -835,10 +842,10 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
 	commands/shuffle.hpp commands/sintax.hpp \
 	commands/sortbylength.hpp commands/sortbysize.hpp \
-	os/system.hpp core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -898,10 +905,12 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/string_normalize.cpp utils/warn.cpp commands/version.cpp \
 	arch/generic/cpu_features.cpp arch/x86_64/cpu_features.cpp \
 	os/posix/dynlib_loader.cc os/posix/system.cc \
-	os/macos/system_memory.cc os/freebsd/system_memory.cc \
-	os/linux/system_memory.cc os/windows/dynlib_loader.cc \
-	os/windows/system.cc os/windows/system_memory.cc vsearch.cc \
-	utils/fatal_exit.cpp
+	os/macos/system_memory.cc os/macos/system_cpu.cc \
+	os/freebsd/system_memory.cc os/freebsd/system_cpu.cc \
+	os/linux/system_memory.cc os/linux/system_cpu.cc \
+	os/linux/cgroup.cc os/windows/dynlib_loader.cc \
+	os/windows/system.cc os/windows/system_memory.cc \
+	os/windows/system_cpu.cc vsearch.cc utils/fatal_exit.cpp
 am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/allpairs_global.$(OBJEXT) core/attributes.$(OBJEXT) \
 	core/bitmap.$(OBJEXT) core/chimera.$(OBJEXT) \
@@ -966,15 +975,20 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 @TARGET_X86_64_FALSE@	arch/generic/cpu_features.$(OBJEXT)
 @TARGET_X86_64_TRUE@am__objects_9 =  \
 @TARGET_X86_64_TRUE@	arch/x86_64/cpu_features.$(OBJEXT)
-@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_10 = os/macos/system_memory.$(OBJEXT)
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__objects_11 = os/freebsd/system_memory.$(OBJEXT)
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__objects_12 = os/linux/system_memory.$(OBJEXT)
+@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__objects_10 = os/macos/system_memory.$(OBJEXT) \
+@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@	os/macos/system_cpu.$(OBJEXT)
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__objects_11 = os/freebsd/system_memory.$(OBJEXT) \
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@	os/freebsd/system_cpu.$(OBJEXT)
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__objects_12 = os/linux/system_memory.$(OBJEXT) \
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@	os/linux/system_cpu.$(OBJEXT) \
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@	os/linux/cgroup.$(OBJEXT)
 @TARGET_WIN_FALSE@am__objects_13 = os/posix/dynlib_loader.$(OBJEXT) \
 @TARGET_WIN_FALSE@	os/posix/system.$(OBJEXT) $(am__objects_10) \
 @TARGET_WIN_FALSE@	$(am__objects_11) $(am__objects_12)
 @TARGET_WIN_TRUE@am__objects_13 = os/windows/dynlib_loader.$(OBJEXT) \
 @TARGET_WIN_TRUE@	os/windows/system.$(OBJEXT) \
 @TARGET_WIN_TRUE@	os/windows/system_memory.$(OBJEXT) \
+@TARGET_WIN_TRUE@	os/windows/system_cpu.$(OBJEXT) \
 @TARGET_WIN_TRUE@	$(am__objects_10) $(am__objects_11) \
 @TARGET_WIN_TRUE@	$(am__objects_12)
 am___top_builddir__bin_vsearch_OBJECTS = $(am__objects_1) \
@@ -1166,11 +1180,19 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	core/$(DEPDIR)/tax.Po core/$(DEPDIR)/udb.Po \
 	core/$(DEPDIR)/unique.Po os/$(DEPDIR)/dynlibs.Po \
 	os/$(DEPDIR)/libvsearch_core_a-dynlibs.Po \
+	os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po \
 	os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
+	os/freebsd/$(DEPDIR)/system_cpu.Po \
 	os/freebsd/$(DEPDIR)/system_memory.Po \
+	os/linux/$(DEPDIR)/cgroup.Po \
+	os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Po \
+	os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Po \
 	os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
+	os/linux/$(DEPDIR)/system_cpu.Po \
 	os/linux/$(DEPDIR)/system_memory.Po \
+	os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Po \
 	os/macos/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
+	os/macos/$(DEPDIR)/system_cpu.Po \
 	os/macos/$(DEPDIR)/system_memory.Po \
 	os/posix/$(DEPDIR)/dynlib_loader.Po \
 	os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po \
@@ -1179,8 +1201,10 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	os/windows/$(DEPDIR)/dynlib_loader.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-system.Po \
+	os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Po \
 	os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
 	os/windows/$(DEPDIR)/system.Po \
+	os/windows/$(DEPDIR)/system_cpu.Po \
 	os/windows/$(DEPDIR)/system_memory.Po utils/$(DEPDIR)/cigar.Po \
 	utils/$(DEPDIR)/compare_strings_nocase.Po \
 	utils/$(DEPDIR)/fatal.Po utils/$(DEPDIR)/fatal_exit.Po \
@@ -1485,6 +1509,7 @@ commands/sintax.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
 os/system.hpp \
+os/linux/cgroup.hpp \
 core/tax.hpp \
 commands/makeudb_usearch.hpp \
 commands/udb2fasta.hpp \
@@ -1706,12 +1731,17 @@ commands/version.cpp
 # other target uses the POSIX interfaces. TARGET_WIN is set by configure when
 # <windows.h> is available (native or mingw cross-build).
 #
-# The physical-memory queries (system_get_memused/memtotal) differ per OS and
-# get their own os/<os>/system_memory.cc backend, picked below; os/linux is the
-# default and also serves as the generic-Unix fallback.
+# The resource queries differ per OS and get their own backends, picked below;
+# os/linux is the default and also serves as the generic-Unix fallback:
+# os/<os>/system_memory.cc holds the memory ones (system_get_memused/memtotal,
+# and system_get_memlimit which only Linux can answer with a cgroup limit) and
+# os/<os>/system_cpu.cc the CPU one (system_get_available_cores). os/linux
+# additionally compiles os/linux/cgroup.cc, the control-group reader both of
+# its backends share.
 @TARGET_WIN_TRUE@VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc \
 @TARGET_WIN_TRUE@	os/windows/system.cc \
-@TARGET_WIN_TRUE@	os/windows/system_memory.cc $(am__append_8) \
+@TARGET_WIN_TRUE@	os/windows/system_memory.cc \
+@TARGET_WIN_TRUE@	os/windows/system_cpu.cc $(am__append_8) \
 @TARGET_WIN_TRUE@	$(am__append_9) $(am__append_10)
 
 # Executable-only translation units, never compiled into libvsearch_core:
@@ -2187,6 +2217,8 @@ os/macos/$(DEPDIR)/$(am__dirstamp):
 	@: > os/macos/$(DEPDIR)/$(am__dirstamp)
 os/macos/libvsearch_core_a-system_memory.$(OBJEXT):  \
 	os/macos/$(am__dirstamp) os/macos/$(DEPDIR)/$(am__dirstamp)
+os/macos/libvsearch_core_a-system_cpu.$(OBJEXT):  \
+	os/macos/$(am__dirstamp) os/macos/$(DEPDIR)/$(am__dirstamp)
 os/freebsd/$(am__dirstamp):
 	@$(MKDIR_P) os/freebsd
 	@: > os/freebsd/$(am__dirstamp)
@@ -2194,6 +2226,9 @@ os/freebsd/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) os/freebsd/$(DEPDIR)
 	@: > os/freebsd/$(DEPDIR)/$(am__dirstamp)
 os/freebsd/libvsearch_core_a-system_memory.$(OBJEXT):  \
+	os/freebsd/$(am__dirstamp) \
+	os/freebsd/$(DEPDIR)/$(am__dirstamp)
+os/freebsd/libvsearch_core_a-system_cpu.$(OBJEXT):  \
 	os/freebsd/$(am__dirstamp) \
 	os/freebsd/$(DEPDIR)/$(am__dirstamp)
 os/linux/$(am__dirstamp):
@@ -2204,6 +2239,10 @@ os/linux/$(DEPDIR)/$(am__dirstamp):
 	@: > os/linux/$(DEPDIR)/$(am__dirstamp)
 os/linux/libvsearch_core_a-system_memory.$(OBJEXT):  \
 	os/linux/$(am__dirstamp) os/linux/$(DEPDIR)/$(am__dirstamp)
+os/linux/libvsearch_core_a-system_cpu.$(OBJEXT):  \
+	os/linux/$(am__dirstamp) os/linux/$(DEPDIR)/$(am__dirstamp)
+os/linux/libvsearch_core_a-cgroup.$(OBJEXT): os/linux/$(am__dirstamp) \
+	os/linux/$(DEPDIR)/$(am__dirstamp)
 os/windows/$(am__dirstamp):
 	@$(MKDIR_P) os/windows
 	@: > os/windows/$(am__dirstamp)
@@ -2217,6 +2256,9 @@ os/windows/libvsearch_core_a-system.$(OBJEXT):  \
 	os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 os/windows/libvsearch_core_a-system_memory.$(OBJEXT):  \
+	os/windows/$(am__dirstamp) \
+	os/windows/$(DEPDIR)/$(am__dirstamp)
+os/windows/libvsearch_core_a-system_cpu.$(OBJEXT):  \
 	os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 utils/libvsearch_core_a-fatal_throw.$(OBJEXT): utils/$(am__dirstamp) \
@@ -2430,15 +2472,25 @@ os/posix/system.$(OBJEXT): os/posix/$(am__dirstamp) \
 	os/posix/$(DEPDIR)/$(am__dirstamp)
 os/macos/system_memory.$(OBJEXT): os/macos/$(am__dirstamp) \
 	os/macos/$(DEPDIR)/$(am__dirstamp)
+os/macos/system_cpu.$(OBJEXT): os/macos/$(am__dirstamp) \
+	os/macos/$(DEPDIR)/$(am__dirstamp)
 os/freebsd/system_memory.$(OBJEXT): os/freebsd/$(am__dirstamp) \
 	os/freebsd/$(DEPDIR)/$(am__dirstamp)
+os/freebsd/system_cpu.$(OBJEXT): os/freebsd/$(am__dirstamp) \
+	os/freebsd/$(DEPDIR)/$(am__dirstamp)
 os/linux/system_memory.$(OBJEXT): os/linux/$(am__dirstamp) \
+	os/linux/$(DEPDIR)/$(am__dirstamp)
+os/linux/system_cpu.$(OBJEXT): os/linux/$(am__dirstamp) \
+	os/linux/$(DEPDIR)/$(am__dirstamp)
+os/linux/cgroup.$(OBJEXT): os/linux/$(am__dirstamp) \
 	os/linux/$(DEPDIR)/$(am__dirstamp)
 os/windows/dynlib_loader.$(OBJEXT): os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 os/windows/system.$(OBJEXT): os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 os/windows/system_memory.$(OBJEXT): os/windows/$(am__dirstamp) \
+	os/windows/$(DEPDIR)/$(am__dirstamp)
+os/windows/system_cpu.$(OBJEXT): os/windows/$(am__dirstamp) \
 	os/windows/$(DEPDIR)/$(am__dirstamp)
 utils/fatal_exit.$(OBJEXT): utils/$(am__dirstamp) \
 	utils/$(DEPDIR)/$(am__dirstamp)
@@ -2654,11 +2706,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/unique.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/$(DEPDIR)/dynlibs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/$(DEPDIR)/libvsearch_core_a-dynlibs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/freebsd/$(DEPDIR)/system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/freebsd/$(DEPDIR)/system_memory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/linux/$(DEPDIR)/cgroup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/linux/$(DEPDIR)/system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/linux/$(DEPDIR)/system_memory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/macos/$(DEPDIR)/libvsearch_core_a-system_memory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/macos/$(DEPDIR)/system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/macos/$(DEPDIR)/system_memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/posix/$(DEPDIR)/dynlib_loader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po@am__quote@ # am--include-marker
@@ -2667,8 +2727,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/dynlib_loader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-system.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system_cpu.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@os/windows/$(DEPDIR)/system_memory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/cigar.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@utils/$(DEPDIR)/compare_strings_nocase.Po@am__quote@ # am--include-marker
@@ -4359,6 +4421,20 @@ os/macos/libvsearch_core_a-system_memory.obj: os/macos/system_memory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/macos/libvsearch_core_a-system_memory.obj `if test -f 'os/macos/system_memory.cc'; then $(CYGPATH_W) 'os/macos/system_memory.cc'; else $(CYGPATH_W) '$(srcdir)/os/macos/system_memory.cc'; fi`
 
+os/macos/libvsearch_core_a-system_cpu.o: os/macos/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/macos/libvsearch_core_a-system_cpu.o -MD -MP -MF os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/macos/libvsearch_core_a-system_cpu.o `test -f 'os/macos/system_cpu.cc' || echo '$(srcdir)/'`os/macos/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/macos/system_cpu.cc' object='os/macos/libvsearch_core_a-system_cpu.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/macos/libvsearch_core_a-system_cpu.o `test -f 'os/macos/system_cpu.cc' || echo '$(srcdir)/'`os/macos/system_cpu.cc
+
+os/macos/libvsearch_core_a-system_cpu.obj: os/macos/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/macos/libvsearch_core_a-system_cpu.obj -MD -MP -MF os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/macos/libvsearch_core_a-system_cpu.obj `if test -f 'os/macos/system_cpu.cc'; then $(CYGPATH_W) 'os/macos/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/macos/system_cpu.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/macos/system_cpu.cc' object='os/macos/libvsearch_core_a-system_cpu.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/macos/libvsearch_core_a-system_cpu.obj `if test -f 'os/macos/system_cpu.cc'; then $(CYGPATH_W) 'os/macos/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/macos/system_cpu.cc'; fi`
+
 os/freebsd/libvsearch_core_a-system_memory.o: os/freebsd/system_memory.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/freebsd/libvsearch_core_a-system_memory.o -MD -MP -MF os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Tpo -c -o os/freebsd/libvsearch_core_a-system_memory.o `test -f 'os/freebsd/system_memory.cc' || echo '$(srcdir)/'`os/freebsd/system_memory.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Tpo os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po
@@ -4373,6 +4449,20 @@ os/freebsd/libvsearch_core_a-system_memory.obj: os/freebsd/system_memory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/freebsd/libvsearch_core_a-system_memory.obj `if test -f 'os/freebsd/system_memory.cc'; then $(CYGPATH_W) 'os/freebsd/system_memory.cc'; else $(CYGPATH_W) '$(srcdir)/os/freebsd/system_memory.cc'; fi`
 
+os/freebsd/libvsearch_core_a-system_cpu.o: os/freebsd/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/freebsd/libvsearch_core_a-system_cpu.o -MD -MP -MF os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/freebsd/libvsearch_core_a-system_cpu.o `test -f 'os/freebsd/system_cpu.cc' || echo '$(srcdir)/'`os/freebsd/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/freebsd/system_cpu.cc' object='os/freebsd/libvsearch_core_a-system_cpu.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/freebsd/libvsearch_core_a-system_cpu.o `test -f 'os/freebsd/system_cpu.cc' || echo '$(srcdir)/'`os/freebsd/system_cpu.cc
+
+os/freebsd/libvsearch_core_a-system_cpu.obj: os/freebsd/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/freebsd/libvsearch_core_a-system_cpu.obj -MD -MP -MF os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/freebsd/libvsearch_core_a-system_cpu.obj `if test -f 'os/freebsd/system_cpu.cc'; then $(CYGPATH_W) 'os/freebsd/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/freebsd/system_cpu.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/freebsd/system_cpu.cc' object='os/freebsd/libvsearch_core_a-system_cpu.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/freebsd/libvsearch_core_a-system_cpu.obj `if test -f 'os/freebsd/system_cpu.cc'; then $(CYGPATH_W) 'os/freebsd/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/freebsd/system_cpu.cc'; fi`
+
 os/linux/libvsearch_core_a-system_memory.o: os/linux/system_memory.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/linux/libvsearch_core_a-system_memory.o -MD -MP -MF os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Tpo -c -o os/linux/libvsearch_core_a-system_memory.o `test -f 'os/linux/system_memory.cc' || echo '$(srcdir)/'`os/linux/system_memory.cc
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Tpo os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Po
@@ -4386,6 +4476,34 @@ os/linux/libvsearch_core_a-system_memory.obj: os/linux/system_memory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/linux/system_memory.cc' object='os/linux/libvsearch_core_a-system_memory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/linux/libvsearch_core_a-system_memory.obj `if test -f 'os/linux/system_memory.cc'; then $(CYGPATH_W) 'os/linux/system_memory.cc'; else $(CYGPATH_W) '$(srcdir)/os/linux/system_memory.cc'; fi`
+
+os/linux/libvsearch_core_a-system_cpu.o: os/linux/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/linux/libvsearch_core_a-system_cpu.o -MD -MP -MF os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/linux/libvsearch_core_a-system_cpu.o `test -f 'os/linux/system_cpu.cc' || echo '$(srcdir)/'`os/linux/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/linux/system_cpu.cc' object='os/linux/libvsearch_core_a-system_cpu.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/linux/libvsearch_core_a-system_cpu.o `test -f 'os/linux/system_cpu.cc' || echo '$(srcdir)/'`os/linux/system_cpu.cc
+
+os/linux/libvsearch_core_a-system_cpu.obj: os/linux/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/linux/libvsearch_core_a-system_cpu.obj -MD -MP -MF os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/linux/libvsearch_core_a-system_cpu.obj `if test -f 'os/linux/system_cpu.cc'; then $(CYGPATH_W) 'os/linux/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/linux/system_cpu.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/linux/system_cpu.cc' object='os/linux/libvsearch_core_a-system_cpu.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/linux/libvsearch_core_a-system_cpu.obj `if test -f 'os/linux/system_cpu.cc'; then $(CYGPATH_W) 'os/linux/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/linux/system_cpu.cc'; fi`
+
+os/linux/libvsearch_core_a-cgroup.o: os/linux/cgroup.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/linux/libvsearch_core_a-cgroup.o -MD -MP -MF os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Tpo -c -o os/linux/libvsearch_core_a-cgroup.o `test -f 'os/linux/cgroup.cc' || echo '$(srcdir)/'`os/linux/cgroup.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Tpo os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/linux/cgroup.cc' object='os/linux/libvsearch_core_a-cgroup.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/linux/libvsearch_core_a-cgroup.o `test -f 'os/linux/cgroup.cc' || echo '$(srcdir)/'`os/linux/cgroup.cc
+
+os/linux/libvsearch_core_a-cgroup.obj: os/linux/cgroup.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/linux/libvsearch_core_a-cgroup.obj -MD -MP -MF os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Tpo -c -o os/linux/libvsearch_core_a-cgroup.obj `if test -f 'os/linux/cgroup.cc'; then $(CYGPATH_W) 'os/linux/cgroup.cc'; else $(CYGPATH_W) '$(srcdir)/os/linux/cgroup.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Tpo os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/linux/cgroup.cc' object='os/linux/libvsearch_core_a-cgroup.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/linux/libvsearch_core_a-cgroup.obj `if test -f 'os/linux/cgroup.cc'; then $(CYGPATH_W) 'os/linux/cgroup.cc'; else $(CYGPATH_W) '$(srcdir)/os/linux/cgroup.cc'; fi`
 
 os/windows/libvsearch_core_a-dynlib_loader.o: os/windows/dynlib_loader.cc
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/windows/libvsearch_core_a-dynlib_loader.o -MD -MP -MF os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Tpo -c -o os/windows/libvsearch_core_a-dynlib_loader.o `test -f 'os/windows/dynlib_loader.cc' || echo '$(srcdir)/'`os/windows/dynlib_loader.cc
@@ -4428,6 +4546,20 @@ os/windows/libvsearch_core_a-system_memory.obj: os/windows/system_memory.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/windows/system_memory.cc' object='os/windows/libvsearch_core_a-system_memory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-system_memory.obj `if test -f 'os/windows/system_memory.cc'; then $(CYGPATH_W) 'os/windows/system_memory.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/system_memory.cc'; fi`
+
+os/windows/libvsearch_core_a-system_cpu.o: os/windows/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/windows/libvsearch_core_a-system_cpu.o -MD -MP -MF os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/windows/libvsearch_core_a-system_cpu.o `test -f 'os/windows/system_cpu.cc' || echo '$(srcdir)/'`os/windows/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/windows/system_cpu.cc' object='os/windows/libvsearch_core_a-system_cpu.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-system_cpu.o `test -f 'os/windows/system_cpu.cc' || echo '$(srcdir)/'`os/windows/system_cpu.cc
+
+os/windows/libvsearch_core_a-system_cpu.obj: os/windows/system_cpu.cc
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT os/windows/libvsearch_core_a-system_cpu.obj -MD -MP -MF os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo -c -o os/windows/libvsearch_core_a-system_cpu.obj `if test -f 'os/windows/system_cpu.cc'; then $(CYGPATH_W) 'os/windows/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/system_cpu.cc'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Tpo os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='os/windows/system_cpu.cc' object='os/windows/libvsearch_core_a-system_cpu.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o os/windows/libvsearch_core_a-system_cpu.obj `if test -f 'os/windows/system_cpu.cc'; then $(CYGPATH_W) 'os/windows/system_cpu.cc'; else $(CYGPATH_W) '$(srcdir)/os/windows/system_cpu.cc'; fi`
 
 utils/libvsearch_core_a-fatal_throw.o: utils/fatal_throw.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT utils/libvsearch_core_a-fatal_throw.o -MD -MP -MF utils/$(DEPDIR)/libvsearch_core_a-fatal_throw.Tpo -c -o utils/libvsearch_core_a-fatal_throw.o `test -f 'utils/fatal_throw.cpp' || echo '$(srcdir)/'`utils/fatal_throw.cpp
@@ -4802,11 +4934,19 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/unique.Po
 	-rm -f os/$(DEPDIR)/dynlibs.Po
 	-rm -f os/$(DEPDIR)/libvsearch_core_a-dynlibs.Po
+	-rm -f os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po
+	-rm -f os/freebsd/$(DEPDIR)/system_cpu.Po
 	-rm -f os/freebsd/$(DEPDIR)/system_memory.Po
+	-rm -f os/linux/$(DEPDIR)/cgroup.Po
+	-rm -f os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Po
+	-rm -f os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Po
+	-rm -f os/linux/$(DEPDIR)/system_cpu.Po
 	-rm -f os/linux/$(DEPDIR)/system_memory.Po
+	-rm -f os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/macos/$(DEPDIR)/libvsearch_core_a-system_memory.Po
+	-rm -f os/macos/$(DEPDIR)/system_cpu.Po
 	-rm -f os/macos/$(DEPDIR)/system_memory.Po
 	-rm -f os/posix/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
@@ -4815,8 +4955,10 @@ distclean: distclean-am
 	-rm -f os/windows/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system.Po
+	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po
 	-rm -f os/windows/$(DEPDIR)/system.Po
+	-rm -f os/windows/$(DEPDIR)/system_cpu.Po
 	-rm -f os/windows/$(DEPDIR)/system_memory.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po
@@ -5084,11 +5226,19 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/unique.Po
 	-rm -f os/$(DEPDIR)/dynlibs.Po
 	-rm -f os/$(DEPDIR)/libvsearch_core_a-dynlibs.Po
+	-rm -f os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po
+	-rm -f os/freebsd/$(DEPDIR)/system_cpu.Po
 	-rm -f os/freebsd/$(DEPDIR)/system_memory.Po
+	-rm -f os/linux/$(DEPDIR)/cgroup.Po
+	-rm -f os/linux/$(DEPDIR)/libvsearch_core_a-cgroup.Po
+	-rm -f os/linux/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/linux/$(DEPDIR)/libvsearch_core_a-system_memory.Po
+	-rm -f os/linux/$(DEPDIR)/system_cpu.Po
 	-rm -f os/linux/$(DEPDIR)/system_memory.Po
+	-rm -f os/macos/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/macos/$(DEPDIR)/libvsearch_core_a-system_memory.Po
+	-rm -f os/macos/$(DEPDIR)/system_cpu.Po
 	-rm -f os/macos/$(DEPDIR)/system_memory.Po
 	-rm -f os/posix/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/posix/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
@@ -5097,8 +5247,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f os/windows/$(DEPDIR)/dynlib_loader.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-dynlib_loader.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system.Po
+	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system_cpu.Po
 	-rm -f os/windows/$(DEPDIR)/libvsearch_core_a-system_memory.Po
 	-rm -f os/windows/$(DEPDIR)/system.Po
+	-rm -f os/windows/$(DEPDIR)/system_cpu.Po
 	-rm -f os/windows/$(DEPDIR)/system_memory.Po
 	-rm -f utils/$(DEPDIR)/cigar.Po
 	-rm -f utils/$(DEPDIR)/compare_strings_nocase.Po

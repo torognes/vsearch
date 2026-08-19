@@ -84,3 +84,13 @@ auto system_get_memtotal() -> uint64_t
     fatal("Cannot determine amount of RAM");
   return ram;
 }
+
+
+auto system_get_memlimit() -> uint64_t
+{
+  /* macOS has no cgroup-like per-process memory cap to consult, so the
+     machine's memory is also the limit. Containers on macOS run inside a Linux
+     virtual machine, whose guest kernel reports its own assignment through the
+     Linux backend (os/linux/system_memory.cc). */
+  return system_get_memtotal();
+}

@@ -57,41 +57,15 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 */
-
 #include "os/system.hpp"
-#include "utils/fatal.hpp"
-#include <cstddef>  // std::size_t
-#include <cstdint>  // uint64_t
-#include <sys/resource.h>  // getrusage, RUSAGE_SELF, struct rusage
-#include <sys/sysctl.h>  // sysctlbyname
 
 
-auto system_get_memused() -> uint64_t
+auto system_get_available_cores() -> long
 {
-  struct rusage r_usage;
-  getrusage(RUSAGE_SELF, & r_usage);
-  /* FreeBSD: ru_maxrss gives the size in kilobytes */
-  return static_cast<uint64_t>(r_usage.ru_maxrss) * 1024;
-}
-
-
-auto system_get_memtotal() -> uint64_t
-{
-  /* sysctlbyname("hw.physmem") writes a uint64_t directly, avoiding the
-     32-bit overflow of the older sysctl({CTL_HW, HW_PHYSMEM}) interface
-     on hosts with >= 4 GB */
-  uint64_t ram = 0;
-  std::size_t length = sizeof(ram);
-  if (sysctlbyname("hw.physmem", &ram, &length, nullptr, 0) != 0)
-    fatal("Cannot determine amount of RAM");
-  return ram;
-}
-
-
-auto system_get_memlimit() -> uint64_t
-{
-  /* A FreeBSD jail can carry an rctl 'memoryuse' limit, which is not read
-     here: it needs librctl and a rule-string parse, and no vsearch user has
-     asked for it. Until then the machine's memory is also the limit. */
-  return system_get_memtotal();
+  /* macOS has no cgroup-like way to confine a process to fewer cores than the
+     machine has, and sysconf(_SC_NPROCESSORS_ONLN) -- what system_get_cores()
+     asks -- already excludes cores the system has taken offline. Containers on
+     macOS run inside a Linux virtual machine, whose guest kernel reports its
+     own assignment through the Linux backend (os/linux/system_cpu.cc). */
+  return system_get_cores();
 }

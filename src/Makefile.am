@@ -157,6 +157,7 @@ commands/sintax.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
 os/system.hpp \
+os/linux/cgroup.hpp \
 core/tax.hpp \
 commands/makeudb_usearch.hpp \
 commands/udb2fasta.hpp \
@@ -396,20 +397,24 @@ endif
 # other target uses the POSIX interfaces. TARGET_WIN is set by configure when
 # <windows.h> is available (native or mingw cross-build).
 #
-# The physical-memory queries (system_get_memused/memtotal) differ per OS and
-# get their own os/<os>/system_memory.cc backend, picked below; os/linux is the
-# default and also serves as the generic-Unix fallback.
+# The resource queries differ per OS and get their own backends, picked below;
+# os/linux is the default and also serves as the generic-Unix fallback:
+# os/<os>/system_memory.cc holds the memory ones (system_get_memused/memtotal,
+# and system_get_memlimit which only Linux can answer with a cgroup limit) and
+# os/<os>/system_cpu.cc the CPU one (system_get_available_cores). os/linux
+# additionally compiles os/linux/cgroup.cc, the control-group reader both of
+# its backends share.
 if TARGET_WIN
-VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc os/windows/system.cc os/windows/system_memory.cc
+VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc os/windows/system.cc os/windows/system_memory.cc os/windows/system_cpu.cc
 else
 VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc os/posix/system.cc
 if TARGET_APPLE
-VSEARCH_OS_SOURCES += os/macos/system_memory.cc
+VSEARCH_OS_SOURCES += os/macos/system_memory.cc os/macos/system_cpu.cc
 else
 if TARGET_FREEBSD
-VSEARCH_OS_SOURCES += os/freebsd/system_memory.cc
+VSEARCH_OS_SOURCES += os/freebsd/system_memory.cc os/freebsd/system_cpu.cc
 else
-VSEARCH_OS_SOURCES += os/linux/system_memory.cc
+VSEARCH_OS_SOURCES += os/linux/system_memory.cc os/linux/system_cpu.cc os/linux/cgroup.cc
 endif
 endif
 endif
