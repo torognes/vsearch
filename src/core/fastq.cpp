@@ -84,8 +84,9 @@ namespace {
   // below map every byte to one of these; buffer_filter_extend() switches on
   // it. Unlike fasta, 'reject' is deferred (recorded and reported by the
   // caller), 'newline' is a no-op here (the caller keeps the line count), and
-  // there is no 'warn': FASTQ strips nothing with a warning ("Rest is fatal",
-  // see the tables below), so no byte maps to it and record_stripped() is
+  // there is no 'warn': FASTQ strips nothing with a warning ("the rest is
+  // fatal", see the policies below), so no byte maps to it and record_stripped()
+  // is
   // reached from the FASTA parser only.
   enum struct Action : unsigned char {
     accept,   // (0) legal character
@@ -95,80 +96,16 @@ namespace {
   };
 
 
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
-  constexpr Action char_fq_action_seq_literal[byte_range] =
-    {
-      /*
-        How to handle input characters for FASTQ:
-        All IUPAC characters are valid.
-        CR (^M) silently stripped.
-        LF is newline.
-        Rest is fatal
-
-        0=accept, 1=reject, 2=skip, 3=newline (see the Action enum)
-
-        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-      */
-
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::newline,  Action::reject,  Action::reject,  Action::skip,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::reject,  Action::accept,  Action::accept,  Action::reject,
-      Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::accept,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::reject,  Action::reject,  Action::accept,  Action::reject,  Action::accept,  Action::accept,  Action::reject,
-      Action::reject,  Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,  Action::accept,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-    };
 
 
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
-  constexpr Action char_fq_action_qual_literal[byte_range] =
-    {
-      /*
-        Quality characters, any from 33 to 126 is valid (legal).
-        CR (^M) silently stripped.
-        LF is newline.
-        Rest is fatal
-
-        @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
-        P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
-      */
-
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::newline,  Action::reject,  Action::reject,  Action::skip,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
-      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
-      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
-      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
-      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,
-      Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-      Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-    };
 
 
-  /* One row per byte class (see core/fastx_char_class.hpp). These two policies
-     say in code what the table comments above say in prose: in a sequence all
-     IUPAC characters are valid and the rest is fatal, while a quality line
-     accepts the whole printable range 33-126. CR is stripped and LF is the line
-     terminator in both. */
-  /* C++11 constexpr allows a single return statement -- no if, no switch -- so a
-     chain of conditions can only be nested conditional operators. */
+  /* How to handle an input character in a FASTQ sequence: all IUPAC characters
+     are valid, CR (^M) is silently stripped, LF is newline, the rest is fatal.
+     One row per byte class (see core/fastx_char_class.hpp).
+
+     C++11 constexpr allows a single return statement -- no if, no switch -- so
+     the two chains below can only be nested conditional operators. */
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
   constexpr auto sequence_policy(vsearch::CharClass const character_class) noexcept -> Action {
     return character_class == vsearch::CharClass::iupac           ? Action::accept
@@ -178,6 +115,8 @@ namespace {
   }
 
 
+  /* How to handle a FASTQ quality character: any from 33 to 126 is valid
+     (legal), CR (^M) is silently stripped, LF is newline, the rest is fatal. */
   constexpr auto quality_policy(vsearch::CharClass const character_class) noexcept -> Action {
     return character_class == vsearch::CharClass::line_feed       ? Action::newline
       : character_class == vsearch::CharClass::carriage_return    ? Action::skip
@@ -194,11 +133,6 @@ namespace {
 
   constexpr std::array<Action, byte_range> char_fq_action_qual =
     vsearch::expanded_policy<Action, quality_policy>();
-
-  static_assert(vsearch::reproduces<Action, sequence_policy>(char_fq_action_seq_literal, 0U),
-                "the byte-class partition no longer reproduces char_fq_action_seq");
-  static_assert(vsearch::reproduces<Action, quality_policy>(char_fq_action_qual_literal, 0U),
-                "the byte-class partition no longer reproduces char_fq_action_qual");
 
 }  // end of anonymous namespace
 

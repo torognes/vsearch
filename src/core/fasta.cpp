@@ -91,55 +91,15 @@ namespace {
   };
 
 
-  /*
-    How to handle input characters for FASTA
-
-    0=warn, 1=accept, 2=reject, 3=show, 4=skip, 5=count
-
-    3,  3,  3,  3,  3,  3,  3,  3,  3,  4,  5,  4,  4,  4,  3,  3,    // 0-15
-    3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,    // 16-31
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,    // 32-47
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,    // 48-63
-    0,  1,  1,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,    // 64-79
-    0,  0,  1,  1,  1,  1,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,    // 80-95
-    0,  1,  1,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,    // 96-111
-    0,  0,  1,  1,  1,  1,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,    // 112-127
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-  */
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
-  constexpr Action char_actions_literal[byte_range] =
-    {
-      Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::skip,  Action::count,  Action::skip,  Action::skip,  Action::skip,  Action::show,  Action::show,  // 0-15
-      Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  // 16-31
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::reject,  Action::reject,  Action::warn,  // 32-47
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  // 48-63
-      Action::warn,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::warn,  Action::warn,  Action::accept,  Action::accept,  Action::warn,  Action::warn,  Action::accept,  Action::warn,  Action::accept,  Action::accept,  Action::warn,  // 64-79
-      Action::warn,  Action::warn,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::warn,  Action::accept,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  // 80-95
-      Action::warn,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::warn,  Action::warn,  Action::accept,  Action::accept,  Action::warn,  Action::warn,  Action::accept,  Action::warn,  Action::accept,  Action::accept,  Action::warn,  // 96-111
-      Action::warn,  Action::warn,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::accept,  Action::warn,  Action::accept,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  // 112-127
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-      Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-    };
 
 
-  /* One row per byte class (see core/fastx_char_class.hpp). The 190 'warn'
-     entries of the table above collapse into the fallback: a printable that is
-     not IUPAC, a space and a high byte are all stripped with a warning. */
-  /* C++11 constexpr allows a single return statement -- no if, no switch -- so a
-     chain of conditions can only be nested conditional operators. */
+  /* How to handle an input character in a FASTA sequence: one row per byte
+     class (see core/fastx_char_class.hpp). The fallback carries 190 of the 256
+     bytes -- a printable that is not IUPAC, a space and a high byte are all
+     stripped with a warning.
+
+     C++11 constexpr allows a single return statement -- no if, no switch -- so
+     the chain below can only be nested conditional operators. */
   // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
   constexpr auto sequence_policy(vsearch::CharClass const character_class) noexcept -> Action {
     return character_class == vsearch::CharClass::iupac           ? Action::accept
@@ -155,9 +115,6 @@ namespace {
 
   constexpr std::array<Action, byte_range> char_actions =
     vsearch::expanded_policy<Action, sequence_policy>();
-
-  static_assert(vsearch::reproduces<Action, sequence_policy>(char_actions_literal, 0U),
-                "the byte-class partition no longer reproduces char_actions");
 
 
   auto map_action(char const nucleotide) -> Action {

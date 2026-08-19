@@ -119,8 +119,9 @@ namespace ascii {
    nowhere to hide here, whereas the byte-0 bug survived since 2015 as one cell
    of one table disagreeing with its own class, in a sea of 256 identical-looking
    tokens. Order matters: the three named blank controls are peeled off before
-   the "below space is a control" test that would otherwise swallow them. */
-/* C++11 constexpr allows a single return statement -- no if, no switch -- so the
+   the "below space is a control" test that would otherwise swallow them.
+
+   C++11 constexpr allows a single return statement -- no if, no switch -- so the
    chain below can only be nested conditional operators. */
 // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
 constexpr auto class_of(unsigned char const byte) noexcept -> CharClass {
@@ -144,10 +145,10 @@ constexpr auto class_of(unsigned char const byte) noexcept -> CharClass {
    builds use libc++. A function of ternaries needs nothing beyond C++11.
 
    expanded_policy() materialises the flat 256-entry table the parsers index, at
-   compile time, so the generated table lands in .rodata exactly as the literal
-   one did and the lookup stays a single load. The hot loops must keep indexing
-   that flat table -- never policy(class_of(byte)) per byte, which would put two
-   dependent computations in a loop that is 31% of a dereplication run. */
+   compile time, so the table lands in .rodata just as a hand-written one would
+   and the lookup stays a single load. The hot loops must keep indexing that flat
+   table -- never policy(class_of(byte)) per byte, which would put two dependent
+   computations in a loop that is 31% of a dereplication run. */
 template <unsigned... Bytes> struct byte_indices {};
 
 template <unsigned Count, unsigned... Bytes>
@@ -165,23 +166,6 @@ constexpr auto expand(byte_indices<Bytes...> /* deduces the byte pack */) noexce
 template <typename Action, Action (*policy)(CharClass)>
 constexpr auto expanded_policy() noexcept -> std::array<Action, byte_range> {
   return expand<Action, policy>(typename make_byte_indices<byte_range>::type{});
-}
-
-
-/* Proof that a policy reproduces the literal table it replaces, byte for byte,
-   evaluated at compile time so that a static_assert reports any divergence in
-   release builds too. Recursive because C++11 constexpr has neither loops nor
-   fold expressions; the depth is byte_range, well inside GCC's default limit.
-   The literal is a C array, not a std::array, for the operator[] reason given
-   above -- it is a transient oracle, removed once the partition is trusted. */
-template <typename Action, Action (*policy)(CharClass)>
-// NOLINTNEXTLINE(misc-no-recursion)
-constexpr auto reproduces(Action const (& literal)[byte_range],
-                          unsigned const byte) noexcept -> bool {
-  return byte == byte_range
-    ? true
-    : (policy(class_of(static_cast<unsigned char>(byte))) == literal[byte])
-      and reproduces<Action, policy>(literal, byte + 1);
 }
 
 }  // namespace vsearch
