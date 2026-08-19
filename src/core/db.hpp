@@ -61,6 +61,7 @@
 #pragma once
 
 #include "core/seq_record.hpp"  // SeqRecord (returned by record())
+#include "core/udb.hpp"  // UdbUse (named by the udb_read friend declaration below)
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/span.hpp"  // Span<char>
 #include "utils/view.hpp"  // View<char>
@@ -120,8 +121,7 @@ private:
   /* udb_read is a second database loader that fills data_/seqindex_ in place
      (it bypasses add()); grant it access to the otherwise-private buffers. */
   friend auto udb_read(const char * filename,
-                       bool create_bitmaps,
-                       bool parse_abundances,
+                       UdbUse usage,
                        struct Dbindex & dbindex,
                        struct Database & db,
                        struct Parameters const & parameters) -> void;

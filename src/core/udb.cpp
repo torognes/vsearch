@@ -65,6 +65,7 @@
 #include "core/bitmap.hpp"
 #include "core/db.hpp"  // Database, seqinfo_t
 #include "core/dbindex.hpp"
+#include "core/udb.hpp"  // UdbUse, udb_read, udb_detect_isudb
 #include "os/system.hpp"  // xstat_t, xstat, xfstat, S_ISREG, S_ISFIFO
 #include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/fatal.hpp"
@@ -226,8 +227,7 @@ namespace {
 
 
 auto udb_read(const char * filename,
-              bool const create_bitmaps,
-              bool const parse_abundances,
+              UdbUse const usage,
               struct Dbindex & dbindex,
               struct Database & db,
               struct Parameters const & parameters) -> void
@@ -519,7 +519,7 @@ auto udb_read(const char * filename,
 
   /* Create bitmaps for the most frequent words */
 
-  if (create_bitmaps)
+  if (usage == UdbUse::search)
     {
       auto const bitmap_mincount = bitmap_min_matches(seqcount);
       dbindex.set_bitmap_width(seqcount);
@@ -542,7 +542,7 @@ auto udb_read(const char * filename,
 
   /* get abundances and longest header */
 
-  if (parse_abundances)
+  if (usage == UdbUse::search)
     {
       {
         Progress progress("Parsing abundances", seqcount, parameters);

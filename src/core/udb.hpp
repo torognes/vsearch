@@ -60,10 +60,20 @@
 
 #pragma once
 
+/* What the caller wants out of a UDB file. This replaced two adjacent bool
+   parameters, create_bitmaps and parse_abundances, that every one of the six
+   callers set together: true for the four commands that go on to search the
+   index, false for the two that only report on the file. Two same-typed
+   neighbours that must never disagree are exactly the shape a caller can swap
+   by mistake, so the one fact they carried between them is now one value. */
+enum struct UdbUse : unsigned char {
+  search,    /* build the k-mer bitmaps and parse the ;size= annotations */
+  metadata,  /* skip both: the caller only reports on the file */
+};
+
 auto udb_detect_isudb(const char * filename) -> bool;
 auto udb_read(const char * filename,
-              bool create_bitmaps,
-              bool parse_abundances,
+              UdbUse usage,
               struct Dbindex & dbindex,
               struct Database & db,
               struct Parameters const & parameters) -> void;

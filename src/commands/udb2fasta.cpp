@@ -80,7 +80,7 @@ auto udb2fasta(struct Parameters const & parameters) -> void
 
   /* read UDB file */
 
-  udb_read(parameters.opt_udb2fasta, false, false, dbindex, db, parameters);
+  udb_read(parameters.opt_udb2fasta, UdbUse::metadata, dbindex, db, parameters);
 
   /* dump fasta */
 

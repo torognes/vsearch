@@ -755,7 +755,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (is_udb)
     {
-      udb_read(parameters.opt_db, true, true, state.dbindex, state.db, parameters);
+      udb_read(parameters.opt_db, UdbUse::search, state.dbindex, state.db, parameters);
     }
   else
     {

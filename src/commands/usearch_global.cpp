@@ -548,7 +548,7 @@ static auto search_prep(struct search_cli_state_s & state) -> void
 
   if (is_udb)
     {
-      udb_read(state.parameters.opt_db, true, true, state.dbindex, state.db, state.parameters);
+      udb_read(state.parameters.opt_db, UdbUse::search, state.dbindex, state.db, state.parameters);
       results_show_samheader(state.fp_samout.get(), state.parameters.opt_db, state.db, state.parameters);
       // memory-intensive: the entire database is now held in memory
       state.seqcount = static_cast<int>(state.db.getsequencecount());
