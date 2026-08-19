@@ -361,7 +361,7 @@ auto fastq_next(fastx_handle input_handle,
       if (not ok)
         {
           std::string const message =
-            ((illegal_char >= 32) and (illegal_char < 127))
+            vsearch::ascii::is_printable(static_cast<unsigned char>(illegal_char))
             ? "Illegal sequence character '" + std::string(1, illegal_char) + "'"
             : "Illegal sequence character (unprintable, no "
               + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
@@ -479,7 +479,7 @@ auto fastq_next(fastx_handle input_handle,
       if (not ok)
         {
           std::string const message =
-            ((illegal_char >= 32) and (illegal_char < 127))
+            vsearch::ascii::is_printable(static_cast<unsigned char>(illegal_char))
             ? "Illegal quality character '" + std::string(1, illegal_char) + "'"
             : "Illegal quality character (unprintable, no "
               + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
