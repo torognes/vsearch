@@ -106,7 +106,9 @@ auto system_get_cores() -> long;
    every restriction that applies to it. On Linux that is the CPU affinity mask
    (taskset, a cpuset cgroup, Slurm's --cpu-bind, "docker --cpuset-cpus") and
    the cgroup CPU quota ("docker --cpus", a Kubernetes CPU limit); on Windows
-   the process affinity mask.
+   the process affinity mask. This is what --threads defaults to, so that a
+   confined job launches one thread per core it was granted rather than one per
+   core the machine has -- the 128-threads-on-one-core half of issue #584.
 
    Deliberately reads no environment variable: OMP_NUM_THREADS belongs to an
    OpenMP runtime, which vsearch is not, and the kernel interfaces above

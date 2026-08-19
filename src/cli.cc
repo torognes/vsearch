@@ -61,7 +61,7 @@
 #include "cli.h"
 #include "vsearch.hpp"
 #include "parameters.hpp"  // parameters_resolve_derived, parameters_validate, validate_thread_count
-#include "os/system.hpp"  // system_get_cores
+#include "os/system.hpp"  // system_get_available_cores
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/mask.hpp"  // Masking
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
@@ -4529,7 +4529,9 @@ namespace {
       {
         if (parameters.opt_threads == 0)
           {
-            parameters.opt_threads = system_get_cores();
+            /* The cores this run may use, not the machine's; see os/system.hpp
+               and the same default in parameters.cpp. */
+            parameters.opt_threads = system_get_available_cores();
           }
       }
     else

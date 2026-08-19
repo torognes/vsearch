@@ -424,7 +424,11 @@ such characters should not be used in \fIstring\fR. Other characters
 Number of computation threads to use (1 to 1024). The number of threads
 should be less than or equal to the number of available CPU cores. The
 default is to use all available resources and to launch one thread per
-core. The following commands are multi-threaded:
+core. On Linux, "available" accounts for the CPU affinity mask and the
+cgroup CPU quota of the running process, so a job confined by
+\fBtaskset\fR(1), Slurm, Docker or Kubernetes launches one thread per
+core it was actually granted, rather than one per core the machine has.
+The following commands are multi-threaded:
 allpairs_global, cluster_fast, cluster_size, cluster_smallmem,
 cluster_unoise, fastq_mergepairs, fastx_mask, maskfasta, search_exact,
 sintax, uchime_ref, and usearch_global. Only one thread is used for
@@ -2543,7 +2547,11 @@ Reject the sequence match if the pairwise identity is lower than
 Number of computation threads to use (1 to 1024). The number of
 threads should be lesser or equal to the number of available CPU
 cores. The default is to use all available resources and to launch one
-thread per logical core.
+thread per logical core. On Linux, "available" accounts for the CPU
+affinity mask and the cgroup CPU quota of the running process, so a job
+confined by \fBtaskset\fR(1), Slurm, Docker or Kubernetes launches one
+thread per core it was actually granted, rather than one per core the
+machine has.
 .TAG uc
 .TP
 .BI \-\-uc \0filename

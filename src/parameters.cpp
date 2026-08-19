@@ -69,7 +69,7 @@
 #include "vsearch.hpp"  // struct Parameters
 #include "core/chimera.hpp"  // maxparents
 #include "core/searchcore.hpp"  // minwordmatches_defaults
-#include "os/system.hpp"  // system_get_cores
+#include "os/system.hpp"  // system_get_available_cores
 #include "utils/fatal.hpp"  // fatal
 #include <array>  // std::array::size
 #include <cstddef>  // std::size_t
@@ -197,7 +197,10 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
     }
   if (parameters.opt_threads == 0)
     {
-      parameters.opt_threads = system_get_cores();
+      /* The cores this run may use, not the machine's: a job confined to one
+         core by a cgroup would otherwise default to one thread per core the
+         host has (issue #584). See os/system.hpp. */
+      parameters.opt_threads = system_get_available_cores();
     }
   if (parameters.opt_maxrejects == -1)
     {
