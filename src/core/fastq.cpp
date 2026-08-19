@@ -74,7 +74,6 @@
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string, std::to_string
-#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -95,8 +94,8 @@ namespace {
   };
 
 
-  const std::vector<Action> char_fq_action_seq =
-    {
+  constexpr std::array<Action, 256> char_fq_action_seq =
+    {{
       /*
         How to handle input characters for FASTQ:
         All IUPAC characters are valid.
@@ -126,11 +125,11 @@ namespace {
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-    };
+    },};
 
 
-  const std::vector<Action> char_fq_action_qual =
-    {
+  constexpr std::array<Action, 256> char_fq_action_qual =
+    {{
       /*
         Quality characters, any from 33 to 126 is valid (legal).
         CR (^M) silently stripped.
@@ -157,7 +156,7 @@ namespace {
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-    };
+    },};
 
 }  // end of anonymous namespace
 

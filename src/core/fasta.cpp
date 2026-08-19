@@ -74,7 +74,6 @@
 #include <cstdio>  // std::FILE, std::size_t
 #include <iterator>  // std::next
 #include <memory>  // std::unique_ptr
-#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -113,8 +112,8 @@ namespace {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
   */
-  const std::vector<Action> char_actions =
-    {
+  constexpr std::array<Action, 256> char_actions =
+    {{
       Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::skip,  Action::count,  Action::skip,  Action::skip,  Action::skip,  Action::show,  Action::show,  // 0-15
       Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  Action::show,  // 16-31
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::reject,  Action::reject,  Action::warn,  // 32-47
@@ -131,7 +130,7 @@ namespace {
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
       Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,  Action::warn,
-    };
+    },};
 
 
   auto map_action(char const nucleotide) -> Action {
