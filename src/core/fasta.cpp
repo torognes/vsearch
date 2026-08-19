@@ -84,10 +84,9 @@ namespace {
   enum struct Action : unsigned char {
     warn,    // (0) symbol is stripped, with a warning
     accept,  // (1)
-    reject,  // (2) fatal printable symbol ('.', '-')
-    show,    // (3) fatal non-printable symbol (0-8, 14-31, but not 127)
-    skip,    // (4) symbol is stripped, silently (tab, VT, FF, CR)
-    count,    // (5) track the number of lines
+    fatal,   // (2) '.', '-' and the C0 controls; the reporter picks the wording
+    skip,    // (3) symbol is stripped, silently (tab, VT, FF, CR)
+    count,   // (4) track the number of lines
   };
 
 
@@ -106,8 +105,8 @@ namespace {
       : character_class == vsearch::CharClass::line_feed          ? Action::count
       : character_class == vsearch::CharClass::carriage_return    ? Action::skip
       : character_class == vsearch::CharClass::blank_control      ? Action::skip
-      : character_class == vsearch::CharClass::control            ? Action::show
-      : character_class == vsearch::CharClass::dot_dash           ? Action::reject
+      : character_class == vsearch::CharClass::control            ? Action::fatal
+      : character_class == vsearch::CharClass::dot_dash           ? Action::fatal
       : Action::warn;  // space, del_or_high, printable_other
   }
   // NOLINTEND(readability-avoid-nested-conditional-operator)
@@ -124,9 +123,14 @@ namespace {
 
 
   auto report_illegal_symbol_and_exit(fastx_handle input_handle, unsigned char const symbol, uint64_t const line_number) -> void {
+    /* Which wording applies is a property of the byte, not of the table: only
+       '-' '.' (printable) and the C0 controls (not) reach here, and this is the
+       same test fastq.cpp makes at its own report time. */
     std::string const message =
-      "Illegal character '" + std::string(1, static_cast<char>(symbol))
-      + "' in sequence on line " + decimal::to_text(line_number)
+      (vsearch::ascii::is_printable(symbol)
+        ? "Illegal character '" + std::string(1, static_cast<char>(symbol)) + "'"
+        : "Illegal unprintable ASCII character no " + decimal::to_text(symbol))
+      + " in sequence on line " + decimal::to_text(line_number)
       + " of FASTA file";
     /* deferred-error mode (see fastx.h): record and return instead of
        exiting, so a worker thread does not std::exit() with siblings live */
@@ -137,18 +141,6 @@ namespace {
     fatal(message);
   }
 
-
-  auto report_unprintable_symbol_and_exit(fastx_handle input_handle, unsigned char const symbol, uint64_t const line_number) -> void {
-    std::string const message =
-      "Illegal unprintable ASCII character no " + decimal::to_text(symbol)
-      + " in sequence on line " + decimal::to_text(line_number)
-      + " of FASTA file";
-    if (input_handle->defers_errors()) {
-      input_handle->set_deferred_error(message);
-      return;
-    }
-    fatal(message);
-  }
 
 }  // end of anonymous namespace
 
@@ -210,15 +202,9 @@ auto fasta_filter_sequence(fastx_handle input_handle) -> void
               input_handle->record_stripped(current_char);
               break;
 
-            case Action::reject:
-              /* fatal character */
+            case Action::fatal:
+              /* fatal character, printable or not */
               report_illegal_symbol_and_exit(input_handle, current_char, input_handle->lineno);
-              if (input_handle->error) { return; }
-              break;
-
-            case Action::show:
-              /* fatal unprintable character */
-              report_unprintable_symbol_and_exit(input_handle, current_char, input_handle->lineno);
               if (input_handle->error) { return; }
               break;
 

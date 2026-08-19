@@ -112,6 +112,12 @@ namespace ascii {
     return (byte == '-') or (byte == '.');
   }
 
+  /* The printable range, 32-126. Used at report time to choose the wording for
+     a fatal byte, which is why the action tables need not encode it. */
+  constexpr auto is_printable(unsigned char const byte) noexcept -> bool {
+    return (byte >= ' ') and (byte <= '~');
+  }
+
 }  // namespace ascii
 
 
