@@ -969,79 +969,80 @@ auto search_onequery(struct searchinfo_s * searchinfo, Masking const seqmask) ->
 }
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Shared body of the two search_findbest2_* entry points below, which
+     differed only in the comparator they called. That choice is fixed at each
+     of them -- one call, one comparator -- so it arrives as a template
+     parameter, and the two specialisations are generated from this one body
+     rather than written out twice. The wrappers are the only instantiation
+     points.
+
+     'before' is called as before(candidate, *best), and the 'or' short-circuit
+     is what makes that safe: *best is evaluated only once best == nullptr has
+     been ruled out, the same guard the pointer form relied on before 93636cb9
+     made it visible. */
+  template <typename Before>
+  auto search_findbest2(struct searchinfo_s & si_p,
+                        Span<struct searchinfo_s> const si_m,
+                        Before const & before) -> struct hit *
+  {
+    struct Parameters const & parameters = *si_p.parameters;
+    /* the invariant the two arguments used to carry between them, unstated and
+       unchecked: the reverse strand exists exactly when both strands were asked
+       for. The loop below now reads it off the span itself. */
+    assert(si_m.empty() != parameters.opt_strand);
+    static_cast<void>(parameters);  // read only by the assert above
+    struct hit * best = nullptr;
+
+    for (auto & hit : make_hits_span(&si_p))
+      {
+        if ((best == nullptr) or before(hit, *best))
+          {
+            best = &hit;
+          }
+      }
+
+    for (auto & minus_strand : si_m)
+      {
+        for (auto & hit : make_hits_span(&minus_strand))
+          {
+            if ((best == nullptr) or before(hit, *best))
+              {
+                best = &hit;
+              }
+          }
+      }
+
+    if ((best != nullptr) and not best->accepted)
+      {
+        best = nullptr;
+      }
+
+    return best;
+  }
+
+}  // end of anonymous namespace
+
+
 auto search_findbest2_byid(struct searchinfo_s & si_p,
                            Span<struct searchinfo_s> const si_m) -> struct hit *
 {
-  struct Parameters const & parameters = *si_p.parameters;
-  /* the invariant the two arguments used to carry between them, unstated and
-     unchecked: the reverse strand exists exactly when both strands were asked
-     for. The loop below now reads it off the span itself. */
-  assert(si_m.empty() != parameters.opt_strand);
-  static_cast<void>(parameters);  // read only by the assert above
-  struct hit * best = nullptr;
-
-  for (auto & hit : make_hits_span(&si_p))
-    {
-      if ((best == nullptr) or (hit_compare_byid_typed(hit, *best) < 0))
-        {
-          best = &hit;
-        }
-    }
-
-  for (auto & minus_strand : si_m)
-    {
-      for (auto & hit : make_hits_span(&minus_strand))
-        {
-          if ((best == nullptr) or (hit_compare_byid_typed(hit, *best) < 0))
-            {
-              best = &hit;
-            }
-        }
-    }
-
-  if ((best != nullptr) and not best->accepted)
-    {
-      best = nullptr;
-    }
-
-  return best;
+  return search_findbest2(si_p, si_m,
+                          [](struct hit const & candidate, struct hit const & incumbent) -> bool
+                          { return hit_compare_byid_typed(candidate, incumbent) < 0; });
 }
 
 
 auto search_findbest2_bysize(struct searchinfo_s & si_p,
                              Span<struct searchinfo_s> const si_m) -> struct hit *
 {
-  struct Parameters const & parameters = *si_p.parameters;
-  // same invariant as search_findbest2_byid above
-  assert(si_m.empty() != parameters.opt_strand);
-  static_cast<void>(parameters);  // read only by the assert above
-  struct hit * best = nullptr;
-
-  for (auto & hit : make_hits_span(&si_p))
-    {
-      if ((best == nullptr) or (hit_compare_bysize_typed(hit, *best, *si_p.db) < 0))
-        {
-          best = &hit;
-        }
-    }
-
-  for (auto & minus_strand : si_m)
-    {
-      for (auto & hit : make_hits_span(&minus_strand))
-        {
-          if ((best == nullptr) or (hit_compare_bysize_typed(hit, *best, *si_p.db) < 0))
-            {
-              best = &hit;
-            }
-        }
-    }
-
-  if ((best != nullptr) and not best->accepted)
-    {
-      best = nullptr;
-    }
-
-  return best;
+  /* the database the abundance tie-break reads, hoisted out of the scan */
+  auto const & database = *si_p.db;
+  return search_findbest2(si_p, si_m,
+                          [&database](struct hit const & candidate, struct hit const & incumbent) -> bool
+                          { return hit_compare_bysize_typed(candidate, incumbent, database) < 0; });
 }
 
 
