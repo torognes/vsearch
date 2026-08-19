@@ -63,6 +63,7 @@
 #include "core/attributes.hpp"
 #include "core/seq_record.hpp"  // struct SeqRecord (for the record overload)
 #include "core/fastx.hpp"
+#include "core/fastx_char_class.hpp"  // vsearch::CharClass, class_of
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_view.hpp"  // fprint
@@ -94,8 +95,9 @@ namespace {
   };
 
 
-  constexpr std::array<Action, 256> char_fq_action_seq =
-    {{
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  constexpr Action char_fq_action_seq_literal[byte_range] =
+    {
       /*
         How to handle input characters for FASTQ:
         All IUPAC characters are valid.
@@ -125,11 +127,12 @@ namespace {
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-    },};
+    };
 
 
-  constexpr std::array<Action, 256> char_fq_action_qual =
-    {{
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+  constexpr Action char_fq_action_qual_literal[byte_range] =
+    {
       /*
         Quality characters, any from 33 to 126 is valid (legal).
         CR (^M) silently stripped.
@@ -156,7 +159,46 @@ namespace {
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
       Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,  Action::reject,
-    },};
+    };
+
+
+  /* One row per byte class (see core/fastx_char_class.hpp). These two policies
+     say in code what the table comments above say in prose: in a sequence all
+     IUPAC characters are valid and the rest is fatal, while a quality line
+     accepts the whole printable range 33-126. CR is stripped and LF is the line
+     terminator in both. */
+  /* C++11 constexpr allows a single return statement -- no if, no switch -- so a
+     chain of conditions can only be nested conditional operators. */
+  // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
+  constexpr auto sequence_policy(vsearch::CharClass const character_class) noexcept -> Action {
+    return character_class == vsearch::CharClass::iupac           ? Action::accept
+      : character_class == vsearch::CharClass::line_feed          ? Action::newline
+      : character_class == vsearch::CharClass::carriage_return    ? Action::skip
+      : Action::reject;
+  }
+
+
+  constexpr auto quality_policy(vsearch::CharClass const character_class) noexcept -> Action {
+    return character_class == vsearch::CharClass::line_feed       ? Action::newline
+      : character_class == vsearch::CharClass::carriage_return    ? Action::skip
+      : character_class == vsearch::CharClass::iupac              ? Action::accept
+      : character_class == vsearch::CharClass::printable_other    ? Action::accept
+      : character_class == vsearch::CharClass::dot_dash           ? Action::accept
+      : Action::reject;  // space, del_or_high, control, blank_control
+  }
+  // NOLINTEND(readability-avoid-nested-conditional-operator)
+
+
+  constexpr std::array<Action, byte_range> char_fq_action_seq =
+    vsearch::expanded_policy<Action, sequence_policy>();
+
+  constexpr std::array<Action, byte_range> char_fq_action_qual =
+    vsearch::expanded_policy<Action, quality_policy>();
+
+  static_assert(vsearch::reproduces<Action, sequence_policy>(char_fq_action_seq_literal, 0U),
+                "the byte-class partition no longer reproduces char_fq_action_seq");
+  static_assert(vsearch::reproduces<Action, quality_policy>(char_fq_action_qual_literal, 0U),
+                "the byte-class partition no longer reproduces char_fq_action_qual");
 
 }  // end of anonymous namespace
 

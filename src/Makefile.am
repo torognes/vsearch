@@ -119,6 +119,7 @@ core/mergepairs.hpp \
 core/mergepairs_internal.hpp \
 commands/fastq_stats.hpp \
 core/fastx.hpp \
+core/fastx_char_class.hpp \
 commands/fastx_revcomp.hpp \
 commands/fastx_subsample.hpp \
 commands/fastx_syncpairs.hpp \
