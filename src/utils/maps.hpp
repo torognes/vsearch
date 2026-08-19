@@ -89,6 +89,11 @@ enum struct Mapping : unsigned char {
    Only Mapping::upcase constrains its input, and the assert states that. */
 template <Mapping mapping>
 inline auto map_accepted_base(char const base) -> char {
+  /* refactoring (C++17): `if constexpr`. The plain `if` already costs nothing
+     -- mapping is part of the type, so the dead half is folded away and both
+     spellings emit the same instructions -- but `if constexpr` would also stop
+     type-checking the dead branch, which would matter if a case ever held code
+     valid for one mapping alone. */
   if (mapping == Mapping::none) {
     return base;
   }
