@@ -714,67 +714,37 @@ inline auto onestep(VECTOR_SHORT & H,
   E = v_max(E, HE);
 }
 
-auto aligncolumns_first(VECTOR_SHORT * Sm,
-                        VECTOR_SHORT * hep,
-                        VECTOR_SHORT * const * qp,
-                        VECTOR_SHORT const QR_q_i,
-                        VECTOR_SHORT const R_q_i,
-                        VECTOR_SHORT const QR_q_r,
-                        VECTOR_SHORT const R_q_r,
-                        VECTOR_SHORT QR_t_0,
-                        VECTOR_SHORT const R_t_0,
-                        VECTOR_SHORT QR_t_1,
-                        VECTOR_SHORT const R_t_1,
-                        VECTOR_SHORT QR_t_2,
-                        VECTOR_SHORT const R_t_2,
-                        VECTOR_SHORT QR_t_3,
-                        VECTOR_SHORT const R_t_3,
-                        VECTOR_SHORT h0,
-                        VECTOR_SHORT h1,
-                        VECTOR_SHORT h2,
-                        VECTOR_SHORT h3,
-                        VECTOR_SHORT f0,
-                        VECTOR_SHORT f1,
-                        VECTOR_SHORT f2,
-                        VECTOR_SHORT f3,
-                        VECTOR_SHORT * _h_min,
-                        VECTOR_SHORT * _h_max,
-                        VECTOR_SHORT const Mm,
-                        VECTOR_SHORT M_QR_t_left,
-                        VECTOR_SHORT M_R_t_left,
-                        VECTOR_SHORT const M_QR_q_interior,
-                        VECTOR_SHORT const M_QR_q_right,
-                        int64_t const ql,
-                        unsigned short * dir) -> void
-{
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
 
-  VECTOR_SHORT h4;
-  VECTOR_SHORT h5;
-  VECTOR_SHORT h6;
-  VECTOR_SHORT h7;
-  VECTOR_SHORT h8;
-  VECTOR_SHORT E;
-  VECTOR_SHORT const * vp = nullptr;
+  /* The first strip of columns for a channel has to zero the cells where a new
+     database sequence starts; later strips do not. That was two whole copies of
+     aligncolumns() differing by six statements, so the difference now travels as
+     a policy object and the body is written once. Both are passed by value and
+     neither escapes, so the compiler keeps their contents in registers exactly
+     as the by-value vector parameters did. */
 
-  VECTOR_SHORT h_min = v_zero();
-  VECTOR_SHORT h_max = v_zero();
+  /* Later strips: nothing to zero, and no vectors to carry. An empty object
+     costs nothing to pass and both members fold away to nothing. */
+  struct Unmasked
+  {
+    auto mask_interior(VECTOR_SHORT & /* h4 */, VECTOR_SHORT & /* E */) -> void { }
+    auto mask_right(VECTOR_SHORT & /* E */) const -> void { }
+  };
 
-  int64_t i = 0;
+  /* First strip: the five vectors aligncolumns_first used to take as five extra
+     parameters. QR_t_left advances by R_t_left once per column, which is why the
+     object is taken by value rather than by const reference. */
+  struct Masked
+  {
+    VECTOR_SHORT Mm;
+    VECTOR_SHORT QR_t_left;
+    VECTOR_SHORT R_t_left;
+    VECTOR_SHORT QR_q_interior;
+    VECTOR_SHORT QR_q_right;
 
-  f0 = v_sub(f0, QR_t_0);
-  f1 = v_sub(f1, QR_t_1);
-  f2 = v_sub(f2, QR_t_2);
-  f3 = v_sub(f3, QR_t_3);
-
-
-  for (i = 0; i < ql - 1; i++)
+    auto mask_interior(VECTOR_SHORT & h4, VECTOR_SHORT & E) -> void
     {
-      vp = qp[i + 0];
-
-      h4 = hep[(2 * i) + 0];
-
-      E  = hep[(2 * i) + 1];
-
       /*
         Initialize selected h and e values for next/this round.
         First zero those cells where a new sequence starts
@@ -784,164 +754,131 @@ auto aligncolumns_first(VECTOR_SHORT * Sm,
       */
 
       h4 = v_sub_unsigned(h4, Mm);
-      h4 = v_sub(h4, M_QR_t_left);
+      h4 = v_sub(h4, QR_t_left);
 
       E  = v_sub_unsigned(E, Mm);
-      E  = v_sub(E, M_QR_t_left);
-      E  = v_sub(E, M_QR_q_interior);
+      E  = v_sub(E, QR_t_left);
+      E  = v_sub(E, QR_q_interior);
 
-      M_QR_t_left = v_add(M_QR_t_left, M_R_t_left);
-
-      onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
-              QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
-              QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
-              QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
-              QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
-
-      hep[(2 * i) + 0] = h8;
-      hep[(2 * i) + 1] = E;
-
-      h0 = h4;
-      h1 = h5;
-      h2 = h6;
-      h3 = h7;
+      QR_t_left = v_add(QR_t_left, R_t_left);
     }
 
-  /* the final round - using query gap penalties for right end */
-
-  vp = qp[i + 0];
-
-  E  = hep[(2 * i) + 1];
-
-  E  = v_sub_unsigned(E, Mm);
-  E  = v_sub(E, M_QR_t_left);
-  E  = v_sub(E, M_QR_q_right);
-
-
-  onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
-          QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
-          QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
-          QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
-          QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
-
-
-  hep[(2 * i) + 0] = h8;
-  hep[(2 * i) + 1] = E;
-
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
-
-  *_h_min = h_min;
-  *_h_max = h_max;
-}
-
-
-auto aligncolumns_rest(VECTOR_SHORT * Sm,
-                       VECTOR_SHORT * hep,
-                       VECTOR_SHORT * const * qp,
-                       VECTOR_SHORT const QR_q_i,
-                       VECTOR_SHORT const R_q_i,
-                       VECTOR_SHORT const QR_q_r,
-                       VECTOR_SHORT const R_q_r,
-                       VECTOR_SHORT QR_t_0,
-                       VECTOR_SHORT const R_t_0,
-                       VECTOR_SHORT QR_t_1,
-                       VECTOR_SHORT const R_t_1,
-                       VECTOR_SHORT QR_t_2,
-                       VECTOR_SHORT const R_t_2,
-                       VECTOR_SHORT QR_t_3,
-                       VECTOR_SHORT const R_t_3,
-                       VECTOR_SHORT h0,
-                       VECTOR_SHORT h1,
-                       VECTOR_SHORT h2,
-                       VECTOR_SHORT h3,
-                       VECTOR_SHORT f0,
-                       VECTOR_SHORT f1,
-                       VECTOR_SHORT f2,
-                       VECTOR_SHORT f3,
-                       VECTOR_SHORT * _h_min,
-                       VECTOR_SHORT * _h_max,
-                       int64_t const ql,
-                       unsigned short * dir) -> void
-{
-  VECTOR_SHORT h4;
-  VECTOR_SHORT h5;
-  VECTOR_SHORT h6;
-  VECTOR_SHORT h7;
-  VECTOR_SHORT h8;
-  VECTOR_SHORT E;
-  VECTOR_SHORT const * vp = nullptr;
-
-  VECTOR_SHORT h_min = v_zero();
-  VECTOR_SHORT h_max = v_zero();
-
-  int64_t i = 0;
-
-  f0 = v_sub(f0, QR_t_0);
-  f1 = v_sub(f1, QR_t_1);
-  f2 = v_sub(f2, QR_t_2);
-  f3 = v_sub(f3, QR_t_3);
-
-  for (i = 0; i < ql - 1; i++)
+    /* the same, for the final round, which uses the right-end query penalty */
+    auto mask_right(VECTOR_SHORT & E) const -> void
     {
-      vp = qp[i + 0];
-
-      h4 = hep[(2 * i) + 0];
-
-      E  = hep[(2 * i) + 1];
-
-      onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
-              QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
-      onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
-              QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
-      onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
-              QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
-      onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
-              QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
-
-      hep[(2 * i) + 0] = h8;
-      hep[(2 * i) + 1] = E;
-
-      h0 = h4;
-      h1 = h5;
-      h2 = h6;
-      h3 = h7;
+      E  = v_sub_unsigned(E, Mm);
+      E  = v_sub(E, QR_t_left);
+      E  = v_sub(E, QR_q_right);
     }
+  };
 
-  /* the final round - using query gap penalties for right end */
 
-  vp = qp[i + 0];
+  template <typename Masking>
+  auto aligncolumns(VECTOR_SHORT * Sm,
+                    VECTOR_SHORT * hep,
+                    VECTOR_SHORT * const * qp,
+                    VECTOR_SHORT const QR_q_i,
+                    VECTOR_SHORT const R_q_i,
+                    VECTOR_SHORT const QR_q_r,
+                    VECTOR_SHORT const R_q_r,
+                    VECTOR_SHORT QR_t_0,
+                    VECTOR_SHORT const R_t_0,
+                    VECTOR_SHORT QR_t_1,
+                    VECTOR_SHORT const R_t_1,
+                    VECTOR_SHORT QR_t_2,
+                    VECTOR_SHORT const R_t_2,
+                    VECTOR_SHORT QR_t_3,
+                    VECTOR_SHORT const R_t_3,
+                    VECTOR_SHORT h0,
+                    VECTOR_SHORT h1,
+                    VECTOR_SHORT h2,
+                    VECTOR_SHORT h3,
+                    VECTOR_SHORT f0,
+                    VECTOR_SHORT f1,
+                    VECTOR_SHORT f2,
+                    VECTOR_SHORT f3,
+                    VECTOR_SHORT * _h_min,
+                    VECTOR_SHORT * _h_max,
+                    Masking masking,
+                    int64_t const ql,
+                    unsigned short * dir) -> void
+  {
+    VECTOR_SHORT h4;
+    VECTOR_SHORT h5;
+    VECTOR_SHORT h6;
+    VECTOR_SHORT h7;
+    VECTOR_SHORT h8;
+    VECTOR_SHORT E;
+    VECTOR_SHORT const * vp = nullptr;
 
-  E  = hep[(2 * i) + 1];
+    VECTOR_SHORT h_min = v_zero();
+    VECTOR_SHORT h_max = v_zero();
 
-  onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
-          QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
-  onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
-          QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
-  onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
-          QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
-  onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
-          QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
+    int64_t i = 0;
 
-  hep[(2 * i) + 0] = h8;
-  hep[(2 * i) + 1] = E;
+    f0 = v_sub(f0, QR_t_0);
+    f1 = v_sub(f1, QR_t_1);
+    f2 = v_sub(f2, QR_t_2);
+    f3 = v_sub(f3, QR_t_3);
 
-  Sm[0] = h5;
-  Sm[1] = h6;
-  Sm[2] = h7;
-  Sm[3] = h8;
+    for (i = 0; i < ql - 1; i++)
+      {
+        vp = qp[i + 0];
 
-  *_h_min = h_min;
-  *_h_max = h_max;
-}
+        h4 = hep[(2 * i) + 0];
+
+        E  = hep[(2 * i) + 1];
+
+        masking.mask_interior(h4, E);
+
+        onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
+                QR_q_i, R_q_i, QR_t_0, R_t_0, h_min, h_max);
+        onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
+                QR_q_i, R_q_i, QR_t_1, R_t_1, h_min, h_max);
+        onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
+                QR_q_i, R_q_i, QR_t_2, R_t_2, h_min, h_max);
+        onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
+                QR_q_i, R_q_i, QR_t_3, R_t_3, h_min, h_max);
+
+        hep[(2 * i) + 0] = h8;
+        hep[(2 * i) + 1] = E;
+
+        h0 = h4;
+        h1 = h5;
+        h2 = h6;
+        h3 = h7;
+      }
+
+    /* the final round - using query gap penalties for right end */
+
+    vp = qp[i + 0];
+
+    E  = hep[(2 * i) + 1];
+
+    masking.mask_right(E);
+
+    onestep(h0, h5, f0, vp[0], dir + (16 * i) + 0, E,
+            QR_q_r, R_q_r, QR_t_0, R_t_0, h_min, h_max);
+    onestep(h1, h6, f1, vp[1], dir + (16 * i) + 4, E,
+            QR_q_r, R_q_r, QR_t_1, R_t_1, h_min, h_max);
+    onestep(h2, h7, f2, vp[2], dir + (16 * i) + 8, E,
+            QR_q_r, R_q_r, QR_t_2, R_t_2, h_min, h_max);
+    onestep(h3, h8, f3, vp[3], dir + (16 * i) + 12, E,
+            QR_q_r, R_q_r, QR_t_3, R_t_3, h_min, h_max);
+
+    hep[(2 * i) + 0] = h8;
+    hep[(2 * i) + 1] = E;
+
+    Sm[0] = h5;
+    Sm[1] = h6;
+    Sm[2] = h7;
+    Sm[3] = h8;
+
+    *_h_min = h_min;
+    *_h_max = h_max;
+  }
+
+}  // end of anonymous namespace
 
 
 inline auto pushop(s16info_s * s, char const newop) -> void
@@ -1607,17 +1544,19 @@ auto search16(s16info_s * s,
           VECTOR_SHORT h_min;
           VECTOR_SHORT h_max;
 
-          aligncolumns_rest(S.data(), hep, qp,
-                            QR_query_interior, R_query_interior,
-                            QR_query_right, R_query_right,
-                            QR_target[0], R_target[0],
-                            QR_target[1], R_target[1],
-                            QR_target[2], R_target[2],
-                            QR_target[3], R_target[3],
-                            H0, H1, H2, H3,
-                            F0, F1, F2, F3,
-                            & h_min, & h_max,
-                            static_cast<int64_t>(qlen), dir);
+          /* a later strip: nothing to zero, so no masking vectors travel */
+          aligncolumns(S.data(), hep, qp,
+                       QR_query_interior, R_query_interior,
+                       QR_query_right, R_query_right,
+                       QR_target[0], R_target[0],
+                       QR_target[1], R_target[1],
+                       QR_target[2], R_target[2],
+                       QR_target[3], R_target[3],
+                       H0, H1, H2, H3,
+                       F0, F1, F2, F3,
+                       & h_min, & h_max,
+                       Unmasked{},
+                       static_cast<int64_t>(qlen), dir);
 
           VECTOR_SHORT h_min_vector;
           VECTOR_SHORT h_max_vector;
@@ -1860,21 +1799,21 @@ auto search16(s16info_s * s,
           VECTOR_SHORT h_min;
           VECTOR_SHORT h_max;
 
-          aligncolumns_first(S.data(), hep, qp,
-                             QR_query_interior, R_query_interior,
-                             QR_query_right, R_query_right,
-                             QR_target[0], R_target[0],
-                             QR_target[1], R_target[1],
-                             QR_target[2], R_target[2],
-                             QR_target[3], R_target[3],
-                             H0, H1, H2, H3,
-                             F0, F1, F2, F3,
-                             & h_min, & h_max,
-                             M,
-                             M_QR_target_left, M_R_target_left,
-                             M_QR_query_interior,
-                             M_QR_query_right,
-                             static_cast<int64_t>(qlen), dir);
+          /* the first strip for these channels: zero the cells where a new
+             database sequence starts */
+          aligncolumns(S.data(), hep, qp,
+                       QR_query_interior, R_query_interior,
+                       QR_query_right, R_query_right,
+                       QR_target[0], R_target[0],
+                       QR_target[1], R_target[1],
+                       QR_target[2], R_target[2],
+                       QR_target[3], R_target[3],
+                       H0, H1, H2, H3,
+                       F0, F1, F2, F3,
+                       & h_min, & h_max,
+                       Masked{M, M_QR_target_left, M_R_target_left,
+                              M_QR_query_interior, M_QR_query_right,},
+                       static_cast<int64_t>(qlen), dir);
 
           VECTOR_SHORT h_min_vector;
           VECTOR_SHORT h_max_vector;
