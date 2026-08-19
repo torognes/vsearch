@@ -82,7 +82,6 @@ auto align_show(std::FILE * output_handle,
                 char const * seq2name,
                 View<char> cigar,
                 int numwidth,
-                int namewidth,
                 int64_t alignwidth,
                 int strand,
                 struct Parameters const & parameters) -> void;

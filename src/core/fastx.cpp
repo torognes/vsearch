@@ -65,7 +65,7 @@
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "os/dynlibs.hpp"
-#include "os/system.hpp"  // xstat_t, xfstat, xlseek, xftello, S_ISREG
+#include "os/system.hpp"  // xstat_t, xfstat, xtell_fd, xftello, S_ISREG
 #include "utils/fatal.hpp"
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/open_file.hpp"  // open_input_file
@@ -711,7 +711,7 @@ auto fastx_file_fill_buffer(fastx_handle input_handle) -> uint64_t
         {
           /* Circumvent the missing gzoffset function in zlib 1.2.3 and earlier */
           int const fd = dup(fileno(input_handle->fp));
-          input_handle->file_position = xlseek(fd, 0, SEEK_CUR);
+          input_handle->file_position = xtell_fd(fd);
           close(fd);
         }
       else

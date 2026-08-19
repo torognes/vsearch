@@ -782,7 +782,6 @@ auto results_show_alnout(std::FILE * output_handle,
                             - static_cast<std::size_t>(hit.trim_aln_left)
                             - static_cast<std::size_t>(hit.trim_aln_right)},
                  numwidth,
-                 3,
                  rowlen,
                  hit.strand,
                  parameters);

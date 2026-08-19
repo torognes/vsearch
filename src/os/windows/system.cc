@@ -127,9 +127,9 @@ auto xstat(const char * path, xstat_t * buf) -> int
 }
 
 
-auto xlseek(int const file_descriptor, uint64_t const offset, int const whence) -> uint64_t
+auto xtell_fd(int const file_descriptor) -> uint64_t
 {
-  __int64 const position = _lseeki64(file_descriptor, offset, whence);
+  __int64 const position = _lseeki64(file_descriptor, 0, SEEK_CUR);
   assert(position != -1);  // unchecked: -1 would widen to a huge uint64_t
   return position;
 }

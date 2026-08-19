@@ -116,7 +116,10 @@ namespace {
 
   struct Alignment {
     static constexpr auto poswidth_default = 3;
-    static constexpr auto headwidth_default = 5;
+    /* the width of the label field: both row labels results.cpp passes are
+       three characters ("Qry", "Tgt"), which is what align_show()'s namewidth
+       parameter carried at its one call site before it was removed */
+    static constexpr auto headwidth_default = 3;
     std::FILE * output_handle = nullptr;
     Sequence query;
     Sequence target;
@@ -350,7 +353,6 @@ auto align_show(std::FILE * output_handle,
                 char const * seq2name,
                 View<char> const cigar,
                 int const numwidth,
-                int const namewidth,
                 int64_t const alignwidth,
                 int const strand,
                 struct Parameters const & parameters) -> void
@@ -366,7 +368,6 @@ auto align_show(std::FILE * output_handle,
   alignment.target.name = View<char>{seq2name, std::strlen(seq2name)};
   alignment.width = alignwidth;
   alignment.poswidth = numwidth;
-  alignment.headwidth = namewidth;
   alignment.is_reverse_strand = strand != 0;
   alignment.n_mismatch = parameters.opt_n_mismatch;
 
@@ -377,7 +378,6 @@ auto align_show(std::FILE * output_handle,
   //   {seq1, seq1off, seq1name},
   //   {seq2, seq2off, seq2name},
   //   numwidth,
-  //   namewidth,
   //   alignwidth,
   //   strand
   // };

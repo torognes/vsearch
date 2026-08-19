@@ -124,10 +124,10 @@ auto xstat(const char * path, xstat_t * buf) -> int
 }
 
 
-auto xlseek(int const file_descriptor, uint64_t const offset, int const whence) -> uint64_t
+auto xtell_fd(int const file_descriptor) -> uint64_t
 {
   // libC or linuxism: replace with std::fseek()?
-  off_t const position = lseek(file_descriptor, static_cast<off_t>(offset), whence);
+  off_t const position = lseek(file_descriptor, 0, SEEK_CUR);
   assert(position != static_cast<off_t>(-1));  // unchecked: -1 would widen to a huge uint64_t
   return static_cast<uint64_t>(position);
 }

@@ -84,5 +84,9 @@ auto xfree(void * ptr) -> void;
 
 auto xfstat(int file_descriptor, xstat_t * buf) -> int;
 auto xstat(const char * path, xstat_t  * buf) -> int;
-auto xlseek(int file_descriptor, uint64_t offset, int whence) -> uint64_t;
+/* Where the descriptor currently is. POSIX has no tell() for a descriptor,
+   so this is the lseek(fd, 0, SEEK_CUR) idiom; the offset and whence used to
+   be parameters, but the one caller only ever asked for the position, so the
+   name now says what the call does. The stream counterpart is xftello(). */
+auto xtell_fd(int file_descriptor) -> uint64_t;
 auto xftello(std::FILE * stream) -> uint64_t;
