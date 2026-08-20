@@ -80,6 +80,7 @@
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
 #include <algorithm>  // std::count_if, std::min, std::sort
+#include <array>  // std::array
 #include <cassert>  // assert
 #include <cmath>  // std::log10, std::pow
 #include <cstdint> // int64_t, uint64_t
@@ -188,6 +189,40 @@ namespace {
     quality_value = std::min(quality_value, parameters.opt_fastq_qmaxout);
     quality_value = std::max(quality_value, parameters.opt_fastq_qminout);
     return static_cast<int>(quality_value + parameters.opt_fastq_asciiout);
+  }
+
+
+  /* The output symbol standing for the error probability of one input
+     symbol, for the cases where merging cannot change it.
+
+     Going through 10^-(q/10) and back does not survive the round trip.
+     -10 * log10(10^-0.2) evaluates to 1.999999999999999778, so trunc() sent
+     quality 2 back as quality 1; and at qualities 3, 5, 6, 8, 10 and 17 the
+     answer moved with the abundances, because the weighted mean of two equal
+     probabilities is not bit-exactly that probability and trunc()'s
+     threshold sits exactly where the table's values land. Two identical Q10
+     reads merged to Q10 at abundances 1+1 but to Q9 at 1+2.
+
+     There is no logarithm to get wrong here. The forward table caps every
+     probability at 0.75 (the chance of guessing one of four bases wrong), so
+     qualities below 2 all share that entry and are only representable as the
+     1 that 0.75 floors to; every other quality represents itself. Verified
+     against an exact reference over both ASCII offsets, three qminout and
+     four qmaxout settings, all 94 legal symbols: 2256 combinations, no
+     disagreement. */
+  auto merged_symbol_table(struct Parameters const & parameters) -> std::array<char, vsearch::quality_symbol_count>
+  {
+    static constexpr auto uninformative_quality = int64_t{1};
+    std::array<char, vsearch::quality_symbol_count> table {{}};
+    for (std::size_t symbol = 0; symbol < table.size(); ++symbol)
+      {
+        auto quality_value = static_cast<int64_t>(symbol) - parameters.opt_fastq_ascii;
+        quality_value = std::max(quality_value, uninformative_quality);
+        quality_value = std::min(quality_value, parameters.opt_fastq_qmaxout);
+        quality_value = std::max(quality_value, parameters.opt_fastq_qminout);
+        table[symbol] = static_cast<char>(quality_value + parameters.opt_fastq_asciiout);
+      }
+    return table;
   }
 
 }  // end of anonymous namespace
@@ -533,6 +568,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
      "quality below 2 carries no information" rule this loop applied per call */
   vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
                                             vsearch::ProbabilityCap::random_guess);
+  auto const merged_symbol = merged_symbol_table(parameters);
 
   if (extra_info)
     {
@@ -727,9 +763,12 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                 for (int i = 0; i < seqlen; i++)
                   {
                     auto const member_position = matched_minus_strand ? (seqlen - 1 - i) : i;
-                    auto const p1 = quality_table[bp->qual[static_cast<std::size_t>(i)]];
-                    auto const p2 = quality_table[qual[member_position]];
-                    auto p3 = 0.0;
+                    auto const symbol1 = bp->qual[static_cast<std::size_t>(i)];
+                    auto const symbol2 = qual[member_position];
+                    /* the FASTQ readers reject DEL and every byte above it,
+                       so both symbols are printable and compare as expected */
+                    assert(symbol1 > 0);
+                    assert(symbol2 > 0);
 
                     /* how to compute the new quality score? */
 
@@ -737,14 +776,29 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                       {
                         // fastq_qout_max
                         /* min error prob, highest quality */
-                        p3 = std::min(p1, p2);
+                        /* the merged probability is always one of the two
+                           inputs, so the merged symbol is the higher-quality
+                           input symbol and there is no round trip to make */
+                        bp->qual[static_cast<std::size_t>(i)] =
+                          merged_symbol[static_cast<unsigned char>(std::max(symbol1, symbol2))];
+                        continue;
                       }
-                    else
+
+                    if (symbol1 == symbol2)
                       {
-                        // fastq_qout_avg
-                        /* average, as in USEARCH */
-                        p3 = ((p1 * static_cast<double>(s1)) + (p2 * static_cast<double>(s2))) / static_cast<double>(s3);
+                        /* both members agree on this base, so the merged
+                           quality is that quality, whatever the abundances */
+                        bp->qual[static_cast<std::size_t>(i)] =
+                          merged_symbol[static_cast<unsigned char>(symbol1)];
+                        continue;
                       }
+
+                    auto const p1 = quality_table[symbol1];
+                    auto const p2 = quality_table[symbol2];
+
+                    // fastq_qout_avg
+                    /* average, as in USEARCH */
+                    auto const p3 = ((p1 * static_cast<double>(s1)) + (p2 * static_cast<double>(s2))) / static_cast<double>(s3);
 
                     // fastq_qout_min
                     /* max error prob, lowest quality */
