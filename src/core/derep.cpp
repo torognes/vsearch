@@ -66,6 +66,7 @@
 #include "core/derep.hpp"
 #include "core/derep_internal.hpp"
 #include "core/derep_stats.hpp"
+#include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
@@ -528,6 +529,11 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   auto const extra_info = (parameters.opt_uc != nullptr) or (parameters.opt_tabbedout != nullptr);
 
+  /* one 10^-(q/10) per quality symbol, not per base; the cap at 0.75 is the
+     "quality below 2 carries no information" rule this loop applied per call */
+  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+                                            vsearch::ProbabilityCap::random_guess);
+
   if (extra_info)
     {
       /* If the uc or tabbedout option is in effect,
@@ -720,11 +726,9 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                    symbols carry no complement, only position) */
                 for (int i = 0; i < seqlen; i++)
                   {
-                    int const q1 = static_cast<unsigned char>(bp->qual[static_cast<std::size_t>(i)]);
                     auto const member_position = matched_minus_strand ? (seqlen - 1 - i) : i;
-                    int const q2 = static_cast<unsigned char>(qual[member_position]);
-                    auto const p1 = convert_quality_symbol_to_probability(q1, parameters);
-                    auto const p2 = convert_quality_symbol_to_probability(q2, parameters);
+                    auto const p1 = quality_table[bp->qual[static_cast<std::size_t>(i)]];
+                    auto const p2 = quality_table[qual[member_position]];
                     auto p3 = 0.0;
 
                     /* how to compute the new quality score? */
