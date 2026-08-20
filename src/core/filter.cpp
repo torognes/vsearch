@@ -70,10 +70,11 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::count_if, std::min, std::max
 #include <cstddef>  // std::size_t
-#include <cmath>  // std::pow, std::signbit
+#include <cmath>  // std::signbit
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
 #include <limits>
@@ -121,7 +122,7 @@ struct analysis_res
 
 
 namespace {
-auto analyse(fastx_handle input_handle, struct Parameters const & parameters) -> struct analysis_res
+auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_table, struct Parameters const & parameters) -> struct analysis_res
 {
   auto const fastq_trunclen = static_cast<int>(parameters.opt_fastq_trunclen);
   auto const fastq_trunclen_keep = static_cast<int>(parameters.opt_fastq_trunclen_keep);
@@ -168,12 +169,11 @@ auto analyse(fastx_handle input_handle, struct Parameters const & parameters) ->
     {
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
-      static constexpr auto base = 10.0;
       auto const * quality_symbols = input_handle->get_quality() + start;
       for (auto i = 0; i < length; ++i)
         {
           auto const quality_score = fastq_get_qual(quality_symbols[i], parameters);
-          auto const expected_error = std::pow(base, -quality_score / base);
+          auto const expected_error = quality_table[quality_symbols[i]];
           res.ee += expected_error;
 
           if ((quality_score <= parameters.opt_fastq_truncqual) or
@@ -355,6 +355,10 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
   int64_t discarded = 0;
   int64_t truncated = 0;
 
+  /* one 10^-(q/10) per quality symbol, not per base */
+  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+                                            vsearch::ProbabilityCap::none);
+
   {
     Progress progress("Reading input file", filesize, parameters);
     while (forward_handle->next(false, chrmap_no_change()))
@@ -368,10 +372,10 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
         res1.ee = 0.0;
         struct analysis_res res2;
 
-        res1 = analyse(forward_handle.get(), parameters);
+        res1 = analyse(forward_handle.get(), quality_table, parameters);
         if (reverse_handle != nullptr)
           {
-            res2 = analyse(reverse_handle.get(), parameters);
+            res2 = analyse(reverse_handle.get(), quality_table, parameters);
           }
 
         if (res1.discarded or res2.discarded)
