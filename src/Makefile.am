@@ -190,6 +190,7 @@ utils/print_view.hpp \
 utils/prog_id.hpp \
 utils/progress.hpp \
 utils/quality_encoding.hpp \
+utils/quality_table.hpp \
 utils/random.hpp \
 utils/reverse_complement.hpp \
 utils/seqcmp.hpp \
