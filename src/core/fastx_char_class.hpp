@@ -153,6 +153,20 @@ constexpr auto class_of(unsigned char const byte) noexcept -> CharClass {
    and the lookup stays a single load. The hot loops must keep indexing that flat
    table -- never policy(class_of(byte)) per byte, which would put two dependent
    computations in a loop that is 31% of a dereplication run. */
+
+/* byte_indices and make_byte_indices are a hand-rolled index-pack generator:
+   make_byte_indices<byte_range>::type is byte_indices<0, 1, ..., 255>, the pack
+   expand() below turns into one table entry per byte.
+
+   C++14 refactoring: delete both templates and use <utility>'s
+   std::index_sequence / std::make_index_sequence -- the same device
+   standardised, and built by a compiler builtin (or logarithmic recursion)
+   rather than the 256-deep linear template recursion instantiated here.
+   expand() then takes std::index_sequence<Bytes...> and expanded_policy()
+   passes std::make_index_sequence<byte_range>{}; the pack becomes std::size_t
+   instead of unsigned. Only the generator goes: filling the array with a
+   relaxed-constexpr loop instead of a pack expansion needs std::array's
+   non-const operator[], which is constexpr only from C++17. */
 template <unsigned... Bytes> struct byte_indices {};
 
 template <unsigned Count, unsigned... Bytes>
