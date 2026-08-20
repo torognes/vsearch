@@ -66,11 +66,11 @@
 #include "utils/maps.hpp"
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::copy, std::max
+#include <array>  // std::array
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t
 #include <iterator>  // std::next
 #include <limits>
-#include <vector>
 // #include <vector>
 
 
@@ -185,7 +185,7 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
 */
 
 auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> void {
- std::vector<char> const nucleotides = {'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'};
+  static constexpr std::array<char, 16> nucleotides = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
 
   // fill-in the score matrix
   for (auto const row_nuc : nucleotides) {

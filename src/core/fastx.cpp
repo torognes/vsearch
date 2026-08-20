@@ -87,7 +87,6 @@
 #include <limits>  // std::numeric_limits
 #include <memory>  // std::unique_ptr
 #include <string>  // std::string
-#include <vector>
 
 
 /* file compression and format detector */
@@ -231,7 +230,7 @@ auto fastx_s::next(bool const truncateatspace, unsigned char const * char_mappin
 
 
 auto find_header_end_first_blank(Span<char> const raw_header) -> std::size_t {
-  static const std::vector<char> blanks {' ', '\t', '\0', '\r', '\n'};
+  static constexpr std::array<char, 5> blanks = {{' ', '\t', '\0', '\r', '\n'}};
   auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
                                      blanks.begin(), blanks.end());
   if (result != raw_header.end()) {
@@ -242,7 +241,7 @@ auto find_header_end_first_blank(Span<char> const raw_header) -> std::size_t {
 
 
 auto find_header_end(Span<char> const raw_header) -> std::size_t {
-  static const std::vector<char> blanks {'\0', '\r', '\n'};
+  static constexpr std::array<char, 3> blanks = {{'\0', '\r', '\n'}};
   auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
                                      blanks.begin(), blanks.end());
   if (result != raw_header.end()) {
