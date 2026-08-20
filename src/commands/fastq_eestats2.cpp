@@ -60,6 +60,7 @@
 
 #include "commands/fastq_eestats2.hpp"
 #include "core/eestats.hpp"
+#include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "vsearch.hpp"
@@ -101,6 +102,12 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   std::vector<uint64_t> count_table;
 
+  /* one 10^-(q/10) per quality symbol, not per base; the cap at 1.0 is the
+     std::max(qual, 0) the decoded quality value still goes through below */
+  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+                                            vsearch::ProbabilityCap::certain_error);
+
+
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
     while (h->next(false, chrmap_upcase()))
@@ -137,9 +144,13 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
           {
             /* quality score */
 
-            auto const qual = std::max(fastq_get_qual_eestats(q[i], parameters), 0);
+            /* range-check only: this command never uses the decoded value,
+               it indexes the table by the symbol. The call still has to run
+               per base, so that an out-of-range quality is reported at the
+               same position and with the same message as before. */
+            static_cast<void>(fastq_get_qual_eestats(q[i], parameters));
 
-            auto const pe = q2p(qual);
+            auto const pe = quality_table[q[i]];
 
             ee += pe;
 

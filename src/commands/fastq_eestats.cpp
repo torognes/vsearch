@@ -60,6 +60,7 @@
 
 #include "commands/fastq_eestats.hpp"
 #include "core/eestats.hpp"
+#include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "vsearch.hpp"
@@ -112,6 +113,12 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   std::vector<double> sum_pe_length_table(static_cast<size_t>(len_alloc));
 
   int64_t len_min = std::numeric_limits<long>::max();
+
+  /* one 10^-(q/10) per quality symbol, not per base; the cap at 1.0 is the
+     std::max(qual, 0) the decoded quality value still goes through below */
+  vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
+                                            vsearch::ProbabilityCap::certain_error);
+
   int64_t len_max = 0;
 
   {
@@ -157,7 +164,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
             /* probability of error (Pe) */
 
-            auto const probability_of_error = q2p(qual);
+            auto const probability_of_error = quality_table[q[i]];
             sum_pe_length_table[static_cast<size_t>(i)] += probability_of_error;
 
 
