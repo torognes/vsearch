@@ -106,7 +106,6 @@ namespace {
 
      C++11 constexpr allows a single return statement -- no if, no switch -- so
      the two chains below can only be nested conditional operators. */
-  // NOLINTBEGIN(readability-avoid-nested-conditional-operator)
   constexpr auto sequence_policy(vsearch::CharClass const character_class) noexcept -> Action {
     return character_class == vsearch::CharClass::iupac           ? Action::accept
       : character_class == vsearch::CharClass::line_feed          ? Action::newline
@@ -125,7 +124,6 @@ namespace {
       : character_class == vsearch::CharClass::dot_dash           ? Action::accept
       : Action::reject;  // space, del_or_high, control, blank_control
   }
-  // NOLINTEND(readability-avoid-nested-conditional-operator)
 
 
   constexpr std::array<Action, byte_range> char_fq_action_seq =

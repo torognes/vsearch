@@ -129,7 +129,6 @@ namespace ascii {
 
    C++11 constexpr allows a single return statement -- no if, no switch -- so the
    chain below can only be nested conditional operators. */
-// NOLINTBEGIN(readability-avoid-nested-conditional-operator)
 constexpr auto class_of(unsigned char const byte) noexcept -> CharClass {
   return byte == '\n' ? CharClass::line_feed
     : byte == '\r' ? CharClass::carriage_return
@@ -141,7 +140,6 @@ constexpr auto class_of(unsigned char const byte) noexcept -> CharClass {
     : ascii::is_iupac_upper(ascii::fold_to_upper(byte)) ? CharClass::iupac
     : CharClass::printable_other;
 }
-// NOLINTEND(readability-avoid-nested-conditional-operator)
 
 
 /* A per-class policy is a function rather than a nine-entry array, because
