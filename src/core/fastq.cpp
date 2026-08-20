@@ -64,6 +64,7 @@
 #include "core/seq_record.hpp"  // struct SeqRecord (for the record overload)
 #include "core/fastx.hpp"
 #include "core/fastx_char_class.hpp"  // vsearch::CharClass, class_of
+#include "core/illegal_character.hpp"  // vsearch::illegal_character_message
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_view.hpp"  // fprint
@@ -136,28 +137,38 @@ namespace {
 
 
 namespace {
-/* msg is a std::string rather than a char const *: two of the eight callers
-   assemble it by concatenation and used to hand over msg.c_str(), only for the
-   line below to concatenate it back into another string. The six callers
-   passing a literal build one temporary instead, on a path that has already
-   given up on the file. */
-auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, std::string const & msg) -> void
-{
-  /* decimal::to_text, not std::to_string: on libstdc++ <= 10 the latter is a
-     std::vsnprintf call with a format string (see decimal_digits.hpp). */
-  std::string const message = "Invalid line " + decimal::to_text(lineno)
-    + " in FASTQ file: " + msg;
+/* Report an already-complete message. The two illegal-character sites carry
+   their own location clause (see core/illegal_character.hpp) and so cannot go
+   through the "Invalid line N in FASTQ file: " prefix below; they share this
+   dispatch with it instead of duplicating it.
 
-  /* deferred-error mode (see fastx.h): record the message and return
-     so the worker can stop cooperatively instead of std::exit()-ing
-     from a worker thread. The caller (fastq_next) returns false right
-     after this call. */
+   deferred-error mode (see fastx.h): record the message and return
+   so the worker can stop cooperatively instead of std::exit()-ing
+   from a worker thread. The caller (fastq_next) returns false right
+   after this call. */
+auto fastq_report(fastx_handle input_handle, std::string const & message) -> void
+{
   if (input_handle->defers_errors())
     {
       input_handle->set_deferred_error(message);
       return;
     }
   fatal(message);
+}
+
+
+/* msg is a std::string rather than a char const *: the six remaining callers
+   pass a literal and build one temporary each, on a path that has already
+   given up on the file. (The two that used to assemble msg by concatenation,
+   and hand over msg.c_str() only for the line below to concatenate it back,
+   now build a complete message and call fastq_report() directly.) */
+auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, std::string const & msg) -> void
+{
+  /* decimal::to_text, not std::to_string: on libstdc++ <= 10 the latter is a
+     std::vsnprintf call with a format string (see decimal_digits.hpp). */
+  std::string const message = "Invalid line " + decimal::to_text(lineno)
+    + " in FASTQ file: " + msg;
+  fastq_report(input_handle, message);
 }
 
 
@@ -358,12 +369,12 @@ auto fastq_next(fastx_handle input_handle,
 
       if (not ok)
         {
-          std::string const message =
-            vsearch::ascii::is_printable(static_cast<unsigned char>(illegal_char))
-            ? "Illegal sequence character '" + std::string(1, illegal_char) + "'"
-            : "Illegal sequence character (unprintable, no "
-              + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
-          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message);
+          fastq_report(input_handle,
+                       vsearch::illegal_character_message(
+                         vsearch::IllegalField::sequence,
+                         vsearch::IllegalFormat::fastq,
+                         static_cast<unsigned char>(illegal_char),
+                         input_handle->lineno - (fragment.has_newline ? 1 : 0)));
           return false;
         }
     }
@@ -476,12 +487,12 @@ auto fastq_next(fastx_handle input_handle,
 
       if (not ok)
         {
-          std::string const message =
-            vsearch::ascii::is_printable(static_cast<unsigned char>(illegal_char))
-            ? "Illegal quality character '" + std::string(1, illegal_char) + "'"
-            : "Illegal quality character (unprintable, no "
-              + decimal::to_text(static_cast<unsigned char>(illegal_char)) + ")";
-          fastq_fatal(input_handle, input_handle->lineno - (fragment.has_newline ? 1 : 0), message);
+          fastq_report(input_handle,
+                       vsearch::illegal_character_message(
+                         vsearch::IllegalField::quality,
+                         vsearch::IllegalFormat::fastq,
+                         static_cast<unsigned char>(illegal_char),
+                         input_handle->lineno - (fragment.has_newline ? 1 : 0)));
           return false;
         }
     }

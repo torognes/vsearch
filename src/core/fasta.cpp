@@ -65,6 +65,7 @@
 #include "core/db.hpp"
 #include "core/fastx.hpp"
 #include "core/fastx_char_class.hpp"  // vsearch::CharClass, class_of
+#include "core/illegal_character.hpp"  // vsearch::illegal_character_message
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_view.hpp"  // fprint
@@ -125,11 +126,9 @@ namespace {
        '-' '.' (printable) and the C0 controls (not) reach here, and this is the
        same test fastq.cpp makes at its own report time. */
     std::string const message =
-      (vsearch::ascii::is_printable(symbol)
-        ? "Illegal character '" + std::string(1, static_cast<char>(symbol)) + "'"
-        : "Illegal unprintable ASCII character no " + decimal::to_text(symbol))
-      + " in sequence on line " + decimal::to_text(line_number)
-      + " of FASTA file";
+      vsearch::illegal_character_message(vsearch::IllegalField::sequence,
+                                         vsearch::IllegalFormat::fasta,
+                                         symbol, line_number);
     /* deferred-error mode (see fastx.h): record and return instead of
        exiting, so a worker thread does not std::exit() with siblings live */
     if (input_handle->defers_errors()) {

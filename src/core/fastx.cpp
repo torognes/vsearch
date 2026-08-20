@@ -64,6 +64,7 @@
 #include "core/fasta.hpp"
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
+#include "core/illegal_character.hpp"  // vsearch::illegal_character_message
 #include "os/dynlibs.hpp"
 #include "os/system.hpp"  // xstat_t, xfstat, xtell_fd, xftello, S_ISREG
 #include "utils/fatal.hpp"
@@ -286,22 +287,21 @@ auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) 
     auto const is_illegal = ((symbol == 127) or
                              ((symbol > '\0') and (symbol < ' ') and not (symbol == '\t')));
     if (is_illegal) {
+      /* Only 127 and the C0 controls reach here, so the shared builder always
+         takes its unprintable branch. */
+      std::string const message =
+        vsearch::illegal_character_message(vsearch::IllegalField::header,
+                                          vsearch::IllegalFormat::fasta_or_fastq,
+                                          static_cast<unsigned char>(symbol),
+                                          input_handle->lineno_start);
       if (input_handle->defer_errors) {
         /* Record the error and stop scanning instead of exiting here:
            this may run on a worker thread (see the deferred-error note in
            fastx.h). The caller reports it from the main thread. */
-        std::string const message =
-          "Illegal character encountered in FASTA/FASTQ header.\n"
-          "Unprintable ASCII character no " + decimal::to_text(static_cast<int>(symbol))
-          + " on line " + decimal::to_text(input_handle->lineno_start) + ".";
         input_handle->set_deferred_error(message);
         return;
       }
-      fatal(std::string("Illegal character encountered in FASTA/FASTQ header.\nUnprintable ASCII character no ")
-            + decimal::to_text(static_cast<int>(symbol))
-            + " on line "
-            + decimal::to_text(input_handle->lineno_start)
-            + ".");
+      fatal(message);
     }
     auto const symbol_unsigned = static_cast<unsigned char>(symbol);
     auto const is_not_ascii = (symbol_unsigned > 127);
