@@ -76,6 +76,7 @@
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::equal, std::max
 #include <array>
+#include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
@@ -587,6 +588,12 @@ auto results_show_lcaout(std::FILE * output_handle,
   constexpr auto levels = static_cast<std::size_t>(tax_levels);
   std::array<int, tax_levels> votes {{}};
   std::array<int, tax_levels> cand;
+  /* -1 is "no candidate yet", and the voting loop's first hit replaces it at
+     every level at once: votes starts at zero everywhere, so that hit takes
+     the first branch nine times. Every lookup below therefore runs on a
+     candidate that names a real sequence, and asserts that it does -- reading
+     the sentinel would not be caught by the cast to the unsigned index the
+     database wants, it would become a lookup far past the end of it. */
   cand.fill(-1);
   /* the ranks of the candidate at each level, as offsets into that candidate's
      own header (see TaxLevel in core/tax.hpp); one array of records where two
@@ -617,6 +624,7 @@ auto results_show_lcaout(std::FILE * output_handle,
                  down to k? The two sets of offsets index two different headers,
                  so both headers are part of the predicate -- and the two
                  arguments are interchangeable, equality being symmetric. */
+              assert(cand[k] >= 0);
               auto const cand_header = db.header_view(static_cast<uint64_t>(cand[k]));
               auto const match =
                 std::equal(cand_levels[k].begin(),
@@ -649,6 +657,7 @@ auto results_show_lcaout(std::FILE * output_handle,
 
       for (std::size_t k = 0; k < levels; ++k)
         {
+          assert(cand[k] >= 0);
           auto const cand_header = db.header_view(static_cast<uint64_t>(cand[k]));
           auto const match =
             std::equal(cand_levels[k].begin(),
@@ -681,6 +690,7 @@ auto results_show_lcaout(std::FILE * output_handle,
 
       if (cand_levels[j][j].length > 0)
         {
+          assert(cand[j] >= 0);
           std::fputs((comma ? "," : ""), output_handle);
           fprint(output_handle, static_cast<char>(taxonomic_fields[j]));
           fprint(output_handle, ':');
