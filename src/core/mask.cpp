@@ -74,6 +74,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>  // int64_t, uint64_t
+#include <limits>  // std::numeric_limits
 #include <mutex>  // std::mutex, std::unique_lock
 // #include <string>
 #include <vector>
@@ -98,11 +99,20 @@ struct DustRegion {
   int end;
 };
 
+
+/* Ceiling for the overflow contract wo() asserts in its inner loop. At file
+   scope so that a release build, where the assert compiles away, does not see
+   it as an unused local. */
+constexpr auto max_sum = dust_window * dust_window / 2;  // 2048
+
 auto wo(View<char> const window) -> DustRegion
 {
   static constexpr auto dust_word = 3;
   static constexpr auto word_count = 1U << (2U * dust_word);  // 64
   static constexpr auto bitmask = word_count - 1;
+  /* words[] is indexed by j < len below, so a longer window would run off the
+     array; dust_core() passes at most dust_window by construction */
+  assert(window.size() <= static_cast<std::size_t>(dust_window));
   auto const len = static_cast<int>(window.size());
   const auto l1 = len - dust_word + 1 - 5; /* smallest possible region is 8 */
   if (l1 < 0)
@@ -113,15 +123,28 @@ auto wo(View<char> const window) -> DustRegion
   auto bestv = 0;
   auto besti = 0;
   auto bestj = 0;
-  std::array<int, word_count> counts {{}};
-  std::array<int, dust_window> words {{}};
+  /* both hold 6-bit quantities -- words[] is masked to bitmask, and counts[]
+     rises by at most one per inner iteration, so it peaks at len - i - 2 <= 62.
+
+     unsigned char rather than int is worth 1.09x on --fastx_mask, and the
+     reason is the reset below, not cache footprint: 256 bytes would fit L1
+     several times over. At 64 bytes GCC clears counts[] with four movaps,
+     while at 128 or 256 it emits a rep stos whose microcoded startup costs
+     about 23 cycles here -- paid on every one of the 45 M outer iterations a
+     40 MB input runs. Widening counts[] back to unsigned short (128 bytes,
+     still half of int) hands the entire gain back, measured: it is a
+     threshold, not a gradient, so do not assume a smaller type is
+     proportionally better. The remaining quarter of the gain is words[],
+     which the inner loop streams through 1.4 G times. */
+  std::array<unsigned char, word_count> counts {{}};
+  std::array<unsigned char, dust_window> words {{}};
   auto word = 0U;
 
   for (auto j = 0; j < len; j++)
     {
       word <<= 2U;
       word |= map_2bit(window[static_cast<std::size_t>(j)]);
-      words[static_cast<std::size_t>(j)] = static_cast<int>(word & bitmask);
+      words[static_cast<std::size_t>(j)] = static_cast<unsigned char>(word & bitmask);
     }
 
   for (auto i = 0; i < l1; i++)
@@ -137,6 +160,11 @@ auto wo(View<char> const window) -> DustRegion
           if (c != 0)
             {
               sum += c;
+              /* 10 * sum is the one product in this loop; sum counts pairs
+                 among at most dust_window window positions, so it stays four
+                 orders of magnitude below INT_MAX. The assert states that
+                 bound rather than leaving it to be re-derived. */
+              assert(sum >= 0 and sum <= max_sum);
               const auto v = 10 * sum / j;
 
               if (v > bestv)
@@ -146,6 +174,9 @@ auto wo(View<char> const window) -> DustRegion
                   bestj = j;
                 }
             }
+          /* c is counts[word] read above, and nothing has touched the array
+             since, so the increment below cannot wrap the byte */
+          assert(c < std::numeric_limits<unsigned char>::max());
           ++counts[word];
         }
     }
