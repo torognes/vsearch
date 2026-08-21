@@ -61,6 +61,8 @@
 #pragma once
 
 #include "utils/view.hpp"  // View<char>
+#include <array>  // std::array
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
 #include <vector>
 
@@ -123,7 +125,12 @@ private:
   View<char> b_seq;
 
   // initialize a 16x16 matrix
-  std::vector<std::vector<int64_t>> scorematrix = std::vector<std::vector<int64_t>>(matrix_size, std::vector<int64_t>(matrix_size));
+  /* flat row-major storage: one contiguous 2 KB block inside the object,
+     one load per lookup. The vector-of-vectors this replaces cost sixteen
+     scattered heap blocks and a second pointer chase per DP cell, and its
+     inner data pointers had to be re-read in the fill loops because the
+     surrounding HH/EE/XX/YY writes are int64_t stores too. */
+  std::array<int64_t, static_cast<std::size_t>(matrix_size) * matrix_size> scorematrix {{}};
 
   /* gap penalties for open/extension query/target left/interior/right */
   int64_t go_q_l = 0;

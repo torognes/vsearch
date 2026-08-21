@@ -196,10 +196,10 @@ auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> vo
         continue;  // then score is 0; already zero-initialized
       }
       if (row == column) { // diagonal
-        scorematrix[row][column] = scoring.match;
+        scorematrix[(matrix_size * std::size_t{row}) + column] = scoring.match;
       }
       else {
-        scorematrix[row][column] = scoring.mismatch;
+        scorematrix[(matrix_size * std::size_t{row}) + column] = scoring.mismatch;
       }
     }
   }
@@ -207,12 +207,12 @@ auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> vo
   // if alignment with N is set to be a mismatch
   if (scoring.n_mismatch) {
     // last column
-    for (auto & row : scorematrix) {
-      row.back() = scoring.mismatch;
+    for (auto row = std::size_t{0}; row < matrix_size; ++row) {
+      scorematrix[(matrix_size * row) + (matrix_size - 1)] = scoring.mismatch;
     }
     // last row
-    auto & last_row = scorematrix.back();
-    std::fill(last_row.begin(), last_row.end(), scoring.mismatch);
+    std::fill(std::prev(scorematrix.end(), static_cast<std::ptrdiff_t>(matrix_size)),
+              scorematrix.end(), scoring.mismatch);
   }
 }
 
@@ -276,7 +276,7 @@ auto LinearMemoryAligner::subst_score(char const lhs, char const rhs) -> int64_t
 {
   /* return substitution score for replacing char lhs (sequence a),
      with char rhs (sequence b) */
-  return scorematrix[map_4bit(rhs)][map_4bit(lhs)];
+  return scorematrix[(matrix_size * std::size_t{map_4bit(rhs)}) + map_4bit(lhs)];
 }
 
 
