@@ -42,7 +42,8 @@ it in alignment outputs, but never accepts it in input sequences
 
 # SEE ALSO
 
-(nothing for now)
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md),
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)
 
 
 #(../commands/fragments/footer.md)
