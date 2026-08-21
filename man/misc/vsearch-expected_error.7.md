@@ -53,6 +53,22 @@ linear. The expected error sums all per-base error probabilities, giving
 each base equal weight and producing a meaningful global quality
 estimate.
 
+A mathematically sound Phred-scaled average does exist: convert the
+mean per-base error probability (EE divided by the read length *L*)
+back to the Phred scale:
+
+```text
+Avg_Q = -10 * log10(EE / L)
+```
+
+vsearch does not write this value directly, but it can be computed
+downstream from the `;ee=float` and `;length=integer` header
+annotations added by `--eeout` and `--lengthout`. Filtering on it is
+equivalent to filtering on the expected error rate: keeping reads with
+an average quality of at least *Q* corresponds to `--fastq_maxee_rate`
+set to 10^(-*Q*/10). For example, Avg_Q >= 20 corresponds to
+`--fastq_maxee_rate 0.01`.
+
 
 ## Poisson interpretation
 
