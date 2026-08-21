@@ -63,6 +63,7 @@
 #include "core/db.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"
+#include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::min, std::max
 #include <array>
@@ -1152,34 +1153,22 @@ auto search16_init(int64_t const score_match,
      keeps every cell of the matrix defined.
 
      The linear-memory aligner builds the same matrix at 64-bit width
-     (LinearMemoryAligner::scorematrix_fill); the two fills must keep agreeing
-     cell for cell, since pairs move between the aligners on size and
-     representability grounds alone. */
-  for (auto i = 0U; i < matrix_size; ++i)
+     (LinearMemoryAligner::scorematrix_fill); pairs move between the aligners
+     on size and representability grounds alone, so the two fills must agree
+     cell for cell -- which they do by construction, both taking their cells
+     from vsearch::score_4bit (utils/score_4bit.hpp). */
+  static_assert(matrix_size == vsearch::nucleotide_codes_4bit.size(),
+                "one matrix row and column per 4-bit nucleotide code");
+  vsearch::SubstitutionScores<CELL> const scores {match, mismatch, score_n_mismatch,};
+  for (auto const row : vsearch::nucleotide_codes_4bit)
     {
-      for (auto j = 0U; j < matrix_size; ++j)
+      for (auto const column : vsearch::nucleotide_codes_4bit)
         {
-          CELL value = 0;
-          if (score_n_mismatch and ((i == 15U) or (j == 15U)))
-            {
-              value = mismatch;
-            }
-          else if (is_ambiguous_4bit(static_cast<unsigned char>(i)) or is_ambiguous_4bit(static_cast<unsigned char>(j)))
-            {
-              value = 0;
-            }
-          else if (i == j)
-            {
-              value = match;
-            }
-          else
-            {
-              value = mismatch;
-            }
+          CELL const value = vsearch::score_4bit(row, column, scores);
           /* s->matrix is a flat matrix_size x matrix_size array of cells held
              as whole vectors: write it through set_channel rather than a
              (CELL *) cast, for the strict-aliasing reason documented there */
-          auto const cell_index = (matrix_size * i) + j;
+          auto const cell_index = (matrix_size * std::size_t{row}) + column;
           set_channel(s->matrix[cell_index / CHANNELS],
                       static_cast<int>(cell_index % CHANNELS),
                       value);

@@ -193,6 +193,7 @@ utils/quality_encoding.hpp \
 utils/quality_table.hpp \
 utils/random.hpp \
 utils/reverse_complement.hpp \
+utils/score_4bit.hpp \
 utils/seqcmp.hpp \
 utils/sequence_digest.hpp \
 utils/span.hpp \

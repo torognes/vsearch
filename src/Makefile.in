@@ -223,7 +223,8 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -296,7 +297,8 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -368,7 +370,8 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -434,7 +437,8 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -500,7 +504,8 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -566,7 +571,8 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -631,7 +637,8 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -864,7 +871,8 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/os_byteswap.hpp utils/print_record.hpp \
 	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
 	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp utils/seqcmp.hpp \
+	utils/random.hpp utils/reverse_complement.hpp \
+	utils/score_4bit.hpp utils/seqcmp.hpp \
 	utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
@@ -1553,6 +1561,7 @@ utils/quality_encoding.hpp \
 utils/quality_table.hpp \
 utils/random.hpp \
 utils/reverse_complement.hpp \
+utils/score_4bit.hpp \
 utils/seqcmp.hpp \
 utils/sequence_digest.hpp \
 utils/span.hpp \

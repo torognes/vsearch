@@ -64,9 +64,9 @@
 #include "utils/decimal_digits.hpp"  // decimal::Buffer, decimal::to_decimal
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>
 #include <algorithm>  // std::copy, std::max
-#include <array>  // std::array
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t
 #include <iterator>  // std::next
@@ -172,8 +172,10 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
   becomes a mismatch, N against N included. Without --n_mismatch the
   last row and column above are all zeros like the other ambiguous ones.
   The SIMD aligner builds the same matrix at 16-bit width
-  (search16_init); the two must keep agreeing cell for cell, since pairs
-  move between the aligners on size and representability grounds alone.
+  (search16_init); pairs move between the aligners on size and
+  representability grounds alone, so the two must agree cell for cell --
+  which they do by construction, both taking their cells from
+  vsearch::score_4bit (utils/score_4bit.hpp).
   Checked against raw alignment scores: with match = +2, an identical
   5010-nt pair scores 10020, the same pair with five R/R (or N/N)
   columns scores 10010, and with --n_mismatch five N/N columns score
@@ -199,34 +201,16 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
 */
 
 auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> void {
-  static constexpr std::array<char, 16> nucleotides = {{'-', 'A', 'C', 'M', 'G', 'R', 'S', 'V', 'T', 'W', 'Y', 'H', 'K', 'D', 'B', 'N'}};
-
   // fill-in the score matrix
-  for (auto const row_nuc : nucleotides) {
-    auto const row = map_4bit(row_nuc);
-    for (auto const column_nuc : nucleotides) {
-      auto const column = map_4bit(column_nuc);
-      if (is_ambiguous_4bit(row) or is_ambiguous_4bit(column)) {
-        continue;  // then score is 0; already zero-initialized
-      }
-      if (row == column) { // diagonal
-        scorematrix[(matrix_size * std::size_t{row}) + column] = scoring.match;
-      }
-      else {
-        scorematrix[(matrix_size * std::size_t{row}) + column] = scoring.mismatch;
-      }
+  static_assert(matrix_size == vsearch::nucleotide_codes_4bit.size(),
+                "one matrix row and column per 4-bit nucleotide code");
+  vsearch::SubstitutionScores<int64_t> const scores {scoring.match, scoring.mismatch,
+                                                     scoring.n_mismatch,};
+  for (auto const row : vsearch::nucleotide_codes_4bit) {
+    for (auto const column : vsearch::nucleotide_codes_4bit) {
+      scorematrix[(matrix_size * std::size_t{row}) + column] =
+          vsearch::score_4bit(row, column, scores);
     }
-  }
-
-  // if alignment with N is set to be a mismatch
-  if (scoring.n_mismatch) {
-    // last column
-    for (auto row = std::size_t{0}; row < matrix_size; ++row) {
-      scorematrix[(matrix_size * row) + (matrix_size - 1)] = scoring.mismatch;
-    }
-    // last row
-    std::fill(std::prev(scorematrix.end(), static_cast<std::ptrdiff_t>(matrix_size)),
-              scorematrix.end(), scoring.mismatch);
   }
 }
 
