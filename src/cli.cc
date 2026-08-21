@@ -4767,6 +4767,16 @@ namespace {
         fatal("The argument to maxuniquesize must be at least 1");
       }
 
+    /* An inverted range is legal but selects nothing: warn instead of
+       silently writing an empty file. Only the abundance filter is
+       concerned; a --uc output is not abundance-filtered and stays
+       complete. */
+    if (parameters.opt_minuniquesize > parameters.opt_maxuniquesize)
+      {
+        vsearch::warn("--minuniquesize is larger than --maxuniquesize: "
+                      "no sequence will satisfy the abundance filter");
+      }
+
     if (parameters.opt_maxsize < 1)
       {
         fatal("The argument to maxsize must be at least 1");
@@ -4899,6 +4909,15 @@ namespace {
           {
             parameters.opt_minseqlength = 1;
           }
+      }
+
+    /* Same as the minuniquesize/maxuniquesize warning above, for the
+       length filter; checked here because opt_minseqlength is a -1
+       sentinel until the command default just resolved it. */
+    if (parameters.opt_minseqlength > parameters.opt_maxseqlength)
+      {
+        vsearch::warn("--minseqlength is larger than --maxseqlength: "
+                      "no sequence will satisfy the length filter");
       }
 
     if (parameters.opt_sintax != nullptr)
