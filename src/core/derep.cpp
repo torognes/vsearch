@@ -79,7 +79,7 @@
 #include "utils/cityhash.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
-#include <algorithm>  // std::count_if, std::min, std::sort
+#include <algorithm>  // std::count_if, std::max, std::min, std::sort, std::transform
 #include <array>  // std::array
 #include <cassert>  // assert
 #include <cmath>  // std::log10, std::pow
@@ -188,12 +188,21 @@ namespace {
     auto quality_value = static_cast<int64_t>(std::trunc(-base * std::log10(probability)));
     quality_value = std::min(quality_value, parameters.opt_fastq_qmaxout);
     quality_value = std::max(quality_value, parameters.opt_fastq_qminout);
-    return static_cast<int>(quality_value + parameters.opt_fastq_asciiout);
+    /* encoded with the INPUT offset: stored quality strings keep the input
+       encoding whether or not they were touched by a merge, and the output
+       offset is applied exactly once, by write_fastq_output(). Encoding
+       merged symbols with the output offset here corrupted clusters of
+       abundance three or more when the two offsets differed: the next merge
+       decoded the stored symbol with the input offset again. */
+    return static_cast<int>(quality_value + parameters.opt_fastq_ascii);
   }
 
 
   /* The output symbol standing for the error probability of one input
-     symbol, for the cases where merging cannot change it.
+     symbol. write_fastq_output() sends every stored symbol through this
+     table exactly once -- stored quality strings always keep the input
+     encoding -- so it is both the --fastq_asciiout re-encoding step and
+     the qminout/qmaxout clamp, for merged and unmerged records alike.
 
      Going through 10^-(q/10) and back does not survive the round trip.
      -10 * log10(10^-0.2) evaluates to 1.999999999999999778, so trunc() sent
@@ -314,6 +323,11 @@ namespace {
   {
     {
       Progress progress("Writing FASTQ output file", clusters, parameters);
+      /* stored quality strings keep the input encoding, merged or not; this
+         table is the one place the qminout/qmaxout clamp and the
+         --fastq_asciiout offset are applied */
+      auto const merged_symbol = merged_symbol_table(parameters);
+      std::string encoded_quality;
       int64_t relabel_count = 0;
       for (uint64_t i = 0; i < clusters; ++i)
         {
@@ -322,10 +336,19 @@ namespace {
           if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
             {
               ++relabel_count;
+              encoded_quality.resize(cluster.qual.size());
+              std::transform(cluster.qual.cbegin(), cluster.qual.cend(),
+                             encoded_quality.begin(),
+                             [&merged_symbol](char const symbol) -> char
+                {
+                  /* the FASTQ readers reject DEL and every byte above it */
+                  assert(static_cast<unsigned char>(symbol) < vsearch::quality_symbol_count);
+                  return merged_symbol[static_cast<unsigned char>(symbol)];
+                });
               fastq_print_general(fp_fastqout,
                                   make_view(cluster.seq),
                                   make_view(cluster.header),
-                                  make_view(cluster.qual),
+                                  make_view(encoded_quality),
                                   OutputAnnotations{static_cast<uint64_t>(size), relabel_count},
                                   parameters);
               if (relabel_count == parameters.opt_topn)
@@ -568,7 +591,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
      "quality below 2 carries no information" rule this loop applied per call */
   vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
                                             vsearch::ProbabilityCap::random_guess);
-  auto const merged_symbol = merged_symbol_table(parameters);
 
   if (extra_info)
     {
@@ -780,7 +802,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                            inputs, so the merged symbol is the higher-quality
                            input symbol and there is no round trip to make */
                         bp->qual[static_cast<std::size_t>(i)] =
-                          merged_symbol[static_cast<unsigned char>(std::max(symbol1, symbol2))];
+                          std::max(symbol1, symbol2);
                         continue;
                       }
 
@@ -788,8 +810,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                       {
                         /* both members agree on this base, so the merged
                            quality is that quality, whatever the abundances */
-                        bp->qual[static_cast<std::size_t>(i)] =
-                          merged_symbol[static_cast<unsigned char>(symbol1)];
+                        bp->qual[static_cast<std::size_t>(i)] = symbol1;
                         continue;
                       }
 
