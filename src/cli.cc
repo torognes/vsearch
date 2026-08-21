@@ -497,15 +497,19 @@ namespace {
 
   /* std::strtod, for the reasons given above args_getlong(). std::strtod
      parses "nan" and "inf" just as "%lf" did, so the isfinite() guard is still
-     what rejects them. */
+     what rejects them; it also catches overflow, which strtod reports as
+     +/-HUGE_VAL (infinity). There is deliberately no ERANGE test here:
+     underflow ("1e-320" -> a subnormal, "1e-999" -> 0.0) is accepted as
+     round-to-nearest, like the rounding every decimal argument undergoes --
+     and whether strtod even sets ERANGE on underflow is implementation-
+     defined, so testing it would make the accepted range depend on the
+     platform's libc. */
   auto args_getdouble(char const * arg) -> double
   {
-    errno = 0;
     char * end_of_number = nullptr;
     auto const value = std::strtod(arg, &end_of_number);
     if ((end_of_number == arg)        // no number at all, including an empty argument
         or (*end_of_number != '\0')   // trailing garbage
-        or (errno == ERANGE)
         or (not std::isfinite(value)))
       {
         fatal("Illegal option argument");
