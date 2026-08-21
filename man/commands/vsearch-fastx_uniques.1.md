@@ -30,7 +30,11 @@ correspond by default to the average error probability at each
 position across all grouped sequences (see
 [`vsearch-expected_error(7)`](../misc/vsearch-expected_error.7.md)).
 Use `--fastq_qout_max` to use the best (highest) quality score
-observed at each position instead.
+observed at each position instead. Output quality scores are encoded
+with the `--fastq_asciiout` offset and clamped to the range defined by
+`--fastq_qminout` and `--fastq_qmaxout`; a quality score of 0 is
+written as 1, since both stand for the same uninformative error
+probability (0.75).
 
 This command is not multithreaded. The inverse operation is
 `--rereplicate` (see
