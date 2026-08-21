@@ -142,28 +142,42 @@ LinearMemoryAligner::LinearMemoryAligner(struct Scoring const & scoring)
 
 
 /*
-  Expected score matrix (if option N is mismatch):
+  Score matrix built below (shown with option N as mismatch):
 
      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
      -  A  C  M  G  R  S  V  T  W  Y  H  K  D  B  N
-0  - M  X  X  0  X  0  0  0  X  0  0  0  0  0  0  X
-1  A X  M  X  0  X  0  0  0  X  0  0  0  0  0  0  X
-2  C X  X  M  0  X  0  0  0  X  0  0  0  0  0  0  X
-3  M 0  0  0  M  0  0  0  0  0  0  0  0  0  0  0  X
-4  G X  X  X  0  M  0  0  0  X  0  0  0  0  0  0  X
-5  R 0  0  0  0  0  M  0  0  0  0  0  0  0  0  0  X
-6  S 0  0  0  0  0  0  M  0  0  0  0  0  0  0  0  X
-7  V 0  0  0  0  0  0  0  M  0  0  0  0  0  0  0  X
-8  T X  X  X  0  X  0  0  0  M  0  0  0  0  0  0  X
-9  W 0  0  0  0  0  0  0  0  0  M  0  0  0  0  0  X
-10 Y 0  0  0  0  0  0  0  0  0  0  M  0  0  0  0  X
-11 H 0  0  0  0  0  0  0  0  0  0  0  M  0  0  0  X
-12 K 0  0  0  0  0  0  0  0  0  0  0  0  M  0  0  X
-13 D 0  0  0  0  0  0  0  0  0  0  0  0  0  M  0  X
-14 B 0  0  0  0  0  0  0  0  0  0  0  0  0  0  M  X
-15 N X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  M
+0  - 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+1  A 0  M  X  0  X  0  0  0  X  0  0  0  0  0  0  X
+2  C 0  X  M  0  X  0  0  0  X  0  0  0  0  0  0  X
+3  M 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+4  G 0  X  X  0  M  0  0  0  X  0  0  0  0  0  0  X
+5  R 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+6  S 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+7  V 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+8  T 0  X  X  0  X  0  0  0  M  0  0  0  0  0  0  X
+9  W 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+10 Y 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+11 H 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+12 K 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+13 D 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+14 B 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  X
+15 N X  X  X  X  X  X  X  X  X  X  X  X  X  X  X  X
 
-  M = match, X = mismatch
+  M = match, X = mismatch, 0 = neither
+
+  Only the unambiguous nucleotides A, C, G and T/U can match or
+  mismatch: any column involving code 0 (no nucleotide) or an ambiguity
+  code scores zero, its own diagonal included -- R aligned to R is not a
+  match. --n_mismatch overrides that for N alone: every column with an N
+  becomes a mismatch, N against N included. Without --n_mismatch the
+  last row and column above are all zeros like the other ambiguous ones.
+  The SIMD aligner builds the same matrix at 16-bit width
+  (search16_init); the two must keep agreeing cell for cell, since pairs
+  move between the aligners on size and representability grounds alone.
+  Checked against raw alignment scores: with match = +2, an identical
+  5010-nt pair scores 10020, the same pair with five R/R (or N/N)
+  columns scores 10010, and with --n_mismatch five N/N columns score
+  9990 (five mismatches at -4).
 
   Map from ascii to 4-bit nucleotide code
   -:  0
