@@ -1132,6 +1132,29 @@ auto search16_init(int64_t const score_match,
   CELL const match = clamp_to_cell(score_match, score_cell_limit, needs_fallback);
   CELL const mismatch = clamp_to_cell(score_mismatch, score_cell_limit, needs_fallback);
 
+  /* Nearly all of this 16 x 16 matrix is load-bearing. Rows are database
+     4-bit codes, columns are query 4-bit codes, and codes 1 to 15 (the full
+     IUPAC alphabet, ambiguity combinations and N included) all occur in
+     validated input: search16_qprep points a query position's profile slot at
+     4 * map_4bit(nucleotide), and the channel loader writes map_4bit of every
+     database byte into dseq. So unlike swarm's near-empty 32 x 32 table (its
+     kernels read codes 1 to 4 only), nothing here can shrink: both 8-column
+     transpose passes of dprofile_fill16 write profile slots that are read.
+
+     The one dead fringe is row 0 and column 0. Code 0 maps to no nucleotide
+     the parsers accept; a channel whose sequence is exhausted feeds literal
+     zero bytes into dseq instead, and the scores those padding cells produce
+     never reach a result -- each channel's score is taken where its last real
+     nucleotide ends. Measured rather than argued: poisoning all of row 0 and
+     column 0 with 9999 leaves usearch_global and cluster_fast outputs
+     byte-identical on IUPAC-salted reads, with and without --n_mismatch.
+     The fringe stays filled with normal scores anyway: it costs nothing and
+     keeps every cell of the matrix defined.
+
+     The linear-memory aligner builds the same matrix at 64-bit width
+     (LinearMemoryAligner::scorematrix_fill); the two fills must keep agreeing
+     cell for cell, since pairs move between the aligners on size and
+     representability grounds alone. */
   for (auto i = 0U; i < matrix_size; ++i)
     {
       for (auto j = 0U; j < matrix_size; ++j)
