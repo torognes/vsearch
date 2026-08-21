@@ -64,6 +64,7 @@
 #include "view.hpp"  // View, make_view
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::fprintf
+#include <limits>  // std::numeric_limits
 #include <string>  // std::string
 #include <utility>  // std::move
 
@@ -85,8 +86,29 @@ public:
         no_progress_(parameters.opt_no_progress) {
     is_visible_ = check_if_visible();
     if (is_quiet_) { return; }
+    if (not is_visible_) {
+      /* --no_progress: the prompt now, done() appends " 100%\n" */
+      fprint(stderr, make_view(prompt_));
+      return;
+    }
+    if (not stderr_is_tty_) {
+      /* line-per-tick mode (commit fba1b33b, lost in the class rewrite and
+         restored here): one newline-terminated "prompt N%" line per percent
+         step, so a redirected stderr (e.g. a Slurm log) shows progress while
+         the command runs. An unknown total (max_size_ == 0, reading a pipe)
+         would re-emit the same 0% line on every update; park the threshold
+         at the ceiling instead, leaving this 0% line and done()'s 100%. */
+      fprint(stderr, make_view(prompt_));
+      fprint(stderr, " 0%\n");
+      if (max_size_ == 0) {
+        next_threshold_ = std::numeric_limits<std::uint64_t>::max();
+        return;
+      }
+      current_percentage_ = calculate_percentage();
+      next_threshold_ = calculate_next_threshold();
+      return;
+    }
     fprint(stderr, make_view(prompt_));
-    if (not is_visible_) { return; }
     fprint(stderr, " 0%");
     if (max_size_ == 0) {
       fprint(stderr, "  \r");
@@ -107,11 +129,20 @@ public:
     counter_ = counter;
     if ((not is_visible_) or (counter_ < next_threshold_)) { return; }
     current_percentage_ = calculate_percentage();
-    fprint(stderr, "  \r");
-    fprint(stderr, make_view(prompt_));
-    fprint(stderr, ' ');
-    fprint_integer(stderr, current_percentage_);
-    fprint(stderr, '%');
+    if (stderr_is_tty_) {
+      fprint(stderr, "  \r");
+      fprint(stderr, make_view(prompt_));
+      fprint(stderr, ' ');
+      fprint_integer(stderr, current_percentage_);
+      fprint(stderr, '%');
+    } else if (current_percentage_ < one_hundred_percent) {
+      /* done() owns the 100% line, so a run whose last update lands exactly
+         on max_size_ does not log 100% twice (v2.31.0 did) */
+      fprint(stderr, make_view(prompt_));
+      fprint(stderr, ' ');
+      fprint_integer(stderr, current_percentage_);
+      fprint(stderr, "%\n");
+    }
     next_threshold_ = calculate_next_threshold();
   };
 
@@ -141,9 +172,10 @@ private:
   bool is_visible_ {};
   
   // Helper functions
+  /* whether anything beyond the final "prompt 100%" line is shown; the tty
+     status selects the format (redraw vs line-per-tick), never visibility */
   auto check_if_visible() const -> bool {
-    return stderr_is_tty_
-      and (not is_quiet_)
+    return (not is_quiet_)
       and (not no_progress_);
   };
 
@@ -160,8 +192,13 @@ private:
 
   auto done() const -> void {
     if (is_quiet_) { return; }
-    if (is_visible_) {
+    if (is_visible_ and stderr_is_tty_) {
       fprint(stderr, "  \r");
+      fprint(stderr, make_view(prompt_));
+    }
+    else if (is_visible_) {
+      /* line-per-tick mode: a full line; --no_progress instead completes
+         the bare prompt the constructor printed */
       fprint(stderr, make_view(prompt_));
     }
     fprint(stderr, ' ');
