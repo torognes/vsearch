@@ -156,6 +156,7 @@ core/showalign.hpp \
 vendored/sha1.h \
 commands/shuffle.hpp \
 commands/sintax.hpp \
+commands/sortby_deck.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
 os/system.hpp \

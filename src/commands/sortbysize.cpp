@@ -59,16 +59,16 @@
 */
 
 #include "vsearch.hpp"
+#include "commands/sortby_deck.hpp"
 #include "core/db.hpp"
-#include "core/fasta.hpp"
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
 #include "utils/view.hpp"
-#include <algorithm>  // std::min, std::sort
+#include <algorithm>  // std::sort
 #include <cassert>
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstdio>  // std::size_t
 #include <vector>
 
 #ifndef NDEBUG
@@ -86,32 +86,9 @@ namespace {
        any annotation above 4294967295 silently, which sorted the most
        abundant sequences to the bottom and skewed the reported median. */
     uint64_t size = 0;
-    uint64_t label_prefix = 0;
+    uint64_t label_prefix = 0;  // see label_prefix_of() in sortby_deck.hpp
     unsigned int seqno = 0;
   };
-
-
-  /* The first eight header bytes packed big-endian into a uint64_t, a shorter
-     header zero-padded. Comparing two prefixes as integers matches comparing
-     the same bytes lexicographically (as unsigned char, like View's ordering):
-     the padding can tie with a further-differing or equally short header, but
-     never inverts, so a prefix tie falls back to the full header comparison.
-     Cached in the deck because the sort's label tie-break is hot: sizes are
-     heavily tied (size=1 dominates a typical amplicon set), and without the
-     cache each of the O(n log n) comparisons chases two random header
-     pointers into the database. */
-  auto label_prefix_of(View<char> const header) -> uint64_t {
-    static constexpr auto prefix_bytes = std::size_t{8};
-    static constexpr auto bits_per_byte = 8U;
-    auto const length = std::min(header.size(), prefix_bytes);
-    auto prefix = uint64_t{0};
-    for (auto position = std::size_t{0}; position < length; ++position) {
-      prefix = (prefix << bits_per_byte)
-        | static_cast<unsigned char>(header[position]);
-    }
-    prefix <<= bits_per_byte * (prefix_bytes - length);
-    return prefix;
-  }
 
 
   auto create_deck(Database const & db, struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
@@ -175,12 +152,7 @@ namespace {
     auto const median = median_of_descending(
         make_view(deck),
         [](sortinfo_size_s const & entry) { return entry.size; });
-    if (not parameters.opt_quiet) {
-      static_cast<void>(std::fprintf(stderr, "Median abundance: %.0f\n", median));
-    }
-    if (parameters.fp_log != nullptr) {
-      static_cast<void>(std::fprintf(parameters.fp_log, "Median abundance: %.0f\n", median));
-    }
+    report_median(median, "Median abundance", parameters);
   }
 
 
@@ -200,29 +172,6 @@ namespace {
   //                               });
   //   return std::vector<struct sortinfo_size_s>{begin, end};
   // }
-
-
-  auto truncate_deck(std::vector<struct sortinfo_size_s> & deck,
-                     long int const n_first_sequences) -> void {
-    if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
-      deck.resize(static_cast<std::size_t>(n_first_sequences));
-    }
-  }
-
-
-  // refactoring: extract as a template
-  auto output_sorted_fasta(std::vector<struct sortinfo_size_s> const & deck,
-                           std::FILE * output_file,
-                           Database const & db,
-                           struct Parameters const & parameters) -> void {
-    Progress progress("Writing output", deck.size(), parameters);
-    auto counter = std::size_t{0};
-    for (auto const & sequence: deck) {
-      fasta_print_db_relabel(output_file, sequence.seqno, counter + 1, db, parameters);
-      progress.update(counter);
-      ++counter;
-    }
-  }
 
 
   // refactoring: trim misize and maxsize with a free function
