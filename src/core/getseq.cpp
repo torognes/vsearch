@@ -80,7 +80,7 @@
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
 #include "utils/warn.hpp"  // vsearch::warn
-#include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal, std::transform
+#include <algorithm>  // std::any_of, std::copy, std::max, std::min, std::search, std::equal, std::transform
 #include <array>
 #include <cassert>
 #include <cstdint> // int64_t, uint64_t
@@ -333,13 +333,10 @@ public:
       {
         if (parameters_.opt_label_substr_match)
           {
-            for (auto const & label: labels_data_) {
-              auto const label_view = make_view(label);
-              if (contains_substring(header_view, label_view)) {
-                return true;
-              }
-            }
-            return false;
+            return std::any_of(labels_data_.begin(), labels_data_.end(),
+                               [header_view](std::vector<char> const & label) -> bool {
+                                 return contains_substring(header_view, make_view(label));
+                               });
           }
         /* refill the same probe string to avoid a per-record allocation */
         probe_.resize(header_view.size());
