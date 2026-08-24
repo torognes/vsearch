@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "print_view.hpp"  // fprint
 #include "vsearch.hpp"  // struct Parameters
 
