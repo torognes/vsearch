@@ -76,14 +76,14 @@
 #include "utils/warn.hpp"  // vsearch::warn
 #include <sys/stat.h>
 #include <unistd.h>  // dup, STDOUT_FILENO
-#include <algorithm>  // std::copy, std::equal, std::find_first_of
+#include <algorithm>  // std::copy, std::equal
 #include <array>
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fclose, std::size_t, std::fread
 #include <cstdlib>  // std::exit, EXIT_FAILURE
-#include <cstring>  // std::strcmp
+#include <cstring>  // std::memchr, std::strcmp
 #include <iterator> // std::next, std::distance
 #include <limits>  // std::numeric_limits
 #include <memory>  // std::unique_ptr
@@ -230,26 +230,51 @@ auto fastx_s::next(bool const truncateatspace, unsigned char const * char_mappin
 }
 
 
-auto find_header_end_first_blank(Span<char> const raw_header) -> std::size_t {
-  static constexpr std::array<char, 5> blanks = {{' ', '\t', '\0', '\r', '\n'}};
-  auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
-                                     blanks.begin(), blanks.end());
-  if (result != raw_header.end()) {
-    *result = '\0';
+namespace {
+
+  /* The earliest occurrence of any of the needles, one std::memchr per
+     needle: each later search is bounded by the earliest hit so far, and
+     libc's vectorized memchr walks the header bytes far faster than the
+     former per-byte find_first_of loop (which compared every byte against
+     every needle). The header ends with its line feed, so the first search
+     -- the needles below all list '\n' first -- already shrinks the bound
+     to the true line length. */
+  template <std::size_t n_needles>
+  auto find_first_needle(Span<char> const haystack,
+                         std::array<char, n_needles> const & needles) -> std::size_t {
+    auto earliest = haystack.size();
+    for (auto const needle : needles) {
+      auto const * const hit = static_cast<char const *>(
+          std::memchr(haystack.data(), needle, earliest));
+      if (hit != nullptr) {
+        earliest = static_cast<std::size_t>(
+            std::distance<char const *>(haystack.data(), hit));
+      }
+    }
+    return earliest;
   }
-  return static_cast<std::size_t>(std::distance(raw_header.begin(), result));
-}
 
 
-auto find_header_end(Span<char> const raw_header) -> std::size_t {
-  static constexpr std::array<char, 3> blanks = {{'\0', '\r', '\n'}};
-  auto * result = std::find_first_of(raw_header.begin(), raw_header.end(),
-                                     blanks.begin(), blanks.end());
-  if (result != raw_header.end()) {
-    *result = '\0';
+  auto find_header_end_first_blank(Span<char> const raw_header) -> std::size_t {
+    static constexpr std::array<char, 5> blanks = {{'\n', ' ', '\t', '\0', '\r'}};
+    auto const count = find_first_needle(raw_header, blanks);
+    if (count != raw_header.size()) {
+      raw_header[count] = '\0';
+    }
+    return count;
   }
-  return static_cast<std::size_t>(std::distance(raw_header.begin(), result));
-}
+
+
+  auto find_header_end(Span<char> const raw_header) -> std::size_t {
+    static constexpr std::array<char, 3> blanks = {{'\n', '\0', '\r'}};
+    auto const count = find_first_needle(raw_header, blanks);
+    if (count != raw_header.size()) {
+      raw_header[count] = '\0';
+    }
+    return count;
+  }
+
+}  // end of anonymous namespace
 
 
 auto fastx_filter_header(fastx_handle input_handle, bool const truncateatspace) -> void {
