@@ -73,20 +73,22 @@
 #include "os/system.hpp"  // xstat_t, xfstat, S_ISFIFO
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
-#include "utils/ascii_case.hpp"  // is_alnum
+#include "utils/ascii_case.hpp"  // is_alnum, to_upper
 #include "utils/compare_strings_nocase.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
 #include "utils/warn.hpp"  // vsearch::warn
-#include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal
+#include <algorithm>  // std::copy, std::max, std::min, std::search, std::equal, std::transform
 #include <array>
 #include <cassert>
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fgets, EOF, std::size_t
 #include <cstring>  // std::strlen
+#include <string>  // std::string
 #include <sys/stat.h>
+#include <unordered_set>
 #include <vector>
 
 
@@ -100,6 +102,18 @@ namespace {
       longest = std::max(longest, label.size());
     }
     return longest;
+  }
+
+
+  /* the case folding of are_same_string() (compare_strings_nocase.cpp),
+     applied up front so folded strings can be hashed */
+  auto uppercased(View<char> const text) -> std::string {
+    std::string upper(text.size(), '\0');
+    std::transform(text.begin(), text.end(), upper.begin(),
+                   [](char const character) -> char {
+                     return to_upper(character);
+                   });
+    return upper;
   }
 
 
@@ -274,6 +288,21 @@ public:
                                     std::strlen(parameters.opt_label)};
       }
 
+    if ((parameters.opt_labels != nullptr)
+        and (not parameters.opt_label_substr_match))
+      {
+        /* exact whole-header matching against a list: a linear scan costs
+           O(labels) case-insensitive comparisons per record (measured at 1.95
+           billion calls for 10k labels against 200k records). The comparison
+           folds both sides through to_upper, so uppercased labels in a hash
+           set, probed with the uppercased header, select exactly the same
+           records in O(1) per record. */
+        for (auto const & label: labels_data)
+          {
+            exact_labels_.emplace(uppercased(make_view(label)));
+          }
+      }
+
     if (parameters.opt_label_word != nullptr)
       {
         word_needle_ = View<char>{parameters.opt_label_word,
@@ -312,12 +341,13 @@ public:
             }
             return false;
           }
-        for (auto const & label: labels_data_) {
-          if (are_same_string(header_view, label)) {
-            return true;
-          }
-        }
-        return false;
+        /* refill the same probe string to avoid a per-record allocation */
+        probe_.resize(header_view.size());
+        std::transform(header_view.begin(), header_view.end(), probe_.begin(),
+                       [](char const character) -> char {
+                         return to_upper(character);
+                       });
+        return exact_labels_.find(probe_) != exact_labels_.end();
       }
     if (parameters_.opt_label_word != nullptr)
       {
@@ -355,6 +385,8 @@ private:
   std::vector<char> field_buffer_;
   View<char> single_needle_;
   View<char> word_needle_;
+  std::unordered_set<std::string> exact_labels_;
+  std::string probe_;
 };
 }  // anonymous namespace
 
