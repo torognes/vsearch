@@ -59,13 +59,12 @@
 */
 
 #include "vsearch.hpp"
+#include "commands/deck.hpp"
 #include "core/db.hpp"
-#include "core/fasta.hpp"
 #include "utils/progress.hpp"
 #include "utils/open_file.hpp"
 #include "utils/random.hpp"
-#include <cstdint>
-#include <cstdio>  // std::FILE, std::size_t
+#include "utils/span.hpp"  // make_span
 #include <numeric>  // std::iota
 #include <random>  // std::mt19937_64
 #include <vector>
@@ -74,15 +73,16 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  auto create_deck(Database const & db) -> std::vector<int> {
+  /* the deck holds bare sequence numbers, in database order to start with */
+  auto create_deck(Database const & db) -> std::vector<unsigned int> {
     auto const dbsequencecount = db.getsequencecount();
-    std::vector<int> deck(dbsequencecount);
-    std::iota(deck.begin(), deck.end(), 0);
+    std::vector<unsigned int> deck(dbsequencecount);
+    std::iota(deck.begin(), deck.end(), 0U);
     return deck;
   }
 
 
-  auto shuffle_deck(std::vector<int> & deck, struct Parameters const & parameters) -> void {
+  auto shuffle_deck(std::vector<unsigned int> & deck, struct Parameters const & parameters) -> void {
     static constexpr auto one_hundred_percent = 100ULL;
     Progress const progress("Shuffling", one_hundred_percent, parameters);
     /* the RandomSeed carries the full 64-bit --randseed (or an OS value
@@ -91,31 +91,6 @@ namespace {
     RandomSeed const seed(parameters);
     std::mt19937_64 uniform_generator(seed.value());
     random_shuffle(make_span(deck), uniform_generator);
-  }
-
-
-  // refactoring: turn into template, remove conditional
-  auto truncate_deck(std::vector<int> & deck,
-                     long int const n_first_sequences) -> void {
-    // auto const new_size = std::min(deck.size(), n_first_sequences)
-    // deck.resize(new_size);
-    if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
-      deck.resize(static_cast<unsigned long>(n_first_sequences));
-    }
-  }
-
-
-  auto output_shuffled_fasta(std::vector<int> const & deck,
-                             std::FILE * output_file,
-                             Database const & db,
-                             struct Parameters const & parameters) -> void {
-    Progress progress("Writing output", deck.size(), parameters);
-    auto counter = std::size_t{0};
-    for (auto const sequence_id: deck) {
-      fasta_print_db_relabel(output_file, static_cast<uint64_t>(sequence_id), counter + 1, db, parameters);
-      progress.update(counter);
-      ++counter;
-    }
   }
 
 }  // end of anonymous namespace
@@ -131,7 +106,7 @@ auto shuffle(struct Parameters const & parameters) -> void {
   shuffle_deck(deck, parameters);
 
   truncate_deck(deck, parameters.opt_topn);
-  output_shuffled_fasta(deck, output_handle.get(), db, parameters);
+  output_deck_fasta(deck, output_handle.get(), db, parameters);
 
   db.clear();
 }
