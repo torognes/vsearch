@@ -64,6 +64,7 @@
 #include <algorithm>  // std::max
 #include <cmath>  // std::pow
 #include <cstddef>  // std::size_t
+#include <cstdint>  // int64_t
 #include <string>  // std::string, std::to_string
 
 

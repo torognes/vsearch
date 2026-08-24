@@ -375,21 +375,21 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       std::fprintf(fp_output, "%.1lf", pctrecs);
       for (auto const value : {quality_summary.minimum(), quality_summary.lower_quartile(),
                                quality_summary.median(), quality_summary.mean(),
-                               quality_summary.upper_quartile(), quality_summary.maximum()})
+                               quality_summary.upper_quartile(), quality_summary.maximum(),})
         {
           fprint(fp_output, '\t');
           std::fprintf(fp_output, "%.1lf", value);
         }
       for (auto const value : {probability_summary.minimum(), probability_summary.lower_quartile(),
                                probability_summary.median(), probability_summary.mean(),
-                               probability_summary.upper_quartile(), probability_summary.maximum()})
+                               probability_summary.upper_quartile(), probability_summary.maximum(),})
         {
           fprint(fp_output, '\t');
           std::fprintf(fp_output, "%.2lg", value);
         }
       for (auto const value : {bin_midpoint(ee_summary.minimum()), bin_midpoint(ee_summary.lower_quartile()),
                                bin_midpoint(ee_summary.median()), mean_ee,
-                               bin_midpoint(ee_summary.upper_quartile()), bin_midpoint(ee_summary.maximum())})
+                               bin_midpoint(ee_summary.upper_quartile()), bin_midpoint(ee_summary.maximum()),})
         {
           fprint(fp_output, '\t');
           std::fprintf(fp_output, "%.2lf", value);
