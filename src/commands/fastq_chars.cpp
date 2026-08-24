@@ -385,14 +385,24 @@ auto fastq_chars(struct Parameters const & parameters) -> void
             if (seq_symbol == run_char)
               {
                 ++run;
-                auto const run_index = static_cast<unsigned char>(run_char);
-                stats.maxrun[run_index] = std::max(run, stats.maxrun[run_index]);
               }
             else
               {
+                // a run just ended: its length was maximal, record it once
+                if (run != 0)
+                  {
+                    auto const run_index = static_cast<unsigned char>(run_char);
+                    stats.maxrun[run_index] = std::max(run, stats.maxrun[run_index]);
+                  }
                 run_char = seq_symbol;
                 run = 0;
               }
+          }
+
+        if (run != 0)
+          {
+            auto const run_index = static_cast<unsigned char>(run_char);
+            stats.maxrun[run_index] = std::max(run, stats.maxrun[run_index]);
           }
 
         // search for trailing homopolymers in quality strings
