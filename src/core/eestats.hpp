@@ -60,9 +60,61 @@
 
 #pragma once
 
+#include <array>
+#include <cassert>
+#include <cstddef>  // std::size_t
+
 /* Quality helpers shared by the fastq_eestats and fastq_eestats2
    commands. fastq_get_qual_eestats decodes and range-checks one FASTQ
    quality symbol (fatal on out-of-range); q2p converts a Phred quality
    value to its error probability. */
 auto fastq_get_qual_eestats(char q, struct Parameters const & parameters) -> int;
 auto q2p(int quality_value) -> double;
+
+
+namespace vsearch {
+
+/* Quality symbol -> decoded quality score, precomputed once per run.
+
+   fastq_get_qual_eestats above costs a call into another translation
+   unit plus two range tests for every base, which profiling shows is a
+   third of fastq_eestats2's runtime; but its inputs are only the 128
+   low ASCII ordinals (see quality_table.hpp for why a symbol reaching a
+   conversion always lies in [33, 126]), so both the decoded score and
+   the range verdict fit in small per-symbol arrays filled up front.
+
+   accepts() mirrors fastq_get_qual_eestats' range check exactly; a
+   caller passes a rejected symbol back to fastq_get_qual_eestats so
+   that the fatal message, and the point in the input where it fires,
+   stay the same. score() folds in the std::max(qual, 0) both eestats
+   commands applied to the decoded value. */
+class QualityScoreTable {
+public:
+  static constexpr auto n_symbols = std::size_t{128};
+
+  explicit QualityScoreTable(struct Parameters const & parameters) noexcept;
+
+  auto accepts(char const quality_symbol) const noexcept -> bool
+  {
+    return accepted_[ordinal_of(quality_symbol)];
+  }
+
+  /* the decoded quality score, clamped to zero at the low end */
+  auto score(char const quality_symbol) const noexcept -> int
+  {
+    return scores_[ordinal_of(quality_symbol)];
+  }
+
+private:
+  static auto ordinal_of(char const quality_symbol) noexcept -> std::size_t
+  {
+    auto const ordinal = static_cast<unsigned char>(quality_symbol);
+    assert(ordinal < n_symbols);
+    return ordinal;
+  }
+
+  std::array<int, n_symbols> scores_ {{}};
+  std::array<bool, n_symbols> accepted_ {{}};
+};
+
+}  // namespace vsearch

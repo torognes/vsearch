@@ -119,6 +119,10 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
   vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
                                             vsearch::ProbabilityCap::certain_error);
 
+  /* per-symbol decoded scores and range verdicts; a rejected symbol goes back
+     through fastq_get_qual_eestats for the unchanged fatal message */
+  vsearch::QualityScoreTable const score_table(parameters);
+
   int64_t len_max = 0;
 
   {
@@ -158,7 +162,11 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
             /* quality score */
 
-            auto const qual = std::max(fastq_get_qual_eestats(q[i], parameters), 0);
+            if (not score_table.accepts(q[i]))
+              {
+                static_cast<void>(fastq_get_qual_eestats(q[i], parameters));  // fatal
+              }
+            auto const qual = score_table.score(q[i]);
             ++qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + qual)];
 
 

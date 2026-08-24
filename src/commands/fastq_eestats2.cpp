@@ -107,6 +107,10 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
   vsearch::QualityTable const quality_table(static_cast<int>(parameters.opt_fastq_ascii),
                                             vsearch::ProbabilityCap::certain_error);
 
+  /* per-symbol range verdicts; a rejected symbol goes back through
+     fastq_get_qual_eestats for the unchanged fatal message */
+  vsearch::QualityScoreTable const score_table(parameters);
+
 
   {
     Progress progress("Reading FASTQ file", filesize, parameters);
@@ -145,10 +149,13 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
             /* quality score */
 
             /* range-check only: this command never uses the decoded value,
-               it indexes the table by the symbol. The call still has to run
+               it indexes the table by the symbol. The check still has to run
                per base, so that an out-of-range quality is reported at the
                same position and with the same message as before. */
-            static_cast<void>(fastq_get_qual_eestats(q[i], parameters));
+            if (not score_table.accepts(q[i]))
+              {
+                static_cast<void>(fastq_get_qual_eestats(q[i], parameters));  // fatal
+              }
 
             auto const pe = quality_table[q[i]];
 

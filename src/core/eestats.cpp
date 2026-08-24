@@ -61,7 +61,9 @@
 #include "core/eestats.hpp"
 #include "vsearch.hpp"
 #include "utils/fatal.hpp"  // fatal
+#include <algorithm>  // std::max
 #include <cmath>  // std::pow
+#include <cstddef>  // std::size_t
 #include <string>  // std::string, std::to_string
 
 
@@ -93,4 +95,18 @@ auto q2p(int const quality_value) -> double
 {
   static constexpr auto base = 10.0;
   return std::pow(base, -quality_value / base);
+}
+
+
+/* noexcept: only arithmetic on the two member arrays. */
+vsearch::QualityScoreTable::QualityScoreTable(struct Parameters const & parameters) noexcept
+{
+  for (auto ordinal = std::size_t{0}; ordinal < n_symbols; ++ordinal)
+    {
+      auto const quality_value =
+        static_cast<int>(static_cast<int64_t>(ordinal) - parameters.opt_fastq_ascii);
+      accepted_[ordinal] = (quality_value >= parameters.opt_fastq_qmin)
+                       and (quality_value <= parameters.opt_fastq_qmax);
+      scores_[ordinal] = std::max(quality_value, 0);
+    }
 }
