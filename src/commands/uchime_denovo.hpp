@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto uchime_denovo(struct Parameters const & parameters) -> void;

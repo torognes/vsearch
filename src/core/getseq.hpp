@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 /* Shared engine behind the fastx_getseq, fastx_getseqs and
    fastx_getsubseq commands. filename is the primary input file; the
    selection criteria (labels, subsequence range, ...) are read from

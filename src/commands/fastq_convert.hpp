@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastq_convert(struct Parameters const & parameters) -> void;

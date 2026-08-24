@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastx_getseqs(struct Parameters const & parameters) -> void;

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include <cstdint>  // int64_t

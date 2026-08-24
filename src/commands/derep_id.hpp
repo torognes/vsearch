@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto derep_id(struct Parameters const & parameters) -> void;

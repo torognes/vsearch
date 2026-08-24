@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto subsample(struct Parameters const & parameters) -> void;

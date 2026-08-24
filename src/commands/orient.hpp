@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto orient(struct Parameters const & parameters) -> void;

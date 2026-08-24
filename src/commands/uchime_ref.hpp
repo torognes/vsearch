@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto uchime_ref(struct Parameters const & parameters) -> void;

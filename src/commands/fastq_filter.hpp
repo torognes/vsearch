@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastq_filter(struct Parameters const & parameters) -> void;

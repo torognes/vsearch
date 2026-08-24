@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> bool;

@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto rereplicate(struct Parameters const & parameters) -> void;

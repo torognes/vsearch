@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto cluster_unoise(struct Parameters const & parameters) -> void;

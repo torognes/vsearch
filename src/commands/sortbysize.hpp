@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto sortbysize(struct Parameters const & parameters) -> void;

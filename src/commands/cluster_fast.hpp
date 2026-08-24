@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto cluster_fast(struct Parameters const & parameters) -> void;

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "view.hpp"
 #include <vector>
 

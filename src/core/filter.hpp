@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 /* Shared filtering engine behind the fastq_filter and fastx_filter
    commands. fastq_only rejects FASTA input (fastq_filter); filename is
    the primary input file. Validates the FASTQ filtering parameters

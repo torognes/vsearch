@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto search_exact(struct Parameters const & parameters) -> void;

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "open_file.hpp"  // OutputFileHandle
 #include <chrono>  // std::chrono::steady_clock
 #include <cstdio>  // std::FILE

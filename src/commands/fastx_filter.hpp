@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastx_filter(struct Parameters const & parameters) -> void;

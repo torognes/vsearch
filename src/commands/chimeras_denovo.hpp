@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto chimeras_denovo(struct Parameters const & parameters) -> void;

@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto sff_convert(struct Parameters const & parameters) -> void;

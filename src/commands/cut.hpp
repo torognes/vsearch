@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto cut(struct Parameters const & parameters) -> void;

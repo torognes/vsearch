@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto derep_fulllength(struct Parameters const & parameters) -> void;

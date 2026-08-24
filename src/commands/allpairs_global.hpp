@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 void allpairs_global(struct Parameters const & parameters);

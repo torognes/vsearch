@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastx_syncpairs(struct Parameters const & parameters) -> void;

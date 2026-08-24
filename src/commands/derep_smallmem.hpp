@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto derep_smallmem(struct Parameters const & parameters) -> void;

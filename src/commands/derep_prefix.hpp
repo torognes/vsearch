@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto derep_prefix(struct Parameters const & parameters) -> void;

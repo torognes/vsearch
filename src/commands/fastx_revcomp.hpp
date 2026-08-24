@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastx_revcomp(struct Parameters const & parameters) -> void;

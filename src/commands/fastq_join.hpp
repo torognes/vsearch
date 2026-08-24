@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastq_join(struct Parameters const & parameters) -> void;

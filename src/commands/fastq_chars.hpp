@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastq_chars(struct Parameters const & parameters) -> void;

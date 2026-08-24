@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "view.hpp"  // View<char>
 
 

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 /* Quality helpers shared by the fastq_eestats and fastq_eestats2
    commands. fastq_get_qual_eestats decodes and range-checks one FASTQ
    quality symbol (fatal on out-of-range); q2p converts a Phred quality

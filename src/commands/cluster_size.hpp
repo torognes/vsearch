@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto cluster_size(struct Parameters const & parameters) -> void;

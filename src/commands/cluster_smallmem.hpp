@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto cluster_smallmem(struct Parameters const & parameters) -> void;

@@ -58,6 +58,8 @@
 
 */
 
+#pragma once
+
 #include "cigar_operations.hpp"
 #include "view.hpp"  // View (read-only cigar)
 #include <vector>

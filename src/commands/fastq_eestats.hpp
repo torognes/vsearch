@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastq_eestats(struct Parameters const & parameters) -> void;

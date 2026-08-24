@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto sintax(struct Parameters const & parameters) -> void;

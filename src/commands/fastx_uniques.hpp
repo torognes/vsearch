@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto fastx_uniques(struct Parameters const & parameters) -> void;

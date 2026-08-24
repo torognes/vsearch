@@ -58,4 +58,6 @@
 
 */
 
+#pragma once
+
 auto shuffle(struct Parameters const & parameters) -> void;
