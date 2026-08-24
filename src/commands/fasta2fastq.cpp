@@ -58,6 +58,7 @@
 
 */
 
+#include "commands/fasta2fastq.hpp"
 #include "vsearch.hpp"
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fasta.hpp"
@@ -65,7 +66,9 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/progress.hpp"
+#include "utils/view.hpp"  // make_view
 #include <cassert>
+#include <cstddef>  // std::size_t
 #include <cstdint>
 #include <vector>
 
@@ -80,23 +83,23 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
   auto const output_handle = open_mandatory_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
   assert(parameters.opt_fastqout != nullptr);  // check performed above
 
-  static constexpr auto initial_length = 1024U;
+  static constexpr auto initial_length = std::size_t{1024};
   std::vector<char> quality(initial_length, max_ascii_value);
 
   Progress progress("Converting FASTA file to FASTQ",
                     fp_input->get_size(),
                     parameters);
 
-  auto counter = 0;
+  auto counter = int64_t{0};  // the ordinal is an int64_t (see OutputAnnotations)
   while (fp_input->next(false, chrmap_no_change()))
     {
       /* get sequence length and allocate more mem if necessary */
 
       auto const length = fp_input->get_sequence_length();
 
-      if (quality.size() < length + 1)
+      if (quality.size() < length)
         {
-          quality.resize(length + 1, max_ascii_value);
+          quality.resize(length, max_ascii_value);
         }
 
       // note: adding '\0' and the end of the quality string is not necessary,
