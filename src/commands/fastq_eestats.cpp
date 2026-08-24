@@ -73,6 +73,7 @@
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
+#include <initializer_list>
 #include <limits>
 #include <utility>  // std::pair, std::move
 #include <vector>
@@ -142,6 +143,54 @@ namespace {
     static constexpr auto min_buffer_length = std::size_t{1024};
     std::vector<std::pair<int64_t, uint64_t>> bins_;
     std::vector<int64_t> pending_;
+  };
+
+
+  /* Minimum, quartiles, maximum and weighted mean of a weighted sequence of
+     values visited in ascending value order, as the report computes them for
+     each of its three metrics (Q, Pe, EE): the first observed value is the
+     minimum, the last one the maximum, and a quartile is the first value
+     whose cumulative weight reaches that fraction of the reads. All five
+     order statistics report -1 when nothing was observed. */
+  class QuantileSummary {
+  public:
+    explicit QuantileSummary(int64_t const n_reads)
+      : n_reads_(static_cast<double>(n_reads)) {}
+
+    auto observe(double const value, double const count) -> void {
+      cumulative_count_ += count;
+      weighted_sum_ += value * count;
+      if (minimum_ < 0) {
+        minimum_ = value;
+      }
+      if ((lower_quartile_ < 0) and (cumulative_count_ >= 0.25 * n_reads_)) {
+        lower_quartile_ = value;
+      }
+      if ((median_ < 0) and (cumulative_count_ >= 0.50 * n_reads_)) {
+        median_ = value;
+      }
+      if ((upper_quartile_ < 0) and (cumulative_count_ >= 0.75 * n_reads_)) {
+        upper_quartile_ = value;
+      }
+      maximum_ = value;
+    }
+
+    auto minimum() const -> double { return minimum_; }
+    auto lower_quartile() const -> double { return lower_quartile_; }
+    auto median() const -> double { return median_; }
+    auto upper_quartile() const -> double { return upper_quartile_; }
+    auto maximum() const -> double { return maximum_; }
+    auto mean() const -> double { return weighted_sum_ / n_reads_; }
+
+  private:
+    double n_reads_;
+    double cumulative_count_ = 0.0;
+    double weighted_sum_ = 0.0;
+    double minimum_ = -1.0;
+    double lower_quartile_ = -1.0;
+    double median_ = -1.0;
+    double upper_quartile_ = -1.0;
+    double maximum_ = -1.0;
   };
 
 }  // end of anonymous namespace
@@ -271,188 +320,80 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       double const pctrecs = 100.0 * static_cast<double>(reads) / static_cast<double>(seq_count);
 
 
-      /* q */
+      /* q: walk the quality scores in ascending order */
 
-      double min_q = -1.0;
-      double low_q = -1.0;
-      double med_q = -1.0;
-      double hi_q  = -1.0;
-      double max_q = -1.0;
-
-      double qsum = 0;
-      double n = 0;
+      QuantileSummary quality_summary(reads);
       for (int q = 0; q <= max_quality; q++)
         {
           auto const x = static_cast<double>(qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + q)]);
 
           if (x > 0)
             {
-              qsum += q * x;
-              n += x;
-
-              if (min_q < 0)
-                {
-                  min_q = q;
-                }
-
-              if ((low_q < 0) && (n >= 0.25 * static_cast<double>(reads)))
-                {
-                  low_q = q;
-                }
-
-              if ((med_q < 0) && (n >= 0.50 * static_cast<double>(reads)))
-                {
-                  med_q = q;
-                }
-
-              if ((hi_q < 0)  && (n >= 0.75 * static_cast<double>(reads)))
-                {
-                  hi_q = q;
-                }
-
-              max_q = q;
+              quality_summary.observe(q, x);
             }
         }
 
-      double const mean_q = 1.0 * qsum / static_cast<double>(reads);
 
+      /* pe: walk the quality scores in DESCENDING order, i.e. the error
+         probabilities in ascending order */
 
-      /* pe */
-
-      double min_pe = -1.0;
-      double low_pe = -1.0;
-      double med_pe = -1.0;
-      double hi_pe  = -1.0;
-      double max_pe = -1.0;
-
-      double pesum = 0;
-      n = 0;
+      QuantileSummary probability_summary(reads);
       for (int q = max_quality; q >= 0; q--)
         {
           auto const x = static_cast<double>(qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + q)]);
 
           if (x > 0)
             {
-              double const pe = q2p(q);
-              pesum += pe * x;
-              n += x;
-
-              if (min_pe < 0)
-                {
-                  min_pe = pe;
-                }
-
-              if ((low_pe < 0) && (n >= 0.25 * static_cast<double>(reads)))
-                {
-                  low_pe = pe;
-                }
-
-              if ((med_pe < 0) && (n >= 0.50 * static_cast<double>(reads)))
-                {
-                  med_pe = pe;
-                }
-
-              if ((hi_pe < 0) && (n >= 0.75 * static_cast<double>(reads)))
-                {
-                  hi_pe = pe;
-                }
-
-              max_pe = pe;
+              probability_summary.observe(q2p(q), x);
             }
         }
 
-      double const mean_pe = 1.0 * pesum / static_cast<double>(reads);
+      /* expected errors: walk the observed e_int bins for this position in
+         ascending order (bins() returns them sorted); every stored bin has a
+         non-zero count, so this is exactly the non-zero subset the former
+         dense loop acted on. */
 
-
-      /* expected errors */
-
-      double min_ee = -1.0;
-      double low_ee = -1.0;
-      double med_ee = -1.0;
-      double hi_ee  = -1.0;
-      double max_ee = -1.0;
-
-      /* Walk the observed e_int bins for this position in ascending order
-         (bins() returns them sorted); every stored bin has a non-zero count,
-         so this is exactly the non-zero subset the former dense loop acted on. */
-      n = 0;
+      QuantileSummary ee_summary(reads);
       for (auto const & bin : ee_length_table[static_cast<size_t>(i)].bins())
         {
-          int64_t const e = bin.first;
-          n += static_cast<double>(bin.second);
-
-          if (min_ee < 0)
-            {
-              min_ee = static_cast<double>(e);
-            }
-
-          if ((low_ee < 0) && (n >= 0.25 * static_cast<double>(reads)))
-            {
-              low_ee = static_cast<double>(e);
-            }
-
-          if ((med_ee < 0) && (n >= 0.50 * static_cast<double>(reads)))
-            {
-              med_ee = static_cast<double>(e);
-            }
-
-          if ((hi_ee < 0)  && (n >= 0.75 * static_cast<double>(reads)))
-            {
-              hi_ee = static_cast<double>(e);
-            }
-
-          max_ee = static_cast<double>(e);
+          ee_summary.observe(static_cast<double>(bin.first),
+                             static_cast<double>(bin.second));
         }
 
+      /* the mean EE comes from the running per-position sums, not from the
+         binned values, and is the only EE column not mapped back from a bin
+         index to an expected-error value */
       double const mean_ee = sum_ee_length_table[static_cast<size_t>(i)] / static_cast<double>(reads);
-
-      min_ee  = (min_ee  + 0.5) / resolution;
-      low_ee  = (low_ee  + 0.5) / resolution;
-      med_ee  = (med_ee  + 0.5) / resolution;
-      hi_ee   = (hi_ee   + 0.5) / resolution;
-      max_ee  = (max_ee  + 0.5) / resolution;
+      auto const bin_midpoint = [](double const bin_index) -> double {
+        return (bin_index + 0.5) / resolution;
+      };
 
       fprint_integer(fp_output, i + 1);
       fprint(fp_output, '\t');
       fprint_integer(fp_output, reads);
       fprint(fp_output, '\t');
       std::fprintf(fp_output, "%.1lf", pctrecs);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.1lf", min_q);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.1lf", low_q);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.1lf", med_q);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.1lf", mean_q);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.1lf", hi_q);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.1lf", max_q);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lg", min_pe);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lg", low_pe);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lg", med_pe);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lg", mean_pe);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lg", hi_pe);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lg", max_pe);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lf", min_ee);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lf", low_ee);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lf", med_ee);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lf", mean_ee);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lf", hi_ee);
-      fprint(fp_output, '\t');
-      std::fprintf(fp_output, "%.2lf", max_ee);
+      for (auto const value : {quality_summary.minimum(), quality_summary.lower_quartile(),
+                               quality_summary.median(), quality_summary.mean(),
+                               quality_summary.upper_quartile(), quality_summary.maximum()})
+        {
+          fprint(fp_output, '\t');
+          std::fprintf(fp_output, "%.1lf", value);
+        }
+      for (auto const value : {probability_summary.minimum(), probability_summary.lower_quartile(),
+                               probability_summary.median(), probability_summary.mean(),
+                               probability_summary.upper_quartile(), probability_summary.maximum()})
+        {
+          fprint(fp_output, '\t');
+          std::fprintf(fp_output, "%.2lg", value);
+        }
+      for (auto const value : {bin_midpoint(ee_summary.minimum()), bin_midpoint(ee_summary.lower_quartile()),
+                               bin_midpoint(ee_summary.median()), mean_ee,
+                               bin_midpoint(ee_summary.upper_quartile()), bin_midpoint(ee_summary.maximum())})
+        {
+          fprint(fp_output, '\t');
+          std::fprintf(fp_output, "%.2lf", value);
+        }
       fprint(fp_output, '\n');
     }
 
