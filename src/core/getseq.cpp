@@ -229,104 +229,133 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
 }
 
 
-auto test_label_match(fastx_handle input_handle, struct Parameters const & parameters,
-                      std::vector<std::vector<char>> const & labels_data) -> bool
-{
-  char const * header = input_handle->get_header();
-  auto const header_length = input_handle->get_header_length();
-  auto const header_view = View<char>{header, header_length};
-  auto const longest_label = find_length_longest_label(labels_data);
-  std::vector<char> field_buffer;
-  std::size_t field_len = 0;
-  auto const boundary = (parameters.opt_label_field != nullptr)
-    ? Delimiter::semicolon
-    : Delimiter::non_alphanumeric;
-  if (parameters.opt_label_field != nullptr)
-    {
-      field_len = std::strlen(parameters.opt_label_field);
-      std::size_t field_buffer_size = field_len + 2;
-      if (parameters.opt_label_word != nullptr)
-        {
-          field_buffer_size += std::strlen(parameters.opt_label_word);
-        }
-      else
-        {
-          field_buffer_size += longest_label;
-        }
-      field_buffer.resize(field_buffer_size);
-      /* "%s=": the field name followed by the separator the search looks for */
-      auto const field_length = std::strlen(parameters.opt_label_field);
-      auto cursor = std::copy(parameters.opt_label_field,
-                              std::next(parameters.opt_label_field,
-                                        static_cast<std::ptrdiff_t>(field_length)),
-                              field_buffer.begin());
-      *cursor = '=';
-      ++cursor;
-      *cursor = '\0';
-    }
+/* Everything the per-record header matching needs, prepared once per run.
+   Its predecessor, a per-record function, rebuilt the loop-invariant parts
+   for every sequence: the length of the longest label, the "name=" field
+   prefix buffer, and the strlen of the fixed needles. Exactly one selection
+   mode is active per run (enforced in getseq() below), so the constructor
+   can prepare for all of them without ambiguity. */
+class LabelMatcher {
+public:
+  LabelMatcher(struct Parameters const & parameters,
+               std::vector<std::vector<char>> const & labels_data)
+    : parameters_(parameters),
+      labels_data_(labels_data),
+      boundary_((parameters.opt_label_field != nullptr)
+                ? Delimiter::semicolon
+                : Delimiter::non_alphanumeric)
+  {
+    if (parameters.opt_label_field != nullptr)
+      {
+        field_length_ = std::strlen(parameters.opt_label_field);
+        auto field_buffer_size = field_length_ + 2;
+        if (parameters.opt_label_word != nullptr)
+          {
+            field_buffer_size += std::strlen(parameters.opt_label_word);
+          }
+        else
+          {
+            field_buffer_size += find_length_longest_label(labels_data);
+          }
+        field_buffer_.resize(field_buffer_size);
+        /* "%s=": the field name followed by the separator the search looks for */
+        auto cursor = std::copy(parameters.opt_label_field,
+                                std::next(parameters.opt_label_field,
+                                          static_cast<std::ptrdiff_t>(field_length_)),
+                                field_buffer_.begin());
+        *cursor = '=';
+        ++cursor;
+        *cursor = '\0';
+      }
 
-  if (parameters.opt_label != nullptr)
-    {
-      auto const needle_view = View<char>{parameters.opt_label, std::strlen(parameters.opt_label)};
-      if (parameters.opt_label_substr_match)
-        {
-          return contains_substring(header_view, needle_view);
-        }
-      return are_same_string(header_view, needle_view);
-    }
-  if (parameters.opt_labels != nullptr)
-    {
-      if (parameters.opt_label_substr_match)
-        {
-          for (auto const & label: labels_data) {
-            auto const label_view = make_view(label);
-            if (contains_substring(header_view, label_view)) {
-              return true;
-            }
-          }
-        }
-      else
-        {
-          for (auto const & label: labels_data) {
-            if (are_same_string(header_view, label)) {
-              return true;
-            }
-          }
-        }
-    }
-  else if (parameters.opt_label_word != nullptr)
-    {
-      auto needle = View<char>{parameters.opt_label_word,
-                               std::strlen(parameters.opt_label_word)};
-      if (parameters.opt_label_field != nullptr)
-        {
-          std::copy(needle.begin(), needle.end(),
-                    std::next(field_buffer.begin(), static_cast<std::ptrdiff_t>(field_len) + 1));
-          needle = make_view(field_buffer).first(field_len + 1 + needle.size());
-        }
-      return matches_delimited(header_view, needle, boundary);
-    }
-  else if (parameters.opt_label_words != nullptr)
-    {
-      for (auto const & label: labels_data) {
-        // labels read from a file are stored as std::vector<char>
-        // without a trailing '\0', so the needle length must come from
-        // label.size() and the search must be range-based; strlen and
-        // strstr would read past the vector's storage
-        auto needle = make_view(label);
+    if (parameters.opt_label != nullptr)
+      {
+        single_needle_ = View<char>{parameters.opt_label,
+                                    std::strlen(parameters.opt_label)};
+      }
+
+    if (parameters.opt_label_word != nullptr)
+      {
+        word_needle_ = View<char>{parameters.opt_label_word,
+                                  std::strlen(parameters.opt_label_word)};
         if (parameters.opt_label_field != nullptr)
           {
-            std::copy(label.begin(), label.end(),
-                      std::next(field_buffer.begin(), static_cast<std::ptrdiff_t>(field_len) + 1));
-            needle = make_view(field_buffer).first(field_len + 1 + label.size());
+            /* a single word is a fixed needle: build "field=word" once */
+            std::copy(word_needle_.begin(), word_needle_.end(),
+                      std::next(field_buffer_.begin(),
+                                static_cast<std::ptrdiff_t>(field_length_) + 1));
+            word_needle_ = make_view(field_buffer_).first(field_length_ + 1 + word_needle_.size());
           }
-        if (matches_delimited(header_view, needle, boundary)) {
-          return true;
+      }
+  }
+
+  /* not const: the label_words mode reuses field_buffer_ per label */
+  auto matches(View<char> const header_view) -> bool
+  {
+    if (parameters_.opt_label != nullptr)
+      {
+        if (parameters_.opt_label_substr_match)
+          {
+            return contains_substring(header_view, single_needle_);
+          }
+        return are_same_string(header_view, single_needle_);
+      }
+    if (parameters_.opt_labels != nullptr)
+      {
+        if (parameters_.opt_label_substr_match)
+          {
+            for (auto const & label: labels_data_) {
+              auto const label_view = make_view(label);
+              if (contains_substring(header_view, label_view)) {
+                return true;
+              }
+            }
+            return false;
+          }
+        for (auto const & label: labels_data_) {
+          if (are_same_string(header_view, label)) {
+            return true;
+          }
         }
-      }  // end of range-for loop
-    }
-  return false;
-}
+        return false;
+      }
+    if (parameters_.opt_label_word != nullptr)
+      {
+        return matches_delimited(header_view, word_needle_, boundary_);
+      }
+    if (parameters_.opt_label_words != nullptr)
+      {
+        for (auto const & label: labels_data_) {
+          // labels read from a file are stored as std::vector<char>
+          // without a trailing '\0', so the needle length must come from
+          // label.size() and the search must be range-based; strlen and
+          // strstr would read past the vector's storage
+          auto needle = make_view(label);
+          if (parameters_.opt_label_field != nullptr)
+            {
+              std::copy(label.begin(), label.end(),
+                        std::next(field_buffer_.begin(),
+                                  static_cast<std::ptrdiff_t>(field_length_) + 1));
+              needle = make_view(field_buffer_).first(field_length_ + 1 + label.size());
+            }
+          if (matches_delimited(header_view, needle, boundary_)) {
+            return true;
+          }
+        }  // end of range-for loop
+        return false;
+      }
+    return false;
+  }
+
+private:
+  struct Parameters const & parameters_;
+  std::vector<std::vector<char>> const & labels_data_;
+  Delimiter boundary_;
+  std::size_t field_length_ = 0;
+  std::vector<char> field_buffer_;
+  View<char> single_needle_;
+  View<char> word_needle_;
+};
 }  // anonymous namespace
 
 
@@ -426,11 +455,13 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   int64_t kept = 0;
   int64_t discarded = 0;
 
+  LabelMatcher matcher(parameters, labels_data);
+
   {
     Progress progress("Extracting sequences", filesize, parameters);
     while (h1->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        bool const match = test_label_match(h1.get(), parameters, labels_data);
+        bool const match = matcher.matches(h1->header_view());
 
         if (match)
           {
