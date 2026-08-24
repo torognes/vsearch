@@ -126,12 +126,19 @@ namespace {
       }
       // ...then ties are sorted by sequence labels (alpha-numerical ordering),
       // preserve input order
-      return db.header_view(lhs.seqno) < db.header_view(rhs.seqno);
+      auto const order = db.header_view(lhs.seqno).compare(db.header_view(rhs.seqno));
+      if (order != 0) {
+        return order < 0;
+      }
+      // seqno is the input order, and makes the ordering total, so std::sort
+      // returns exactly what std::stable_sort returned without the label
+      // tie-break: no merge buffer, and fewer comparison passes
+      return lhs.seqno < rhs.seqno;
     };
 
     static constexpr auto one_hundred_percent = 100ULL;
     Progress const progress("Sorting", one_hundred_percent, parameters);
-    std::stable_sort(deck.begin(), deck.end(), compare_sequences);
+    std::sort(deck.begin(), deck.end(), compare_sequences);
   }
 
 
