@@ -86,8 +86,32 @@ namespace {
        any annotation above 4294967295 silently, which sorted the most
        abundant sequences to the bottom and skewed the reported median. */
     uint64_t size = 0;
+    uint64_t label_prefix = 0;
     unsigned int seqno = 0;
   };
+
+
+  /* The first eight header bytes packed big-endian into a uint64_t, a shorter
+     header zero-padded. Comparing two prefixes as integers matches comparing
+     the same bytes lexicographically (as unsigned char, like View's ordering):
+     the padding can tie with a further-differing or equally short header, but
+     never inverts, so a prefix tie falls back to the full header comparison.
+     Cached in the deck because the sort's label tie-break is hot: sizes are
+     heavily tied (size=1 dominates a typical amplicon set), and without the
+     cache each of the O(n log n) comparisons chases two random header
+     pointers into the database. */
+  auto label_prefix_of(View<char> const header) -> uint64_t {
+    static constexpr auto prefix_bytes = std::size_t{8};
+    static constexpr auto bits_per_byte = 8U;
+    auto const length = std::min(header.size(), prefix_bytes);
+    auto prefix = uint64_t{0};
+    for (auto position = std::size_t{0}; position < length; ++position) {
+      prefix = (prefix << bits_per_byte)
+        | static_cast<unsigned char>(header[position]);
+    }
+    prefix <<= bits_per_byte * (prefix_bytes - length);
+    return prefix;
+  }
 
 
   auto create_deck(Database const & db, struct Parameters const & parameters) -> std::vector<struct sortinfo_size_s> {
@@ -105,6 +129,7 @@ namespace {
       }
       deck[counter].seqno = seqno;
       deck[counter].size = abundance;
+      deck[counter].label_prefix = label_prefix_of(db.header_view(seqno));
       progress.update(seqno);
       ++counter;
     }
@@ -125,6 +150,9 @@ namespace {
       }
       // ...then ties are sorted by sequence labels (alpha-numerical ordering),
       // preserve input order
+      if (lhs.label_prefix != rhs.label_prefix) {
+        return lhs.label_prefix < rhs.label_prefix;
+      }
       auto const order = db.header_view(lhs.seqno).compare(db.header_view(rhs.seqno));
       if (order != 0) {
         return order < 0;
