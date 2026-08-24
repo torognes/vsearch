@@ -144,6 +144,12 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
         auto ee = 0.0;
 
+        /* the length cutoffs (shortest + x * increment, with increment >= 1,
+           enforced at option parsing) strictly increase with x, and so do the
+           positions, so one pass through the cutoffs is enough per read: x
+           always points at the next cutoff this read can still reach */
+        int x = 0;
+
         for (uint64_t i = 0; i < len; i++)
           {
             /* quality score */
@@ -161,7 +167,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
             ee += pe;
 
-            for (int x = 0; x < len_steps; x++)
+            if (x < len_steps)
               {
                 auto const len_cutoff = static_cast<uint64_t>(parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment));
                 if (i + 1 == len_cutoff)
@@ -173,6 +179,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
                             ++count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))];
                           }
                       }
+                    ++x;
                   }
               }
           }
