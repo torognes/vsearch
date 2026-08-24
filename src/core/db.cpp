@@ -86,17 +86,27 @@ constexpr uint64_t memchunk = 16777216;  // 2^24
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  /* Grow a vector's capacity in fixed memchunk-byte steps, reproducing the raw
-     buffers' former xrealloc growth policy so that a large database's peak
-     memory does not balloon under std::vector's geometric growth. */
+  /* Grow a vector's capacity in memchunk-aligned steps of at least a quarter
+     of the current capacity. The former fixed memchunk steps reproduced the
+     raw buffers' xrealloc growth policy, but that policy was only cheap
+     because glibc's realloc extends a large block in place (mremap);
+     std::vector::reserve must instead allocate-copy-free on every step, so
+     fixed steps made loading a database quadratic in its size (a 1.5 GB
+     database crossed ~90 chunk boundaries and copied ~70 GB, 9x slower than
+     v2.31.0). A minimum growth of capacity / 4 bounds the total copying to
+     five times the final size, and caps the capacity overshoot at 25%. */
   template <class Vector>
   auto reserve_in_chunks(Vector & vec, std::size_t const needed_items) -> void
   {
     if (vec.capacity() >= needed_items) { return; }
     auto const item_size = sizeof(typename Vector::value_type);
-    std::size_t chunked_bytes = vec.capacity() * item_size;
+    std::size_t const current_bytes = vec.capacity() * item_size;
     std::size_t const needed_bytes = needed_items * item_size;
-    while (chunked_bytes < needed_bytes) { chunked_bytes += memchunk; }
+    auto const target_bytes = std::max(needed_bytes,
+                                       current_bytes + (current_bytes / 4));
+    // round up to the next memchunk multiple
+    auto const chunk = static_cast<std::size_t>(memchunk);
+    auto const chunked_bytes = ((target_bytes + chunk - 1) / chunk) * chunk;
     vec.reserve(chunked_bytes / item_size);
   }
 
