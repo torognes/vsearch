@@ -62,6 +62,7 @@
 #include "vsearch.hpp"
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fastq.hpp"
+#include "core/fastx.hpp"  // fastx_s, byte_range
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
@@ -69,6 +70,7 @@
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min, std::transform
+#include <array>
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <vector>
@@ -78,6 +80,63 @@
    --fastq_asciiout and the clamps above it asked for */
 constexpr auto printable_low = 33;
 constexpr auto printable_high = 126;
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  constexpr auto n_symbols = std::size_t{byte_range};  // byte_range: core/fastx.hpp
+
+  /* Precompute the whole per-character conversion once: input quality symbol
+     -> output quality symbol. A '\0' marks a symbol whose score falls outside
+     --fastq_qmin/--fastq_qmax (it cannot collide with a converted symbol,
+     which is confined to the printable range above). */
+  auto make_quality_mapping(struct Parameters const & parameters)
+    -> std::array<char, n_symbols>
+  {
+    std::array<char, n_symbols> mapping {{}};
+    for (auto symbol = std::size_t{0}; symbol < n_symbols; ++symbol)
+      {
+        /* the same arithmetic as the former per-character conversion: the
+           symbol is a char (signed on x86-64 and Windows), so a byte beyond
+           127 yields a negative score and is rejected, exactly as before */
+        auto const as_char = static_cast<char>(static_cast<unsigned char>(symbol));
+        auto const score = static_cast<int64_t>(as_char) - parameters.opt_fastq_ascii;
+        if ((score < parameters.opt_fastq_qmin) or (score > parameters.opt_fastq_qmax))
+          {
+            continue;  // stays '\0': rejected below, with the score recomputed
+          }
+        auto rebased = std::max(score, parameters.opt_fastq_qminout);
+        rebased = std::min(rebased, parameters.opt_fastq_qmaxout);
+        rebased += parameters.opt_fastq_asciiout;
+        rebased = std::max<int64_t>(rebased, printable_low);
+        rebased = std::min<int64_t>(rebased, printable_high);
+        mapping[symbol] = static_cast<char>(rebased);
+      }
+    return mapping;
+  }
+
+
+  /* The former in-loop rejection of a score outside --fastq_qmin/--fastq_qmax,
+     verbatim; always exits through fatal(). */
+  auto report_quality_out_of_range(fastx_s const & input_handle,
+                                   int const quality_score,
+                                   struct Parameters const & parameters) -> void
+  {
+    auto const too_low = quality_score < parameters.opt_fastq_qmin;
+    fprint(stderr, "\nFASTQ quality score (");
+    fprint_integer(stderr, quality_score);
+    fprint(stderr, too_low ? ") below minimum (" : ") above maximum (");
+    fprint_integer(stderr, too_low ? parameters.opt_fastq_qmin : parameters.opt_fastq_qmax);
+    fprint(stderr, ") in entry no ");
+    fprint_integer(stderr, input_handle.get_seqno() + 1);
+    fprint(stderr, " starting on line ");
+    fprint_integer(stderr, input_handle.get_lineno());
+    fprint(stderr, '\n');
+    fatal(too_low ? "FASTQ quality score too low" : "FASTQ quality score too high");
+  }
+
+}  // end of anonymous namespace
 
 
 auto fastq_convert(struct Parameters const & parameters) -> void
@@ -94,10 +153,11 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   std::FILE * const fp_fastqout = fastqout_handle.get();
 
 
-  std::vector<char> normalized_quality;
-  auto n_entries = 1;
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
+  auto const quality_mapping = make_quality_mapping(parameters);
   {
+    std::vector<char> normalized_quality;
+    auto n_entries = 1;
     Progress progress("Reading FASTQ file", filesize, parameters);
     while (input_handle->next(false, chrmap_no_change()))
       {
@@ -116,45 +176,21 @@ auto fastq_convert(struct Parameters const & parameters) -> void
         /* Rebase each score onto the requested output offset: subtract the
            input offset, refuse anything outside --fastq_qmin/--fastq_qmax,
            clamp to --fastq_qminout/--fastq_qmaxout, add the output offset, and
-           clamp to the printable range. */
+           clamp to the printable range. All of it is precomputed per symbol in
+           quality_mapping (see make_quality_mapping above), so the per-character
+           work is a single table load. */
         normalized_quality.resize(length + 1);
         auto const quality = input_handle->quality_view();
         std::transform(quality.begin(), quality.end(), normalized_quality.begin(),
                        [&](char const quality_char) -> char
           {
-            int q = static_cast<int>(quality_char - parameters.opt_fastq_ascii);
-            if (q < parameters.opt_fastq_qmin)
+            auto const mapped = quality_mapping[static_cast<unsigned char>(quality_char)];
+            if (mapped == '\0')
               {
-                fprint(stderr, "\nFASTQ quality score (");
-                fprint_integer(stderr, q);
-                fprint(stderr, ") below minimum (");
-                fprint_integer(stderr, parameters.opt_fastq_qmin);
-                fprint(stderr, ") in entry no ");
-                fprint_integer(stderr, input_handle->get_seqno() + 1);
-                fprint(stderr, " starting on line ");
-                fprint_integer(stderr, input_handle->get_lineno());
-                fprint(stderr, '\n');
-                fatal("FASTQ quality score too low");
+                auto const score = static_cast<int>(quality_char - parameters.opt_fastq_ascii);
+                report_quality_out_of_range(*input_handle, score, parameters);
               }
-            if (q > parameters.opt_fastq_qmax)
-              {
-                fprint(stderr, "\nFASTQ quality score (");
-                fprint_integer(stderr, q);
-                fprint(stderr, ") above maximum (");
-                fprint_integer(stderr, parameters.opt_fastq_qmax);
-                fprint(stderr, ") in entry no ");
-                fprint_integer(stderr, input_handle->get_seqno() + 1);
-                fprint(stderr, " starting on line ");
-                fprint_integer(stderr, input_handle->get_lineno());
-                fprint(stderr, '\n');
-                fatal("FASTQ quality score too high");
-              }
-            q = static_cast<int>(std::max<int64_t>(q, parameters.opt_fastq_qminout));
-            q = static_cast<int>(std::min<int64_t>(q, parameters.opt_fastq_qmaxout));
-            q += static_cast<int>(parameters.opt_fastq_asciiout);
-            q = std::max(q, printable_low);
-            q = std::min(q, printable_high);
-            return static_cast<char>(q);
+            return mapped;
           });
 
         int const hlen = static_cast<int>(input_handle->get_header_length());
