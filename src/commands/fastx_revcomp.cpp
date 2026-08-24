@@ -71,8 +71,10 @@
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
+#include <algorithm>  // std::reverse_copy
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fclose, std::size_t
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -108,7 +110,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
   std::FILE * const fp_fastaout = fastaout_handle.get();
   std::FILE * const fp_fastqout = fastqout_handle.get();
 
-  auto count = 0;
+  int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
 
   {
     Progress progress(input_handle->is_fastq_format() ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
@@ -145,11 +147,9 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         if (input_handle->is_fastq_input())
           {
             /* reverse quality values */
-            for (uint64_t i = 0; i < length; i++)
-              {
-                qual_buffer[i] = q[length - 1 - i];
-              }
-            qual_buffer[length] = 0;
+            std::reverse_copy(q, std::next(q, static_cast<std::ptrdiff_t>(length)),
+                              qual_buffer.begin());
+            qual_buffer[length] = '\0';
           }
 
         if (parameters.opt_fastaout != nullptr)
