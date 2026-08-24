@@ -69,12 +69,82 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
-#include <algorithm>  // std::max, std::min
+#include <algorithm>  // std::max, std::min, std::sort
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
 #include <limits>
-#include <map>  // std::map
+#include <utility>  // std::pair, std::move
 #include <vector>
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* Sparse histogram of expected-error bins for one read position.
+
+     Its predecessor, one std::map<int64_t, uint64_t> per position, already
+     kept memory proportional to the bins actually observed (E12), but paid a
+     tree walk through pointer-chased nodes plus a node allocation per base:
+     gprof attributes 96% of the command's runtime to that loop on a real
+     MiSeq file. Same sparse behaviour, contiguous storage: add() appends to
+     a small buffer, and once the buffer has grown as large as the merged
+     histogram it is sorted and folded in with one linear pass, so a base
+     costs an append plus O(log buffer) comparisons in cache-resident
+     memory, and a bin costs 16 bytes instead of a tree node. */
+  class BinHistogram {
+  public:
+    auto add(int64_t const bin) -> void {
+      pending_.push_back(bin);
+      if (pending_.size() >= std::max(min_buffer_length, bins_.size())) {
+        merge_pending();
+      }
+    }
+
+    /* (bin, count) pairs, sorted by bin, each count non-zero; the reader's
+       ascending walk over e_int is thus the same as with the former
+       std::map. Not const: remaining pending values are folded in first. */
+    auto bins() -> std::vector<std::pair<int64_t, uint64_t>> const & {
+      merge_pending();
+      return bins_;
+    }
+
+  private:
+    auto merge_pending() -> void {
+      if (pending_.empty()) {
+        return;
+      }
+      std::sort(pending_.begin(), pending_.end());
+      std::vector<std::pair<int64_t, uint64_t>> merged;
+      merged.reserve(bins_.size() + pending_.size());
+      auto old_bin = bins_.cbegin();
+      auto new_value = pending_.cbegin();
+      while (new_value != pending_.cend()) {
+        for (; (old_bin != bins_.cend()) and (old_bin->first < *new_value); ++old_bin) {
+          merged.push_back(*old_bin);
+        }
+        auto const value = *new_value;
+        auto count = uint64_t{0};
+        for (; (new_value != pending_.cend()) and (*new_value == value); ++new_value) {
+          ++count;
+        }
+        if ((old_bin != bins_.cend()) and (old_bin->first == value)) {
+          count += old_bin->second;
+          ++old_bin;
+        }
+        merged.emplace_back(value, count);
+      }
+      merged.insert(merged.end(), old_bin, bins_.cend());
+      bins_ = std::move(merged);
+      pending_.clear();  // keeps its capacity, so no reallocation next round
+    }
+
+    static constexpr auto min_buffer_length = std::size_t{1024};
+    std::vector<std::pair<int64_t, uint64_t>> bins_;
+    std::vector<int64_t> pending_;
+  };
+
+}  // end of anonymous namespace
 
 
 auto fastq_eestats(struct Parameters const & parameters) -> void
@@ -103,12 +173,13 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   std::vector<uint64_t> read_length_table(static_cast<size_t>(len_alloc));
   std::vector<uint64_t> qual_length_table(static_cast<size_t>(len_alloc * (max_quality + 1)));
-  /* Sparse per-position expected-error histogram: ee_length_table[pos] maps each
-     observed e_int bin to its count. This replaces a dense triangular table of
-     size ~resolution*len^2/2 (almost entirely zeros) that OOM'd on long reads;
-     memory now scales with the cells actually observed. std::map keeps the keys
-     ordered so the reader's ascending walk over e_int is unchanged (E12). */
-  std::vector<std::map<int64_t, uint64_t>> ee_length_table(static_cast<size_t>(len_alloc));
+  /* Sparse per-position expected-error histogram: ee_length_table[pos] holds
+     one (e_int bin, count) pair per observed bin. This replaces a dense
+     triangular table of size ~resolution*len^2/2 (almost entirely zeros) that
+     OOM'd on long reads; memory scales with the cells actually observed, and
+     BinHistogram::bins() keeps the reader's ascending walk over e_int
+     unchanged (E12). */
+  std::vector<BinHistogram> ee_length_table(static_cast<size_t>(len_alloc));
   std::vector<double> sum_ee_length_table(static_cast<size_t>(len_alloc));
   std::vector<double> sum_pe_length_table(static_cast<size_t>(len_alloc));
 
@@ -181,7 +252,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
             ee += probability_of_error;
 
             auto const e_int = std::min<int64_t>(resolution * (i + 1), static_cast<int>(resolution * ee));
-            ++ee_length_table[static_cast<size_t>(i)][e_int];
+            ee_length_table[static_cast<size_t>(i)].add(e_int);
 
             sum_ee_length_table[static_cast<size_t>(i)] += ee;
           }
@@ -302,10 +373,10 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       double max_ee = -1.0;
 
       /* Walk the observed e_int bins for this position in ascending order
-         (std::map iterates sorted keys); every stored bin has a non-zero count,
+         (bins() returns them sorted); every stored bin has a non-zero count,
          so this is exactly the non-zero subset the former dense loop acted on. */
       n = 0;
-      for (auto const & bin : ee_length_table[static_cast<size_t>(i)])
+      for (auto const & bin : ee_length_table[static_cast<size_t>(i)].bins())
         {
           int64_t const e = bin.first;
           n += static_cast<double>(bin.second);
