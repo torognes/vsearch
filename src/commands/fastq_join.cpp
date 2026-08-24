@@ -58,6 +58,7 @@
 
 */
 
+#include "commands/fastq_join.hpp"
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "core/attributes.hpp"  // struct OutputAnnotations
@@ -69,11 +70,15 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/reverse_complement.hpp"
+#include "utils/span.hpp"  // make_span
 #include "utils/view.hpp"
-#include <algorithm>  // std::transform
-#include <cstdint> // uint64_t
+#include <cassert>
+#include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE
+#include <iterator>  // std::reverse_iterator
 #include <string>
+#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -216,10 +221,10 @@ auto fastq_join(struct Parameters const & parameters) -> void
   final_sequence.reserve(bufferlength + padlen + bufferlength);
   std::string final_quality;
   final_quality.reserve(final_sequence.capacity());
-  std::string reverse_sequence;
-  reverse_sequence.reserve(bufferlength);
-  std::string reverse_quality;
-  reverse_quality.reserve(bufferlength);
+  /* scratch for the reverse-complemented reverse read; the shared helper
+     terminates it with a '\0', hence the extra byte. Deliberately hoisted out
+     of the read loop so its allocation is reused across records. */
+  std::vector<char> rc_buffer(bufferlength + 1);
 
   {
     Progress progress("Joining reads", filesize, parameters);
@@ -230,46 +235,39 @@ auto fastq_join(struct Parameters const & parameters) -> void
             fatal("More forward reads than reverse reads");
           }
 
-        final_sequence.clear();
-        final_quality.clear();
-        reverse_sequence.clear();
-        reverse_quality.clear();
-
         auto const fwd_seq_length = infiles.forward.handle->get_sequence_length();
         auto const rev_seq_length = infiles.reverse.handle->get_sequence_length();
         auto const needed = fwd_seq_length + padlen + rev_seq_length;
+        /* parsed from the forward header once; both writers below reuse it */
+        auto const abundance = static_cast<uint64_t>(infiles.forward.handle->get_abundance());
 
-        /* allocate enough memory */
-        if (rev_seq_length > reverse_sequence.capacity()) {
-          reverse_sequence.reserve(rev_seq_length);
-        }
-        if (rev_seq_length > reverse_quality.capacity()) {
-          reverse_quality.reserve(rev_seq_length);
-        }
-        if (needed > final_sequence.capacity()) {
-          final_sequence.reserve(needed);
-        }
+        /* reverse read: reverse-complement sequence (the shared one-pass
+           helper; the former in-place std::reverse + std::transform called
+           the cross-TU map_complement() once per base) */
 
-        /* reverse read: reverse-complement sequence */
+        if (rc_buffer.size() < rev_seq_length + 1)
+          {
+            rc_buffer.resize(rev_seq_length + 1);
+          }
+        reverse_complement(make_span(rc_buffer), infiles.reverse.handle->sequence_view());
 
-        reverse_sequence.assign(infiles.reverse.handle->get_sequence(), rev_seq_length);
-        std::reverse(reverse_sequence.begin(), reverse_sequence.end());
-        std::transform(reverse_sequence.begin(),
-                       reverse_sequence.end(),
-                       reverse_sequence.begin(),
-                       [](char const nucleotide) -> char {
-                         return map_complement(nucleotide);
-                       });
+        /* join them: forward read, pad gap, reverse-complemented reverse
+           read -- appended in place, where building the concatenation from
+           std::string temporaries re-allocated on every record. The reverse
+           quality is appended back to front, which is all its reversal is. */
 
-        /* reverse read: reverse quality */
+        final_sequence.assign(infiles.forward.handle->get_sequence(), fwd_seq_length);
+        final_sequence.append(parameters.opt_join_padgap);
+        final_sequence.append(rc_buffer.data(), rev_seq_length);
 
-        reverse_quality.assign(infiles.reverse.handle->get_quality(), rev_seq_length);
-        std::reverse(reverse_quality.begin(), reverse_quality.end());
+        auto const rev_quality = infiles.reverse.handle->quality_view();
+        final_quality.assign(infiles.forward.handle->get_quality(), fwd_seq_length);
+        final_quality.append(parameters.opt_join_padgapq);
+        final_quality.append(std::reverse_iterator<char const *>{rev_quality.cend()},
+                             std::reverse_iterator<char const *>{rev_quality.cbegin()});
 
-        /* join them */
-
-        final_sequence = std::string{infiles.forward.handle->get_sequence(), fwd_seq_length} + parameters.opt_join_padgap + reverse_sequence;
-        final_quality = std::string{infiles.forward.handle->get_quality(), fwd_seq_length} + parameters.opt_join_padgapq + reverse_quality;
+        assert(final_sequence.size() == needed);
+        assert(final_quality.size() == needed);
 
         /* write output */
 
@@ -279,8 +277,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
                                 make_view(final_sequence).first(needed),
                                 infiles.forward.handle->header_view(),
                                 make_view(final_quality).first(needed),
-                                OutputAnnotations{static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
-                                                  static_cast<int>(total + 1)},
+                                OutputAnnotations{abundance,
+                                                  static_cast<int64_t>(total + 1)},
                                 parameters);
           }
 
@@ -290,8 +288,8 @@ auto fastq_join(struct Parameters const & parameters) -> void
                                 nullptr,
                                 make_view(final_sequence).first(needed),
                                 infiles.forward.handle->header_view(),
-                                OutputAnnotations{static_cast<uint64_t>(infiles.forward.handle->get_abundance()),
-                                                  static_cast<int>(total + 1)},
+                                OutputAnnotations{abundance,
+                                                  static_cast<int64_t>(total + 1)},
                                 parameters);
           }
 
