@@ -72,6 +72,7 @@
 #include <algorithm>  // std::max, std::min
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
+#include <initializer_list>
 #include <vector>
 
 
@@ -267,11 +268,13 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
 
   ReadTotals const totals = {seq_count, symbols, longest};
 
-  report_eestats2(fp_output, parameters, totals, count_table, len_steps);
-
-  if (parameters.fp_log != nullptr)
+  // same report to each requested destination (--log is optional)
+  for (auto * output_stream : {fp_output, parameters.fp_log})
     {
-      report_eestats2(parameters.fp_log, parameters, totals, count_table, len_steps);
+      if (output_stream != nullptr)
+        {
+          report_eestats2(output_stream, parameters, totals, count_table, len_steps);
+        }
     }
 
   h->report_stripped_warning(parameters);
