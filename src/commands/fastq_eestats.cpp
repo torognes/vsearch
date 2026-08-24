@@ -97,7 +97,11 @@ namespace {
   public:
     auto add(int64_t const bin) -> void {
       pending_.push_back(bin);
-      if (pending_.size() >= std::max(min_buffer_length, bins_.size())) {
+      /* two comparisons rather than std::max(min_buffer_length, ...): passing
+         the static constexpr member by reference would odr-use it, which
+         requires an out-of-class definition until C++17 */
+      if ((pending_.size() >= min_buffer_length)
+          and (pending_.size() >= bins_.size())) {
         merge_pending();
       }
     }
