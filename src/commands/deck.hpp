@@ -60,11 +60,13 @@
 
 #pragma once
 
-/* Helpers shared by the sortby* commands (sortbysize.cpp, sortbylength.cpp):
-   each builds a small per-record "deck", sorts it, and writes the database
-   records back out in deck order. The deck record types differ (one carries a
-   length, the other does not), so the helpers that walk a deck are templates
-   over the record type; each command keeps its own create_deck and sort_deck. */
+/* Helpers shared by the commands that reorder a database (sortbysize.cpp,
+   sortbylength.cpp, shuffle.cpp): each builds a small per-record "deck",
+   orders it (sorting or shuffling), and writes the database records back out
+   in deck order. The deck element types differ (a record struct carrying a
+   seqno for the sorts, a bare sequence number for shuffle), so the helpers
+   that walk a deck are templates over the element type; each command keeps
+   its own create_deck and ordering step. */
 
 #include "vsearch.hpp"  // struct Parameters
 #include "core/fasta.hpp"  // fasta_print_db_relabel
@@ -117,8 +119,8 @@ inline auto report_median(double const median,
 
 
 /* Keep only the first n records (--topn), n being at least 1 (CLI-checked) */
-template <typename Record>
-auto truncate_deck(std::vector<Record> & deck,
+template <typename Element>
+auto truncate_deck(std::vector<Element> & deck,
                    long int const n_first_sequences) -> void {
   if (deck.size() > static_cast<unsigned long>(n_first_sequences)) {
     deck.resize(static_cast<std::size_t>(n_first_sequences));
@@ -126,17 +128,31 @@ auto truncate_deck(std::vector<Record> & deck,
 }
 
 
+/* The database record a deck element names: a record struct names it by its
+   seqno member, a deck of bare sequence numbers (shuffle) is its own answer.
+   The non-template overload wins exact matches, so a deck of unsigned int
+   never reaches the member access. */
+template <typename Record>
+auto seqno_of(Record const & record) -> uint64_t {
+  return record.seqno;
+}
+
+inline auto seqno_of(unsigned int const seqno) -> uint64_t {
+  return seqno;
+}
+
+
 /* Write the database records back out in deck order, relabelled if requested;
    ordinals are 1-based */
-template <typename Record>
-auto output_sorted_fasta(std::vector<Record> const & deck,
-                         std::FILE * output_file,
-                         Database const & db,
-                         struct Parameters const & parameters) -> void {
+template <typename Element>
+auto output_deck_fasta(std::vector<Element> const & deck,
+                       std::FILE * output_file,
+                       Database const & db,
+                       struct Parameters const & parameters) -> void {
   Progress progress("Writing output", deck.size(), parameters);
   auto counter = std::size_t{0};
-  for (auto const & record: deck) {
-    fasta_print_db_relabel(output_file, record.seqno, counter + 1, db, parameters);
+  for (auto const & element: deck) {
+    fasta_print_db_relabel(output_file, seqno_of(element), counter + 1, db, parameters);
     progress.update(counter);
     ++counter;
   }

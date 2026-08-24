@@ -207,13 +207,12 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -282,13 +281,12 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -356,13 +354,12 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -424,13 +421,12 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -492,13 +488,12 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -560,13 +555,12 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -627,13 +621,12 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -862,13 +855,12 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
 	commands/sff_convert.hpp core/showalign.hpp vendored/sha1.h \
-	commands/shuffle.hpp commands/sintax.hpp \
-	commands/sortby_deck.hpp commands/sortbylength.hpp \
-	commands/sortbysize.hpp os/system.hpp os/linux/cgroup.hpp \
-	core/tax.hpp commands/makeudb_usearch.hpp \
-	commands/udb2fasta.hpp commands/udbinfo.hpp \
-	commands/udbstats.hpp core/udb.hpp core/unique.hpp \
-	utils/ascii_case.hpp utils/cigar.hpp \
+	commands/shuffle.hpp commands/sintax.hpp commands/deck.hpp \
+	commands/sortbylength.hpp commands/sortbysize.hpp \
+	os/system.hpp os/linux/cgroup.hpp core/tax.hpp \
+	commands/makeudb_usearch.hpp commands/udb2fasta.hpp \
+	commands/udbinfo.hpp commands/udbstats.hpp core/udb.hpp \
+	core/unique.hpp utils/ascii_case.hpp utils/cigar.hpp \
 	utils/cigar_operations.hpp utils/cityhash.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
@@ -1532,7 +1524,7 @@ core/showalign.hpp \
 vendored/sha1.h \
 commands/shuffle.hpp \
 commands/sintax.hpp \
-commands/sortby_deck.hpp \
+commands/deck.hpp \
 commands/sortbylength.hpp \
 commands/sortbysize.hpp \
 os/system.hpp \

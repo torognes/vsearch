@@ -59,7 +59,7 @@
 */
 
 #include "vsearch.hpp"
-#include "commands/sortby_deck.hpp"
+#include "commands/deck.hpp"
 #include "core/db.hpp"
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"
@@ -86,7 +86,7 @@ namespace {
        any annotation above 4294967295 silently, which broke the documented
        tie-break by decreasing abundance (sortbysize carries the same fix). */
     uint64_t size = 0;
-    uint64_t label_prefix = 0;  // see label_prefix_of() in sortby_deck.hpp
+    uint64_t label_prefix = 0;  // see label_prefix_of() in deck.hpp
     unsigned int length = 0;
     unsigned int seqno = 0;
   };
@@ -176,7 +176,7 @@ auto sortbylength(struct Parameters const & parameters) -> void {
   output_median_length(deck, parameters);
 
   truncate_deck(deck, parameters.opt_topn);
-  output_sorted_fasta(deck, output_handle.get(), db, parameters);
+  output_deck_fasta(deck, output_handle.get(), db, parameters);
 
   db.clear();
 }
