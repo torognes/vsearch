@@ -323,6 +323,18 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
   data_.clear();
   seqindex_.clear();
 
+  /* For an uncompressed input, the file size is an upper bound on the bytes
+     stored: each record's separators in the file (the '>' or '@', the
+     newlines, FASTQ's '+' line) outweigh the up to three NUL terminators
+     add() appends. A single up-front reserve therefore lets add() append
+     records without ever reallocating. For a pipe get_size() is 0, and for a
+     compressed file it is the compressed size, so there it is only a head
+     start and add()'s chunked growth covers the rest. Records discarded as
+     too short or too long only make the bound more generous; the excess
+     capacity is never written, so it costs address space, not resident
+     memory. */
+  reserve_in_chunks(data_, static_cast<std::size_t>(filesize));
+
   {
     Progress progress(prompt, static_cast<uint64_t>(filesize), parameters);
     while (input_handle->next(
