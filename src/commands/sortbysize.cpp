@@ -156,50 +156,7 @@ namespace {
   }
 
 
-  // auto trim_deck(std::vector<struct sortinfo_size_s> & deck)
-  //     -> std::vector<struct sortinfo_size_s> {
-  //   // assume deck is sorted by decreasing abundance
-  //   // - opt_minsize = 0 by default
-  //   // - opt_maxsize = LONG_MAX by default
-  //   // - size is unsigned int
-  //   auto begin = std::upper_bound(deck.begin(), deck.end(), opt_maxsize,
-  //                                 [](int64_t maxsize, struct sortinfo_size_s & seq) -> bool {
-  //                                   return seq.size > maxsize;
-  //                                 });
-  //   auto end = std::lower_bound(deck.begin(), deck.end(), opt_minsize,
-  //                               [](int64_t minsize, struct sortinfo_size_s & seq) -> bool {
-  //                                 return seq.size <= minsize;
-  //                               });
-  //   return std::vector<struct sortinfo_size_s>{begin, end};
-  // }
-
-
-  // refactoring: trim misize and maxsize with a free function
-  // https://stackoverflow.com/questions/26719144/how-to-erase-a-value-efficiently-from-a-sorted-vector
-  // auto erase_high_abundances(std::vector<int> & vec, int value) -> void
-  // {
-  //     auto lb = std::lower_bound(std::begin(vec), std::end(vec), value);
-  //     if (lb != std::end(vec) and *lb == value) {
-  //         auto ub = std::upper_bound(lb, std::end(vec), value);
-  //         vec.erase(lb, ub);
-  //     }
-  // }
-
 }  // end of anonymous namespace
-
-
-// refactoring:
-// - create vector (no branch)
-// - stable_sort vector (by increasing size, then label)
-// - find lower_bound(comp(opt_minsize)),
-// - deck.resize()
-// - find upper_bound(comp(opt_maxsize)),
-// - std::vector<S> subdeck = {deck.begin() + upper_bound, deck.end()};  // view?
-// - opt_minsize = 0 by default
-// - opt_maxsize = LONG_MAX by default
-// - top_n = LONG_MAX by default
-// - mediane, etc...
-// - std::min(subdeck.size(), topn);
 
 
 auto sortbysize(struct Parameters const & parameters) -> void
