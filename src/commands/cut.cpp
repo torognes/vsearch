@@ -58,6 +58,7 @@
 
 */
 
+#include "commands/cut.hpp"
 #include "utils/span.hpp"
 #include "utils/view.hpp"
 #include "vsearch.hpp"
@@ -121,20 +122,41 @@ namespace {
                       struct file_purpose const & fastaout,
                       struct statistics & counters,
                       std::vector<char> & rc_buffer,
+                      std::vector<unsigned char> & coded_buffer,
                       struct Parameters const & parameters) -> void
   {
     auto const pattern_length = static_cast<int>(restriction.pattern.size());
     auto const sequence = input_handle->sequence_view();
     auto const seq_length = static_cast<int>(sequence.size());
+    /* parsed from the header once; every fragment below reuses it */
+    auto const abundance = static_cast<uint64_t>(input_handle->get_abundance());
     // failed refactoring: use transform to create a coded std::string
     // and find() to search for pattern occurrences, IUPAC chars make it
     // harder to compare sequences
 
-    /* get reverse complement */
-    rc_buffer.clear();
-    rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
-    reverse_complement(make_span(rc_buffer), sequence);
-    auto const rc_sequence = make_view(rc_buffer).first(sequence.size());
+    /* get reverse complement; skipped when no reverse output was requested,
+       since only the two reverse writers below ever read it */
+    auto const need_reverse = (fastaout.cut.reverse.name != nullptr)
+      or (fastaout.discarded.reverse.name != nullptr);
+    auto rc_sequence = View<char>{};
+    if (need_reverse)
+      {
+        rc_buffer.clear();
+        rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
+        reverse_complement(make_span(rc_buffer), sequence);
+        rc_sequence = make_view(rc_buffer).first(sequence.size());
+      }
+
+    /* encode the sequence with the same 4-bit IUPAC code as the pattern, once
+       per record: the former per-position is_equivalent_4bit_rhs() re-mapped
+       the same sequence byte for every pattern offset, through a call the
+       compiler cannot inline across translation units (no LTO) */
+    auto const * const map_4bit_table = chrmap_4bit();
+    coded_buffer.resize(static_cast<std::size_t>(seq_length));
+    std::transform(sequence.cbegin(), sequence.cend(), coded_buffer.begin(),
+                   [map_4bit_table](char const symbol) -> unsigned char {
+                     return map_4bit_table[static_cast<unsigned char>(symbol)];
+                   });
 
     int64_t local_matches = 0;
     int frag_start = 0;
@@ -144,11 +166,12 @@ namespace {
 
     for (int i = 0; i < seq_length - pattern_length + 1; ++i)
       {
+        /* two IUPAC codes are equivalent when they share a bit */
         auto const match = std::equal(restriction.coded_pattern.cbegin(),
                                       restriction.coded_pattern.cend(),
-                                      std::next(sequence.cbegin(), i),
-                                      [](char const & lhs, char const & rhs) -> bool {
-                                        return is_equivalent_4bit_rhs(lhs, rhs);
+                                      std::next(coded_buffer.cbegin(), i),
+                                      [](char const & lhs, unsigned char const & rhs) -> bool {
+                                        return (static_cast<unsigned char>(lhs) & rhs) != 0;
                                       });
 
         if (not match) {
@@ -167,7 +190,7 @@ namespace {
                                 sequence.subspan(static_cast<std::size_t>(frag_start),
                                                  static_cast<std::size_t>(frag_length)),
                                 input_handle->header_view(),
-                                OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                OutputAnnotations{abundance,
                                                   ++counters.fragment_no},
                                 parameters);
           }
@@ -179,7 +202,7 @@ namespace {
                                 rc_sequence.subspan(static_cast<std::size_t>(rc_start),
                                                     static_cast<std::size_t>(rc_length)),
                                 input_handle->header_view(),
-                                OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                                OutputAnnotations{abundance,
                                                   ++counters.fragment_rev_no},
                                 parameters);
           }
@@ -202,7 +225,7 @@ namespace {
                             sequence.subspan(static_cast<std::size_t>(frag_start),
                                              static_cast<std::size_t>(frag_length)),
                             input_handle->header_view(),
-                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                            OutputAnnotations{abundance,
                                               ++counters.fragment_no},
                             parameters);
       }
@@ -214,7 +237,7 @@ namespace {
                             rc_sequence.subspan(static_cast<std::size_t>(rc_start),
                                                 static_cast<std::size_t>(rc_length)),
                             input_handle->header_view(),
-                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                            OutputAnnotations{abundance,
                                               ++counters.fragment_rev_no},
                             parameters);
       }
@@ -229,7 +252,7 @@ namespace {
         fasta_print_general(fastaout.discarded.forward.handle.get(),
                             nullptr,
                             input_handle->record(),
-                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                            OutputAnnotations{abundance,
                                               ++counters.fragment_discarded_no},
                             parameters);
       }
@@ -240,7 +263,7 @@ namespace {
                             nullptr,
                             rc_sequence,
                             input_handle->header_view(),
-                            OutputAnnotations{static_cast<uint64_t>(input_handle->get_abundance()),
+                            OutputAnnotations{abundance,
                                               ++counters.fragment_discarded_rev_no},
                             parameters);
       }
@@ -419,9 +442,10 @@ auto cut(struct Parameters const & parameters) -> void {
 
   struct statistics counters;
   std::vector<char> rc_buffer;
+  std::vector<unsigned char> coded_buffer;
   while (input_handle->next(false, chrmap_no_change()))
     {
-      cut_a_sequence(input_handle.get(), restriction, fastaout, counters, rc_buffer, parameters);
+      cut_a_sequence(input_handle.get(), restriction, fastaout, counters, rc_buffer, coded_buffer, parameters);
 
       progress.update(input_handle->get_position());
     }
