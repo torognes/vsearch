@@ -579,6 +579,12 @@ auto fastq_stats(struct Parameters const & parameters) -> void
   auto const symbol_to_probability = precompute_probability_values(parameters);
   std::vector<uint64_t> read_length_table(initial_memory_allocation);
   Length_vs_Quality_counts qual_length_table(initial_memory_allocation, std::vector<uint64_t>(n_eight_bit_values));
+  /* ee_length_table and q_length_table hold, per position and threshold, the
+     count of reads whose running minimum quality (resp. running expected
+     error) still passes the threshold at that position. During the scan they
+     record only each read's LAST passing position; a read passes at every
+     position up to that one, so a suffix sum after the scan turns them into
+     the per-position counts the report expects. */
   std::vector<std::array<uint64_t, 4>> ee_length_table(initial_memory_allocation);
   std::vector<std::array<uint64_t, 4>> q_length_table(initial_memory_allocation);
   std::vector<double> sumee_length_table(initial_memory_allocation);
@@ -614,20 +620,18 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
         check_minmax_scores(View<char>{quality_symbols, length}, symbol_to_score, parameters);
 
-        // refactoring: replace for-loop below with three functions:
-        // 0)
-        //  - transform(quality_symbols, qual_length_table, [](auto& position){ ++position[quality_symbol]; })
-        // 1)
-        //  - search first position with symbol <= 20 + offset
-        //  - increment counts from begin to position
-        //  - do the same for 15, 10 and 5
-        // 2)
-        //  - create a temporary vector
-        //  - populate with probability values
-        //  - std::partial_sum() to compte EE
-        //  - search first position with EE <= 1.0
-        //  - increment counts from begin to position
-        //  - do the same for EE <= 0.5, 0.25, and 0.1
+        /* Within a read, qmin only decreases and expected_error only
+           increases, so each threshold flips exactly once, from passing to
+           failing: "qmin > 5, 10, 15 or 20" and "EE <= 1.0, 0.5, 0.25 or
+           0.1" both hold on a prefix of the read. Instead of testing the
+           four thresholds at every base, track how many still pass
+           (quality_thresholds ascending, so the passing ones are its first
+           n_passing_q; ee_thresholds descending, likewise) and record only
+           the position where each one flips; the suffix sum after the scan
+           spreads that record over the whole prefix. */
+        auto n_passing_q = quality_thresholds.size();
+        auto n_passing_ee = ee_thresholds.size();
+
         for (auto i = 0UL; i < length; ++i)
           {
             auto const quality_symbol = static_cast<unsigned char>(quality_symbols[i]);
@@ -635,25 +639,40 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
             ++qual_length_table[i][quality_symbol];
 
-            qmin = std::min(quality_score, qmin);
-
-            // increment quality observations if the current Q > 5, 10, 15, or 20
-            std::transform(quality_thresholds.begin(), quality_thresholds.end(),
-                           q_length_table[i].begin(), q_length_table[i].begin(),
-                           [qmin](uint64_t const threshold, uint64_t const current_value) -> uint64_t {
-                             return current_value + (qmin > threshold ? 1 : 0);
-                           });
+            if (quality_score < qmin)
+              {
+                qmin = quality_score;
+                while ((n_passing_q != 0) and (qmin <= quality_thresholds[n_passing_q - 1]))
+                  {
+                    --n_passing_q;
+                    if (i != 0) {
+                      ++q_length_table[i - 1][n_passing_q];  // last passing position
+                    }
+                  }
+              }
 
             expected_error += symbol_to_probability[quality_symbol];
 
             sumee_length_table[i] += expected_error;  // can NOT be derived from qual_length_table
 
-            // increment EE observations if the current EE <= 1.0, 0.5, 0.25, or 0.1
-            std::transform(ee_thresholds.begin(), ee_thresholds.end(),
-                           ee_length_table[i].begin(), ee_length_table[i].begin(),
-                           [expected_error](double const threshold, uint64_t const current_value) -> uint64_t {
-                             return current_value + (expected_error <= threshold ? 1 : 0);
-                           });
+            while ((n_passing_ee != 0) and (expected_error > ee_thresholds[n_passing_ee - 1]))
+              {
+                --n_passing_ee;
+                if (i != 0) {
+                  ++ee_length_table[i - 1][n_passing_ee];  // last passing position
+                }
+              }
+          }
+
+        // thresholds still passing at the end of the read pass everywhere
+        if (length != 0)
+          {
+            for (auto threshold = 0UL; threshold < n_passing_q; ++threshold) {
+              ++q_length_table[length - 1][threshold];
+            }
+            for (auto threshold = 0UL; threshold < n_passing_ee; ++threshold) {
+              ++ee_length_table[length - 1][threshold];
+            }
           }
 
         progress.update(input_handle->get_position());
@@ -663,6 +682,23 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
 
   // note: operations below represent 1% of total wallclock time
+
+  /* a read whose last passing position is p passes at every position up to
+     p: suffix sums turn the last-passing-position records into the
+     per-position read counts the report tables hold (see the scan above) */
+  auto const spread_over_prefixes = [](std::vector<std::array<uint64_t, 4>> & table) -> void {
+    std::array<uint64_t, 4> reads_passing {{}};
+    for (auto position = table.size(); position != 0; --position)
+      {
+        auto & row = table[position - 1];
+        std::transform(row.begin(), row.end(),
+                       reads_passing.begin(), reads_passing.begin(),
+                       std::plus<uint64_t>{});
+        row = reads_passing;
+      }
+  };
+  spread_over_prefixes(q_length_table);
+  spread_over_prefixes(ee_length_table);
 
   /* compute various distributions */
 
