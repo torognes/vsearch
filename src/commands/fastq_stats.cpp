@@ -111,12 +111,6 @@ namespace {
   }
 
 
-  auto q2p(uint64_t const quality_score) -> double {
-    static constexpr auto base = 10.0;
-    auto const quality_score_double = static_cast<double>(quality_score);
-    return std::pow(base, -quality_score_double / base);
-  }
-
 
   auto check_quality_score(struct Parameters const & parameters, unsigned int const quality_score) -> void {
     auto const is_in_accepted_range =
@@ -255,7 +249,7 @@ namespace {
     std::transform(quality_scores.cbegin(), quality_scores.cend(),
                    probability_values.begin(),
                    [](uint64_t const quality_score) -> double {
-                     return q2p(quality_score);
+                     return q2p(static_cast<double>(quality_score));
                    });
     return probability_values;
   }
@@ -313,7 +307,7 @@ namespace {
       distribution.avgq = sum_quality_score / n_symbols;
       distribution.avgp = sum_error_probabilities[position] / n_symbols;
       distribution.avgee = sumee_length_table[position] / n_symbols;
-      distribution.rate = distributions[position].avgee / length;
+      distribution.rate = distribution.avgee / length;
       ++position;
     }
     return distributions;
@@ -702,11 +696,13 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
   /* compute various distributions */
 
+  auto const n_reads =
+    std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0});
   auto const stats = Stats{
     find_smallest(read_length_table), find_largest(read_length_table),
     compute_number_of_symbols(read_length_table),
-    std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0}),
-    static_cast<double>(std::accumulate(read_length_table.begin(), read_length_table.end(), std::uint64_t{0})),
+    n_reads,
+    static_cast<double>(n_reads),
     compute_cumulative_sum(read_length_table),
     compute_distribution_of_quality_symbols(qual_length_table),
     compute_distributions(static_cast<unsigned int>(find_largest(read_length_table)), qual_length_table, sumee_length_table, parameters),
