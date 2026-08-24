@@ -78,17 +78,38 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  /* the cutoff table goes verbatim to --output and, when set, to --log;
-     only the "N reads" line above it differs between the two (the --output
-     one omits "max len" and "avg" when there are no reads at all) */
-  auto report_eestats2_table(std::FILE * output_stream,
-                             struct Parameters const & parameters,
-                             uint64_t const seq_count,
-                             std::vector<uint64_t> const & count_table,
-                             int const len_steps) -> void
+  /* what the reading loop accumulated over the whole input */
+  struct ReadTotals {
+    uint64_t seq_count;
+    uint64_t symbols;
+    uint64_t longest;
+  };
+
+
+  /* the report goes verbatim to --output and, when set, to --log; when
+     there are no reads at all, "max len" and "avg" are omitted from the
+     "N reads" line (avg would divide by zero) */
+  auto report_eestats2(std::FILE * output_stream,
+                       struct Parameters const & parameters,
+                       struct ReadTotals const & totals,
+                       std::vector<uint64_t> const & count_table,
+                       int const len_steps) -> void
   {
     auto const & ee_cutoffs = parameters.opt_ee_cutoffs;
     auto const ee_cutoffs_count = static_cast<int>(ee_cutoffs.size());
+    auto const seq_count = totals.seq_count;
+
+    fprint_integer(output_stream, seq_count);
+    fprint(output_stream, " reads");
+
+    if (seq_count > 0)
+      {
+        fprint(output_stream, ", max len ");
+        fprint_integer(output_stream, totals.longest);
+        fprint(output_stream, ", avg ");
+        std::fprintf(output_stream, "%.1f", 1.0 * static_cast<double>(totals.symbols) / static_cast<double>(seq_count));
+      }
+    fprint(output_stream, "\n\n");
 
     fprint(output_stream, "Length");
     for (int y = 0; y < ee_cutoffs_count; y++)
@@ -244,30 +265,13 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
       }
   }
 
-  fprint_integer(fp_output, seq_count);
-  fprint(fp_output, " reads");
+  ReadTotals const totals = {seq_count, symbols, longest};
 
-  if (seq_count > 0)
-    {
-      fprint(fp_output, ", max len ");
-      fprint_integer(fp_output, longest);
-      fprint(fp_output, ", avg ");
-      std::fprintf(fp_output, "%.1f", 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
-    }
-  fprint(fp_output, "\n\n");
-
-  report_eestats2_table(fp_output, parameters, seq_count, count_table, len_steps);
+  report_eestats2(fp_output, parameters, totals, count_table, len_steps);
 
   if (parameters.fp_log != nullptr)
     {
-      fprint_integer(parameters.fp_log, seq_count);
-      fprint(parameters.fp_log, " reads, max len ");
-      fprint_integer(parameters.fp_log, longest);
-      fprint(parameters.fp_log, ", avg ");
-      std::fprintf(parameters.fp_log, "%.1f", 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
-      fprint(parameters.fp_log, "\n\n");
-
-      report_eestats2_table(parameters.fp_log, parameters, seq_count, count_table, len_steps);
+      report_eestats2(parameters.fp_log, parameters, totals, count_table, len_steps);
     }
 
   h->report_stripped_warning(parameters);
