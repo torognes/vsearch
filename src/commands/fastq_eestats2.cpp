@@ -75,6 +75,62 @@
 #include <vector>
 
 
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* the cutoff table goes verbatim to --output and, when set, to --log;
+     only the "N reads" line above it differs between the two (the --output
+     one omits "max len" and "avg" when there are no reads at all) */
+  auto report_eestats2_table(std::FILE * output_stream,
+                             struct Parameters const & parameters,
+                             uint64_t const seq_count,
+                             std::vector<uint64_t> const & count_table,
+                             int const len_steps) -> void
+  {
+    auto const & ee_cutoffs = parameters.opt_ee_cutoffs;
+    auto const ee_cutoffs_count = static_cast<int>(ee_cutoffs.size());
+
+    fprint(output_stream, "Length");
+    for (int y = 0; y < ee_cutoffs_count; y++)
+      {
+        fprint(output_stream, "         MaxEE ");
+        std::fprintf(output_stream, "%.2f", ee_cutoffs[static_cast<size_t>(y)]);
+      }
+    fprint(output_stream, '\n');
+    fprint(output_stream, "------");
+    for (int y = 0; y < ee_cutoffs_count; y++)
+      {
+        fprint(output_stream, "   ----------------");
+      }
+    fprint(output_stream, '\n');
+
+    for (int x = 0; x < len_steps; x++)
+      {
+        int const len_cutoff = parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment);
+
+        if (len_cutoff > parameters.opt_length_cutoffs_longest)
+          {
+            break;
+          }
+
+        fprint_integer(output_stream, len_cutoff, 6);
+
+        for (int y = 0; y < ee_cutoffs_count; y++)
+          {
+            auto const count = count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))];
+            fprint(output_stream, "   ");
+            fprint_integer(output_stream, count, 8);
+            fprint(output_stream, '(');
+            std::fprintf(output_stream, "%5.1f", 100.0 * static_cast<double>(count) / static_cast<double>(seq_count));
+            fprint(output_stream, "%)");
+          }
+        fprint(output_stream, '\n');
+      }
+  }
+
+}  // end of anonymous namespace
+
+
 auto fastq_eestats2(struct Parameters const & parameters) -> void
 {
   if (parameters.opt_output == nullptr) {
@@ -200,41 +256,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
     }
   fprint(fp_output, "\n\n");
 
-  fprint(fp_output, "Length");
-  for (int y = 0; y < ee_cutoffs_count; y++)
-    {
-      fprint(fp_output, "         MaxEE ");
-      std::fprintf(fp_output, "%.2f", ee_cutoffs[static_cast<size_t>(y)]);
-    }
-  fprint(fp_output, '\n');
-  fprint(fp_output, "------");
-  for (int y = 0; y < ee_cutoffs_count; y++)
-    {
-      fprint(fp_output, "   ----------------");
-    }
-  fprint(fp_output, '\n');
-
-  for (int x = 0; x < len_steps; x++)
-    {
-      int const len_cutoff = parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment);
-
-      if (len_cutoff > parameters.opt_length_cutoffs_longest)
-        {
-          break;
-        }
-
-      fprint_integer(fp_output, len_cutoff, 6);
-
-      for (int y = 0; y < ee_cutoffs_count; y++)
-        {
-          fprint(fp_output, "   ");
-          fprint_integer(fp_output, count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))], 8);
-          fprint(fp_output, '(');
-          std::fprintf(fp_output, "%5.1f", 100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
-          fprint(fp_output, "%)");
-        }
-      fprint(fp_output, '\n');
-    }
+  report_eestats2_table(fp_output, parameters, seq_count, count_table, len_steps);
 
   if (parameters.fp_log != nullptr)
     {
@@ -245,41 +267,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
       std::fprintf(parameters.fp_log, "%.1f", 1.0 * static_cast<double>(symbols) / static_cast<double>(seq_count));
       fprint(parameters.fp_log, "\n\n");
 
-      fprint(parameters.fp_log, "Length");
-      for (int y = 0; y < ee_cutoffs_count; y++)
-        {
-          fprint(parameters.fp_log, "         MaxEE ");
-          std::fprintf(parameters.fp_log, "%.2f", ee_cutoffs[static_cast<size_t>(y)]);
-        }
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "------");
-      for (int y = 0; y < ee_cutoffs_count; y++)
-        {
-          fprint(parameters.fp_log, "   ----------------");
-        }
-      fprint(parameters.fp_log, '\n');
-
-      for (int x = 0; x < len_steps; x++)
-        {
-          int const len_cutoff = parameters.opt_length_cutoffs_shortest + (x * parameters.opt_length_cutoffs_increment);
-
-          if (len_cutoff > parameters.opt_length_cutoffs_longest)
-            {
-              break;
-            }
-
-          fprint_integer(parameters.fp_log, len_cutoff, 6);
-
-          for (int y = 0; y < ee_cutoffs_count; y++)
-            {
-              fprint(parameters.fp_log, "   ");
-              fprint_integer(parameters.fp_log, count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))], 8);
-              fprint(parameters.fp_log, '(');
-              std::fprintf(parameters.fp_log, "%5.1f", 100.0 * static_cast<double>(count_table[((static_cast<size_t>(x) * static_cast<size_t>(ee_cutoffs_count)) + static_cast<size_t>(y))]) / static_cast<double>(seq_count));
-              fprint(parameters.fp_log, "%)");
-            }
-          fprint(parameters.fp_log, '\n');
-        }
+      report_eestats2_table(parameters.fp_log, parameters, seq_count, count_table, len_steps);
     }
 
   h->report_stripped_warning(parameters);
