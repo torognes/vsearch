@@ -45,6 +45,23 @@ else
 AM_CFLAGS += -DNDEBUG
 endif
 
+# Conditionally enable the sanitizers based on ENABLE_SANITIZE
+# (--enable-sanitize). Independent of ENABLE_DEBUG on purpose: the two
+# combine, but the sanitizers are also worth running on an optimized build,
+# which is several times faster than -O0 -D_GLIBCXX_DEBUG and so lets the
+# whole test suite run under them.
+# -fno-omit-frame-pointer: keeps the stack traces in the reports readable.
+# The flags have to reach the link line as well as every compilation. They
+# already do, because automake's CXXLINK expands AM_CXXFLAGS; AM_LDFLAGS
+# states it explicitly rather than relying on that expansion.
+# configure rejects --enable-sanitize for a cross build: the runtimes are a
+# native-toolchain thing, and the Windows target links -static, which
+# AddressSanitizer does not support.
+if ENABLE_SANITIZE
+AM_CFLAGS += -fsanitize=undefined,address -fno-omit-frame-pointer
+AM_LDFLAGS = -fsanitize=undefined,address
+endif
+
 AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 
 # C++-only debug warnings. Keeping these out of AM_CFLAGS avoids the

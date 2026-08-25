@@ -676,6 +676,8 @@ HAVE_PS2PDF_FALSE
 HAVE_PS2PDF_TRUE
 TARGET_WIN_FALSE
 TARGET_WIN_TRUE
+ENABLE_SANITIZE_FALSE
+ENABLE_SANITIZE_TRUE
 ENABLE_DEBUG_FALSE
 ENABLE_DEBUG_TRUE
 ENABLE_PROFILING_FALSE
@@ -795,6 +797,7 @@ enable_zlib
 enable_pdfman
 enable_profiling
 enable_debug
+enable_sanitize
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1449,6 +1452,9 @@ Optional Features:
   --disable-pdfman        Disable PDF manual creation
   --enable-profiling      Enable profiling build
   --enable-debug          Enable debug build
+  --enable-sanitize       Enable the address and undefined-behaviour
+                          sanitizers (native builds only; independent of
+                          --enable-debug)
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -5174,6 +5180,35 @@ else
 fi
 
 
+
+# Check for --enable-sanitize option
+# Check whether --enable-sanitize was given.
+if test ${enable_sanitize+y}
+then :
+  enableval=$enable_sanitize; enable_sanitize=$enableval
+else $as_nop
+  enable_sanitize=no
+fi
+
+
+# The sanitizer runtimes come with the native toolchain, and the Windows
+# target links -static, which AddressSanitizer does not support. Refuse the
+# combination here rather than at link time.
+if test "x$enable_sanitize" = "xyes" && test "x$cross_compiling" = "xyes"
+then :
+  as_fn_error $? "--enable-sanitize is not supported for cross builds" "$LINENO" 5
+fi
+
+# Define AM_CONDITIONAL for sanitize
+ if test "x$enable_sanitize" = "xyes"; then
+  ENABLE_SANITIZE_TRUE=
+  ENABLE_SANITIZE_FALSE='#'
+else
+  ENABLE_SANITIZE_TRUE='#'
+  ENABLE_SANITIZE_FALSE=
+fi
+
+
 have_man_html=no
 
 case $target in
@@ -6359,6 +6394,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_DEBUG_TRUE}" && test -z "${ENABLE_DEBUG_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_DEBUG\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_SANITIZE_TRUE}" && test -z "${ENABLE_SANITIZE_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_SANITIZE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${TARGET_WIN_TRUE}" && test -z "${TARGET_WIN_FALSE}"; then

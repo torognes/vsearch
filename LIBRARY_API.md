@@ -1155,7 +1155,8 @@ Clang). SIMD instruction flags (`-msse2`, `-mssse3`) are applied when
 | `--disable-zlib` | Omit gzip support |
 | `--disable-bzip2` | Omit bzip2 support |
 | `--disable-pdfman` | Skip PDF manual generation |
-| `--enable-debug` | Debug build with sanitizers and extra warnings |
+| `--enable-debug` | Debug build: assertions on, `_GLIBCXX_DEBUG`, extra warnings |
+| `--enable-sanitize` | Address and undefined-behaviour sanitizers (native builds only) |
 | `--enable-profiling` | Profiling build (`-pg -O1`) |
 
 ---
