@@ -561,13 +561,31 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
           if (rest >= magic_gzip.size())
             {
+              /* a pipe other than stdin (process substitution, a named
+                 FIFO) is always read as plain data, so telling the user
+                 to pass a decompress option they may already have given
+                 would only mislead */
+              bool const is_plain_pipe = input_handle->is_pipe and (not is_stdin);
+
               if (has_magic(first, magic_gzip))
                 {
+                  if (is_plain_pipe)
+                    {
+                      fatal("File appears to be gzip compressed. Decompression"
+                            " works only on stdin ('-') or on a named file,"
+                            " not on other pipes");
+                    }
                   fatal("File appears to be gzip compressed. Please use --gzip_decompress");
                 }
 
               if (has_magic(first, magic_bzip))
                 {
+                  if (is_plain_pipe)
+                    {
+                      fatal("File appears to be bzip2 compressed. Decompression"
+                            " works only on stdin ('-') or on a named file,"
+                            " not on other pipes");
+                    }
                   fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
                 }
             }
