@@ -89,7 +89,7 @@ namespace {
   enum struct FastqEncoding : unsigned char {
     sanger,        // Original Sanger,  Phred+33
     illumina_1_8,  // Illumina 1.8+,    Phred+33
-    solexa,        // Solexa,           Phred+64
+    solexa,        // Solexa,           Solexa+64 (not Phred; see fastq(5))
     illumina_1_3,  // Illumina 1.3+,    Phred+64
     illumina_1_5,  // Illumina 1.5+,    Phred+64
   };

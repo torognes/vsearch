@@ -79,7 +79,7 @@
 #include "utils/cityhash.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
-#include <algorithm>  // std::count_if, std::max, std::min, std::sort, std::transform
+#include <algorithm>  // std::count_if, std::max, std::min, std::minmax_element, std::sort, std::transform
 #include <array>  // std::array
 #include <cassert>  // assert
 #include <cmath>  // std::log10, std::pow
@@ -164,6 +164,83 @@ namespace {
                                         size_in_range);
     return std::min(static_cast<uint64_t>(selected),
                     static_cast<uint64_t>(parameters.opt_topn));
+  }
+
+
+  /* Reject a quality string that steps outside [--fastq_qmin, --fastq_qmax].
+
+     fastx_uniques is the only derep mode that accepts FASTQ input, and it
+     used to accept the two bounds without ever applying them, while still
+     decoding every symbol to merge it. A Q50 symbol went in unremarked and
+     came out silently clamped to Q41 by the qmaxout rule, and a phred+64
+     file read at the default offset 33 dereplicated to fabricated qualities
+     with exit 0 -- where filter, eestats, fastq_stats and fastq_convert all
+     stop and name the option to raise. The wording is theirs.
+
+     The hot loop only asks whether anything was out of range, and answers
+     without branching: a legal symbol lands in the window
+     [ascii + qmin, ascii + qmax], and unsigned wrap-around folds the two
+     bound comparisons into one subtraction and one comparison. It is a
+     reduction rather than an early-exit search so that the compiler may
+     vectorize it; this walks every quality byte of every record. Measured on
+     100k reads of 283 bp (--fastqout, 15 runs, one hyperfine session): 216.5
+     ms unchanged, 222.9 ms here, 230.9 ms for the std::minmax_element form
+     this replaced -- 3.0% against 6.7%.
+
+     Naming the offending value is the cold path, and pays for its second
+     pass only on a record that is about to be rejected anyway. The score is
+     a strictly increasing function of the symbol, so the two extremes are
+     the only candidates. The parser has already rejected every byte outside
+     33-126 (quality_policy in core/fastq.cpp), so the plain char comparison
+     there cannot go negative.
+
+     refactoring: fifth near-copy of this check (core/filter.cpp,
+     core/eestats.cpp, commands/fastq_stats.cpp, commands/fastq_convert.cpp);
+     see TBD_20260825_quality_range.md for folding it into the parser, which
+     would also cover derep_smallmem and cost nothing per command */
+  auto check_quality_range(View<char> const quality_symbols,
+                           struct Parameters const & parameters) -> void
+  {
+    if (quality_symbols.empty()) { return; }
+
+    auto const ascii_offset = static_cast<int>(parameters.opt_fastq_ascii);
+    /* cli.cc keeps ascii + qmin at 33 or more and ascii + qmax at 126 or
+       less, so neither the lowest legal symbol nor the window width can
+       leave the unsigned char domain */
+    assert(ascii_offset + parameters.opt_fastq_qmin >= 33);
+    assert(ascii_offset + parameters.opt_fastq_qmax <= 126);
+    auto const lowest_legal =
+      static_cast<unsigned char>(ascii_offset + parameters.opt_fastq_qmin);
+    auto const window_width =
+      static_cast<unsigned char>(parameters.opt_fastq_qmax - parameters.opt_fastq_qmin);
+
+    auto any_outside = false;
+    for (auto const symbol : quality_symbols)
+      {
+        auto const distance_from_lowest =
+          static_cast<unsigned char>(static_cast<unsigned char>(symbol) - lowest_legal);
+        any_outside |= (distance_from_lowest > window_width);
+      }
+    if (not any_outside) { return; }
+
+    auto const extremes = std::minmax_element(quality_symbols.begin(),
+                                              quality_symbols.end());
+    auto const lowest_score = *std::get<0>(extremes) - ascii_offset;
+    auto const highest_score = *std::get<1>(extremes) - ascii_offset;
+
+    if (lowest_score < parameters.opt_fastq_qmin)
+      {
+        fatal("FASTQ quality value (" + std::to_string(lowest_score) + ") below qmin ("
+              + std::to_string(parameters.opt_fastq_qmin) + ")");
+      }
+    if (highest_score > parameters.opt_fastq_qmax)
+      {
+        fatal("FASTQ quality value (" + std::to_string(highest_score) + ") above qmax ("
+              + std::to_string(parameters.opt_fastq_qmax) + ")\n"
+              "By default, quality values range from 0 to 41.\n"
+              "To allow higher quality values, "
+              "please use the option --fastq_qmax " + std::to_string(highest_score));
+      }
   }
 
 
@@ -690,6 +767,11 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         auto const * header = input_handle->get_header();
         auto const header_v = input_handle->header_view();
         auto const * qual = input_handle->get_quality(); // nullptr if FASTA
+
+        if (qual != nullptr)
+          {
+            check_quality_range(input_handle->quality_view(), parameters);
+          }
 
         /* normalize sequence: uppercase and replace U by T  */
         auto const seq_up_v = normalize_into(seq_up, View<char>{seq, static_cast<std::size_t>(seqlen)});
