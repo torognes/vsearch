@@ -81,7 +81,7 @@
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fclose, std::size_t, std::fread
+#include <cstdio>  // std::FILE, std::fclose, std::fseek, std::size_t, std::fread, SEEK_SET
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::strcmp
 #include <iterator> // std::next, std::distance
@@ -443,6 +443,18 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
       if (input_handle->fp == nullptr)
         {
           fatal(std::string("Unable to open file for reading (")
+                + std::string(filename)
+                + ")");
+        }
+
+      /* the reopened stream must start at byte 0. A named file does, but
+         "-" reopens as a duplicate of stdin, and duplicated descriptors
+         share one file offset, which the buffered magic read above has
+         already advanced -- stdin redirected from a regular file lands
+         here, being seekable, and used to fail or silently read nothing */
+      if (std::fseek(input_handle->fp, 0L, SEEK_SET) != 0)
+        {
+          fatal(std::string("Unable to rewind file after reading magic bytes (")
                 + std::string(filename)
                 + ")");
         }
