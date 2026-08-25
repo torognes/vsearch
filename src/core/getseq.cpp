@@ -80,7 +80,7 @@
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"
 #include "utils/warn.hpp"  // vsearch::warn
-#include <algorithm>  // std::any_of, std::copy, std::max, std::min, std::search, std::equal, std::transform
+#include <algorithm>  // std::any_of, std::copy, std::find_if, std::max, std::min, std::search, std::equal, std::transform
 #include <array>
 #include <cassert>
 #include <cstdint> // int64_t, uint64_t
@@ -287,17 +287,39 @@ public:
 
     if (parameters.opt_label_words != nullptr)
       {
-        /* each word from the file is a fixed needle too: bake in the field
+        /* Each word from the file is a fixed needle too: bake in the field
            prefix once instead of rebuilding "field=word" for every record.
            Labels are stored as std::vector<char> without a trailing '\0', so
            the append is range-based (strlen would read past the vector's
-           storage). */
-        word_needles_.reserve(labels_data.size());
+           storage).
+
+           A needle without delimiter characters can only match by being
+           equal to one whole delimiter-bounded token of the header: its
+           match must be bounded by delimiters or header ends, and a
+           delimiter-free run between two boundaries is exactly a token.
+           Those needles go into a hash set probed with each token of the
+           header -- one header scan per record instead of one search per
+           needle (measured at 22 s for 10k words against 200k records). A
+           needle that contains a delimiter cannot equal a token and keeps
+           the delimited scan. Word matching is case-sensitive
+           (matches_delimited compares bytes), so no case folding here. */
         for (auto const & label: labels_data)
           {
             auto needle = needle_prefix;
             needle.append(label.begin(), label.end());
-            word_needles_.push_back(std::move(needle));
+            auto const contains_delimiter =
+              std::any_of(needle.begin(), needle.end(),
+                          [this](char const character) -> bool {
+                            return is_delimiter(character, boundary_);
+                          });
+            if (contains_delimiter)
+              {
+                delimited_needles_.push_back(std::move(needle));
+              }
+            else
+              {
+                token_needles_.insert(std::move(needle));
+              }
           }
       }
   }
@@ -338,7 +360,33 @@ public:
       }
     if (parameters_.opt_label_words != nullptr)
       {
-        return std::any_of(word_needles_.begin(), word_needles_.end(),
+        if (not token_needles_.empty())
+          {
+            /* walk the delimiter-bounded tokens of the header, empty ones
+               included: two adjacent delimiters, a leading or trailing
+               delimiter, and an empty header all carry an empty token,
+               exactly where matches_delimited() lets an empty needle sit */
+            auto const * token_start = header_view.begin();
+            while (true)
+              {
+                auto const * const token_end =
+                  std::find_if(token_start, header_view.end(),
+                               [this](char const character) -> bool {
+                                 return is_delimiter(character, boundary_);
+                               });
+                probe_.assign(token_start, token_end);
+                if (token_needles_.find(probe_) != token_needles_.end())
+                  {
+                    return true;
+                  }
+                if (token_end == header_view.end())
+                  {
+                    break;
+                  }
+                token_start = std::next(token_end);
+              }
+          }
+        return std::any_of(delimited_needles_.begin(), delimited_needles_.end(),
                            [this, header_view](std::string const & needle) -> bool {
                              return matches_delimited(header_view,
                                                       View<char>{needle.data(), needle.size()},
@@ -354,7 +402,8 @@ private:
   Delimiter boundary_;
   View<char> single_needle_;
   std::string single_word_;
-  std::vector<std::string> word_needles_;
+  std::vector<std::string> delimited_needles_;
+  std::unordered_set<std::string> token_needles_;
   std::unordered_set<std::string> exact_labels_;
   std::string probe_;
 };
