@@ -77,10 +77,12 @@
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include <algorithm>  // std::reverse_copy
 #include <array>
 #include <cassert>
 #include <cstdint>  // uint64_t
-#include <cstdio>  // std::FILE, std::fprintf, std::size_t
+#include <cstdio>  // std::FILE, std::fprintf, std::fputs, std::size_t
+#include <iterator>  // std::next
 #include <vector>
 
 
@@ -146,6 +148,54 @@ auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned
     | (static_cast<unsigned int>(table[(kmer >> 16U) & 0xFFU]) << 8U)
     |  static_cast<unsigned int>(table[kmer >> 24U]);
   return rc_full_word >> (32U - (2U * wordlength));
+}
+
+
+/* the orientation assigned to one query, printed as-is in --tabbedout */
+enum struct Strand : char
+{
+  positive = '+',
+  negative = '-',
+  undetermined = '?',
+};
+
+
+/* what the orienting loop counted over the whole input (no default member
+   initializers: they would make this a non-aggregate before C++14) */
+struct OrientationTotals
+{
+  int queries;
+  int qmatches;
+  int matches_fwd;
+  int matches_rev;
+  int notmatched;
+};
+
+
+/* the same summary goes to stderr (unless --quiet) and to --log (when set) */
+auto report_orient(std::FILE * output_stream,
+                   struct OrientationTotals const & totals) -> void
+{
+  auto const queries = totals.queries;
+  auto const print_line = [output_stream, queries](char const * label,
+                                                   int const count) -> void {
+    std::fputs(label, output_stream);
+    fprint_integer(output_stream, count);
+    if (queries > 0)
+      {
+        fprint(output_stream, " (");
+        std::fprintf(output_stream, "%.2f", 100.0 * count / queries);
+        fprint(output_stream, "%)");
+      }
+    fprint(output_stream, '\n');
+  };
+  print_line("Forward oriented sequences: ", totals.matches_fwd);
+  print_line("Reverse oriented sequences: ", totals.matches_rev);
+  print_line("All oriented sequences:     ", totals.qmatches);
+  print_line("Not oriented sequences:     ", totals.notmatched);
+  fprint(output_stream, "Total number of sequences:  ");
+  fprint_integer(output_stream, queries);
+  fprint(output_stream, '\n');
 }
 }  // anonymous namespace
 
@@ -296,7 +346,7 @@ auto orient(struct Parameters const & parameters) -> void
 
         ++queries;
 
-        auto strand = 2;  // refactoring: enum struct Strand : char {positive = '+', negative = '-', undetermined = '?'};
+        auto strand = Strand::undetermined;
         auto const min_count = 1U;
         auto const min_factor = 4U;
 
@@ -304,7 +354,7 @@ auto orient(struct Parameters const & parameters) -> void
           {
             /* fwd */
 
-            strand = 0;
+            strand = Strand::positive;
             ++matches_fwd;
             ++qmatches;
 
@@ -329,7 +379,7 @@ auto orient(struct Parameters const & parameters) -> void
           {
             /* rev */
 
-            strand = 1;
+            strand = Strand::negative;
             ++matches_rev;
             ++qmatches;
 
@@ -370,10 +420,9 @@ auto orient(struct Parameters const & parameters) -> void
                 if (query_h->is_fastq_input())
                   {
                     // copy query string in reverse order
-                    for (int i = 0; i < qseqlen; i++)
-                      {
-                        query_qual_rev[static_cast<std::size_t>(i)] = query_qual_fwd[qseqlen - 1 - i];
-                      }
+                    std::reverse_copy(query_qual_fwd,
+                                      std::next(query_qual_fwd, qseqlen),
+                                      query_qual_rev.begin());
                     query_qual_rev[static_cast<std::size_t>(qseqlen)] = '\0';
                   }
 
@@ -389,7 +438,7 @@ auto orient(struct Parameters const & parameters) -> void
           {
             /* undecided */
 
-            strand = 2;
+            strand = Strand::undetermined;
             ++notmatched;
 
             if (parameters.opt_notmatched != nullptr)
@@ -416,7 +465,7 @@ auto orient(struct Parameters const & parameters) -> void
           {
             fprint(fp_tabbedout, query_head);
             fprint(fp_tabbedout, '\t');
-            fprint(fp_tabbedout, strand == 0 ? '+' : (strand == 1 ? '-' : '?'));
+            fprint(fp_tabbedout, static_cast<char>(strand));
             fprint(fp_tabbedout, '\t');
             fprint_integer(fp_tabbedout, count_fwd);
             fprint(fp_tabbedout, '\t');
@@ -457,89 +506,15 @@ auto orient(struct Parameters const & parameters) -> void
 
   query_h->report_stripped_warning(parameters);
 
+  OrientationTotals const totals = {queries, qmatches, matches_fwd, matches_rev, notmatched};
+
   if (not parameters.opt_quiet)
     {
-      fprint(stderr, "Forward oriented sequences: ");
-      fprint_integer(stderr, matches_fwd);
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * matches_fwd / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
-      fprint(stderr, "Reverse oriented sequences: ");
-      fprint_integer(stderr, matches_rev);
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * matches_rev / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
-      fprint(stderr, "All oriented sequences:     ");
-      fprint_integer(stderr, qmatches);
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * qmatches / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
-      fprint(stderr, "Not oriented sequences:     ");
-      fprint_integer(stderr, notmatched);
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * notmatched / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
-      fprint(stderr, "Total number of sequences:  ");
-      fprint_integer(stderr, queries);
-      fprint(stderr, '\n');
+      report_orient(stderr, totals);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "Forward oriented sequences: ");
-      fprint_integer(parameters.fp_log, matches_fwd);
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * matches_fwd / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "Reverse oriented sequences: ");
-      fprint_integer(parameters.fp_log, matches_rev);
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * matches_rev / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "All oriented sequences:     ");
-      fprint_integer(parameters.fp_log, qmatches);
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * qmatches / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "Not oriented sequences:     ");
-      fprint_integer(parameters.fp_log, notmatched);
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * notmatched / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "Total number of sequences:  ");
-      fprint_integer(parameters.fp_log, queries);
-      fprint(parameters.fp_log, '\n');
+      report_orient(parameters.fp_log, totals);
     }
 }
