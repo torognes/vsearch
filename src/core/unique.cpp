@@ -225,15 +225,12 @@ auto Uniquer::count_stamps(int const wordlength,
       kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
       kmer &= mask;
 
-      if (bad == 0U)
+      if ((bad == 0U) and (stamps[kmer] != epoch))
         {
-          if (stamps[kmer] != epoch)
-            {
-              /* not seen before */
-              stamps[kmer] = epoch;
-              list_data[unique] = static_cast<unsigned int>(kmer);
-              ++unique;
-            }
+          /* not seen before */
+          stamps[kmer] = epoch;
+          list_data[unique] = static_cast<unsigned int>(kmer);
+          ++unique;
         }
     }
 

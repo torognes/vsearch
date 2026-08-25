@@ -105,7 +105,7 @@ namespace {
    4-base word, so a lookup is exactly that loop's result */
 auto rc_byte_table() -> std::array<unsigned char, 256> const &
 {
-  static std::array<unsigned char, 256> const table = []() {
+  static std::array<unsigned char, 256> const table = []() -> std::array<unsigned char, 256> {
     std::array<unsigned char, 256> values {{}};
     for (auto byte = 0U; byte < 256U; ++byte)
       {
