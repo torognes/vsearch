@@ -80,6 +80,21 @@
 
 template <typename Type = char>
 class View {
+  // A View is read-only whatever Type is, since it stores a Type const *, so
+  // View<char const> would be a second name for View<char>: same layout, same
+  // data() type, same behaviour -- but a distinct type, convertible to neither
+  // direction, which fragments every overload set and every comparison for no
+  // enforcement gained. Read-only is spelled by picking View over Span, not by
+  // qualifying the element type; the const belongs on the object instead.
+  static_assert(not std::is_const<Type>::value,
+                "View is already read-only: use View<T>, not View<T const>");
+  // volatile is excluded for a duller reason: comparable below tests Type
+  // directly, and std::is_arithmetic is false for a volatile type, so a
+  // volatile element type would quietly cost the comparison members. No
+  // sequence data in vsearch is volatile.
+  static_assert(not std::is_volatile<Type>::value,
+                "View's element type must not be volatile");
+
 public:
   // Empty view (null pointer, zero length) via the in-class member initializers;
   // the explicit constructor below otherwise suppresses the implicit default.
@@ -225,11 +240,11 @@ public:
   }
 
 private:
-  // Predicate behind the comparison members' static_assert above. remove_cv is
-  // needed because std::is_arithmetic<char const> is false, and View<Type const>
-  // is an ordinary instantiation that must stay comparable.
-  static constexpr bool comparable =
-    std::is_arithmetic<typename std::remove_cv<Type>::type>::value;
+  // Predicate behind the comparison members' static_assert above. Type needs
+  // no stripping, unlike Span's counterpart: the assertions at the top of the
+  // class reject a cv-qualified element type outright, so std::is_arithmetic
+  // sees the bare type and answers about the type the caller actually meant.
+  static constexpr bool comparable = std::is_arithmetic<Type>::value;
 
   Type const * start_ {};
   std::size_t  length_ {};

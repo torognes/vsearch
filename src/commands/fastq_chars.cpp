@@ -89,7 +89,7 @@ namespace {
   enum struct FastqEncoding : unsigned char {
     sanger,        // Original Sanger,  Phred+33
     illumina_1_8,  // Illumina 1.8+,    Phred+33
-    solexa,        // Solexa,           Phred+64
+    solexa,        // Solexa,           Solexa+64 (not Phred; see fastq(5))
     illumina_1_3,  // Illumina 1.3+,    Phred+64
     illumina_1_5,  // Illumina 1.5+,    Phred+64
   };
@@ -246,7 +246,12 @@ namespace {
         fprint(output_stream, "Guess: Illumina 1.8+ format (phred+33)\n");
         break;
       case FastqEncoding::solexa:
-        fprint(output_stream, "Guess: Solexa format (phred+64)\n");
+        /* solexa+64, not phred+64: the offset is shared with Illumina 1.3+,
+           the score definition is not. A Solexa score is -10 log10(p / (1 - p))
+           and vsearch has only the Phred formula, so the options suggested
+           above will read the file but overstate the error probability at low
+           scores (see the fastq(5) manual page) */
+        fprint(output_stream, "Guess: Solexa format (solexa+64, not supported)\n");
         break;
       case FastqEncoding::illumina_1_3:
         fprint(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");

@@ -230,7 +230,6 @@ struct mergepairs_cli_state_s
   uint64_t sum_errors_fwd = 0;
   uint64_t sum_errors_rev = 0;
 
-  uint64_t failed_undefined = 0;
   uint64_t failed_minlen = 0;
   uint64_t failed_maxlen = 0;
   uint64_t failed_maxns = 0;
@@ -238,7 +237,6 @@ struct mergepairs_cli_state_s
   uint64_t failed_maxdiffs = 0;
   uint64_t failed_maxdiffpct = 0;
   uint64_t failed_staggered = 0;
-  uint64_t failed_indel = 0;
   uint64_t failed_repeat = 0;
   uint64_t failed_minmergelen = 0;
   uint64_t failed_maxmergelen = 0;
@@ -347,10 +345,12 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
 {
   switch (a_read_pair.reason)
     {
+    /* neither reason has a counter. A pair only keeps 'undefined' when a
+       cooperative abort made process() return before it could set a reason,
+       and pair_all() then fatal()s before print_stats() is ever reached, so
+       the count had no reader; 'ok' never was a failure. Both cases stay for
+       -Wswitch, grouped so they are not two identical branches. */
     case Reason::undefined:
-      ++state.failed_undefined;
-      break;
-
     case Reason::ok:
       break;
 
@@ -382,8 +382,10 @@ auto discard(struct mergepairs_cli_state_s & state, merge_data_t const & a_read_
       ++state.failed_staggered;
       break;
 
+    /* no counter: nothing ever assigns Reason::indel. It arrived unassigned
+       with the ungapped local alignment (2017), which cannot detect an indel;
+       that case is folded into Reason::minscore. The case stays for -Wswitch. */
     case Reason::indel:
-      ++state.failed_indel;
       break;
 
     case Reason::repeat:
@@ -883,12 +885,6 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
       fprint(output_handle, "\nPairs that failed merging due to various reasons:\n");
     }
 
-  if (state.failed_undefined != 0U)
-    {
-      fprint_integer(output_handle, state.failed_undefined, 10);
-      fprint(output_handle, "  undefined reason\n");
-    }
-
   if (state.failed_minlen != 0U)
     {
       fprint_integer(output_handle, state.failed_minlen, 10);
@@ -965,12 +961,6 @@ auto print_stats(struct mergepairs_cli_state_s const & state, std::FILE * output
     {
       fprint_integer(output_handle, state.failed_staggered, 10);
       fprint(output_handle, "  staggered read pairs\n");
-    }
-
-  if (state.failed_indel != 0U)
-    {
-      fprint_integer(output_handle, state.failed_indel, 10);
-      fprint(output_handle, "  indel errors\n");
     }
 
   fprint(output_handle, '\n');

@@ -1,4 +1,4 @@
-`--fastq_qmax` *positive integer*
+`--fastq_qmax` *integer*
 : Specify the maximal quality score accepted when reading fastq
   sequences. Stop with an error message if a quality score higher than
   the specified value is read. The offset (see `--fastq_ascii`) plus

@@ -37,6 +37,13 @@ Guess: -fastq_qmin 12 -fastq_qmax 40 -fastq_ascii 33
 Guess: Original Sanger format (phred+33)
 ```
 
+A file detected as Solexa is reported as `solexa+64, not supported`:
+that format shares the offset 64 with Illumina 1.3+ but defines its
+scores differently, and vsearch has only the Phred formula (see
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)). The suggested
+`--fastq_qmin` and `--fastq_ascii` values will read such a file, but the
+error probabilities derived from it will be too large at low scores.
+
 For each sequence symbol, `--fastq_chars` gives the number of
 occurrences of the symbol, its relative frequency, and the number of
 consecutive repetitions after the first occurrence in the longest run

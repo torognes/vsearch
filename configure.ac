@@ -112,6 +112,23 @@ AC_ARG_ENABLE([debug],
 # Define AM_CONDITIONAL for debug
 AM_CONDITIONAL([ENABLE_DEBUG], [test "x$enable_debug" = "xyes"])
 
+
+# Check for --enable-sanitize option
+AC_ARG_ENABLE([sanitize],
+  [AS_HELP_STRING([--enable-sanitize],
+                  [Enable the address and undefined-behaviour sanitizers (native builds only; independent of --enable-debug)])],
+  [enable_sanitize=$enableval],
+  [enable_sanitize=no])
+
+# The sanitizer runtimes come with the native toolchain, and the Windows
+# target links -static, which AddressSanitizer does not support. Refuse the
+# combination here rather than at link time.
+AS_IF([test "x$enable_sanitize" = "xyes" && test "x$cross_compiling" = "xyes"],
+      [AC_MSG_ERROR([--enable-sanitize is not supported for cross builds])])
+
+# Define AM_CONDITIONAL for sanitize
+AM_CONDITIONAL([ENABLE_SANITIZE], [test "x$enable_sanitize" = "xyes"])
+
 have_man_html=no
 
 case $target in

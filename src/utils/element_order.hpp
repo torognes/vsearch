@@ -61,6 +61,10 @@
 #pragma once
 
 
+#include <limits>  // std::numeric_limits
+#include <type_traits>  // std::remove_cv
+
+
 // How View and Span order their elements.
 //
 // The primary template defers to the element type's own operator<, which is
@@ -87,7 +91,7 @@
 // and are left to the primary template, the same line std::char_traits draws.
 
 template <typename Type>
-struct element_order {
+struct element_order_unqualified {
   static constexpr auto less(Type const & lhs, Type const & rhs) -> bool {
     return lhs < rhs;
   }
@@ -109,7 +113,7 @@ struct element_order {
 // noexcept comparison members bottom out in (see span.hpp), so the guarantee
 // is honest all the way down for the one specialization that matters.
 template <>
-struct element_order<char> {
+struct element_order_unqualified<char> {
   static constexpr auto less(char const lhs, char const rhs) noexcept -> bool {
     return static_cast<unsigned char>(lhs) < static_cast<unsigned char>(rhs);
   }
@@ -124,8 +128,45 @@ struct element_order<char> {
   }
 };
 
+// The entry point Span and View actually use, keyed on the cv-unqualified
+// element type. The stripping is what keeps Span<char const> and
+// View<char const> -- spellings both class templates accept, see comparable
+// in span.hpp -- ordering their bytes as unsigned char. Without it those
+// instantiations miss the specialization above and fall through to the primary
+// template, which is the very divergence from std::strcmp that the
+// specialization exists to prevent: 'A' < '\xc3' comes out false where char is
+// signed, true where it is unsigned, and true for Span<char> on both.
+//
+// An alias rather than a class template deriving from the implementation: it
+// adds no base class, and it makes the wrong extension point a compile error,
+// since a future specialization cannot be written on an alias template and has
+// to go on element_order_unqualified where the stripping still reaches it.
+template <typename Type>
+using element_order =
+  element_order_unqualified<typename std::remove_cv<Type>::type>;
+
+// Guards for the paragraph above; constexpr less() makes them free. Wrapped in
+// a struct so that the byte constant does not reach the global namespace of
+// every TU that includes this header, for the reason spelled out for
+// max_ptrdiff in span.hpp.
+struct element_order_guards {
+  // The byte 'A' is ordered against, spelled as unsigned char's maximum rather
+  // than as a literal so that it means "high bit set" on every target: it is
+  // negative where char is signed (x86-64, Windows) and positive where it is
+  // unsigned (ARM and PowerPC Linux), and both assertions hold either way.
+  static constexpr char high_bit_byte =
+    static_cast<char>(std::numeric_limits<unsigned char>::max());
+  static_assert(element_order<char>::less('A', high_bit_byte),
+                "Span<char> and View<char> must order bytes as unsigned char");
+  static_assert(element_order<char const>::less('A', high_bit_byte),
+                "a cv-qualified element type must order like a bare one");
+};
+
 
 // Functor wrapper, for the std algorithms that take a comparison object.
+//
+// No stripping of its own: it routes through element_order above, so
+// element_less<char const> already compares like element_less<char>.
 template <typename Type>
 struct element_less {
   auto operator()(Type const & lhs, Type const & rhs) const -> bool {

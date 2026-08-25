@@ -63,10 +63,32 @@ offset is set with `--fastq_ascii` (default 33):
   accepts scores from 0 to 41 by default (`--fastq_qmin` and
   `--fastq_qmax`).
 
-- **phred+64** (offset 64): Solexa, Illumina 1.3+, and Illumina 1.5+
-  formats. Valid quality characters range from '@' (Q=0) to '~' (Q=62);
-  negative Solexa scores (down to -31, e.g. ';' for the historical -5)
-  are representable by lowering `--fastq_qmin`.
+- **phred+64** (offset 64): Illumina 1.3+ and Illumina 1.5+ formats.
+  Valid quality characters range from '@' (Q=0) to '~' (Q=62).
+
+The older Solexa/Illumina 1.0 format shares the offset 64 but not the
+score definition, and **vsearch does not support it**. A Solexa score is
+`Q = -10 log10(p / (1 - p))`, not the Phred `Q = -10 log10(p)`, and in
+the Illumina 1.0 pipeline it ranges from -5 to 40 (';' to 'h'). vsearch
+always applies the Phred formula, so a Solexa quality string is read as
+if it were a Phred one: the error probability comes out 1.3 times too
+large at Q=5, 2 times at Q=0, and 4.2 times at Q=-5, where the Phred
+formula returns 3.16 --- not a probability at all. The two definitions
+converge as the score rises (3% apart at Q=15, 1% at Q=20, 0.1% at
+Q=30), so only the low scores are affected, but those are the ones a
+quality filter acts on. Convert such files to phred+33 with a dedicated
+tool before feeding them to vsearch.
+
+The characters themselves are not rejected. Scores below zero are
+representable down to -31 by lowering `--fastq_qmin` (the offset plus
+the minimum must stay at 33 or more), and `--fastq_chars` diagnoses a
+Solexa file correctly. What the commands then do with a negative score
+differs: `--fastq_convert` clamps it to `--fastq_qminout` (0 by
+default); `--fastq_eestats` and `--fastq_eestats2` raise it to 0;
+`--fastq_mergepairs` and `--fastx_uniques` treat every score below 2 as
+a blind guess (p = 0.75), and `--fastx_uniques` writes it out as Q=1;
+and `--fastx_filter` discards the whole sequence, since
+`--fastq_minqual` defaults to 0 and may not be negative.
 
 The parser accepts every printable ASCII character (values 33–126) in
 quality strings --- '.' and '-' are ordinary quality symbols (Q=13 and

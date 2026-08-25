@@ -81,7 +81,7 @@
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fclose, std::size_t, std::fread
+#include <cstdio>  // std::FILE, std::fclose, std::fseek, std::size_t, std::fread, SEEK_SET
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <cstring>  // std::memchr, std::strcmp
 #include <iterator> // std::next, std::distance
@@ -460,6 +460,26 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
           /* consider it an empty file or a tiny fasta file, uncompressed */
         }
 
+      /* the magic bytes are authoritative here, so a contradicting
+         decompress option is ignored -- noisily when the option's
+         documented target, stdin, is the input at hand (seekable stdin
+         lands in this branch), since that means the user asserted a
+         format the stream does not have. For named files the manual
+         says the options are "not needed", so a stray one stays a
+         silent no-op: asking for a compressed stdin next to a plain
+         named database is legitimate in one and the same run */
+      if (is_stdin)
+        {
+          if (parameters.opt_gzip_decompress and (input_handle->format != Format::gzip))
+            {
+              vsearch::warn("ignoring --gzip_decompress: stdin is not gzip compressed");
+            }
+          if (parameters.opt_bzip2_decompress and (input_handle->format != Format::bzip))
+            {
+              vsearch::warn("ignoring --bzip2_decompress: stdin is not bzip2 compressed");
+            }
+        }
+
       /* close and reopen to avoid problems with gzip library */
       /* rewind was not enough */
 
@@ -468,6 +488,18 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
       if (input_handle->fp == nullptr)
         {
           fatal(std::string("Unable to open file for reading (")
+                + std::string(filename)
+                + ")");
+        }
+
+      /* the reopened stream must start at byte 0. A named file does, but
+         "-" reopens as a duplicate of stdin, and duplicated descriptors
+         share one file offset, which the buffered magic read above has
+         already advanced -- stdin redirected from a regular file lands
+         here, being seekable, and used to fail or silently read nothing */
+      if (std::fseek(input_handle->fp, 0L, SEEK_SET) != 0)
+        {
+          fatal(std::string("Unable to rewind file after reading magic bytes (")
                 + std::string(filename)
                 + ")");
         }
@@ -554,13 +586,31 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
           if (rest >= magic_gzip.size())
             {
+              /* a pipe other than stdin (process substitution, a named
+                 FIFO) is always read as plain data, so telling the user
+                 to pass a decompress option they may already have given
+                 would only mislead */
+              bool const is_plain_pipe = input_handle->is_pipe and (not is_stdin);
+
               if (has_magic(first, magic_gzip))
                 {
+                  if (is_plain_pipe)
+                    {
+                      fatal("File appears to be gzip compressed. Decompression"
+                            " works only on stdin ('-') or on a named file,"
+                            " not on other pipes");
+                    }
                   fatal("File appears to be gzip compressed. Please use --gzip_decompress");
                 }
 
               if (has_magic(first, magic_bzip))
                 {
+                  if (is_plain_pipe)
+                    {
+                      fatal("File appears to be bzip2 compressed. Decompression"
+                            " works only on stdin ('-') or on a named file,"
+                            " not on other pipes");
+                    }
                   fatal("File appears to be bzip2 compressed. Please use --bzip2_decompress");
                 }
             }

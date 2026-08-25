@@ -100,7 +100,6 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 # next warnings to activate:
-# -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # GCC 14: -Wnrvo (Named Return Value Optimization)
 # -Wold-style-cast is a debug-build flag, and debug builds target
 #   x86_64, where it is verified clean. The __PPC__ and __aarch64__
@@ -118,6 +117,20 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 
 @ENABLE_DEBUG_FALSE@am__append_6 = -DNDEBUG
 
+# Conditionally enable the sanitizers based on ENABLE_SANITIZE
+# (--enable-sanitize). Independent of ENABLE_DEBUG on purpose: the two
+# combine, but the sanitizers are also worth running on an optimized build,
+# which is several times faster than -O0 -D_GLIBCXX_DEBUG and so lets the
+# whole test suite run under them.
+# -fno-omit-frame-pointer: keeps the stack traces in the reports readable.
+# The flags have to reach the link line as well as every compilation. They
+# already do, because automake's CXXLINK expands AM_CXXFLAGS; AM_LDFLAGS
+# states it explicitly rather than relying on that expansion.
+# configure rejects --enable-sanitize for a cross build: the runtimes are a
+# native-toolchain thing, and the Windows target links -static, which
+# AddressSanitizer does not support.
+@ENABLE_SANITIZE_TRUE@am__append_7 = -fsanitize=undefined,address -fno-omit-frame-pointer
+
 # C++-only debug warnings. Keeping these out of AM_CFLAGS avoids the
 # "valid for C++/ObjC++ but not for C" diagnostics that GCC emits for
 # the bundled C sources (md5.c, sha1.c).
@@ -131,12 +144,12 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 # that those are functions. results.cc keeps one flagged cast on
 # purpose: uint64_t -> size_t is a no-op on the 64-bit targets but is
 # retained as an explicit, portable narrowing.
-@ENABLE_DEBUG_TRUE@am__append_7 = -Wcast-qual -Wconversion -Wnon-virtual-dtor -Wold-style-cast \
+@ENABLE_DEBUG_TRUE@am__append_8 = -Wcast-qual -Wconversion -Wnon-virtual-dtor -Wold-style-cast \
 @ENABLE_DEBUG_TRUE@               -Woverloaded-virtual -Wsign-conversion -Wuseless-cast
 
-@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__append_8 = os/macos/system_memory.cc os/macos/system_cpu.cc
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__append_9 = os/freebsd/system_memory.cc os/freebsd/system_cpu.cc
-@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__append_10 = os/linux/system_memory.cc os/linux/system_cpu.cc os/linux/cgroup.cc
+@TARGET_APPLE_TRUE@@TARGET_WIN_FALSE@am__append_9 = os/macos/system_memory.cc os/macos/system_cpu.cc
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_TRUE@@TARGET_WIN_FALSE@am__append_10 = os/freebsd/system_memory.cc os/freebsd/system_cpu.cc
+@TARGET_APPLE_FALSE@@TARGET_FREEBSD_FALSE@@TARGET_WIN_FALSE@am__append_11 = os/linux/system_memory.cc os/linux/system_cpu.cc os/linux/cgroup.cc
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -1433,8 +1446,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = -Wall -Wextra -Wpedantic -Wno-ignored-attributes \
 	$(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6)
-AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions $(am__append_7)
+	$(am__append_4) $(am__append_5) $(am__append_6) \
+	$(am__append_7)
+@ENABLE_SANITIZE_TRUE@AM_LDFLAGS = -fsanitize=undefined,address
+AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions $(am__append_8)
 VSEARCHHEADERS = \
 core/align_simd.hpp \
 commands/allpairs_global.hpp \
@@ -1742,8 +1757,8 @@ commands/version.cpp
 # #ifdef: x86_64 gets the real CPUID probe, every other target gets a noop.
 @TARGET_X86_64_TRUE@VSEARCH_ARCH_SOURCES = arch/x86_64/cpu_features.cpp
 @TARGET_WIN_FALSE@VSEARCH_OS_SOURCES = os/posix/dynlib_loader.cc \
-@TARGET_WIN_FALSE@	os/posix/system.cc $(am__append_8) \
-@TARGET_WIN_FALSE@	$(am__append_9) $(am__append_10)
+@TARGET_WIN_FALSE@	os/posix/system.cc $(am__append_9) \
+@TARGET_WIN_FALSE@	$(am__append_10) $(am__append_11)
 
 # Per-OS sources. Host-OS-specific code lives in one backend per OS family,
 # selected here so the common code stays free of platform #ifdefs: the runtime
@@ -1762,8 +1777,8 @@ commands/version.cpp
 @TARGET_WIN_TRUE@VSEARCH_OS_SOURCES = os/windows/dynlib_loader.cc \
 @TARGET_WIN_TRUE@	os/windows/system.cc \
 @TARGET_WIN_TRUE@	os/windows/system_memory.cc \
-@TARGET_WIN_TRUE@	os/windows/system_cpu.cc $(am__append_8) \
-@TARGET_WIN_TRUE@	$(am__append_9) $(am__append_10)
+@TARGET_WIN_TRUE@	os/windows/system_cpu.cc $(am__append_9) \
+@TARGET_WIN_TRUE@	$(am__append_10) $(am__append_11)
 
 # Executable-only translation units, never compiled into libvsearch_core:
 # vsearch.cc holds main() + the CLI dispatcher, and fatal_exit.cpp holds the
