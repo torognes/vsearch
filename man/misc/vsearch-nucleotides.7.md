@@ -35,7 +35,15 @@ reproduced here in the form of a manpage for ease-of-use:
 | Y      | pyrimidine                    | C or T           | R          |
 | -      | Gap                           |                  |            |
 
-Note that the symbol 'X' (*Masked*) is **not** accepted by vsearch.
+Note that the symbols 'X' (*Masked*) and 'I' (*Inosine*) are **not**
+accepted by vsearch. Neither belongs to the IUPAC set above, and both
+are stripped from input sequences, with a warning. Inosine is left out
+deliberately, and not for want of a mapping: it pairs with all four
+bases, most stably with C, so 'I' is read by some tools as a synonym
+of 'G' (inosine being guanine without its 2-amino group), and by
+others as a universal base equivalent to 'N'. Rather than silently
+pick one of the two, vsearch strips the symbol and reports it.
+
 The gap symbol '-' is listed for completeness only: vsearch *writes*
 it in alignment outputs, but never accepts it in input sequences
 (a fatal error in both fasta and fastq files).
