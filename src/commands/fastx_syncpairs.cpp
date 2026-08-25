@@ -64,17 +64,22 @@
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_handle
+#include "core/seq_record.hpp"  // struct SeqRecord
+#include "utils/cityhash.hpp"  // hash_cityhash64
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // chrmap_no_change()
 #include "utils/open_file.hpp"
 #include "utils/view.hpp"  // View<char>
+#include <algorithm>  // std::equal, std::find_if
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
+#include <iterator>  // std::distance, std::next
+#include <limits>  // std::numeric_limits
 #include <string>
-#include <unordered_map>
-#include <utility>
+#include <utility>  // std::swap
 #include <vector>
 
 
@@ -111,9 +116,101 @@ namespace {
     std::string sequence;
     std::string quality;  // empty when the input is in fasta format
     int64_t abundance = 1;
+    std::size_t key_length = 0;  // the matching key is a prefix of the header
   };
 
-  using read_index = std::unordered_map<std::string, std::size_t>;
+  // Positions of the reverse reads, keyed by their matching key: a flat
+  // open-addressing table (linear probing, power-of-two capacity, doubled at
+  // 50% occupancy) of {key hash, position} slots. The keys themselves are not
+  // stored again -- a probe that matches on the 64-bit hash is verified
+  // against the key-length prefix of the record's stored header -- so a hash
+  // collision costs one extra comparison but can never mispair reads, and
+  // each lookup chases at most one record instead of a chain of map nodes,
+  // each holding a separately allocated key string.
+  class KeyIndex {
+  public:
+    static auto npos() -> std::size_t {
+      return std::numeric_limits<std::size_t>::max();
+    }
+
+    // index the key of the record about to be stored at 'position' in
+    // 'records'; false when an equal key is already indexed (a duplicate
+    // read label)
+    auto insert(View<char> const key, std::size_t const position,
+                std::vector<read_record> const & records) -> bool {
+      grow_if_needed();
+      auto const hash = hash_cityhash64(key);
+      auto slot_number = static_cast<std::size_t>(hash) & mask();
+      while (slots_[slot_number].position_plus_one != 0) {
+        if (matches(slots_[slot_number], hash, key, records)) {
+          return false;
+        }
+        slot_number = (slot_number + 1) & mask();
+      }
+      slots_[slot_number].hash = hash;
+      slots_[slot_number].position_plus_one = position + 1;
+      ++n_entries_;
+      return true;
+    }
+
+    // position in 'records' of the reverse record with an equal key, or npos()
+    auto find(View<char> const key,
+              std::vector<read_record> const & records) const -> std::size_t {
+      auto const hash = hash_cityhash64(key);
+      auto slot_number = static_cast<std::size_t>(hash) & mask();
+      while (slots_[slot_number].position_plus_one != 0) {
+        if (matches(slots_[slot_number], hash, key, records)) {
+          return slots_[slot_number].position_plus_one - 1;
+        }
+        slot_number = (slot_number + 1) & mask();
+      }
+      return npos();
+    }
+
+  private:
+    struct Slot {
+      uint64_t hash;
+      std::size_t position_plus_one;  // 0 marks an empty slot
+    };
+
+    static constexpr std::size_t initial_n_slots = 1024;  // any power of two
+
+    auto mask() const -> std::size_t { return slots_.size() - 1; }
+
+    static auto matches(Slot const & slot, uint64_t const hash,
+                        View<char> const key,
+                        std::vector<read_record> const & records) -> bool {
+      if (slot.hash != hash) {
+        return false;
+      }
+      auto const & record = records[slot.position_plus_one - 1];
+      return (record.key_length == key.size()) and
+        std::equal(key.begin(), key.end(), record.header.begin());
+    }
+
+    auto grow_if_needed() -> void {
+      if (2 * (n_entries_ + 1) <= slots_.size()) {
+        return;
+      }
+      // stored hashes make rehashing a plain redistribution: the entries are
+      // pairwise distinct already, so no equality checks are needed
+      std::vector<Slot> old_slots(2 * slots_.size());
+      std::swap(old_slots, slots_);
+      for (auto const & slot : old_slots) {
+        if (slot.position_plus_one == 0) {
+          continue;
+        }
+        auto slot_number = static_cast<std::size_t>(slot.hash) & mask();
+        while (slots_[slot_number].position_plus_one != 0) {
+          slot_number = (slot_number + 1) & mask();
+        }
+        slots_[slot_number] = slot;
+      }
+    }
+
+    std::vector<Slot> slots_ = std::vector<Slot>(initial_n_slots);
+    std::size_t n_entries_ = 0;
+  };
 
 
   auto check_parameters(struct Parameters const & parameters) -> void {
@@ -181,20 +278,21 @@ namespace {
   // headers carry the mate number as a "/1" or "/2" suffix, removed here
   // when its separator belongs to the configured set.
   auto matching_key(View<char> const header,
-                    std::string const & separators) -> std::string {
-    std::string key {header.begin(), header.end()};
-
-    auto const blank = key.find_first_of(" \t");
-    if (blank != std::string::npos) {
-      key.resize(blank);
-    }
+                    std::string const & separators) -> View<char> {
+    auto const * const blank =
+      std::find_if(header.begin(), header.end(),
+                   [](char const symbol) -> bool {
+                     return (symbol == ' ') or (symbol == '\t');
+                   });
+    auto key = header.first(
+      static_cast<std::size_t>(std::distance(header.begin(), blank)));
 
     if (key.size() >= 2) {
-      auto const last = key.back();
-      auto const separator = key[key.size() - 2];
+      auto const last = *std::next(key.begin(), static_cast<std::ptrdiff_t>(key.size()) - 1);
+      auto const separator = *std::next(key.begin(), static_cast<std::ptrdiff_t>(key.size()) - 2);
       if (((last == '1') or (last == '2')) and
           (separators.find(separator) != std::string::npos)) {
-        key.resize(key.size() - 2);
+        key = key.first(key.size() - 2);
       }
     }
 
@@ -202,7 +300,8 @@ namespace {
   }
 
 
-  auto store_record(fastx_handle handle, bool const is_fastq) -> read_record {
+  auto store_record(fastx_handle handle, bool const is_fastq,
+                    std::size_t const key_length) -> read_record {
     read_record record;
     auto const stored = handle->record();
     record.header.assign(stored.header.begin(), stored.header.end());
@@ -211,7 +310,25 @@ namespace {
       record.quality.assign(stored.quality.begin(), stored.quality.end());
     }
     record.abundance = handle->get_abundance();
+    record.key_length = key_length;
     return record;
+  }
+
+
+  // write a record straight from its views (a reader's record() or a stored
+  // record's fields), so a forward read needs no intermediate copy
+  auto write_record(output_pair const & destination,
+                    SeqRecord const & record,
+                    OutputAnnotations const & annotations,
+                    struct Parameters const & parameters) -> void {
+    if (destination.fastq.handle != nullptr) {
+      fastq_print_general(destination.fastq.handle.get(),
+                          record, annotations, parameters);
+    }
+    if (destination.fasta.handle != nullptr) {
+      fasta_print_general(destination.fasta.handle.get(),
+                          nullptr, record, annotations, parameters);
+    }
   }
 
 
@@ -219,24 +336,12 @@ namespace {
                     read_record const & record,
                     int64_t const ordinal,
                     struct Parameters const & parameters) -> void {
-    auto const sequence = make_view(record.sequence);
-    auto const header = make_view(record.header);
-    if (destination.fastq.handle != nullptr) {
-      fastq_print_general(destination.fastq.handle.get(),
-                          sequence,
-                          header,
-                          make_view(record.quality),
-                          OutputAnnotations{static_cast<uint64_t>(record.abundance), ordinal},
-                          parameters);
-    }
-    if (destination.fasta.handle != nullptr) {
-      fasta_print_general(destination.fasta.handle.get(),
-                          nullptr,
-                          sequence,
-                          header,
-                          OutputAnnotations{static_cast<uint64_t>(record.abundance), ordinal},
-                          parameters);
-    }
+    write_record(destination,
+                 SeqRecord{make_view(record.header),
+                           make_view(record.sequence),
+                           make_view(record.quality),},
+                 OutputAnnotations{static_cast<uint64_t>(record.abundance), ordinal},
+                 parameters);
   }
 
 
@@ -246,17 +351,16 @@ namespace {
                      bool const is_fastq,
                      std::string const & separators,
                      std::vector<read_record> & records,
-                     read_index & index,
+                     KeyIndex & index,
                      struct Parameters const & parameters) -> void {
     Progress progress("Indexing reverse reads", reverse_handle->get_size(), parameters);
     while (reverse_handle->next(false, chrmap_no_change())) {
-      auto key = matching_key(reverse_handle->header_view(), separators);
+      auto const key = matching_key(reverse_handle->header_view(), separators);
       auto const position = records.size();
-      auto const inserted = index.emplace(std::move(key), position);
-      if (not inserted.second) {
+      if (not index.insert(key, position, records)) {
         fatal("Duplicate read label in reverse file");
       }
-      records.push_back(store_record(reverse_handle, is_fastq));
+      records.push_back(store_record(reverse_handle, is_fastq, key.size()));
       progress.update(reverse_handle->get_position());
     }
   }
@@ -316,7 +420,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
   /* index the reverse file (read once, kept in memory) */
 
   std::vector<read_record> reverse_records;
-  read_index reverse_index;
+  KeyIndex reverse_index;
   index_reverse(reverse_handle.get(), is_fastq, separators, reverse_records, reverse_index, parameters);
 
   /* stream the forward file, emitting synced pairs in forward order */
@@ -329,14 +433,15 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
     Progress progress("Synchronizing reads", forward_handle->get_size(), parameters);
     while (forward_handle->next(false, chrmap_no_change())) {
       auto const key = matching_key(forward_handle->header_view(), separators);
-      auto const match = reverse_index.find(key);
-      if (match == reverse_index.end()) {
-        write_record(outfiles.orphans_fwd, store_record(forward_handle.get(), is_fastq),
-                     static_cast<int64_t>(orphans_fwd + 1), parameters);
+      auto const position = reverse_index.find(key, reverse_records);
+      if (position == KeyIndex::npos()) {
+        write_record(outfiles.orphans_fwd, forward_handle->record(),
+                     OutputAnnotations{static_cast<uint64_t>(forward_handle->get_abundance()),
+                                       static_cast<int64_t>(orphans_fwd + 1)},
+                     parameters);
         ++orphans_fwd;
       }
       else {
-        auto const position = match->second;
         // a reverse read already claimed by an earlier forward read means
         // two forward reads share the same matching key: the pairing is
         // ambiguous. Forward orphans that share a key are harmless and are
@@ -346,8 +451,10 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
         }
         reverse_used[position] = true;
         ++pairs;
-        write_record(outfiles.synced_fwd, store_record(forward_handle.get(), is_fastq),
-                     static_cast<int64_t>(pairs), parameters);
+        write_record(outfiles.synced_fwd, forward_handle->record(),
+                     OutputAnnotations{static_cast<uint64_t>(forward_handle->get_abundance()),
+                                       static_cast<int64_t>(pairs)},
+                     parameters);
         write_record(outfiles.synced_rev, reverse_records[position],
                      static_cast<int64_t>(pairs), parameters);
       }
