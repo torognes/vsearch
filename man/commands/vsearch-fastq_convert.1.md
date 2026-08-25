@@ -18,7 +18,10 @@ The vsearch command `--fastq_convert` converts a fastq file from one
 quality-score encoding to another. The input encoding is specified with
 `--fastq_ascii` (default: 33) and the output encoding with
 `--fastq_asciiout` (default: 33). Both accept the values 33 (phred+33,
-Sanger/Illumina 1.8+) and 64 (phred+64, Solexa/Illumina 1.3+/1.5+).
+Sanger/Illumina 1.8+) and 64 (phred+64, Illumina 1.3+/1.5+). The older
+Solexa/Illumina 1.0 format shares the offset 64 but defines its scores
+differently, and is not supported (see
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)).
 
 Quality scores are remapped during conversion. Output scores are
 always clamped to the range set by `--fastq_qminout` and
