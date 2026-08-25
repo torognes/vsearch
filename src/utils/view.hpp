@@ -80,6 +80,15 @@
 
 template <typename Type = char>
 class View {
+  // A View is read-only whatever Type is, since it stores a Type const *, so
+  // View<char const> would be a second name for View<char>: same layout, same
+  // data() type, same behaviour -- but a distinct type, convertible to neither
+  // direction, which fragments every overload set and every comparison for no
+  // enforcement gained. Read-only is spelled by picking View over Span, not by
+  // qualifying the element type; the const belongs on the object instead.
+  static_assert(not std::is_const<Type>::value,
+                "View is already read-only: use View<T>, not View<T const>");
+
 public:
   // Empty view (null pointer, zero length) via the in-class member initializers;
   // the explicit constructor below otherwise suppresses the implicit default.
