@@ -89,6 +89,7 @@
 #include <string>  // std::string
 #include <sys/stat.h>
 #include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 
