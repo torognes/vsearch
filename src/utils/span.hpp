@@ -99,7 +99,15 @@ public:
     assert(length <= max_ptrdiff);
   }
 
-  // Conversion to the read-only View<Type> over the same extent. This is the
+  // The read-only counterpart of this span's element type. The qualifiers come
+  // off because View already stores a Type const * and rejects a const Type
+  // outright (see view.hpp): the read-only view of a Span<char> and of a
+  // Span<char const> is one and the same View<char>. The stripping is the
+  // identity for every span vsearch instantiates, all of which have a bare
+  // element type.
+  using view_type = View<typename std::remove_cv<Type>::type>;
+
+  // Conversion to the read-only view over the same extent. This is the
   // only direction that is sound: it adds a restriction (drops the permission
   // to write) and can never invent access that the Span did not already hold.
   // There is deliberately no View-to-Span conversion, because that direction
@@ -109,8 +117,8 @@ public:
   // is a narrowing of intent that the call site should spell out, via
   // static_cast<View<Type>>(span) or View<Type>{span}. An implicit conversion
   // would also make an overload pair on Span<T>/View<T> silently ambiguous.
-  explicit operator View<Type>() const noexcept {
-    return View<Type>{start_, length_};
+  explicit operator view_type() const noexcept {
+    return view_type{start_, length_};
   }
 
   // Operators
