@@ -69,7 +69,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/random.hpp"
-#include <algorithm>  // std::count_if, std::fill, std::min
+#include <algorithm>  // std::count_if, std::min, std::transform
 #include <cassert>
 #include <cmath>  // std::floor
 #include <cstdint>  // int64_t
@@ -192,14 +192,14 @@ auto write_original_stats(std::vector<uint64_t> const & deck,
     fprint(stderr, "Got ");
     fprint_integer(stderr, mass_total);
     fprint(stderr, " reads from ");
-    fprint_integer(stderr, static_cast<int>(deck.size()));
+    fprint_integer(stderr, deck.size());
     fprint(stderr, " amplicons\n");
   }
   if (parameters.fp_log != nullptr) {
     fprint(parameters.fp_log, "Got ");
     fprint_integer(parameters.fp_log, mass_total);
     fprint(parameters.fp_log, " reads from ");
-    fprint_integer(parameters.fp_log, static_cast<int>(deck.size()));
+    fprint_integer(parameters.fp_log, deck.size());
     fprint(parameters.fp_log, " amplicons\n");
   }
 }
@@ -218,8 +218,8 @@ auto number_of_reads_to_sample(struct Parameters const & parameters,
 auto write_subsampling_stats(std::vector<uint64_t> const &deck,
                              uint64_t const n_reads,
                              struct Parameters const & parameters) -> void {
-  int const samples = static_cast<int>(std::count_if(deck.begin(),
-                                    deck.end(), [](uint64_t const abundance) -> bool { return abundance != 0; }));
+  auto const samples = std::count_if(deck.begin(), deck.end(),
+                                     [](uint64_t const abundance) -> bool { return abundance != 0; });
   if (not parameters.opt_quiet) {
     fprint(stderr, "Subsampled ");
     fprint_integer(stderr, n_reads);
@@ -316,7 +316,7 @@ auto writing_fasta_output(std::vector<uint64_t> const & deck,
   if (fasta_file.name == nullptr) {
     return;
   }
-  int amplicons_printed = 0;
+  int64_t amplicons_printed = 0;
   Progress progress("Writing fasta output", deck.size(), parameters);
   auto counter = 0U;
   for (auto const abundance_value : deck) {
@@ -344,7 +344,7 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
   if (fastq_file.name == nullptr) {
     return;
   }
-  int amplicons_printed = 0;
+  int64_t amplicons_printed = 0;
   Progress progress("Writing fastq output", deck.size(), parameters);
   auto counter = 0U;
   for (auto const abundance_value : deck) {
@@ -392,8 +392,7 @@ auto subsample(struct Parameters const & parameters) -> void {
   // subsampling
   auto const original_abundances = create_deck(parameters.opt_sizein, db);
   auto const mass_total = std::accumulate(original_abundances.cbegin(), original_abundances.cend(), uint64_t{0});
-  auto subsampled_abundances = original_abundances;
-  std::fill(subsampled_abundances.begin(), subsampled_abundances.end(), 0);  // temporary fix: reset vector to zero
+  std::vector<uint64_t> subsampled_abundances(original_abundances.size(), 0);
 
   write_original_stats(original_abundances, mass_total, parameters);  // refactoring: move up?
 
