@@ -62,7 +62,7 @@
 #include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "core/mask.hpp"  // Masking
 #include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
-#include <algorithm>  // std::min, std::fill_n
+#include <algorithm>  // std::min, std::fill, std::fill_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
 
@@ -160,6 +160,87 @@ auto Uniquer::count_bitmap(int const wordlength,
 }
 
 
+auto Uniquer::count_stamps(int const wordlength,
+                           View<char> const seq,
+                           Masking const seqmask) -> View<unsigned int>
+{
+  /* if necessary, grow the list of unique kmers (at most seq.size() entries) */
+
+  if (list_.size() < seq.size())
+    {
+      list_.resize(seq.size());
+    }
+
+  uint64_t const size = 1ULL << (static_cast<uint64_t>(wordlength) << 1ULL);
+
+  /* One stamp per possible kmer; a kmer was seen in THIS call iff its stamp
+     equals the current epoch, so bumping the epoch invalidates the whole
+     table at once and nothing is cleared between calls. The table is zeroed
+     when (re)grown and when the 16-bit epoch wraps around, i.e. every 65535
+     calls -- amortized to a fraction of one entry per kmer scanned. */
+  if (stamp_of_kmer_.size() < size)
+    {
+      stamp_of_kmer_.assign(size, 0);
+      epoch_ = 0;
+    }
+  ++epoch_;
+  if (epoch_ == 0)
+    {
+      std::fill(stamp_of_kmer_.begin(), stamp_of_kmer_.end(), static_cast<uint16_t>(0));
+      epoch_ = 1;
+    }
+
+  uint64_t bad = 0;
+  uint64_t kmer = 0;
+  uint64_t const mask = size - 1ULL;
+  /* see count_bitmap: the leading wordlength - 1 bases only prime the kmer */
+  auto const primer_length = std::min(static_cast<std::size_t>(wordlength - 1), seq.size());
+
+  auto const * mask_map = (seqmask != Masking::none) ?
+    chrmap_mask_lower() : chrmap_mask_ambig();
+  auto const * two_bit_map = chrmap_2bit();
+
+  auto * const stamps = stamp_of_kmer_.data();
+  auto * const list_data = list_.data();
+  auto const epoch = epoch_;
+
+  for (auto const nucleotide : seq.first(primer_length))
+    {
+      bad <<= 2ULL;
+      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+
+      kmer <<= 2ULL;
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+    }
+
+  auto unique = 0;
+
+  for (auto const nucleotide : seq.drop(primer_length))
+    {
+      bad <<= 2ULL;
+      bad |= mask_map[static_cast<unsigned char>(nucleotide)];
+      bad &= mask;
+
+      kmer <<= 2ULL;
+      kmer |= two_bit_map[static_cast<unsigned char>(nucleotide)];
+      kmer &= mask;
+
+      if (bad == 0U)
+        {
+          if (stamps[kmer] != epoch)
+            {
+              /* not seen before */
+              stamps[kmer] = epoch;
+              list_data[unique] = static_cast<unsigned int>(kmer);
+              ++unique;
+            }
+        }
+    }
+
+  return View<unsigned int>{list_data, static_cast<std::size_t>(unique)};
+}
+
+
 auto Uniquer::count_hash(int const wordlength,
                          View<char> const seq,
                          Masking const seqmask) -> View<unsigned int>
@@ -249,13 +330,27 @@ auto Uniquer::count_hash(int const wordlength,
 }
 
 
+/* Dispatch by table size. Up to wordlength 9 the one-bit-per-kmer bitmap is
+   at most 32 KiB and is recleared on every call. Up to wordlength 12 the
+   stamp table is at most 32 MiB: too large to clear per call, but the epoch
+   trick never clears it, and a direct lookup beats hashing every kmer
+   occurrence (the CityHash call and probe were a fifth of --orient's
+   runtime, whose default word length is 12). Beyond that the table would
+   grow four-fold per unit of word length, so the hash takes over. */
+constexpr auto max_bitmap_wordlength = 9;
+constexpr auto max_stamps_wordlength = 12;
+
 auto Uniquer::count(int const wordlength,
                     View<char> const seq,
                     Masking const seqmask) -> View<unsigned int>
 {
-  if (wordlength < 10)
+  if (wordlength <= max_bitmap_wordlength)
     {
       return count_bitmap(wordlength, seq, seqmask);
+    }
+  if (wordlength <= max_stamps_wordlength)
+    {
+      return count_stamps(wordlength, seq, seqmask);
     }
   return count_hash(wordlength, seq, seqmask);
 }
@@ -264,11 +359,12 @@ auto Uniquer::count(int const wordlength,
 auto Uniquer::count_shared(int const wordlength,
                            View<unsigned int> const list) const noexcept -> unsigned int
 {
-  /* counts how many of the kmers in list are present in the
-     (already computed) hash or bitmap */
+  /* counts how many of the kmers in list are present in the (already
+     computed) bitmap, stamp table or hash -- picked by the same word-length
+     thresholds as count() above */
 
   auto count = 0U;
-  if (wordlength < 10)
+  if (wordlength <= max_bitmap_wordlength)
     {
       auto const * const bitmap = bitmap_.data();
       for (auto const kmer : list)
@@ -276,6 +372,17 @@ auto Uniquer::count_shared(int const wordlength,
           uint64_t const x = kmer >> 6ULL;
           uint64_t const y = 1ULL << (kmer & 63ULL);
           if ((bitmap[x] & y) != 0U)
+            {
+              ++count;
+            }
+        }
+    }
+  else if (wordlength <= max_stamps_wordlength)
+    {
+      auto const * const stamps = stamp_of_kmer_.data();
+      for (auto const kmer : list)
+        {
+          if (stamps[kmer] == epoch_)
             {
               ++count;
             }

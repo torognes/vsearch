@@ -67,8 +67,8 @@
 #include <vector>  // std::vector
 
 /* Finds the unique k-mers (words) in a sequence, reusing its scratch buffers
-   across calls (see unique.cpp for the bitmap and hash variants). Owns those
-   buffers via std::vector (RAII); one instance per thread. */
+   across calls (see unique.cpp for the bitmap, stamp and hash variants). Owns
+   those buffers via std::vector (RAII); one instance per thread. */
 class Uniquer
 {
 public:
@@ -97,6 +97,10 @@ private:
                     View<char> seq,
                     Masking seqmask) -> View<unsigned int>;
 
+  auto count_stamps(int wordlength,
+                    View<char> seq,
+                    Masking seqmask) -> View<unsigned int>;
+
   auto count_hash(int wordlength,
                   View<char> seq,
                   Masking seqmask) -> View<unsigned int>;
@@ -104,5 +108,7 @@ private:
   std::vector<bucket, FatalAllocator<bucket>> hash_;
   std::vector<unsigned int, FatalAllocator<unsigned int>> list_;
   std::vector<uint64_t, FatalAllocator<uint64_t>> bitmap_;
+  std::vector<uint16_t, FatalAllocator<uint16_t>> stamp_of_kmer_;
   unsigned int hash_mask_ {0};
+  uint16_t epoch_ {0};
 };
