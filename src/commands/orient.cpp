@@ -77,6 +77,7 @@
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/print_view.hpp"  // fprint
+#include <array>
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::size_t
@@ -97,6 +98,33 @@
 // 0b101010 -> 0b010101
 // 0b010101 -> 0b101010
 namespace {
+/* reverse complement of the four bases packed in one byte, tabulated once;
+   each entry is produced by rc_kmer's original per-base loop applied to a
+   4-base word, so a lookup is exactly that loop's result */
+auto rc_byte_table() -> std::array<unsigned char, 256> const &
+{
+  static std::array<unsigned char, 256> const table = []() {
+    std::array<unsigned char, 256> values {{}};
+    for (auto byte = 0U; byte < 256U; ++byte)
+      {
+        auto fwd = byte;
+        auto rev = 0U;
+        for (auto rank = 0U; rank < 4U; ++rank)
+          {
+            // compute complement of the last two bits
+            auto const complement_bits = (fwd & 3U) ^ 3U;
+            fwd = fwd >> 2U;
+            rev = rev << 2U;
+            rev |= complement_bits;
+          }
+        values[byte] = static_cast<unsigned char>(rev);
+      }
+    return values;
+  }();
+  return table;
+}
+
+
 auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned int
 {
   /* reverse complement a kmer where k = wordlength */
@@ -106,20 +134,18 @@ auto rc_kmer(unsigned int const kmer, unsigned int const wordlength) -> unsigned
      width overrides the configured one). Query kmers must be extracted at this
      width to match the index; reading parameters.opt_wordlength here would use
      the wrong width against a UDB index (mismatch, out-of-bounds when wider). */
+  assert(wordlength != 0);
   assert(wordlength * 2 <= 32);
-  auto fwd = kmer;
-  auto rev = 0U;
-
-  for (auto i = 0U; i < wordlength; ++i)
-    {
-      // compute complement of the last two bits
-      auto const complement_bits = (fwd & 3U) ^ 3U;
-      fwd = fwd >> 2U;
-      rev = rev << 2U;
-      rev |= complement_bits;
-    }
-
-  return rev;
+  auto const & table = rc_byte_table();
+  /* reverse complement all sixteen 2-bit slots of the 32-bit word, one byte
+     at a time; the empty slots above the kmer come out as low-order 3s and
+     the final shift drops exactly those */
+  auto const rc_full_word =
+      (static_cast<unsigned int>(table[kmer & 0xFFU]) << 24U)
+    | (static_cast<unsigned int>(table[(kmer >> 8U) & 0xFFU]) << 16U)
+    | (static_cast<unsigned int>(table[(kmer >> 16U) & 0xFFU]) << 8U)
+    |  static_cast<unsigned int>(table[kmer >> 24U]);
+  return rc_full_word >> (32U - (2U * wordlength));
 }
 }  // anonymous namespace
 
