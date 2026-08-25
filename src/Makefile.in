@@ -100,7 +100,6 @@ bin_PROGRAMS = $(top_builddir)/bin/vsearch$(EXEEXT)
 
 # Conditionally set NDEBUG based on ENABLE_DEBUG
 # next warnings to activate:
-# -fsanitize=undefined,address (run-time warnings; at first, try one at a time)
 # GCC 14: -Wnrvo (Named Return Value Optimization)
 # -Wold-style-cast is a debug-build flag, and debug builds target
 #   x86_64, where it is verified clean. The __PPC__ and __aarch64__
