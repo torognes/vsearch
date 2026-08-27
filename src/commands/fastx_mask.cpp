@@ -75,6 +75,49 @@
 #include <cstdio>  // std::fprintf
 
 
+namespace {
+
+  /* The three counts travel together and are all the same type, so they are
+     named in a struct rather than passed as three adjacent swappable
+     arguments. No default member initializers: they would make this a
+     non-aggregate before C++14, and the call site brace-initializes it. */
+  struct MaskCounts
+  {
+    int kept;
+    int discarded_less;
+    int discarded_more;
+  };
+
+
+  /* The end-of-run summary, one call per destination instead of the block
+     spelled out once per destination -- including both --min_unmasked_pct and
+     --max_unmasked_pct branches, which is what made it 18 lines twice over.
+     See TBD_20260824_report_destinations.md. */
+  auto print_mask_summary(std::FILE * output_stream,
+                          struct Parameters const & parameters,
+                          MaskCounts const & counts) -> void
+  {
+    if (parameters.opt_min_unmasked_pct > 0.0)
+      {
+        fprint_integer(output_stream, counts.discarded_less);
+        fprint(output_stream, " sequences with less than ");
+        std::fprintf(output_stream, "%.1lf", parameters.opt_min_unmasked_pct);
+        fprint(output_stream, "% unmasked residues discarded\n");
+      }
+    if (parameters.opt_max_unmasked_pct < 100.0)
+      {
+        fprint_integer(output_stream, counts.discarded_more);
+        fprint(output_stream, " sequences with more than ");
+        std::fprintf(output_stream, "%.1lf", parameters.opt_max_unmasked_pct);
+        fprint(output_stream, "% unmasked residues discarded\n");
+      }
+    fprint_integer(output_stream, counts.kept);
+    fprint(output_stream, " sequences kept\n");
+  }
+
+}  // anonymous namespace
+
+
 auto fastx_mask(struct Parameters const & parameters) -> void
 {
   if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
@@ -166,44 +209,16 @@ auto fastx_mask(struct Parameters const & parameters) -> void
       }
   }
 
+  auto const summary = MaskCounts{kept, discarded_less, discarded_more};
+
   if (! parameters.opt_quiet)
     {
-      if (parameters.opt_min_unmasked_pct > 0.0)
-        {
-          fprint_integer(stderr, discarded_less);
-          fprint(stderr, " sequences with less than ");
-          std::fprintf(stderr, "%.1lf", parameters.opt_min_unmasked_pct);
-          fprint(stderr, "% unmasked residues discarded\n");
-        }
-      if (parameters.opt_max_unmasked_pct < 100.0)
-        {
-          fprint_integer(stderr, discarded_more);
-          fprint(stderr, " sequences with more than ");
-          std::fprintf(stderr, "%.1lf", parameters.opt_max_unmasked_pct);
-          fprint(stderr, "% unmasked residues discarded\n");
-        }
-      fprint_integer(stderr, kept);
-      fprint(stderr, " sequences kept\n");
+      print_mask_summary(stderr, parameters, summary);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      if (parameters.opt_min_unmasked_pct > 0.0)
-        {
-          fprint_integer(parameters.fp_log, discarded_less);
-          fprint(parameters.fp_log, " sequences with less than ");
-          std::fprintf(parameters.fp_log, "%.1lf", parameters.opt_min_unmasked_pct);
-          fprint(parameters.fp_log, "% unmasked residues discarded\n");
-        }
-      if (parameters.opt_max_unmasked_pct < 100.0)
-        {
-          fprint_integer(parameters.fp_log, discarded_more);
-          fprint(parameters.fp_log, " sequences with more than ");
-          std::fprintf(parameters.fp_log, "%.1lf", parameters.opt_max_unmasked_pct);
-          fprint(parameters.fp_log, "% unmasked residues discarded\n");
-        }
-      fprint_integer(parameters.fp_log, kept);
-      fprint(parameters.fp_log, " sequences kept\n");
+      print_mask_summary(parameters.fp_log, parameters, summary);
     }
 
   db.clear();
