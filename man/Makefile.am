@@ -1,11 +1,31 @@
-# Makefile for creating PDF manual from man file
+# Makefile for the vsearch manual pages
+#
+# The manual is a set of modular pages: a hub page (vsearch.1, generated
+# from index.1.md) that lists every command, one page per command in
+# section 1, one page per file format in section 5, and one page per
+# reference topic in section 7. They are generated from the markdown
+# sources in this folder by scripts/generate_manpages.sh, which needs
+# pandoc.
+#
+# The generated pages are tracked in git and shipped in release
+# tarballs, exactly as configure and the Makefile.in files are, so
+# building, installing and uninstalling the manual requires no pandoc
+# and no perl. configure looks for pandoc all the same: when it finds
+# one, the rules at the bottom of this file keep each page in step with
+# the markdown source it comes from.
+#
+# The monolithic man/vsearch.1 page these replace is no longer built,
+# installed or distributed; it is kept in the source tree, marked as
+# superseded, until it is removed.
 
-# The modular manual pages are generated from the markdown sources in
-# commands/, formats/ and misc/ by scripts/generate_manpages.sh (which
-# needs pandoc). They are shipped pregenerated in release tarballs, so
-# building from a tarball does not require pandoc; in a git checkout
-# the stamp rule below builds them on demand.
+# $(wildcard) and '%'-style pattern rules below are GNU make extensions.
+# vsearch already requires GNU make (3.82 or later on Linux), and the
+# FreeBSD builds already use gmake, so silence automake's portability
+# warnings about them rather than open-coding sixty rules.
+AUTOMAKE_OPTIONS = -Wno-portability
+
 GENERATED_MANS = \
+  manpages/vsearch.1 \
   manpages/vsearch-allpairs_global.1 \
   manpages/vsearch-chimeras_denovo.1 \
   manpages/vsearch-cigar.5 \
@@ -66,42 +86,53 @@ GENERATED_MANS = \
   manpages/vsearch-userfields.7 \
   manpages/vsearch-version.1
 
-dist_man_MANS = vsearch.1 $(GENERATED_MANS)
+# automake reads the section from the suffix, installs into man1/, man5/
+# and man7/ accordingly, removes the same files on 'make uninstall', and
+# ships them pregenerated in the tarball.
+dist_man_MANS = $(GENERATED_MANS)
 
-$(GENERATED_MANS): manpages.stamp
-	@:
-manpages.stamp:
-	cd $(srcdir) && bash scripts/generate_manpages.sh
-	touch $@
+# The markdown sources are not needed to build the manual, only to
+# regenerate it, but they are what a reader should patch, so they travel
+# with the tarball too. Listed with $(wildcard) rather than by hand: a
+# new command must not need an edit here on top of the one in
+# GENERATED_MANS. 'make dist' is a maintainer operation, and vsearch
+# already requires GNU make.
+MANPAGE_FRAGMENTS = \
+  $(wildcard $(srcdir)/commands/fragments/*.md) \
+  $(wildcard $(srcdir)/formats/fragments/*.md)
 
-MAINTAINERCLEANFILES = manpages.stamp
+EXTRA_DIST = \
+  index.1.md \
+  $(wildcard $(srcdir)/commands/vsearch-*.md) \
+  $(wildcard $(srcdir)/formats/vsearch-*.md) \
+  $(wildcard $(srcdir)/misc/vsearch-*.md) \
+  $(MANPAGE_FRAGMENTS) \
+  scripts/expand_includes.awk \
+  scripts/generate_manpages.sh
 
-doc_DATA =
-CLEANFILES =
+# Regenerate every page, whatever configure decided. This is how a
+# maintainer refreshes the tracked pages after editing the markdown;
+# the script stops with an error if pandoc is missing.
+regenerate-manpages:
+	cd $(srcdir) && $(SHELL) scripts/generate_manpages.sh
 
-if HAVE_MAN_HTML
+.PHONY: regenerate-manpages
 
-doc_DATA += vsearch_manual.html
+if HAVE_PANDOC
 
-vsearch_manual.html : vsearch.1
-	sed -e 's/\\-/-/g' $< | \
-	iconv -f UTF-8 -t ISO-8859-1 | \
-	groff -t -m mandoc -m www -Thtml > $@
+# configure found pandoc, so keep each page in step with its source.
+# One rule per section, because the sources of the three sections live
+# in three different folders.
+manpages/vsearch.1: $(srcdir)/index.1.md $(MANPAGE_FRAGMENTS)
+	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $(srcdir)/index.1.md $@
 
-CLEANFILES += vsearch_manual.html
+manpages/vsearch-%.1: $(srcdir)/commands/vsearch-%.1.md $(MANPAGE_FRAGMENTS)
+	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
 
-endif
+manpages/vsearch-%.5: $(srcdir)/formats/vsearch-%.5.md $(MANPAGE_FRAGMENTS)
+	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
 
-
-if HAVE_PS2PDF
-
-doc_DATA += vsearch_manual.pdf
-
-vsearch_manual.pdf : vsearch.1
-	sed -e 's/\\-/-/g' $< | \
-	iconv -f UTF-8 -t ISO-8859-1 | \
-	groff -W space -t -m mandoc -T ps -P -pa4 | ps2pdf - $@
-
-CLEANFILES += vsearch_manual.pdf
+manpages/vsearch-%.7: $(srcdir)/misc/vsearch-%.7.md $(MANPAGE_FRAGMENTS)
+	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
 
 endif

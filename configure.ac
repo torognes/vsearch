@@ -81,15 +81,18 @@ if test "x${have_zlib}" = "xyes"; then
   AC_CHECK_HEADERS([zlib.h], [], [have_zlib=no])
 fi
 
-have_ps2pdf=no
-AC_ARG_ENABLE(pdfman, AS_HELP_STRING([--disable-pdfman], [Disable PDF manual creation]))
-AS_IF([test "x$enable_pdfman" != "xno"], [
-  have_ps2pdf=yes
-  AC_CHECK_PROG(HAVE_PS2PDF, ps2pdf, yes, no)
-  if test "x$HAVE_PS2PDF" = "xno"; then
-    AC_MSG_WARN([*** ps2pdf is required to build a PDF version of the manual])
-    have_ps2pdf=no
-  fi
+# The modular manual pages in man/manpages/ are generated from the markdown
+# sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. They
+# are tracked in git and shipped in release tarballs, so building, installing
+# and uninstalling them never requires pandoc; when pandoc is present, the
+# Makefile keeps them in step with the markdown sources instead.
+have_pandoc=no
+AC_ARG_ENABLE(manpage-generation,
+  AS_HELP_STRING([--disable-manpage-generation],
+                 [Never regenerate the manual pages from their markdown sources; use the shipped ones as-is]))
+AS_IF([test "x$enable_manpage_generation" != "xno"], [
+  AC_CHECK_PROG(HAVE_PANDOC, pandoc, yes, no)
+  have_pandoc=$HAVE_PANDOC
 ])
 
 
@@ -129,8 +132,6 @@ AS_IF([test "x$enable_sanitize" = "xyes" && test "x$cross_compiling" = "xyes"],
 # Define AM_CONDITIONAL for sanitize
 AM_CONDITIONAL([ENABLE_SANITIZE], [test "x$enable_sanitize" = "xyes"])
 
-have_man_html=no
-
 case $target in
      aarch64*) target_aarch64="yes" ;;
      powerpc64*) target_ppc="yes" ;;
@@ -147,8 +148,7 @@ esac
 
 AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
 
-AM_CONDITIONAL(HAVE_PS2PDF, test "x${have_ps2pdf}" = "xyes")
-AM_CONDITIONAL(HAVE_MAN_HTML, test "x${have_man_html}" = "xyes")
+AM_CONDITIONAL(HAVE_PANDOC, test "x${have_pandoc}" = "xyes")
 AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
 AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")

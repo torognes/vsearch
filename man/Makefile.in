@@ -14,8 +14,25 @@
 
 @SET_MAKE@
 
-# Makefile for creating PDF manual from man file
-
+# Makefile for the vsearch manual pages
+#
+# The manual is a set of modular pages: a hub page (vsearch.1, generated
+# from index.1.md) that lists every command, one page per command in
+# section 1, one page per file format in section 5, and one page per
+# reference topic in section 7. They are generated from the markdown
+# sources in this folder by scripts/generate_manpages.sh, which needs
+# pandoc.
+#
+# The generated pages are tracked in git and shipped in release
+# tarballs, exactly as configure and the Makefile.in files are, so
+# building, installing and uninstalling the manual requires no pandoc
+# and no perl. configure looks for pandoc all the same: when it finds
+# one, the rules at the bottom of this file keep each page in step with
+# the markdown source it comes from.
+#
+# The monolithic man/vsearch.1 page these replace is no longer built,
+# installed or distributed; it is kept in the source tree, marked as
+# superseded, until it is removed.
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -91,10 +108,6 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@HAVE_MAN_HTML_TRUE@am__append_1 = vsearch_manual.html
-@HAVE_MAN_HTML_TRUE@am__append_2 = vsearch_manual.html
-@HAVE_PS2PDF_TRUE@am__append_3 = vsearch_manual.pdf
-@HAVE_PS2PDF_TRUE@am__append_4 = vsearch_manual.pdf
 subdir = man
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -153,12 +166,11 @@ am__uninstall_files_from_dir = { \
   }
 man1dir = $(mandir)/man1
 am__installdirs = "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" \
-	"$(DESTDIR)$(man7dir)" "$(DESTDIR)$(docdir)"
+	"$(DESTDIR)$(man7dir)"
 man5dir = $(mandir)/man5
 man7dir = $(mandir)/man7
 NROFF = nroff
 MANS = $(dist_man_MANS)
-DATA = $(doc_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 am__DIST_COMMON = $(dist_man_MANS) $(srcdir)/Makefile.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -186,7 +198,7 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 ETAGS = @ETAGS@
 EXEEXT = @EXEEXT@
-HAVE_PS2PDF = @HAVE_PS2PDF@
+HAVE_PANDOC = @HAVE_PANDOC@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -271,12 +283,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
-# The modular manual pages are generated from the markdown sources in
-# commands/, formats/ and misc/ by scripts/generate_manpages.sh (which
-# needs pandoc). They are shipped pregenerated in release tarballs, so
-# building from a tarball does not require pandoc; in a git checkout
-# the stamp rule below builds them on demand.
+# $(wildcard) and '%'-style pattern rules below are GNU make extensions.
+# vsearch already requires GNU make (3.82 or later on Linux), and the
+# FreeBSD builds already use gmake, so silence automake's portability
+# warnings about them rather than open-coding sixty rules.
+AUTOMAKE_OPTIONS = -Wno-portability
 GENERATED_MANS = \
+  manpages/vsearch.1 \
   manpages/vsearch-allpairs_global.1 \
   manpages/vsearch-chimeras_denovo.1 \
   manpages/vsearch-cigar.5 \
@@ -337,10 +350,31 @@ GENERATED_MANS = \
   manpages/vsearch-userfields.7 \
   manpages/vsearch-version.1
 
-dist_man_MANS = vsearch.1 $(GENERATED_MANS)
-MAINTAINERCLEANFILES = manpages.stamp
-doc_DATA = $(am__append_1) $(am__append_3)
-CLEANFILES = $(am__append_2) $(am__append_4)
+
+# automake reads the section from the suffix, installs into man1/, man5/
+# and man7/ accordingly, removes the same files on 'make uninstall', and
+# ships them pregenerated in the tarball.
+dist_man_MANS = $(GENERATED_MANS)
+
+# The markdown sources are not needed to build the manual, only to
+# regenerate it, but they are what a reader should patch, so they travel
+# with the tarball too. Listed with $(wildcard) rather than by hand: a
+# new command must not need an edit here on top of the one in
+# GENERATED_MANS. 'make dist' is a maintainer operation, and vsearch
+# already requires GNU make.
+MANPAGE_FRAGMENTS = \
+  $(wildcard $(srcdir)/commands/fragments/*.md) \
+  $(wildcard $(srcdir)/formats/fragments/*.md)
+
+EXTRA_DIST = \
+  index.1.md \
+  $(wildcard $(srcdir)/commands/vsearch-*.md) \
+  $(wildcard $(srcdir)/formats/vsearch-*.md) \
+  $(wildcard $(srcdir)/misc/vsearch-*.md) \
+  $(MANPAGE_FRAGMENTS) \
+  scripts/expand_includes.awk \
+  scripts/generate_manpages.sh
+
 all: all-am
 
 .SUFFIXES:
@@ -502,27 +536,6 @@ uninstall-man7:
 	} | sed -e 's,.*/,,;h;s,.*\.,,;s,^[^7][0-9a-z]*$$,7,;x' \
 	      -e 's,\.[0-9a-z]*$$,,;$(transform);G;s,\n,.,'`; \
 	dir='$(DESTDIR)$(man7dir)'; $(am__uninstall_files_from_dir)
-install-docDATA: $(doc_DATA)
-	@$(NORMAL_INSTALL)
-	@list='$(doc_DATA)'; test -n "$(docdir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(docdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(docdir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; \
-	done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docdir)" || exit $$?; \
-	done
-
-uninstall-docDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(doc_DATA)'; test -n "$(docdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(docdir)'; $(am__uninstall_files_from_dir)
 tags TAGS:
 
 ctags CTAGS:
@@ -564,9 +577,9 @@ distdir-am: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(MANS) $(DATA)
+all-am: Makefile $(MANS)
 installdirs:
-	for dir in "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man7dir)" "$(DESTDIR)$(docdir)"; do \
+	for dir in "$(DESTDIR)$(man1dir)" "$(DESTDIR)$(man5dir)" "$(DESTDIR)$(man7dir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -591,7 +604,6 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
-	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -600,7 +612,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-generic mostlyclean-am
@@ -621,7 +632,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-docDATA install-man
+install-data-am: install-man
 
 install-dvi: install-dvi-am
 
@@ -665,7 +676,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-docDATA uninstall-man
+uninstall-am: uninstall-man
 
 uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7
 
@@ -674,35 +685,41 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7
 .PHONY: all all-am check check-am clean clean-generic cscopelist-am \
 	ctags-am distclean distclean-generic distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
-	install-data-am install-docDATA install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-man1 \
-	install-man5 install-man7 install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
-	pdf-am ps ps-am tags-am uninstall uninstall-am \
-	uninstall-docDATA uninstall-man uninstall-man1 uninstall-man5 \
-	uninstall-man7
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-man1 install-man5 \
+	install-man7 install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags-am \
+	uninstall uninstall-am uninstall-man uninstall-man1 \
+	uninstall-man5 uninstall-man7
 
 .PRECIOUS: Makefile
 
 
-$(GENERATED_MANS): manpages.stamp
-	@:
-manpages.stamp:
-	cd $(srcdir) && bash scripts/generate_manpages.sh
-	touch $@
+# Regenerate every page, whatever configure decided. This is how a
+# maintainer refreshes the tracked pages after editing the markdown;
+# the script stops with an error if pandoc is missing.
+regenerate-manpages:
+	cd $(srcdir) && $(SHELL) scripts/generate_manpages.sh
 
-@HAVE_MAN_HTML_TRUE@vsearch_manual.html : vsearch.1
-@HAVE_MAN_HTML_TRUE@	sed -e 's/\\-/-/g' $< | \
-@HAVE_MAN_HTML_TRUE@	iconv -f UTF-8 -t ISO-8859-1 | \
-@HAVE_MAN_HTML_TRUE@	groff -t -m mandoc -m www -Thtml > $@
+.PHONY: regenerate-manpages
 
-@HAVE_PS2PDF_TRUE@vsearch_manual.pdf : vsearch.1
-@HAVE_PS2PDF_TRUE@	sed -e 's/\\-/-/g' $< | \
-@HAVE_PS2PDF_TRUE@	iconv -f UTF-8 -t ISO-8859-1 | \
-@HAVE_PS2PDF_TRUE@	groff -W space -t -m mandoc -T ps -P -pa4 | ps2pdf - $@
+# configure found pandoc, so keep each page in step with its source.
+# One rule per section, because the sources of the three sections live
+# in three different folders.
+@HAVE_PANDOC_TRUE@manpages/vsearch.1: $(srcdir)/index.1.md $(MANPAGE_FRAGMENTS)
+@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $(srcdir)/index.1.md $@
+
+@HAVE_PANDOC_TRUE@manpages/vsearch-%.1: $(srcdir)/commands/vsearch-%.1.md $(MANPAGE_FRAGMENTS)
+@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+
+@HAVE_PANDOC_TRUE@manpages/vsearch-%.5: $(srcdir)/formats/vsearch-%.5.md $(MANPAGE_FRAGMENTS)
+@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+
+@HAVE_PANDOC_TRUE@manpages/vsearch-%.7: $(srcdir)/misc/vsearch-%.7.md $(MANPAGE_FRAGMENTS)
+@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
