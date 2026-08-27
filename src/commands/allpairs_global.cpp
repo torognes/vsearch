@@ -144,6 +144,27 @@ inline auto allpairs_hit_compare_typed(struct hit const & lhs, struct hit const 
     }
   return 0;
 }
+/* The match count, written to stderr (unless --quiet) and to --log (when
+   open, with one extra newline); the block used to be spelled out once per
+   destination. The state is passed whole rather than its two int counters,
+   which would be two adjacent swappable arguments. See
+   TBD_20260824_report_destinations.md. */
+auto print_match_count(std::FILE * output_stream,
+                       struct allpairs_state_s const & state) -> void
+{
+  fprint(output_stream, "Matching query sequences: ");
+  fprint_integer(output_stream, state.qmatches);
+  fprint(output_stream, " of ");
+  fprint_integer(output_stream, state.queries);
+  if (state.queries > 0)
+    {
+      fprint(output_stream, " (");
+      std::fprintf(output_stream, "%.2f", 100.0 * state.qmatches / state.queries);
+      fprint(output_stream, "%)");
+    }
+  fprint(output_stream, '\n');
+}
+
 }  // anonymous namespace
 
 
@@ -618,32 +639,13 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      fprint(stderr, "Matching query sequences: ");
-      fprint_integer(stderr, qmatches);
-      fprint(stderr, " of ");
-      fprint_integer(stderr, queries);
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * qmatches / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
+      print_match_count(stderr, state);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "Matching query sequences: ");
-      fprint_integer(parameters.fp_log, qmatches);
-      fprint(parameters.fp_log, " of ");
-      fprint_integer(parameters.fp_log, queries);
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * qmatches / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, "\n\n");
+      print_match_count(parameters.fp_log, state);
+      fprint(parameters.fp_log, '\n');
     }
 
   /* clean up, global */
