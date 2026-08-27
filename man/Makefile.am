@@ -63,6 +63,7 @@ GENERATED_MANS = \
   manpages/vsearch-fastx_syncpairs.1 \
   manpages/vsearch-fastx_uniques.1 \
   manpages/vsearch-help.1 \
+  manpages/vsearch-history.7 \
   manpages/vsearch-makeudb_usearch.1 \
   manpages/vsearch-maskfasta.1 \
   manpages/vsearch-nucleotides.7 \
