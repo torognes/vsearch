@@ -263,6 +263,33 @@ namespace {
   // defined further below, in the anonymous namespace
   auto check_parameters(struct Parameters const & parameters) -> void;
 
+
+  /* The three counts travel together and are all int64_t, so they are named
+     in a struct rather than passed as three adjacent swappable arguments.
+     No default member initializers: they would make this a non-aggregate
+     before C++14, and the call sites brace-initialize it. */
+  struct FilterCounts
+  {
+    int64_t kept;
+    int64_t truncated;
+    int64_t discarded;
+  };
+
+
+  /* The end-of-run summary, one call per destination instead of the block
+     spelled out once per destination. See
+     TBD_20260824_report_destinations.md. */
+  auto print_filter_summary(std::FILE * output_stream,
+                            FilterCounts const & counts) -> void
+  {
+    fprint_integer(output_stream, counts.kept);
+    fprint(output_stream, " sequences kept (of which ");
+    fprint_integer(output_stream, counts.truncated);
+    fprint(output_stream, " truncated), ");
+    fprint_integer(output_stream, counts.discarded);
+    fprint(output_stream, " sequences discarded.\n");
+  }
+
 }  // end of anonymous namespace
 
 
@@ -507,24 +534,16 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       fatal("More reverse reads than forward reads");
     }
 
+  auto const summary = FilterCounts{kept, truncated, discarded};
+
   if (not parameters.opt_quiet)
     {
-      fprint_integer(stderr, kept);
-      fprint(stderr, " sequences kept (of which ");
-      fprint_integer(stderr, truncated);
-      fprint(stderr, " truncated), ");
-      fprint_integer(stderr, discarded);
-      fprint(stderr, " sequences discarded.\n");
+      print_filter_summary(stderr, summary);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint_integer(parameters.fp_log, kept);
-      fprint(parameters.fp_log, " sequences kept (of which ");
-      fprint_integer(parameters.fp_log, truncated);
-      fprint(parameters.fp_log, " truncated), ");
-      fprint_integer(parameters.fp_log, discarded);
-      fprint(parameters.fp_log, " sequences discarded.\n");
+      print_filter_summary(parameters.fp_log, summary);
     }
 
   if (reverse_handle != nullptr)
