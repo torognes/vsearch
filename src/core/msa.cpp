@@ -375,6 +375,15 @@ auto compute_and_print_msa(View<struct msa_target_s> const targets,
           // Operations: match (M), insertion (I), or deletion (D)
           char const * next_operation = nullptr;
           auto const runlength = find_runlength_of_leftmost_operation(position_in_cigar, next_operation);
+          /* walk A (find_max_insertions_per_position) has already parsed this
+             same cigar with parse_cigar_string(), which rejects an ill-formed
+             one, so both of these hold by construction. They record that
+             dependency on walk A rather than re-check it: this walk is
+             file-local with a single caller, so a debug-only contract is
+             proportionate where parse_cigar_string(), a shared utility, calls
+             fatal(). */
+          assert(next_operation < cigar_end);  // no missing operation (ex: '12M1')
+          assert(*next_operation == 'M' or *next_operation == 'I' or *next_operation == 'D');
           auto const operation = *next_operation;
           position_in_cigar = std::next(next_operation);
 
