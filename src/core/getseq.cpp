@@ -408,6 +408,37 @@ private:
   std::unordered_set<std::string> exact_labels_;
   std::string probe_;
 };
+  /* The two counts travel together and are both int64_t, so they are named in
+     a struct rather than passed as two adjacent swappable arguments. No
+     default member initializers: they would make this a non-aggregate before
+     C++14, and the two call sites brace-initialize it. */
+  struct ExtractionCounts
+  {
+    int64_t kept;
+    int64_t discarded;
+  };
+
+
+  /* "<kept> of <total> sequences extracted (<pct>%)", one call per
+     destination instead of the block spelled out once per destination. See
+     TBD_20260824_report_destinations.md. */
+  auto print_extracted(std::FILE * output_stream,
+                       ExtractionCounts const counts) -> void
+  {
+    auto const total = counts.kept + counts.discarded;
+    fprint_integer(output_stream, counts.kept);
+    fprint(output_stream, " of ");
+    fprint_integer(output_stream, total);
+    fprint(output_stream, " sequences extracted");
+    if (total > 0)
+      {
+        fprint(output_stream, " (");
+        std::fprintf(output_stream, "%.1lf", 100.0 * static_cast<double>(counts.kept) / static_cast<double>(total));
+        fprint(output_stream, "%)");
+      }
+    fprint(output_stream, '\n');
+  }
+
 }  // anonymous namespace
 
 
@@ -596,32 +627,12 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
   if (not parameters.opt_quiet)
     {
-      fprint_integer(stderr, kept);
-      fprint(stderr, " of ");
-      fprint_integer(stderr, kept + discarded);
-      fprint(stderr, " sequences extracted");
-      if (kept + discarded > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.1lf", 100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
+      print_extracted(stderr, ExtractionCounts{kept, discarded});
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint_integer(parameters.fp_log, kept);
-      fprint(parameters.fp_log, " of ");
-      fprint_integer(parameters.fp_log, kept + discarded);
-      fprint(parameters.fp_log, " sequences extracted");
-      if (kept + discarded > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.1lf", 100.0 * static_cast<double>(kept) / static_cast<double>(kept + discarded));
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
+      print_extracted(parameters.fp_log, ExtractionCounts{kept, discarded});
     }
 
   if (parameters.opt_fastaout != nullptr)
