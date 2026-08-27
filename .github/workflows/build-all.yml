@@ -31,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ghostscript groff libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
+        sudo apt-get install -y groff libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
 
     - name: Configure and build for ${{ matrix.target.name }}
       run: |
@@ -78,7 +78,7 @@ jobs:
           brew tap | grep -qx "$tap" && brew untap "$tap"
         done
         brew update
-        brew install autoconf automake ghostscript groff
+        brew install autoconf automake groff
 
     - name: Configure and build for ${{ matrix.target.name }}
       run: |

@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ghostscript groff libbz2-dev zlib1g-dev
+        sudo apt-get install -y groff libbz2-dev zlib1g-dev
 
     - name: Configure and build
       run: |
@@ -95,7 +95,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ghostscript groff libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
+        sudo apt-get install -y groff libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
 
     - name: Build for ${{ matrix.target.name }}
       run: |
@@ -128,7 +128,7 @@ jobs:
           brew tap | grep -qx "$tap" && brew untap "$tap"
         done
         brew update
-        brew install autoconf automake ghostscript groff
+        brew install autoconf automake groff
 
     - name: Configure and build
       run: |
@@ -169,7 +169,7 @@ jobs:
           brew tap | grep -qx "$tap" && brew untap "$tap"
         done
         brew update
-        brew install autoconf automake ghostscript groff
+        brew install autoconf automake groff
 
     - name: Configure and build
       run: |
@@ -217,7 +217,7 @@ jobs:
         usesh: true
         prepare: |
           pkg update -f
-          pkg install -y autoconf automake gmake bash git bzip2 ghostscript10 groff
+          pkg install -y autoconf automake gmake bash git bzip2 groff
           pw useradd -n runner -m -s /usr/local/bin/bash
         run: |
           echo "========== Building vsearch =========="
