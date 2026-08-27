@@ -2382,6 +2382,15 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
 
     state.progress_bar->update(state.progress);
 
+    /* state.seqno is claimed by has_work_to_claim() above under mutex_input,
+       but advanced here under mutex_output. Those are two different critical
+       sections, so this is only race-free because every denovo mode forces
+       opt_threads = 1 in chimera() below: with one worker the claim and the
+       increment cannot interleave. The uchime_ref path, the only
+       multi-threaded one, claims from the shared query handle instead and
+       never reads state.seqno in has_work_to_claim(). Parallelising a denovo
+       mode therefore means moving this increment into the claim, under
+       mutex_input, or two workers will claim the same query. */
     ++state.seqno;
   };
 
