@@ -145,8 +145,7 @@ inline auto allpairs_hit_compare_typed(struct hit const & lhs, struct hit const 
   return 0;
 }
 /* The state is passed whole rather than its two int counters, which would be
-   two adjacent swappable arguments. The log copy's extra newline is added by
-   the caller, with the rest of the per-destination differences. */
+   two adjacent swappable arguments. */
 auto print_match_count(std::FILE * output_stream,
                        struct allpairs_state_s const & state) -> void
 {
@@ -642,8 +641,11 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   if (parameters.fp_log != nullptr)
     {
+      /* No trailing separator: this report is the last thing written to the
+         log before LogFile's footer, which opens with its own newline
+         (utils/logfile.cpp). The separator other reports add exists to part
+         them from the report that follows; there is none here. */
       print_match_count(parameters.fp_log, state);
-      fprint(parameters.fp_log, '\n');
     }
 
   /* clean up, global */
