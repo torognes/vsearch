@@ -18,8 +18,11 @@
 /autom4te.cache
 /bin
 /docs
-/man/manpages
-/man/manpages.stamp
+# man/manpages/ holds the generated modular manual pages. They are
+# tracked (like configure and the Makefile.in files) so that building
+# and installing vsearch never requires pandoc; only the PDF renderings
+# produced by man/scripts/convert_manpages_to_pdfs.sh are ignored, via
+# the *.pdf rule above.
 /config.h
 /config.log
 /config.status
