@@ -17,8 +17,8 @@
 source "$(dirname "${0}")/manpage_tools.sh" || exit 1
 
 ## pandoc is the only tool here that is not already required to build
-## vsearch; the generated manual pages are tracked and shipped, so an
-## ordinary build never reaches this script (see man/Makefile.am)
+## vsearch; the generated manual pages are shipped in release tarballs,
+## so a build from one never reaches this script (see man/Makefile.am)
 require_commands pandoc awk || exit 1
 
 ## called by name through write_output(), which shellcheck cannot see

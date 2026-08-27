@@ -53,7 +53,7 @@ expand_markdown_includes() {
 ## halfway -- a missing tool, a missing source -- therefore leaves the
 ## previous version of the file untouched, instead of replacing it with
 ## a truncated or empty one. That matters most for the manual pages:
-## they are tracked in git and installed as-is when pandoc is missing.
+## they are shipped in release tarballs and installed as-is from there.
 write_output() {
     local target="${1}"
     local folder

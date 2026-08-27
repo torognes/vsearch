@@ -82,17 +82,23 @@ if test "x${have_zlib}" = "xyes"; then
 fi
 
 # The modular manual pages in man/manpages/ are generated from the markdown
-# sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. They
-# are tracked in git and shipped in release tarballs, so building, installing
-# and uninstalling them never requires pandoc; when pandoc is present, the
-# Makefile keeps them in step with the markdown sources instead.
+# sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. Being
+# generated, they are not in git; 'make dist' does ship them, so a build from a
+# release tarball produces and installs the manual without pandoc. The manual is
+# therefore available when pandoc is here to generate the pages, or when they
+# are already present, and a build with neither still produces a working vsearch
+# -- just no manual.
 have_pandoc=no
-AC_ARG_ENABLE(manpage-generation,
-  AS_HELP_STRING([--disable-manpage-generation],
-                 [Never regenerate the manual pages from their markdown sources; use the shipped ones as-is]))
-AS_IF([test "x$enable_manpage_generation" != "xno"], [
+have_manpages=no
+AC_ARG_ENABLE(manpages,
+  AS_HELP_STRING([--disable-manpages],
+                 [Do not build or install the manual pages]))
+AS_IF([test "x$enable_manpages" != "xno"], [
   AC_CHECK_PROG(HAVE_PANDOC, pandoc, yes, no)
   have_pandoc=$HAVE_PANDOC
+  AS_IF([test "x$have_pandoc" = "xyes" || test -f "$srcdir/man/manpages/vsearch.1"],
+        [have_manpages=yes],
+        [AC_MSG_WARN([*** pandoc is required to build the manual pages; vsearch will be built without them])])
 ])
 
 
@@ -149,6 +155,7 @@ esac
 AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
 
 AM_CONDITIONAL(HAVE_PANDOC, test "x${have_pandoc}" = "xyes")
+AM_CONDITIONAL(BUILD_MANPAGES, test "x${have_manpages}" = "xyes")
 AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
 AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")

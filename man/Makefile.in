@@ -23,12 +23,15 @@
 # sources in this folder by scripts/generate_manpages.sh, which needs
 # pandoc.
 #
-# The generated pages are tracked in git and shipped in release
-# tarballs, exactly as configure and the Makefile.in files are, so
-# building, installing and uninstalling the manual requires no pandoc
-# and no perl. configure looks for pandoc all the same: when it finds
-# one, the rules at the bottom of this file keep each page in step with
-# the markdown source it comes from.
+# Being generated, the pages are not tracked in git: a checkout needs
+# pandoc to build the manual, and builds without it (CI, for one) simply
+# get no manual -- configure says so and vsearch itself still builds.
+# 'make dist' does ship them, so a build from a release tarball produces
+# and installs the manual with no pandoc anywhere in sight; with pandoc,
+# the rules at the bottom of this file keep each page in step with the
+# markdown source it comes from. That is what the two conditionals mean:
+# BUILD_MANPAGES, "there is a manual to install", and HAVE_PANDOC, "it
+# can be (re)generated".
 #
 # The monolithic man/vsearch.1 page these replace is no longer built,
 # installed or distributed; it is kept in the source tree, marked as
@@ -353,8 +356,13 @@ GENERATED_MANS = \
 
 # automake reads the section from the suffix, installs into man1/, man5/
 # and man7/ accordingly, removes the same files on 'make uninstall', and
-# ships them pregenerated in the tarball.
-dist_man_MANS = $(GENERATED_MANS)
+# ships them in the tarball.
+@BUILD_MANPAGES_TRUE@dist_man_MANS = $(GENERATED_MANS)
+
+# MAINTAINERCLEANFILES, not CLEANFILES: the pages are generated, but they
+# are also distributed, so a 'make clean' in an unpacked tarball must not
+# delete what only pandoc could put back.
+MAINTAINERCLEANFILES = $(GENERATED_MANS)
 
 # The markdown sources are not needed to build the manual, only to
 # regenerate it, but they are what a reader should patch, so they travel
@@ -613,6 +621,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
 clean-am: clean-generic mostlyclean-am

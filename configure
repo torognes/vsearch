@@ -670,6 +670,8 @@ TARGET_AARCH64_FALSE
 TARGET_AARCH64_TRUE
 TARGET_PPC_FALSE
 TARGET_PPC_TRUE
+BUILD_MANPAGES_FALSE
+BUILD_MANPAGES_TRUE
 HAVE_PANDOC_FALSE
 HAVE_PANDOC_TRUE
 TARGET_WIN_FALSE
@@ -792,7 +794,7 @@ enable_maintainer_mode
 enable_dependency_tracking
 enable_bzip2
 enable_zlib
-enable_manpage_generation
+enable_manpages
 enable_profiling
 enable_debug
 enable_sanitize
@@ -1447,9 +1449,7 @@ Optional Features:
                           speeds up one-time build
   --disable-bzip2         Disable bzip2 support
   --disable-zlib          Disable zlib support
-  --disable-manpage-generation
-                          Never regenerate the manual pages from their
-                          markdown sources; use the shipped ones as-is
+  --disable-manpages      Do not build or install the manual pages
   --enable-profiling      Enable profiling build
   --enable-debug          Enable debug build
   --enable-sanitize       Enable the address and undefined-behaviour
@@ -5077,18 +5077,21 @@ done
 fi
 
 # The modular manual pages in man/manpages/ are generated from the markdown
-# sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. They
-# are tracked in git and shipped in release tarballs, so building, installing
-# and uninstalling them never requires pandoc; when pandoc is present, the
-# Makefile keeps them in step with the markdown sources instead.
+# sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. Being
+# generated, they are not in git; 'make dist' does ship them, so a build from a
+# release tarball produces and installs the manual without pandoc. The manual is
+# therefore available when pandoc is here to generate the pages, or when they
+# are already present, and a build with neither still produces a working vsearch
+# -- just no manual.
 have_pandoc=no
-# Check whether --enable-manpage-generation was given.
-if test ${enable_manpage_generation+y}
+have_manpages=no
+# Check whether --enable-manpages was given.
+if test ${enable_manpages+y}
 then :
-  enableval=$enable_manpage_generation;
+  enableval=$enable_manpages;
 fi
 
-if test "x$enable_manpage_generation" != "xno"
+if test "x$enable_manpages" != "xno"
 then :
 
   # Extract the first word of "pandoc", so it can be a program name with args.
@@ -5135,6 +5138,13 @@ fi
 
 
   have_pandoc=$HAVE_PANDOC
+  if test "x$have_pandoc" = "xyes" || test -f "$srcdir/man/manpages/vsearch.1"
+then :
+  have_manpages=yes
+else $as_nop
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: *** pandoc is required to build the manual pages; vsearch will be built without them" >&5
+printf "%s\n" "$as_me: WARNING: *** pandoc is required to build the manual pages; vsearch will be built without them" >&2;}
+fi
 
 fi
 
@@ -5256,6 +5266,14 @@ done
 else
   HAVE_PANDOC_TRUE='#'
   HAVE_PANDOC_FALSE=
+fi
+
+ if test "x${have_manpages}" = "xyes"; then
+  BUILD_MANPAGES_TRUE=
+  BUILD_MANPAGES_FALSE='#'
+else
+  BUILD_MANPAGES_TRUE='#'
+  BUILD_MANPAGES_FALSE=
 fi
 
  if test "x${target_ppc}" = "xyes"; then
@@ -6400,6 +6418,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAVE_PANDOC_TRUE}" && test -z "${HAVE_PANDOC_FALSE}"; then
   as_fn_error $? "conditional \"HAVE_PANDOC\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILD_MANPAGES_TRUE}" && test -z "${BUILD_MANPAGES_FALSE}"; then
+  as_fn_error $? "conditional \"BUILD_MANPAGES\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${TARGET_PPC_TRUE}" && test -z "${TARGET_PPC_FALSE}"; then
