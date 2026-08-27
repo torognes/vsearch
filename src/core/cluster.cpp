@@ -1518,17 +1518,11 @@ auto cluster(char const * dbname,
 
   if (parameters.fp_log != nullptr)
     {
+      /* No trailing separator: this summary is the last thing written to the
+         log before LogFile's footer, which opens with its own newline
+         (utils/logfile.cpp). The separator other reports add exists to part
+         them from the report that follows; there is none here. */
       print_cluster_summary(parameters.fp_log, summary);
-      if (summary.clusters >= 1)
-        {
-          /* The separator the log copy gets -- but only when there is at
-             least one cluster. The empty-cluster branch has never written it,
-             which is the same asymmetry core/db.cpp's minsize warning had
-             (fixed earlier in this series, TBD_20260824 §7.7); kept as-is
-             here because it is a second site the maintainer has not ruled
-             on, and this commit is meant to change no output byte. */
-          fprint(parameters.fp_log, '\n');
-        }
     }
 
   if ((parameters.opt_msaout != nullptr) or (parameters.opt_consout != nullptr) or (parameters.opt_profile != nullptr))
