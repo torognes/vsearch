@@ -29,3 +29,32 @@ NEWS:
 	@echo "       configure to build a distribution." >&2
 	@exit 1
 endif
+
+# Without pandoc the conditionals above quietly drop the manual and NEWS
+# from DISTFILES, so 'make dist' would produce a tarball missing both and
+# say nothing. Count what actually reached the distribution: one manual
+# page per markdown source, plus NEWS. This also catches a page whose
+# markdown source exists but which was never added to GENERATED_MANS.
+dist-hook:
+	@sources=`ls $(srcdir)/man/index.1.md \
+	             $(srcdir)/man/commands/vsearch-*.md \
+	             $(srcdir)/man/formats/vsearch-*.md \
+	             $(srcdir)/man/misc/vsearch-*.md 2>/dev/null | wc -l`; \
+	pages=`ls $(distdir)/man/manpages/vsearch*.1 \
+	          $(distdir)/man/manpages/vsearch*.5 \
+	          $(distdir)/man/manpages/vsearch*.7 2>/dev/null | wc -l`; \
+	status=0; \
+	if test "$$pages" -ne "$$sources"; then \
+	  echo "dist-hook: $$pages manual pages for $$sources markdown sources." >&2; \
+	  status=1; \
+	fi; \
+	if test ! -f "$(distdir)/NEWS"; then \
+	  echo "dist-hook: NEWS is missing from the distribution." >&2; \
+	  status=1; \
+	fi; \
+	test "$$status" -eq 0 || { \
+	  echo "dist-hook: refusing to ship an incomplete distribution; pandoc" >&2; \
+	  echo "           generates the manual and NEWS -- install it, re-run" >&2; \
+	  echo "           configure, and try again." >&2; \
+	  exit 1; \
+	}

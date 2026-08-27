@@ -594,6 +594,9 @@ distdir-am: $(DISTFILES)
 	      || exit 1; \
 	  fi; \
 	done
+	$(MAKE) $(AM_MAKEFLAGS) \
+	  top_distdir="$(top_distdir)" distdir="$(distdir)" \
+	  dist-hook
 	-test -n "$(am__skip_mode_fix)" \
 	|| find "$(distdir)" -type d ! -perm -755 \
 		-exec chmod u+rwx,go+rx {} \; -o \
@@ -844,18 +847,19 @@ uninstall-am: uninstall-dist_docDATA
 .PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
 	am--refresh check check-am clean clean-cscope clean-generic \
 	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
-	dist-gzip dist-lzip dist-shar dist-tarZ dist-xz dist-zip \
-	dist-zstd distcheck distclean distclean-generic distclean-hdr \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dist_docDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic pdf pdf-am ps ps-am tags \
-	tags-am uninstall uninstall-am uninstall-dist_docDATA
+	dist-gzip dist-hook dist-lzip dist-shar dist-tarZ dist-xz \
+	dist-zip dist-zstd distcheck distclean distclean-generic \
+	distclean-hdr distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
+	install-dist_docDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic pdf \
+	pdf-am ps ps-am tags tags-am uninstall uninstall-am \
+	uninstall-dist_docDATA
 
 .PRECIOUS: Makefile
 
@@ -872,6 +876,35 @@ uninstall-am: uninstall-dist_docDATA
 @HAVE_PANDOC_FALSE@	@echo "       configure did not find. Install pandoc and re-run" >&2
 @HAVE_PANDOC_FALSE@	@echo "       configure to build a distribution." >&2
 @HAVE_PANDOC_FALSE@	@exit 1
+
+# Without pandoc the conditionals above quietly drop the manual and NEWS
+# from DISTFILES, so 'make dist' would produce a tarball missing both and
+# say nothing. Count what actually reached the distribution: one manual
+# page per markdown source, plus NEWS. This also catches a page whose
+# markdown source exists but which was never added to GENERATED_MANS.
+dist-hook:
+	@sources=`ls $(srcdir)/man/index.1.md \
+	             $(srcdir)/man/commands/vsearch-*.md \
+	             $(srcdir)/man/formats/vsearch-*.md \
+	             $(srcdir)/man/misc/vsearch-*.md 2>/dev/null | wc -l`; \
+	pages=`ls $(distdir)/man/manpages/vsearch*.1 \
+	          $(distdir)/man/manpages/vsearch*.5 \
+	          $(distdir)/man/manpages/vsearch*.7 2>/dev/null | wc -l`; \
+	status=0; \
+	if test "$$pages" -ne "$$sources"; then \
+	  echo "dist-hook: $$pages manual pages for $$sources markdown sources." >&2; \
+	  status=1; \
+	fi; \
+	if test ! -f "$(distdir)/NEWS"; then \
+	  echo "dist-hook: NEWS is missing from the distribution." >&2; \
+	  status=1; \
+	fi; \
+	test "$$status" -eq 0 || { \
+	  echo "dist-hook: refusing to ship an incomplete distribution; pandoc" >&2; \
+	  echo "           generates the manual and NEWS -- install it, re-run" >&2; \
+	  echo "           configure, and try again." >&2; \
+	  exit 1; \
+	}
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
