@@ -451,6 +451,27 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
     searchinfo->m.add(best);
   }
 }
+/* The classification count, written to stderr (unless --quiet) and to --log
+   (when open); the block used to be spelled out once per destination. The
+   state is passed whole rather than its two int counters, which would be two
+   adjacent swappable arguments. See TBD_20260824_report_destinations.md. */
+auto print_classified_count(std::FILE * output_stream,
+                            struct sintax_state_s const & state) -> void
+{
+  fprint(output_stream, "Classified ");
+  fprint_integer(output_stream, state.classified);
+  fprint(output_stream, " of ");
+  fprint_integer(output_stream, state.queries);
+  fprint(output_stream, " sequences");
+  if (state.queries > 0)
+    {
+      fprint(output_stream, " (");
+      std::fprintf(output_stream, "%.2f", 100.0 * state.classified / state.queries);
+      fprint(output_stream, "%)");
+    }
+  fprint(output_stream, '\n');
+}
+
 }  // anonymous namespace
 
 
@@ -732,8 +753,6 @@ auto sintax(struct Parameters const & parameters) -> void
   auto & si_minus = state.si_minus;
   auto & tophits = state.tophits;
   auto & seqcount = state.seqcount;
-  int const & queries = state.queries;
-  int const & classified = state.classified;
 
   /* tophits = the maximum number of hits we need to store */
 
@@ -809,34 +828,12 @@ auto sintax(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      fprint(stderr, "Classified ");
-      fprint_integer(stderr, classified);
-      fprint(stderr, " of ");
-      fprint_integer(stderr, queries);
-      fprint(stderr, " sequences");
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * classified / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
+      print_classified_count(stderr, state);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "Classified ");
-      fprint_integer(parameters.fp_log, classified);
-      fprint(parameters.fp_log, " of ");
-      fprint_integer(parameters.fp_log, queries);
-      fprint(parameters.fp_log, " sequences");
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * classified / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
+      print_classified_count(parameters.fp_log, state);
     }
 
   /* clean up */
