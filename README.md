@@ -39,7 +39,7 @@ Most of the nucleotide based commands and options in USEARCH version 7 are suppo
 
 ## Getting Help
 
-If you can't find an answer in [online documentation](https://torognes.github.io/vsearch/), or in the [manpage](https://github.com/torognes/vsearch/releases/download/v2.31.0/vsearch_manual.pdf), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
+If you can't find an answer in [online documentation](https://torognes.github.io/vsearch/), or in the manual pages installed by `make install` (start with `man vsearch`), please visit the [VSEARCH Web Forum](https://groups.google.com/forum/#!forum/vsearch-forum) to post a question or start a discussion.
 
 ## Example
 
@@ -60,7 +60,7 @@ make ARFLAGS="cr"
 sudo make install
 ```
 
-You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. A PDF version of the manual will be created from the `vsearch.1` manual file if `ps2pdf` is available, unless disabled using the `--disable-pdfman` option to `configure`. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
+You may customize the installation directory using the `--prefix=DIR` option to `configure`. If the compression libraries [zlib](https://www.zlib.net) and/or [bzip2](https://www.sourceware.org/bzip2/) are installed on the system, they will be detected automatically and support for compressed files will be included in vsearch (see section **Dependencies** below). Support for compressed files may be disabled using the `--disable-zlib` and `--disable-bzip2` options to `configure`. The manual pages are shipped pregenerated, so building them needs nothing; if [pandoc](https://pandoc.org/) is installed, `configure` detects it and `make` regenerates any page whose markdown source has changed, which `--disable-manpage-generation` turns off. It is recommended to run configure with the options `CFLAGS="-O3"` and `CXXFLAGS="-O3"`. Other  options may also be applied to `configure`, please run `configure -h` to see them all. The GCC C++ (`g++`) compiler (or `clang`) and `make` are required to build vsearch. The generated build files (`configure`, `Makefile.in`, ...) are shipped and are authoritative, so GNU autoconf and automake are **not** needed for an ordinary build; they are only required if you modify `configure.ac` or a `Makefile.am` and regenerate the build system by running `./autogen.sh` (autoconf version 2.63 or later). Version 3.82 or later of `make` may be required on Linux, while version 3.81 is sufficient on macOS.
 
 **Out-of-tree (VPATH) builds** `configure` and `make` may be run from a separate, initially empty directory instead of the source tree. All object files, libraries and the final binary are then written under that build directory, leaving the source tree pristine, and several builds (for example debug and release, or different cross-compilation targets) can coexist from a single checkout:
 
@@ -70,9 +70,9 @@ mkdir build && cd build
 make ARFLAGS="cr"
 ```
 
-To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, ghostscript, groff, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
+To build VSEARCH on Debian and similar Linux distributions (Ubuntu etc) you'll need the following packages: autoconf, automake, g++, groff, libbz2-dev, make, zlib1g-dev. Include libsimde-dev to build on riscv64 or mips64el.
 
-To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, ghostscript, groff-base, make, zlib-devel.
+To build VSEARCH on Fedora and similar Linux distributions (RHEL, Centos etc) you'll need the following packages: autoconf, automake, bzip2-devel, gcc-c++, groff-base, make, zlib-devel.
 
 Of these, `autoconf` and `automake` are only needed if you regenerate the build system with `./autogen.sh` (e.g. after editing `configure.ac` or a `Makefile.am`); an ordinary build from the shipped files does not require them.
 
@@ -105,12 +105,11 @@ Or, if you are using Windows, download and extract (unzip) the contents of this 
 https://github.com/torognes/vsearch/releases/download/v{VERSION}/vsearch-{VERSION}-win-x86_64.zip
 ```
 
-**Linux and Mac**: You will now have the binary distribution in a folder called `vsearch-{VERSION}-{OS}-{ARCH}` in which you will find three subfolders `bin`, `man` and `doc`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and a copy or a symbolic link to the vsearch man page `man/vsearch.1` in a folder included in your `$MANPATH`. The PDF version of the manual is available in `doc/vsearch_manual.pdf`.
+**Linux and Mac**: You will now have the binary distribution in a folder called `vsearch-{VERSION}-{OS}-{ARCH}` in which you will find two subfolders `bin` and `man`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and copies or symbolic links to the contents of `man` (the `man1`, `man5` and `man7` subfolders) in a folder included in your `$MANPATH`.
 
 **Windows**: You will now have the binary distribution in a folder
 called `vsearch-{VERSION}-win-x86_64`. The vsearch executable is called
-`vsearch.exe`. The manual in PDF format is called
-`vsearch_manual.pdf`. If you want to be able to call `vsearch.exe`
+`vsearch.exe`. If you want to be able to call `vsearch.exe`
 from any command prompt window, you can put the VSEARCH executable in
 a folder (for instance `C:\Users\<yourname>\bin`), and add the new
 folder to the user `Path`: open the `Environment Variables` window by
@@ -121,7 +120,7 @@ and `zlib1.dll` files required for reading compressed input
 files. These DLL's have been obtained for mingw-w64 from the MSYS2
 platform.
 
-**Documentation:** The VSEARCH user's manual is available in the `man` folder in the form of a [man page](https://github.com/torognes/vsearch/blob/master/man/vsearch.1). A pdf version ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.31.0/vsearch_manual.pdf)) will be generated by `make`. To install the manpage manually, copy the `vsearch.1` file or a create a symbolic link to `vsearch.1` in a folder included in your `$MANPATH`. The manual in both formats is also available with the binary distribution. The manual in PDF form ([vsearch_manual.pdf](https://github.com/torognes/vsearch/releases/download/v2.31.0/vsearch_manual.pdf)) is also attached to the latest [release](https://github.com/torognes/vsearch/releases).
+**Documentation:** The VSEARCH user's manual is a set of manual pages in the [`man/manpages`](https://github.com/torognes/vsearch/tree/master/man/manpages) folder: a hub page listing every command, one page per command, one page per file format, and one page per reference topic. `make install` installs them all; type `man vsearch` for the hub, `man vsearch-usearch_global` for a command, `man 5 vsearch-fastq` for a file format, and `man 7 vsearch-userfields` for a reference topic. They are also readable [online](https://torognes.github.io/vsearch/), and they come with the binary distribution. To install them manually, copy the pages, or create symbolic links to them, in the `man1`, `man5` and `man7` subfolders of a folder included in your `$MANPATH`. They are generated from the markdown sources in [`man`](https://github.com/torognes/vsearch/tree/master/man), which is where a documentation change belongs.
 
 
 ## API
@@ -171,8 +170,6 @@ Compiling VSEARCH requires either GCC (`g++`) or `clang` and `make`. The autotoo
 VSEARCH will automatically check whether these libraries are available and load them dynamically.
 
 On Windows these libraries are called `zlib1.dll` and `libbz2.dll`. These DLL's are included with the released distribution of vsearch 2.27.0 and later.
-
-To create the PDF file with the manual the ps2pdf tool is required. It is part of the `ghostscript` package.
 
 
 ## VSEARCH license and third party licenses

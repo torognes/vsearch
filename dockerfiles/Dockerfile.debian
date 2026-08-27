@@ -6,7 +6,6 @@ RUN apt-get -y install \
     autoconf \
     automake \
     g++ \
-    ghostscript \
     groff \
     libbz2-dev \
     libsimde-dev \
