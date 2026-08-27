@@ -422,6 +422,26 @@ auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
 }
 
 
+/* The common-header stats, one call per destination instead of the block
+   spelled out once per destination -- the same shape as write_report() just
+   below, which this file already used for its other report. See
+   TBD_20260824_report_destinations.md. */
+auto write_header_stats(std::FILE * output_stream,
+                        struct sff_header_s const & sff_header,
+                        std::vector<char> const & key_sequence) -> void
+{
+  fprint(output_stream, "Number of reads: ");
+  fprint_integer(output_stream, sff_header.number_of_reads);
+  fprint(output_stream, '\n');
+  fprint(output_stream, "Flows per read:  ");
+  fprint_integer(output_stream, sff_header.flows_per_read);
+  fprint(output_stream, '\n');
+  fprint(output_stream, "Key sequence:    ");
+  std::fputs(key_sequence.data(), output_stream);
+  fprint(output_stream, '\n');
+}
+
+
 auto write_report(std::FILE * output_stream,
                   struct sff_header_s const & sff_header,
                   struct sff_read_stats const & sff_stats,
@@ -488,28 +508,12 @@ auto sff_convert(struct Parameters const & parameters) -> void
   // refactoring: see fastq_join.cc
   if (not parameters.opt_quiet)
     {
-      fprint(stderr, "Number of reads: ");
-      fprint_integer(stderr, sff_header.number_of_reads);
-      fprint(stderr, '\n');
-      fprint(stderr, "Flows per read:  ");
-      fprint_integer(stderr, sff_header.flows_per_read);
-      fprint(stderr, '\n');
-      fprint(stderr, "Key sequence:    ");
-      std::fputs(key_sequence.data(), stderr);
-      fprint(stderr, '\n');
+      write_header_stats(stderr, sff_header, key_sequence);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "Number of reads: ");
-      fprint_integer(parameters.fp_log, sff_header.number_of_reads);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "Flows per read:  ");
-      fprint_integer(parameters.fp_log, sff_header.flows_per_read);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "Key sequence:    ");
-      std::fputs(key_sequence.data(), parameters.fp_log);
-      fprint(parameters.fp_log, '\n');
+      write_header_stats(parameters.fp_log, sff_header, key_sequence);
     }
 
 
