@@ -121,6 +121,59 @@ namespace {
     return View<char>{std::next(buffer, offset), info.headerlen};
   }
 
+  /* The size line and the three discard warnings below are each written to
+     two destinations, and used to be spelled out once per destination. The
+     payload takes the destination as its first argument instead; the callers
+     in Database::read() are left with the choice of destinations, which is
+     the part that legitimately differs between them (the log copy gets one
+     extra newline, and the warnings ignore --quiet). Same shape as
+     core/derep_stats.cpp and commands/orient.cpp. See
+     TBD_20260824_report_destinations.md. */
+  auto print_database_size(std::FILE * output_stream, Database const & database) -> void
+  {
+    if (database.getsequencecount() > 0)
+      {
+        fprint_integer(output_stream, database.getnucleotidecount());
+        fprint(output_stream, " nt in ");
+        fprint_integer(output_stream, database.getsequencecount());
+        fprint(output_stream, " seqs, min ");
+        fprint_integer(output_stream, database.getshortestsequence());
+        fprint(output_stream, ", max ");
+        fprint_integer(output_stream, database.getlongestsequence());
+        fprint(output_stream, ", avg ");
+        std::fprintf(output_stream, "%.0f", static_cast<double>(database.getnucleotidecount()) / static_cast<double>(database.getsequencecount()));
+        fprint(output_stream, '\n');
+      }
+    else
+      {
+        fprint_integer(output_stream, database.getnucleotidecount());
+        fprint(output_stream, " nt in ");
+        fprint_integer(output_stream, database.getsequencecount());
+        fprint(output_stream, " seqs\n");
+      }
+  }
+
+
+  /* "<option> <threshold>: <n> sequence(s) discarded.", the same sentence for
+     --minseqlength, --maxseqlength and --minsize, which is why the option
+     name and its threshold are arguments rather than three copies of the
+     block. core/derep_stats.cpp's report_length_filtered() prints the same
+     sentence for the derep commands, which do not go through this reader. */
+  auto print_discarded(std::FILE * output_stream,
+                       char const * option_name,
+                       int64_t const threshold,
+                       int64_t const discarded) -> void
+  {
+    std::fputs(option_name, output_stream);
+    fprint(output_stream, ' ');
+    fprint_integer(output_stream, threshold);
+    fprint(output_stream, ": ");
+    fprint_integer(output_stream, discarded);
+    fprint(output_stream, ' ');
+    std::fputs((discarded == 1 ? "sequence" : "sequences"), output_stream);
+    fprint(output_stream, " discarded.\n");
+  }
+
 }  // end of anonymous namespace
 
 
@@ -374,117 +427,51 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
 
   if (not parameters.opt_quiet)
     {
-      if (sequences > 0)
-        {
-          fprint_integer(stderr, getnucleotidecount());
-          fprint(stderr, " nt in ");
-          fprint_integer(stderr, getsequencecount());
-          fprint(stderr, " seqs, min ");
-          fprint_integer(stderr, getshortestsequence());
-          fprint(stderr, ", max ");
-          fprint_integer(stderr, getlongestsequence());
-          fprint(stderr, ", avg ");
-          std::fprintf(stderr, "%.0f", static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
-          fprint(stderr, '\n');
-        }
-      else
-        {
-          fprint_integer(stderr, getnucleotidecount());
-          fprint(stderr, " nt in ");
-          fprint_integer(stderr, getsequencecount());
-          fprint(stderr, " seqs\n");
-        }
+      print_database_size(stderr, *this);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      if (sequences > 0)
-        {
-          fprint_integer(parameters.fp_log, getnucleotidecount());
-          fprint(parameters.fp_log, " nt in ");
-          fprint_integer(parameters.fp_log, getsequencecount());
-          fprint(parameters.fp_log, " seqs, min ");
-          fprint_integer(parameters.fp_log, getshortestsequence());
-          fprint(parameters.fp_log, ", max ");
-          fprint_integer(parameters.fp_log, getlongestsequence());
-          fprint(parameters.fp_log, ", avg ");
-          std::fprintf(parameters.fp_log, "%.0f", static_cast<double>(getnucleotidecount()) / static_cast<double>(getsequencecount()));
-          fprint(parameters.fp_log, "\n\n");
-        }
-      else
-        {
-          fprint_integer(parameters.fp_log, getnucleotidecount());
-          fprint(parameters.fp_log, " nt in ");
-          fprint_integer(parameters.fp_log, getsequencecount());
-          fprint(parameters.fp_log, " seqs\n\n");
-        }
+      print_database_size(parameters.fp_log, *this);
+      fprint(parameters.fp_log, '\n');
     }
 
-  /* Warn about discarded sequences */
+  /* Warn about discarded sequences. None of the three consults --quiet:
+     these are warnings, and --quiet suppresses "messages to stdout and
+     stderr, except for warnings and error messages" by documented contract
+     (man/commands/fragments/option_quiet.md, the same contract
+     vsearch::warn() encodes). The log copy gets one extra newline. */
 
   if (discarded_short != 0)
     {
-      fprint(stderr, "minseqlength ");
-      fprint_integer(stderr, parameters.opt_minseqlength);
-      fprint(stderr, ": ");
-      fprint_integer(stderr, discarded_short);
-      fprint(stderr, ' ');
-      std::fputs((discarded_short == 1 ? "sequence" : "sequences"), stderr);
-      fprint(stderr, " discarded.\n");
+      print_discarded(stderr, "minseqlength", parameters.opt_minseqlength, discarded_short);
 
       if (parameters.fp_log != nullptr)
         {
-          fprint(parameters.fp_log, "minseqlength ");
-          fprint_integer(parameters.fp_log, parameters.opt_minseqlength);
-          fprint(parameters.fp_log, ": ");
-          fprint_integer(parameters.fp_log, discarded_short);
-          fprint(parameters.fp_log, ' ');
-          std::fputs((discarded_short == 1 ? "sequence" : "sequences"), parameters.fp_log);
-          fprint(parameters.fp_log, " discarded.\n\n");
+          print_discarded(parameters.fp_log, "minseqlength", parameters.opt_minseqlength, discarded_short);
+          fprint(parameters.fp_log, '\n');
         }
     }
 
   if (discarded_long != 0)
     {
-      fprint(stderr, "maxseqlength ");
-      fprint_integer(stderr, parameters.opt_maxseqlength);
-      fprint(stderr, ": ");
-      fprint_integer(stderr, discarded_long);
-      fprint(stderr, ' ');
-      std::fputs((discarded_long == 1 ? "sequence" : "sequences"), stderr);
-      fprint(stderr, " discarded.\n");
+      print_discarded(stderr, "maxseqlength", parameters.opt_maxseqlength, discarded_long);
 
       if (parameters.fp_log != nullptr)
         {
-          fprint(parameters.fp_log, "maxseqlength ");
-          fprint_integer(parameters.fp_log, parameters.opt_maxseqlength);
-          fprint(parameters.fp_log, ": ");
-          fprint_integer(parameters.fp_log, discarded_long);
-          fprint(parameters.fp_log, ' ');
-          std::fputs((discarded_long == 1 ? "sequence" : "sequences"), parameters.fp_log);
-          fprint(parameters.fp_log, " discarded.\n\n");
+          print_discarded(parameters.fp_log, "maxseqlength", parameters.opt_maxseqlength, discarded_long);
+          fprint(parameters.fp_log, '\n');
         }
     }
 
     if (discarded_unoise != 0)
     {
-      fprint(stderr, "minsize ");
-      fprint_integer(stderr, parameters.opt_minsize);
-      fprint(stderr, ": ");
-      fprint_integer(stderr, discarded_unoise);
-      fprint(stderr, ' ');
-      std::fputs((discarded_unoise == 1 ? "sequence" : "sequences"), stderr);
-      fprint(stderr, " discarded.\n");
+      print_discarded(stderr, "minsize", parameters.opt_minsize, discarded_unoise);
 
       if (parameters.fp_log != nullptr)
         {
-          fprint(parameters.fp_log, "minsize ");
-          fprint_integer(parameters.fp_log, parameters.opt_minsize);
-          fprint(parameters.fp_log, ": ");
-          fprint_integer(parameters.fp_log, discarded_unoise);
-          fprint(parameters.fp_log, ' ');
-          std::fputs((discarded_unoise == 1 ? "sequence" : "sequences"), parameters.fp_log);
-          fprint(parameters.fp_log, " discarded.\n\n");
+          print_discarded(parameters.fp_log, "minsize", parameters.opt_minsize, discarded_unoise);
+          fprint(parameters.fp_log, '\n');
         }
     }
 }
