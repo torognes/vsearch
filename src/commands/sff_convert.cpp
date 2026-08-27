@@ -503,7 +503,6 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
 
   /* output common header stats */
-  // refactoring: see fastq_join.cc
   if (not parameters.opt_quiet)
     {
       write_header_stats(stderr, sff_header, key_sequence);
