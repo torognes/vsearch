@@ -622,6 +622,44 @@ static auto search_done(struct search_cli_state_s & state) -> void
 }
 
 
+/* The match counts, written to stderr (unless --quiet) and to --log (when
+   open); the block used to be spelled out once per destination. The state is
+   passed whole rather than its four counters, which are two ints and two
+   uint64_t and would be four adjacent swappable arguments.
+   commands/search_exact.cpp prints the same two lines from its own copy;
+   sharing one writer would mean a header for it, which is wider than this
+   sweep. See TBD_20260824_report_destinations.md. */
+static auto print_match_counts(std::FILE * output_stream,
+                               struct search_cli_state_s const & state) -> void
+{
+  fprint(output_stream, "Matching unique query sequences: ");
+  fprint_integer(output_stream, state.qmatches);
+  fprint(output_stream, " of ");
+  fprint_integer(output_stream, state.queries);
+  if (state.queries > 0)
+    {
+      fprint(output_stream, " (");
+      std::fprintf(output_stream, "%.2f", 100.0 * state.qmatches / state.queries);
+      fprint(output_stream, "%)");
+    }
+  fprint(output_stream, '\n');
+  if (state.parameters.opt_sizein)
+    {
+      fprint(output_stream, "Matching total query sequences: ");
+      fprint_integer(output_stream, state.qmatches_abundance);
+      fprint(output_stream, " of ");
+      fprint_integer(output_stream, state.queries_abundance);
+      if (state.queries_abundance > 0)
+        {
+          fprint(output_stream, " (");
+          std::fprintf(output_stream, "%.2f", 100.0 * static_cast<double>(state.qmatches_abundance) / static_cast<double>(state.queries_abundance));
+          fprint(output_stream, "%)");
+        }
+      fprint(output_stream, '\n');
+    }
+}
+
+
 auto usearch_global(struct Parameters const & parameters) -> void
 {
   /* Per-invocation state, owned here and threaded through the worker pool and
@@ -686,60 +724,12 @@ auto usearch_global(struct Parameters const & parameters) -> void
 
   if (! parameters.opt_quiet)
     {
-      fprint(stderr, "Matching unique query sequences: ");
-      fprint_integer(stderr, qmatches);
-      fprint(stderr, " of ");
-      fprint_integer(stderr, queries);
-      if (queries > 0)
-        {
-          fprint(stderr, " (");
-          std::fprintf(stderr, "%.2f", 100.0 * qmatches / queries);
-          fprint(stderr, "%)");
-        }
-      fprint(stderr, '\n');
-      if (parameters.opt_sizein)
-        {
-          fprint(stderr, "Matching total query sequences: ");
-          fprint_integer(stderr, qmatches_abundance);
-          fprint(stderr, " of ");
-          fprint_integer(stderr, queries_abundance);
-          if (queries_abundance > 0)
-            {
-              fprint(stderr, " (");
-              std::fprintf(stderr, "%.2f", 100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
-              fprint(stderr, "%)");
-            }
-          fprint(stderr, '\n');
-        }
+      print_match_counts(stderr, state);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "Matching unique query sequences: ");
-      fprint_integer(parameters.fp_log, qmatches);
-      fprint(parameters.fp_log, " of ");
-      fprint_integer(parameters.fp_log, queries);
-      if (queries > 0)
-        {
-          fprint(parameters.fp_log, " (");
-          std::fprintf(parameters.fp_log, "%.2f", 100.0 * qmatches / queries);
-          fprint(parameters.fp_log, "%)");
-        }
-      fprint(parameters.fp_log, '\n');
-      if (parameters.opt_sizein)
-        {
-          fprint(parameters.fp_log, "Matching total query sequences: ");
-          fprint_integer(parameters.fp_log, qmatches_abundance);
-          fprint(parameters.fp_log, " of ");
-          fprint_integer(parameters.fp_log, queries_abundance);
-          if (queries_abundance > 0)
-            {
-              fprint(parameters.fp_log, " (");
-              std::fprintf(parameters.fp_log, "%.2f", 100.0 * static_cast<double>(qmatches_abundance) / static_cast<double>(queries_abundance));
-              fprint(parameters.fp_log, "%)");
-            }
-          fprint(parameters.fp_log, '\n');
-        }
+      print_match_counts(parameters.fp_log, state);
     }
 
 
