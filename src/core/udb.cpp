@@ -223,6 +223,37 @@ namespace {
     return lhs + rhs;
   }
 
+  /* The database size line, one call per destination instead of the block
+     spelled out once per destination. core/db.cpp prints the same line for a
+     FASTA input, from its own copy; sharing one writer across the two
+     translation units would mean a new entry in db.hpp and is left out of
+     this sweep. See TBD_20260824_report_destinations.md. */
+  auto print_udb_size(std::FILE * output_stream,
+                      Database const & database,
+                      unsigned int const seqcount) -> void
+  {
+    if (seqcount > 0)
+      {
+        fprint_integer(output_stream, database.getnucleotidecount());
+        fprint(output_stream, " nt in ");
+        fprint_integer(output_stream, database.getsequencecount());
+        fprint(output_stream, " seqs, min ");
+        fprint_integer(output_stream, database.getshortestsequence());
+        fprint(output_stream, ", max ");
+        fprint_integer(output_stream, database.getlongestsequence());
+        fprint(output_stream, ", avg ");
+        std::fprintf(output_stream, "%.0f", static_cast<double>(database.getnucleotidecount()) * 1.0 / static_cast<double>(database.getsequencecount()));
+        fprint(output_stream, '\n');
+      }
+    else
+      {
+        fprint_integer(output_stream, database.getnucleotidecount());
+        fprint(output_stream, " nt in ");
+        fprint_integer(output_stream, database.getsequencecount());
+        fprint(output_stream, " seqs\n");
+      }
+  }
+
 }  // end of anonymous namespace
 
 
@@ -576,49 +607,12 @@ auto udb_read(const char * filename,
 
   if (not parameters.opt_quiet)
     {
-      if (seqcount > 0)
-        {
-          fprint_integer(stderr, db.getnucleotidecount());
-          fprint(stderr, " nt in ");
-          fprint_integer(stderr, db.getsequencecount());
-          fprint(stderr, " seqs, min ");
-          fprint_integer(stderr, db.getshortestsequence());
-          fprint(stderr, ", max ");
-          fprint_integer(stderr, db.getlongestsequence());
-          fprint(stderr, ", avg ");
-          std::fprintf(stderr, "%.0f", static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
-          fprint(stderr, '\n');
-        }
-      else
-        {
-          fprint_integer(stderr, db.getnucleotidecount());
-          fprint(stderr, " nt in ");
-          fprint_integer(stderr, db.getsequencecount());
-          fprint(stderr, " seqs\n");
-        }
+      print_udb_size(stderr, db, seqcount);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      if (seqcount > 0)
-        {
-          fprint_integer(parameters.fp_log, db.getnucleotidecount());
-          fprint(parameters.fp_log, " nt in ");
-          fprint_integer(parameters.fp_log, db.getsequencecount());
-          fprint(parameters.fp_log, " seqs, min ");
-          fprint_integer(parameters.fp_log, db.getshortestsequence());
-          fprint(parameters.fp_log, ", max ");
-          fprint_integer(parameters.fp_log, db.getlongestsequence());
-          fprint(parameters.fp_log, ", avg ");
-          std::fprintf(parameters.fp_log, "%.0f", static_cast<double>(db.getnucleotidecount()) * 1.0 / static_cast<double>(db.getsequencecount()));
-          fprint(parameters.fp_log, "\n\n");
-        }
-      else
-        {
-          fprint_integer(parameters.fp_log, db.getnucleotidecount());
-          fprint(parameters.fp_log, " nt in ");
-          fprint_integer(parameters.fp_log, db.getsequencecount());
-          fprint(parameters.fp_log, " seqs\n\n");
-        }
+      print_udb_size(parameters.fp_log, db, seqcount);
+      fprint(parameters.fp_log, '\n');
     }
 }
