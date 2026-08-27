@@ -65,38 +65,105 @@
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 
 
-auto report_input_stats(Derep_stats const & stats,
-                        struct Parameters const & parameters) -> void
-{
-  auto emit = [&](std::FILE * fp) -> void {
+/* One writer per report, taking the destination as its first argument, so
+   that the report_* entry points below are left with nothing but the choice
+   of destinations: stderr unless --quiet, and the --log file when one is
+   open. Same shape as report_orient() (commands/orient.cpp), write_report()
+   (commands/sff_convert.cpp) and stats_message()
+   (commands/fastx_syncpairs.cpp); it replaces a lambda per entry point.
+   See TBD_20260824_report_destinations.md. */
+namespace {
+
+  auto print_input_stats(std::FILE * output_stream,
+                         Derep_stats const & stats) -> void
+  {
     if (stats.sequencecount > 0)
       {
-        fprint_integer(fp, stats.nucleotidecount);
-        fprint(fp, " nt in ");
-        fprint_integer(fp, stats.sequencecount);
-        fprint(fp, " seqs, min ");
-        fprint_integer(fp, stats.shortest);
-        fprint(fp, ", max ");
-        fprint_integer(fp, stats.longest);
-        fprint(fp, ", avg ");
-        std::fprintf(fp, "%.0f", static_cast<double>(stats.nucleotidecount) * 1.0 / static_cast<double>(stats.sequencecount));
-        fprint(fp, '\n');
+        fprint_integer(output_stream, stats.nucleotidecount);
+        fprint(output_stream, " nt in ");
+        fprint_integer(output_stream, stats.sequencecount);
+        fprint(output_stream, " seqs, min ");
+        fprint_integer(output_stream, stats.shortest);
+        fprint(output_stream, ", max ");
+        fprint_integer(output_stream, stats.longest);
+        fprint(output_stream, ", avg ");
+        std::fprintf(output_stream, "%.0f", static_cast<double>(stats.nucleotidecount) * 1.0 / static_cast<double>(stats.sequencecount));
+        fprint(output_stream, '\n');
       }
     else
       {
-        fprint_integer(fp, stats.nucleotidecount);
-        fprint(fp, " nt in ");
-        fprint_integer(fp, stats.sequencecount);
-        fprint(fp, " seqs\n");
+        fprint_integer(output_stream, stats.nucleotidecount);
+        fprint(output_stream, " nt in ");
+        fprint_integer(output_stream, stats.sequencecount);
+        fprint(output_stream, " seqs\n");
       }
-  };
+  }
+
+
+  auto print_length_filtered(std::FILE * output_stream,
+                             char const * option_name,
+                             int64_t const length_limit,
+                             uint64_t const discarded) -> void
+  {
+    std::fputs(option_name, output_stream);
+    fprint(output_stream, ' ');
+    fprint_integer(output_stream, length_limit);
+    fprint(output_stream, ": ");
+    fprint_integer(output_stream, discarded);
+    fprint(output_stream, ' ');
+    std::fputs((discarded == 1 ? "sequence" : "sequences"), output_stream);
+    fprint(output_stream, " discarded.\n");
+  }
+
+
+  auto print_unique_summary(std::FILE * output_stream,
+                            Derep_stats const & stats,
+                            double const average,
+                            double const median) -> void
+  {
+    if (stats.clusters < 1)
+      {
+        fprint(output_stream, "0 unique sequences\n");
+      }
+    else
+      {
+        fprint_integer(output_stream, stats.clusters);
+        fprint(output_stream, " unique sequences, avg cluster ");
+        std::fprintf(output_stream, "%.1lf", average);
+        fprint(output_stream, ", median ");
+        std::fprintf(output_stream, "%.0f", median);
+        fprint(output_stream, ", max ");
+        fprint_integer(output_stream, stats.maxsize);
+        fprint(output_stream, '\n');
+      }
+  }
+
+
+  auto print_selected(std::FILE * output_stream,
+                      uint64_t const selected,
+                      Derep_stats const & stats) -> void
+  {
+    fprint_integer(output_stream, selected);
+    fprint(output_stream, " uniques written, ");
+    fprint_integer(output_stream, stats.clusters - selected);
+    fprint(output_stream, " clusters discarded (");
+    std::fprintf(output_stream, "%.1f", 100.0 * static_cast<double>(stats.clusters - selected) / static_cast<double>(stats.clusters));
+    fprint(output_stream, "%)\n");
+  }
+
+}  // anonymous namespace
+
+
+auto report_input_stats(Derep_stats const & stats,
+                        struct Parameters const & parameters) -> void
+{
   if (not parameters.opt_quiet)
     {
-      emit(stderr);
+      print_input_stats(stderr, stats);
     }
   if (parameters.fp_log != nullptr)
     {
-      emit(parameters.fp_log);
+      print_input_stats(parameters.fp_log, stats);
     }
 }
 
@@ -110,20 +177,14 @@ auto report_length_filtered(struct Parameters const & parameters,
     {
       return;
     }
-  auto emit = [&](std::FILE * fp) -> void {
-    std::fputs(option_name, fp);
-    fprint(fp, ' ');
-    fprint_integer(fp, length_limit);
-    fprint(fp, ": ");
-    fprint_integer(fp, discarded);
-    fprint(fp, ' ');
-    std::fputs((discarded == 1 ? "sequence" : "sequences"), fp);
-    fprint(fp, " discarded.\n");
-  };
-  emit(stderr);
+  /* no --quiet gate: this is a warning, and --quiet suppresses "messages to
+     stdout and stderr, except for warnings and error messages" (see
+     man/commands/fragments/option_quiet.md, and vsearch::warn() which
+     encodes the same contract) */
+  print_length_filtered(stderr, option_name, length_limit, discarded);
   if (parameters.fp_log != nullptr)
     {
-      emit(parameters.fp_log);
+      print_length_filtered(parameters.fp_log, option_name, length_limit, discarded);
       fprint(parameters.fp_log, '\n');
     }
 }
@@ -134,30 +195,13 @@ auto report_unique_summary(Derep_stats const & stats,
                            double const median,
                            struct Parameters const & parameters) -> void
 {
-  auto emit = [&](std::FILE * fp) -> void {
-    if (stats.clusters < 1)
-      {
-        fprint(fp, "0 unique sequences\n");
-      }
-    else
-      {
-        fprint_integer(fp, stats.clusters);
-        fprint(fp, " unique sequences, avg cluster ");
-        std::fprintf(fp, "%.1lf", average);
-        fprint(fp, ", median ");
-        std::fprintf(fp, "%.0f", median);
-        fprint(fp, ", max ");
-        fprint_integer(fp, stats.maxsize);
-        fprint(fp, '\n');
-      }
-  };
   if (not parameters.opt_quiet)
     {
-      emit(stderr);
+      print_unique_summary(stderr, stats, average, median);
     }
   if (parameters.fp_log != nullptr)
     {
-      emit(parameters.fp_log);
+      print_unique_summary(parameters.fp_log, stats, average, median);
       fprint(parameters.fp_log, '\n');
     }
 }
@@ -171,21 +215,13 @@ auto report_selected(uint64_t const selected,
     {
       return;
     }
-  auto emit = [&](std::FILE * fp) -> void {
-    fprint_integer(fp, selected);
-    fprint(fp, " uniques written, ");
-    fprint_integer(fp, stats.clusters - selected);
-    fprint(fp, " clusters discarded (");
-    std::fprintf(fp, "%.1f", 100.0 * static_cast<double>(stats.clusters - selected) / static_cast<double>(stats.clusters));
-    fprint(fp, "%)\n");
-  };
   if (not parameters.opt_quiet)
     {
-      emit(stderr);
+      print_selected(stderr, selected, stats);
     }
   if (parameters.fp_log != nullptr)
     {
-      emit(parameters.fp_log);
+      print_selected(parameters.fp_log, selected, stats);
       fprint(parameters.fp_log, '\n');
     }
 }
