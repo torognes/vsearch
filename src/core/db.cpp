@@ -484,7 +484,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
           fprint_integer(parameters.fp_log, discarded_unoise);
           fprint(parameters.fp_log, ' ');
           std::fputs((discarded_unoise == 1 ? "sequence" : "sequences"), parameters.fp_log);
-          fprint(parameters.fp_log, " discarded.\n");
+          fprint(parameters.fp_log, " discarded.\n\n");
         }
     }
 }
