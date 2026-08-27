@@ -185,13 +185,9 @@ namespace {
 
 
 namespace {
-/* The two stats blocks below each go to stderr (unless --quiet) and to --log
-   (when open), and each used to spell its payload out once per destination.
-   The payload takes the destination as its first argument instead. The two
-   messages stay separate writers: they differ in more than a word, and
-   merging them would mean funnelling a std::vector::size_type and a
-   std::count_if result through one integer parameter. See
-   TBD_20260824_report_destinations.md. */
+/* The two messages below stay separate writers: they differ in more than a
+   word, and merging them would mean funnelling a std::vector::size_type and a
+   std::count_if result through one integer parameter. */
 auto print_original_stats(std::FILE * output_stream,
                           std::vector<uint64_t> const & deck,
                           uint64_t const mass_total) -> void {

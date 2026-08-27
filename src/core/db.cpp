@@ -121,14 +121,9 @@ namespace {
     return View<char>{std::next(buffer, offset), info.headerlen};
   }
 
-  /* The size line and the three discard warnings below are each written to
-     two destinations, and used to be spelled out once per destination. The
-     payload takes the destination as its first argument instead; the callers
-     in Database::read() are left with the choice of destinations, which is
-     the part that legitimately differs between them (the log copy gets one
-     extra newline, and the warnings ignore --quiet). Same shape as
-     core/derep_stats.cpp and commands/orient.cpp. See
-     TBD_20260824_report_destinations.md. */
+  /* The callers in Database::read() are left with the choice of destinations,
+     which is the part that legitimately differs between them: the log copy
+     gets one extra newline, and the warnings ignore --quiet. */
   auto print_database_size(std::FILE * output_stream, Database const & database) -> void
   {
     if (database.getsequencecount() > 0)

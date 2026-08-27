@@ -451,10 +451,8 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
     searchinfo->m.add(best);
   }
 }
-/* The classification count, written to stderr (unless --quiet) and to --log
-   (when open); the block used to be spelled out once per destination. The
-   state is passed whole rather than its two int counters, which would be two
-   adjacent swappable arguments. See TBD_20260824_report_destinations.md. */
+/* The state is passed whole rather than its two int counters, which would be
+   two adjacent swappable arguments. */
 auto print_classified_count(std::FILE * output_stream,
                             struct sintax_state_s const & state) -> void
 {

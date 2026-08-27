@@ -144,11 +144,9 @@ inline auto allpairs_hit_compare_typed(struct hit const & lhs, struct hit const 
     }
   return 0;
 }
-/* The match count, written to stderr (unless --quiet) and to --log (when
-   open, with one extra newline); the block used to be spelled out once per
-   destination. The state is passed whole rather than its two int counters,
-   which would be two adjacent swappable arguments. See
-   TBD_20260824_report_destinations.md. */
+/* The state is passed whole rather than its two int counters, which would be
+   two adjacent swappable arguments. The log copy's extra newline is added by
+   the caller, with the rest of the per-destination differences. */
 auto print_match_count(std::FILE * output_stream,
                        struct allpairs_state_s const & state) -> void
 {

@@ -624,11 +624,9 @@ struct ClusterSummary
 };
 
 
-/* The cluster/singleton summary, one call per destination instead of the
-   block spelled out once per destination -- in both branches, which is what
-   made it four copies. The empty-cluster branch stays inside the writer, as
-   it does in core/derep_stats.cpp's report_unique_summary(). See
-   TBD_20260824_report_destinations.md. */
+/* The empty-cluster branch stays inside the writer, as it does in
+   core/derep_stats.cpp's report_unique_summary(); spelling both branches out
+   per destination is what made this report four copies of itself. */
 auto print_cluster_summary(std::FILE * output_stream,
                            ClusterSummary const & summary) -> void
 {

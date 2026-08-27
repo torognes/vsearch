@@ -89,10 +89,8 @@ namespace {
   };
 
 
-  /* The end-of-run summary, one call per destination instead of the block
-     spelled out once per destination -- including both --min_unmasked_pct and
-     --max_unmasked_pct branches, which is what made it 18 lines twice over.
-     See TBD_20260824_report_destinations.md. */
+  /* Both option-driven branches (--min_unmasked_pct, --max_unmasked_pct) stay
+     inside the writer, which is what made this report 18 lines twice over. */
   auto print_mask_summary(std::FILE * output_stream,
                           struct Parameters const & parameters,
                           MaskCounts const & counts) -> void

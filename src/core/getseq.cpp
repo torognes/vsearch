@@ -419,9 +419,6 @@ private:
   };
 
 
-  /* "<kept> of <total> sequences extracted (<pct>%)", one call per
-     destination instead of the block spelled out once per destination. See
-     TBD_20260824_report_destinations.md. */
   auto print_extracted(std::FILE * output_stream,
                        ExtractionCounts const counts) -> void
   {

@@ -75,11 +75,8 @@
 
 namespace {
 
-  /* The UDB header fields, one call per destination instead of the block
-     spelled out once per destination -- 24 write calls twice over, the largest
-     duplicated report in the tree. The buffer is passed as the whole header
-     array rather than field by field. See
-     TBD_20260824_report_destinations.md. */
+  /* Twenty-four write calls, and they used to be spelled out twice. The
+     header array is passed whole rather than the seven fields reported. */
   auto print_udb_header(std::FILE * output_stream,
                         std::array<unsigned int, 50> const & buffer) -> void
   {

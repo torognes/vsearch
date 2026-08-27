@@ -223,11 +223,9 @@ namespace {
     return lhs + rhs;
   }
 
-  /* The database size line, one call per destination instead of the block
-     spelled out once per destination. core/db.cpp prints the same line for a
-     FASTA input, from its own copy; sharing one writer across the two
-     translation units would mean a new entry in db.hpp and is left out of
-     this sweep. See TBD_20260824_report_destinations.md. */
+  /* core/db.cpp prints this same line for a FASTA input, from its own copy.
+     Sharing one writer across the two translation units would mean a new
+     entry in db.hpp, which is wider than this sweep. */
   auto print_udb_size(std::FILE * output_stream,
                       Database const & database,
                       unsigned int const seqcount) -> void

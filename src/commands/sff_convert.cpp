@@ -422,10 +422,8 @@ auto check_for_additional_tail_data(std::FILE * sff_handle) -> void {
 }
 
 
-/* The common-header stats, one call per destination instead of the block
-   spelled out once per destination -- the same shape as write_report() just
-   below, which this file already used for its other report. See
-   TBD_20260824_report_destinations.md. */
+/* Same shape as write_report() just below, which this file already used for
+   its other report. */
 auto write_header_stats(std::FILE * output_stream,
                         struct sff_header_s const & sff_header,
                         std::vector<char> const & key_sequence) -> void

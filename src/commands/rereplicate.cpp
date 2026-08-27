@@ -85,9 +85,6 @@ namespace {
   };
 
 
-  /* The end-of-run summary, one call per destination instead of the block
-     spelled out once per destination. See
-     TBD_20260824_report_destinations.md. */
   auto print_rereplicated(std::FILE * output_stream,
                           RereplicationCounts const counts) -> void
   {
