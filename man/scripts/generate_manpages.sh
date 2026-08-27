@@ -3,85 +3,50 @@
 ## assume script is launched from vsearch/man/
 ## assume any internal link is relative to the md file itself (important)
 
-## with two arguments, convert a single markdown source into a single
-## manual page (this is how the Makefile rebuilds one page); with no
-## argument, (re)generate every page
+## usage:
+##   bash scripts/generate_manpages.sh
+##       (re)generate every manual page in ./manpages/
+##   bash scripts/generate_manpages.sh <markdown_source> <manual_page>
+##       convert one markdown source into one manual page; this is how
+##       man/Makefile.am rebuilds a single page
 
-## a failure in the awk stage must not be masked by a successful
-## pandoc stage: without this, a missing markdown source still produced
-## a (near-empty) manual page and an exit status of 0
-set -o pipefail
+## the path is computed, so only "shellcheck -x" can follow it
+# shellcheck source-path=SCRIPTDIR
+# shellcheck source=manpage_tools.sh
+# shellcheck disable=SC1091
+source "$(dirname "${0}")/manpage_tools.sh" || exit 1
 
-## pandoc is the only tool that is not already required to build
+## pandoc is the only tool here that is not already required to build
 ## vsearch; the generated manual pages are tracked and shipped, so an
 ## ordinary build never reaches this script (see man/Makefile.am)
-for dependency in pandoc awk ; do
-    command -v "${dependency}" > /dev/null || \
-        { >&2 echo "Error: missing ${dependency}" ; exit 1 ; }
-done
+require_commands pandoc awk || exit 1
 
-## the expander runs from the folder holding the markdown source, so
-## resolve its location before any change of directory
-EXPAND_INCLUDES="$(cd "$(dirname "${0}")" && pwd)/expand_includes.awk"
-
-build_markdown_file() {
-    awk -f "${EXPAND_INCLUDES}" "${1}"
-}
-
+## called by name through write_output(), which shellcheck cannot see
+# shellcheck disable=SC2317
 convert_markdown_to_groff() {
-    pandoc - --standalone --to man
+    expand_markdown_includes "${1}" | pandoc - --standalone --to man
 }
 
-## ${1}: markdown source, ${2}: manual page to write. The includes are
-## relative to the source, hence the change of directory; the target is
-## made absolute first so that it survives it. Writing through a
-## temporary file and renaming on success matters because the manual
-## pages are tracked in git and installed as-is when pandoc is missing:
-## a failed conversion must not leave a truncated or empty page behind.
+## ${1}: markdown source, ${2}: manual page to write
 generate_manpage() {
-    local folder target
-    if [ ! -r "${1}" ] ; then
-        >&2 echo "Error: cannot read ${1}"
-        return 1
-    fi
-    folder="$(dirname "${2}")"
-    mkdir -p "${folder}" || return 1
-    target="$(cd "${folder}" && pwd)/$(basename "${2}")"
-
-    if (cd "$(dirname "${1}")" && build_markdown_file "$(basename "${1}")") | \
-            convert_markdown_to_groff > "${target}.tmp" &&
-            [ -s "${target}.tmp" ] &&
-            mv -f "${target}.tmp" "${target}" ; then
-        return 0
-    fi
-    rm -f "${target}.tmp"
-    >&2 echo "Error: cannot generate ${2}"
-    return 1
+    write_output "${2}" convert_markdown_to_groff "${1}"
 }
 
 
-if [ "${#}" -eq 2 ] ; then
-    generate_manpage "${1}" "${2}"
-    exit "${?}"
-fi
+case "${#}" in
+    0) ;;
+    2) generate_manpage "${1}" "${2}" ; exit "${?}" ;;
+    *) >&2 echo "Usage: ${0} [markdown_source manual_page]" ; exit 1 ;;
+esac
 
-if [ "${#}" -ne 0 ] ; then
-    >&2 echo "Usage: ${0} [markdown_source manual_page]"
-    exit 1
-fi
-
-
-STATUS=0
 
 ## index.1.md documents the vsearch command itself and points to all
-## the other pages: it is the hub page, installed as vsearch(1). It
-## replaces the monolithic vsearch.1 page kept in the parent folder.
-generate_manpage ./index.1.md ./manpages/vsearch.1 || STATUS=1
-
-## one page per command (section 1), file format (section 5) and
-## reference topic (section 7)
-for raw_md in ./{commands,formats,misc}/vsearch*.md ; do
-    generate_manpage "${raw_md}" "./manpages/$(basename "${raw_md/\.md/}")" || STATUS=1
-done
+## the other pages: it is the hub page, generated as vsearch.1 and
+## installed as vsearch(1). It replaces the monolithic vsearch.1 page
+## kept in the parent folder.
+STATUS=0
+while read -r raw_md ; do
+    generate_manpage "${raw_md}" "./manpages/$(manpage_name "${raw_md}")" || STATUS=1
+done < <(manpage_sources)
 
 exit "${STATUS}"

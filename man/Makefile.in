@@ -373,6 +373,7 @@ EXTRA_DIST = \
   $(wildcard $(srcdir)/misc/vsearch-*.md) \
   $(MANPAGE_FRAGMENTS) \
   scripts/expand_includes.awk \
+  scripts/manpage_tools.sh \
   scripts/generate_manpages.sh
 
 all: all-am
@@ -702,7 +703,7 @@ uninstall-man: uninstall-man1 uninstall-man5 uninstall-man7
 # maintainer refreshes the tracked pages after editing the markdown;
 # the script stops with an error if pandoc is missing.
 regenerate-manpages:
-	cd $(srcdir) && $(SHELL) scripts/generate_manpages.sh
+	cd $(srcdir) && bash scripts/generate_manpages.sh
 
 .PHONY: regenerate-manpages
 
@@ -710,16 +711,16 @@ regenerate-manpages:
 # One rule per section, because the sources of the three sections live
 # in three different folders.
 @HAVE_PANDOC_TRUE@manpages/vsearch.1: $(srcdir)/index.1.md $(MANPAGE_FRAGMENTS)
-@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $(srcdir)/index.1.md $@
+@HAVE_PANDOC_TRUE@	bash $(srcdir)/scripts/generate_manpages.sh $(srcdir)/index.1.md $@
 
 @HAVE_PANDOC_TRUE@manpages/vsearch-%.1: $(srcdir)/commands/vsearch-%.1.md $(MANPAGE_FRAGMENTS)
-@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+@HAVE_PANDOC_TRUE@	bash $(srcdir)/scripts/generate_manpages.sh $< $@
 
 @HAVE_PANDOC_TRUE@manpages/vsearch-%.5: $(srcdir)/formats/vsearch-%.5.md $(MANPAGE_FRAGMENTS)
-@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+@HAVE_PANDOC_TRUE@	bash $(srcdir)/scripts/generate_manpages.sh $< $@
 
 @HAVE_PANDOC_TRUE@manpages/vsearch-%.7: $(srcdir)/misc/vsearch-%.7.md $(MANPAGE_FRAGMENTS)
-@HAVE_PANDOC_TRUE@	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+@HAVE_PANDOC_TRUE@	bash $(srcdir)/scripts/generate_manpages.sh $< $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

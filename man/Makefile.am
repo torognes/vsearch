@@ -108,13 +108,14 @@ EXTRA_DIST = \
   $(wildcard $(srcdir)/misc/vsearch-*.md) \
   $(MANPAGE_FRAGMENTS) \
   scripts/expand_includes.awk \
+  scripts/manpage_tools.sh \
   scripts/generate_manpages.sh
 
 # Regenerate every page, whatever configure decided. This is how a
 # maintainer refreshes the tracked pages after editing the markdown;
 # the script stops with an error if pandoc is missing.
 regenerate-manpages:
-	cd $(srcdir) && $(SHELL) scripts/generate_manpages.sh
+	cd $(srcdir) && bash scripts/generate_manpages.sh
 
 .PHONY: regenerate-manpages
 
@@ -124,15 +125,15 @@ if HAVE_PANDOC
 # One rule per section, because the sources of the three sections live
 # in three different folders.
 manpages/vsearch.1: $(srcdir)/index.1.md $(MANPAGE_FRAGMENTS)
-	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $(srcdir)/index.1.md $@
+	bash $(srcdir)/scripts/generate_manpages.sh $(srcdir)/index.1.md $@
 
 manpages/vsearch-%.1: $(srcdir)/commands/vsearch-%.1.md $(MANPAGE_FRAGMENTS)
-	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+	bash $(srcdir)/scripts/generate_manpages.sh $< $@
 
 manpages/vsearch-%.5: $(srcdir)/formats/vsearch-%.5.md $(MANPAGE_FRAGMENTS)
-	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+	bash $(srcdir)/scripts/generate_manpages.sh $< $@
 
 manpages/vsearch-%.7: $(srcdir)/misc/vsearch-%.7.md $(MANPAGE_FRAGMENTS)
-	$(SHELL) $(srcdir)/scripts/generate_manpages.sh $< $@
+	bash $(srcdir)/scripts/generate_manpages.sh $< $@
 
 endif
