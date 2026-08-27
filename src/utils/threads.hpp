@@ -60,10 +60,13 @@
 
 #pragma once
 
+#include <algorithm>  // std::for_each
+#include <cassert>
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <iterator>  // std::next
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -167,18 +170,34 @@ public:
   auto operator=(ThreadRunner &&) -> ThreadRunner & = delete; // move assignment
 
 
-  auto run() -> void {
+  // Wake the first 'first_n' workers only, and wait for those alone. A
+  // caller with less work than configured threads asks for the count it can
+  // keep busy and pays the wake-and-join latency for that count, not for the
+  // full pool. The workers left out keep sleeping and their state is not
+  // touched, so they must not be counted on to have current work to do.
+  auto run(std::size_t const first_n) -> void {
+    assert(first_n >= 1);
+    assert(first_n <= thread_array.size());
+    auto const past_last = std::next(thread_array.begin(),
+                                     static_cast<std::ptrdiff_t>(first_n));
+
     /* wake up threads */
-    for (auto & tip : thread_array) {
-      std::lock_guard<std::mutex> const lock(tip.workmutex);
-      tip.work = Work_state::work;
-      tip.workcond.notify_one();
-    }
+    std::for_each(thread_array.begin(), past_last,
+                  [](struct thread_s & tip) -> void {
+                    std::lock_guard<std::mutex> const lock(tip.workmutex);
+                    tip.work = Work_state::work;
+                    tip.workcond.notify_one();
+                  });
 
     /* wait for threads to finish their work */
-    for (auto & tip : thread_array) {
-      std::unique_lock<std::mutex> lock(tip.workmutex);
-      tip.workcond.wait(lock, [&tip]() -> bool { return tip.work != Work_state::work; });
-    }
+    std::for_each(thread_array.begin(), past_last,
+                  [](struct thread_s & tip) -> void {
+                    std::unique_lock<std::mutex> lock(tip.workmutex);
+                    tip.workcond.wait(lock, [&tip]() -> bool { return tip.work != Work_state::work; });
+                  });
+  }
+
+  auto run() -> void {
+    run(thread_array.size());
   }
 };

@@ -389,7 +389,15 @@ struct cluster_work_pool_s
             thread_work[tdx].query_count = 0;
           }
       }
-    runner->run();
+    /* Wake only the workers that were handed queries: the ones above `active`
+       were just given query_count = 0, so waking and joining them is pure
+       condition-variable round trip. With queries_per_thread == 1 every round
+       but the last of a run (or of a cluster_assign_batch() call) is exactly
+       nthreads queries wide, so this bites on the final round -- and on every
+       call of a batch shorter than the pool. Both callers stop their loop when
+       the input is exhausted, so `queries` is never 0. */
+    assert(active >= 1);
+    runner->run(static_cast<std::size_t>(active));
   }
 };
 
