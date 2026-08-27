@@ -185,22 +185,32 @@ namespace {
 
 
 namespace {
+/* The two stats blocks below each go to stderr (unless --quiet) and to --log
+   (when open), and each used to spell its payload out once per destination.
+   The payload takes the destination as its first argument instead. The two
+   messages stay separate writers: they differ in more than a word, and
+   merging them would mean funnelling a std::vector::size_type and a
+   std::count_if result through one integer parameter. See
+   TBD_20260824_report_destinations.md. */
+auto print_original_stats(std::FILE * output_stream,
+                          std::vector<uint64_t> const & deck,
+                          uint64_t const mass_total) -> void {
+  fprint(output_stream, "Got ");
+  fprint_integer(output_stream, mass_total);
+  fprint(output_stream, " reads from ");
+  fprint_integer(output_stream, deck.size());
+  fprint(output_stream, " amplicons\n");
+}
+
+
 auto write_original_stats(std::vector<uint64_t> const & deck,
                           uint64_t const mass_total,
                           struct Parameters const & parameters) -> void {
   if (not parameters.opt_quiet) {
-    fprint(stderr, "Got ");
-    fprint_integer(stderr, mass_total);
-    fprint(stderr, " reads from ");
-    fprint_integer(stderr, deck.size());
-    fprint(stderr, " amplicons\n");
+    print_original_stats(stderr, deck, mass_total);
   }
   if (parameters.fp_log != nullptr) {
-    fprint(parameters.fp_log, "Got ");
-    fprint_integer(parameters.fp_log, mass_total);
-    fprint(parameters.fp_log, " reads from ");
-    fprint_integer(parameters.fp_log, deck.size());
-    fprint(parameters.fp_log, " amplicons\n");
+    print_original_stats(parameters.fp_log, deck, mass_total);
   }
 }
 
@@ -215,24 +225,27 @@ auto number_of_reads_to_sample(struct Parameters const & parameters,
 }
 
 
+auto print_subsampling_stats(std::FILE * output_stream,
+                             uint64_t const n_reads,
+                             std::vector<uint64_t>::difference_type const samples) -> void {
+  fprint(output_stream, "Subsampled ");
+  fprint_integer(output_stream, n_reads);
+  fprint(output_stream, " reads from ");
+  fprint_integer(output_stream, samples);
+  fprint(output_stream, " amplicons\n");
+}
+
+
 auto write_subsampling_stats(std::vector<uint64_t> const &deck,
                              uint64_t const n_reads,
                              struct Parameters const & parameters) -> void {
   auto const samples = std::count_if(deck.begin(), deck.end(),
                                      [](uint64_t const abundance) -> bool { return abundance != 0; });
   if (not parameters.opt_quiet) {
-    fprint(stderr, "Subsampled ");
-    fprint_integer(stderr, n_reads);
-    fprint(stderr, " reads from ");
-    fprint_integer(stderr, samples);
-    fprint(stderr, " amplicons\n");
+    print_subsampling_stats(stderr, n_reads, samples);
   }
   if (parameters.fp_log != nullptr) {
-    fprint(parameters.fp_log, "Subsampled ");
-    fprint_integer(parameters.fp_log, n_reads);
-    fprint(parameters.fp_log, " reads from ");
-    fprint_integer(parameters.fp_log, samples);
-    fprint(parameters.fp_log, " amplicons\n");
+    print_subsampling_stats(parameters.fp_log, n_reads, samples);
   }
 }
 
