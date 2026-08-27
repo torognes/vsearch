@@ -74,6 +74,30 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
+  /* The two counts travel together and are both int64_t, so they are named in
+     a struct rather than passed as two adjacent swappable arguments. No
+     default member initializers: they would make this a non-aggregate before
+     C++14, and the call site brace-initializes it. */
+  struct RereplicationCounts
+  {
+    int64_t reads;
+    int64_t amplicons;
+  };
+
+
+  /* The end-of-run summary, one call per destination instead of the block
+     spelled out once per destination. See
+     TBD_20260824_report_destinations.md. */
+  auto print_rereplicated(std::FILE * output_stream,
+                          RereplicationCounts const counts) -> void
+  {
+    fprint(output_stream, "Rereplicated ");
+    fprint_integer(output_stream, counts.reads);
+    fprint(output_stream, " reads from ");
+    fprint_integer(output_stream, counts.amplicons);
+    fprint(output_stream, " amplicons\n");
+  }
+
 }  // end of anonymous namespace
 
 
@@ -121,22 +145,16 @@ auto rereplicate(struct Parameters const & parameters) -> void
       vsearch::warn("Missing abundance information for some input sequences, assumed 1");
     }
 
+  auto const totals = RereplicationCounts{n_reads, n_amplicons};
+
   if (not parameters.opt_quiet)
     {
-      fprint(stderr, "Rereplicated ");
-      fprint_integer(stderr, n_reads);
-      fprint(stderr, " reads from ");
-      fprint_integer(stderr, n_amplicons);
-      fprint(stderr, " amplicons\n");
+      print_rereplicated(stderr, totals);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "Rereplicated ");
-      fprint_integer(parameters.fp_log, n_reads);
-      fprint(parameters.fp_log, " reads from ");
-      fprint_integer(parameters.fp_log, n_amplicons);
-      fprint(parameters.fp_log, " amplicons\n");
+      print_rereplicated(parameters.fp_log, totals);
     }
 
   input_handle->report_stripped_warning(parameters);
