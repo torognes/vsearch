@@ -29,9 +29,7 @@
     - change: `--fastx_getseqs --label_words` now silently skips empty
       lines
     - add: online documentation for all `vsearch` commands
-      (https://torognes.github.io/vsearch/). Note to users: this is
-      still a draft, the manpages are not yet available from the
-      command line, only online
+      (https://torognes.github.io/vsearch/)
     - add: command `--orient` now supports option `--hardmask`
     - add: compilation flag `-fno-exceptions`
     - add: static library API for vsearch (contributed by @wasade)
