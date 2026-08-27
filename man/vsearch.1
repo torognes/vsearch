@@ -1,3 +1,12 @@
+.\" ============================================================================
+.\" DEPRECATED. This monolithic manual page has been replaced by the modular
+.\" manual pages built from the markdown sources in this folder: index.1.md
+.\" (the hub page), commands/, formats/ and misc/. It is no longer built,
+.\" installed or distributed, and it is no longer maintained -- patch the
+.\" markdown sources instead, and run "make -C man regenerate-manpages".
+.\" It is kept here, unchanged apart from this notice and the DEPRECATED
+.\" section below, only until it is removed.
+.\" ============================================================================
 .\" import www macros (URL, TAG, MTO)
 .mso www.tmac
 .\" ============================================================================
@@ -11,6 +20,29 @@ orienting, pairwise alignment, restriction site cutting, searching,
 shuffling, sorting, subsampling, and taxonomic classification of
 amplicon sequences for metagenomics, genomics, and population
 genetics.
+.\" ============================================================================
+.SH DEPRECATED
+This page has been replaced by a set of modular manual pages: a hub
+page listing every command, one page per command, one page per file
+format, and one page per reference topic. It is no longer installed,
+distributed or maintained, and it is kept only until it is removed.
+.PP
+Type
+.B man vsearch
+for the hub page,
+.BI "man vsearch-" command
+for a command, for instance
+.BR "man vsearch-usearch_global" ,
+.BI "man 5 vsearch-" format
+for a file format, for instance
+.BR "man 5 vsearch-fastq" ,
+and
+.BI "man 7 vsearch-" topic
+for a reference topic, for instance
+.BR "man 7 vsearch-userfields" .
+.PP
+What follows may already have drifted from those pages. They are the
+authoritative documentation.
 .\" ============================================================================
 .SH SYNOPSIS
 .\" left justified, ragged right
