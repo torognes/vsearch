@@ -84,12 +84,15 @@ fi
 # The modular manual pages in man/manpages/ are generated from the markdown
 # sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. Being
 # generated, they are not in git; 'make dist' does ship them, so a build from a
-# release tarball produces and installs the manual without pandoc. The manual is
+# release tarball produces and installs the manual without pandoc. NEWS, the
+# release history as plain text, comes from the same markdown and follows the
+# same rules. The manual is
 # therefore available when pandoc is here to generate the pages, or when they
 # are already present, and a build with neither still produces a working vsearch
 # -- just no manual.
 have_pandoc=no
 have_manpages=no
+have_news=no
 AC_ARG_ENABLE(manpages,
   AS_HELP_STRING([--disable-manpages],
                  [Do not build or install the manual pages]))
@@ -99,6 +102,7 @@ AS_IF([test "x$enable_manpages" != "xno"], [
   AS_IF([test "x$have_pandoc" = "xyes" || test -f "$srcdir/man/manpages/vsearch.1"],
         [have_manpages=yes],
         [AC_MSG_WARN([*** pandoc is required to build the manual pages; vsearch will be built without them])])
+  AS_IF([test "x$have_pandoc" = "xyes" || test -f "$srcdir/NEWS"], [have_news=yes])
 ])
 
 
@@ -156,6 +160,7 @@ AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONA
 
 AM_CONDITIONAL(HAVE_PANDOC, test "x${have_pandoc}" = "xyes")
 AM_CONDITIONAL(BUILD_MANPAGES, test "x${have_manpages}" = "xyes")
+AM_CONDITIONAL(BUILD_NEWS, test "x${have_news}" = "xyes")
 AM_CONDITIONAL(TARGET_PPC, test "x${target_ppc}" = "xyes")
 AM_CONDITIONAL(TARGET_AARCH64, test "x${target_aarch64}" = "xyes")
 AM_CONDITIONAL(TARGET_X86_64, test "x${target_x86_64}" = "xyes")

@@ -670,6 +670,8 @@ TARGET_AARCH64_FALSE
 TARGET_AARCH64_TRUE
 TARGET_PPC_FALSE
 TARGET_PPC_TRUE
+BUILD_NEWS_FALSE
+BUILD_NEWS_TRUE
 BUILD_MANPAGES_FALSE
 BUILD_MANPAGES_TRUE
 HAVE_PANDOC_FALSE
@@ -5079,12 +5081,15 @@ fi
 # The modular manual pages in man/manpages/ are generated from the markdown
 # sources in man/ by man/scripts/generate_manpages.sh, which needs pandoc. Being
 # generated, they are not in git; 'make dist' does ship them, so a build from a
-# release tarball produces and installs the manual without pandoc. The manual is
+# release tarball produces and installs the manual without pandoc. NEWS, the
+# release history as plain text, comes from the same markdown and follows the
+# same rules. The manual is
 # therefore available when pandoc is here to generate the pages, or when they
 # are already present, and a build with neither still produces a working vsearch
 # -- just no manual.
 have_pandoc=no
 have_manpages=no
+have_news=no
 # Check whether --enable-manpages was given.
 if test ${enable_manpages+y}
 then :
@@ -5144,6 +5149,10 @@ then :
 else $as_nop
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: *** pandoc is required to build the manual pages; vsearch will be built without them" >&5
 printf "%s\n" "$as_me: WARNING: *** pandoc is required to build the manual pages; vsearch will be built without them" >&2;}
+fi
+  if test "x$have_pandoc" = "xyes" || test -f "$srcdir/NEWS"
+then :
+  have_news=yes
 fi
 
 fi
@@ -5274,6 +5283,14 @@ fi
 else
   BUILD_MANPAGES_TRUE='#'
   BUILD_MANPAGES_FALSE=
+fi
+
+ if test "x${have_news}" = "xyes"; then
+  BUILD_NEWS_TRUE=
+  BUILD_NEWS_FALSE='#'
+else
+  BUILD_NEWS_TRUE='#'
+  BUILD_NEWS_FALSE=
 fi
 
  if test "x${target_ppc}" = "xyes"; then
@@ -6422,6 +6439,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BUILD_MANPAGES_TRUE}" && test -z "${BUILD_MANPAGES_FALSE}"; then
   as_fn_error $? "conditional \"BUILD_MANPAGES\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILD_NEWS_TRUE}" && test -z "${BUILD_NEWS_FALSE}"; then
+  as_fn_error $? "conditional \"BUILD_NEWS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${TARGET_PPC_TRUE}" && test -z "${TARGET_PPC_FALSE}"; then

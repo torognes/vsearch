@@ -110,17 +110,20 @@ MAINTAINERCLEANFILES = $(GENERATED_MANS)
 # already requires GNU make.
 MANPAGE_FRAGMENTS = \
   $(wildcard $(srcdir)/commands/fragments/*.md) \
-  $(wildcard $(srcdir)/formats/fragments/*.md)
+  $(wildcard $(srcdir)/formats/fragments/*.md) \
+  $(wildcard $(srcdir)/misc/fragments/*.md)
 
 EXTRA_DIST = \
   index.1.md \
+  NEWS.md \
   $(wildcard $(srcdir)/commands/vsearch-*.md) \
   $(wildcard $(srcdir)/formats/vsearch-*.md) \
   $(wildcard $(srcdir)/misc/vsearch-*.md) \
   $(MANPAGE_FRAGMENTS) \
   scripts/expand_includes.awk \
   scripts/manpage_tools.sh \
-  scripts/generate_manpages.sh
+  scripts/generate_manpages.sh \
+  scripts/generate_news.sh
 
 # Regenerate every page, whatever configure decided. This is how a
 # maintainer refreshes the tracked pages after editing the markdown;
