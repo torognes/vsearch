@@ -4,14 +4,17 @@
 ## assume any internal link is relative to the md file itself (important)
 
 ## check dependencies
-for dependency in pandoc perl ; do
-    which "${dependency}" > /dev/null || \
+for dependency in pandoc awk ; do
+    command -v "${dependency}" > /dev/null || \
         { >&2 echo "Error: missing ${dependency}" ; exit 1 ; }
 done
 
+## the expander runs from inside commands/, formats/ and misc/, so
+## resolve its location before changing directory
+EXPAND_INCLUDES="$(cd "$(dirname "${0}")" && pwd)/expand_includes.awk"
+
 build_markdown_file() {
-    perl -ne \
-         's/^#\((.+)\).*/`cat "$1"`/e;print' "${1}"
+    awk -f "${EXPAND_INCLUDES}" "${1}"
 }
 
 convert_markdown_to_github_markdown() {
