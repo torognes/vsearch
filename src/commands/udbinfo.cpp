@@ -73,6 +73,45 @@
 #include <ios>
 
 
+namespace {
+
+  /* The UDB header fields, one call per destination instead of the block
+     spelled out once per destination -- 24 write calls twice over, the largest
+     duplicated report in the tree. The buffer is passed as the whole header
+     array rather than field by field. See
+     TBD_20260824_report_destinations.md. */
+  auto print_udb_header(std::FILE * output_stream,
+                        std::array<unsigned int, 50> const & buffer) -> void
+  {
+    fprint(output_stream, "           Seqs  ");
+    fprint_integer(output_stream, buffer[13]);
+    fprint(output_stream, '\n');
+    fprint(output_stream, "     SeqIx bits  ");
+    fprint_integer(output_stream, buffer[2]);
+    fprint(output_stream, '\n');
+    fprint(output_stream, "          Alpha  nt (4)\n");
+    fprint(output_stream, "     Word width  ");
+    fprint_integer(output_stream, buffer[4]);
+    fprint(output_stream, '\n');
+    fprint(output_stream, "          Slots  ");
+    fprint_integer(output_stream, buffer[11]);
+    fprint(output_stream, '\n');
+    fprint(output_stream, "      Dict size  ");
+    fprint_integer(output_stream, (1U << (2 * buffer[4])));
+    fprint(output_stream, " (");
+    std::fprintf(output_stream, "%.1f", (1U << (2 * buffer[4])) * 1.0 / 1000.0);
+    fprint(output_stream, "k)\n");
+    fprint(output_stream, "         DBstep  ");
+    fprint_integer(output_stream, buffer[5]);
+    fprint(output_stream, '\n');
+    fprint(output_stream, "        DBAccel  ");
+    fprint_integer(output_stream, buffer[6]);
+    fprint(output_stream, "%\n");
+  }
+
+}  // anonymous namespace
+
+
 auto udbinfo(struct Parameters const & parameters) -> void
 {
   /* Read UDB header and show basic info */
@@ -154,57 +193,11 @@ auto udbinfo(struct Parameters const & parameters) -> void
 
   if (not parameters.opt_quiet)
     {
-      fprint(stderr, "           Seqs  ");
-      fprint_integer(stderr, buffer[13]);
-      fprint(stderr, '\n');
-      fprint(stderr, "     SeqIx bits  ");
-      fprint_integer(stderr, buffer[2]);
-      fprint(stderr, '\n');
-      fprint(stderr, "          Alpha  nt (4)\n");
-      fprint(stderr, "     Word width  ");
-      fprint_integer(stderr, buffer[4]);
-      fprint(stderr, '\n');
-      fprint(stderr, "          Slots  ");
-      fprint_integer(stderr, buffer[11]);
-      fprint(stderr, '\n');
-      fprint(stderr, "      Dict size  ");
-      fprint_integer(stderr, (1U << (2 * buffer[4])));
-      fprint(stderr, " (");
-      std::fprintf(stderr, "%.1f", (1U << (2 * buffer[4])) * 1.0 / 1000.0);
-      fprint(stderr, "k)\n");
-      fprint(stderr, "         DBstep  ");
-      fprint_integer(stderr, buffer[5]);
-      fprint(stderr, '\n');
-      fprint(stderr, "        DBAccel  ");
-      fprint_integer(stderr, buffer[6]);
-      fprint(stderr, "%\n");
+      print_udb_header(stderr, buffer);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      fprint(parameters.fp_log, "           Seqs  ");
-      fprint_integer(parameters.fp_log, buffer[13]);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "     SeqIx bits  ");
-      fprint_integer(parameters.fp_log, buffer[2]);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "          Alpha  nt (4)\n");
-      fprint(parameters.fp_log, "     Word width  ");
-      fprint_integer(parameters.fp_log, buffer[4]);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "          Slots  ");
-      fprint_integer(parameters.fp_log, buffer[11]);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "      Dict size  ");
-      fprint_integer(parameters.fp_log, (1U << (2 * buffer[4])));
-      fprint(parameters.fp_log, " (");
-      std::fprintf(parameters.fp_log, "%.1f", (1U << (2 * buffer[4])) * 1.0 / 1000.0);
-      fprint(parameters.fp_log, "k)\n");
-      fprint(parameters.fp_log, "         DBstep  ");
-      fprint_integer(parameters.fp_log, buffer[5]);
-      fprint(parameters.fp_log, '\n');
-      fprint(parameters.fp_log, "        DBAccel  ");
-      fprint_integer(parameters.fp_log, buffer[6]);
-      fprint(parameters.fp_log, "%\n");
+      print_udb_header(parameters.fp_log, buffer);
     }
 }
