@@ -320,28 +320,6 @@ namespace {
         fprint(output_stream, '\n');
       }
   }
-
-
-  /* The --log destination for stats_message() above; output_stats_message()
-     below is the stderr one. Named rather than distinguished from it by an
-     extra argument: it used to take parameters.opt_log and test *that* for
-     null -- a filename standing in for the handle it then wrote to. */
-  auto log_stats_message(struct Parameters const & parameters,
-                         struct statistics const & stats) -> void {
-    if (parameters.fp_log == nullptr) {
-      return;
-    }
-    stats_message(parameters.fp_log, stats);
-  }
-
-
-  auto output_stats_message(struct Parameters const & parameters,
-                            struct statistics const & stats) -> void {
-    if (parameters.opt_quiet) {
-      return;
-    }
-    stats_message(stderr, stats);
-  }
 }  // end of anonymous namespace
 
 
@@ -428,6 +406,10 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   find_highest_quality_symbol(stats);
   guess_quality_offset(stats);
 
-  output_stats_message(parameters, stats);
-  log_stats_message(parameters, stats);
+  if (not parameters.opt_quiet) {
+    stats_message(stderr, stats);
+  }
+  if (parameters.fp_log != nullptr) {
+    stats_message(parameters.fp_log, stats);
+  }
 }

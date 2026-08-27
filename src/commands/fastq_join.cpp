@@ -169,29 +169,6 @@ namespace {
     fprint_integer(output_stream, total);
     fprint(output_stream, " pairs joined\n");
   }
-
-
-  /* The --log destination for stats_message() above; output_stats_message()
-     below is the stderr one. Named rather than distinguished from it by an
-     extra argument: it used to take parameters.opt_log and test *that* for
-     null -- a filename standing in for the handle it then wrote to. */
-  auto log_stats_message(struct Parameters const & parameters,
-                         uint64_t const total) -> void {
-    if (parameters.fp_log == nullptr) {
-      return;
-    }
-    stats_message(parameters.fp_log, total);
-  }
-
-
-  auto output_stats_message(struct Parameters const & parameters,
-                            uint64_t const total) -> void {
-    if (parameters.opt_quiet) {
-      return;
-    }
-    stats_message(stderr, total);
-  }
-
 }  // end of anonymous namespace
 
 
@@ -303,8 +280,12 @@ auto fastq_join(struct Parameters const & parameters) -> void
       fatal("More reverse reads than forward reads");
     }
 
-  output_stats_message(parameters, total);
-  log_stats_message(parameters, total);
+  if (not parameters.opt_quiet) {
+    stats_message(stderr, total);
+  }
+  if (parameters.fp_log != nullptr) {
+    stats_message(parameters.fp_log, total);
+  }
 
   /* clean up */
 

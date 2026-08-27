@@ -71,7 +71,9 @@ struct Parameters;
    error/warning reporters (fatal(), utils/warn.hpp's vsearch::warn()) that run
    with no Parameters in scope. The handle is owned and published by the LogFile RAII
    object below; handle() returns nullptr when no --log file is open. Code that
-   already holds a Parameters should read parameters.fp_log directly instead. */
+   already holds a Parameters should read parameters.fp_log directly instead --
+   the handle, never parameters.opt_log, which is only the filename --log was
+   given and which three commands used to null-test in its place. */
 namespace log_file
 {
   auto handle() noexcept -> std::FILE *;

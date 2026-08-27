@@ -379,26 +379,6 @@ namespace {
   }
 
 
-  /* The --log destination for stats_message() above; output_stats_message()
-     below is the stderr one. Named rather than distinguished from it by an
-     extra argument: it used to take parameters.opt_log and test *that* for
-     null -- a filename standing in for the handle it then wrote to. */
-  auto log_stats_message(struct Parameters const & parameters,
-                         struct statistics const & counters) -> void {
-    if (parameters.fp_log == nullptr) {
-      return;
-    }
-    stats_message(parameters.fp_log, counters);
-  }
-
-
-  auto output_stats_message(struct Parameters const & parameters,
-                            struct statistics const & counters) -> void {
-    if (parameters.opt_quiet) {
-      return;
-    }
-    stats_message(stderr, counters);
-  }
 
 
   auto close_output_files(struct file_purpose & fastaout) -> void {
@@ -450,8 +430,12 @@ auto cut(struct Parameters const & parameters) -> void {
       progress.update(input_handle->get_position());
     }
 
-  output_stats_message(parameters, counters);
-  log_stats_message(parameters, counters);
+  if (not parameters.opt_quiet) {
+    stats_message(stderr, counters);
+  }
+  if (parameters.fp_log != nullptr) {
+    stats_message(parameters.fp_log, counters);
+  }
 
   close_output_files(fastaout);
   input_handle->report_stripped_warning(parameters);
