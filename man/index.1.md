@@ -31,6 +31,10 @@ Format and reference manpages belong to sections 5 and 7 respectively;
 for example, type `man 5 vsearch-fastq` to read about the fastq format
 as used by vsearch.
 
+The same pages are published online at
+[https://torognes.github.io/vsearch/](https://torognes.github.io/vsearch/),
+where they can be browsed and searched.
+
 
 # VSEARCH COMMANDS
 

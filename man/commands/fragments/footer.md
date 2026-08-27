@@ -19,6 +19,9 @@ or compose a friendly or curmudgeont e-mail to Torbjørn Rognes
 Source code and binaries are available at
 [https://github.com/torognes/vsearch](https://github.com/torognes/vsearch).
 
+These manual pages are also published online at
+[https://torognes.github.io/vsearch/](https://torognes.github.io/vsearch/).
+
 
 # COPYRIGHT
 
