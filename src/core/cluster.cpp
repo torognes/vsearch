@@ -608,6 +608,53 @@ auto cluster_core_results_nohit(struct cluster_cli_state_s & state,
                           state.parameters);
     }
 }
+
+
+/* The five figures the cluster summary reports, named rather than passed as
+   five adjacent integer arguments. No default member initializers: they would
+   make this a non-aggregate before C++14, and the call site
+   brace-initializes it. */
+struct ClusterSummary
+{
+  int clusters;
+  int singletons;
+  int seqcount;
+  int64_t abundance_min;
+  int64_t abundance_max;
+};
+
+
+/* The cluster/singleton summary, one call per destination instead of the
+   block spelled out once per destination -- in both branches, which is what
+   made it four copies. The empty-cluster branch stays inside the writer, as
+   it does in core/derep_stats.cpp's report_unique_summary(). See
+   TBD_20260824_report_destinations.md. */
+auto print_cluster_summary(std::FILE * output_stream,
+                           ClusterSummary const & summary) -> void
+{
+  if (summary.clusters < 1)
+    {
+      fprint(output_stream, "Clusters: 0\n");
+      fprint(output_stream, "Singletons: 0\n");
+      return;
+    }
+  fprint(output_stream, "Clusters: ");
+  fprint_integer(output_stream, summary.clusters);
+  fprint(output_stream, " Size min ");
+  fprint_integer(output_stream, summary.abundance_min);
+  fprint(output_stream, ", max ");
+  fprint_integer(output_stream, summary.abundance_max);
+  fprint(output_stream, ", avg ");
+  std::fprintf(output_stream, "%.1f", 1.0 * summary.seqcount / summary.clusters);
+  fprint(output_stream, '\n');
+  fprint(output_stream, "Singletons: ");
+  fprint_integer(output_stream, summary.singletons);
+  fprint(output_stream, ", ");
+  std::fprintf(output_stream, "%.1f", 100.0 * summary.singletons / summary.seqcount);
+  fprint(output_stream, "% of seqs, ");
+  std::fprintf(output_stream, "%.1f", 100.0 * summary.singletons / summary.clusters);
+  fprint(output_stream, "% of clusters\n");
+}
 }  // anonymous namespace
 
 /* `extra_list` holds the query numbers of the non-matching sequences of this
@@ -1463,59 +1510,25 @@ auto cluster(char const * dbname,
   }
 
 
-  if (clusters < 1)
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint(stderr, "Clusters: 0\n");
-          fprint(stderr, "Singletons: 0\n");
-        }
-      if (parameters.fp_log != nullptr)
-        {
-          fprint(parameters.fp_log, "Clusters: 0\n");
-          fprint(parameters.fp_log, "Singletons: 0\n");
-        }
-    }
-  else
-    {
-      if (not parameters.opt_quiet)
-        {
-          fprint(stderr, "Clusters: ");
-          fprint_integer(stderr, clusters);
-          fprint(stderr, " Size min ");
-          fprint_integer(stderr, abundance_min);
-          fprint(stderr, ", max ");
-          fprint_integer(stderr, abundance_max);
-          fprint(stderr, ", avg ");
-          std::fprintf(stderr, "%.1f", 1.0 * seqcount / clusters);
-          fprint(stderr, '\n');
-          fprint(stderr, "Singletons: ");
-          fprint_integer(stderr, singletons);
-          fprint(stderr, ", ");
-          std::fprintf(stderr, "%.1f", 100.0 * singletons / seqcount);
-          fprint(stderr, "% of seqs, ");
-          std::fprintf(stderr, "%.1f", 100.0 * singletons / clusters);
-          fprint(stderr, "% of clusters\n");
-        }
+  auto const summary = ClusterSummary{clusters, singletons, seqcount,
+                                      abundance_min, abundance_max};
 
-      if (parameters.fp_log != nullptr)
+  if (not parameters.opt_quiet)
+    {
+      print_cluster_summary(stderr, summary);
+    }
+
+  if (parameters.fp_log != nullptr)
+    {
+      print_cluster_summary(parameters.fp_log, summary);
+      if (summary.clusters >= 1)
         {
-          fprint(parameters.fp_log, "Clusters: ");
-          fprint_integer(parameters.fp_log, clusters);
-          fprint(parameters.fp_log, " Size min ");
-          fprint_integer(parameters.fp_log, abundance_min);
-          fprint(parameters.fp_log, ", max ");
-          fprint_integer(parameters.fp_log, abundance_max);
-          fprint(parameters.fp_log, ", avg ");
-          std::fprintf(parameters.fp_log, "%.1f", 1.0 * seqcount / clusters);
-          fprint(parameters.fp_log, '\n');
-          fprint(parameters.fp_log, "Singletons: ");
-          fprint_integer(parameters.fp_log, singletons);
-          fprint(parameters.fp_log, ", ");
-          std::fprintf(parameters.fp_log, "%.1f", 100.0 * singletons / seqcount);
-          fprint(parameters.fp_log, "% of seqs, ");
-          std::fprintf(parameters.fp_log, "%.1f", 100.0 * singletons / clusters);
-          fprint(parameters.fp_log, "% of clusters\n");
+          /* The separator the log copy gets -- but only when there is at
+             least one cluster. The empty-cluster branch has never written it,
+             which is the same asymmetry core/db.cpp's minsize warning had
+             (fixed earlier in this series, TBD_20260824 §7.7); kept as-is
+             here because it is a second site the maintainer has not ruled
+             on, and this commit is meant to change no output byte. */
           fprint(parameters.fp_log, '\n');
         }
     }
