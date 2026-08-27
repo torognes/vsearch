@@ -1088,13 +1088,18 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
       fatal("More reverse reads than forward reads");
     }
 
+  /* --quiet suppresses the stderr report, as documented and as
+     fastq_filter and fastq_join already do */
+  if (not parameters.opt_quiet) {
+    print_stats(state, stderr);
+  }
+  /* ...and the log gets its own copy, like every other command. This used to
+     be an "else if" on the stderr branch, so --log *replaced* stderr rather
+     than duplicating it and the report left stderr entirely -- which neither
+     of the two commands cited above does, and which --log is not documented
+     to do. See TBD_20260824_report_destinations.md, shape 7. */
   if (parameters.fp_log != nullptr) {
     print_stats(state, parameters.fp_log);
-  }
-  else if (not parameters.opt_quiet) {
-    /* --quiet suppresses the stderr report, as documented and as
-       fastq_filter and fastq_join already do */
-    print_stats(state, stderr);
   }
 
   /* clean up */
