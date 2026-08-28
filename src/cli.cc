@@ -4558,6 +4558,43 @@ namespace {
        the manual states, and as tested) */
   }
 
+  /* --fastq_qmax and --fastq_qmaxout default to the highest score the chosen
+     encoding can represent. That ceiling is 126 - offset, so it is only known
+     once --fastq_ascii and --fastq_asciiout have been parsed: the member
+     initializers in Parameters state the Sanger value (93), and this lowers it
+     to 62 when the Solexa offset was requested and the bound itself was not.
+     An explicit --fastq_qmax is never touched, so the sum rules in
+     validate_option_values() still reject a bound the offset cannot carry.
+
+     Doing it here rather than in the initializer is what keeps
+     --fastq_ascii 64 working: a flat default of 93 would make 64 + 93 = 157
+     fail the sum rule before a single byte was read. */
+  auto resolve_quality_bound_defaults(std::vector<bool> const & options_selected,
+                                      struct Parameters & parameters) -> void
+  {
+    if (not options_selected[option_fastq_qmax])
+      {
+        parameters.opt_fastq_qmax =
+          highest_printable_ascii - parameters.opt_fastq_ascii;
+      }
+    if (not options_selected[option_fastq_qmaxout])
+      {
+        /* --fasta2fastq is the one command for which --fastq_qmaxout is a
+           value rather than a cap: it has no input quality, and fills every
+           position with the highest score the option allows. Letting the new
+           ceiling through would silently promote its fabricated scores from
+           Q41 to Q93, asserting a confidence the invented data does not have,
+           so it keeps the documented 41. Every other consumer clamps real
+           quality (--fastq_convert, --fastx_uniques, --sff_convert,
+           --fastq_mergepairs) and wants the higher ceiling. */
+        parameters.opt_fastq_qmaxout =
+          (parameters.opt_fasta2fastq != nullptr)
+          ? legacy_max_quality
+          : highest_printable_ascii - parameters.opt_fastq_asciiout;
+      }
+  }
+
+
   /* Validate option value ranges (fatal on out-of-range input) and resolve the
      co-dependent defaults that must be settled alongside the range checks
      (weak_id, maxrejects, wordlength, ...). */
@@ -4690,12 +4727,12 @@ namespace {
         fatal("The argument to --fastq_qmin cannot be greater than --fastq_qmax");
       }
 
-    if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmin < 33)
+    if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmin < lowest_printable_ascii)
       {
         fatal("Sum of arguments to --fastq_ascii and --fastq_qmin must be no less than 33");
       }
 
-    if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmax > 126)
+    if (parameters.opt_fastq_ascii + parameters.opt_fastq_qmax > highest_printable_ascii)
       {
         fatal("Sum of arguments to --fastq_ascii and --fastq_qmax must be no more than 126");
       }
@@ -4710,12 +4747,12 @@ namespace {
         fatal("The argument to --fastq_asciiout must be 33 or 64");
       }
 
-    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < 33)
+    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < lowest_printable_ascii)
       {
         fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
       }
 
-    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout > 126)
+    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout > highest_printable_ascii)
       {
         fatal("Sum of arguments to --fastq_asciiout and --fastq_qmaxout must be no more than 126");
       }
@@ -5201,6 +5238,8 @@ auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> 
     : Command::none;
 
   configure_threads(k, long_options, parameters);
+
+  resolve_quality_bound_defaults(options_selected, parameters);
 
   validate_option_values(options_selected, parameters);
 

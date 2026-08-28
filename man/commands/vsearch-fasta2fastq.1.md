@@ -52,7 +52,11 @@ default is 33).
 : Specify the fake quality score used when writing the fastq file. The
   default is 41 ('J'), which is the usual maximal quality score for
   recent Sanger/Illumina 1.8+ files (maximal quality score was 40 in
-  older formats). Accepted values range from 0 to 93 when the quality
+  older formats). Note that `--fasta2fastq` keeps that default where
+  other commands raised theirs to 93 in version 3.0: here the option
+  is the score to write, not a ceiling on a score that was read, and
+  fabricating Q93 would claim a confidence the invented data does not
+  have. Accepted values range from 0 to 93 when the quality
   offset is set to 33 (see `--fastq_asciiout`), and from 0 to 62 when
   the quality offset is set to 64.
 

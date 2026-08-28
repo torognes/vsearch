@@ -84,7 +84,8 @@ auto fastq_get_qual_eestats(char const q, struct Parameters const & parameters) 
     {
       fatal("FASTQ quality value (" + std::to_string(qual) + ") above qmax ("
             + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-            "By default, quality values range from 0 to 41.\n"
+            "By default, quality values range from 0 to 93\n"
+            "(0 to 62 with --fastq_ascii 64).\n"
             "To allow higher quality values, "
             "please use the option --fastq_qmax " + std::to_string(qual));
     }

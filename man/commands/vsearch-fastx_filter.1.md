@@ -60,8 +60,9 @@ accepted because quality scores are not available: `--eeout`,
 `--fastq_truncqual`, `--fastqout`, `--fastqout_discarded`,
 `--fastqout_discarded_rev`, and `--fastqout_rev`. The options
 `--fastq_ascii`, `--fastq_qmax`, and `--fastq_qmin` are also rejected
-with fasta input when set to a value other than their default (33, 41,
-and 0, respectively).
+with fasta input when set to a stricter value than vsearch applies by
+default: an offset other than 33, a `--fastq_qmax` below 41, or a
+`--fastq_qmin` above 0.
 
 Sequence headers are not truncated at whitespace by this command,
 regardless of input format. The `--notrunclabels` option is therefore

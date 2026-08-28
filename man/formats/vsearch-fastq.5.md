@@ -60,8 +60,9 @@ offset is set with `--fastq_ascii` (default 33):
 
 - **phred+33** (offset 33): Sanger and Illumina 1.8+ format. Valid
   quality characters range from '!' (Q=0) to '~' (Q=93). vsearch
-  accepts scores from 0 to 41 by default (`--fastq_qmin` and
-  `--fastq_qmax`).
+  accepts the whole range by default (`--fastq_qmin` 0 and
+  `--fastq_qmax` 93). Before version 3.0 the upper bound defaulted to
+  41, which rejected PacBio HiFi and nanopore files.
 
 - **phred+64** (offset 64): Illumina 1.3+ and Illumina 1.5+ formats.
   Valid quality characters range from '@' (Q=0) to '~' (Q=62).

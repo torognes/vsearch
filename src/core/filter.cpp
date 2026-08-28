@@ -98,7 +98,8 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
     {
       fatal("FASTQ quality value (" + std::to_string(quality_score) + ") above qmax ("
             + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-            "By default, quality values range from 0 to 41.\n"
+            "By default, quality values range from 0 to 93\n"
+            "(0 to 62 with --fastq_ascii 64).\n"
             "To allow higher quality values, "
             "please use the option --fastq_qmax " + std::to_string(quality_score));
     }
@@ -327,7 +328,16 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
       else if (parameters.opt_eeout or (parameters.opt_fastq_ascii != 33) or parameters.opt_fastq_eeout or
                (parameters.opt_fastq_maxee < dbl_max_local) or
                (parameters.opt_fastq_maxee_rate < dbl_max_local) or (parameters.opt_fastqout != nullptr) or
-               (parameters.opt_fastq_qmax < 41) or (parameters.opt_fastq_qmin > 0) or
+               /* legacy_max_quality, not the current default: the test asks
+                  whether the user demanded a *stricter* bound than vsearch
+                  historically applied, and keeping the literal 41 keeps that
+                  meaning now that --fastq_qmax defaults to 93. Note that the
+                  manual says these options are rejected "when set to a value
+                  other than their default", which would be != rather than <;
+                  a --fastq_qmax above 41 has always been accepted and ignored
+                  here. Left as-is pending review -- see
+                  TBD_20260825_quality_range.md. */
+               (parameters.opt_fastq_qmax < legacy_max_quality) or (parameters.opt_fastq_qmin > 0) or
                (parameters.opt_fastq_truncee < dbl_max_local) or
                (parameters.opt_fastq_truncee_rate < dbl_max_local) or
                (parameters.opt_fastq_truncqual != long_min) or

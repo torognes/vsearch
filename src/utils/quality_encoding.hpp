@@ -66,3 +66,18 @@
 
 constexpr int sanger_ascii_offset = 33;  // Phred+33 (Sanger / Illumina 1.8+)
 constexpr int solexa_ascii_offset = 64;  // Phred+64 (Solexa / Illumina 1.3+)
+
+/* The printable ASCII range a quality symbol may occupy. Every quality bound
+   is constrained by these two: an offset plus a score must land inside
+   [33, 126], which caps the representable score at 126 - offset (93 with the
+   Sanger offset, 62 with the Solexa one) and floors it at 33 - offset. The
+   sum rules in cli.cc and the default of --fastq_qmax are both stated in
+   terms of these. */
+constexpr int lowest_printable_ascii = 33;   // '!'
+constexpr int highest_printable_ascii = 126; // '~'
+
+/* The quality ceiling vsearch used before 3.0, when 41 was the highest score
+   an Illumina 1.8+ file was expected to carry. It survives as the
+   --fastq_qmaxout default of --fasta2fastq alone, which fabricates quality
+   rather than clamping it (see resolve_quality_bound_defaults() in cli.cc). */
+constexpr int legacy_max_quality = 41;

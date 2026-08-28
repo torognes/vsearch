@@ -22,8 +22,10 @@ Roche 454 and early Ion Torrent PGM sequencing platforms (see
 The output fastq file is written to `--fastqout`. The quality encoding
 offset can be set with `--fastq_asciiout` (default 33, phred+33). Output
 quality scores are always clamped to the range set by `--fastq_qminout`
-and `--fastq_qmaxout`, whose defaults are 0 and 41: SFF quality values
-above 41 are silently reduced to 41 unless `--fastq_qmaxout` is raised.
+and `--fastq_qmaxout`, whose defaults are 0 and 93: SFF quality values
+are written unchanged unless `--fastq_qmaxout` is lowered. Before
+version 3.0 the default was 41, and any higher SFF value was silently
+reduced to it.
 
 While converting, vsearch reports the number of reads, the flows per
 read, the key sequence, the index type (when an index is present) and

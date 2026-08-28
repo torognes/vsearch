@@ -91,7 +91,16 @@ private:
   static constexpr int64_t default_fasta_width = 80;
   static constexpr int64_t default_fastq_tail = 4;
   static constexpr int64_t default_maxseqlength = 50000;
-  static constexpr int64_t default_max_quality = 41;
+  /* --fastq_qmax and --fastq_qmaxout default to the highest score the Sanger
+     encoding can represent, 93, rather than to the 41 that was usual for
+     Illumina 1.8+ (torognes/vsearch#609): PacBio HiFi reaches Q93 and
+     nanopore basecallers pass Q50, and a bound of 41 rejected those files
+     outright. With --fastq_ascii 64 (or --fastq_asciiout 64) the ceiling is
+     62 instead, and cli.cc lowers the unset default accordingly -- a flat 93
+     would make 64 + 93 = 157 fail the sum rule before a byte was read
+     (torognes/vsearch#564 is a user meeting that rule). */
+  static constexpr int64_t default_max_quality =
+    highest_printable_ascii - sanger_ascii_offset;
 
 public:
   std::string prog_header;

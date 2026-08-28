@@ -946,6 +946,10 @@ Known error triggers include:
 - Invalid FASTA/FASTQ format, or an unreadable/missing file, in
   `db.read()` / `udb_read()`
 - FASTQ quality values outside `[opt_fastq_qmin, opt_fastq_qmax]`
+  (as of API 0.20.0 `opt_fastq_qmax` and `opt_fastq_qmaxout` default to
+  93, the highest score the Sanger offset can represent, rather than to
+  41; a library session that sets `opt_fastq_ascii = 64` should lower
+  both to 62, since only the CLI derives them from the offset)
 - File I/O failures
 - Out of memory (xmalloc/xrealloc failure)
 

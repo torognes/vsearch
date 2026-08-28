@@ -25,8 +25,10 @@ differently, and is not supported (see
 
 Quality scores are remapped during conversion. Output scores are
 always clamped to the range set by `--fastq_qminout` and
-`--fastq_qmaxout`, whose defaults are 0 and 41: scores above 41 are
-silently reduced to 41 and negative scores (e.g. Solexa scores read
+`--fastq_qmaxout`, whose defaults are 0 and 93: scores are written
+unchanged unless `--fastq_qmaxout` is lowered (before version 3.0 the
+default was 41, and any higher score was silently reduced to it), and
+negative scores (e.g. Solexa scores read
 with `--fastq_ascii 64 --fastq_qmin -5`) are raised to 0, unless the
 bounds are changed. The input score range is validated against
 `--fastq_qmin` and `--fastq_qmax`.
