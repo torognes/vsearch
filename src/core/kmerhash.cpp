@@ -62,6 +62,7 @@
 #include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
+#include "utils/hash_table_size.hpp"  // table_size_half
 #include "utils/view.hpp"  // View<char>
 #include <cstddef>
 #include <cstdint>
@@ -113,20 +114,16 @@ auto kh_insert_kmers(struct kh_handle_s & kmer_hash, int const k_offset, View<ch
   /* reallocate hash table if necessary */
 
   int64_t const needed = 2 * static_cast<int64_t>(seq.size());
+  auto const wanted = static_cast<int64_t>(vsearch::table_size_half(seq.size()));
   if (kmer_hash.alloc < needed)
     {
-      while (kmer_hash.alloc < needed)
-        {
-          kmer_hash.alloc *= 2;
-        }
+      /* 'alloc' starts at a power of two and only ever grows, so the smallest
+         power of two that fits is the same answer the doubling loop reached */
+      kmer_hash.alloc = wanted;
       kmer_hash.hash.resize(static_cast<std::size_t>(kmer_hash.alloc));
     }
 
-  kmer_hash.size = 1;
-  while (kmer_hash.size < needed)
-    {
-      kmer_hash.size *= 2;
-    }
+  kmer_hash.size = wanted;
   kmer_hash.hash_mask = static_cast<unsigned int>(kmer_hash.size - 1);
 
   kmer_hash.maxpos = static_cast<int>(seq.size());

@@ -62,6 +62,7 @@
 #include "utils/cityhash.hpp"  // hash_packed_kmer
 #include "core/mask.hpp"  // Masking
 #include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
+#include "utils/hash_table_size.hpp"  // table_size_half
 #include <algorithm>  // std::min, std::fill, std::fill_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
@@ -242,17 +243,12 @@ auto Uniquer::count_hash(int const wordlength,
                          View<char> const seq,
                          Masking const seqmask) -> View<unsigned int>
 {
-  /* size the hash table and the list of unique kmers to the sequence. needed
-     and size are 64-bit: the hash grows to 2 * sequence length, which exceeds
-     INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise overflow
-     int before reaching the target). */
+  /* size the hash table and the list of unique kmers to the sequence. The
+     64-bit width is load-bearing: the hash grows to 2 * sequence length, which
+     exceeds INT_MAX for sequences above ~1.07 Gnt (the doubling would otherwise
+     overflow int before reaching the target). See utils/hash_table_size.hpp. */
 
-  int64_t const needed = 2 * static_cast<int64_t>(seq.size());
-  int64_t size = 1;
-  while (size < needed)
-    {
-      size *= 2;
-    }
+  auto const size = vsearch::table_size_half(seq.size());
   hash_mask_ = static_cast<unsigned int>(size - 1);
 
   /* the buffers only grow; the first 'table_size' buckets are cleared each call

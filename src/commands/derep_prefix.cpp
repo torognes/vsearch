@@ -67,6 +67,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/hash_table_size.hpp"  // table_size_two_thirds
 #include "utils/median.hpp"  // median_of_descending
 #include "utils/open_file.hpp"
 #include "utils/seqcmp.hpp"
@@ -155,12 +156,9 @@ auto derep_prefix(struct Parameters const & parameters) -> void
 
   /* adjust size of hash table for 2/3 fill rate */
 
-  int64_t hashtablesize = 1;
-  while (3 * dbsequencecount > 2 * hashtablesize)
-    {
-      hashtablesize <<= 1U;
-    }
-  auto const hash_mask = static_cast<uint64_t>(hashtablesize - 1);
+  auto const hashtablesize =
+    vsearch::table_size_two_thirds(static_cast<uint64_t>(dbsequencecount));
+  auto const hash_mask = hashtablesize - 1;
 
   std::vector<struct bucket> hashtable(static_cast<std::vector<struct bucket>::size_type>(hashtablesize));
 

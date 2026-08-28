@@ -196,6 +196,7 @@ utils/dynlib_loader.hpp \
 utils/element_order.hpp \
 utils/fatal.hpp \
 utils/fatal_allocator.hpp \
+utils/hash_table_size.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \

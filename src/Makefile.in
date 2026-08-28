@@ -231,15 +231,15 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -306,15 +306,15 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -380,15 +380,15 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -448,15 +448,15 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -516,15 +516,15 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -584,15 +584,15 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -651,15 +651,15 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -886,15 +886,15 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/kmer_hash_struct.hpp utils/logfile.hpp \
-	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
-	utils/number_of_strands.hpp utils/open_file.hpp \
-	utils/os_byteswap.hpp utils/print_record.hpp \
-	utils/print_view.hpp utils/prog_id.hpp utils/progress.hpp \
-	utils/quality_encoding.hpp utils/quality_table.hpp \
-	utils/random.hpp utils/reverse_complement.hpp \
-	utils/score_4bit.hpp utils/seqcmp.hpp \
-	utils/sequence_digest.hpp utils/span.hpp \
+	utils/hash_table_size.hpp utils/kmer_hash_struct.hpp \
+	utils/logfile.hpp utils/make_unique.hpp utils/maps.hpp \
+	utils/median.hpp utils/number_of_strands.hpp \
+	utils/open_file.hpp utils/os_byteswap.hpp \
+	utils/print_record.hpp utils/print_view.hpp utils/prog_id.hpp \
+	utils/progress.hpp utils/quality_encoding.hpp \
+	utils/quality_table.hpp utils/random.hpp \
+	utils/reverse_complement.hpp utils/score_4bit.hpp \
+	utils/seqcmp.hpp utils/sequence_digest.hpp utils/span.hpp \
 	utils/string_normalize.hpp utils/taxonomic_fields.h \
 	utils/threads.hpp utils/timestamp.hpp utils/userfields.hpp \
 	utils/view.hpp utils/warn.hpp utils/worker_loop.hpp \
@@ -1571,6 +1571,7 @@ utils/dynlib_loader.hpp \
 utils/element_order.hpp \
 utils/fatal.hpp \
 utils/fatal_allocator.hpp \
+utils/hash_table_size.hpp \
 utils/kmer_hash_struct.hpp \
 utils/logfile.hpp \
 utils/make_unique.hpp \

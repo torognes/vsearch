@@ -67,6 +67,7 @@
 #include "core/dbhash.hpp"
 #include "utils/seqcmp.hpp"
 #include "utils/cityhash.hpp"
+#include "utils/hash_table_size.hpp"  // table_size_two_thirds
 #include "utils/string_normalize.hpp"
 #include <cstdint>  // int64_t, uint64_t
 #include <vector>
@@ -77,11 +78,7 @@ auto Dbhash::open(uint64_t const maxelements) -> void
   /* adjust size of hash table for 2/3 fill rate */
   /* and use a multiple of 2 */
 
-  uint64_t size = 1;
-  while (3 * maxelements > 2 * size)
-    {
-      size <<= 1U;
-    }
+  auto const size = vsearch::table_size_two_thirds(maxelements);
   mask_ = size - 1;
 
   table_.resize(size);
