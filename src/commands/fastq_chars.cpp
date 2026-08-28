@@ -83,18 +83,6 @@ constexpr unsigned int n_characters = 256;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  // The FASTQ quality encodings --fastq_chars can distinguish, grouped by the
-  // ascii offset they imply (Phred+33 first, then Phred+64). Detected by
-  // classify_encoding(), which is the only place the thresholds live.
-  enum struct FastqEncoding : unsigned char {
-    sanger,        // Original Sanger,  Phred+33
-    illumina_1_8,  // Illumina 1.8+,    Phred+33
-    solexa,        // Solexa,           Solexa+64 (not Phred; see fastq(5))
-    illumina_1_3,  // Illumina 1.3+,    Phred+64
-    illumina_1_5,  // Illumina 1.5+,    Phred+64
-  };
-
-
   struct statistics {
     std::vector<uint64_t> sequence_chars;
     std::vector<uint64_t> quality_chars;
@@ -111,40 +99,6 @@ namespace {
     char fastq_qmax = '\0';
     FastqEncoding encoding = FastqEncoding::sanger;  // set by guess_quality_offset()
   };
-
-
-  auto classify_encoding(char const qmin, char const qmax) -> FastqEncoding {
-    static constexpr auto lowerbound = ';';  // char 59 (-5 to offset +64)
-    static constexpr auto upperbound = 'K';  // char 75 (+1 after offset +33 normal range)
-    static constexpr char first_char_in_Illumina_1_5 = 'B';  // 66th char
-    static constexpr char last_char_in_original_Sanger = 'I';  // 73th char
-
-    // Phred+33: a low qmin or a low qmax rules out the +64 offset
-    if ((qmin < lowerbound) or (qmax < upperbound)) {
-      return (qmax > last_char_in_original_Sanger) ? FastqEncoding::illumina_1_8
-                                                   : FastqEncoding::sanger;
-    }
-    // Phred+64
-    if (qmin < static_cast<char>(solexa_ascii_offset)) {
-      return FastqEncoding::solexa;
-    }
-    if (qmin < first_char_in_Illumina_1_5) {
-      return FastqEncoding::illumina_1_3;
-    }
-    return FastqEncoding::illumina_1_5;
-  }
-
-
-  constexpr auto is_phred64(FastqEncoding const encoding) -> bool {
-    return (encoding == FastqEncoding::solexa)
-        or (encoding == FastqEncoding::illumina_1_3)
-        or (encoding == FastqEncoding::illumina_1_5);
-  }
-
-
-  constexpr auto offset_of(FastqEncoding const encoding) -> int {
-    return is_phred64(encoding) ? solexa_ascii_offset : sanger_ascii_offset;
-  }
 
 
   auto guess_quality_offset(struct statistics & stats) -> void {
@@ -332,6 +286,9 @@ auto fastq_chars(struct Parameters const & parameters) -> void
   stats.maxrun.resize(n_characters);
 
   auto fastq_handle = fastq_open(parameters.opt_fastq_chars, parameters);
+  /* this command *is* the encoding diagnostic and prints its own guess below,
+     so the reader must not say the same thing first */
+  fastq_handle->silence_offset_warning();
 
   auto const filesize = fastq_handle->get_size();
 

@@ -358,6 +358,9 @@ auto fastx_open(char const * filename, struct Parameters const & parameters) -> 
 
   input_handle->fp = nullptr;
   input_handle->libraries = parameters.dyn_libs;
+  /* remembered so fastq_next() can compare it against the symbols it actually
+     reads, without threading Parameters into the record parser */
+  input_handle->quality_offset = static_cast<int>(parameters.opt_fastq_ascii);
 
   input_handle->fp = open_input_file(filename).release();
   if (input_handle->fp == nullptr)

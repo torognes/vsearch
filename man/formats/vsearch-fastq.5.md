@@ -64,6 +64,19 @@ offset is set with `--fastq_ascii` (default 33):
   `--fastq_qmax` 93). Before version 3.0 the upper bound defaulted to
   41, which rejected PacBio HiFi and nanopore files.
 
+Because the accepted range now covers every representable score, an
+out-of-range error no longer doubles as a wrong-`--fastq_ascii` detector:
+a phred+64 file read at offset 33 decodes to legal Sanger scores 31 too
+high, and would once have been stopped by the old bound of 41. vsearch
+therefore warns when the quality symbols it read contradict the requested
+offset, using the same heuristic `--fastq_chars` prints its guess from.
+The warning is advisory: the two encodings overlap, since a file whose
+scores all exceed Q30 is indistinguishable from a phred+64 file by its
+symbols alone. It is raised only for files of at least 100 records, below
+which the observed range is not evidence, and `--fastq_chars` does not
+raise it because it reports its own guess. Run `vsearch --fastq_chars
+FILE` whenever it appears.
+
 - **phred+64** (offset 64): Illumina 1.3+ and Illumina 1.5+ formats.
   Valid quality characters range from '@' (Q=0) to '~' (Q=62).
 

@@ -68,6 +68,8 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"  // Mapping, map_accepted_base, chrmap_*
 #include "utils/print_view.hpp"  // fprint
+#include "utils/quality_encoding.hpp"  // classify_encoding, is_phred64, offset_of
+#include "utils/warn.hpp"  // vsearch::warn
 #include <array>
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t
@@ -173,13 +175,20 @@ auto fastq_fatal(fastx_handle input_handle, uint64_t const lineno, std::string c
 
 
 // no fastx_handle parameter: with no 'warn' action there is nothing to record
-// on the handle, so this is a pure transform over the two buffers
-template <Mapping mapping>
+// on the handle, so this is a pure transform over the two buffers (the symbol
+// range below is passed in by reference for the same reason)
+//
+// track_range is a compile-time switch, not a runtime flag: the quality line
+// wants the min/max of the bytes it copies and the sequence line does not, and
+// the two share this instantiation. At false the compiler drops the two
+// comparisons entirely, so the sequence path pays nothing.
+template <Mapping mapping, bool track_range>
 auto buffer_filter_extend(FastxBuffer & dest_buffer,
                           View<char> const source,
                           Action const * char_action,
                           bool & ok,
-                          char & illegal_char) -> void
+                          char & illegal_char,
+                          QualitySymbolRange & range) -> void
 {
   dest_buffer.makespace(source.size() + 1);
 
@@ -201,6 +210,10 @@ auto buffer_filter_extend(FastxBuffer & dest_buffer,
       if (action == Action::accept)
         {
           /* legal character */
+          if (track_range)
+            {
+              range.observe(static_cast<unsigned char>(symbol));
+            }
           *q++ = map_accepted_base<mapping>(symbol);
         }
       else
@@ -257,6 +270,53 @@ auto fastq_open(const char * filename, struct Parameters const & parameters) -> 
 }
 
 
+/* Warn once per file when the observed quality symbols contradict the
+   requested --fastq_ascii.
+
+   Until 3.0 this case was caught by accident: a phred+64 file read at the
+   default offset 33 decodes to Q71, --fastq_qmax defaulted to 41, and vsearch
+   stopped. Now that the bound accepts everything the encoding can represent,
+   Q71 is a legal Sanger score and the run goes through with every error
+   probability understated by 31 Phred units -- a Q20 base is scored Q51, and
+   an --fastq_maxee filter that should discard the read keeps it.
+
+   The heuristic is classify_encoding(), the same one --fastq_chars prints its
+   guess from, so there is one set of thresholds and not two. It is a warning
+   and not a fatal because the two encodings genuinely overlap: a PacBio HiFi
+   file whose scores all exceed Q30 is indistinguishable from a phred+64 file
+   by its symbols alone. That ambiguity is exactly when the user should look,
+   which is what the message says. */
+auto fastx_s::warn_if_offset_looks_wrong() -> void
+{
+  if (not warn_on_suspicious_offset) { return; }
+  if (not is_fastq) { return; }
+  if (not quality_range.seen()) { return; }
+  if (seqno < minimum_records_for_offset_guess) { return; }
+
+  auto const lowest = static_cast<char>(quality_range.lowest);
+  auto const highest = static_cast<char>(quality_range.highest);
+  auto const encoding = classify_encoding(lowest, highest);
+  auto const implied_offset = offset_of(encoding);
+  if (implied_offset == quality_offset) { return; }
+
+  // warn once: this runs on the end-of-file branch of fastq_next()
+  warn_on_suspicious_offset = false;
+
+  /* decimal::to_text, not std::to_string: see fastq_fatal() above */
+  auto const shift = implied_offset - quality_offset;
+  vsearch::warn(
+    "quality symbols in this file range from '" + std::string(1, lowest)
+    + "' to '" + std::string(1, highest) + "', which looks like "
+    + (is_phred64(encoding) ? "phred+64" : "phred+33")
+    + ", but --fastq_ascii " + decimal::to_text(quality_offset)
+    + " was used.\nIf that offset is wrong, every quality score is decoded "
+    + (shift > 0 ? decimal::to_text(shift) + " too high"
+                 : decimal::to_text(-shift) + " too low")
+    + " and the error probabilities are wrong.\n"
+      "Run 'vsearch --fastq_chars' on this file to check the encoding.");
+}
+
+
 auto fastq_next(fastx_handle input_handle,
                 bool const truncateatspace,
                 const unsigned char * char_mapping) -> bool
@@ -281,6 +341,8 @@ auto fastq_next(fastx_handle input_handle,
 
   if (rest == 0)
     {
+      /* the whole file has been read, so the symbol range is final */
+      input_handle->warn_if_offset_looks_wrong();
       return false;
     }
 
@@ -348,17 +410,19 @@ auto fastq_next(fastx_handle input_handle,
       assert((char_mapping == chrmap_no_change()) or (char_mapping == chrmap_upcase()));
       if (char_mapping == chrmap_upcase())
         {
-          buffer_filter_extend<Mapping::upcase>(input_handle->sequence_buffer,
-                                                fragment.view,
-                                                char_fq_action_seq.data(),
-                                                ok, illegal_char);
+          buffer_filter_extend<Mapping::upcase, false>(input_handle->sequence_buffer,
+                                                       fragment.view,
+                                                       char_fq_action_seq.data(),
+                                                       ok, illegal_char,
+                                                       input_handle->quality_range);
         }
       else
         {
-          buffer_filter_extend<Mapping::none>(input_handle->sequence_buffer,
-                                              fragment.view,
-                                              char_fq_action_seq.data(),
-                                              ok, illegal_char);
+          buffer_filter_extend<Mapping::none, false>(input_handle->sequence_buffer,
+                                                     fragment.view,
+                                                     char_fq_action_seq.data(),
+                                                     ok, illegal_char,
+                                                     input_handle->quality_range);
         }
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
@@ -468,10 +532,24 @@ auto fastq_next(fastx_handle input_handle,
       auto const fragment = scan_line_fragment(input_handle);
       /* no mapping: the table this used to index was the identity on all 256
          values, so the quality symbols are written through verbatim */
-      buffer_filter_extend<Mapping::none>(input_handle->quality_buffer,
-                                          fragment.view,
-                                          char_fq_action_qual.data(),
-                                          ok, illegal_char);
+      /* one branch per line fragment, not per byte: after the sample the
+         tracking instantiation is not called at all (see fastx.hpp) */
+      if (input_handle->samples_quality_range())
+        {
+          buffer_filter_extend<Mapping::none, true>(input_handle->quality_buffer,
+                                                    fragment.view,
+                                                    char_fq_action_qual.data(),
+                                                    ok, illegal_char,
+                                                    input_handle->quality_range);
+        }
+      else
+        {
+          buffer_filter_extend<Mapping::none, false>(input_handle->quality_buffer,
+                                                     fragment.view,
+                                                     char_fq_action_qual.data(),
+                                                     ok, illegal_char,
+                                                     input_handle->quality_range);
+        }
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
         {

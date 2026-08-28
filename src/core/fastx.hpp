@@ -63,6 +63,7 @@
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"  // Mapping
+#include "utils/quality_encoding.hpp"  // QualitySymbolRange, sanger_ascii_offset
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
@@ -219,6 +220,37 @@ private:
 
   Format format = Format::undefined;
 
+  /* The lowest and highest quality symbol seen anywhere in this file, and the
+     offset the caller asked for. fastq_next() compares the two once, when it
+     reaches end of file, and warns if the symbols contradict the offset --
+     which is the only detection left now that --fastq_qmax accepts the whole
+     representable range (see TBD_20260825_quality_range.md). Filled by the
+     quality branch of buffer_filter_extend(), which already reads every one
+     of those bytes. */
+  QualitySymbolRange quality_range;
+  int quality_offset = sanger_ascii_offset;
+  bool warn_on_suspicious_offset = true;
+
+  /* The encoding is a property of the file, not of a record, so the range is
+     sampled from the first records only and the per-byte updates stop after
+     that. Tracking every byte of a 400k-record file cost 3.9% of
+     --fastq_stats, the most parser-bound command; bounding it makes the cost
+     O(1) in file size (0.1% of that same run) while still reading tens of
+     thousands of symbols, far more than any encoding heuristic needs. The
+     choice is made once per record, never per byte. */
+  static constexpr int64_t offset_sample_records = 10000;
+  auto samples_quality_range() const noexcept -> bool {
+    return seqno < offset_sample_records;
+  }
+
+  /* Below this many records the observed range is not evidence of anything:
+     a file holding a single 'K' is a legal Sanger Q42 and a legal Illumina
+     1.5+ Q11, and warning about it would fire on every small hand-made test
+     file. --fastq_chars still prints its guess for such a file, because a
+     guess the user asked for may be speculative where an unsolicited warning
+     may not. */
+  static constexpr int64_t minimum_records_for_offset_guess = 100;
+
   /* Deferred error reporting (prototype for CC3). When defer_errors is
      set, a parse error records its message here and makes fastx_next()
      return false, instead of calling fatal() (std::exit()) on the spot.
@@ -235,6 +267,11 @@ private:
   // message arrives already measured, so neither of them needs std::strlen.
   auto record_deferred_error(View<char> message) -> void;
 
+  /* Compare the observed quality symbols against quality_offset and warn if
+     they disagree; called once by fastq_next() at end of file. Defined in
+     fastq.cpp, where the rationale lives. */
+  auto warn_if_offset_looks_wrong() -> void;
+
 public:
   /* Read API, mirroring Database's accessors. The former fastx_get_, fasta_get_
      and fastq_get_ free functions were three near-identical families dispatching
@@ -242,6 +279,10 @@ public:
      difference is confined to get_quality/quality_view). The trivial accessors
      are inline here, exactly as Database inlines its getters, so returning a
      record field stays as cheap as the former free function. */
+
+  /* --fastq_chars exists to diagnose the offset and prints its own guess, so
+     it silences the reader's warning rather than saying the same thing twice. */
+  auto silence_offset_warning() noexcept -> void { warn_on_suspicious_offset = false; }
 
   // Format of the input. An empty input is accepted as FASTQ, preserving the
   // historical fastx_is_fastq() behaviour.

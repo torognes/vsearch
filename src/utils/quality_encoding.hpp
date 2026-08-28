@@ -81,3 +81,68 @@ constexpr int highest_printable_ascii = 126; // '~'
    --fastq_qmaxout default of --fasta2fastq alone, which fabricates quality
    rather than clamping it (see resolve_quality_bound_defaults() in cli.cc). */
 constexpr int legacy_max_quality = 41;
+
+
+/* The lowest and highest quality symbol seen so far, the two values every
+   offset heuristic below is stated in terms of. Kept as one struct rather
+   than a pair of bytes so callers cannot swap them by accident. */
+struct QualitySymbolRange {
+  unsigned char lowest = 255;
+  unsigned char highest = 0;
+
+  auto observe(unsigned char const symbol) noexcept -> void {
+    if (symbol < lowest) { lowest = symbol; }
+    if (symbol > highest) { highest = symbol; }
+  }
+
+  // false until the first symbol has been observed (FASTA input, empty file)
+  auto seen() const noexcept -> bool { return lowest <= highest; }
+};
+
+
+/* The FASTQ quality encodings vsearch can distinguish, grouped by the ascii
+   offset they imply (Phred+33 first, then Phred+64). Detected by
+   classify_encoding(), which is the only place the thresholds live. Used by
+   --fastq_chars to report its guess, and by the reader to warn when the
+   observed symbols contradict the requested --fastq_ascii. */
+enum struct FastqEncoding : unsigned char {
+  sanger,        // Original Sanger,  Phred+33
+  illumina_1_8,  // Illumina 1.8+,    Phred+33
+  solexa,        // Solexa,           Solexa+64 (not Phred; see fastq(5))
+  illumina_1_3,  // Illumina 1.3+,    Phred+64
+  illumina_1_5,  // Illumina 1.5+,    Phred+64
+};
+
+
+inline auto classify_encoding(char const qmin, char const qmax) -> FastqEncoding {
+  static constexpr auto lowerbound = ';';  // char 59 (-5 to offset +64)
+  static constexpr auto upperbound = 'K';  // char 75 (+1 after offset +33 normal range)
+  static constexpr char first_char_in_Illumina_1_5 = 'B';  // 66th char
+  static constexpr char last_char_in_original_Sanger = 'I';  // 73th char
+
+  // Phred+33: a low qmin or a low qmax rules out the +64 offset
+  if ((qmin < lowerbound) or (qmax < upperbound)) {
+    return (qmax > last_char_in_original_Sanger) ? FastqEncoding::illumina_1_8
+                                                 : FastqEncoding::sanger;
+  }
+  // Phred+64
+  if (qmin < static_cast<char>(solexa_ascii_offset)) {
+    return FastqEncoding::solexa;
+  }
+  if (qmin < first_char_in_Illumina_1_5) {
+    return FastqEncoding::illumina_1_3;
+  }
+  return FastqEncoding::illumina_1_5;
+}
+
+
+constexpr auto is_phred64(FastqEncoding const encoding) -> bool {
+  return (encoding == FastqEncoding::solexa)
+      or (encoding == FastqEncoding::illumina_1_3)
+      or (encoding == FastqEncoding::illumina_1_5);
+}
+
+
+constexpr auto offset_of(FastqEncoding const encoding) -> int {
+  return is_phred64(encoding) ? solexa_ascii_offset : sanger_ascii_offset;
+}
