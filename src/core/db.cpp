@@ -61,6 +61,7 @@
 #include "core/seq_record.hpp"
 #include "vsearch.hpp"
 #include "core/db.hpp"
+#include "core/discarded_message.hpp"  // vsearch::print_discarded
 #include "core/buffer_headroom.hpp"  // buffer_headroom
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"  // fatal
@@ -121,25 +122,6 @@ namespace {
     return View<char>{std::next(buffer, offset), info.headerlen};
   }
 
-  /* "<option> <threshold>: <n> sequence(s) discarded.", the same sentence for
-     --minseqlength, --maxseqlength and --minsize, which is why the option
-     name and its threshold are arguments rather than three copies of the
-     block. core/derep_stats.cpp's report_length_filtered() prints the same
-     sentence for the derep commands, which do not go through this reader. */
-  auto print_discarded(std::FILE * output_stream,
-                       char const * option_name,
-                       int64_t const threshold,
-                       int64_t const discarded) -> void
-  {
-    std::fputs(option_name, output_stream);
-    fprint(output_stream, ' ');
-    fprint_integer(output_stream, threshold);
-    fprint(output_stream, ": ");
-    fprint_integer(output_stream, discarded);
-    fprint(output_stream, ' ');
-    std::fputs((discarded == 1 ? "sequence" : "sequences"), output_stream);
-    fprint(output_stream, " discarded.\n");
-  }
 
 }  // end of anonymous namespace
 
@@ -438,33 +420,39 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
 
   if (discarded_short != 0)
     {
-      print_discarded(stderr, "minseqlength", parameters.opt_minseqlength, discarded_short);
+      vsearch::print_discarded(stderr, "minseqlength", parameters.opt_minseqlength,
+                               static_cast<uint64_t>(discarded_short));
 
       if (parameters.fp_log != nullptr)
         {
-          print_discarded(parameters.fp_log, "minseqlength", parameters.opt_minseqlength, discarded_short);
+          vsearch::print_discarded(parameters.fp_log, "minseqlength", parameters.opt_minseqlength,
+                                          static_cast<uint64_t>(discarded_short));
           fprint(parameters.fp_log, '\n');
         }
     }
 
   if (discarded_long != 0)
     {
-      print_discarded(stderr, "maxseqlength", parameters.opt_maxseqlength, discarded_long);
+      vsearch::print_discarded(stderr, "maxseqlength", parameters.opt_maxseqlength,
+                               static_cast<uint64_t>(discarded_long));
 
       if (parameters.fp_log != nullptr)
         {
-          print_discarded(parameters.fp_log, "maxseqlength", parameters.opt_maxseqlength, discarded_long);
+          vsearch::print_discarded(parameters.fp_log, "maxseqlength", parameters.opt_maxseqlength,
+                                          static_cast<uint64_t>(discarded_long));
           fprint(parameters.fp_log, '\n');
         }
     }
 
     if (discarded_unoise != 0)
     {
-      print_discarded(stderr, "minsize", parameters.opt_minsize, discarded_unoise);
+      vsearch::print_discarded(stderr, "minsize", parameters.opt_minsize,
+                               static_cast<uint64_t>(discarded_unoise));
 
       if (parameters.fp_log != nullptr)
         {
-          print_discarded(parameters.fp_log, "minsize", parameters.opt_minsize, discarded_unoise);
+          vsearch::print_discarded(parameters.fp_log, "minsize", parameters.opt_minsize,
+                                          static_cast<uint64_t>(discarded_unoise));
           fprint(parameters.fp_log, '\n');
         }
     }

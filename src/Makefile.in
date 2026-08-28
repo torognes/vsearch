@@ -195,23 +195,23 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	arch/intrinsics.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -269,23 +269,23 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	arch/intrinsics.hpp commands/cut.hpp core/db.hpp \
 	core/dbhash.hpp core/dbindex.hpp core/derep.hpp \
 	core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -342,23 +342,23 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -409,23 +409,23 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -476,23 +476,23 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -543,23 +543,23 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -609,23 +609,23 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -843,23 +843,23 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	arch/increment_counters.hpp arch/intrinsics.hpp \
 	commands/cut.hpp core/db.hpp core/dbhash.hpp core/dbindex.hpp \
 	core/derep.hpp core/derep_internal.hpp core/derep_stats.hpp \
-	commands/derep_fulllength.hpp commands/derep_id.hpp \
-	commands/fastx_uniques.hpp commands/derep_prefix.hpp \
-	commands/derep_smallmem.hpp os/dynlibs.hpp \
-	commands/fastq_eestats.hpp commands/fastq_eestats2.hpp \
-	core/eestats.hpp commands/fasta2fastq.hpp core/fasta.hpp \
-	core/fastq.hpp commands/fastq_chars.hpp \
-	commands/fastq_convert.hpp commands/fastq_join.hpp \
-	commands/fastq_mergepairs.hpp core/mergepairs.hpp \
-	core/mergepairs_internal.hpp commands/fastq_stats.hpp \
-	core/fastx.hpp core/fastx_char_class.hpp \
-	core/illegal_character.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/discarded_message.hpp commands/derep_fulllength.hpp \
+	commands/derep_id.hpp commands/fastx_uniques.hpp \
+	commands/derep_prefix.hpp commands/derep_smallmem.hpp \
+	os/dynlibs.hpp commands/fastq_eestats.hpp \
+	commands/fastq_eestats2.hpp core/eestats.hpp \
+	commands/fasta2fastq.hpp core/fasta.hpp core/fastq.hpp \
+	commands/fastq_chars.hpp commands/fastq_convert.hpp \
+	commands/fastq_join.hpp commands/fastq_mergepairs.hpp \
+	core/mergepairs.hpp core/mergepairs_internal.hpp \
+	commands/fastq_stats.hpp core/fastx.hpp \
+	core/fastx_char_class.hpp core/illegal_character.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -1482,6 +1482,7 @@ core/dbindex.hpp \
 core/derep.hpp \
 core/derep_internal.hpp \
 core/derep_stats.hpp \
+core/discarded_message.hpp \
 commands/derep_fulllength.hpp \
 commands/derep_id.hpp \
 commands/fastx_uniques.hpp \

@@ -59,6 +59,7 @@
 */
 
 #include "core/derep_stats.hpp"
+#include "core/discarded_message.hpp"  // vsearch::print_discarded
 #include "vsearch.hpp"  // struct Parameters
 #include "utils/print_view.hpp"  // fprint, fprint_integer
 #include <cstdint>  // int64_t, uint64_t
@@ -100,20 +101,6 @@ namespace {
   }
 
 
-  auto print_length_filtered(std::FILE * output_stream,
-                             char const * option_name,
-                             int64_t const length_limit,
-                             uint64_t const discarded) -> void
-  {
-    std::fputs(option_name, output_stream);
-    fprint(output_stream, ' ');
-    fprint_integer(output_stream, length_limit);
-    fprint(output_stream, ": ");
-    fprint_integer(output_stream, discarded);
-    fprint(output_stream, ' ');
-    std::fputs((discarded == 1 ? "sequence" : "sequences"), output_stream);
-    fprint(output_stream, " discarded.\n");
-  }
 
 
   auto print_unique_summary(std::FILE * output_stream,
@@ -181,10 +168,10 @@ auto report_length_filtered(struct Parameters const & parameters,
      stdout and stderr, except for warnings and error messages" (see
      man/commands/fragments/option_quiet.md, and vsearch::warn() which
      encodes the same contract) */
-  print_length_filtered(stderr, option_name, length_limit, discarded);
+  vsearch::print_discarded(stderr, option_name, length_limit, discarded);
   if (parameters.fp_log != nullptr)
     {
-      print_length_filtered(parameters.fp_log, option_name, length_limit, discarded);
+      vsearch::print_discarded(parameters.fp_log, option_name, length_limit, discarded);
       fprint(parameters.fp_log, '\n');
     }
 }

@@ -115,6 +115,7 @@ core/dbindex.hpp \
 core/derep.hpp \
 core/derep_internal.hpp \
 core/derep_stats.hpp \
+core/discarded_message.hpp \
 commands/derep_fulllength.hpp \
 commands/derep_id.hpp \
 commands/fastx_uniques.hpp \
