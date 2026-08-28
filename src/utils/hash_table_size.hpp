@@ -98,7 +98,7 @@
 
    What is deliberately not here: commands/derep_smallmem.cpp sizes its table
    by x1.5 growth to a non-power-of-two and steps it with a modulo, so none of
-   this applies to it. See TBD_20260825_flatmap_helpers.md. */
+   this applies to it. See DONE_20260825_flatmap_helpers.md. */
 namespace vsearch
 {
 

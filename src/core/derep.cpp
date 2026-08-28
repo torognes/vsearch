@@ -96,7 +96,7 @@
 // not a map at all; and the six hand-rolled open-addressing tables in the tree
 // differ on seven independent axes, which is why they share sizing arithmetic
 // (utils/hash_table_size.hpp) and a named occupancy predicate rather than a
-// container. Reasoning and inventory: TBD_20260825_flatmap_helpers.md.
+// container. Reasoning and inventory: DONE_20260825_flatmap_helpers.md.
 using Hash = decltype(&hash_cityhash64);
 static constexpr Hash hash_function = hash_cityhash64;
 

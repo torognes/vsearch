@@ -83,7 +83,7 @@ namespace {
   // per-sequence scratch, sized up front so the load factor never exceeds 0.5
   // and no rehash is ever needed, and count() picks between a bitmap, an
   // epoch-stamp table and this one by wordlength -- none of which a node-based
-  // container expresses. Reasoning: TBD_20260825_flatmap_helpers.md.
+  // container expresses. Reasoning: DONE_20260825_flatmap_helpers.md.
   using Hash = decltype(&hash_packed_kmer);
   constexpr Hash hash_function = hash_packed_kmer;
 
