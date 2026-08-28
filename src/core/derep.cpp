@@ -91,10 +91,12 @@
 #include <vector>
 
 
-// refactoring:
-// replace with std::unordered_map (default hashing)
-// if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
-// then make a CityHash hasher object and use it with std::unordered_map
+// refactoring: deliberately not std::unordered_map. This table is sorted in
+// place once the run is over (derep_bucket_before, below), so by the end it is
+// not a map at all; and the six hand-rolled open-addressing tables in the tree
+// differ on seven independent axes, which is why they share sizing arithmetic
+// (utils/hash_table_size.hpp) and a named occupancy predicate rather than a
+// container. Reasoning and inventory: TBD_20260825_flatmap_helpers.md.
 using Hash = decltype(&hash_cityhash64);
 static constexpr Hash hash_function = hash_cityhash64;
 
@@ -122,6 +124,17 @@ namespace {
   };
 
 
+  /* the empty-bucket sentinel. Naming it spares every probe from having to
+     remember which field carries that meaning -- the abundance bug recorded on
+     'size' above lived exactly in that gap, and the tables in this family each
+     pick a different field for the job ('size' here, 'count' in
+     core/unique.cpp, 'pos' in core/kmerhash.cpp). */
+  auto is_occupied(struct bucket const & entry) noexcept -> bool
+  {
+    return entry.size != 0U;
+  }
+
+
   /*
     A linear probe stops at the first bucket that is free, or that already holds
     this exact record; it steps over every other one. Records are matched by
@@ -146,7 +159,7 @@ namespace {
                             bool const use_header = false,
                             View<char> const header = View<char>{}) -> bool
   {
-    if (candidate.size == 0U) { return false; }  // free bucket
+    if (not is_occupied(candidate)) { return false; }  // free bucket
     if (candidate.hash != hash) { return true; }
     if (candidate.seq.size() != seq.size()) { return true; }
     auto const * const map_4bit_table = chrmap_4bit();
@@ -176,9 +189,9 @@ static auto rehash(std::vector<struct bucket> & hashtable) -> void
   // rehash all entries from the old to the new table (move, not copy, so the
   // std::string members are not deep-copied on every rehash)
   for (auto & old_bucket : hashtable) {
-    if (old_bucket.size != 0U) {
+    if (is_occupied(old_bucket)) {
       auto new_index = old_bucket.hash & new_hash_mask;
-      while (new_hashtable[new_index].size != 0U) {
+      while (is_occupied(new_hashtable[new_index])) {
         new_index = (new_index + 1) & new_hash_mask;
       }
       new_hashtable[new_index] = std::move(old_bucket);
@@ -374,7 +387,7 @@ static auto derep_bucket_before(struct bucket const & lhs, struct bucket const &
       return true;
     }
   // same abundance
-  if (lhs.size == 0)
+  if (not is_occupied(lhs))
     {
       return false;
     }
@@ -841,7 +854,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         auto matched_minus_strand = false;
 
-        if (parameters.opt_strand and (bp->size == 0U))
+        if (parameters.opt_strand and not is_occupied(*bp))
           {
             /* no match on plus strand */
             /* check minus strand as well */
@@ -857,7 +870,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                 rc_bp = &hashtable[k];
               }
 
-            if (rc_bp->size != 0U)
+            if (is_occupied(*rc_bp))
               {
                 bp = rc_bp;
                 j = k;
@@ -872,7 +885,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         auto const abundance = parameters.opt_sizein ? input_handle->get_abundance() : int64_t{1};
         sumsize += abundance;
 
-        if (bp->size != 0U)
+        if (is_occupied(*bp))
           {
             /* at least one identical sequence already */
             if (extra_info)
@@ -1233,7 +1246,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
       bp = &ds->hashtable[j];
     }
 
-  if (bp->size != 0U)
+  if (is_occupied(*bp))
     {
       /* Existing unique sequence — merge */
       bp->size += static_cast<uint64_t>(abundance);
@@ -1287,7 +1300,7 @@ auto derep_get_results(struct derep_session_s * ds,
   for (uint64_t i = 0; i < ds->hashtablesize and count < max_results; ++i)
     {
       auto const & b = ds->hashtable[i];
-      if (b.size == 0U)
+      if (not is_occupied(b))
         {
           break;  /* sorted: all empty buckets are at the end */
         }

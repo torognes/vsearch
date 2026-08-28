@@ -96,6 +96,16 @@ struct sm_bucket
 
 
 namespace {
+
+/* the empty-bucket sentinel. This table stores no sequence at all (a deliberate
+   memory tradeoff, see the probe below), so 'size' is the only field that can
+   say whether a slot is claimed. */
+auto is_occupied(struct sm_bucket const & entry) noexcept -> bool
+{
+  return entry.size != 0U;
+}
+
+
 auto find_median(std::vector<struct sm_bucket> const & hashtable) -> double
 {
   /* find the median size, based on an iterative search starting at e.g. 1 */
@@ -200,10 +210,10 @@ auto rehash_smallmem(std::vector<struct sm_bucket> & hashtable) -> void
   /* rehash all from old to new */
   for (auto const & old_bucket : hashtable)
     {
-      if (old_bucket.size != 0U)
+      if (is_occupied(old_bucket))
         {
           auto k = hash2bucket(old_bucket.hash, new_hashtablesize);
-          while (new_hashtable[k].size != 0U)
+          while (is_occupied(new_hashtable[k]))
             {
               k = next_bucket(k, new_hashtablesize);
             }
@@ -319,13 +329,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
 
-        while ((bp->size != 0U) and (hash != bp->hash))
+        while (is_occupied(*bp) and (hash != bp->hash))
           {
             j = next_bucket(j, hashtable.size());
             bp = &hashtable[j];
           }
 
-        if (parameters.opt_strand and (bp->size == 0U))
+        if (parameters.opt_strand and not is_occupied(*bp))
           {
             /* no match on plus strand */
             /* check minus strand as well */
@@ -334,13 +344,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
 
-            while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
+            while (is_occupied(*rc_bp) and (rc_hash != rc_bp->hash))
               {
                 k = next_bucket(k, hashtable.size());
                 rc_bp = &hashtable[k];
               }
 
-            if (rc_bp->size != 0U)
+            if (is_occupied(*rc_bp))
               {
                 bp = rc_bp;
                 j = k;  // cppcheck: 'j' is assigned a value that is never used
@@ -351,7 +361,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         int64_t const ab = parameters.opt_sizein ? abundance : 1;
         stats.sumsize += ab;
 
-        if (bp->size != 0U)
+        if (is_occupied(*bp))
           {
             /* at least one identical sequence already */
             bp->size += static_cast<uint64_t>(ab);
@@ -424,13 +434,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         auto j =  hash2bucket(hash, hashtable.size());
         auto * bp = &hashtable[j];
 
-        while ((bp->size != 0U) and (hash != bp->hash))
+        while (is_occupied(*bp) and (hash != bp->hash))
           {
             j = next_bucket(j, hashtable.size());
             bp = &hashtable[j];
           }
 
-        if (parameters.opt_strand and (bp->size == 0U))
+        if (parameters.opt_strand and not is_occupied(*bp))
           {
             /* no match on plus strand */
             /* check minus strand as well */
@@ -439,13 +449,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             auto k =  hash2bucket(rc_hash, hashtable.size());
             auto * rc_bp = &hashtable[k];
 
-            while ((rc_bp->size != 0U) and (rc_hash != rc_bp->hash))
+            while (is_occupied(*rc_bp) and (rc_hash != rc_bp->hash))
               {
                 k = next_bucket(k, hashtable.size());
                 rc_bp = &hashtable[k];
               }
 
-            if (rc_bp->size != 0U)
+            if (is_occupied(*rc_bp))
               {
                 bp = rc_bp;
                 j = k;  // cppcheck: 'j' is assigned a value that is never used

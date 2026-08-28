@@ -97,6 +97,15 @@ namespace {
     unsigned int count = 0;
     bool deleted = false;
   };
+
+
+  /* the empty-bucket sentinel, distinct from 'deleted': a slot that was
+     superseded by a longer prefix is still claimed, and the probe has to step
+     over it rather than stop. */
+  auto is_occupied(struct bucket const & entry) noexcept -> bool
+  {
+    return entry.size != 0U;
+  }
 }
 
 
@@ -225,7 +234,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         uint64_t hash = prefix_hashes[prefix_len];
         auto * bp = &hashtable[hash & hash_mask];
 
-        while ((bp->size != 0U) and
+        while (is_occupied(*bp) and
                (bp->deleted or
                 (bp->hash != hash) or
                 (prefix_len != db.getsequencelen(bp->seqno_first)) or
@@ -245,7 +254,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
         auto const orig_hash = hash;
         auto * orig_bp = bp;
 
-        if (bp->size != 0U)
+        if (is_occupied(*bp))
           {
             /* exact match */
             bp->size += abundance;
@@ -259,13 +268,13 @@ auto derep_prefix(struct Parameters const & parameters) -> void
           {
             /* look for prefix match */
 
-            while ((bp->size == 0U) and (prefix_len > len_shortest))
+            while ((not is_occupied(*bp)) and (prefix_len > len_shortest))
               {
                 --prefix_len;
                 hash = prefix_hashes[prefix_len];
                 bp = &hashtable[hash & hash_mask];
 
-                while ((bp->size != 0U) and
+                while (is_occupied(*bp) and
                        (bp->deleted or
                         (bp->hash != hash) or
                         (prefix_len != db.getsequencelen(bp->seqno_first)) or
@@ -280,7 +289,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
                   }
               }
 
-            if (bp->size != 0U)
+            if (is_occupied(*bp))
               {
                 /* prefix match */
 

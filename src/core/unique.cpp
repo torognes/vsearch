@@ -79,10 +79,11 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  // refactoring:
-  // replace with std::unordered_map (default hashing)
-  // if performance are bad, see Victor_Ciura's Cpp Talk "So You Think You Can Hash"
-  // then make a CityHash hasher object and use it with std::unordered_map
+  // refactoring: deliberately not std::unordered_map. These tables are
+  // per-sequence scratch, sized up front so the load factor never exceeds 0.5
+  // and no rehash is ever needed, and count() picks between a bitmap, an
+  // epoch-stamp table and this one by wordlength -- none of which a node-based
+  // container expresses. Reasoning: TBD_20260825_flatmap_helpers.md.
   using Hash = decltype(&hash_packed_kmer);
   constexpr Hash hash_function = hash_packed_kmer;
 
@@ -303,12 +304,12 @@ auto Uniquer::count_hash(int const wordlength,
         {
           /* find free appropriate bucket in hash */
           uint64_t j = hash_function(kmer, wordlength) & hash_mask_;
-          while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
+          while (is_occupied(hash[j]) && (hash[j].kmer != kmer))
             {
               j = (j + 1) & hash_mask_;
             }
 
-          if (hash[j].count == 0U)
+          if (not is_occupied(hash[j]))
             {
               /* not seen before */
               list_data[unique] = kmer;
@@ -387,11 +388,11 @@ auto Uniquer::count_shared(int const wordlength,
       for (auto kmer : list)
         {
           uint64_t j = hash_function(kmer, wordlength) & hash_mask_;
-          while ((hash[j].count != 0U) && (hash[j].kmer != kmer))
+          while (is_occupied(hash[j]) && (hash[j].kmer != kmer))
             {
               j = (j + 1) & hash_mask_;
             }
-          if (hash[j].count != 0U)
+          if (is_occupied(hash[j]))
             {
               ++count;
             }

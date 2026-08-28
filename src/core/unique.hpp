@@ -93,6 +93,15 @@ private:
     unsigned int count;
   };
 
+  /* the empty-bucket sentinel. A k-mer that occurs is counted at least once, so
+     a zero count means the slot was never claimed -- which is also what makes
+     kmer == 0 (a valid packed k-mer, all As) safe to store. A static member
+     rather than a method on 'bucket', so the struct stays a plain aggregate. */
+  static auto is_occupied(bucket const & entry) noexcept -> bool
+  {
+    return entry.count != 0U;
+  }
+
   auto count_bitmap(int wordlength,
                     View<char> seq,
                     Masking seqmask) -> View<unsigned int>;

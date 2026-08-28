@@ -86,6 +86,14 @@ namespace {
 
 
 namespace {
+/* the empty-bucket sentinel, and the reason positions are stored 1-based:
+   position 0 is a real position, so it cannot double as "no entry here". */
+inline auto is_occupied(struct kh_bucket_s const & entry) noexcept -> bool
+{
+  return entry.pos != 0U;
+}
+
+
 inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
                            int const k_offset,
                            unsigned int const kmer,
@@ -93,7 +101,7 @@ inline auto kh_insert_kmer(struct kh_handle_s & kmer_hash,
 {
   /* find free bucket in hash */
   auto bucket = hash_function(kmer, k_offset) & kmer_hash.hash_mask;
-  while (kmer_hash.hash[bucket].pos != 0U)
+  while (is_occupied(kmer_hash.hash[bucket]))
     {
       bucket = (bucket + 1) & kmer_hash.hash_mask;
     }
@@ -192,7 +200,7 @@ auto kh_find_diagonals(struct kh_handle_s const & kmer_hash,
         {
           /* find matching buckets in hash */
           auto j = static_cast<unsigned int>(hash_function(kmer, k_offset) & kmer_hash.hash_mask);
-          while (kmer_hash.hash[j].pos != 0U)
+          while (is_occupied(kmer_hash.hash[j]))
             {
               if (kmer_hash.hash[j].kmer == kmer)
                 {
