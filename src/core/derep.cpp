@@ -75,11 +75,10 @@
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
-#include "utils/seqcmp.hpp"
 #include "utils/cityhash.hpp"
 #include "utils/reverse_complement.hpp"
 #include "utils/string_normalize.hpp"
-#include <algorithm>  // std::count_if, std::max, std::min, std::minmax_element, std::sort, std::transform
+#include <algorithm>  // std::count_if, std::equal, std::max, std::min, std::minmax_element, std::sort, std::transform
 #include <array>  // std::array
 #include <cassert>  // assert
 #include <cmath>  // std::log10, std::pow
@@ -121,6 +120,44 @@ namespace {
     std::string seq;
     std::string qual;  /* empty when FASTA (no quality) */
   };
+
+
+  /*
+    A linear probe stops at the first bucket that is free, or that already holds
+    this exact record; it steps over every other one. Records are matched by
+    their hash first, then byte by byte, because two distinct sequences can land
+    in the same bucket: with 64-bit hashes, there is about 50% chance of a
+    collision when the number of sequences is about 5e9.
+
+    The length test is what makes the byte comparison safe. Without it, a
+    collision between sequences of different lengths compared the shorter one
+    against a window running past the end of the longer -- and reported them
+    identical, merging a record into the wrong cluster.
+
+    The comparison folds through chrmap_4bit rather than comparing raw bytes:
+    the CLI stores each representative exactly as it was read (see the output,
+    which preserves the case of the first occurrence), while the incoming
+    sequence has been normalized, so this compares normalized against raw and
+    must be blind to case and to U versus T.
+  */
+  auto holds_another_record(struct bucket const & candidate,
+                            uint64_t const hash,
+                            View<char> const seq,
+                            bool const use_header = false,
+                            View<char> const header = View<char>{}) -> bool
+  {
+    if (candidate.size == 0U) { return false; }  // free bucket
+    if (candidate.hash != hash) { return true; }
+    if (candidate.seq.size() != seq.size()) { return true; }
+    auto const * const map_4bit_table = chrmap_4bit();
+    auto const same_nucleotide = [map_4bit_table](char const lhs, char const rhs) -> bool {
+      return map_4bit_table[static_cast<unsigned char>(lhs)] ==
+             map_4bit_table[static_cast<unsigned char>(rhs)];
+    };
+    if (not std::equal(seq.cbegin(), seq.cend(), candidate.seq.cbegin(),
+                       same_nucleotide)) { return true; }
+    return use_header and (header != make_view(candidate.header));
+  }
 }
 
 
@@ -782,13 +819,8 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen) + 1), seq_up_v);
           }
 
-        /*
-          Find free bucket or bucket for identical sequence.
-          Make sure sequences are exactly identical
-          in case of any hash collision.
-          With 64-bit hashes, there is about 50% chance of a
-          collision when the number of sequences is about 5e9.
-        */
+        /* Find free bucket or bucket for identical sequence (see
+           holds_another_record) */
 
         auto const hash_header = use_header ? hash_function(header_v) : uint64_t{0};
 
@@ -796,10 +828,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         auto j = hash & hash_mask;
         auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
 
-        while ((bp->size != 0U) and
-               ((hash != bp->hash) or
-                (seqcmp(seq_up_v, make_view(bp->seq).first(static_cast<std::size_t>(seqlen))) != 0) or
-                (use_header and (header_v != make_view(bp->header)))))
+        while (holds_another_record(*bp, hash, seq_up_v, use_header, header_v))
           {
             j = (j + 1) & hash_mask;
             bp = &hashtable[j];
@@ -817,11 +846,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             auto k = rc_hash & hash_mask;
             auto * rc_bp = &hashtable[k];
 
-            while ((rc_bp->size != 0U)
-                   and
-                   ((rc_hash != rc_bp->hash) or
-                    (seqcmp(rc_seq_up_v, make_view(rc_bp->seq).first(static_cast<std::size_t>(seqlen))) != 0) or
-                    (use_header and (header_v != make_view(rc_bp->header)))))
+            while (holds_another_record(*rc_bp, rc_hash, rc_seq_up_v, use_header, header_v))
               {
                 k = (k + 1) & hash_mask;
                 rc_bp = &hashtable[k];
@@ -1197,9 +1222,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
   auto j = hash & ds->hash_mask;
   auto * bp = &ds->hashtable[j];
 
-  while ((bp->size != 0U) and
-         ((hash != bp->hash) or
-          (seqcmp(seq_up_v, make_view(bp->seq).first(static_cast<std::size_t>(seqlen))) != 0)))
+  while (holds_another_record(*bp, hash, seq_up_v))
     {
       j = (j + 1) & ds->hash_mask;
       bp = &ds->hashtable[j];
