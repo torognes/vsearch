@@ -36,7 +36,12 @@ contributing read are used directly. The quality score of `N` bases is
 replaced by the minimum score (Q0) in every output, including the
 not-merged output files. Output quality scores can be clamped
 with `--fastq_qmaxout` and `--fastq_qminout` (these apply only to the
-merged region).
+merged region). Unlike the commands that pass an input quality through,
+`--fastq_mergepairs` keeps the pre-3.0 `--fastq_qmaxout` default of 41,
+because the score it clamps is computed rather than read: two agreeing
+Q40 bases have a posterior quality of Q85, and reporting it would change
+the merged output of every run. Pass `--fastq_qmaxout 93` for the
+unclamped posterior.
 
 Staggered pairs — where the 3' end of the reverse read extends past the 5'
 end of the forward read — are discarded by default. Use

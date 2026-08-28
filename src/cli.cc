@@ -4579,16 +4579,31 @@ namespace {
       }
     if (not options_selected[option_fastq_qmaxout])
       {
-        /* --fasta2fastq is the one command for which --fastq_qmaxout is a
-           value rather than a cap: it has no input quality, and fills every
-           position with the highest score the option allows. Letting the new
-           ceiling through would silently promote its fabricated scores from
-           Q41 to Q93, asserting a confidence the invented data does not have,
-           so it keeps the documented 41. Every other consumer clamps real
-           quality (--fastq_convert, --fastx_uniques, --sff_convert,
-           --fastq_mergepairs) and wants the higher ceiling. */
+        /* --fastq_qmaxout follows the input bound where quality passes
+           *through* vsearch (--fastq_convert, --fastx_uniques,
+           --sff_convert), and keeps the pre-3.0 41 where vsearch *generates*
+           the score:
+
+           - --fasta2fastq has no input quality at all and fills every
+             position with the highest score the option allows, so the new
+             ceiling would promote its fabricated scores from Q41 to Q93,
+             asserting a confidence the invented data does not have;
+           - --fastq_mergepairs caps the Edgar & Flyvbjerg posterior of a
+             merged base, which is a computed quantity rather than a symbol
+             read from a file. At 93 two agreeing Q40 bases score Q85 instead
+             of the clamped Q41, which changes the output of the most-used
+             command for every user, Illumina included.
+
+           MAINTAINERS: the --fastq_mergepairs half of this is a deliberate
+           deviation from torognes/vsearch#609, which asks for --fastq_qmaxout
+           93 unconditionally. It MUST be discussed and settled before 3.0
+           ships, and whichever way it goes MUST appear in the changelog: the
+           option is user-visible and the merged qualities differ either way.
+           Removing --fastq_mergepairs from the test below is the whole of the
+           change needed to follow #609 literally. */
         parameters.opt_fastq_qmaxout =
-          (parameters.opt_fasta2fastq != nullptr)
+          ((parameters.opt_fasta2fastq != nullptr) or
+           (parameters.opt_fastq_mergepairs != nullptr))
           ? legacy_max_quality
           : highest_printable_ascii - parameters.opt_fastq_asciiout;
       }

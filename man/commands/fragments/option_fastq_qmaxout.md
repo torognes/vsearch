@@ -5,6 +5,8 @@
   input are written back unchanged. Before version 3.0 the default was
   41, the usual maximum for Sanger/Illumina 1.8+ files, which silently
   reduced any higher score. Older formats may use a maximum quality
-  score of 40. The sole exception is `--fasta2fastq`, which has no
-  input quality and uses this option as the value to write rather than
-  as a ceiling: there the default remains 41.
+  score of 40. Two commands are exceptions and keep the old default of
+  41, because they *generate* the score they clamp instead of passing
+  one through: `--fasta2fastq`, which has no input quality and uses this
+  option as the value to write, and `--fastq_mergepairs`, which caps the
+  computed posterior quality of a merged base.
