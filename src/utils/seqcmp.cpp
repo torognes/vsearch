@@ -60,6 +60,7 @@
 
 #include "maps.hpp"
 #include "view.hpp"  // View<char>
+#include <algorithm>  // std::mismatch
 #include <cassert>
 
 
@@ -68,21 +69,16 @@
 // alpha-sorting), +1 if rhs is sorted first.
 auto seqcmp(View<char> const lhs_seq, View<char> const rhs_seq) -> int {
   assert(lhs_seq.size() == rhs_seq.size());
-  for (auto lhs_it = lhs_seq.cbegin(), rhs_it = rhs_seq.cbegin();
-       lhs_it < lhs_seq.cend() and rhs_it < rhs_seq.cend();
-       ++lhs_it, ++rhs_it) {
-    if ((*lhs_it == '\0') or (*rhs_it == '\0')) {
-      break;
-    }
-    auto const lhs_nuc = map_4bit(*lhs_it);
-    auto const rhs_nuc = map_4bit(*rhs_it);
-    if (lhs_nuc < rhs_nuc) {
-      return -1;
-    }
-    if (lhs_nuc > rhs_nuc) {
-      return +1;
-    }
+  auto const * const map_4bit_table = chrmap_4bit();
+  auto const same_nucleotide = [map_4bit_table](char const lhs, char const rhs) -> bool {
+    return map_4bit_table[static_cast<unsigned char>(lhs)] ==
+           map_4bit_table[static_cast<unsigned char>(rhs)];
+  };
+  auto const first_difference = std::mismatch(lhs_seq.cbegin(), lhs_seq.cend(),
+                                              rhs_seq.cbegin(), same_nucleotide);
+  if (first_difference.first == lhs_seq.cend()) {
+    return 0;
   }
-
-  return 0;
+  return map_4bit_table[static_cast<unsigned char>(*first_difference.first)] <
+         map_4bit_table[static_cast<unsigned char>(*first_difference.second)] ? -1 : +1;
 }

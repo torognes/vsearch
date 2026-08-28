@@ -63,7 +63,8 @@
 #include "view.hpp"  // View<char>
 
 
-// Compare two equal-length nucleotide sequences (mapped through map_4bit),
-// stopping early at a '\0' in either. Returns 0 if identical, -1 if lhs sorts
-// first (lower alpha-sorting), +1 if rhs sorts first.
+// Compare two equal-length nucleotide sequences (mapped through map_4bit).
+// Equal lengths are a precondition, asserted in the definition: every call
+// site tests the lengths before calling. Returns 0 if identical, -1 if lhs
+// sorts first (lower alpha-sorting), +1 if rhs sorts first.
 auto seqcmp(View<char> lhs, View<char> rhs) -> int;
