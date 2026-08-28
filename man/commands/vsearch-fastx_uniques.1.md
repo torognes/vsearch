@@ -99,11 +99,11 @@ must be specified.
 
 #(./fragments/option_fastq_asciiout.md)
 
-#(./fragments/option_fastq_qmax_ignored.md)
+#(./fragments/option_fastq_qmax.md)
 
 #(./fragments/option_fastq_qmaxout.md)
 
-#(./fragments/option_fastq_qmin_ignored.md)
+#(./fragments/option_fastq_qmin.md)
 
 #(./fragments/option_fastq_qminout.md)
 
