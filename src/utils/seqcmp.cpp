@@ -67,7 +67,7 @@
 // Find first position with a difference, if any. Return 0 for
 // identical sequences, -1 if lhs is sorted first (lower
 // alpha-sorting), +1 if rhs is sorted first.
-auto seqcmp(View<char> const lhs_seq, View<char> const rhs_seq) -> int {
+auto seqcmp(View<char> const lhs_seq, View<char> const rhs_seq) noexcept -> int {
   assert(lhs_seq.size() == rhs_seq.size());
   auto const * const map_4bit_table = chrmap_4bit();
   auto const same_nucleotide = [map_4bit_table](char const lhs, char const rhs) -> bool {

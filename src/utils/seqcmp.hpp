@@ -67,4 +67,4 @@
 // Equal lengths are a precondition, asserted in the definition: every call
 // site tests the lengths before calling. Returns 0 if identical, -1 if lhs
 // sorts first (lower alpha-sorting), +1 if rhs sorts first.
-auto seqcmp(View<char> lhs, View<char> rhs) -> int;
+auto seqcmp(View<char> lhs, View<char> rhs) noexcept -> int;
