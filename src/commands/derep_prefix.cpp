@@ -95,9 +95,6 @@ namespace {
     uint64_t size = 0;
     unsigned int count = 0;
     bool deleted = false;
-    char * header = nullptr;
-    char * seq = nullptr;
-    char * qual = nullptr;
   };
 }
 
