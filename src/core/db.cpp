@@ -121,34 +121,6 @@ namespace {
     return View<char>{std::next(buffer, offset), info.headerlen};
   }
 
-  /* The callers in Database::read() are left with the choice of destinations,
-     which is the part that legitimately differs between them: the log copy
-     gets one extra newline, and the warnings ignore --quiet. */
-  auto print_database_size(std::FILE * output_stream, Database const & database) -> void
-  {
-    if (database.getsequencecount() > 0)
-      {
-        fprint_integer(output_stream, database.getnucleotidecount());
-        fprint(output_stream, " nt in ");
-        fprint_integer(output_stream, database.getsequencecount());
-        fprint(output_stream, " seqs, min ");
-        fprint_integer(output_stream, database.getshortestsequence());
-        fprint(output_stream, ", max ");
-        fprint_integer(output_stream, database.getlongestsequence());
-        fprint(output_stream, ", avg ");
-        std::fprintf(output_stream, "%.0f", static_cast<double>(database.getnucleotidecount()) / static_cast<double>(database.getsequencecount()));
-        fprint(output_stream, '\n');
-      }
-    else
-      {
-        fprint_integer(output_stream, database.getnucleotidecount());
-        fprint(output_stream, " nt in ");
-        fprint_integer(output_stream, database.getsequencecount());
-        fprint(output_stream, " seqs\n");
-      }
-  }
-
-
   /* "<option> <threshold>: <n> sequence(s) discarded.", the same sentence for
      --minseqlength, --maxseqlength and --minsize, which is why the option
      name and its threshold are arguments rather than three copies of the
@@ -170,6 +142,33 @@ namespace {
   }
 
 }  // end of anonymous namespace
+
+
+/* Declared in core/db.hpp: core/udb.cpp prints the same line for a UDB.
+   The callers keep the choice of destinations. */
+auto print_database_size(std::FILE * output_stream, Database const & database) -> void
+{
+  if (database.getsequencecount() > 0)
+    {
+      fprint_integer(output_stream, database.getnucleotidecount());
+      fprint(output_stream, " nt in ");
+      fprint_integer(output_stream, database.getsequencecount());
+      fprint(output_stream, " seqs, min ");
+      fprint_integer(output_stream, database.getshortestsequence());
+      fprint(output_stream, ", max ");
+      fprint_integer(output_stream, database.getlongestsequence());
+      fprint(output_stream, ", avg ");
+      std::fprintf(output_stream, "%.0f", static_cast<double>(database.getnucleotidecount()) / static_cast<double>(database.getsequencecount()));
+      fprint(output_stream, '\n');
+    }
+  else
+    {
+      fprint_integer(output_stream, database.getnucleotidecount());
+      fprint(output_stream, " nt in ");
+      fprint_integer(output_stream, database.getsequencecount());
+      fprint(output_stream, " seqs\n");
+    }
+}
 
 
 /* Reset database state for library use.

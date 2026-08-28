@@ -67,6 +67,7 @@
 #include "utils/view.hpp"  // View<char>
 #include <cassert>  // assert
 #include <cstddef>  // std::size_t
+#include <cstdio>  // std::FILE
 #include <cstdint>  // uint64_t
 #include <vector>
 
@@ -270,5 +271,17 @@ public:
     return SeqRecord{header_view(seqno), sequence_view(seqno), quality_view(seqno)};
   }
 };
+
+
+/* "<nt> nt in <n> seqs, min <n>, max <n>, avg <n>", the line every command
+   prints once its database is loaded, and the same line whether the database
+   came from a FASTA file (Database::read) or from a UDB (udb_read). It used to
+   be written out twice per reader, once per destination; the two readers then
+   kept a copy each of the writer. This is the one copy.
+
+   The caller keeps the choice of destinations, which is what differs between
+   them: stderr unless --quiet, the --log file when one is open, and one extra
+   newline on the log copy. */
+auto print_database_size(std::FILE * output_stream, Database const & database) -> void;
 
 

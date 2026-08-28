@@ -223,34 +223,6 @@ namespace {
     return lhs + rhs;
   }
 
-  /* core/db.cpp prints this same line for a FASTA input, from its own copy.
-     Sharing one writer across the two translation units would mean a new
-     entry in db.hpp, which is wider than this sweep. */
-  auto print_udb_size(std::FILE * output_stream,
-                      Database const & database,
-                      unsigned int const seqcount) -> void
-  {
-    if (seqcount > 0)
-      {
-        fprint_integer(output_stream, database.getnucleotidecount());
-        fprint(output_stream, " nt in ");
-        fprint_integer(output_stream, database.getsequencecount());
-        fprint(output_stream, " seqs, min ");
-        fprint_integer(output_stream, database.getshortestsequence());
-        fprint(output_stream, ", max ");
-        fprint_integer(output_stream, database.getlongestsequence());
-        fprint(output_stream, ", avg ");
-        std::fprintf(output_stream, "%.0f", static_cast<double>(database.getnucleotidecount()) * 1.0 / static_cast<double>(database.getsequencecount()));
-        fprint(output_stream, '\n');
-      }
-    else
-      {
-        fprint_integer(output_stream, database.getnucleotidecount());
-        fprint(output_stream, " nt in ");
-        fprint_integer(output_stream, database.getsequencecount());
-        fprint(output_stream, " seqs\n");
-      }
-  }
 
 }  // end of anonymous namespace
 
@@ -603,14 +575,18 @@ auto udb_read(const char * filename,
 
   /* some stats */
 
+  /* print_database_size() (core/db.hpp) branches on getsequencecount(), where
+     this used to branch on the local seqcount. The two are the same number:
+     udb_finalize() above was handed seqcount, and it is what the database
+     reports. */
   if (not parameters.opt_quiet)
     {
-      print_udb_size(stderr, db, seqcount);
+      print_database_size(stderr, db);
     }
 
   if (parameters.fp_log != nullptr)
     {
-      print_udb_size(parameters.fp_log, db, seqcount);
+      print_database_size(parameters.fp_log, db);
       fprint(parameters.fp_log, '\n');
     }
 }
