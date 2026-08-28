@@ -831,7 +831,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         auto const hash = hash_function(seq_up_v) ^ hash_header;
         auto j = hash & hash_mask;
-        auto * bp = &hashtable[j];  // refactoring: rename to "cluster"
+        auto * bp = &hashtable[j];
 
         while (holds_another_record(*bp, hash, seq_up_v, use_header, header_v))
           {
