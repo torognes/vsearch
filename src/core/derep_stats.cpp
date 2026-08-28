@@ -72,7 +72,7 @@
    open. Same shape as report_orient() (commands/orient.cpp), write_report()
    (commands/sff_convert.cpp) and stats_message()
    (commands/fastx_syncpairs.cpp); it replaces a lambda per entry point.
-   See TBD_20260824_report_destinations.md. */
+   See DONE_20260824_report_destinations.md. */
 namespace {
 
   auto print_input_stats(std::FILE * output_stream,

@@ -1097,7 +1097,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
      be an "else if" on the stderr branch, so --log *replaced* stderr rather
      than duplicating it and the report left stderr entirely -- which neither
      of the two commands cited above does, and which --log is not documented
-     to do. See TBD_20260824_report_destinations.md, shape 7. */
+     to do. See DONE_20260824_report_destinations.md, shape 7. */
   if (parameters.fp_log != nullptr) {
     print_stats(state, parameters.fp_log);
   }
