@@ -53,6 +53,8 @@ None
 
 #(./fragments/option_fasta_width.md)
 
+#(./fragments/option_fastq_ascii.md)
+
 #(./fragments/option_gzip_decompress.md)
 
 #(./fragments/option_label_suffix.md)
@@ -94,9 +96,6 @@ None
 
 
 ## ignored options
-
-`--fastq_ascii` 33|64
-: Option is ignored and has no effect.
 
 #(./fragments/option_fastq_qmax_ignored.md)
 
