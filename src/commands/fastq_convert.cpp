@@ -63,7 +63,7 @@
 #include "core/attributes.hpp"  // struct OutputAnnotations
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"  // fastx_s, byte_range
-#include "utils/print_view.hpp"  // fprint
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
@@ -117,25 +117,6 @@ namespace {
   }
 
 
-  /* The former in-loop rejection of a score outside --fastq_qmin/--fastq_qmax,
-     verbatim; always exits through fatal(). */
-  auto report_quality_out_of_range(fastx_s const & input_handle,
-                                   int const quality_score,
-                                   struct Parameters const & parameters) -> void
-  {
-    auto const too_low = quality_score < parameters.opt_fastq_qmin;
-    fprint(stderr, "\nFASTQ quality score (");
-    fprint_integer(stderr, quality_score);
-    fprint(stderr, too_low ? ") below minimum (" : ") above maximum (");
-    fprint_integer(stderr, too_low ? parameters.opt_fastq_qmin : parameters.opt_fastq_qmax);
-    fprint(stderr, ") in entry no ");
-    fprint_integer(stderr, input_handle.get_seqno() + 1);
-    fprint(stderr, " starting on line ");
-    fprint_integer(stderr, input_handle.get_lineno());
-    fprint(stderr, '\n');
-    fatal(too_low ? "FASTQ quality score too low" : "FASTQ quality score too high");
-  }
-
 }  // end of anonymous namespace
 
 
@@ -187,8 +168,15 @@ auto fastq_convert(struct Parameters const & parameters) -> void
             auto const mapped = quality_mapping[static_cast<unsigned char>(quality_char)];
             if (mapped == '\0')
               {
+                /* This command used to print its own two-part message
+                   ("FASTQ quality score (X) below minimum (Y) in entry no N
+                   starting on line L", then a shorter fatal()). It was the
+                   only site that named the record and the line; the shared
+                   message now carries those for every command that can
+                   supply them -- see TBD_20260825_quality_range.md phase 5. */
                 auto const score = static_cast<int>(quality_char - parameters.opt_fastq_ascii);
-                report_quality_out_of_range(*input_handle, score, parameters);
+                vsearch::check_quality_score(score, parameters,
+                                             input_handle->quality_location());
               }
             return mapped;
           });

@@ -69,7 +69,7 @@
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
-#include "core/quality_range.hpp"  // vsearch::check_quality_score
+#include "core/quality_range.hpp"  // vsearch::classify_quality, quality_out_of_range_message
 #include "utils/open_file.hpp"
 #include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "utils/view.hpp"  // View<char>
@@ -82,7 +82,8 @@
 
 
 namespace {
-inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters) -> int
+inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & parameters,
+                           fastx_s const & input_handle) -> int
 {
   int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
 
@@ -90,8 +91,17 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
      above have already narrowed the record, and the loop that calls this
      breaks at the --fastq_truncqual point. Keeping that (rather than reading
      the parser's whole-record range) is a reviewed decision -- see
-     TBD_20260825_quality_range.md question B. */
-  vsearch::check_quality_score(quality_score, parameters);
+     TBD_20260825_quality_range.md question B.
+
+     classify then format, rather than check_quality_score(): this runs once
+     per base, and quality_location() would otherwise be built for every one
+     of them instead of only for the base that fails. */
+  auto const bound = vsearch::classify_quality(quality_score, parameters);
+  if (bound != vsearch::QualityBound::in_range)
+    {
+      fatal(vsearch::quality_out_of_range_message(bound, quality_score, parameters,
+                                                  input_handle.quality_location()));
+    }
   return quality_score;
 }
 }  // anonymous namespace
@@ -162,7 +172,7 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
       auto const * quality_symbols = input_handle->get_quality() + start;
       for (auto i = 0; i < length; ++i)
         {
-          auto const quality_score = fastq_get_qual(quality_symbols[i], parameters);
+          auto const quality_score = fastq_get_qual(quality_symbols[i], parameters, *input_handle);
           auto const expected_error = quality_table[quality_symbols[i]];
           res.ee += expected_error;
 

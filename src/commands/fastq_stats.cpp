@@ -60,6 +60,7 @@
 
 #include "vsearch.hpp"
 #include "core/fastq.hpp"
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
@@ -75,7 +76,6 @@
 #include <iterator>  // std::distance, std::next
 #include <limits>
 #include <numeric>  // std::partial_sum, std::inner_product, std::iota, std::accumulate
-#include <string>
 #include <vector>
 
 
@@ -112,43 +112,28 @@ namespace {
 
 
 
-  /* Signed throughout: --fastq_qmin may be negative (cli.cc only requires
-     fastq_ascii + fastq_qmin >= 33, so down to -31 at offset 64), and so may
-     the decoded score. Comparing through unsigned int turned every negative
-     bound into a value near 2^32, which failed every quality value in every
-     file. */
-  auto check_quality_score(struct Parameters const & parameters, int64_t const quality_score) -> void {
-    auto const is_in_accepted_range =
-      (quality_score >= parameters.opt_fastq_qmin) and
-      (quality_score <= parameters.opt_fastq_qmax);
-
-    if (is_in_accepted_range) {
-      return;
-    }
-
-    std::string const message =
-      std::string("FASTQ quality value (") + std::to_string(quality_score) +
-      ") out of range (" + std::to_string(parameters.opt_fastq_qmin) + "-" +
-      std::to_string(parameters.opt_fastq_qmax) + ").\n" +
-      "Please adjust the FASTQ quality base character or range with the\n" +
-      "--fastq_ascii, --fastq_qmin or --fastq_qmax options. For a complete\n" +
-      "diagnosis with suggested values, please run vsearch --fastq_chars file.";
-    fatal(message);
-  }
-
-
   /* The range comes from the parser, which recorded it while copying the
      quality line, so this no longer walks the string a second time.
      symbol_to_score is std::iota from -opt_fastq_ascii and therefore
      increases with the symbol, so the lowest symbol carries the lowest score
      and the highest the highest -- the same two values std::minmax_element
-     used to return here. */
+     used to return here. It stays signed throughout: --fastq_qmin may be
+     negative (cli.cc only requires fastq_ascii + fastq_qmin >= 33, so down
+     to -31 at offset 64), and so may the decoded score; comparing through
+     unsigned int once turned every negative bound into a value near 2^32,
+     which failed every quality value in every file.
+
+     This command used to phrase its own message ("... out of range (0-41)",
+     plus a four-line hint pointing at --fastq_chars). It now uses the shared
+     one, so that a user who moves between commands on the same bad file
+     reads the same sentence -- see TBD_20260825_quality_range.md phase 5. */
   auto check_minmax_scores(QualitySymbolRange const range,
                            std::vector<int64_t> const & symbol_to_score,
-                           struct Parameters const & parameters) -> void {
+                           struct Parameters const & parameters,
+                           vsearch::QualityLocation const location) -> void {
     if (not range.seen()) { return; }
-    check_quality_score(parameters, symbol_to_score[range.lowest]);
-    check_quality_score(parameters, symbol_to_score[range.highest]);
+    vsearch::check_quality_score(symbol_to_score[range.lowest], parameters, location);
+    vsearch::check_quality_score(symbol_to_score[range.highest], parameters, location);
   }
 
 
@@ -636,7 +621,8 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         auto expected_error = 0.0;
         auto qmin = std::numeric_limits<int64_t>::max();  // lowest Q value observed so far in this read
 
-        check_minmax_scores(input_handle->quality_symbol_range(), symbol_to_score, parameters);
+        check_minmax_scores(input_handle->quality_symbol_range(), symbol_to_score,
+                            parameters, input_handle->quality_location());
 
         /* Within a read, qmin only decreases and expected_error only
            increases, so each threshold flips exactly once, from passing to

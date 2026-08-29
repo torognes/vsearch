@@ -250,9 +250,8 @@ namespace {
      33-126 (quality_policy in core/fastq.cpp), so the plain char comparison
      there cannot go negative.
 
-     refactoring: fifth near-copy of this check (core/filter.cpp,
-     core/eestats.cpp, commands/fastq_stats.cpp, commands/fastq_convert.cpp);
-     see TBD_20260825_quality_range.md for folding it into one shared checker.
+     The message is the shared one (vsearch::check_quality_score below); what
+     is local here is only how the two extremes are found.
 
      It keeps its own pass rather than reading the parser's per-record range
      (fastx.hpp's track_quality_range(), which commands/fastq_stats.cpp does
@@ -267,7 +266,8 @@ namespace {
      guard -- it called std::minmax_element on every record -- which is why
      the same move made it 3.4% faster. */
   auto check_quality_range(View<char> const quality_symbols,
-                           struct Parameters const & parameters) -> void
+                           struct Parameters const & parameters,
+                           vsearch::QualityLocation const location) -> void
   {
     if (quality_symbols.empty()) { return; }
 
@@ -293,8 +293,8 @@ namespace {
 
     auto const extremes = std::minmax_element(quality_symbols.begin(),
                                               quality_symbols.end());
-    vsearch::check_quality_score(*std::get<0>(extremes) - ascii_offset, parameters);
-    vsearch::check_quality_score(*std::get<1>(extremes) - ascii_offset, parameters);
+    vsearch::check_quality_score(*std::get<0>(extremes) - ascii_offset, parameters, location);
+    vsearch::check_quality_score(*std::get<1>(extremes) - ascii_offset, parameters, location);
   }
 
 
@@ -824,7 +824,8 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         if (qual != nullptr)
           {
-            check_quality_range(input_handle->quality_view(), parameters);
+            check_quality_range(input_handle->quality_view(), parameters,
+                                input_handle->quality_location());
           }
 
         /* normalize sequence: uppercase and replace U by T  */
