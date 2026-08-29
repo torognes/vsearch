@@ -60,6 +60,7 @@
 
 #include "commands/fastq_eestats2.hpp"
 #include "core/eestats.hpp"
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -186,7 +187,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
                                             vsearch::ProbabilityCap::certain_error);
 
   /* per-symbol range verdicts; a rejected symbol goes back through
-     fastq_get_qual_eestats for the unchanged fatal message */
+     vsearch::check_quality_score() for the message */
   vsearch::QualityScoreTable const score_table(parameters);
 
 
@@ -235,10 +236,13 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
             /* range-check only: this command never uses the decoded value,
                it indexes the table by the symbol. The check still has to run
                per base, so that an out-of-range quality is reported at the
-               same position and with the same message as before. */
+               position where it occurs. */
             if (not score_table.accepts(q[i]))
               {
-                static_cast<void>(fastq_get_qual_eestats(q[i], parameters));  // fatal
+                /* the same test accepts() just failed, run again to build the
+                   message and name the record it fired on */
+                vsearch::check_quality_score(q[i] - parameters.opt_fastq_ascii,
+                                             parameters, h->quality_location());
               }
 
             auto const pe = quality_table[q[i]];

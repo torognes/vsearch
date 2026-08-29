@@ -81,18 +81,27 @@ auto classify_quality(int64_t const quality_score,
 
 auto quality_out_of_range_message(QualityBound const bound,
                                   int64_t const quality_score,
-                                  struct Parameters const & parameters) -> std::string
+                                  struct Parameters const & parameters,
+                                  QualityLocation const location) -> std::string
 {
   /* decimal::to_text, not std::to_string: on libstdc++ <= 10 the latter is a
-     std::vsnprintf call with a format string (see decimal_digits.hpp). The
-     text is byte-for-byte what the four merged copies produced. */
+     std::vsnprintf call with a format string (see decimal_digits.hpp). With
+     no location the text is byte-for-byte what the merged copies produced. */
+
+  /* Appended after the bound, so a test grepping for the bound alone still
+     matches; only a whole-line match notices. */
+  auto const where = location.known()
+    ? " in entry no " + decimal::to_text(location.record)
+      + " starting on line " + decimal::to_text(location.line)
+    : std::string{};
+
   if (bound == QualityBound::below_qmin)
     {
       return "FASTQ quality value (" + decimal::to_text(quality_score)
-        + ") below qmin (" + decimal::to_text(parameters.opt_fastq_qmin) + ")";
+        + ") below qmin (" + decimal::to_text(parameters.opt_fastq_qmin) + ")" + where;
     }
   return "FASTQ quality value (" + decimal::to_text(quality_score)
-    + ") above qmax (" + decimal::to_text(parameters.opt_fastq_qmax) + ")\n"
+    + ") above qmax (" + decimal::to_text(parameters.opt_fastq_qmax) + ")" + where + "\n"
       "By default, quality values range from 0 to 93\n"
       "(0 to 62 with --fastq_ascii 64).\n"
       "To allow higher quality values, "
@@ -101,13 +110,14 @@ auto quality_out_of_range_message(QualityBound const bound,
 
 
 auto check_quality_score(int64_t const quality_score,
-                         struct Parameters const & parameters) -> void
+                         struct Parameters const & parameters,
+                         QualityLocation const location) -> void
 {
   auto const bound = classify_quality(quality_score, parameters);
   if (bound == QualityBound::in_range) { return; }
   // route through fatal(), which writes stderr and the --log file, and in a
   // library session throws instead of std::exit()ing
-  fatal(quality_out_of_range_message(bound, quality_score, parameters));
+  fatal(quality_out_of_range_message(bound, quality_score, parameters, location));
 }
 
 

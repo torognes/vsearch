@@ -60,6 +60,7 @@
 
 #pragma once
 
+#include "core/quality_range.hpp"  // QualityLocation
 #include "core/seq_record.hpp"  // SeqRecord (returned by fastx_record)
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
 #include "utils/maps.hpp"  // Mapping
@@ -375,6 +376,15 @@ public:
   auto get_size() const noexcept -> uint64_t { return file_size; }
   auto get_lineno() const noexcept -> uint64_t { return lineno_start; }
   auto get_seqno() const noexcept -> uint64_t { return static_cast<uint64_t>(seqno); }
+
+  /* Where the current record sits in the input, for a message that names it.
+     seqno counts from -1 (set by fastx_open), so it is 0-based once a record
+     has been read and the ordinal is one more; keeping that arithmetic here
+     means no caller repeats it, and no caller can fill the two members of
+     QualityLocation in the wrong order. */
+  auto quality_location() const noexcept -> vsearch::QualityLocation {
+    return vsearch::QualityLocation{get_seqno() + 1, get_lineno()};
+  }
 
   // Deferred-error protocol (see the defer_errors note above).
   auto get_error() const noexcept -> bool { return error; }

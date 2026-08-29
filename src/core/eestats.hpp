@@ -64,11 +64,22 @@
 #include <cassert>
 #include <cstddef>  // std::size_t
 
-/* Quality helpers shared by the fastq_eestats and fastq_eestats2
-   commands. fastq_get_qual_eestats decodes and range-checks one FASTQ
-   quality symbol (fatal on out-of-range); q2p converts a Phred quality
-   value to its error probability. */
-auto fastq_get_qual_eestats(char q, struct Parameters const & parameters) -> int;
+/* Declared at global scope on purpose: QualityScoreTable's constructor below
+   names `struct Parameters`, and an elaborated-type-specifier that finds
+   nothing *declares* the type in its own scope -- which would silently make
+   it an incomplete `vsearch::Parameters`, distinct from the real one. This
+   used to be provided as a side effect of fastq_get_qual_eestats' signature
+   sitting here; it is stated outright now that the function is gone. */
+struct Parameters;
+
+/* Quality helper shared by the fastq_eestats and fastq_eestats2 commands:
+   q2p converts a Phred quality value to its error probability.
+
+   fastq_get_qual_eestats() used to sit here too, decoding one symbol and
+   range-checking it. Both callers reached it only to die -- they discarded
+   its int and took the decoded value from QualityScoreTable::score() -- so
+   they now call vsearch::check_quality_score() themselves, which is the same
+   check and lets them name the record from the handle they already hold. */
 auto q2p(int quality_value) -> double;
 
 
@@ -76,18 +87,18 @@ namespace vsearch {
 
 /* Quality symbol -> decoded quality score, precomputed once per run.
 
-   fastq_get_qual_eestats above costs a call into another translation
-   unit plus two range tests for every base, which profiling shows is a
-   third of fastq_eestats2's runtime; but its inputs are only the 128
-   low ASCII ordinals (see quality_table.hpp for why a symbol reaching a
-   conversion always lies in [33, 126]), so both the decoded score and
-   the range verdict fit in small per-symbol arrays filled up front.
+   Decoding and range-checking each base through a function call into
+   another translation unit cost a third of fastq_eestats2's runtime, by
+   profiling; but the inputs are only the 128 low ASCII ordinals (see
+   quality_table.hpp for why a symbol reaching a conversion always lies in
+   [33, 126]), so both the decoded score and the range verdict fit in small
+   per-symbol arrays filled up front.
 
-   accepts() mirrors fastq_get_qual_eestats' range check exactly; a
-   caller passes a rejected symbol back to fastq_get_qual_eestats so
-   that the fatal message, and the point in the input where it fires,
-   stay the same. score() folds in the std::max(qual, 0) both eestats
-   commands applied to the decoded value. */
+   accepts() is vsearch::classify_quality() evaluated once per symbol rather
+   than once per base; a caller that gets false back hands the symbol to
+   vsearch::check_quality_score(), which is the same test again and produces
+   the message. score() folds in the std::max(qual, 0) both eestats commands
+   applied to the decoded value. */
 class QualityScoreTable {
 public:
   static constexpr auto n_symbols = std::size_t{128};

@@ -60,20 +60,11 @@
 
 #include "core/eestats.hpp"
 #include "vsearch.hpp"
-#include "core/quality_range.hpp"  // vsearch::check_quality_score
+#include "core/quality_range.hpp"  // vsearch::classify_quality
 #include <algorithm>  // std::max
 #include <cmath>  // std::pow
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
-
-
-auto fastq_get_qual_eestats(char const q, struct Parameters const & parameters) -> int
-{
-  int const qual = static_cast<int>(q - parameters.opt_fastq_ascii);
-
-  vsearch::check_quality_score(qual, parameters);
-  return qual;
-}
 
 
 auto q2p(int const quality_value) -> double
@@ -90,8 +81,8 @@ vsearch::QualityScoreTable::QualityScoreTable(struct Parameters const & paramete
     {
       auto const quality_value =
         static_cast<int>(static_cast<int64_t>(ordinal) - parameters.opt_fastq_ascii);
-      accepted_[ordinal] = (quality_value >= parameters.opt_fastq_qmin)
-                       and (quality_value <= parameters.opt_fastq_qmax);
+      accepted_[ordinal] =
+        vsearch::classify_quality(quality_value, parameters) == vsearch::QualityBound::in_range;
       scores_[ordinal] = std::max(quality_value, 0);
     }
 }

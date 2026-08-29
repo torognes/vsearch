@@ -60,6 +60,7 @@
 
 #include "commands/fastq_eestats.hpp"
 #include "core/eestats.hpp"
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
@@ -244,7 +245,7 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
                                             vsearch::ProbabilityCap::certain_error);
 
   /* per-symbol decoded scores and range verdicts; a rejected symbol goes back
-     through fastq_get_qual_eestats for the unchanged fatal message */
+     through vsearch::check_quality_score() for the message */
   vsearch::QualityScoreTable const score_table(parameters);
 
   int64_t len_max = 0;
@@ -288,7 +289,10 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
             if (not score_table.accepts(q[i]))
               {
-                static_cast<void>(fastq_get_qual_eestats(q[i], parameters));  // fatal
+                /* the same test accepts() just failed, run again to build the
+                   message and name the record it fired on */
+                vsearch::check_quality_score(q[i] - parameters.opt_fastq_ascii,
+                                             parameters, h->quality_location());
               }
             auto const qual = score_table.score(q[i]);
             ++qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + qual)];

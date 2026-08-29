@@ -63,7 +63,7 @@
 #pragma once
 
 #include "utils/quality_encoding.hpp"  // QualitySymbolRange
-#include <cstdint>  // int64_t
+#include <cstdint>  // int64_t, uint64_t
 #include <string>  // std::string
 
 struct Parameters;
@@ -90,6 +90,29 @@ namespace vsearch {
 
 enum struct QualityBound { in_range, below_qmin, above_qmax };
 
+
+/* Where in the input the offending score was found, when the caller can say.
+
+   Four of the six sites hold the reader handle and can (filter, derep,
+   fastq_stats, fastq_convert); core/mergepairs.cpp cannot, because it tests
+   the window on a worker thread where the only ordinal to hand is a pair
+   number spanning two files, with no line number at all. So the location is
+   optional, and a default-constructed QualityLocation means "not known" --
+   the message then reads exactly as it did before. record is 1-based, the
+   way commands/fastq_convert.cpp has always printed it.
+
+   A plain aggregate, deliberately: default member initializers would make it
+   a non-aggregate before C++14, and QualityLocation{} is how a caller says
+   "not known". Build it with fastx_s::quality_location() rather than by hand,
+   so the two uint64_t members cannot be filled in the wrong order. */
+struct QualityLocation {
+  uint64_t record;
+  uint64_t line;
+
+  auto known() const noexcept -> bool { return record != 0; }
+};
+
+
 /* Pure test, no output: safe to call from a worker thread. */
 auto classify_quality(int64_t quality_score,
                       struct Parameters const & parameters) noexcept -> QualityBound;
@@ -98,12 +121,14 @@ auto classify_quality(int64_t quality_score,
    the caller has already decided there is something to report. */
 auto quality_out_of_range_message(QualityBound bound,
                                   int64_t quality_score,
-                                  struct Parameters const & parameters) -> std::string;
+                                  struct Parameters const & parameters,
+                                  QualityLocation location = QualityLocation{}) -> std::string;
 
 /* Test, and fatal() with that message if the score is outside the window.
    Not noexcept: fatal() throws VsearchError in a library session. */
 auto check_quality_score(int64_t quality_score,
-                         struct Parameters const & parameters) -> void;
+                         struct Parameters const & parameters,
+                         QualityLocation location = QualityLocation{}) -> void;
 
 /* The same check for a caller that has a whole record's symbol range rather
    than one score: decodes both extremes with --fastq_ascii and checks them,
