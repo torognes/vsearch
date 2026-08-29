@@ -70,6 +70,7 @@
 #include "core/fasta.hpp"  // fasta_print_general
 #include "core/fastq.hpp"  // fastq_print_general
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/median.hpp"
@@ -292,23 +293,8 @@ namespace {
 
     auto const extremes = std::minmax_element(quality_symbols.begin(),
                                               quality_symbols.end());
-    auto const lowest_score = *std::get<0>(extremes) - ascii_offset;
-    auto const highest_score = *std::get<1>(extremes) - ascii_offset;
-
-    if (lowest_score < parameters.opt_fastq_qmin)
-      {
-        fatal("FASTQ quality value (" + std::to_string(lowest_score) + ") below qmin ("
-              + std::to_string(parameters.opt_fastq_qmin) + ")");
-      }
-    if (highest_score > parameters.opt_fastq_qmax)
-      {
-        fatal("FASTQ quality value (" + std::to_string(highest_score) + ") above qmax ("
-              + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-              "By default, quality values range from 0 to 93\n"
-              "(0 to 62 with --fastq_ascii 64).\n"
-              "To allow higher quality values, "
-              "please use the option --fastq_qmax " + std::to_string(highest_score));
-      }
+    vsearch::check_quality_score(*std::get<0>(extremes) - ascii_offset, parameters);
+    vsearch::check_quality_score(*std::get<1>(extremes) - ascii_offset, parameters);
   }
 
 

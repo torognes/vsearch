@@ -69,6 +69,7 @@
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/open_file.hpp"
 #include "utils/quality_table.hpp"  // vsearch::QualityTable
 #include "utils/view.hpp"  // View<char>
@@ -78,7 +79,6 @@
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE
 #include <limits>
-#include <string>  // std::string, std::to_string
 
 
 namespace {
@@ -86,23 +86,12 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
 {
   int const quality_score = quality_symbol - static_cast<int>(parameters.opt_fastq_ascii);
 
-  // route through fatal() (which writes stderr and the --log file, and in a
-  // library session throws instead of std::exit()ing); the printed text is
-  // unchanged.
-  if (quality_score < parameters.opt_fastq_qmin)
-    {
-      fatal("FASTQ quality value (" + std::to_string(quality_score) + ") below qmin ("
-            + std::to_string(parameters.opt_fastq_qmin) + ")");
-    }
-  else if (quality_score > parameters.opt_fastq_qmax)
-    {
-      fatal("FASTQ quality value (" + std::to_string(quality_score) + ") above qmax ("
-            + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-            "By default, quality values range from 0 to 93\n"
-            "(0 to 62 with --fastq_ascii 64).\n"
-            "To allow higher quality values, "
-            "please use the option --fastq_qmax " + std::to_string(quality_score));
-    }
+  /* Per symbol, over the retained window only: the strip/truncate options
+     above have already narrowed the record, and the loop that calls this
+     breaks at the --fastq_truncqual point. Keeping that (rather than reading
+     the parser's whole-record range) is a reviewed decision -- see
+     TBD_20260825_quality_range.md question B. */
+  vsearch::check_quality_score(quality_score, parameters);
   return quality_score;
 }
 }  // anonymous namespace

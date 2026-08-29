@@ -60,35 +60,18 @@
 
 #include "core/eestats.hpp"
 #include "vsearch.hpp"
-#include "utils/fatal.hpp"  // fatal
+#include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include <algorithm>  // std::max
 #include <cmath>  // std::pow
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
-#include <string>  // std::string, std::to_string
 
 
 auto fastq_get_qual_eestats(char const q, struct Parameters const & parameters) -> int
 {
   int const qual = static_cast<int>(q - parameters.opt_fastq_ascii);
 
-  // route through fatal() (which writes stderr and the --log file, and in a
-  // library session throws instead of std::exit()ing); the printed text is
-  // unchanged.
-  if (qual < parameters.opt_fastq_qmin)
-    {
-      fatal("FASTQ quality value (" + std::to_string(qual) + ") below qmin ("
-            + std::to_string(parameters.opt_fastq_qmin) + ")");
-    }
-  else if (qual > parameters.opt_fastq_qmax)
-    {
-      fatal("FASTQ quality value (" + std::to_string(qual) + ") above qmax ("
-            + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-            "By default, quality values range from 0 to 93\n"
-            "(0 to 62 with --fastq_ascii 64).\n"
-            "To allow higher quality values, "
-            "please use the option --fastq_qmax " + std::to_string(qual));
-    }
+  vsearch::check_quality_score(qual, parameters);
   return qual;
 }
 

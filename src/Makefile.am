@@ -138,6 +138,7 @@ commands/fastq_stats.hpp \
 core/fastx.hpp \
 core/fastx_char_class.hpp \
 core/illegal_character.hpp \
+core/quality_range.hpp \
 core/match_counts.hpp \
 commands/fastx_revcomp.hpp \
 commands/fastx_subsample.hpp \
@@ -334,6 +335,7 @@ os/dynlibs.cpp \
 commands/fastq_eestats.cpp \
 commands/fastq_eestats2.cpp \
 core/eestats.cpp \
+core/quality_range.cpp \
 commands/fasta2fastq.cpp \
 core/fasta.cpp \
 core/fastq.cpp \

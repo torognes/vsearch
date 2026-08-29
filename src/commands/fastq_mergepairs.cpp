@@ -59,6 +59,7 @@
 */
 
 #include "core/mergepairs.hpp"
+#include "core/quality_range.hpp"  // vsearch::quality_out_of_range_message
 #include "vsearch.hpp"
 #include <memory>  // std::unique_ptr
 #include "utils/progress.hpp"
@@ -84,7 +85,6 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <cstdlib>  // std::exit, EXIT_FAILURE
 #include <mutex>  // std::mutex, std::unique_lock
-#include <string>  // std::to_string
 #include <vector>
 
 
@@ -140,21 +140,18 @@ public:
   {
     switch (reason_)
       {
-      // route through fatal() (which writes stderr and the --log file; the printed
-      // text is unchanged). Called on the main thread after the worker pool has
-      // joined, so throwing in a library session is safe.
+      /* The worker recorded the verdict; this turns it into the shared text.
+         Route through fatal() (which writes stderr and the --log file);
+         called on the main thread after the worker pool has joined, so
+         throwing in a library session is safe. */
       case MergeAbortReason::quality_below_qmin:
-        fatal("FASTQ quality value (" + std::to_string(value_) + ") below qmin ("
-              + std::to_string(parameters.opt_fastq_qmin) + ")");
+        fatal(vsearch::quality_out_of_range_message(
+                vsearch::QualityBound::below_qmin, value_, parameters));
         break;
 
       case MergeAbortReason::quality_above_qmax:
-        fatal("FASTQ quality value (" + std::to_string(value_) + ") above qmax ("
-              + std::to_string(parameters.opt_fastq_qmax) + ")\n"
-              "By default, quality values range from 0 to 93\n"
-              "(0 to 62 with --fastq_ascii 64).\n"
-              "To allow higher quality values, "
-              "please use the option --fastq_qmax " + std::to_string(value_));
+        fatal(vsearch::quality_out_of_range_message(
+                vsearch::QualityBound::above_qmax, value_, parameters));
         break;
 
       case MergeAbortReason::more_fwd_than_rev:

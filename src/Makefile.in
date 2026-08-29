@@ -206,13 +206,13 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -281,13 +281,13 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -355,13 +355,13 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -423,13 +423,13 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -491,13 +491,13 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -559,13 +559,13 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -626,13 +626,13 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -678,10 +678,11 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
 	os/dynlibs.cpp commands/fastq_eestats.cpp \
 	commands/fastq_eestats2.cpp core/eestats.cpp \
-	commands/fasta2fastq.cpp core/fasta.cpp core/fastq.cpp \
-	commands/fastq_chars.cpp commands/fastq_convert.cpp \
-	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
-	core/mergepairs.cpp commands/fastq_stats.cpp core/fastx.cpp \
+	core/quality_range.cpp commands/fasta2fastq.cpp core/fasta.cpp \
+	core/fastq.cpp commands/fastq_chars.cpp \
+	commands/fastq_convert.cpp commands/fastq_join.cpp \
+	commands/fastq_mergepairs.cpp core/mergepairs.cpp \
+	commands/fastq_stats.cpp core/fastx.cpp \
 	commands/fastx_revcomp.cpp commands/fastx_subsample.cpp \
 	commands/fastx_syncpairs.cpp commands/fastq_filter.cpp \
 	commands/fastx_filter.cpp core/filter.cpp \
@@ -746,6 +747,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	commands/libvsearch_core_a-fastq_eestats.$(OBJEXT) \
 	commands/libvsearch_core_a-fastq_eestats2.$(OBJEXT) \
 	core/libvsearch_core_a-eestats.$(OBJEXT) \
+	core/libvsearch_core_a-quality_range.$(OBJEXT) \
 	commands/libvsearch_core_a-fasta2fastq.$(OBJEXT) \
 	core/libvsearch_core_a-fasta.$(OBJEXT) \
 	core/libvsearch_core_a-fastq.$(OBJEXT) \
@@ -861,13 +863,13 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	core/mergepairs.hpp core/mergepairs_internal.hpp \
 	commands/fastq_stats.hpp core/fastx.hpp \
 	core/fastx_char_class.hpp core/illegal_character.hpp \
-	core/match_counts.hpp commands/fastx_revcomp.hpp \
-	commands/fastx_subsample.hpp commands/fastx_syncpairs.hpp \
-	commands/fastq_filter.hpp commands/fastx_filter.hpp \
-	core/filter.hpp commands/fastx_getseq.hpp \
-	commands/fastx_getseqs.hpp commands/fastx_getsubseq.hpp \
-	core/getseq.hpp commands/help.hpp core/kmerhash.hpp \
-	core/linmemalign.hpp commands/fastx_mask.hpp \
+	core/quality_range.hpp core/match_counts.hpp \
+	commands/fastx_revcomp.hpp commands/fastx_subsample.hpp \
+	commands/fastx_syncpairs.hpp commands/fastq_filter.hpp \
+	commands/fastx_filter.hpp core/filter.hpp \
+	commands/fastx_getseq.hpp commands/fastx_getseqs.hpp \
+	commands/fastx_getsubseq.hpp core/getseq.hpp commands/help.hpp \
+	core/kmerhash.hpp core/linmemalign.hpp commands/fastx_mask.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
@@ -913,10 +915,11 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/derep_prefix.cpp commands/derep_smallmem.cpp \
 	os/dynlibs.cpp commands/fastq_eestats.cpp \
 	commands/fastq_eestats2.cpp core/eestats.cpp \
-	commands/fasta2fastq.cpp core/fasta.cpp core/fastq.cpp \
-	commands/fastq_chars.cpp commands/fastq_convert.cpp \
-	commands/fastq_join.cpp commands/fastq_mergepairs.cpp \
-	core/mergepairs.cpp commands/fastq_stats.cpp core/fastx.cpp \
+	core/quality_range.cpp commands/fasta2fastq.cpp core/fasta.cpp \
+	core/fastq.cpp commands/fastq_chars.cpp \
+	commands/fastq_convert.cpp commands/fastq_join.cpp \
+	commands/fastq_mergepairs.cpp core/mergepairs.cpp \
+	commands/fastq_stats.cpp core/fastx.cpp \
 	commands/fastx_revcomp.cpp commands/fastx_subsample.cpp \
 	commands/fastx_syncpairs.cpp commands/fastq_filter.cpp \
 	commands/fastx_filter.cpp core/filter.cpp \
@@ -969,8 +972,9 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	commands/derep_smallmem.$(OBJEXT) os/dynlibs.$(OBJEXT) \
 	commands/fastq_eestats.$(OBJEXT) \
 	commands/fastq_eestats2.$(OBJEXT) core/eestats.$(OBJEXT) \
-	commands/fasta2fastq.$(OBJEXT) core/fasta.$(OBJEXT) \
-	core/fastq.$(OBJEXT) commands/fastq_chars.$(OBJEXT) \
+	core/quality_range.$(OBJEXT) commands/fasta2fastq.$(OBJEXT) \
+	core/fasta.$(OBJEXT) core/fastq.$(OBJEXT) \
+	commands/fastq_chars.$(OBJEXT) \
 	commands/fastq_convert.$(OBJEXT) commands/fastq_join.$(OBJEXT) \
 	commands/fastq_mergepairs.$(OBJEXT) core/mergepairs.$(OBJEXT) \
 	commands/fastq_stats.$(OBJEXT) core/fastx.$(OBJEXT) \
@@ -1202,6 +1206,7 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	core/$(DEPDIR)/libvsearch_core_a-minheap.Po \
 	core/$(DEPDIR)/libvsearch_core_a-msa.Po \
 	core/$(DEPDIR)/libvsearch_core_a-otutable.Po \
+	core/$(DEPDIR)/libvsearch_core_a-quality_range.Po \
 	core/$(DEPDIR)/libvsearch_core_a-results.Po \
 	core/$(DEPDIR)/libvsearch_core_a-search.Po \
 	core/$(DEPDIR)/libvsearch_core_a-searchcore.Po \
@@ -1212,10 +1217,11 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	core/$(DEPDIR)/linmemalign.Po core/$(DEPDIR)/mask.Po \
 	core/$(DEPDIR)/mergepairs.Po core/$(DEPDIR)/minheap.Po \
 	core/$(DEPDIR)/msa.Po core/$(DEPDIR)/otutable.Po \
-	core/$(DEPDIR)/results.Po core/$(DEPDIR)/search.Po \
-	core/$(DEPDIR)/searchcore.Po core/$(DEPDIR)/showalign.Po \
-	core/$(DEPDIR)/tax.Po core/$(DEPDIR)/udb.Po \
-	core/$(DEPDIR)/unique.Po os/$(DEPDIR)/dynlibs.Po \
+	core/$(DEPDIR)/quality_range.Po core/$(DEPDIR)/results.Po \
+	core/$(DEPDIR)/search.Po core/$(DEPDIR)/searchcore.Po \
+	core/$(DEPDIR)/showalign.Po core/$(DEPDIR)/tax.Po \
+	core/$(DEPDIR)/udb.Po core/$(DEPDIR)/unique.Po \
+	os/$(DEPDIR)/dynlibs.Po \
 	os/$(DEPDIR)/libvsearch_core_a-dynlibs.Po \
 	os/freebsd/$(DEPDIR)/libvsearch_core_a-system_cpu.Po \
 	os/freebsd/$(DEPDIR)/libvsearch_core_a-system_memory.Po \
@@ -1513,6 +1519,7 @@ commands/fastq_stats.hpp \
 core/fastx.hpp \
 core/fastx_char_class.hpp \
 core/illegal_character.hpp \
+core/quality_range.hpp \
 core/match_counts.hpp \
 commands/fastx_revcomp.hpp \
 commands/fastx_subsample.hpp \
@@ -1690,6 +1697,7 @@ os/dynlibs.cpp \
 commands/fastq_eestats.cpp \
 commands/fastq_eestats2.cpp \
 core/eestats.cpp \
+core/quality_range.cpp \
 commands/fasta2fastq.cpp \
 core/fasta.cpp \
 core/fastq.cpp \
@@ -2086,6 +2094,8 @@ commands/libvsearch_core_a-fastq_eestats2.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-eestats.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
+core/libvsearch_core_a-quality_range.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-fasta2fastq.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-fasta.$(OBJEXT): core/$(am__dirstamp) \
@@ -2372,6 +2382,8 @@ commands/fastq_eestats.$(OBJEXT): commands/$(am__dirstamp) \
 commands/fastq_eestats2.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 core/eestats.$(OBJEXT): core/$(am__dirstamp) \
+	core/$(DEPDIR)/$(am__dirstamp)
+core/quality_range.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
 commands/fasta2fastq.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
@@ -2731,6 +2743,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-minheap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-msa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-otutable.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-quality_range.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-results.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-search.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/libvsearch_core_a-searchcore.Po@am__quote@ # am--include-marker
@@ -2744,6 +2757,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/minheap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/msa.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/otutable.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/quality_range.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/results.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/search.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@core/$(DEPDIR)/searchcore.Po@am__quote@ # am--include-marker
@@ -3473,6 +3487,20 @@ core/libvsearch_core_a-eestats.obj: core/eestats.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/eestats.cpp' object='core/libvsearch_core_a-eestats.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-eestats.obj `if test -f 'core/eestats.cpp'; then $(CYGPATH_W) 'core/eestats.cpp'; else $(CYGPATH_W) '$(srcdir)/core/eestats.cpp'; fi`
+
+core/libvsearch_core_a-quality_range.o: core/quality_range.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-quality_range.o -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-quality_range.Tpo -c -o core/libvsearch_core_a-quality_range.o `test -f 'core/quality_range.cpp' || echo '$(srcdir)/'`core/quality_range.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-quality_range.Tpo core/$(DEPDIR)/libvsearch_core_a-quality_range.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/quality_range.cpp' object='core/libvsearch_core_a-quality_range.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-quality_range.o `test -f 'core/quality_range.cpp' || echo '$(srcdir)/'`core/quality_range.cpp
+
+core/libvsearch_core_a-quality_range.obj: core/quality_range.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT core/libvsearch_core_a-quality_range.obj -MD -MP -MF core/$(DEPDIR)/libvsearch_core_a-quality_range.Tpo -c -o core/libvsearch_core_a-quality_range.obj `if test -f 'core/quality_range.cpp'; then $(CYGPATH_W) 'core/quality_range.cpp'; else $(CYGPATH_W) '$(srcdir)/core/quality_range.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) core/$(DEPDIR)/libvsearch_core_a-quality_range.Tpo core/$(DEPDIR)/libvsearch_core_a-quality_range.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='core/quality_range.cpp' object='core/libvsearch_core_a-quality_range.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-quality_range.obj `if test -f 'core/quality_range.cpp'; then $(CYGPATH_W) 'core/quality_range.cpp'; else $(CYGPATH_W) '$(srcdir)/core/quality_range.cpp'; fi`
 
 commands/libvsearch_core_a-fasta2fastq.o: commands/fasta2fastq.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-fasta2fastq.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-fasta2fastq.Tpo -c -o commands/libvsearch_core_a-fasta2fastq.o `test -f 'commands/fasta2fastq.cpp' || echo '$(srcdir)/'`commands/fasta2fastq.cpp
@@ -4959,6 +4987,7 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-minheap.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-msa.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-otutable.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-quality_range.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-results.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-search.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-searchcore.Po
@@ -4972,6 +5001,7 @@ distclean: distclean-am
 	-rm -f core/$(DEPDIR)/minheap.Po
 	-rm -f core/$(DEPDIR)/msa.Po
 	-rm -f core/$(DEPDIR)/otutable.Po
+	-rm -f core/$(DEPDIR)/quality_range.Po
 	-rm -f core/$(DEPDIR)/results.Po
 	-rm -f core/$(DEPDIR)/search.Po
 	-rm -f core/$(DEPDIR)/searchcore.Po
@@ -5251,6 +5281,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-minheap.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-msa.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-otutable.Po
+	-rm -f core/$(DEPDIR)/libvsearch_core_a-quality_range.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-results.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-search.Po
 	-rm -f core/$(DEPDIR)/libvsearch_core_a-searchcore.Po
@@ -5264,6 +5295,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f core/$(DEPDIR)/minheap.Po
 	-rm -f core/$(DEPDIR)/msa.Po
 	-rm -f core/$(DEPDIR)/otutable.Po
+	-rm -f core/$(DEPDIR)/quality_range.Po
 	-rm -f core/$(DEPDIR)/results.Po
 	-rm -f core/$(DEPDIR)/search.Po
 	-rm -f core/$(DEPDIR)/searchcore.Po
