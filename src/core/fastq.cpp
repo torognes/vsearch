@@ -291,7 +291,10 @@ auto fastx_s::warn_if_offset_looks_wrong() -> void
   if (not warn_on_suspicious_offset) { return; }
   if (not is_fastq) { return; }
   if (not quality_range.seen()) { return; }
-  if (seqno < minimum_records_for_offset_guess) { return; }
+  /* seqno counts from -1 (fastx_open), so it is one less than the number of
+     records read; compare the count, not the ordinal, or the threshold means
+     one more than it says */
+  if (seqno + 1 < minimum_records_for_offset_guess) { return; }
 
   auto const lowest = static_cast<char>(quality_range.lowest);
   auto const highest = static_cast<char>(quality_range.highest);

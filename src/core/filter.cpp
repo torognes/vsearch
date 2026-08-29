@@ -334,8 +334,10 @@ auto filter(bool const fastq_only, char const * filename, struct Parameters cons
                   manual says these options are rejected "when set to a value
                   other than their default", which would be != rather than <;
                   a --fastq_qmax above 41 has always been accepted and ignored
-                  here. Left as-is pending review -- see
-                  TBD_20260825_quality_range.md. */
+                  here. Reviewed 2026-08-29 and kept: the manual now describes
+                  what the code does ("a stricter value than vsearch applies by
+                  default") rather than claiming !=, which would start
+                  rejecting command lines v2.31.0 accepted. */
                (parameters.opt_fastq_qmax < legacy_max_quality) or (parameters.opt_fastq_qmin > 0) or
                (parameters.opt_fastq_truncee < dbl_max_local) or
                (parameters.opt_fastq_truncee_rate < dbl_max_local) or
