@@ -4594,13 +4594,12 @@ namespace {
              of the clamped Q41, which changes the output of the most-used
              command for every user, Illumina included.
 
-           MAINTAINERS: the --fastq_mergepairs half of this is a deliberate
-           deviation from torognes/vsearch#609, which asks for --fastq_qmaxout
-           93 unconditionally. It MUST be discussed and settled before 3.0
-           ships, and whichever way it goes MUST appear in the changelog: the
-           option is user-visible and the merged qualities differ either way.
-           Removing --fastq_mergepairs from the test below is the whole of the
-           change needed to follow #609 literally. */
+           The --fastq_mergepairs half is a deliberate deviation from
+           torognes/vsearch#609, which asks for --fastq_qmaxout 93
+           unconditionally. Reviewed and kept on 2026-08-29, on the grounds
+           above, and recorded in the v3.0.0 changelog entry; removing
+           --fastq_mergepairs from the test below is the whole of the change
+           needed to follow #609 literally, should that be revisited. */
         parameters.opt_fastq_qmaxout =
           ((parameters.opt_fasta2fastq != nullptr) or
            (parameters.opt_fastq_mergepairs != nullptr))

@@ -1,3 +1,23 @@
+**v3.0.0** in development
+:   Includes the following changes:
+
+    - change: `--fastq_qmax` and `--fastq_qmaxout` now default to the
+      highest quality score the offset can represent (93 with
+      `--fastq_ascii` 33, 62 with offset 64) instead of 41. PacBio HiFi
+      reaches Q93 and nanopore basecallers pass Q50, and the old bound
+      rejected those files outright (issues #522, #194 and #609). Pass
+      `--fastq_qmax 41` for the previous behaviour.
+    - change: `--fasta2fastq` and `--fastq_mergepairs` keep the previous
+      `--fastq_qmaxout` default of 41, because they generate the score
+      they clamp rather than passing one through: `--fasta2fastq` has no
+      input quality, and `--fastq_mergepairs` caps a computed posterior
+      (two agreeing Q40 bases would otherwise be reported as Q85 instead
+      of Q41). Pass `--fastq_qmaxout 93` for the unclamped values.
+    - add: a warning when the quality symbols read contradict
+      `--fastq_ascii`. Raising `--fastq_qmax` means a phred+64 file read
+      at the default offset 33 is no longer stopped by the bound, so
+      vsearch now says so instead. Run `--fastq_chars` to confirm.
+
 **v2.31.0** released April 29th, 2026
 :   Includes the following changes:
 
