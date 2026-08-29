@@ -126,7 +126,7 @@ namespace {
      This command used to phrase its own message ("... out of range (0-41)",
      plus a four-line hint pointing at --fastq_chars). It now uses the shared
      one, so that a user who moves between commands on the same bad file
-     reads the same sentence -- see TBD_20260825_quality_range.md phase 5. */
+     reads the same sentence -- see DONE_20260825_quality_range.md phase 5. */
   auto check_minmax_scores(QualitySymbolRange const range,
                            std::vector<int64_t> const & symbol_to_score,
                            struct Parameters const & parameters,

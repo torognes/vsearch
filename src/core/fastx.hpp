@@ -225,7 +225,7 @@ private:
      offset the caller asked for. fastq_next() compares the two once, when it
      reaches end of file, and warns if the symbols contradict the offset --
      which is the only detection left now that --fastq_qmax accepts the whole
-     representable range (see TBD_20260825_quality_range.md). Filled by the
+     representable range (see DONE_20260825_quality_range.md). Filled by the
      quality branch of buffer_filter_extend(), which already reads every one
      of those bytes. */
   QualitySymbolRange quality_range;

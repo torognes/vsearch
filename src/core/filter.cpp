@@ -91,7 +91,7 @@ inline auto fastq_get_qual(char const quality_symbol, struct Parameters const & 
      above have already narrowed the record, and the loop that calls this
      breaks at the --fastq_truncqual point. Keeping that (rather than reading
      the parser's whole-record range) is a reviewed decision -- see
-     TBD_20260825_quality_range.md question B.
+     DONE_20260825_quality_range.md question B.
 
      classify then format, rather than check_quality_score(): this runs once
      per base, and quality_location() would otherwise be built for every one

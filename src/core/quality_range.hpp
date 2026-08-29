@@ -79,7 +79,7 @@ namespace vsearch {
    -- carried character-for-character identical text in four copies. The two
    that differ, commands/fastq_stats.cpp and commands/fastq_convert.cpp, are
    left alone here: migrating them changes what a user sees, which is a
-   separate decision (see TBD_20260825_quality_range.md).
+   separate decision (see DONE_20260825_quality_range.md).
 
    Detection is separable from reporting because core/mergepairs.cpp tests
    the window on a worker thread and cannot fatal() in place: it records a
