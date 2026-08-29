@@ -329,6 +329,7 @@ auto fastq_next(fastx_handle input_handle,
   input_handle->plusline_buffer.data()[0] = 0;
   input_handle->quality_buffer.length = 0;
   input_handle->quality_buffer.data()[0] = 0;
+  input_handle->record_quality_range = QualitySymbolRange{};
 
   input_handle->lineno_start = input_handle->lineno;
 
@@ -532,15 +533,16 @@ auto fastq_next(fastx_handle input_handle,
       auto const fragment = scan_line_fragment(input_handle);
       /* no mapping: the table this used to index was the identity on all 256
          values, so the quality symbols are written through verbatim */
-      /* one branch per line fragment, not per byte: after the sample the
-         tracking instantiation is not called at all (see fastx.hpp) */
-      if (input_handle->samples_quality_range())
+      /* one branch per line fragment, not per byte: a command that neither
+         checks the window nor is still feeding the offset sample never
+         reaches the tracking instantiation (see fastx.hpp) */
+      if (input_handle->tracks_quality_range())
         {
           buffer_filter_extend<Mapping::none, true>(input_handle->quality_buffer,
                                                     fragment.view,
                                                     char_fq_action_qual.data(),
                                                     ok, illegal_char,
-                                                    input_handle->quality_range);
+                                                    input_handle->record_quality_range);
         }
       else
         {
@@ -548,7 +550,7 @@ auto fastq_next(fastx_handle input_handle,
                                                      fragment.view,
                                                      char_fq_action_qual.data(),
                                                      ok, illegal_char,
-                                                     input_handle->quality_range);
+                                                     input_handle->record_quality_range);
         }
       consume_fragment(input_handle, fragment);
       if (fragment.has_newline)
@@ -584,6 +586,16 @@ auto fastq_next(fastx_handle input_handle,
 
   fastx_filter_header(input_handle, truncateatspace);
   fastx_filter_sequence_length(input_handle);
+
+  /* two comparisons per record, not per byte: the file-wide range the offset
+     warning reads is the union of the per-record ones, and is only fed while
+     the sample is open so that it means what fastx.hpp says it means */
+  if (input_handle->samples_quality_range() and
+      input_handle->record_quality_range.seen())
+    {
+      input_handle->quality_range.observe(input_handle->record_quality_range.lowest);
+      input_handle->quality_range.observe(input_handle->record_quality_range.highest);
+    }
 
   input_handle->seqno++;
 

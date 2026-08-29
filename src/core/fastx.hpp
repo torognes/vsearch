@@ -251,6 +251,20 @@ private:
      may not. */
   static constexpr int64_t minimum_records_for_offset_guess = 100;
 
+  /* The same two bytes for the current record alone, reset by fastq_next().
+     A command that checks the --fastq_qmin/--fastq_qmax window per record
+     asks for this with track_quality_range() and reads it back with
+     quality_symbol_range(), instead of walking the quality string a second
+     time of its own. Opt-in because the per-byte updates are not free (see
+     offset_sample_records above): a command that does not check the window
+     pays one branch per line fragment and nothing else. */
+  QualitySymbolRange record_quality_range;
+  bool track_record_quality_range = false;
+
+  auto tracks_quality_range() const noexcept -> bool {
+    return track_record_quality_range or samples_quality_range();
+  }
+
   /* Deferred error reporting (prototype for CC3). When defer_errors is
      set, a parse error records its message here and makes fastx_next()
      return false, instead of calling fatal() (std::exit()) on the spot.
@@ -283,6 +297,14 @@ public:
   /* --fastq_chars exists to diagnose the offset and prints its own guess, so
      it silences the reader's warning rather than saying the same thing twice. */
   auto silence_offset_warning() noexcept -> void { warn_on_suspicious_offset = false; }
+
+  /* Ask the parser to record the quality-symbol range of every record, and
+     read back the range of the record next() just returned. Call the setter
+     once, after opening: it costs the reader two comparisons per quality
+     byte, and saves the caller a second pass over the same string. The range
+     is empty (seen() false) for a FASTA record or an empty quality line. */
+  auto track_quality_range() noexcept -> void { track_record_quality_range = true; }
+  auto quality_symbol_range() const noexcept -> QualitySymbolRange { return record_quality_range; }
 
   // Format of the input. An empty input is accepted as FASTQ, preserving the
   // historical fastx_is_fastq() behaviour.

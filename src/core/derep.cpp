@@ -251,8 +251,20 @@ namespace {
 
      refactoring: fifth near-copy of this check (core/filter.cpp,
      core/eestats.cpp, commands/fastq_stats.cpp, commands/fastq_convert.cpp);
-     see TBD_20260825_quality_range.md for folding it into the parser, which
-     would also cover derep_smallmem and cost nothing per command */
+     see TBD_20260825_quality_range.md for folding it into one shared checker.
+
+     It keeps its own pass rather than reading the parser's per-record range
+     (fastx.hpp's track_quality_range(), which commands/fastq_stats.cpp does
+     use). Measured on 100k records with --fastqout, -O2
+     -falign-functions=64, pinned core, 10 runs: 193.9 ms with the loop
+     below, 197.4 ms reading the parser's range -- 1.8% slower, not faster.
+     The loop below is branchless and over a contiguous buffer, so it
+     vectorizes; the parser's two comparisons sit inside a loop that already
+     does a table lookup, a branch and a store per byte, and cannot. The
+     expensive std::minmax_element runs only once the window test has already
+     failed, which is the last record of the run. fastq_stats had no such
+     guard -- it called std::minmax_element on every record -- which is why
+     the same move made it 3.4% faster. */
   auto check_quality_range(View<char> const quality_symbols,
                            struct Parameters const & parameters) -> void
   {

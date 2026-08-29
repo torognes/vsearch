@@ -137,16 +137,18 @@ namespace {
   }
 
 
-  auto check_minmax_scores(View<char> const qualities,
+  /* The range comes from the parser, which recorded it while copying the
+     quality line, so this no longer walks the string a second time.
+     symbol_to_score is std::iota from -opt_fastq_ascii and therefore
+     increases with the symbol, so the lowest symbol carries the lowest score
+     and the highest the highest -- the same two values std::minmax_element
+     used to return here. */
+  auto check_minmax_scores(QualitySymbolRange const range,
                            std::vector<int64_t> const & symbol_to_score,
                            struct Parameters const & parameters) -> void {
-    if (qualities.empty()) { return; }
-    auto const minmax_scores =
-      std::minmax_element(qualities.begin(), qualities.end());
-    auto const qmin = symbol_to_score[static_cast<unsigned char>(*std::get<0>(minmax_scores))];
-    auto const qmax = symbol_to_score[static_cast<unsigned char>(*std::get<1>(minmax_scores))];
-    check_quality_score(parameters, qmin);
-    check_quality_score(parameters, qmax);
+    if (not range.seen()) { return; }
+    check_quality_score(parameters, symbol_to_score[range.lowest]);
+    check_quality_score(parameters, symbol_to_score[range.highest]);
   }
 
 
@@ -584,6 +586,9 @@ auto fastq_stats(struct Parameters const & parameters) -> void
     }
 
   auto input_handle = fastq_open(parameters.opt_fastq_stats, parameters);
+  /* the parser records the quality-symbol range of each record as it copies
+     the quality line, which is what check_minmax_scores() reads below */
+  input_handle->track_quality_range();
 
   auto const filesize = input_handle->get_size();
 
@@ -631,7 +636,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
         auto expected_error = 0.0;
         auto qmin = std::numeric_limits<int64_t>::max();  // lowest Q value observed so far in this read
 
-        check_minmax_scores(View<char>{quality_symbols, length}, symbol_to_score, parameters);
+        check_minmax_scores(input_handle->quality_symbol_range(), symbol_to_score, parameters);
 
         /* Within a read, qmin only decreases and expected_error only
            increases, so each threshold flips exactly once, from passing to
