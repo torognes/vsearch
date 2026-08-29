@@ -118,12 +118,14 @@ class MergeAbort {
 public:
   /* Record the first error seen and signal every worker to stop. Callable from
      any worker thread. */
-  auto request(MergeAbortReason const reason, int const value) -> void
+  auto request(MergeAbortReason const reason, int const value,
+               vsearch::QualityLocation const location) -> void
   {
     if (not error_claimed_.exchange(true))
       {
         reason_ = reason;
         value_ = value;
+        location_ = location;
       }
     abort_.store(true, std::memory_order_release);
   }
@@ -146,12 +148,12 @@ public:
          throwing in a library session is safe. */
       case MergeAbortReason::quality_below_qmin:
         fatal(vsearch::quality_out_of_range_message(
-                vsearch::QualityBound::below_qmin, value_, parameters));
+                vsearch::QualityBound::below_qmin, value_, parameters, location_));
         break;
 
       case MergeAbortReason::quality_above_qmax:
         fatal(vsearch::quality_out_of_range_message(
-                vsearch::QualityBound::above_qmax, value_, parameters));
+                vsearch::QualityBound::above_qmax, value_, parameters, location_));
         break;
 
       case MergeAbortReason::more_fwd_than_rev:
@@ -166,6 +168,9 @@ private:
   std::atomic<bool> error_claimed_{false};
   MergeAbortReason  reason_{MergeAbortReason::quality_below_qmin};
   int               value_{0};
+  /* written under the same error_claimed_ exchange as reason_ and value_,
+     read only after the join */
+  vsearch::QualityLocation location_{};
 };
 
 
@@ -467,7 +472,9 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
           /* runs in a worker thread with the chunk lock released; request
              a cooperative abort instead of exiting here, and stop reading
              (pair_all() reports it from the main thread after join) */
-          state.abort.request(MergeAbortReason::more_fwd_than_rev, 0);
+          /* no quality location: this is a pairing error, not a bad symbol */
+          state.abort.request(MergeAbortReason::more_fwd_than_rev, 0,
+                              vsearch::QualityLocation{});
           return false;
         }
 
@@ -552,6 +559,10 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
       a_read_pair.merged_quality_v[0] = 0;
       a_read_pair.merged = false;
       a_read_pair.pair_no = state.total++;
+      /* read here, on the single reader thread, while the two handles still
+         describe this pair; the workers see only the copies */
+      a_read_pair.fwd_location = fastq_fwd->quality_location();
+      a_read_pair.rev_location = fastq_rev->quality_location();
 
       return true;
     }
@@ -655,7 +666,8 @@ inline auto chunk_perform_process(struct mergepairs_cli_state_s & state,
              than touching pool state; turn it into a cooperative abort here */
           if (a_read_pair.quality_out_of_range)
             {
-              state.abort.request(a_read_pair.abort_reason, a_read_pair.abort_value);
+              state.abort.request(a_read_pair.abort_reason, a_read_pair.abort_value,
+                                  a_read_pair.abort_location);
             }
         }
       lock.lock();

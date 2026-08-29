@@ -69,6 +69,7 @@
    Not part of the public library API (that is core/mergepairs.hpp). */
 
 #include "core/mergepairs.hpp"  // QualityTables (shared with the merge engine)
+#include "core/quality_range.hpp"  // vsearch::QualityLocation
 #include <cstdint>  // int64_t
 #include <vector>
 
@@ -163,6 +164,14 @@ struct merge_data_s
   bool quality_out_of_range = false;
   MergeAbortReason abort_reason = MergeAbortReason::quality_below_qmin;
   int abort_value = 0;
+  /* Where the offending symbol was, so the message can name it. Filled from
+     the two reader handles by whoever assembles the pair -- read_pair() on
+     the CLI path; the library entry (MergePairs::merge) leaves them
+     default-constructed, which reads as "not known" and prints as before.
+     abort_location is whichever of the two the failing base came from. */
+  vsearch::QualityLocation fwd_location {};
+  vsearch::QualityLocation rev_location {};
+  vsearch::QualityLocation abort_location {};
   State state = State::empty;
 };
 

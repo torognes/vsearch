@@ -584,6 +584,10 @@ auto process(merge_data_t & a_read_pair,
           auto const quality_value = get_qual(a_read_pair.fwd_quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
           if (a_read_pair.quality_out_of_range)
             {
+              /* attributed here, not in get_qual: this runs once per
+                 failing pair, where a parameter would cost a per-base
+                 argument on the hot path for nothing */
+              a_read_pair.abort_location = a_read_pair.fwd_location;
               return;
             }
           if (quality_value <= parameters.opt_fastq_truncqual)
@@ -610,6 +614,10 @@ auto process(merge_data_t & a_read_pair,
           auto const quality_value = get_qual(a_read_pair.rev_quality[static_cast<std::size_t>(i)], parameters, a_read_pair);
           if (a_read_pair.quality_out_of_range)
             {
+              /* attributed here, not in get_qual: this runs once per
+                 failing pair, where a parameter would cost a per-base
+                 argument on the hot path for nothing */
+              a_read_pair.abort_location = a_read_pair.rev_location;
               return;
             }
           if (quality_value <= parameters.opt_fastq_truncqual)
