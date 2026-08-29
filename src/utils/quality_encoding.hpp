@@ -60,6 +60,9 @@
 
 #pragma once
 
+#include <algorithm>  // std::min, std::max
+#include <limits>  // std::numeric_limits
+
 /* FASTQ quality-score ASCII offsets: the byte value subtracted from a
    quality character to recover its Phred score. Two encodings are in use;
    sanger_ascii_offset is the default (and the default for --fastq_ascii). */
@@ -85,18 +88,23 @@ constexpr int legacy_max_quality = 41;
 
 /* The lowest and highest quality symbol seen so far, the two values every
    offset heuristic below is stated in terms of. Kept as one struct rather
-   than a pair of bytes so callers cannot swap them by accident. */
-struct QualitySymbolRange {
-  unsigned char lowest = 255;
-  unsigned char highest = 0;
+   than a pair of bytes so callers cannot swap them by accident.
 
+   The empty range is inverted (lowest above highest), so the first observe()
+   sets both and seen() reports the difference between "no symbol yet" and
+   "one symbol, seen twice". */
+struct QualitySymbolRange {
+  unsigned char lowest = std::numeric_limits<unsigned char>::max();
+  unsigned char highest = std::numeric_limits<unsigned char>::min();
+
+  // C++14 refactoring: mark observe() constexpr
   auto observe(unsigned char const symbol) noexcept -> void {
-    if (symbol < lowest) { lowest = symbol; }
-    if (symbol > highest) { highest = symbol; }
+    lowest = std::min(lowest, symbol);
+    highest = std::max(highest, symbol);
   }
 
   // false until the first symbol has been observed (FASTA input, empty file)
-  auto seen() const noexcept -> bool { return lowest <= highest; }
+  constexpr auto seen() const noexcept -> bool { return lowest <= highest; }
 };
 
 
