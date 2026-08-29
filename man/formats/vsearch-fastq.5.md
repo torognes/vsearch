@@ -64,6 +64,9 @@ offset is set with `--fastq_ascii` (default 33):
   `--fastq_qmax` 93). Before version 3.0 the upper bound defaulted to
   41, which rejected PacBio HiFi and nanopore files.
 
+- **phred+64** (offset 64): Illumina 1.3+ and Illumina 1.5+ formats.
+  Valid quality characters range from '@' (Q=0) to '~' (Q=62).
+
 Because the accepted range now covers every representable score, an
 out-of-range error no longer doubles as a wrong-`--fastq_ascii` detector:
 a phred+64 file read at offset 33 decodes to legal Sanger scores 31 too
@@ -76,9 +79,6 @@ symbols alone. It is raised only for files of at least 100 records, below
 which the observed range is not evidence, and `--fastq_chars` does not
 raise it because it reports its own guess. Run `vsearch --fastq_chars
 FILE` whenever it appears.
-
-- **phred+64** (offset 64): Illumina 1.3+ and Illumina 1.5+ formats.
-  Valid quality characters range from '@' (Q=0) to '~' (Q=62).
 
 The older Solexa/Illumina 1.0 format shares the offset 64 but not the
 score definition, and **vsearch does not support it**. A Solexa score is
@@ -103,6 +103,16 @@ default); `--fastq_eestats` and `--fastq_eestats2` raise it to 0;
 a blind guess (p = 0.75), and `--fastx_uniques` writes it out as Q=1;
 and `--fastx_filter` discards the whole sequence, since
 `--fastq_minqual` defaults to 0 and may not be negative.
+
+Which encoding an *output* file carries depends on the command.
+`--fastq_convert`, `--fastx_uniques`, `--fasta2fastq` and `--sff_convert`
+re-encode, using `--fastq_asciiout` (default 33) independently of the
+input offset, and clamping to `--fastq_qminout` and `--fastq_qmaxout`.
+`--fastq_mergepairs` writes the qualities it computes with the *input*
+offset, `--fastq_ascii`, and does not accept `--fastq_asciiout`. Every
+other command copies the quality symbols verbatim, so the output carries
+whatever encoding the input had and `--fastq_asciiout` is not accepted
+either. To change the encoding of a file, use `--fastq_convert`.
 
 The parser accepts every printable ASCII character (values 33–126) in
 quality strings --- '.' and '-' are ordinary quality symbols (Q=13 and

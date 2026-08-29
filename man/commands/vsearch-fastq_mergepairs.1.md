@@ -41,7 +41,9 @@ merged region). Unlike the commands that pass an input quality through,
 because the score it clamps is computed rather than read: two agreeing
 Q40 bases have a posterior quality of Q85, and reporting it would change
 the merged output of every run. Pass `--fastq_qmaxout 93` for the
-unclamped posterior.
+unclamped posterior. The merged scores are written with the *input*
+offset, `--fastq_ascii`: this is the only command whose output encoding
+tracks its input encoding, and it does not accept `--fastq_asciiout`.
 
 Staggered pairs — where the 3' end of the reverse read extends past the 5'
 end of the forward read — are discarded by default. Use
