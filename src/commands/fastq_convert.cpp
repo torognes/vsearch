@@ -71,6 +71,7 @@
 #include "utils/view.hpp"
 #include <algorithm>  // std::max, std::min, std::transform
 #include <array>
+#include <cmath>  // std::log10, std::lround, std::pow
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <vector>
@@ -86,6 +87,39 @@ constexpr auto printable_high = 126;
 namespace {
 
   constexpr auto n_symbols = std::size_t{byte_range};  // byte_range: core/fastx.hpp
+
+  /* A Solexa score is not a Phred score: Solexa is -10 log10(p / (1 - p)),
+     Phred is -10 log10(p). The two share the offset 64 and nothing else, so
+     --fastq_solexa converts the score before any output clamp is applied
+     (see TBD_20260825_solexa_conversion.md). The formula is
+
+         Q_phred = 10 log10(10^(Q_solexa / 10) + 1)
+
+     taken from Biopython's phred_quality_from_solexa(); an independent
+     implementation reproduces all five of that function's doctest values.
+
+     The mapping is the identity from Solexa 10 upward, so all of the
+     substance is in the fifteen symbols below it -- which are exactly the
+     ones a quality filter acts on. It is lossy on purpose: six Solexa pairs
+     collapse onto one Phred score each ({-5,-4} -> 1, {-3,-2} -> 2,
+     {-1,0} -> 3, {1,2} -> 4, {3,4} -> 5, {9,10} -> 10). That is inherent to
+     the two scales, not to this implementation, and it is why there is no
+     reverse conversion.
+
+     There are no exact .5 ties anywhere in the legal range (-5..62), so
+     round-half-even, round-half-up and std::lround all agree on every input;
+     the choice of rounding rule cannot move an output symbol here. */
+  auto solexa_to_phred(int64_t const solexa_score) noexcept -> int64_t
+  {
+    static constexpr auto phred_scale_factor = 10.0;  // the 10 in -10 log10(p)
+    auto const odds =
+      std::pow(phred_scale_factor,
+               static_cast<double>(solexa_score) / phred_scale_factor);
+    /* std::lround returns long: identical to int64_t where long is 64 bits,
+       a widening conversion where it is 32 (mingw), never a narrowing one */
+    return std::lround(phred_scale_factor * std::log10(odds + 1.0));
+  }
+
 
   /* Precompute the whole per-character conversion once: input quality symbol
      -> output quality symbol. A '\0' marks a symbol whose score falls outside
@@ -106,7 +140,13 @@ namespace {
           {
             continue;  // stays '\0': rejected below, with the score recomputed
           }
-        auto rebased = std::max(score, parameters.opt_fastq_qminout);
+        /* after the --fastq_qmin/--fastq_qmax test, which is stated on the
+           Solexa score (that is what --fastq_qmin -5 means), and before the
+           output clamps, or the six collapsing pairs land in the wrong
+           place */
+        auto const converted = parameters.opt_fastq_solexa
+          ? solexa_to_phred(score) : score;
+        auto rebased = std::max(converted, parameters.opt_fastq_qminout);
         rebased = std::min(rebased, parameters.opt_fastq_qmaxout);
         rebased += parameters.opt_fastq_asciiout;
         rebased = std::max<int64_t>(rebased, printable_low);

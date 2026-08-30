@@ -70,6 +70,15 @@
 constexpr int sanger_ascii_offset = 33;  // Phred+33 (Sanger / Illumina 1.8+)
 constexpr int solexa_ascii_offset = 64;  // Phred+64 (Solexa / Illumina 1.3+)
 
+/* The floor of the Solexa scale. A Solexa score is -10 log10(p / (1 - p)),
+   which is negative whenever p exceeds 0.5, and the Illumina 1.0 pipeline
+   emitted scores down to -5 (';' at offset 64). It is the format's floor
+   rather than a user preference, which is why --fastq_solexa implies it as
+   the --fastq_qmin default; see resolve_quality_bound_defaults() in cli.cc.
+   Nothing else in vsearch reads the Solexa scale: --fastq_convert converts
+   it to Phred, and every other command still refuses such a file. */
+constexpr int solexa_lowest_quality = -5;
+
 /* The printable ASCII range a quality symbol may occupy. Every quality bound
    is constrained by these two: an offset plus a score must land inside
    [33, 126], which caps the representable score at 126 - offset (93 with the

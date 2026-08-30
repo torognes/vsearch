@@ -230,6 +230,7 @@ public:
   bool opt_fastq_eeout = false;
   bool opt_fastq_nostagger = true;
   bool opt_fastq_qout_max = false;
+  bool opt_fastq_solexa = false;
   bool opt_gzip_decompress = false;
   bool opt_hardmask = false;
   bool opt_label_substr_match = false;

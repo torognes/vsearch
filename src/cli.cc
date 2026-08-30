@@ -519,7 +519,7 @@ namespace {
 
 
   constexpr auto number_of_commands = std::size_t{51};
-  constexpr auto number_of_options = std::size_t{255};
+  constexpr auto number_of_options = std::size_t{256};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -606,6 +606,7 @@ namespace {
       option_fastq_qmin,
       option_fastq_qminout,
       option_fastq_qout_max,
+      option_fastq_solexa,
       option_fastq_stats,
       option_fastq_stripleft,
       option_fastq_stripright,
@@ -882,6 +883,7 @@ namespace {
       {"fastq_qmin",                 true },
       {"fastq_qminout",              true },
       {"fastq_qout_max",             false },
+      {"fastq_solexa",               false },
       {"fastq_stats",                true },
       {"fastq_stripleft",            true },
       {"fastq_stripright",           true },
@@ -1814,6 +1816,7 @@ namespace {
         option_fastq_qmaxout,
         option_fastq_qmin,
         option_fastq_qminout,
+        option_fastq_solexa,
         option_fastqout,
         option_gzip_decompress,
         option_label_suffix,
@@ -4324,6 +4327,10 @@ namespace {
             parameters.opt_fastq_qout_max = true;
             break;
 
+          case option_fastq_solexa:
+            parameters.opt_fastq_solexa = true;
+            break;
+
           case option_sample:
             /* truncate at first ';' or blank, per manpage: these
                characters are header separators in fasta/fastq labels
@@ -4577,6 +4584,24 @@ namespace {
         parameters.opt_fastq_qmax =
           highest_printable_ascii - parameters.opt_fastq_ascii;
       }
+
+    /* --fastq_solexa reads scores on the Solexa scale, whose floor is -5.
+       The input range check runs before the conversion, on the raw Solexa
+       score, so without this default every genuine Solexa file would stop on
+       its first low-quality symbol -- and the --fastq_qmin message carries no
+       "please use" hint the way the --fastq_qmax one does. An explicit
+       --fastq_qmin still wins, and the bound is resolved here rather than in
+       apply_command_defaults() so that validate_option_values() below still
+       puts it through the sum rules.
+
+       The matching ceiling needs no code: --fastq_solexa requires
+       --fastq_ascii 64, and the block above already derives 62 from it. */
+    if (parameters.opt_fastq_solexa and
+        (not options_selected[option_fastq_qmin]))
+      {
+        parameters.opt_fastq_qmin = solexa_lowest_quality;
+      }
+
     if (not options_selected[option_fastq_qmaxout])
       {
         /* --fastq_qmaxout follows the input bound where quality passes
@@ -4734,6 +4759,17 @@ namespace {
     if ((parameters.opt_fastq_ascii != 33) and (parameters.opt_fastq_ascii != 64))
       {
         fatal("The argument to --fastq_ascii must be 33 or 64");
+      }
+
+    /* Solexa scores share the offset 64 with phred+64 and nothing else, so
+       reading them at any other offset is meaningless rather than merely
+       unusual. Rejecting at parse time keeps the question out of the
+       conversion table in commands/fastq_convert.cpp. Placed after the check
+       above, so an invalid offset is reported as such first. */
+    if (parameters.opt_fastq_solexa and
+        (parameters.opt_fastq_ascii != solexa_ascii_offset))
+      {
+        fatal("--fastq_solexa requires --fastq_ascii 64");
       }
 
     if (parameters.opt_fastq_qmin > parameters.opt_fastq_qmax)
