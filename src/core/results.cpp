@@ -82,6 +82,7 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
+#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -108,6 +109,18 @@ namespace {
                           static_cast<std::size_t>(rank.length));
   }
 
+  /* The part of an alignment row (as built by get_alignment_qrow or
+     get_alignment_trow) that is not a terminal gap. Rows are indexed in
+     alignment columns, so the first internal column is preceded by exactly the
+     terminal-gap columns of the left end -- only one of the two trims can be
+     non-zero there, which is why their sum is the offset. Four call sites had
+     spelled this out identically. */
+  auto internal_window(std::vector<char> const & row,
+                       struct hit const & hit) -> View<char> {
+    return View<char>{&row[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
+                      static_cast<std::size_t>(hit.internal_alignmentlength)};
+  }
+
 }  // end of anonymous namespace
 
 
@@ -127,8 +140,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hit.nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      View<char>{&qrow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
-                                 static_cast<std::size_t>(hit.internal_alignmentlength)},
+                      internal_window(qrow, hit),
                       query_head,
                       OutputAnnotations{},
                       parameters);
@@ -139,8 +151,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hit.nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      View<char>{&trow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
-                                 static_cast<std::size_t>(hit.internal_alignmentlength)},
+                      internal_window(trow, hit),
                       db.header_view(target),
                       OutputAnnotations{},
                       parameters);
@@ -455,9 +466,7 @@ auto print_userfield(std::FILE * output_handle,
           auto const qrow = get_alignment_qrow(query,
                                          make_view(hit->nwalignment),
                                          hit->nwalignmentlength);
-          fprint(output_handle,
-                 View<char>{&qrow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
-                            static_cast<std::size_t>(hit->internal_alignmentlength)});
+          fprint(output_handle, internal_window(qrow, *hit));
         }
       break;
     case 27: /* trow */
@@ -466,9 +475,7 @@ auto print_userfield(std::FILE * output_handle,
           auto const trow = get_alignment_trow(tsequence,
                                          make_view(hit->nwalignment),
                                          hit->nwalignmentlength);
-          fprint(output_handle,
-                 View<char>{&trow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
-                            static_cast<std::size_t>(hit->internal_alignmentlength)});
+          fprint(output_handle, internal_window(trow, *hit));
         }
       break;
     case 28: /* qframe */
