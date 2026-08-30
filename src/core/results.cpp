@@ -533,8 +533,22 @@ auto print_userfield(std::FILE * output_handle,
       fprint_integer(output_handle,
                      (hit != nullptr) ? hit->mismatches + hit->internal_indels : 0);
       break;
+
+      /* percentage of identity over letter pairs only, the quantity --mid is
+         compared against (see the accept gate in core/searchcore.cpp). Gapped
+         columns are excluded, so a hit whose only difference is a gap reports
+         100.0 here while id reports less. The gate divides unguarded, which is
+         a NaN for an alignment made only of gap columns; guard it here. */
+
+    case 44: /* mid */
+      {
+        auto const letter_pairs = (hit != nullptr) ? hit->matches + hit->mismatches : 0;
+        std::fprintf(output_handle, "%.1f",
+                     (letter_pairs > 0) ? 100.0 * hit->matches / letter_pairs : 0.0);
+      }
+      break;
     default:
-      /* userfields_requested only ever holds validated indices (0..43),
+      /* userfields_requested only ever holds validated indices (0..44),
          so this is unreachable today. It guards against a userfields_names
          entry being added or reordered in utils/userfields.cpp without a matching
          case here — the positional coupling would otherwise print nothing
