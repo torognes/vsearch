@@ -84,7 +84,7 @@
    Four implementations drifted, as four implementations do: core/tax.cpp could
    not see a "tax=" whose '=' was the header's last byte, where the regular
    expression could, so the two disagreed on ";tax=" with an empty value. See
-   TBD_20260827_attribute_reading_unification.md for the census, the divergence
+   DONE_20260827_attribute_reading_unification.md for the census, the divergence
    table, and the measurement showing which side of it was observable.
 
    Only the value's character set was ever an intended difference between the
