@@ -182,8 +182,18 @@ namespace vsearch
     /* the bound is written as an addition, not as
        'offset < header.size() - name.size()': in unsigned arithmetic that
        subtraction wraps to a huge value whenever the header is shorter than the
-       attribute name, and the loop below would run on out-of-range offsets */
-    while (offset + name.size() < header.size())
+       attribute name, and the loop below would run on out-of-range offsets.
+
+       '<=', not '<': a name whose '=' is the header's last byte leaves no room
+       for a value, and the '<' bound made that position unreachable -- both
+       for a header that is exactly "tax=" and for one where a rejected
+       candidate has already pushed 'offset' there ("xtax=;tax=" pushes it to
+       6, which is also header.size() - name.size()). That is the empty-value
+       case, and whether it matches is 'allow_empty''s decision to make, not
+       the bound's. For the three numeric annotations, which forbid an empty
+       value, the length == 0 test below still rejects it and nothing
+       changes. */
+    while (offset + name.size() <= header.size())
       {
         /* find the next occurrence of the attribute text, bounded by the
            header's size (no dependence on a trailing '\0') */
