@@ -115,14 +115,14 @@ auto header_get_size(View<char> const header) -> int64_t {
 
   char * next_character = nullptr;
   // C++17 refactoring: replace strtoll with std::from_chars
-  auto const value_offset = annotation.start + attributes.size.view().size();
-  /* subspan rather than std::next(header.data(), ...): the offset comes from a
-     match position inside the header, and subspan is where an out-of-range one
-     would be caught. std::strtoll still needs the bare pointer, and stops at
-     the first non-digit -- the ';' or the terminator that follows the
-     annotation in the reader's and the Database's buffers alike. */
+  /* attribute_value() rather than std::next(header.data(), ...): the offset
+     comes from a match position inside the header, and the subspan it builds
+     is where an out-of-range one would be caught. std::strtoll still needs the
+     bare pointer, and stops at the first non-digit -- the ';' or the
+     terminator that follows the annotation in the reader's and the Database's
+     buffers alike, which is also why the view's length is not passed on. */
   auto const * const value =
-    header.subspan(value_offset, header.size() - value_offset).data();
+    vsearch::attribute_value(header, annotation, attributes.size).data();
   auto const abundance = std::strtoll(value, &next_character, decimal_base);
   auto const range_error = (errno == ERANGE);
 
