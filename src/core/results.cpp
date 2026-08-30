@@ -74,7 +74,7 @@
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
-#include <algorithm>  // std::equal, std::max
+#include <algorithm>  // std::equal, std::max, std::transform
 #include <array>
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -117,7 +117,9 @@ namespace {
      spelled this out identically. */
   auto internal_window(std::vector<char> const & row,
                        struct hit const & hit) -> View<char> {
-    return View<char>{&row[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
+    auto const left_terminal_gaps = static_cast<std::size_t>(hit.trim_q_left)
+      + static_cast<std::size_t>(hit.trim_t_left);
+    return View<char>{&row[left_terminal_gaps],
                       static_cast<std::size_t>(hit.internal_alignmentlength)};
   }
 
@@ -145,12 +147,12 @@ namespace {
                         View<char> const own_row,
                         View<char> const other_row) -> void {
     assert(own_row.size() == other_row.size());
-    std::vector<char> dotted(own_row.cbegin(), own_row.cend());
-    auto other = other_row.cbegin();
-    for (auto & column : dotted) {
-      if (is_identical_column(column, *other)) { column = '.'; }
-      ++other;
-    }
+    std::vector<char> dotted(own_row.size());
+    std::transform(own_row.cbegin(), own_row.cend(), other_row.cbegin(),
+                   dotted.begin(),
+                   [](char const own, char const other) -> char {
+                     return is_identical_column(own, other) ? '.' : own;
+                   });
     fprint(output_handle, make_view(dotted));
   }
 
@@ -168,7 +170,7 @@ namespace {
     return {get_alignment_qrow(query, make_view(hit.nwalignment),
                                hit.nwalignmentlength),
             get_alignment_trow(target, make_view(hit.nwalignment),
-                               hit.nwalignmentlength)};
+                               hit.nwalignmentlength),};
   }
 
 }  // end of anonymous namespace
