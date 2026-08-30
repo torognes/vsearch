@@ -20,8 +20,10 @@ quality-score encoding to another. The input encoding is specified with
 `--fastq_asciiout` (default: 33). Both accept the values 33 (phred+33,
 Sanger/Illumina 1.8+) and 64 (phred+64, Illumina 1.3+/1.5+). The older
 Solexa/Illumina 1.0 format shares the offset 64 but defines its scores
-differently, and is not supported (see
-[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)).
+differently (see
+[`vsearch-fastq(5)`](../formats/vsearch-fastq.5.md)); `--fastq_solexa`
+converts such a file to the Phred scale, and is the only place in
+vsearch where the Solexa score definition is understood.
 
 Quality scores are remapped during conversion. Output scores are
 always clamped to the range set by `--fastq_qminout` and
@@ -48,6 +50,36 @@ ACGT                 ACGT
 hijk                 IJKL    (same Phred scores, different ASCII offset)
 ```
 
+## Converting Solexa scores
+
+A Solexa score is *Q = -10 log10(p / (1 - p))*, while every score
+vsearch understands is a Phred score, *Q = -10 log10(p)*. The two share
+the ASCII offset 64 and nothing else, so rebasing the offset alone
+leaves the scores wrong. `--fastq_solexa` applies
+
+```text
+Q_phred = 10 log10(10^(Q_solexa / 10) + 1)
+```
+
+and rounds the result to the nearest integer. It requires
+`--fastq_ascii 64`, and implies `--fastq_qmin -5` (the floor of the
+Solexa scale) unless `--fastq_qmin` is given explicitly.
+
+The mapping is the identity from Solexa 10 upward, so only the fifteen
+lowest scores change --- which are exactly the ones a quality filter
+acts on:
+
+```text
+Solexa:  -5  -4  -3  -2  -1   0   1   2   3   4   5   6   7   8   9  10
+Phred:    1   1   2   2   3   3   4   4   5   5   6   7   8   9  10  10
+```
+
+The conversion is one-way and lossy: six Solexa pairs collapse onto a
+single Phred score each ({-5, -4}, {-3, -2}, {-1, 0}, {1, 2}, {3, 4}
+and {9, 10}), so the original scores cannot be recovered afterwards.
+There is no option to write Solexa scores. This is inherent to the two
+scales rather than to the implementation.
+
 
 # OPTIONS
 
@@ -65,6 +97,8 @@ hijk                 IJKL    (same Phred scores, different ASCII offset)
 #(./fragments/option_fastq_qmaxout.md)
 
 #(./fragments/option_fastq_qminout.md)
+
+#(./fragments/option_fastq_solexa.md)
 
 
 ## secondary options
@@ -136,6 +170,17 @@ vsearch \
     --fastq_ascii 64 \
     --fastq_asciiout 33 \
     --fastq_qmaxout 40 \
+    --fastqout converted.fastq
+```
+
+Convert a Solexa/Illumina 1.0 file to phred+33, converting the score
+definition as well as the offset:
+
+```sh
+vsearch \
+    --fastq_convert input.fastq \
+    --fastq_ascii 64 \
+    --fastq_solexa \
     --fastqout converted.fastq
 ```
 

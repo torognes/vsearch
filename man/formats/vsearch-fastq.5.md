@@ -90,8 +90,13 @@ large at Q=5, 2 times at Q=0, and 4.2 times at Q=-5, where the Phred
 formula returns 3.16 --- not a probability at all. The two definitions
 converge as the score rises (3% apart at Q=15, 1% at Q=20, 0.1% at
 Q=30), so only the low scores are affected, but those are the ones a
-quality filter acts on. Convert such files to phred+33 with a dedicated
-tool before feeding them to vsearch.
+quality filter acts on. Use `--fastq_convert --fastq_solexa` to convert
+such a file to phred+33 before feeding it to any other command (see
+[`vsearch-fastq_convert(1)`](../commands/vsearch-fastq_convert.1.md)):
+that command applies *Q_phred = 10 log10(10^(Q_solexa / 10) + 1)* and is
+the only place in vsearch where the Solexa score definition is
+understood. Reading a Solexa file directly is still wrong; converting it
+first is the supported route.
 
 The characters themselves are not rejected. Scores below zero are
 representable down to -31 by lowering `--fastq_qmin` (the offset plus
