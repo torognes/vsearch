@@ -547,8 +547,22 @@ auto print_userfield(std::FILE * output_handle,
                      (letter_pairs > 0) ? 100.0 * hit->matches / letter_pairs : 0.0);
       }
       break;
+
+      /* the two sequences in full, as opposed to the aligned segments qrow and
+         trow report. The query is the one the alignment was made against, so a
+         minus-strand hit yields the reverse complement, as it does for qrow and
+         --qsegout; with no hit there is no strand and the query is printed as
+         read, the way ql already reports its real length on such a row. */
+
+    case 45: /* qseq */
+      fprint(output_handle,
+             ((hit != nullptr) and (hit->strand != 0)) ? qsequence_rc : qsequence);
+      break;
+    case 46: /* tseq */
+      if (hit != nullptr) { fprint(output_handle, tsequence); }
+      break;
     default:
-      /* userfields_requested only ever holds validated indices (0..44),
+      /* userfields_requested only ever holds validated indices (0..46),
          so this is unreachable today. It guards against a userfields_names
          entry being added or reordered in utils/userfields.cpp without a matching
          case here — the positional coupling would otherwise print nothing
