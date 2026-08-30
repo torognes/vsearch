@@ -48,7 +48,7 @@ int main() {
        clean pair yields an ordinary non-merge (merged == false, error == none);
        what this example checks is the error channel, not the merge itself. */
     std::string const seq(40, 'A');
-    std::string const qual_ok(40, 'I');   /* 'I' = ASCII 73 -> quality value 40, within [0, 41] */
+    std::string const qual_ok(40, 'I');   /* 'I' = ASCII 73 -> quality value 40 */
 
     /* 1. Clean input: an ordinary non-merge must NOT be flagged as an error. */
     {
@@ -62,10 +62,17 @@ int main() {
     }
 
     /* 2. A quality symbol above qmax: flagged as quality_above_qmax, and
-          error_value carries the offending value. 'K' = ASCII 75 -> value 42,
-          just above the default qmax of 41. */
+          error_value carries the offending value. 'K' = ASCII 75 -> value 42.
+
+          fastq_qmax is lowered to 41 here rather than left at its default,
+          the way case 3 lowers fastq_qmin. Since 3.0 the default is
+          126 - fastq_ascii (93 at the default offset), which no printable
+          quality symbol can exceed: 'DEL' would be needed. So the
+          quality_above_qmax branch is only reachable when the caller sets a
+          ceiling, and an example that leans on the default tests nothing. */
     {
         struct Parameters parameters;
+        parameters.opt_fastq_qmax = 41;
         VsearchSession const session(parameters);
         MergePairs const merger(parameters);
 
