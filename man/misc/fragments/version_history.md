@@ -13,6 +13,13 @@
       input quality, and `--fastq_mergepairs` caps a computed posterior
       (two agreeing Q40 bases would otherwise be reported as Q85 instead
       of Q41). Pass `--fastq_qmaxout 93` for the unclamped values.
+    - add: ten new `--userfields` output fields (issue #548): `diffs`
+      and `mid`, which report the quantities `--maxdiffs` and `--mid`
+      are compared against; `qseq` and `tseq`, the full-length query and
+      target sequences; `qrowdots` and `trowdots`, the aligned segments
+      with a dot at every position identical to the other sequence; and
+      `qlor`, `qhir`, `tlor` and `thir`, the alignment span in 0-based
+      coordinates.
     - add: a warning when the quality symbols read contradict
       `--fastq_ascii`. Raising `--fastq_qmax` means a phred+64 file read
       at the default offset 33 is no longer stopped by the bound, so
