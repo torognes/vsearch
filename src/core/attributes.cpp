@@ -62,6 +62,7 @@
 #include "core/attributes.hpp"  // View<char>
 #include "vsearch.hpp"  // struct Parameters
 #include "utils/fatal.hpp"
+#include "utils/header_attribute.hpp"  // Attribute, header_find_attribute
 #include "utils/print_view.hpp"  // fprint
 #include "utils/sequence_digest.hpp"  // fprint_seq_digest_sha1, fprint_seq_digest_md5
 #include <algorithm>  // std::find_if, std::search, std::sort
@@ -78,131 +79,27 @@
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  struct Attribute {
-    char const * text = nullptr;
-    int length = 0;  // length of the text field
-    bool allow_decimal = false;  // integer or float
-
-    constexpr Attribute(char const * new_text, int const new_length, bool const new_allow_decimal)
-      : text(new_text), length(new_length), allow_decimal(new_allow_decimal) {}
-
-    /* the name as a window, for the scans below; the members stay a pointer and
-       a length so that the table of attributes remains constexpr (View's
-       constructor asserts, so it cannot be constexpr in C++11) */
-    auto view() const noexcept -> View<char>
-    {
-      return View<char>{text, static_cast<std::size_t>(length)};
-    }
-  };
+  using vsearch::Attribute;
+  using vsearch::Attribute_span;
+  using vsearch::Value_chars;
+  using vsearch::header_find_attribute;
 
 
+  /* The three numeric annotations vsearch reads back from a header. All three
+     reject an empty value -- "size=" with nothing after it has never been an
+     abundance -- which is what tells them apart from the four names
+     core/otutable.cpp and core/tax.cpp read (see
+     utils/header_attribute.hpp). */
   struct Attributes {
-    Attribute ee {"ee=", 3, true};
-    Attribute length {"length=", 7, false};
-    Attribute size {"size=", 5, false};
+    Attribute ee {"ee=", 3, Value_chars::digits_and_dot, false};
+    Attribute length {"length=", 7, Value_chars::digits, false};
+    Attribute size {"size=", 5, Value_chars::digits, false};
   };
 
   constexpr Attributes attributes;
 
 
   constexpr auto n_expected_attributes = std::size_t{3};  // 3 attributes: size, ee, length
-
-
-  /* where one attribute sits inside a header: [start, end) in bytes, with
-     'start' on the first byte of the name and 'end' one past the last digit of
-     its value. Members carry no default initializer, so the struct stays an
-     aggregate in C++11 (which does not allow them here) and '{}' zero-fills it
-     into a 'not present' span. */
-  struct Attribute_span
-  {
-    std::size_t start;
-    std::size_t end;
-    bool present;
-  };
-
-
-  /* a byte belonging to an attribute's value: a digit, or the decimal point for
-     the attributes that allow one */
-  auto is_value_character(char const symbol, bool const allow_decimal) -> bool
-  {
-    return ((symbol >= '0') and (symbol <= '9'))
-      or (allow_decimal and (symbol == '.'));
-  }
-
-
-  auto header_find_attribute(View<char> const header,
-                             Attribute const & attribute) -> Attribute_span
-  {
-    /*
-      Identify the first occurrence of the pattern (^|;)size=([0-9]+)(;|$)
-      in the header string, where "size=" is the specified attribute.
-      If allow_decimal is true, a dot (.) is allowed within the digits.
-    */
-
-    if ((header.data() == nullptr) or (attribute.text == nullptr))
-      {
-        return {};
-      }
-
-    auto const name = attribute.view();
-
-    auto offset = std::size_t{0};
-
-    /* the bound is written as an addition, not as
-       'offset < header.size() - name.size()': in unsigned arithmetic that
-       subtraction wraps to a huge value whenever the header is shorter than the
-       attribute name, and the loop below would run on out-of-range offsets */
-    while (offset + name.size() < header.size())
-      {
-        /* find the next occurrence of the attribute text, bounded by the
-           header's size (no dependence on a trailing '\0') */
-        auto const * const first_occurrence
-          = std::search(std::next(header.cbegin(), static_cast<std::ptrdiff_t>(offset)),
-                        header.cend(), name.cbegin(), name.cend());
-
-        /* no match */
-        if (first_occurrence == header.cend())
-          {
-            break;
-          }
-
-        offset = static_cast<std::size_t>(std::distance(header.cbegin(), first_occurrence));
-
-        /* check for ';' in front */
-        if ((offset > 0) and (header[offset - 1] != ';'))
-          {
-            offset += name.size() + 1;
-            continue;
-          }
-
-        /* count the value's digits, likewise bounded by the header's size */
-        auto const value = header.drop(offset + name.size());
-        auto const * const value_end =
-          std::find_if(value.cbegin(), value.cend(),
-                       [&attribute](char const symbol) -> bool
-                       { return not is_value_character(symbol, attribute.allow_decimal); });
-        auto const digits = static_cast<std::size_t>(std::distance(value.cbegin(), value_end));
-
-        /* check for at least one digit */
-        if (digits == 0)
-          {
-            offset += name.size() + 1;
-            continue;
-          }
-
-        /* check for ';' after */
-        auto const value_end_offset = offset + name.size() + digits;
-        if ((value_end_offset < header.size()) and (header[value_end_offset] != ';'))
-          {
-            offset += name.size() + digits + 2;
-            continue;
-          }
-
-        /* ok */
-        return Attribute_span{offset, value_end_offset, true};
-      }
-    return {};
-  }
 
 
 }  // end of anonymous namespace
