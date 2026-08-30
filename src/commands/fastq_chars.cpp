@@ -204,8 +204,14 @@ namespace {
            the score definition is not. A Solexa score is -10 log10(p / (1 - p))
            and vsearch has only the Phred formula, so the options suggested
            above will read the file but overstate the error probability at low
-           scores (see the fastq(5) manual page) */
-        fprint(output_stream, "Guess: Solexa format (solexa+64, not supported)\n");
+           scores (see the fastq(5) manual page).
+
+           This is the one place a user meets the format while running
+           vsearch, so it names the way out: --fastq_convert --fastq_solexa
+           rewrites the scores onto the Phred scale, and is the only command
+           that understands the Solexa definition. */
+        fprint(output_stream, "Guess: Solexa format (solexa+64, not supported;\n");
+        fprint(output_stream, "       convert with --fastq_convert --fastq_solexa)\n");
         break;
       case FastqEncoding::illumina_1_3:
         fprint(output_stream, "Guess: Illumina 1.3+ format (phred+64)\n");
