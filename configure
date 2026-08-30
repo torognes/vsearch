@@ -4820,12 +4820,6 @@ then :
   printf "%s\n" "#define HAVE_FCNTL_H 1" >>confdefs.h
 
 fi
-ac_fn_cxx_check_header_compile "$LINENO" "regex.h" "ac_cv_header_regex_h" "$ac_includes_default"
-if test "x$ac_cv_header_regex_h" = xyes
-then :
-  printf "%s\n" "#define HAVE_REGEX_H 1" >>confdefs.h
-
-fi
 ac_fn_cxx_check_header_compile "$LINENO" "string.h" "ac_cv_header_string_h" "$ac_includes_default"
 if test "x$ac_cv_header_string_h" = xyes
 then :
