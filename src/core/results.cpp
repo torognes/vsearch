@@ -524,8 +524,17 @@ auto print_userfield(std::FILE * output_handle,
     case 42: /* tihi */
       fprint_integer(output_handle, (hit != nullptr) ? tseqlen - hit->trim_t_right : 0);
       break;
+
+      /* number of differences, the quantity --maxdiffs is compared against
+         (see the accept gate in core/searchcore.cpp): mismatching columns plus
+         gapped columns, terminal gaps excluded, which is also alnlen - ids */
+
+    case 43: /* diffs */
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? hit->mismatches + hit->internal_indels : 0);
+      break;
     default:
-      /* userfields_requested only ever holds validated indices (0..42),
+      /* userfields_requested only ever holds validated indices (0..43),
          so this is unreachable today. It guards against a userfields_names
          entry being added or reordered in utils/userfields.cpp without a matching
          case here — the positional coupling would otherwise print nothing
