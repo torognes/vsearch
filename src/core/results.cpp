@@ -635,8 +635,28 @@ auto print_userfield(std::FILE * output_handle,
                            internal_window(rows.query, *hit));
         }
       break;
+
+      /* the same alignment span as qlo, qhi, tlo and thi, counted from zero.
+         Each mirrors its 1-based sibling above, minus one, including the swap
+         qlo and qhi make on a minus-strand hit. A row with no hit reports 0,
+         the value every numeric field reports there. */
+
+    case 49: /* qlor */
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? ((hit->strand != 0) ? qseqlen - 1 : 0) : 0);
+      break;
+    case 50: /* qhir */
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? ((hit->strand != 0) ? 0 : qseqlen - 1) : 0);
+      break;
+    case 51: /* tlor */
+      fprint_integer(output_handle, 0);
+      break;
+    case 52: /* thir */
+      fprint_integer(output_handle, (hit != nullptr) ? tseqlen - 1 : 0);
+      break;
     default:
-      /* userfields_requested only ever holds validated indices (0..48),
+      /* userfields_requested only ever holds validated indices (0..52),
          so this is unreachable today. It guards against a userfields_names
          entry being added or reordered in utils/userfields.cpp without a matching
          case here — the positional coupling would otherwise print nothing
