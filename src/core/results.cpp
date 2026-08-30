@@ -117,10 +117,19 @@ namespace {
      spelled this out identically. */
   auto internal_window(std::vector<char> const & row,
                        struct hit const & hit) -> View<char> {
+    assert(hit.trim_q_left >= 0);
+    assert(hit.trim_t_left >= 0);
+    assert(hit.internal_alignmentlength >= 0);
     auto const left_terminal_gaps = static_cast<std::size_t>(hit.trim_q_left)
       + static_cast<std::size_t>(hit.trim_t_left);
-    return View<char>{&row[left_terminal_gaps],
-                      static_cast<std::size_t>(hit.internal_alignmentlength)};
+    auto const window_length = static_cast<std::size_t>(hit.internal_alignmentlength);
+    /* the window is handed out as a bare address and a length, so both ends
+       have to be inside the row. get_alignment_row() sizes it to one element
+       per alignment column plus a terminator, and the window stops at the
+       last column, so the sum is strictly below the size -- an empty window
+       at the right end still addresses a live element. */
+    assert(left_terminal_gaps + window_length < row.size());
+    return View<char>{&row[left_terminal_gaps], window_length};
   }
 
   /* Two aligned columns hold the same nucleotide. Compared through map_4bit
