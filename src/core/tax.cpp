@@ -61,79 +61,27 @@
 #include "core/db.hpp"  // Database
 #include "core/tax.hpp"  // TaxLevel, tax_split
 #include "utils/ascii_case.hpp"  // to_lower
+#include "utils/header_attribute.hpp"  // Attribute, header_find_attribute
 #include "utils/taxonomic_fields.h"
 #include "utils/view.hpp"  // View
-#include <algorithm>  // std::find, std::search
+#include <algorithm>  // std::find
 #include <array>  // std::array
 #include <cstddef>  // std::size_t
 #include <cstdint>
 #include <iterator>  // std::distance
-#include <string>  // std::string
 
 
-// very similar to header_find_attribute() in attributes.cc
+// anonymous namespace: limit visibility and usage to this translation unit
 namespace {
-auto tax_parse(View<char> const header,
-               int & tax_start,
-               int & tax_end) -> bool
-{
-  /*
-    Identify the first occurrence of the pattern (^|;)tax=([^;]*)(;|$)
-  */
 
-  /* empty(), not data() == nullptr: the two differ for a present-but-empty
-     header (a '>' alone on the line), and here they cannot -- a header with no
-     bytes holds no "tax=" either, so the loop below would fall through to the
-     same false. */
-  if (header.empty())
-    {
-      return false;
-    }
+  /* the (^|;)tax=([^;]*)(;|$) scan lives in utils/header_attribute.hpp, shared
+     with core/attributes.cpp and core/otutable.cpp. A near-copy of it used to
+     sit here, and the copy could not see a "tax=" whose '=' was the header's
+     last byte. */
+  constexpr vsearch::Attribute tax_attribute {"tax=", 4,
+                                              vsearch::Value_chars::not_semicolon,
+                                              true};
 
-  std::string const attribute {"tax="};
-
-  auto const attribute_length = static_cast<int>(attribute.size());
-  auto const header_length = static_cast<int>(header.size());
-
-  auto offset = 0;
-
-  while (offset < header_length - attribute_length)
-    {
-      auto const * const first_occurrence = std::search(header.begin() + offset, header.end(),
-                                                        attribute.begin(), attribute.end());
-
-      /* no match */
-      if (first_occurrence == header.end())
-        {
-          break;
-        }
-
-      offset = static_cast<int>(std::distance(header.begin(), first_occurrence));
-
-      /* check for ';' in front */
-      if ((offset > 0) and (header[static_cast<std::size_t>(offset) - 1] != ';'))
-        {
-          offset += attribute_length + 1;
-          continue;
-        }
-
-      tax_start = offset;
-
-      /* find end (semicolon or end of header) */
-      auto const * const terminus = std::find(header.begin() + offset + attribute_length, header.end(), ';');
-      if (terminus == header.end())
-        {
-          tax_end = header_length;
-        }
-      else
-        {
-          tax_end = static_cast<int>(std::distance(header.begin(), terminus));
-        }
-
-      return true;
-    }
-  return false;
-}
 }  // anonymous namespace
 
 
@@ -151,13 +99,16 @@ auto tax_split(int const seqno, std::array<TaxLevel, tax_levels> & levels,
      s species
      t strain
   */
-  static constexpr auto length_of_attribute_name = 4;  // "tax=" -> 4 letters
-  auto tax_start = 0;
-  auto tax_end = 0;
   auto const header = db.header_view(static_cast<uint64_t>(seqno));
-  auto const attribute_is_present = tax_parse(header, tax_start, tax_end);
-  if (not attribute_is_present) { return; }
-  auto offset = tax_start + length_of_attribute_name;
+  auto const annotation = vsearch::header_find_attribute(header, tax_attribute);
+  if (not annotation.present) { return; }
+
+  /* absolute indices into the header, not the value view: levels[].start is an
+     offset into the header the caller re-reads later (see TaxLevel in
+     core/tax.hpp), so the span is what this function wants */
+  auto const tax_start = static_cast<int>(annotation.start);
+  auto const tax_end = static_cast<int>(annotation.end);
+  auto offset = tax_start + tax_attribute.length;
 
   /* taxon names cannot contain commas or semicolons (see the manual), so
      the comma searches below must stop at the end of the tax= field: an
