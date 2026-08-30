@@ -78,7 +78,7 @@ namespace {
    the middle or reordered (its default: case fatal()s if one is). The count is
    spelled out so that adding a name without extending that switch is a compile
    error here rather than a silent renumbering. */
-constexpr std::size_t userfield_count = 47;
+constexpr std::size_t userfield_count = 49;
 
 /* Held by a function-local static rather than a namespace-scope object: the
    names are std::string, so their initialization is dynamic, and a throwing
@@ -136,6 +136,8 @@ auto valid_userfield_names() -> std::array<std::string, userfield_count> const &
     "mid",    // 44
     "qseq",   // 45
     "tseq",   // 46
+    "qrowdots",  // 47
+    "trowdots",  // 48
   },};
   return names;
 }

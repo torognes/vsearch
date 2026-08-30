@@ -121,6 +121,56 @@ namespace {
                       static_cast<std::size_t>(hit.internal_alignmentlength)};
   }
 
+  /* Two aligned columns hold the same nucleotide. Compared through map_4bit
+     rather than as raw bytes: the rows carry the sequences as the search saw
+     them, and with the default --qmask dust a masked region comes out
+     lowercase, which a byte comparison would read as one long run of
+     differences. A gap is identical to nothing (map_4bit maps '-' to 0, as it
+     does every non-nucleotide, so two gaps facing each other would otherwise
+     compare equal -- a cigar cannot produce such a column, but the rule should
+     not rest on that). Ambiguity codes match only themselves, so N against A
+     is a difference here even though the aligners count it as a match: the
+     number of dots is the number of identical columns, which is not the ids
+     field. */
+  auto is_identical_column(char const lhs, char const rhs) -> bool {
+    if ((lhs == '-') or (rhs == '-')) { return false; }
+    return map_4bit(lhs) == map_4bit(rhs);
+  }
+
+  /* One aligned row with '.' substituted at every column identical to the row
+     it is aligned against, which is what usearch's qrowdots and trowdots
+     report. Differing columns keep their own letter and gaps keep their '-',
+     so the row reads as a list of the differences alone. */
+  auto print_dotted_row(std::FILE * output_handle,
+                        View<char> const own_row,
+                        View<char> const other_row) -> void {
+    assert(own_row.size() == other_row.size());
+    std::vector<char> dotted(own_row.cbegin(), own_row.cend());
+    auto other = other_row.cbegin();
+    for (auto & column : dotted) {
+      if (is_identical_column(column, *other)) { column = '.'; }
+      ++other;
+    }
+    fprint(output_handle, make_view(dotted));
+  }
+
+  /* Both rows of one alignment. The dotted fields need the two together: a
+     column is a difference only by comparison, so neither row can be built on
+     its own the way cases 26 and 27 build theirs. */
+  struct AlignedRows {
+    std::vector<char> query;
+    std::vector<char> target;
+  };
+
+  auto both_alignment_rows(struct hit const & hit,
+                           View<char> const query,
+                           View<char> const target) -> AlignedRows {
+    return {get_alignment_qrow(query, make_view(hit.nwalignment),
+                               hit.nwalignmentlength),
+            get_alignment_trow(target, make_view(hit.nwalignment),
+                               hit.nwalignmentlength)};
+  }
+
 }  // end of anonymous namespace
 
 
@@ -561,8 +611,32 @@ auto print_userfield(std::FILE * output_handle,
     case 46: /* tseq */
       if (hit != nullptr) { fprint(output_handle, tsequence); }
       break;
+
+      /* the aligned segments again, but written as differences: every column
+         identical to the other row becomes a dot */
+
+    case 47: /* qrowdots */
+      if (hit != nullptr)
+        {
+          auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
+          auto const rows = both_alignment_rows(*hit, query, tsequence);
+          print_dotted_row(output_handle,
+                           internal_window(rows.query, *hit),
+                           internal_window(rows.target, *hit));
+        }
+      break;
+    case 48: /* trowdots */
+      if (hit != nullptr)
+        {
+          auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
+          auto const rows = both_alignment_rows(*hit, query, tsequence);
+          print_dotted_row(output_handle,
+                           internal_window(rows.target, *hit),
+                           internal_window(rows.query, *hit));
+        }
+      break;
     default:
-      /* userfields_requested only ever holds validated indices (0..46),
+      /* userfields_requested only ever holds validated indices (0..48),
          so this is unreachable today. It guards against a userfields_names
          entry being added or reordered in utils/userfields.cpp without a matching
          case here — the positional coupling would otherwise print nothing
