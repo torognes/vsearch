@@ -60,10 +60,6 @@
 
 #pragma once
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"  // HAVE_REGEX_H
-#endif
-
 #include "utils/view.hpp"  // View<char>
 #include <cstdio>  // std::FILE
 #include <cstdint>  // int64_t, uint64_t
@@ -72,22 +68,24 @@
 #include <string>
 #include <utility>  // std::pair
 
-#ifdef HAVE_REGEX_H
-#include <regex.h>  // regex_t
-#endif
-
 
 // Identify sample and OTU identifiers in sequence headers and accumulate the
 // abundance of each sample in the different OTUs, then write the result as a
 // classic OTU table, a mothur shared file, or a biom 1.0 document. A single
-// instance owns the compiled matchers (RAII) and the accumulated counts. add()
-// mutates shared state and is not thread-safe; its callers serialize access.
+// instance owns the accumulated counts. add() mutates shared state and is not
+// thread-safe; its callers serialize access.
+//
+// add() takes plain (pointer, length) views: it reads the annotations with
+// utils/header_attribute.hpp, which is bounded by the view's own size, so
+// unlike the POSIX regexec() it replaced it needs no NUL-terminated storage.
 
 class OtuTable
 {
 public:
-  OtuTable();
-  ~OtuTable();
+  /* the compiler's; declaring the deleted copy operations below would
+     otherwise suppress it. There is nothing left to construct: the three
+     compiled regular expressions this class used to own are gone. */
+  OtuTable() = default;
   OtuTable(OtuTable const &) = delete;
   auto operator=(OtuTable const &) -> OtuTable & = delete;
 
@@ -101,12 +99,6 @@ private:
   using string_pair_t = std::pair<std::string, std::string>;
   using string_pair_map_t = std::map<string_pair_t, uint64_t>;
   using otu_tax_map_t = std::map<std::string, std::string>;
-
-#ifdef HAVE_REGEX_H
-  regex_t regex_sample_ {};
-  regex_t regex_otu_ {};
-  regex_t regex_tax_ {};
-#endif
 
   string_set_t otu_set_;
   string_set_t sample_set_;

@@ -60,6 +60,7 @@
 
 #include "otutable.hpp"
 #include "utils/ascii_case.hpp"  // is_alnum
+#include "utils/header_attribute.hpp"  // Attribute, header_find_attribute
 #include "utils/view.hpp"
 #include "vsearch.hpp"
 #include "utils/print_view.hpp"  // fprint
@@ -69,25 +70,12 @@
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
 #include <algorithm>  // std::find, std::find_if
 #include <array>
-#include <cassert>  // assert
 #include <cstdint> // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf
-#include <iterator>  // std::next
+#include <iterator>  // std::distance, std::next
 #include <map>
 #include <string>
 #include <utility>  // std::pair
-
-// refactoring: is there a reason to prefer regex.h over <regex>?
-// - <regex> was introduced in GCC 4.9.0
-// - <regex> was buggy in GCC 4.9.x
-// - <regex> is ok in GCC >= 5
-// - <regex> is still 30% slower in GCC 13.4
-// Use <regex> when GCC requirements are >= 5 or when switching to C++14/17
-#ifdef HAVE_REGEX_H
-#include <regex.h>  // C: regcomp, regexec, regfree (POSIX functions)
-#else
-#include <regex>  // C++: std::regex_search
-#endif
 
 
 /*
@@ -103,67 +91,38 @@
 
 */
 
-#ifndef HAVE_REGEX_H
-const std::regex regex_sample("(^|;)(sample|barcodelabel)=([^;]*)($|;)",
-                              std::regex::extended);
-const std::regex regex_otu("(^|;)otu=([^;]*)($|;)",
-                           std::regex::extended);
-const std::regex regex_tax("(^|;)tax=([^;]*)($|;)",
-                           std::regex::extended);
-#endif
-
 using string_no_map_t = std::map<std::string, uint64_t>;
 
 
-OtuTable::OtuTable()
-{
-#ifdef HAVE_REGEX_H
-  /* compile regular expression matchers */
-  if (regcomp(&regex_sample_,
-              "(^|;)(sample|barcodelabel)=([^;]*)($|;)",
-              REG_EXTENDED) != 0)
-    {
-      fatal("Compilation of regular expression for sample annotation failed");
-    }
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
 
-  if (regcomp(&regex_otu_,
-              "(^|;)otu=([^;]*)($|;)",
-              REG_EXTENDED) != 0)
-    {
-      fatal("Compilation of regular expression for otu annotation failed");
-    }
+  /* The four annotations this file reads, previously three extended regular
+     expressions compiled once per OtuTable. All four take everything up to the
+     next ';' and all four accept an empty value, which is what the regular
+     expressions did and what the taxonomy column depends on (an OTU whose
+     target header ends in ";tax=" enters otu_tax_map_ with an empty string,
+     and it is otu_tax_map_.empty() that decides whether --otutabout emits a
+     taxonomy column at all). */
+  constexpr auto any_value = vsearch::Value_chars::not_semicolon;
 
-  if (regcomp(&regex_tax_,
-              "(^|;)tax=([^;]*)($|;)",
-              REG_EXTENDED) != 0)
-    {
-      fatal("Compilation of regular expression for taxonomy annotation failed");
-    }
-#endif
-}
+  constexpr std::array<vsearch::Attribute, 2> sample_names {{
+      {"sample=", 7, any_value, true},
+      {"barcodelabel=", 13, any_value, true}}};
 
+  constexpr vsearch::Attribute otu_name_attribute {"otu=", 4, any_value, true};
+  constexpr vsearch::Attribute tax_attribute {"tax=", 4, any_value, true};
 
-OtuTable::~OtuTable()
-{
-#ifdef HAVE_REGEX_H
-  regfree(&regex_sample_);
-  regfree(&regex_otu_);
-  regfree(&regex_tax_);
-#endif
-}
+  auto sample_alternatives() -> View<vsearch::Attribute>
+  {
+    return View<vsearch::Attribute>{sample_names.data(), sample_names.size()};
+  }
+
+}  // end of anonymous namespace
 
 
 auto OtuTable::add(View<char> const query_header, View<char> const target_header, int64_t const abundance) -> void
 {
-  /* The POSIX regexec() path below requires a NUL-terminated string, so each
-     non-empty header must view NUL-terminated storage: the byte at end() (one
-     past the last viewed character, i.e. data()[size()]) is the terminator.
-     All callers satisfy this (a database/fastx header or a std::string);
-     assert it so a future caller passing a bare (pointer, length) slice is
-     caught in debug builds. */
-  assert((query_header.data() == nullptr) or (query_header.data()[query_header.size()] == '\0'));
-  assert((target_header.data() == nullptr) or (target_header.data()[target_header.size()] == '\0'));
-
   /* read sample annotation in query */
 
   bool const has_sample = (query_header.data() != nullptr);
@@ -173,22 +132,19 @@ auto OtuTable::add(View<char> const query_header, View<char> const target_header
     {
       std::size_t len_sample = 0;
       char const * start_sample = query_header.data();
-#ifdef HAVE_REGEX_H
-      std::array<regmatch_t, 5> pmatch_sample {{}};
-      if (regexec(&regex_sample_, query_header.data(), 5, pmatch_sample.data(), 0) == 0)
+      /* the leftmost of the two names, not the first one listed: the extended
+         regular expression this replaces alternated over the subject, so a
+         header carrying both answers with whichever comes first in it */
+      auto const match = vsearch::header_find_first_attribute(query_header,
+                                                              sample_alternatives());
+      if (match.span.present)
         {
           /* match: use the matching sample name */
-          len_sample = static_cast<std::size_t>(pmatch_sample[3].rm_eo - pmatch_sample[3].rm_so);
-          start_sample = std::next(query_header.data(), pmatch_sample[3].rm_so);
+          auto const value = vsearch::attribute_value(query_header, match.span,
+                                                      *match.attribute);
+          len_sample = value.size();
+          start_sample = value.data();
         }
-#else
-      std::cmatch cmatch_sample;
-      if (std::regex_search(query_header.begin(), query_header.end(), cmatch_sample, regex_sample))
-        {
-          len_sample = static_cast<std::size_t>(cmatch_sample.length(3));
-          start_sample = std::next(query_header.data(), cmatch_sample.position(3));
-        }
-#endif
       else
         {
           /* no match: use first name in header with A-Za-z0-9_ */
@@ -210,22 +166,16 @@ auto OtuTable::add(View<char> const query_header, View<char> const target_header
     {
       std::size_t len_otu = 0;
       char const * start_otu = target_header.data();
-#ifdef HAVE_REGEX_H
-      std::array<regmatch_t, 4> pmatch_otu {{}};
-      if (regexec(&regex_otu_, target_header.data(), 4, pmatch_otu.data(), 0) == 0)
+      auto const otu_annotation = vsearch::header_find_attribute(target_header,
+                                                                 otu_name_attribute);
+      if (otu_annotation.present)
         {
           /* match: use the matching otu name */
-          len_otu = static_cast<std::size_t>(pmatch_otu[2].rm_eo - pmatch_otu[2].rm_so);
-          start_otu = std::next(target_header.data(), pmatch_otu[2].rm_so);
+          auto const value = vsearch::attribute_value(target_header, otu_annotation,
+                                                      otu_name_attribute);
+          len_otu = value.size();
+          start_otu = value.data();
         }
-#else
-      std::cmatch cmatch_otu;
-      if (std::regex_search(target_header.begin(), target_header.end(), cmatch_otu, regex_otu))
-        {
-          len_otu = static_cast<std::size_t>(cmatch_otu.length(2));
-          start_otu = std::next(target_header.data(), cmatch_otu.position(2));
-        }
-#endif
       else
         {
           /* no match: use first name in header up to ; */
@@ -237,22 +187,17 @@ auto OtuTable::add(View<char> const query_header, View<char> const target_header
 
       /* read tax annotation in target */
 
-#ifdef HAVE_REGEX_H
-      std::array<regmatch_t, 4> pmatch_tax {{}};
-      if (regexec(&regex_tax_, target_header.data(), 4, pmatch_tax.data(), 0) == 0)
+      auto const tax_annotation = vsearch::header_find_attribute(target_header,
+                                                                 tax_attribute);
+      if (tax_annotation.present)
         {
-          /* match: use the matching tax name */
-          auto const len_tax = static_cast<std::size_t>(pmatch_tax[2].rm_eo - pmatch_tax[2].rm_so);
-          char const * const start_tax = std::next(target_header.data(), pmatch_tax[2].rm_so);
-          otu_tax_map_[otu_name] = std::string(start_tax, len_tax);
+          /* match: use the matching tax name. An empty value is a match and is
+             stored as an empty string, which is what puts the OTU in the map
+             and so decides the taxonomy column. */
+          auto const value = vsearch::attribute_value(target_header, tax_annotation,
+                                                      tax_attribute);
+          otu_tax_map_[otu_name] = std::string(value.data(), value.size());
         }
-#else
-      std::cmatch cmatch_tax;
-      if (std::regex_search(target_header.begin(), target_header.end(), cmatch_tax, regex_tax))
-        {
-          otu_tax_map_[otu_name] = cmatch_tax.str(2);
-        }
-#endif
     }
 
   /* store data */

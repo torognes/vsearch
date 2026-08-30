@@ -141,6 +141,16 @@ namespace vsearch
   };
 
 
+  /* the leftmost match among several names filling one slot, and which of them
+     it was. The caller needs both: the span alone does not say how many bytes
+     of it are the name, and "sample=" and "barcodelabel=" differ by six. */
+  struct Attribute_match
+  {
+    Attribute_span span;
+    Attribute const * attribute;  // null when span.present is false
+  };
+
+
   /* a byte belonging to an attribute's value, under that attribute's policy */
   inline auto is_value_character(char const symbol,
                                  Value_chars const policy) noexcept -> bool
@@ -257,9 +267,9 @@ namespace vsearch
      found would answer with 'sample=' every time, which is a different
      function -- and a regression against every released vsearch. */
   inline auto header_find_first_attribute(View<char> const header,
-                                          View<Attribute> const alternatives) -> Attribute_span
+                                          View<Attribute> const alternatives) -> Attribute_match
   {
-    auto leftmost = Attribute_span{};
+    auto leftmost = Attribute_match{Attribute_span{}, nullptr};
     for (auto const & alternative : alternatives)
       {
         auto const span = header_find_attribute(header, alternative);
@@ -267,9 +277,9 @@ namespace vsearch
           {
             continue;
           }
-        if ((not leftmost.present) or (span.start < leftmost.start))
+        if ((not leftmost.span.present) or (span.start < leftmost.span.start))
           {
-            leftmost = span;
+            leftmost = Attribute_match{span, &alternative};
           }
       }
     return leftmost;
