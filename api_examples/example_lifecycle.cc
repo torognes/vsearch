@@ -316,6 +316,65 @@ static int test_dust_hardmask()
 }
 
 
+/* --- Test 7: opening a session resolves the offset-dependent defaults ---
+   fastq_qmax defaults to the highest score the encoding can represent, which
+   is 126 - fastq_ascii: 93 at the Sanger offset, 62 at the Solexa one. The
+   command line resolves that in cli.cc; the library resolves it when a
+   session opens, so the two agree. Before this was wired up, a library caller
+   who set fastq_ascii = 64 kept the ceiling 93, and 64 + 93 = 157 is the
+   combination the CLI refuses outright.
+
+   A ceiling the caller set is never touched -- the library has no
+   options_selected vector, so "still the member-initializer value" is what
+   "not set" means here. */
+static int test_quality_ceiling_follows_offset()
+{
+  int failures = 0;
+
+  {
+    struct Parameters parameters;
+    VsearchSession const session(parameters);
+    if (parameters.opt_fastq_qmax != 93)
+      {
+        std::fprintf(stderr, "FAIL: default offset should give fastq_qmax 93, got %lld\n",
+                     static_cast<long long>(parameters.opt_fastq_qmax));
+        ++failures;
+      }
+  }
+
+  {
+    struct Parameters parameters;
+    parameters.opt_fastq_ascii = 64;
+    VsearchSession const session(parameters);
+    if (parameters.opt_fastq_qmax != 62)
+      {
+        std::fprintf(stderr, "FAIL: offset 64 should give fastq_qmax 62, got %lld\n",
+                     static_cast<long long>(parameters.opt_fastq_qmax));
+        ++failures;
+      }
+  }
+
+  {
+    struct Parameters parameters;
+    parameters.opt_fastq_ascii = 64;
+    parameters.opt_fastq_qmax = 50;
+    VsearchSession const session(parameters);
+    if (parameters.opt_fastq_qmax != 50)
+      {
+        std::fprintf(stderr, "FAIL: an explicit fastq_qmax must survive, got %lld\n",
+                     static_cast<long long>(parameters.opt_fastq_qmax));
+        ++failures;
+      }
+  }
+
+  if (failures == 0)
+    {
+      std::fprintf(stderr, "PASS: fastq_qmax follows fastq_ascii, and an explicit value survives\n");
+    }
+  return failures;
+}
+
+
 int main()
 {
   int failures = 0;
@@ -331,6 +390,7 @@ int main()
   failures += test_session_stateless(merger, parameters);
   failures += test_nonchimera_result_zeroed(parameters);
   failures += test_dust_hardmask();
+  failures += test_quality_ceiling_follows_offset();
 
   return failures == 0 ? 0 : 1;
 }

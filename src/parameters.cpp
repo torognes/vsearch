@@ -71,6 +71,7 @@
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_available_cores
 #include "utils/fatal.hpp"  // fatal
+#include "utils/quality_encoding.hpp"  // highest_printable_ascii, sanger_ascii_offset
 #include <array>  // std::array::size
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
@@ -209,6 +210,37 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
   if (parameters.opt_wordlength == 0)
     {
       parameters.opt_wordlength = 8;
+    }
+
+  /* The input quality ceiling follows the ASCII offset, the way cli.cc's
+     resolve_quality_bound_defaults() does it for the command line. Without
+     this, a library caller who sets opt_fastq_ascii = 64 keeps the Sanger
+     ceiling of 93, and 64 + 93 = 157 is the very combination the CLI's sum
+     rule refuses (torognes/vsearch#564). The struct's own comment says
+     "cli.cc lowers the unset default accordingly"; the library path simply
+     never got the same treatment.
+
+     "Still the member-initializer value" is the test for "not set by the
+     caller", as it already is for opt_maxrejects and opt_wordlength above --
+     the library has no options_selected vector to consult. A caller who
+     deliberately wrote 93 next to offset 64 asked for the impossible
+     combination anyway, so resolving it is a fix rather than a loss.
+
+     No symbol changes verdict either way: 126 - 64 = 62 is exactly the
+     highest value a printable byte can carry at that offset, so nothing was
+     being wrongly accepted before. What this corrects is the value the
+     caller reads back, and the divergence from the CLI.
+
+     opt_fastq_qmaxout is deliberately NOT resolved here: its CLI default is
+     command-aware (41 for --fasta2fastq and --fastq_mergepairs, which
+     generate a score rather than read one, and 126 - asciiout elsewhere),
+     and this function is command-agnostic by construction. Deriving it here
+     would change merged qualities for a library caller, which is exactly
+     what that CLI exception exists to prevent. */
+  if (parameters.opt_fastq_qmax == highest_printable_ascii - sanger_ascii_offset)
+    {
+      parameters.opt_fastq_qmax =
+        highest_printable_ascii - parameters.opt_fastq_ascii;
     }
 
   parameters_validate(parameters);
