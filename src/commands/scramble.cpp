@@ -166,8 +166,8 @@ auto scramble(struct Parameters const & parameters) -> void
             qual_buffer.resize(buffer_alloc);
           }
 
-        auto const * p = input_handle->get_sequence();
-        std::copy(p, std::next(p, static_cast<std::ptrdiff_t>(length)),
+        auto const * seq = input_handle->get_sequence();
+        std::copy(seq, std::next(seq, static_cast<std::ptrdiff_t>(length)),
                   seq_buffer.begin());
         seq_buffer[length] = '\0';
 
@@ -182,7 +182,7 @@ auto scramble(struct Parameters const & parameters) -> void
 
         /* quality values */
 
-        auto const * q = input_handle->get_quality();
+        auto const * qual = input_handle->get_quality();
 
         if (input_handle->is_fastq_input())
           {
@@ -190,7 +190,7 @@ auto scramble(struct Parameters const & parameters) -> void
                never scrambled, so the positional quality profile of each
                record is preserved exactly while the base<->quality pairing
                is deliberately broken */
-            std::copy(q, std::next(q, static_cast<std::ptrdiff_t>(length)),
+            std::copy(qual, std::next(qual, static_cast<std::ptrdiff_t>(length)),
                       qual_buffer.begin());
             qual_buffer[length] = '\0';
           }
