@@ -74,6 +74,13 @@ static int run_search_tsv() {
     parameters.opt_maxaccepts = 3;
     parameters.opt_maxrejects = 16;
 
+    /* The output columns, named through the API rather than hard-coded in
+       the print loop below. Keeps this corner of the surface exercised: a
+       change to Userfield or to opt_userfields breaks this example at
+       compile time instead of in a user's build. */
+    parameters.opt_userfields = {Userfield::query, Userfield::target,
+                                 Userfield::id};
+
     VsearchSession const session(parameters);
 
     std::vector<std::string> ref_labels, ref_seqs;
@@ -107,10 +114,23 @@ static int run_search_tsv() {
                                       Span<struct search_result_s>{results, 3});
 
         for (int j = 0; j < count; j++) {
-            std::printf("%s\t%s\t%.1f\n",
-                        query_labels[i].c_str(),
-                        db.getheader(results[j].target),
-                        results[j].id);
+            for (size_t f = 0; f < parameters.opt_userfields.size(); f++) {
+                if (f > 0) { std::printf("\t"); }
+                switch (parameters.opt_userfields[f]) {
+                case Userfield::query:
+                    std::printf("%s", query_labels[i].c_str());
+                    break;
+                case Userfield::target:
+                    std::printf("%s", db.getheader(results[j].target));
+                    break;
+                case Userfield::id:
+                    std::printf("%.1f", results[j].id);
+                    break;
+                default: /* the three fields requested above */
+                    break;
+                }
+            }
+            std::printf("\n");
         }
     }
 
