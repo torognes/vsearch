@@ -303,22 +303,19 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
     while (fastq_handle->next(false, chrmap_upcase()))
       {
-        auto const seq_length = fastq_handle->get_sequence_length();
-        auto const * seq_ptr = fastq_handle->get_sequence();
-        auto const * qual_ptr = fastq_handle->get_quality();
+        auto const sequence = fastq_handle->sequence_view();
+        auto const quality = fastq_handle->quality_view();
 
         ++stats.seq_count;
-        stats.total_chars += seq_length;
+        stats.total_chars += sequence.size();
 
         auto run_char = -1;
         auto run = 0;
 
-        for (auto i = 0ULL ; i < seq_length ; ++i)
+        for (std::size_t i = 0; i < sequence.size(); ++i)
           {
-            auto const seq_symbol = static_cast<unsigned char>(*seq_ptr);
-            std::advance(seq_ptr, 1);
-            auto const qual_symbol = static_cast<unsigned char>(*qual_ptr);
-            std::advance(qual_ptr, 1);
+            auto const seq_symbol = static_cast<unsigned char>(sequence[i]);
+            auto const qual_symbol = static_cast<unsigned char>(quality[i]);
             ++stats.sequence_chars[seq_symbol];
             ++stats.quality_chars[qual_symbol];
 
@@ -353,8 +350,7 @@ auto fastq_chars(struct Parameters const & parameters) -> void
 
         // search for trailing homopolymers in quality strings
         auto const tail_char =
-          search_trailing_homopolymers(View<char>{fastq_handle->get_quality(), seq_length},
-                                       parameters.opt_fastq_tail);
+          search_trailing_homopolymers(quality, parameters.opt_fastq_tail);
         if (tail_char != '\0') {
           ++stats.tail_chars[static_cast<unsigned char>(tail_char)];
         }
