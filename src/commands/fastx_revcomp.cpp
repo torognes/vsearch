@@ -72,10 +72,9 @@
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
 #include <algorithm>  // std::reverse_copy
-#include <cstddef>  // std::ptrdiff_t
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
-#include <cstdio>  // std::FILE, std::fclose, std::size_t
-#include <iterator>  // std::next
+#include <cstdio>  // std::FILE, std::fclose
 #include <vector>
 
 
@@ -84,7 +83,7 @@ constexpr auto initial_memory_allocation = 512;
 
 auto fastx_revcomp(struct Parameters const & parameters) -> void
 {
-  uint64_t buffer_alloc = initial_memory_allocation;
+  std::size_t buffer_alloc = initial_memory_allocation;
   std::vector<char> seq_buffer(buffer_alloc);
   std::vector<char> qual_buffer(buffer_alloc);
 
@@ -99,7 +98,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
   //     fatal("Unrecognized file type (not proper FASTA or FASTQ format)");
   //   }
 
-  if ((parameters.opt_fastqout != nullptr) && ! input_handle->is_fastq_input())
+  if ((parameters.opt_fastqout != nullptr) && not input_handle->is_fastq_input())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
@@ -120,14 +119,14 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
         /* header */
 
-        auto const hlen = input_handle->get_header_length();
-        auto const * header = input_handle->get_header();
+        auto const header = input_handle->header_view();
         auto const abundance = input_handle->get_abundance();
 
 
         /* sequence */
 
-        auto const length = input_handle->get_sequence_length();
+        auto const sequence = input_handle->sequence_view();
+        auto const length = sequence.size();
 
         if (length + 1 > buffer_alloc)
           {
@@ -136,28 +135,22 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
             qual_buffer.resize(buffer_alloc);
           }
 
-        auto const * p = input_handle->get_sequence();
-        reverse_complement(make_span(seq_buffer).first(static_cast<std::size_t>(length) + 1), View<char>{p, static_cast<std::size_t>(length)});
+        reverse_complement(make_span(seq_buffer).first(length + 1), sequence);
 
 
         /* quality values */
 
-        auto const * q = input_handle->get_quality();
-
-        if (input_handle->is_fastq_input())
-          {
-            /* reverse quality values */
-            std::reverse_copy(q, std::next(q, static_cast<std::ptrdiff_t>(length)),
-                              qual_buffer.begin());
-            qual_buffer[length] = '\0';
-          }
+        /* reverse quality values (the view is empty for fasta input) */
+        auto const quality = input_handle->quality_view();
+        std::reverse_copy(quality.cbegin(), quality.cend(), qual_buffer.begin());
+        qual_buffer[quality.size()] = '\0';
 
         if (parameters.opt_fastaout != nullptr)
           {
             fasta_print_general(fp_fastaout,
                                 nullptr,
-                                make_view(seq_buffer).first(static_cast<std::size_t>(length)),
-                                View<char>{header, static_cast<std::size_t>(hlen)},
+                                make_view(seq_buffer).first(length),
+                                header,
                                 OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
@@ -165,9 +158,9 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         if (parameters.opt_fastqout != nullptr)
           {
             fastq_print_general(fp_fastqout,
-                                make_view(seq_buffer).first(static_cast<std::size_t>(length)),
-                                View<char>{header, static_cast<std::size_t>(hlen)},
-                                make_view(qual_buffer).first(static_cast<std::size_t>(length)),
+                                make_view(seq_buffer).first(length),
+                                header,
+                                make_view(qual_buffer).first(length),
                                 OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
