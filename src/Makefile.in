@@ -216,7 +216,7 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -292,7 +292,7 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -367,7 +367,7 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -436,7 +436,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -505,7 +505,7 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -574,7 +574,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -642,7 +642,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -699,8 +699,8 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	commands/maskfasta.cpp core/mask.cpp vendored/md5.c \
 	core/minheap.cpp core/msa.cpp commands/orient.cpp \
 	core/otutable.cpp commands/rereplicate.cpp core/results.cpp \
-	commands/usearch_global.cpp core/search.cpp \
-	core/searchcore.cpp commands/search_exact.cpp \
+	commands/scramble.cpp commands/usearch_global.cpp \
+	core/search.cpp core/searchcore.cpp commands/search_exact.cpp \
 	commands/sff_convert.cpp vendored/sha1.c core/showalign.cpp \
 	commands/shuffle.cpp commands/sintax.cpp \
 	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
@@ -788,6 +788,7 @@ am__objects_2 = core/libvsearch_core_a-align_simd.$(OBJEXT) \
 	core/libvsearch_core_a-otutable.$(OBJEXT) \
 	commands/libvsearch_core_a-rereplicate.$(OBJEXT) \
 	core/libvsearch_core_a-results.$(OBJEXT) \
+	commands/libvsearch_core_a-scramble.$(OBJEXT) \
 	commands/libvsearch_core_a-usearch_global.$(OBJEXT) \
 	core/libvsearch_core_a-search.$(OBJEXT) \
 	core/libvsearch_core_a-searchcore.$(OBJEXT) \
@@ -880,7 +881,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/maskfasta.hpp core/mask.hpp vendored/md5.h \
 	core/minheap.hpp core/msa.hpp commands/orient.hpp \
 	core/otutable.hpp commands/rereplicate.hpp \
-	core/query_record.hpp core/results.hpp \
+	core/query_record.hpp core/results.hpp commands/scramble.hpp \
 	commands/usearch_global.hpp core/search.hpp \
 	core/search_internal.hpp core/searchcore.hpp \
 	commands/search_exact.hpp core/seq_record.hpp \
@@ -937,8 +938,8 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	commands/maskfasta.cpp core/mask.cpp vendored/md5.c \
 	core/minheap.cpp core/msa.cpp commands/orient.cpp \
 	core/otutable.cpp commands/rereplicate.cpp core/results.cpp \
-	commands/usearch_global.cpp core/search.cpp \
-	core/searchcore.cpp commands/search_exact.cpp \
+	commands/scramble.cpp commands/usearch_global.cpp \
+	core/search.cpp core/searchcore.cpp commands/search_exact.cpp \
 	commands/sff_convert.cpp vendored/sha1.c core/showalign.cpp \
 	commands/shuffle.cpp commands/sintax.cpp \
 	commands/sortbylength.cpp commands/sortbysize.cpp core/tax.cpp \
@@ -1000,13 +1001,14 @@ am__objects_8 = core/align_simd.$(OBJEXT) \
 	vendored/md5.$(OBJEXT) core/minheap.$(OBJEXT) \
 	core/msa.$(OBJEXT) commands/orient.$(OBJEXT) \
 	core/otutable.$(OBJEXT) commands/rereplicate.$(OBJEXT) \
-	core/results.$(OBJEXT) commands/usearch_global.$(OBJEXT) \
-	core/search.$(OBJEXT) core/searchcore.$(OBJEXT) \
-	commands/search_exact.$(OBJEXT) commands/sff_convert.$(OBJEXT) \
-	vendored/sha1.$(OBJEXT) core/showalign.$(OBJEXT) \
-	commands/shuffle.$(OBJEXT) commands/sintax.$(OBJEXT) \
-	commands/sortbylength.$(OBJEXT) commands/sortbysize.$(OBJEXT) \
-	core/tax.$(OBJEXT) commands/makeudb_usearch.$(OBJEXT) \
+	core/results.$(OBJEXT) commands/scramble.$(OBJEXT) \
+	commands/usearch_global.$(OBJEXT) core/search.$(OBJEXT) \
+	core/searchcore.$(OBJEXT) commands/search_exact.$(OBJEXT) \
+	commands/sff_convert.$(OBJEXT) vendored/sha1.$(OBJEXT) \
+	core/showalign.$(OBJEXT) commands/shuffle.$(OBJEXT) \
+	commands/sintax.$(OBJEXT) commands/sortbylength.$(OBJEXT) \
+	commands/sortbysize.$(OBJEXT) core/tax.$(OBJEXT) \
+	commands/makeudb_usearch.$(OBJEXT) \
 	commands/udb2fasta.$(OBJEXT) commands/udbinfo.$(OBJEXT) \
 	commands/udbstats.$(OBJEXT) core/udb.$(OBJEXT) \
 	core/unique.$(OBJEXT) utils/fatal.$(OBJEXT) \
@@ -1152,6 +1154,7 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-orient.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-rereplicate.Po \
+	commands/$(DEPDIR)/libvsearch_core_a-scramble.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-search_exact.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-sff_convert.Po \
 	commands/$(DEPDIR)/libvsearch_core_a-shuffle.Po \
@@ -1170,6 +1173,7 @@ am__depfiles_remade = ./$(DEPDIR)/cli.Po \
 	commands/$(DEPDIR)/makeudb_usearch.Po \
 	commands/$(DEPDIR)/maskfasta.Po commands/$(DEPDIR)/orient.Po \
 	commands/$(DEPDIR)/rereplicate.Po \
+	commands/$(DEPDIR)/scramble.Po \
 	commands/$(DEPDIR)/search_exact.Po \
 	commands/$(DEPDIR)/sff_convert.Po \
 	commands/$(DEPDIR)/shuffle.Po commands/$(DEPDIR)/sintax.Po \
@@ -1553,6 +1557,7 @@ core/otutable.hpp \
 commands/rereplicate.hpp \
 core/query_record.hpp \
 core/results.hpp \
+commands/scramble.hpp \
 commands/usearch_global.hpp \
 core/search.hpp \
 core/search_internal.hpp \
@@ -1740,6 +1745,7 @@ commands/orient.cpp \
 core/otutable.cpp \
 commands/rereplicate.cpp \
 core/results.cpp \
+commands/scramble.cpp \
 commands/usearch_global.cpp \
 core/search.cpp \
 core/searchcore.cpp \
@@ -2171,6 +2177,8 @@ commands/libvsearch_core_a-rereplicate.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-results.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
+commands/libvsearch_core_a-scramble.$(OBJEXT):  \
+	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 commands/libvsearch_core_a-usearch_global.$(OBJEXT):  \
 	commands/$(am__dirstamp) commands/$(DEPDIR)/$(am__dirstamp)
 core/libvsearch_core_a-search.$(OBJEXT): core/$(am__dirstamp) \
@@ -2460,6 +2468,8 @@ commands/rereplicate.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 core/results.$(OBJEXT): core/$(am__dirstamp) \
 	core/$(DEPDIR)/$(am__dirstamp)
+commands/scramble.$(OBJEXT): commands/$(am__dirstamp) \
+	commands/$(DEPDIR)/$(am__dirstamp)
 commands/usearch_global.$(OBJEXT): commands/$(am__dirstamp) \
 	commands/$(DEPDIR)/$(am__dirstamp)
 core/search.$(OBJEXT): core/$(am__dirstamp) \
@@ -2678,6 +2688,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-orient.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-rereplicate.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-scramble.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-search_exact.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-sff_convert.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/libvsearch_core_a-shuffle.Po@am__quote@ # am--include-marker
@@ -2697,6 +2708,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/maskfasta.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/orient.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/rereplicate.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/scramble.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/search_exact.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/sff_convert.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@commands/$(DEPDIR)/shuffle.Po@am__quote@ # am--include-marker
@@ -3959,6 +3971,20 @@ core/libvsearch_core_a-results.obj: core/results.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o core/libvsearch_core_a-results.obj `if test -f 'core/results.cpp'; then $(CYGPATH_W) 'core/results.cpp'; else $(CYGPATH_W) '$(srcdir)/core/results.cpp'; fi`
 
+commands/libvsearch_core_a-scramble.o: commands/scramble.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-scramble.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-scramble.Tpo -c -o commands/libvsearch_core_a-scramble.o `test -f 'commands/scramble.cpp' || echo '$(srcdir)/'`commands/scramble.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-scramble.Tpo commands/$(DEPDIR)/libvsearch_core_a-scramble.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/scramble.cpp' object='commands/libvsearch_core_a-scramble.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-scramble.o `test -f 'commands/scramble.cpp' || echo '$(srcdir)/'`commands/scramble.cpp
+
+commands/libvsearch_core_a-scramble.obj: commands/scramble.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-scramble.obj -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-scramble.Tpo -c -o commands/libvsearch_core_a-scramble.obj `if test -f 'commands/scramble.cpp'; then $(CYGPATH_W) 'commands/scramble.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/scramble.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-scramble.Tpo commands/$(DEPDIR)/libvsearch_core_a-scramble.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='commands/scramble.cpp' object='commands/libvsearch_core_a-scramble.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -c -o commands/libvsearch_core_a-scramble.obj `if test -f 'commands/scramble.cpp'; then $(CYGPATH_W) 'commands/scramble.cpp'; else $(CYGPATH_W) '$(srcdir)/commands/scramble.cpp'; fi`
+
 commands/libvsearch_core_a-usearch_global.o: commands/usearch_global.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libvsearch_core_a_CXXFLAGS) $(CXXFLAGS) -MT commands/libvsearch_core_a-usearch_global.o -MD -MP -MF commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Tpo -c -o commands/libvsearch_core_a-usearch_global.o `test -f 'commands/usearch_global.cpp' || echo '$(srcdir)/'`commands/usearch_global.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Tpo commands/$(DEPDIR)/libvsearch_core_a-usearch_global.Po
@@ -4922,6 +4948,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-orient.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-rereplicate.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-scramble.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-search_exact.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sff_convert.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-shuffle.Po
@@ -4941,6 +4968,7 @@ distclean: distclean-am
 	-rm -f commands/$(DEPDIR)/maskfasta.Po
 	-rm -f commands/$(DEPDIR)/orient.Po
 	-rm -f commands/$(DEPDIR)/rereplicate.Po
+	-rm -f commands/$(DEPDIR)/scramble.Po
 	-rm -f commands/$(DEPDIR)/search_exact.Po
 	-rm -f commands/$(DEPDIR)/sff_convert.Po
 	-rm -f commands/$(DEPDIR)/shuffle.Po
@@ -5216,6 +5244,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-maskfasta.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-orient.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-rereplicate.Po
+	-rm -f commands/$(DEPDIR)/libvsearch_core_a-scramble.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-search_exact.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-sff_convert.Po
 	-rm -f commands/$(DEPDIR)/libvsearch_core_a-shuffle.Po
@@ -5235,6 +5264,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f commands/$(DEPDIR)/maskfasta.Po
 	-rm -f commands/$(DEPDIR)/orient.Po
 	-rm -f commands/$(DEPDIR)/rereplicate.Po
+	-rm -f commands/$(DEPDIR)/scramble.Po
 	-rm -f commands/$(DEPDIR)/search_exact.Po
 	-rm -f commands/$(DEPDIR)/sff_convert.Po
 	-rm -f commands/$(DEPDIR)/shuffle.Po

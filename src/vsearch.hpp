@@ -178,6 +178,7 @@ public:
   char * opt_rereplicate = nullptr;
   char * opt_reverse = nullptr;
   char * opt_sample = nullptr;
+  char * opt_scramble = nullptr;
   char * opt_search_exact = nullptr;
   char * opt_sff_convert = nullptr;
   char * opt_shuffle = nullptr;
@@ -219,6 +220,7 @@ public:
   Masking opt_qmask = Masking::dust;
   int64_t opt_randseed = 0;
   int64_t opt_sample_size = 0;
+  int64_t opt_scramble_kmer = 1;
   int64_t opt_threads = 0;
   int64_t opt_topn = std::numeric_limits<int64_t>::max();
   bool opt_allow_fewer = false;
