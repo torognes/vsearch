@@ -60,6 +60,20 @@ for a description of the alignment model and identity definitions.
   inserted where the query has an insertion. Empty if there is no
   alignment.
 
+`qrowdots`
+: Query segment as `qrow` reports it, with a dot (`.`) at every position
+  identical to the target, so that only the differences remain visible.
+  A gap keeps its gap character, and a position where the two sequences
+  carry different nucleotides keeps its own nucleotide. Ambiguous
+  nucleotides are dotted only against the same symbol: an `N` facing an
+  `A` is written out, even though the alignment counts that position as
+  a match (see `ids`). Empty if there is no alignment.
+
+`trowdots`
+: Target segment as `trow` reports it, dotted in the same way. Where the
+  query has a gap, `trowdots` shows the target nucleotide, and
+  `qrowdots` shows the gap character.
+
 
 ## Query and target identifiers
 
@@ -68,6 +82,26 @@ for a description of the alignment model and identity definitions.
 
 `target`
 : Target sequence label. Set to `*` if there is no alignment.
+
+
+## Sequences
+
+The two fields below report complete sequences, not the aligned
+segments reported by `qrow` and `trow`. Both are written on a single
+line, without folding, and both report the sequences as the search saw
+them: with the default `--qmask dust` and `--dbmask dust`, masked
+low-complexity regions appear in lower case (see
+[`vsearch-fasta(5)`](../formats/vsearch-fasta.5.md)).
+
+`qseq`
+: Full-length query sequence. On a minus-strand hit, the reverse
+  complement of the query is reported, so that `qseq` matches the
+  orientation used by `qrow` and by the `--qsegout` output. Reported
+  even when there is no alignment, as `ql` is.
+
+`tseq`
+: Full-length target sequence, including any part of it that falls
+  outside the alignment. Empty if there is no alignment.
 
 
 ## Sequence lengths
@@ -92,7 +126,8 @@ query (q) or target (t) sequence, using 1-based nucleotide positions.
 The `lo`/`hi` variants span the whole sequence, from 1 to its length
 (swapped for the query on minus-strand hits); the `ilo`/`ihi` variants
 exclude terminal gaps and report the span of the actual aligned
-residues.
+residues. The `lor`/`hir` variants report the same span as `lo`/`hi`,
+counted from zero rather than from one.
 
 `qlo`
 : First nucleotide of the query aligned with the target: 1 when there
@@ -131,6 +166,24 @@ residues.
 : Last nucleotide of the target aligned with the query, ignoring
   terminal gaps at the right. Nucleotide positions use 1-based indexing.
 
+`qlor`
+: Same as `qlo`, using 0-based indexing: 0 when there is an alignment on
+  the plus strand, and the query sequence length minus one on
+  minus-strand hits.
+
+`qhir`
+: Same as `qhi`, using 0-based indexing: the query sequence length minus
+  one when there is an alignment on the plus strand, and 0 on
+  minus-strand hits.
+
+`tlor`
+: Same as `tlo`, using 0-based indexing. Always 0 when there is an
+  alignment.
+
+`thir`
+: Same as `thi`, using 0-based indexing: the target sequence length
+  minus one when there is an alignment.
+
 
 ## Alignment statistics
 
@@ -149,6 +202,12 @@ residues.
 `gaps`
 : Number of gap-containing columns in the alignment (zero or positive
   integer, excluding terminal gaps).
+
+`diffs`
+: Number of differing columns in the alignment: `mism` + `gaps`, or
+  equivalently `alnlen` - `ids` (zero or positive integer, excluding
+  terminal gaps). This is the quantity the option `--maxdiffs` is
+  compared against.
 
 `opens`
 : Number of gap-opening columns in the alignment (zero or positive
@@ -180,6 +239,13 @@ residues.
 `id`
 : Percentage of identity computed according to the definition selected
   by `--iddef` (default: `id2`; real value from 0.0 to 100.0).
+
+`mid`
+: Percentage of identity computed over the columns containing two
+  nucleotides, ignoring all gaps, internal and terminal: 100 *
+  (matching columns) / (`pairs`). This is the quantity the option
+  `--mid` is compared against. A hit whose only difference is a gap
+  therefore reports 100.0 here while `id` reports less.
 
 `id0`
 : CD-HIT definition: 100 * (matching columns) / (shortest sequence
@@ -277,6 +343,18 @@ vsearch \
     --id 0.0 \
     --userout identity_comparison.tsv \
     --userfields query+target+id0+id1+id2+id3+id4
+```
+
+Report each hit as a list of its differences alone, with the target
+label and the number of differences:
+
+```sh
+vsearch \
+    --usearch_global queries.fasta \
+    --db db.fasta \
+    --id 0.97 \
+    --userout differences.tsv \
+    --userfields query+target+diffs+qrowdots+trowdots
 ```
 
 Output query coverage and alignment span excluding terminal gaps:

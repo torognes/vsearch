@@ -74,7 +74,7 @@
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
-#include <algorithm>  // std::equal, std::max
+#include <algorithm>  // std::equal, std::max, std::transform
 #include <array>
 #include <cassert>  // assert
 #include <cstddef>  // std::ptrdiff_t, std::size_t
@@ -82,6 +82,7 @@
 #include <cstdio>  // std::FILE, std::fprintf
 #include <iterator>  // std::next
 #include <string>  // std::string, std::to_string
+#include <vector>
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
@@ -108,6 +109,79 @@ namespace {
                           static_cast<std::size_t>(rank.length));
   }
 
+  /* The part of an alignment row (as built by get_alignment_qrow or
+     get_alignment_trow) that is not a terminal gap. Rows are indexed in
+     alignment columns, so the first internal column is preceded by exactly the
+     terminal-gap columns of the left end -- only one of the two trims can be
+     non-zero there, which is why their sum is the offset. Four call sites had
+     spelled this out identically. */
+  auto internal_window(std::vector<char> const & row,
+                       struct hit const & hit) -> View<char> {
+    assert(hit.trim_q_left >= 0);
+    assert(hit.trim_t_left >= 0);
+    assert(hit.internal_alignmentlength >= 0);
+    auto const left_terminal_gaps = static_cast<std::size_t>(hit.trim_q_left)
+      + static_cast<std::size_t>(hit.trim_t_left);
+    auto const window_length = static_cast<std::size_t>(hit.internal_alignmentlength);
+    /* the window is handed out as a bare address and a length, so both ends
+       have to be inside the row. get_alignment_row() sizes it to one element
+       per alignment column plus a terminator, and the window stops at the
+       last column, so the sum is strictly below the size -- an empty window
+       at the right end still addresses a live element. */
+    assert(left_terminal_gaps + window_length < row.size());
+    return View<char>{&row[left_terminal_gaps], window_length};
+  }
+
+  /* Two aligned columns hold the same nucleotide. Compared through map_4bit
+     rather than as raw bytes: the rows carry the sequences as the search saw
+     them, and with the default --qmask dust a masked region comes out
+     lowercase, which a byte comparison would read as one long run of
+     differences. A gap is identical to nothing (map_4bit maps '-' to 0, as it
+     does every non-nucleotide, so two gaps facing each other would otherwise
+     compare equal -- a cigar cannot produce such a column, but the rule should
+     not rest on that). Ambiguity codes match only themselves, so N against A
+     is a difference here even though the aligners count it as a match: the
+     number of dots is the number of identical columns, which is not the ids
+     field. */
+  auto is_identical_column(char const lhs, char const rhs) -> bool {
+    if ((lhs == '-') or (rhs == '-')) { return false; }
+    return map_4bit(lhs) == map_4bit(rhs);
+  }
+
+  /* One aligned row with '.' substituted at every column identical to the row
+     it is aligned against, which is what usearch's qrowdots and trowdots
+     report. Differing columns keep their own letter and gaps keep their '-',
+     so the row reads as a list of the differences alone. */
+  auto print_dotted_row(std::FILE * output_handle,
+                        View<char> const own_row,
+                        View<char> const other_row) -> void {
+    assert(own_row.size() == other_row.size());
+    std::vector<char> dotted(own_row.size());
+    std::transform(own_row.cbegin(), own_row.cend(), other_row.cbegin(),
+                   dotted.begin(),
+                   [](char const own, char const other) -> char {
+                     return is_identical_column(own, other) ? '.' : own;
+                   });
+    fprint(output_handle, make_view(dotted));
+  }
+
+  /* Both rows of one alignment. The dotted fields need the two together: a
+     column is a difference only by comparison, so neither row can be built on
+     its own the way cases 26 and 27 build theirs. */
+  struct AlignedRows {
+    std::vector<char> query;
+    std::vector<char> target;
+  };
+
+  auto both_alignment_rows(struct hit const & hit,
+                           View<char> const query,
+                           View<char> const target) -> AlignedRows {
+    return {get_alignment_qrow(query, make_view(hit.nwalignment),
+                               hit.nwalignmentlength),
+            get_alignment_trow(target, make_view(hit.nwalignment),
+                               hit.nwalignmentlength),};
+  }
+
 }  // end of anonymous namespace
 
 
@@ -127,8 +201,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hit.nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      View<char>{&qrow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
-                                 static_cast<std::size_t>(hit.internal_alignmentlength)},
+                      internal_window(qrow, hit),
                       query_head,
                       OutputAnnotations{},
                       parameters);
@@ -139,8 +212,7 @@ auto results_show_fastapairs_one(std::FILE * output_handle,
                                  hit.nwalignmentlength);
   fasta_print_general(output_handle,
                       nullptr,
-                      View<char>{&trow[static_cast<std::size_t>(hit.trim_q_left + hit.trim_t_left)],
-                                 static_cast<std::size_t>(hit.internal_alignmentlength)},
+                      internal_window(trow, hit),
                       db.header_view(target),
                       OutputAnnotations{},
                       parameters);
@@ -455,9 +527,7 @@ auto print_userfield(std::FILE * output_handle,
           auto const qrow = get_alignment_qrow(query,
                                          make_view(hit->nwalignment),
                                          hit->nwalignmentlength);
-          fprint(output_handle,
-                 View<char>{&qrow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
-                            static_cast<std::size_t>(hit->internal_alignmentlength)});
+          fprint(output_handle, internal_window(qrow, *hit));
         }
       break;
     case 27: /* trow */
@@ -466,9 +536,7 @@ auto print_userfield(std::FILE * output_handle,
           auto const trow = get_alignment_trow(tsequence,
                                          make_view(hit->nwalignment),
                                          hit->nwalignmentlength);
-          fprint(output_handle,
-                 View<char>{&trow[static_cast<std::size_t>(hit->trim_q_left + hit->trim_t_left)],
-                            static_cast<std::size_t>(hit->internal_alignmentlength)});
+          fprint(output_handle, internal_window(trow, *hit));
         }
       break;
     case 28: /* qframe */
@@ -517,8 +585,89 @@ auto print_userfield(std::FILE * output_handle,
     case 42: /* tihi */
       fprint_integer(output_handle, (hit != nullptr) ? tseqlen - hit->trim_t_right : 0);
       break;
+
+      /* number of differences, the quantity --maxdiffs is compared against
+         (see the accept gate in core/searchcore.cpp): mismatching columns plus
+         gapped columns, terminal gaps excluded, which is also alnlen - ids */
+
+    case 43: /* diffs */
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? hit->mismatches + hit->internal_indels : 0);
+      break;
+
+      /* percentage of identity over letter pairs only, the quantity --mid is
+         compared against (see the accept gate in core/searchcore.cpp). Gapped
+         columns are excluded, so a hit whose only difference is a gap reports
+         100.0 here while id reports less. The gate divides unguarded, which is
+         a NaN for an alignment made only of gap columns; guard it here. */
+
+    case 44: /* mid */
+      {
+        auto const letter_pairs = (hit != nullptr) ? hit->matches + hit->mismatches : 0;
+        std::fprintf(output_handle, "%.1f",
+                     (letter_pairs > 0) ? 100.0 * hit->matches / letter_pairs : 0.0);
+      }
+      break;
+
+      /* the two sequences in full, as opposed to the aligned segments qrow and
+         trow report. The query is the one the alignment was made against, so a
+         minus-strand hit yields the reverse complement, as it does for qrow and
+         --qsegout; with no hit there is no strand and the query is printed as
+         read, the way ql already reports its real length on such a row. */
+
+    case 45: /* qseq */
+      fprint(output_handle,
+             ((hit != nullptr) and (hit->strand != 0)) ? qsequence_rc : qsequence);
+      break;
+    case 46: /* tseq */
+      if (hit != nullptr) { fprint(output_handle, tsequence); }
+      break;
+
+      /* the aligned segments again, but written as differences: every column
+         identical to the other row becomes a dot */
+
+    case 47: /* qrowdots */
+      if (hit != nullptr)
+        {
+          auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
+          auto const rows = both_alignment_rows(*hit, query, tsequence);
+          print_dotted_row(output_handle,
+                           internal_window(rows.query, *hit),
+                           internal_window(rows.target, *hit));
+        }
+      break;
+    case 48: /* trowdots */
+      if (hit != nullptr)
+        {
+          auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
+          auto const rows = both_alignment_rows(*hit, query, tsequence);
+          print_dotted_row(output_handle,
+                           internal_window(rows.target, *hit),
+                           internal_window(rows.query, *hit));
+        }
+      break;
+
+      /* the same alignment span as qlo, qhi, tlo and thi, counted from zero.
+         Each mirrors its 1-based sibling above, minus one, including the swap
+         qlo and qhi make on a minus-strand hit. A row with no hit reports 0,
+         the value every numeric field reports there. */
+
+    case 49: /* qlor */
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? ((hit->strand != 0) ? qseqlen - 1 : 0) : 0);
+      break;
+    case 50: /* qhir */
+      fprint_integer(output_handle,
+                     (hit != nullptr) ? ((hit->strand != 0) ? 0 : qseqlen - 1) : 0);
+      break;
+    case 51: /* tlor */
+      fprint_integer(output_handle, 0);
+      break;
+    case 52: /* thir */
+      fprint_integer(output_handle, (hit != nullptr) ? tseqlen - 1 : 0);
+      break;
     default:
-      /* userfields_requested only ever holds validated indices (0..42),
+      /* userfields_requested only ever holds validated indices (0..52),
          so this is unreachable today. It guards against a userfields_names
          entry being added or reordered in utils/userfields.cpp without a matching
          case here — the positional coupling would otherwise print nothing
