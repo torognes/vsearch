@@ -325,7 +325,7 @@ auto scramble(struct Parameters const & parameters) -> void
 
   auto input_handle = fastx_open(parameters.opt_scramble, parameters);
 
-  if ((parameters.opt_fastqout != nullptr) && ! input_handle->is_fastq_input())
+  if ((parameters.opt_fastqout != nullptr) && not input_handle->is_fastq_input())
     {
       fatal("Cannot write FASTQ output with a FASTA input file, lacking quality scores");
     }
