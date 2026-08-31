@@ -212,8 +212,10 @@ auto fastq_join(struct Parameters const & parameters) -> void
             fatal("More forward reads than reverse reads");
           }
 
-        auto const fwd_seq_length = infiles.forward.handle->get_sequence_length();
-        auto const rev_seq_length = infiles.reverse.handle->get_sequence_length();
+        auto const fwd_sequence = infiles.forward.handle->sequence_view();
+        auto const rev_sequence = infiles.reverse.handle->sequence_view();
+        auto const fwd_seq_length = fwd_sequence.size();
+        auto const rev_seq_length = rev_sequence.size();
         auto const needed = fwd_seq_length + padlen + rev_seq_length;
         /* parsed from the forward header once; both writers below reuse it */
         auto const abundance = static_cast<uint64_t>(infiles.forward.handle->get_abundance());
@@ -226,19 +228,19 @@ auto fastq_join(struct Parameters const & parameters) -> void
           {
             rc_buffer.resize(rev_seq_length + 1);
           }
-        reverse_complement(make_span(rc_buffer), infiles.reverse.handle->sequence_view());
+        reverse_complement(make_span(rc_buffer), rev_sequence);
 
         /* join them: forward read, pad gap, reverse-complemented reverse
            read -- appended in place, where building the concatenation from
            std::string temporaries re-allocated on every record. The reverse
            quality is appended back to front, which is all its reversal is. */
 
-        final_sequence.assign(infiles.forward.handle->get_sequence(), fwd_seq_length);
+        final_sequence.assign(fwd_sequence.data(), fwd_seq_length);
         final_sequence.append(parameters.opt_join_padgap);
         final_sequence.append(rc_buffer.data(), rev_seq_length);
 
         auto const rev_quality = infiles.reverse.handle->quality_view();
-        final_quality.assign(infiles.forward.handle->get_quality(), fwd_seq_length);
+        final_quality.assign(infiles.forward.handle->quality_view().data(), fwd_seq_length);
         final_quality.append(parameters.opt_join_padgapq);
         final_quality.append(std::reverse_iterator<char const *>{rev_quality.cend()},
                              std::reverse_iterator<char const *>{rev_quality.cbegin()});
