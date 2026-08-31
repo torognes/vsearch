@@ -141,6 +141,22 @@ struct hit
   int longest;           /* length of longest of query and target */
 };
 
+/* The number of differences in an alignment: mismatching columns plus
+   gapped columns, terminal gaps excluded. The quantity --maxdiffs is
+   compared against, and the diffs userfield. Equivalently alnlen - ids. */
+inline auto difference_count(struct hit const & hit) noexcept -> int {
+  return hit.mismatches + hit.internal_indels;
+}
+
+/* Percentage of identity over the columns holding two nucleotides, gaps of
+   every kind excluded. The quantity --mid is compared against, and the mid
+   userfield. Zero letter pairs yields 0.0 rather than a NaN: no letter pair
+   means no identity to measure. */
+inline auto letter_pair_identity(struct hit const & hit) noexcept -> double {
+  auto const letter_pairs = hit.matches + hit.mismatches;
+  return (letter_pairs > 0) ? 100.0 * hit.matches / letter_pairs : 0.0;
+}
+
 /* type of kmer hit counter element remember possibility of overflow */
 using count_t = unsigned short;
 

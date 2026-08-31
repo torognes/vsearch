@@ -716,7 +716,7 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
       /* mid */
       (100.0 * hit.matches / (hit.matches + hit.mismatches) >= parameters.opt_mid) and
       /* maxdiffs */
-      (hit.mismatches + hit.internal_indels <= parameters.opt_maxdiffs))
+      (difference_count(hit) <= parameters.opt_maxdiffs))
     {
       if (parameters.opt_cluster_unoise != nullptr)
         {
