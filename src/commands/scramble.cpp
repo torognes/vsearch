@@ -317,7 +317,6 @@ auto scramble(struct Parameters const & parameters) -> void
 {
   std::size_t buffer_alloc = initial_memory_allocation;
   std::vector<char> seq_buffer(buffer_alloc);
-  std::vector<char> qual_buffer(buffer_alloc);
 
   if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
     fatal("No output files specified");
@@ -367,7 +366,6 @@ auto scramble(struct Parameters const & parameters) -> void
           {
             buffer_alloc = length + 1;
             seq_buffer.resize(buffer_alloc);
-            qual_buffer.resize(buffer_alloc);
           }
 
         std::copy(sequence.cbegin(), sequence.cend(), seq_buffer.begin());
@@ -384,13 +382,10 @@ auto scramble(struct Parameters const & parameters) -> void
 
         /* quality values */
 
-        /* the quality string is copied through untouched: quality is
+        /* the quality string is passed through untouched: quality is
            never scrambled, so the positional quality profile of each
            record is preserved exactly while the base<->quality pairing
            is deliberately broken (the view is empty for fasta input) */
-        auto const quality = input_handle->quality_view();
-        std::copy(quality.cbegin(), quality.cend(), qual_buffer.begin());
-        qual_buffer[quality.size()] = '\0';
 
         if (parameters.opt_fastaout != nullptr)
           {
@@ -407,7 +402,7 @@ auto scramble(struct Parameters const & parameters) -> void
             fastq_print_general(fp_fastqout,
                                 make_view(seq_buffer).first(length),
                                 header,
-                                make_view(qual_buffer).first(length),
+                                input_handle->quality_view(),
                                 OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
