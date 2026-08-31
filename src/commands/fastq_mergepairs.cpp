@@ -478,10 +478,17 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
           return false;
         }
 
+      auto const fwd_header_view = fastq_fwd->header_view();
+      auto const rev_header_view = fastq_rev->header_view();
+      auto const fwd_sequence_view = fastq_fwd->sequence_view();
+      auto const rev_sequence_view = fastq_rev->sequence_view();
+      auto const fwd_quality_view = fastq_fwd->quality_view();
+      auto const rev_quality_view = fastq_rev->quality_view();
+
       /* allocate more memory if necessary */
 
-      auto const fwd_header_len = static_cast<int64_t>(fastq_fwd->get_header_length());
-      auto const rev_header_len = static_cast<int64_t>(fastq_rev->get_header_length());
+      auto const fwd_header_len = static_cast<int64_t>(fwd_header_view.size());
+      auto const rev_header_len = static_cast<int64_t>(rev_header_view.size());
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
       if (header_needed > a_read_pair.header_alloc)
@@ -491,8 +498,8 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
           a_read_pair.rev_header.resize(static_cast<std::size_t>(header_needed));
         }
 
-      a_read_pair.fwd_length = static_cast<int64_t>(fastq_fwd->get_sequence_length());
-      a_read_pair.rev_length = static_cast<int64_t>(fastq_rev->get_sequence_length());
+      a_read_pair.fwd_length = static_cast<int64_t>(fwd_sequence_view.size());
+      a_read_pair.rev_length = static_cast<int64_t>(rev_sequence_view.size());
       int64_t const seq_needed = std::max(a_read_pair.fwd_length, a_read_pair.rev_length) + 1;
 
       state.sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
@@ -518,38 +525,20 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       /* make local copies of the seq, header and qual */
 
-      auto const fwd_header_view = View<char> {
-        fastq_fwd->get_header(),
-        fastq_fwd->get_header_length()};
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
       a_read_pair.fwd_header[fwd_header_view.size()] = '\0';  // fix issue when reusing allocated mem
       a_read_pair.fwd_header_length = fwd_header_len;
 
-      auto const rev_header_view = View<char> {
-        fastq_rev->get_header(),
-        fastq_rev->get_header_length()};
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
       a_read_pair.rev_header[rev_header_view.size()] = '\0';  // fix issue when reusing allocated mem
       a_read_pair.rev_header_length = rev_header_len;
 
-      auto const fwd_sequence_view = View<char> {
-        fastq_fwd->get_sequence(),
-        fastq_fwd->get_sequence_length()};
       std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair.fwd_sequence.begin());
 
-      auto const rev_sequence_view = View<char> {
-        fastq_rev->get_sequence(),
-        fastq_rev->get_sequence_length()};
       std::copy(rev_sequence_view.cbegin(), rev_sequence_view.cend(), a_read_pair.rev_sequence.begin());
 
-      auto const fwd_quality_view = View<char> {
-        fastq_fwd->get_quality(),
-        fastq_fwd->get_quality_length()};
       std::copy(fwd_quality_view.cbegin(), fwd_quality_view.cend(), a_read_pair.fwd_quality.begin());
 
-      auto const rev_quality_view = View<char> {
-        fastq_rev->get_quality(),
-        fastq_rev->get_quality_length()};
       std::copy(rev_quality_view.cbegin(), rev_quality_view.cend(), a_read_pair.rev_quality.begin());
 
       a_read_pair.fwd_abundance = fastq_fwd->get_abundance();
