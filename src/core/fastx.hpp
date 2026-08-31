@@ -290,8 +290,9 @@ private:
 public:
   /* Read API, mirroring Database's accessors. The former fastx_get_, fasta_get_
      and fastq_get_ free functions were three near-identical families dispatching
-     on the format; they collapse into this single member set (the FASTA/FASTQ
-     difference is confined to get_quality/quality_view). The trivial accessors
+     on the format; they collapsed into a single member set, since narrowed to
+     the View/SeqRecord accessors below once every caller consumed views (the
+     FASTA/FASTQ difference is confined to quality_view). The trivial accessors
      are inline here, exactly as Database inlines its getters, so returning a
      record field stays as cheap as the former free function. */
 
@@ -331,23 +332,12 @@ public:
     ++stripped[symbol];
   }
 
-  // Current record; the returned pointers/views stay valid only until the next
+  // Current record; the returned views stay valid only until the next
   // next()/close() call on this handle.
-  auto get_header() const noexcept -> char const * { return header_buffer.data(); }
-  auto get_sequence() const noexcept -> char const * { return sequence_buffer.data(); }
-  auto get_header_length() const noexcept -> uint64_t { return header_buffer.length; }
-  auto get_sequence_length() const noexcept -> uint64_t { return sequence_buffer.length; }
-  // Quality is meaningful only for FASTQ; a FASTA record reports none (nullptr),
-  // matching the former fastx_get_quality().
-  auto get_quality() const noexcept -> char const *
-  {
-    return is_fastq ? quality_buffer.data() : nullptr;
-  }
-  auto get_quality_length() const noexcept -> uint64_t { return quality_buffer.length; }
   auto get_abundance() const -> int64_t;               // 1 when ;size= is absent
   auto get_abundance_and_presence() const -> int64_t;  // 0 when ;size= is absent
 
-  // View/SeqRecord companions, mirroring Database::sequence_view()/record().
+  // View/SeqRecord accessors, mirroring Database::sequence_view()/record().
   // The header and the sequence are exactly the bytes their buffer holds, so
   // they hand out the buffer's own window; quality does not, see below.
   auto header_view() const noexcept -> View<char>
@@ -359,12 +349,12 @@ public:
     return sequence_buffer.view();
   }
   // Deliberately not quality_buffer.view(): a FASTA record has no quality at
-  // all, and for FASTQ the window is sized from the sequence, the length
-  // fastq_next() has just checked the quality string against.
+  // all (nullptr, empty), and for FASTQ the window is sized from the sequence,
+  // the length fastq_next() has just checked the quality string against.
   auto quality_view() const noexcept -> View<char>
   {
     return View<char>{is_fastq ? quality_buffer.data() : nullptr,
-                      is_fastq ? get_sequence_length() : uint64_t{0}};
+                      is_fastq ? sequence_buffer.length : uint64_t{0}};
   }
   auto record() const -> SeqRecord
   {
