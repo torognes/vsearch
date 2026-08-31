@@ -13,6 +13,16 @@
       input quality, and `--fastq_mergepairs` caps a computed posterior
       (two agreeing Q40 bases would otherwise be reported as Q85 instead
       of Q41). Pass `--fastq_qmaxout 93` for the unclamped values.
+    - add: new command `--scramble`: randomize the nucleotide order
+      within each fasta or fastq entry, the within-entry counterpart
+      of `--shuffle`. Useful for building null-model datasets: entry
+      order, headers, lengths, and per-entry nucleotide composition
+      are preserved; fastq quality strings are copied through
+      unchanged. Reproducible with `--randseed`. The option
+      `--scramble_kmer` *k* (1 to 9, default 1) additionally
+      preserves the counts of all words of length *k* or less, by
+      sampling a uniformly random Eulerian path of each entry's de
+      Bruijn graph (Altschul-Erickson/uShuffle-style).
     - add: ten new `--userfields` output fields (issue #548): `diffs`
       and `mid`, which report the quantities `--maxdiffs` and `--mid`
       are compared against; `qseq` and `tseq`, the full-length query and

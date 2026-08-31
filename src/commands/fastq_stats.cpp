@@ -601,7 +601,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
         /* update length statistics */
 
-        auto const length = input_handle->get_sequence_length();
+        auto const length = input_handle->sequence_view().size();
 
         if (length + 1 > read_length_table.size())
           {
@@ -617,7 +617,7 @@ auto fastq_stats(struct Parameters const & parameters) -> void
 
         /* update quality statistics */
 
-        auto const * quality_symbols = input_handle->get_quality();
+        auto const quality_symbols = input_handle->quality_view();
         auto expected_error = 0.0;
         auto qmin = std::numeric_limits<int64_t>::max();  // lowest Q value observed so far in this read
 

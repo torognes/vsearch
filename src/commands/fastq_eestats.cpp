@@ -256,8 +256,8 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
       {
         ++seq_count;
 
-        auto const len = static_cast<int64_t>(h->get_sequence_length());
-        char const * q = h->get_quality();
+        auto const quality = h->quality_view();
+        auto const len = static_cast<int64_t>(quality.size());
 
         /* update length statistics */
 
@@ -287,20 +287,21 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
             /* quality score */
 
-            if (not score_table.accepts(q[i]))
+            auto const symbol = quality[static_cast<std::size_t>(i)];
+            if (not score_table.accepts(symbol))
               {
                 /* the same test accepts() just failed, run again to build the
                    message and name the record it fired on */
-                vsearch::check_quality_score(q[i] - parameters.opt_fastq_ascii,
+                vsearch::check_quality_score(symbol - parameters.opt_fastq_ascii,
                                              parameters, h->quality_location());
               }
-            auto const qual = score_table.score(q[i]);
+            auto const qual = score_table.score(symbol);
             ++qual_length_table[static_cast<size_t>(((max_quality + 1) * i) + qual)];
 
 
             /* probability of error (Pe) */
 
-            auto const probability_of_error = quality_table[q[i]];
+            auto const probability_of_error = quality_table[symbol];
             sum_pe_length_table[static_cast<size_t>(i)] += probability_of_error;
 
 

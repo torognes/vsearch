@@ -197,8 +197,8 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
       {
         ++seq_count;
 
-        auto const len = h->get_sequence_length();
-        auto const * q = h->get_quality();
+        auto const quality = h->quality_view();
+        auto const len = quality.size();
 
         /* update length statistics */
 
@@ -237,15 +237,16 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
                it indexes the table by the symbol. The check still has to run
                per base, so that an out-of-range quality is reported at the
                position where it occurs. */
-            if (not score_table.accepts(q[i]))
+            auto const symbol = quality[static_cast<std::size_t>(i)];
+            if (not score_table.accepts(symbol))
               {
                 /* the same test accepts() just failed, run again to build the
                    message and name the record it fired on */
-                vsearch::check_quality_score(q[i] - parameters.opt_fastq_ascii,
+                vsearch::check_quality_score(symbol - parameters.opt_fastq_ascii,
                                              parameters, h->quality_location());
               }
 
-            auto const pe = quality_table[q[i]];
+            auto const pe = quality_table[symbol];
 
             ee += pe;
 

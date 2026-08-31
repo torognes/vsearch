@@ -164,6 +164,7 @@ core/otutable.hpp \
 commands/rereplicate.hpp \
 core/query_record.hpp \
 core/results.hpp \
+commands/scramble.hpp \
 commands/usearch_global.hpp \
 core/search.hpp \
 core/search_internal.hpp \
@@ -370,6 +371,7 @@ commands/orient.cpp \
 core/otutable.cpp \
 commands/rereplicate.cpp \
 core/results.cpp \
+commands/scramble.cpp \
 commands/usearch_global.cpp \
 core/search.cpp \
 core/searchcore.cpp \

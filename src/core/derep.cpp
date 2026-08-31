@@ -760,7 +760,8 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
     Progress progress(prompt, filesize, parameters);
     while (input_handle->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        auto const seqlen = static_cast<int64_t>(input_handle->get_sequence_length());
+        auto const sequence = input_handle->sequence_view();
+        auto const seqlen = static_cast<int64_t>(sequence.size());
 
         if (seqlen < parameters.opt_minseqlength)
           {
@@ -817,19 +818,14 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             // memory-intensive: the hash table has been resized (rehash)
           }
 
-        auto const * seq = input_handle->get_sequence();
-        auto const * header = input_handle->get_header();
         auto const header_v = input_handle->header_view();
-        auto const * qual = input_handle->get_quality(); // nullptr if FASTA
+        auto const quality = input_handle->quality_view(); // empty if FASTA
 
-        if (qual != nullptr)
-          {
-            check_quality_range(input_handle->quality_view(), parameters,
-                                input_handle->quality_location());
-          }
+        /* self-guarded: an empty quality view returns immediately */
+        check_quality_range(quality, parameters, input_handle->quality_location());
 
         /* normalize sequence: uppercase and replace U by T  */
-        auto const seq_up_v = normalize_into(seq_up, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        auto const seq_up_v = normalize_into(seq_up, sequence);
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
@@ -893,7 +889,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                 unsigned int const last = bp->seqno_last;
                 nextseqtab[last] = static_cast<unsigned int>(sequencecount);
                 bp->seqno_last = static_cast<unsigned int>(sequencecount);
-                headertab[sequencecount] = header;
+                headertab[sequencecount].assign(header_v.data(), header_v.size());
               }
 
             auto const s1 = static_cast<int64_t>(bp->size);
@@ -911,7 +907,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
                   {
                     auto const member_position = matched_minus_strand ? (seqlen - 1 - i) : i;
                     auto const symbol1 = bp->qual[static_cast<std::size_t>(i)];
-                    auto const symbol2 = qual[member_position];
+                    auto const symbol2 = quality[static_cast<std::size_t>(member_position)];
                     /* the FASTQ readers reject DEL and every byte above it,
                        so both symbols are printable and compare as expected */
                     assert(symbol1 > 0);
@@ -985,13 +981,13 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
             bp->hash = hash;
             bp->seqno_first = static_cast<unsigned int>(sequencecount);
             bp->seqno_last = static_cast<unsigned int>(sequencecount);
-            bp->seq = seq;
-            bp->header = header;
+            bp->seq.assign(sequence.data(), sequence.size());
+            bp->header.assign(header_v.data(), header_v.size());
             bp->count = 1;
-            if (qual != nullptr) {
-              bp->qual = qual;
-            } else {
+            if (quality.empty()) {
               bp->qual.clear();
+            } else {
+              bp->qual.assign(quality.data(), quality.size());
             }
             ++clusters;
           }

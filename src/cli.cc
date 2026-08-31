@@ -518,8 +518,8 @@ namespace {
   }
 
 
-  constexpr auto number_of_commands = std::size_t{51};
-  constexpr auto number_of_options = std::size_t{256};
+  constexpr auto number_of_commands = std::size_t{52};
+  constexpr auto number_of_options = std::size_t{258};
   constexpr auto max_number_of_options_per_command = std::size_t{100};
 
   enum
@@ -729,6 +729,8 @@ namespace {
       option_sample,
       option_sample_pct,
       option_sample_size,
+      option_scramble,
+      option_scramble_kmer,
       option_search_exact,
       option_self,
       option_selfid,
@@ -1006,6 +1008,8 @@ namespace {
       {"sample",                     true },
       {"sample_pct",                 true },
       {"sample_size",                true },
+      {"scramble",                   true },
+      {"scramble_kmer",              true },
       {"search_exact",               true },
       {"self",                       false },
       {"selfid",                     false },
@@ -2452,6 +2456,37 @@ namespace {
         option_xsize,
         -1, },
 
+      { option_scramble,
+        option_bzip2_decompress,
+        option_fasta_width,
+        option_fastaout,
+        option_fastq_ascii,
+        option_fastq_qmax,
+        option_fastq_qmin,
+        option_fastqout,
+        option_gzip_decompress,
+        option_label_suffix,
+        option_lengthout,
+        option_log,
+        option_no_progress,
+        option_notrunclabels,
+        option_quiet,
+        option_randseed,
+        option_relabel,
+        option_relabel_keep,
+        option_relabel_md5,
+        option_relabel_self,
+        option_relabel_sha1,
+        option_sample,
+        option_scramble_kmer,
+        option_sizein,
+        option_sizeout,
+        option_threads,
+        option_xee,
+        option_xlength,
+        option_xsize,
+        -1, },
+
       { option_search_exact,
         option_alnout,
         option_biomout,
@@ -3030,6 +3065,7 @@ namespace {
       Command::maskfasta,         // option_maskfasta
       Command::orient,            // option_orient
       Command::rereplicate,       // option_rereplicate
+      Command::scramble,          // option_scramble
       Command::search_exact,      // option_search_exact
       Command::sff_convert,       // option_sff_convert
       Command::shuffle,           // option_shuffle
@@ -3598,6 +3634,23 @@ namespace {
 
           case option_mid:
             parameters.opt_mid = args_getdouble(optarg);
+            break;
+
+          case option_scramble:
+            parameters.opt_scramble = optarg;
+            break;
+
+          case option_scramble_kmer:
+            parameters.opt_scramble_kmer = args_getlong(optarg);
+            /* K = 1 is mononucleotide scrambling; K >= 2 preserves the
+               counts of all j-mers for j <= K (Eulerian-path sampling).
+               The upper bound comes from the sampler's vertex ids: the
+               (K-1)-mers are packed into a uint64_t, 8 bytes, hence
+               K <= 9 (documented in the manual). */
+            if ((parameters.opt_scramble_kmer < 1) or (parameters.opt_scramble_kmer > 9))
+              {
+                fatal("The argument to --scramble_kmer must be in the range 1 to 9");
+              }
             break;
 
           case option_shuffle:

@@ -128,7 +128,7 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
   auto const fastq_trunclen_keep = static_cast<int>(parameters.opt_fastq_trunclen_keep);
   struct analysis_res res;
   int start = 0;
-  int length = static_cast<int>(input_handle->get_sequence_length());
+  int length = static_cast<int>(input_handle->sequence_view().size());
   auto const old_length = length;
 
   /* strip left (5') end */
@@ -169,11 +169,13 @@ auto analyse(fastx_handle input_handle, vsearch::QualityTable const & quality_ta
     {
       /* truncate by quality and expected errors (ee) */
       res.ee = 0.0;
-      auto const * quality_symbols = input_handle->get_quality() + start;
+      auto const quality_symbols = input_handle->quality_view()
+        .subspan(static_cast<std::size_t>(start), static_cast<std::size_t>(length));
       for (auto i = 0; i < length; ++i)
         {
-          auto const quality_score = fastq_get_qual(quality_symbols[i], parameters, *input_handle);
-          auto const expected_error = quality_table[quality_symbols[i]];
+          auto const quality_symbol = quality_symbols[static_cast<std::size_t>(i)];
+          auto const quality_score = fastq_get_qual(quality_symbol, parameters, *input_handle);
+          auto const expected_error = quality_table[quality_symbol];
           res.ee += expected_error;
 
           if ((quality_score <= parameters.opt_fastq_truncqual) or

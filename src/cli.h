@@ -115,6 +115,7 @@ enum struct Command : int
     fastx_subsample,
     fasta2fastq,
     cut,
+    scramble,
     shuffle,
     sortbylength,
     sortbysize,

@@ -82,7 +82,6 @@
 #include <cassert>
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs, std::size_t
-#include <iterator>  // std::next
 #include <vector>
 
 
@@ -305,7 +304,7 @@ auto orient(struct Parameters const & parameters) -> void
         auto const query_sequence = query_h->sequence_view();
         auto const qseqlen = static_cast<int>(query_sequence.size());
         int64_t const qsize = query_h->get_abundance();
-        char const * query_qual_fwd = query_h->get_quality();
+        auto const query_qual_fwd = query_h->quality_view();
 
         /* find kmers in query sequence */
 
@@ -420,10 +419,9 @@ auto orient(struct Parameters const & parameters) -> void
                 if (query_h->is_fastq_input())
                   {
                     // copy query string in reverse order
-                    std::reverse_copy(query_qual_fwd,
-                                      std::next(query_qual_fwd, qseqlen),
+                    std::reverse_copy(query_qual_fwd.cbegin(), query_qual_fwd.cend(),
                                       query_qual_rev.begin());
-                    query_qual_rev[static_cast<std::size_t>(qseqlen)] = '\0';
+                    query_qual_rev[query_qual_fwd.size()] = '\0';
                   }
 
                 fastq_print_general(fp_fastqout,

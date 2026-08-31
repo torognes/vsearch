@@ -69,7 +69,8 @@
 
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
-  static constexpr std::size_t help_line_count = 492;
+  // C++17 refactoring: deduce the size with CTAD and drop this constant
+  static constexpr std::size_t help_line_count = 505;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -380,6 +381,19 @@
       "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n",
       "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n",
       "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
+      " Output\n",
+      "  --fastaout FILENAME         FASTA output filename\n",
+      "  --fastqout FILENAME         FASTQ output filename\n",
+      "  --label_suffix STRING       label to append to identifier in the output\n",
+      "\n",
+      "Scrambling\n",
+      "  --scramble FILENAME         randomize nucleotide order within each sequence\n",
+      " Parameters\n",
+      "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n",
+      "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n",
+      "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
+      "  --randseed INT              seed for PRNG, zero to use random data source (0)\n",
+      "  --scramble_kmer INT         preserve counts of words up to this size 1-9 (1)\n",
       " Output\n",
       "  --fastaout FILENAME         FASTA output filename\n",
       "  --fastqout FILENAME         FASTQ output filename\n",

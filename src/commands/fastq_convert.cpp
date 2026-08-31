@@ -184,13 +184,13 @@ auto fastq_convert(struct Parameters const & parameters) -> void
       {
         /* header */
 
-        auto const * header = input_handle->get_header();
+        auto const header = input_handle->header_view();
         auto const abundance = input_handle->get_abundance();
 
         /* sequence */
 
-        auto const length = input_handle->get_sequence_length();
-        auto const * sequence = input_handle->get_sequence();
+        auto const sequence = input_handle->sequence_view();
+        auto const length = sequence.size();
 
         /* convert quality values */
 
@@ -221,13 +221,12 @@ auto fastq_convert(struct Parameters const & parameters) -> void
             return mapped;
           });
 
-        int const hlen = static_cast<int>(input_handle->get_header_length());
         OutputAnnotations annotations {static_cast<uint64_t>(abundance), n_entries};
         annotations.expected_error = default_expected_error;
         fastq_print_general(fp_fastqout,
-                            View<char>{sequence, static_cast<std::size_t>(length)},
-                            View<char>{header, static_cast<std::size_t>(hlen)},
-                            make_view(normalized_quality).first(static_cast<std::size_t>(length)),
+                            sequence,
+                            header,
+                            make_view(normalized_quality).first(length),
                             annotations,
                             parameters);
 

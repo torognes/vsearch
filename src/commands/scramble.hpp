@@ -58,65 +58,7 @@
 
 */
 
-#include "commands/fasta2fastq.hpp"
-#include "vsearch.hpp"
-#include "core/attributes.hpp"  // struct OutputAnnotations
-#include "core/fasta.hpp"
-#include "core/fastq.hpp"
-#include "utils/maps.hpp"
-#include "utils/open_file.hpp"
-#include "utils/progress.hpp"
-#include "utils/view.hpp"  // make_view
-#include <cassert>
-#include <cstddef>  // std::size_t
-#include <cstdint>
-#include <vector>
 
+#pragma once
 
-auto fasta2fastq(struct Parameters const & parameters) -> void
-{
-  auto const max_ascii_value = static_cast<char>(parameters.opt_fastq_asciiout + parameters.opt_fastq_qmaxout);
-
-  auto fp_input = fasta_open(parameters.opt_fasta2fastq, parameters);
-  assert(fp_input != nullptr);  // check performed in fasta_open(fastx_open())
-
-  auto const output_handle = open_mandatory_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  assert(parameters.opt_fastqout != nullptr);  // check performed above
-
-  static constexpr auto initial_length = std::size_t{1024};
-  std::vector<char> quality(initial_length, max_ascii_value);
-
-  Progress progress("Converting FASTA file to FASTQ",
-                    fp_input->get_size(),
-                    parameters);
-
-  auto counter = int64_t{0};  // the ordinal is an int64_t (see OutputAnnotations)
-  while (fp_input->next(false, chrmap_no_change()))
-    {
-      /* get sequence length and allocate more mem if necessary */
-
-      auto const length = fp_input->sequence_view().size();
-
-      if (quality.size() < length)
-        {
-          quality.resize(length, max_ascii_value);
-        }
-
-      // note: adding '\0' and the end of the quality string is not necessary,
-      // fastq_print_general() uses 'length' for both sequence and quality
-
-      ++counter;
-
-      /* write to fastq file */
-      fastq_print_general(output_handle.get(),
-                          fp_input->sequence_view(),
-                          fp_input->header_view(),
-                          make_view(quality).first(length),
-                          OutputAnnotations{static_cast<uint64_t>(fp_input->get_abundance()), counter},
-                          parameters);
-
-      progress.update(fp_input->get_position());
-    }
-
-  fp_input->report_stripped_warning(parameters);
-}
+auto scramble(struct Parameters const & parameters) -> void;
