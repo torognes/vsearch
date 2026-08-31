@@ -370,7 +370,7 @@ auto Database::read(const char * filename, int const upcase, struct Parameters c
                      not parameters.opt_notrunclabels,
                       (upcase != 0) ? chrmap_upcase() : chrmap_no_change()))
       {
-        size_t const sequencelength = input_handle->get_sequence_length();
+        size_t const sequencelength = input_handle->sequence_view().size();
         int64_t const abundance = input_handle->get_abundance();
 
         /* opt_minseqlength defaults to the -1 "unset" sentinel, which the CLI
