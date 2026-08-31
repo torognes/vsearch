@@ -235,12 +235,13 @@ auto fastq_join(struct Parameters const & parameters) -> void
            std::string temporaries re-allocated on every record. The reverse
            quality is appended back to front, which is all its reversal is. */
 
-        final_sequence.assign(fwd_sequence.data(), fwd_seq_length);
+        final_sequence.assign(fwd_sequence.cbegin(), fwd_sequence.cend());
         final_sequence.append(parameters.opt_join_padgap);
         final_sequence.append(rc_buffer.data(), rev_seq_length);
 
+        auto const fwd_quality = infiles.forward.handle->quality_view();
         auto const rev_quality = infiles.reverse.handle->quality_view();
-        final_quality.assign(infiles.forward.handle->quality_view().data(), fwd_seq_length);
+        final_quality.assign(fwd_quality.cbegin(), fwd_quality.cend());
         final_quality.append(parameters.opt_join_padgapq);
         final_quality.append(std::reverse_iterator<char const *>{rev_quality.cend()},
                              std::reverse_iterator<char const *>{rev_quality.cbegin()});
