@@ -75,6 +75,7 @@
 
 #include "core/mask.hpp"  // Masking
 #include "utils/quality_encoding.hpp"  // sanger_ascii_offset (opt_fastq_ascii default)
+#include "utils/userfields.hpp"  // Userfield
 
 // C++20 refactoring: constexpr
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
@@ -414,7 +415,7 @@ public:
   bool      opt_n_mismatch                   = false;
 
   std::vector<double> opt_ee_cutoffs = {0.5, 1.0, 2.0};  // was opt_ee_cutoffs_values/_count
-  std::vector<int> opt_userfields;  // was userfields_requested/_count (globals)
+  std::vector<Userfield> opt_userfields;  // was userfields_requested/_count (globals)
 
   /* Internal state (not an option): guards the once-only gap-open penalty
      adjustment in vsearch_apply_defaults_fixups() so a repeated call on the

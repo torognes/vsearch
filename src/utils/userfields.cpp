@@ -60,88 +60,94 @@
 
 #include "userfields.hpp"
 #include "vsearch.hpp"  // struct Parameters
-#include <algorithm>  // std::find
+#include <algorithm>  // std::find, std::find_if
 #include <array>
 #include <cstddef>  // std::size_t
 #include <cstdint>  // uint64_t
 #include <cstring>  // std::strlen
-#include <iterator>  // std::distance
 #include <string>  // std::string
+#include <utility>  // std::pair
 #include <vector>  // std::vector::clear, push_back
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-/* The position of each name IS the field id: results_show_userout_one()
-   switches on 0..42 in this exact order, so an entry must never be inserted in
-   the middle or reordered (its default: case fatal()s if one is). The count is
-   spelled out so that adding a name without extending that switch is a compile
-   error here rather than a silent renumbering. */
+/* Name and field, side by side. Order is presentation only: the parser
+   matches on the name and returns the enumerator sitting next to it, so
+   entries may be inserted or reordered freely. */
 constexpr std::size_t userfield_count = 53;
 
-/* Held by a function-local static rather than a namespace-scope object: the
-   names are std::string, so their initialization is dynamic, and a throwing
-   static initializer cannot be caught (the command-line build compiles with
-   -fno-exceptions). This way the table is built on first use, outside the
-   static-initialization order. */
-auto valid_userfield_names() -> std::array<std::string, userfield_count> const &
+/* Adding a Userfield enumerator without adding its name here would leave the
+   new field unparseable from the command line; tie the two counts together
+   (thir is the last enumerator). */
+static_assert(static_cast<int>(Userfield::thir) + 1 ==
+              static_cast<int>(userfield_count),
+              "one name per Userfield enumerator");
+
+/* Held by a function-local static rather than a namespace-scope object. The
+   hazard this shape guarded against -- the names were std::string, whose
+   dynamic initialization could throw where -fno-exceptions cannot catch --
+   lifted when the entries became pointers to string literals; the shape is
+   kept unchanged, one change at a time. */
+auto valid_userfields()
+  -> std::array<std::pair<char const *, Userfield>, userfield_count> const &
 {
-  static std::array<std::string, userfield_count> const names =
+  static std::array<std::pair<char const *, Userfield>, userfield_count> const names =
   {{
-    "query",  // 0
-    "target", // 1
-    "evalue", // 2
-    "id",     // 3
-    "pctpv",
-    "pctgaps",
-    "pairs",
-    "gaps",
-    "qlo",
-    "qhi",
-    "tlo",
-    "thi",
-    "pv",
-    "ql",
-    "tl",
-    "qs",
-    "ts",
-    "alnlen",
-    "opens",
-    "exts",
-    "raw",
-    "bits",
-    "aln",
-    "caln",
-    "qstrand",
-    "tstrand",
-    "qrow",
-    "trow",
-    "qframe",
-    "tframe",
-    "mism",
-    "ids",
-    "qcov",
-    "tcov",   // 33
-    "id0",
-    "id1",
-    "id2",
-    "id3",
-    "id4",    // 38
-    "qilo",   // 39
-    "qihi",
-    "tilo",
-    "tihi",   // 42
-    "diffs",  // 43
-    "mid",    // 44
-    "qseq",   // 45
-    "tseq",   // 46
-    "qrowdots",  // 47
-    "trowdots",  // 48
-    "qlor",   // 49
-    "qhir",
-    "tlor",
-    "thir",   // 52
+    {"query",    Userfield::query},
+    {"target",   Userfield::target},
+    {"evalue",   Userfield::evalue},
+    {"id",       Userfield::id},
+    {"pctpv",    Userfield::pctpv},
+    {"pctgaps",  Userfield::pctgaps},
+    {"pairs",    Userfield::pairs},
+    {"gaps",     Userfield::gaps},
+    {"qlo",      Userfield::qlo},
+    {"qhi",      Userfield::qhi},
+    {"tlo",      Userfield::tlo},
+    {"thi",      Userfield::thi},
+    {"pv",       Userfield::pv},
+    {"ql",       Userfield::ql},
+    {"tl",       Userfield::tl},
+    {"qs",       Userfield::qs},
+    {"ts",       Userfield::ts},
+    {"alnlen",   Userfield::alnlen},
+    {"opens",    Userfield::opens},
+    {"exts",     Userfield::exts},
+    {"raw",      Userfield::raw},
+    {"bits",     Userfield::bits},
+    {"aln",      Userfield::aln},
+    {"caln",     Userfield::caln},
+    {"qstrand",  Userfield::qstrand},
+    {"tstrand",  Userfield::tstrand},
+    {"qrow",     Userfield::qrow},
+    {"trow",     Userfield::trow},
+    {"qframe",   Userfield::qframe},
+    {"tframe",   Userfield::tframe},
+    {"mism",     Userfield::mism},
+    {"ids",      Userfield::ids},
+    {"qcov",     Userfield::qcov},
+    {"tcov",     Userfield::tcov},
+    {"id0",      Userfield::id0},
+    {"id1",      Userfield::id1},
+    {"id2",      Userfield::id2},
+    {"id3",      Userfield::id3},
+    {"id4",      Userfield::id4},
+    {"qilo",     Userfield::qilo},
+    {"qihi",     Userfield::qihi},
+    {"tilo",     Userfield::tilo},
+    {"tihi",     Userfield::tihi},
+    {"diffs",    Userfield::diffs},
+    {"mid",      Userfield::mid},
+    {"qseq",     Userfield::qseq},
+    {"tseq",     Userfield::tseq},
+    {"qrowdots", Userfield::qrowdots},
+    {"trowdots", Userfield::trowdots},
+    {"qlor",     Userfield::qlor},
+    {"qhir",     Userfield::qhir},
+    {"tlor",     Userfield::tlor},
+    {"thir",     Userfield::thir},
   },};
   return names;
 }
@@ -161,7 +167,7 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
   parameters.opt_userfields.clear();
 
   char const * next_separator = nullptr;
-  auto const & valid_names = valid_userfield_names();
+  auto const & valid_names = valid_userfields();
 
   while (true)
     {
@@ -177,17 +183,18 @@ auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> b
         }
 
       std::string const field(ptr, static_cast<std::size_t>(field_length));
-      auto const * const found = std::find(valid_names.cbegin(),
-                                           valid_names.cend(), field);
+      auto const * const found =
+        std::find_if(valid_names.cbegin(), valid_names.cend(),
+                     [&field](std::pair<char const *, Userfield> const & entry) -> bool {
+                       return field == entry.first;
+                     });
 
       if (found == valid_names.cend())
         {    // reached end of list -> unrecognized field
           return false; // bad argument
         }
 
-      auto const nth_valid_userfield =
-        static_cast<int>(std::distance(valid_names.cbegin(), found));
-      parameters.opt_userfields.push_back(nth_valid_userfield);
+      parameters.opt_userfields.push_back(found->second);
 
       ptr = next_separator;
 

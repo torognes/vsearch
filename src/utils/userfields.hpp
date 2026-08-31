@@ -60,4 +60,17 @@
 
 #pragma once
 
+/* The 53 fields --userfields accepts, in the order userfields(7) and the
+   name table in userfields.cpp list them. The values are not API: a caller
+   names an enumerator, and inserting a field renumbers everything after
+   it. */
+enum struct Userfield : int {
+  query, target, evalue, id, pctpv, pctgaps, pairs, gaps,
+  qlo, qhi, tlo, thi, pv, ql, tl, qs, ts, alnlen, opens, exts,
+  raw, bits, aln, caln, qstrand, tstrand, qrow, trow, qframe, tframe,
+  mism, ids, qcov, tcov, id0, id1, id2, id3, id4,
+  qilo, qihi, tilo, tihi,
+  diffs, mid, qseq, tseq, qrowdots, trowdots, qlor, qhir, tlor, thir
+};
+
 auto parse_userfields_arg(char const * arg, struct Parameters & parameters) -> bool;

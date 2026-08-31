@@ -74,6 +74,7 @@
 #include "utils/print_record.hpp"  // OutputRecord, fprint
 #include "utils/print_view.hpp"  // fprint
 #include "utils/prog_id.hpp"  // PROG_NAME, PROG_VERSION
+#include "utils/userfields.hpp"  // Userfield
 #include <algorithm>  // std::equal, std::max, std::transform
 #include <array>
 #include <cassert>  // assert
@@ -406,7 +407,7 @@ namespace {
    the enclosing writer takes. `parameters` is deliberately not among them: none
    of the cases reads it. */
 auto print_userfield(std::FILE * output_handle,
-                     int const field,
+                     Userfield const field,
                      struct hit const * const hit,
                      View<char> const query_head,
                      View<char> const qsequence,
@@ -429,98 +430,98 @@ auto print_userfield(std::FILE * output_handle,
 
   switch (field)
     {
-    case 0: /* query */
+    case Userfield::query:
       fprint(output_handle, query_head);
       break;
-    case 1: /* target */
+    case Userfield::target:
       if (hit != nullptr) { fprint(output_handle, t_head); }
       else { fprint(output_handle, '*'); }
       break;
-    case 2: /* evalue */
+    case Userfield::evalue:
       fprint(output_handle, "-1");
       break;
-    case 3: /* id */
+    case Userfield::id:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id : 0.0);
       break;
-    case 4: /* pctpv */
+    case Userfield::pctpv:
       std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->matches / hit->internal_alignmentlength : 0.0);
       break;
-    case 5: /* pctgaps */
+    case Userfield::pctgaps:
       std::fprintf(output_handle, "%.1f", ((hit != nullptr) and (hit->internal_alignmentlength > 0)) ? 100.0 * hit->internal_indels / hit->internal_alignmentlength : 0.0);
       break;
-    case 6: /* pairs */
+    case Userfield::pairs:
       fprint_integer(output_handle, (hit != nullptr) ? hit->matches + hit->mismatches : 0);
       break;
-    case 7: /* gaps */
+    case Userfield::gaps:
       fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels : 0);
       break;
-    case 8: /* qlo */
+    case Userfield::qlo:
       fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? qseqlen : 1) : 0);
       break;
-    case 9: /* qhi */
+    case Userfield::qhi:
       fprint_integer(output_handle, (hit != nullptr) ? ((hit->strand != 0) ? 1 : qseqlen) : 0);
       break;
-    case 10: /* tlo */
+    case Userfield::tlo:
       fprint_integer(output_handle, (hit != nullptr) ? 1 : 0);
       break;
-    case 11: /* thi */
+    case Userfield::thi:
       fprint_integer(output_handle, tseqlen);
       break;
-    case 12: /* pv */
+    case Userfield::pv:
       fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
       break;
-    case 13: /* ql */
+    case Userfield::ql:
       fprint_integer(output_handle, qseqlen);
       break;
-    case 14: /* tl */
+    case Userfield::tl:
       fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
       break;
-    case 15: /* qs */
+    case Userfield::qs:
       fprint_integer(output_handle, qseqlen);
       break;
-    case 16: /* ts */
+    case Userfield::ts:
       fprint_integer(output_handle, (hit != nullptr) ? tseqlen : 0);
       break;
-    case 17: /* alnlen */
+    case Userfield::alnlen:
       fprint_integer(output_handle, (hit != nullptr) ? hit->internal_alignmentlength : 0);
       break;
-    case 18: /* opens */
+    case Userfield::opens:
       fprint_integer(output_handle, (hit != nullptr) ? hit->internal_gaps : 0);
       break;
-    case 19: /* exts */
+    case Userfield::exts:
       fprint_integer(output_handle, (hit != nullptr) ? hit->internal_indels - hit->internal_gaps : 0);
       break;
-    case 20: /* raw */
+    case Userfield::raw:
       fprint_integer(output_handle, (hit != nullptr) ? hit->nwscore : 0);
       break;
-    case 21: /* bits */
+    case Userfield::bits:
       fprint_integer(output_handle, 0);
       break;
-    case 22: /* aln */
+    case Userfield::aln:
       if (hit != nullptr)
         {
           print_uncompressed_cigar(output_handle, make_view(hit->nwalignment));
         }
       break;
-    case 23: /* caln */
+    case Userfield::caln:
       if (hit != nullptr)
         {
           fprint(output_handle, make_view(hit->nwalignment));
         }
       break;
-    case 24: /* qstrand */
+    case Userfield::qstrand:
       if (hit != nullptr)
         {
           fprint(output_handle, (hit->strand != 0) ? '-' : '+');
         }
       break;
-    case 25: /* tstrand */
+    case Userfield::tstrand:
       if (hit != nullptr)
         {
           fprint(output_handle, '+');
         }
       break;
-    case 26: /* qrow */
+    case Userfield::qrow:
       if (hit != nullptr)
         {
           auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
@@ -530,7 +531,7 @@ auto print_userfield(std::FILE * output_handle,
           fprint(output_handle, internal_window(qrow, *hit));
         }
       break;
-    case 27: /* trow */
+    case Userfield::trow:
       if (hit != nullptr)
         {
           auto const trow = get_alignment_trow(tsequence,
@@ -539,50 +540,50 @@ auto print_userfield(std::FILE * output_handle,
           fprint(output_handle, internal_window(trow, *hit));
         }
       break;
-    case 28: /* qframe */
-    case 29: /* tframe */
+    case Userfield::qframe:
+    case Userfield::tframe:
       fprint(output_handle, "+0");
       break;
-    case 30: /* mism */
+    case Userfield::mism:
       fprint_integer(output_handle, (hit != nullptr) ? hit->mismatches : 0);
       break;
-    case 31: /* ids */
+    case Userfield::ids:
       fprint_integer(output_handle, (hit != nullptr) ? hit->matches : 0);
       break;
-    case 32: /* qcov */
+    case Userfield::qcov:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(qseqlen) : 0.0);
       break;
-    case 33: /* tcov */
+    case Userfield::tcov:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? 100.0 * (hit->matches + hit->mismatches) / static_cast<double>(tseqlen) : 0.0);
       break;
-    case 34: /* id0 */
+    case Userfield::id0:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id0 : 0.0);
       break;
-    case 35: /* id1 */
+    case Userfield::id1:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id1 : 0.0);
       break;
-    case 36: /* id2 */
+    case Userfield::id2:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id2 : 0.0);
       break;
-    case 37: /* id3 */
+    case Userfield::id3:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id3 : 0.0);
       break;
-    case 38: /* id4 */
+    case Userfield::id4:
       std::fprintf(output_handle, "%.1f", (hit != nullptr) ? hit->id4 : 0.0);
       break;
 
       /* new internal alignment coordinates */
 
-    case 39: /* qilo */
+    case Userfield::qilo:
       fprint_integer(output_handle, (hit != nullptr) ? hit->trim_q_left + 1 : 0);
       break;
-    case 40: /* qihi */
+    case Userfield::qihi:
       fprint_integer(output_handle, (hit != nullptr) ? qseqlen - hit->trim_q_right : 0);
       break;
-    case 41: /* tilo */
+    case Userfield::tilo:
       fprint_integer(output_handle, (hit != nullptr) ? hit->trim_t_left + 1 : 0);
       break;
-    case 42: /* tihi */
+    case Userfield::tihi:
       fprint_integer(output_handle, (hit != nullptr) ? tseqlen - hit->trim_t_right : 0);
       break;
 
@@ -590,7 +591,7 @@ auto print_userfield(std::FILE * output_handle,
          (see the accept gate in core/searchcore.cpp): mismatching columns plus
          gapped columns, terminal gaps excluded, which is also alnlen - ids */
 
-    case 43: /* diffs */
+    case Userfield::diffs:
       fprint_integer(output_handle,
                      (hit != nullptr) ? hit->mismatches + hit->internal_indels : 0);
       break;
@@ -601,7 +602,7 @@ auto print_userfield(std::FILE * output_handle,
          100.0 here while id reports less. The gate divides unguarded, which is
          a NaN for an alignment made only of gap columns; guard it here. */
 
-    case 44: /* mid */
+    case Userfield::mid:
       {
         auto const letter_pairs = (hit != nullptr) ? hit->matches + hit->mismatches : 0;
         std::fprintf(output_handle, "%.1f",
@@ -615,18 +616,18 @@ auto print_userfield(std::FILE * output_handle,
          --qsegout; with no hit there is no strand and the query is printed as
          read, the way ql already reports its real length on such a row. */
 
-    case 45: /* qseq */
+    case Userfield::qseq:
       fprint(output_handle,
              ((hit != nullptr) and (hit->strand != 0)) ? qsequence_rc : qsequence);
       break;
-    case 46: /* tseq */
+    case Userfield::tseq:
       if (hit != nullptr) { fprint(output_handle, tsequence); }
       break;
 
       /* the aligned segments again, but written as differences: every column
          identical to the other row becomes a dot */
 
-    case 47: /* qrowdots */
+    case Userfield::qrowdots:
       if (hit != nullptr)
         {
           auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
@@ -636,7 +637,7 @@ auto print_userfield(std::FILE * output_handle,
                            internal_window(rows.target, *hit));
         }
       break;
-    case 48: /* trowdots */
+    case Userfield::trowdots:
       if (hit != nullptr)
         {
           auto const query = (hit->strand != 0) ? qsequence_rc : qsequence;
@@ -652,27 +653,23 @@ auto print_userfield(std::FILE * output_handle,
          qlo and qhi make on a minus-strand hit. A row with no hit reports 0,
          the value every numeric field reports there. */
 
-    case 49: /* qlor */
+    case Userfield::qlor:
       fprint_integer(output_handle,
                      (hit != nullptr) ? ((hit->strand != 0) ? qseqlen - 1 : 0) : 0);
       break;
-    case 50: /* qhir */
+    case Userfield::qhir:
       fprint_integer(output_handle,
                      (hit != nullptr) ? ((hit->strand != 0) ? 0 : qseqlen - 1) : 0);
       break;
-    case 51: /* tlor */
+    case Userfield::tlor:
       fprint_integer(output_handle, 0);
       break;
-    case 52: /* thir */
+    case Userfield::thir:
       fprint_integer(output_handle, (hit != nullptr) ? tseqlen - 1 : 0);
       break;
-    default:
-      /* userfields_requested only ever holds validated indices (0..52),
-         so this is unreachable today. It guards against a userfields_names
-         entry being added or reordered in utils/userfields.cpp without a matching
-         case here — the positional coupling would otherwise print nothing
-         silently (E2). */
-      fatal("Internal error: unknown userfield index in results_show_userout_one");
+      /* no default: on purpose -- with every enumerator listed, -Wswitch
+         reports a Userfield added without a matching case at compile time.
+         Adding a default back would silently disable that check. */
     }
 }
 }  // anonymous namespace
