@@ -3642,14 +3642,14 @@ namespace {
 
           case option_scramble_kmer:
             parameters.opt_scramble_kmer = args_getlong(optarg);
-            /* K = 1 is mononucleotide scrambling; K >= 2 (preserving all
-               j-mer counts for j <= K) is reserved for the future
-               Eulerian-path sampler and refused by the scramble command
-               itself, so the parse-time guard only enforces the manpage
-               range (a positive integer). */
-            if (parameters.opt_scramble_kmer < 1)
+            /* K = 1 is mononucleotide scrambling; K >= 2 preserves the
+               counts of all j-mers for j <= K (Eulerian-path sampling).
+               The upper bound comes from the sampler's vertex ids: the
+               (K-1)-mers are packed into a uint64_t, 8 bytes, hence
+               K <= 9 (documented in the manual). */
+            if ((parameters.opt_scramble_kmer < 1) or (parameters.opt_scramble_kmer > 9))
               {
-                fatal("The argument to --scramble_kmer must be at least 1");
+                fatal("The argument to --scramble_kmer must be in the range 1 to 9");
               }
             break;
 
