@@ -69,7 +69,7 @@
 
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
-  static constexpr std::size_t help_line_count = 507;
+  static constexpr std::size_t help_line_count = 505;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
