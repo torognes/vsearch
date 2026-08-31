@@ -47,8 +47,8 @@ nucleotide symbols (see
 their per-sequence counts all pass through exactly. Note that
 positional features are *not* preserved: runs of lowercase-masked
 nucleotides are dispersed (only the masked fraction is preserved),
-and the composition in words of two or more nucleotides changes (see
-`--scramble_kmer`).
+and the composition in words of two or more nucleotides changes,
+unless preserved with `--scramble_kmer`.
 
 For fastq input, the quality string of each entry is always copied
 through unchanged: the positional quality profile of each entry

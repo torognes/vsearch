@@ -393,7 +393,7 @@
       "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n",
       "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
       "  --randseed INT              seed for PRNG, zero to use random data source (0)\n",
-      "  --scramble_kmer INT         size of preserved k-mers, only 1 supported (1)\n",
+      "  --scramble_kmer INT         preserve counts of words up to this size 1-9 (1)\n",
       " Output\n",
       "  --fastaout FILENAME         FASTA output filename\n",
       "  --fastqout FILENAME         FASTQ output filename\n",
