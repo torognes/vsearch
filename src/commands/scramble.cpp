@@ -71,6 +71,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/random.hpp"
 #include <algorithm>  // std::copy
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint64_t
@@ -80,6 +81,26 @@
 
 
 constexpr auto initial_memory_allocation = 512;
+
+
+// anonymous namespace: limit visibility and usage to this translation unit
+namespace {
+
+  /* One Scrambler per run owns the scramble operation. With
+     --scramble_kmer fixed at 1 (the only accepted value for now) it
+     forwards to the portable Fisher-Yates in utils/random.hpp; this
+     class is the seam where the k >= 2 Eulerian-path sampler (a
+     private de Bruijn graph component with buffers reused across
+     records) plugs in later. */
+  class Scrambler {
+  public:
+    template <typename URBG>
+    auto scramble(Span<char> const sequence, URBG & generator) -> void {
+      random_shuffle(sequence, generator);
+    }
+  };
+
+}  // end of anonymous namespace
 
 
 auto scramble(struct Parameters const & parameters) -> void
@@ -112,6 +133,14 @@ auto scramble(struct Parameters const & parameters) -> void
   std::FILE * const fp_fastaout = fastaout_handle.get();
   std::FILE * const fp_fastqout = fastqout_handle.get();
 
+  /* the RandomSeed carries the full 64-bit --randseed (or an OS value
+     when 0); every draw goes through random_bounded(), so a given seed
+     yields the same output on any platform (see utils/random.hpp).
+     RandomSeed's constructor may throw (std::random_device on the
+     --randseed 0 path), so scramble() cannot be noexcept. */
+  RandomSeed const seed(parameters);
+  Scrambler scrambler;
+
   {
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress("Scrambling", filesize, parameters);
@@ -141,6 +170,14 @@ auto scramble(struct Parameters const & parameters) -> void
         std::copy(p, std::next(p, static_cast<std::ptrdiff_t>(length)),
                   seq_buffer.begin());
         seq_buffer[length] = '\0';
+
+        /* per-record substream (sintax-style): each record's scramble
+           depends only on the base seed, its ordinal, and its length,
+           never on how many draws earlier records consumed -- so fasta
+           and fastq runs over the same records scramble identically */
+        SplitMix64 generator(seed.substream(static_cast<uint64_t>(count)));
+        scrambler.scramble(make_span(seq_buffer).first(static_cast<std::size_t>(length)),
+                           generator);
 
 
         /* quality values */
