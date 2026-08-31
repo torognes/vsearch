@@ -63,7 +63,7 @@
 /* The 53 fields --userfields accepts, in the order userfields(7) and the
    name table in userfields.cpp list them. The values are not API: a caller
    names an enumerator, and inserting a field renumbers everything after
-   it. */
+   it. The int base is kept on purpose: std::uint8_t would buy nothing. */
 enum struct Userfield : int {
   query, target, evalue, id, pctpv, pctgaps, pairs, gaps,
   qlo, qhi, tlo, thi, pv, ql, tl, qs, ts, alnlen, opens, exts,
