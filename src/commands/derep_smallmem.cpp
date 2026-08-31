@@ -269,7 +269,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     Progress progress(prompt, filesize, parameters);
     while (h->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        auto const seqlen = static_cast<int64_t>(h->get_sequence_length());
+        auto const sequence = h->sequence_view();
+        auto const seqlen = static_cast<int64_t>(sequence.size());
 
         if (seqlen < parameters.opt_minseqlength)
           {
@@ -305,10 +306,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             // memory-intensive: the hash table has been resized (rehash)
           }
 
-        auto const * seq = h->get_sequence();
-
         /* normalize sequence: uppercase and replace U by T  */
-        auto const seq_up_v = normalize_into(seq_up, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        auto const seq_up_v = normalize_into(seq_up, sequence);
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
@@ -412,17 +411,16 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     Progress progress("Writing FASTA output file", filesize, parameters);
     while (h2->next(not parameters.opt_notrunclabels, chrmap_no_change()))
       {
-        auto const seqlen = static_cast<int64_t>(h2->get_sequence_length());
+        auto const sequence = h2->sequence_view();
+        auto const seqlen = static_cast<int64_t>(sequence.size());
 
         if ((seqlen < parameters.opt_minseqlength) or (seqlen > parameters.opt_maxseqlength))
           {
             continue;
           }
 
-        auto const * seq = h2->get_sequence();
-
         /* normalize sequence: uppercase and replace U by T  */
-        auto const seq_up_v = normalize_into(seq_up, View<char>{seq, static_cast<std::size_t>(seqlen)});
+        auto const seq_up_v = normalize_into(seq_up, sequence);
 
         /* reverse complement if necessary */
         if (parameters.opt_strand)
@@ -468,16 +466,13 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
           {
             /* print sequence */
 
-            auto const * header = h2->get_header();
-            int const headerlen = static_cast<int>(h2->get_header_length());
-
             if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
               {
                 ++selected;
                 fasta_print_general(fp_fastaout,
                                     nullptr,
-                                    View<char>{seq, static_cast<std::size_t>(seqlen)},
-                                    View<char>{header, static_cast<std::size_t>(headerlen)},
+                                    sequence,
+                                    h2->header_view(),
                                     OutputAnnotations{static_cast<uint64_t>(size),
                                                       static_cast<int64_t>(selected)},
                                     parameters);
