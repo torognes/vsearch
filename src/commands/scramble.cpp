@@ -315,7 +315,7 @@ namespace {
 
 auto scramble(struct Parameters const & parameters) -> void
 {
-  uint64_t buffer_alloc = initial_memory_allocation;
+  std::size_t buffer_alloc = initial_memory_allocation;
   std::vector<char> seq_buffer(buffer_alloc);
   std::vector<char> qual_buffer(buffer_alloc);
 
@@ -354,14 +354,14 @@ auto scramble(struct Parameters const & parameters) -> void
 
         /* header */
 
-        auto const hlen = input_handle->get_header_length();
-        auto const * header = input_handle->get_header();
+        auto const header = input_handle->header_view();
         auto const abundance = input_handle->get_abundance();
 
 
         /* sequence */
 
-        auto const length = input_handle->get_sequence_length();
+        auto const sequence = input_handle->sequence_view();
+        auto const length = sequence.size();
 
         if (length + 1 > buffer_alloc)
           {
@@ -370,9 +370,7 @@ auto scramble(struct Parameters const & parameters) -> void
             qual_buffer.resize(buffer_alloc);
           }
 
-        auto const * seq = input_handle->get_sequence();
-        std::copy(seq, std::next(seq, static_cast<std::ptrdiff_t>(length)),
-                  seq_buffer.begin());
+        std::copy(sequence.cbegin(), sequence.cend(), seq_buffer.begin());
         seq_buffer[length] = '\0';
 
         /* per-record substream (sintax-style): each record's scramble
@@ -380,31 +378,26 @@ auto scramble(struct Parameters const & parameters) -> void
            never on how many draws earlier records consumed -- so fasta
            and fastq runs over the same records scramble identically */
         SplitMix64 generator(seed.substream(static_cast<uint64_t>(count)));
-        scrambler.scramble(make_span(seq_buffer).first(static_cast<std::size_t>(length)),
+        scrambler.scramble(make_span(seq_buffer).first(length),
                            parameters.opt_scramble_kmer, generator);
 
 
         /* quality values */
 
-        auto const * qual = input_handle->get_quality();
-
-        if (input_handle->is_fastq_input())
-          {
-            /* the quality string is copied through untouched: quality is
-               never scrambled, so the positional quality profile of each
-               record is preserved exactly while the base<->quality pairing
-               is deliberately broken */
-            std::copy(qual, std::next(qual, static_cast<std::ptrdiff_t>(length)),
-                      qual_buffer.begin());
-            qual_buffer[length] = '\0';
-          }
+        /* the quality string is copied through untouched: quality is
+           never scrambled, so the positional quality profile of each
+           record is preserved exactly while the base<->quality pairing
+           is deliberately broken (the view is empty for fasta input) */
+        auto const quality = input_handle->quality_view();
+        std::copy(quality.cbegin(), quality.cend(), qual_buffer.begin());
+        qual_buffer[quality.size()] = '\0';
 
         if (parameters.opt_fastaout != nullptr)
           {
             fasta_print_general(fp_fastaout,
                                 nullptr,
-                                make_view(seq_buffer).first(static_cast<std::size_t>(length)),
-                                View<char>{header, static_cast<std::size_t>(hlen)},
+                                make_view(seq_buffer).first(length),
+                                header,
                                 OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
@@ -412,9 +405,9 @@ auto scramble(struct Parameters const & parameters) -> void
         if (parameters.opt_fastqout != nullptr)
           {
             fastq_print_general(fp_fastqout,
-                                make_view(seq_buffer).first(static_cast<std::size_t>(length)),
-                                View<char>{header, static_cast<std::size_t>(hlen)},
-                                make_view(qual_buffer).first(static_cast<std::size_t>(length)),
+                                make_view(seq_buffer).first(length),
+                                header,
+                                make_view(qual_buffer).first(length),
                                 OutputAnnotations{static_cast<uint64_t>(abundance), count},
                                 parameters);
           }
