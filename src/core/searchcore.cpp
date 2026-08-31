@@ -713,8 +713,14 @@ auto search_acceptable_aligned(struct searchinfo_s const & searchinfo,
        parameters.opt_target_cov * static_cast<double>(searchinfo.db->getsequencelen(static_cast<uint64_t>(hit.target)))) and
       /* maxid */
       (hit.id <= 100.0 * parameters.opt_maxid) and
-      /* mid */
-      (100.0 * hit.matches / (hit.matches + hit.mismatches) >= parameters.opt_mid) and
+      /* mid -- letter_pair_identity() reports 0.0 where this division was a
+         NaN (an alignment made only of gap columns), and a NaN compares
+         false, so such a hit was rejected even at the default --mid of 0.
+         Zero letter pairs means no identity to measure: let the hit through
+         unless the user asked for a positive floor, keeping --mid a true
+         no-op at its default. No such alignment could be produced through
+         the CLI, so this is insurance, not a user-visible fix. */
+      (letter_pair_identity(hit) >= parameters.opt_mid) and
       /* maxdiffs */
       (difference_count(hit) <= parameters.opt_maxdiffs))
     {
