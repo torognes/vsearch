@@ -95,7 +95,7 @@ auto fasta2fastq(struct Parameters const & parameters) -> void
     {
       /* get sequence length and allocate more mem if necessary */
 
-      auto const length = fp_input->get_sequence_length();
+      auto const length = fp_input->sequence_view().size();
 
       if (quality.size() < length)
         {
