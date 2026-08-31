@@ -186,6 +186,12 @@ where they can be browsed and searched.
 : Use a restriction pattern to cut fasta sequences.
 
 
+## Scrambling
+
+**[`vsearch-scramble(1)`](./commands/vsearch-scramble.1.md)**
+: Randomize the nucleotide order within each fasta or fastq entry.
+
+
 ## Searching
 
 **[`vsearch-search_exact(1)`](./commands/vsearch-search_exact.1.md)**

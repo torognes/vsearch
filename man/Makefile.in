@@ -335,6 +335,7 @@ GENERATED_MANS = \
   manpages/vsearch-pairwise_alignment_parameters.7 \
   manpages/vsearch-rereplicate.1 \
   manpages/vsearch-sam.5 \
+  manpages/vsearch-scramble.1 \
   manpages/vsearch-search_exact.1 \
   manpages/vsearch-sff.5 \
   manpages/vsearch-sff_convert.1 \
