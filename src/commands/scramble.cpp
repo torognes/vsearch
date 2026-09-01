@@ -71,16 +71,15 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/hash_table_size.hpp"  // vsearch::table_size_half
 #include "utils/random.hpp"
 #include <algorithm>  // std::copy, std::find
 #include <cassert>
-#include <climits>  // CHAR_BIT
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint32_t, uint64_t
 #include <cstdio>  // std::FILE, std::size_t
 #include <iterator>  // std::next
 #include <limits>  // std::numeric_limits
-#include <unordered_map>
 #include <utility>  // std::swap
 #include <vector>
 
@@ -90,6 +89,81 @@ constexpr auto initial_memory_allocation = 512;
 
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
+
+  /* the number of bits in a byte, without the CHAR_BIT macro: for
+     unsigned char, digits is exactly that by definition (widened to
+     an unsigned type, as it only ever feeds shifts and products) */
+  constexpr auto bits_per_byte =
+    static_cast<std::size_t>(std::numeric_limits<unsigned char>::digits);
+
+  /* Flat open-addressing vertex table for every (k-1)-mer width (1 to
+     8 packed bytes), replacing std::unordered_map: one find-or-insert
+     probe sequence per position instead of emplace (which allocates a
+     node even for a duplicate key -- one malloc/free per input base,
+     60-70% of every k >= 2 run in the 2026-08-31 profile), contiguous
+     slots instead of node chains. Slots are epoch-stamped:
+     next_record() invalidates the whole table in O(1), so nothing is
+     cleared between records, and the stamp doubles as the empty-slot
+     marker -- no key value needs to be reserved, so the full 64-bit
+     key space of width 8 stays valid. The epoch is 64 bits on
+     purpose: a 32-bit counter would let a stale slot alias a live one
+     after exactly 2^32 records. next_record() sizes a power-of-two probe
+     region from the record's own position count: the load factor
+     stays at or below one half, so linear probing terminates and
+     probe chains stay short, and no rehash can happen mid-record --
+     ids and slots stay put until the next record. The region is
+     per-record so a short record after a long one probes a small,
+     cache-resident region of the high-water allocation. */
+  class FlatVertexTable {
+  public:
+    /* prepare for one record inserting at most n_keys distinct keys:
+       grow the slot vector if needed (fresh slots carry epoch 0,
+       stale by construction) and invalidate every slot in O(1) */
+    auto next_record(std::size_t const n_keys) -> void {
+      auto const region =
+        static_cast<std::size_t>(vsearch::table_size_half(n_keys));
+      if (region > slots_.size()) {
+        slots_.resize(region);
+      }
+      mask_ = region - 1;
+      ++epoch_;
+    }
+
+    /* return the dense vertex id of the (k-1)-mer packed in 'key',
+       assigning 'next_id' on its first occurrence this record; a
+       result equal to next_id signals a first occurrence */
+    /* the bucket index comes from vsearch::splitmix64_mix(): keys are
+       raw sequence bytes packed into a word, so without mixing they
+       cluster in the low bits and linear probing would degenerate into
+       long chains */
+    auto find_or_insert(uint64_t const key, uint32_t const next_id) noexcept -> uint32_t {
+      auto index = static_cast<std::size_t>(vsearch::splitmix64_mix(key)) & mask_;
+      while (true) {
+        Slot & slot = slots_[index];
+        if (slot.epoch != epoch_) {  // empty this record: claim it
+          slot.epoch = epoch_;
+          slot.key = key;
+          slot.vertex_id = next_id;
+          return next_id;
+        }
+        if (slot.key == key) {
+          return slot.vertex_id;
+        }
+        index = (index + 1) & mask_;
+      }
+    }
+
+  private:
+    struct Slot {
+      uint64_t epoch = 0;  // 0 = never used; epoch_ is bumped above it before any lookup
+      uint64_t key = 0;    // packed (k-1)-mer, meaningful only when epoch matches
+      uint32_t vertex_id = 0;
+    };
+    std::vector<Slot> slots_;
+    std::size_t mask_ = 0;  // current probe region size minus one (region is a power of two)
+    uint64_t epoch_ = 0;  // the current record's stamp, see next_record()
+  };
+
 
   /* De Bruijn multigraph of one record, in CSR (compressed sparse row)
      form: one vertex per distinct (k-1)-mer, one directed edge per
@@ -117,25 +191,9 @@ namespace {
       /* pass 1: map each position's (k-1)-mer to a dense vertex id,
          with a rolling key (shift in one byte, mask); ids are assigned
          in order of first occurrence, so the mapping is deterministic */
-      vertex_ids_.clear();
       position_vertices_.clear();
       last_chars_.clear();
-      uint64_t key = 0;
-      auto const mask = (width == sizeof(uint64_t))
-        ? std::numeric_limits<uint64_t>::max()
-        : ((uint64_t{1} << (CHAR_BIT * width)) - 1);
-      for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
-        key = ((key << CHAR_BIT)
-               | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
-        if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
-        /* key holds the (k-1)-mer ending at pos */
-        auto const next_id = static_cast<uint32_t>(last_chars_.size());
-        auto const insertion = vertex_ids_.emplace(key, next_id);
-        if (insertion.second) {
-          last_chars_.push_back(sequence[pos]);
-        }
-        position_vertices_.push_back(insertion.first->second);
-      }
+      map_vertices_hashed(sequence, width);
       assert(position_vertices_.size() == n_positions);
       start_vertex_ = position_vertices_.front();
       end_vertex_ = position_vertices_.back();
@@ -184,12 +242,34 @@ namespace {
     }
 
   private:
+    /* the general vertex mapper: any width up to 8 packed bytes,
+       through the flat open-addressing table */
+    auto map_vertices_hashed(View<char> const sequence, std::size_t const width) -> void {
+      vertex_ids_.next_record(sequence.size() - width + 1);
+      uint64_t key = 0;
+      auto const mask = (width == sizeof(uint64_t))
+        ? std::numeric_limits<uint64_t>::max()
+        : ((uint64_t{1} << (bits_per_byte * width)) - 1);
+      for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
+        key = ((key << bits_per_byte)
+               | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
+        if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
+        /* key holds the (k-1)-mer ending at pos */
+        auto const next_id = static_cast<uint32_t>(last_chars_.size());
+        auto const vertex = vertex_ids_.find_or_insert(key, next_id);
+        if (vertex == next_id) {  // first occurrence this record
+          last_chars_.push_back(sequence[pos]);
+        }
+        position_vertices_.push_back(vertex);
+      }
+    }
+
     std::vector<uint32_t> offsets_;      // vertex_count() + 1 prefix sums into adjacency_
     std::vector<uint32_t> adjacency_;    // one successor id per edge, grouped by source
     std::vector<char> last_chars_;       // per-vertex last byte of its (k-1)-mer
     std::vector<uint32_t> position_vertices_;  // build scratch: vertex id at each position
     std::vector<uint32_t> scatter_cursors_;    // build scratch for pass 3
-    std::unordered_map<uint64_t, uint32_t> vertex_ids_;  // packed (k-1)-mer -> dense id
+    FlatVertexTable vertex_ids_;  // packed (k-1)-mer -> dense id
     uint32_t start_vertex_ = 0;
     uint32_t end_vertex_ = 0;
   };
