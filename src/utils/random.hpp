@@ -78,6 +78,22 @@
    so not portable). This is what makes --randseed reproducible across builds
    and operating systems. */
 
+namespace vsearch
+{
+  /* SplitMix64's output finalizer as a standalone mixing function (Steele et
+     al. 2014): a bijective avalanche over uint64_t, for scattering integer
+     keys wherever unrelated inputs must land far apart -- hash-table bucket
+     indices, for instance (commands/scramble.cpp's FlatVertexTable).
+     SplitMix64::operator() applies exactly this step to its advanced state,
+     which is why it lives here and random.cpp calls it. */
+  inline auto splitmix64_mix(uint64_t value) noexcept -> uint64_t
+  {
+    value = (value ^ (value >> 30U)) * 0xBF58476D1CE4E5B9ULL;
+    value = (value ^ (value >> 27U)) * 0x94D049BB133111EBULL;
+    return value ^ (value >> 31U);
+  }
+}  // namespace vsearch
+
 /* SplitMix64: tiny 64-bit PRNG, one word of state. Models a
    UniformRandomBitGenerator so it works with the helpers below exactly like
    std::mt19937_64. It is cheap to (re)seed, which is why sintax uses one per

@@ -178,8 +178,12 @@ namespace {
     /* return the dense vertex id of the (k-1)-mer packed in 'key',
        assigning 'next_id' on its first occurrence this record; a
        result equal to next_id signals a first occurrence */
+    /* the bucket index comes from vsearch::splitmix64_mix(): keys are
+       raw sequence bytes packed into a word, so without mixing they
+       cluster in the low bits and linear probing would degenerate into
+       long chains */
     auto find_or_insert(uint64_t const key, uint32_t const next_id) noexcept -> uint32_t {
-      auto index = static_cast<std::size_t>(mix(key)) & mask_;
+      auto index = static_cast<std::size_t>(vsearch::splitmix64_mix(key)) & mask_;
       while (true) {
         Slot & slot = slots_[index];
         if (slot.epoch != epoch_) {  // empty this record: claim it
@@ -196,20 +200,6 @@ namespace {
     }
 
   private:
-    /* splitmix64's output finalizer (Steele et al. 2014; the same
-       mixing step utils/random.hpp's SplitMix64 applies per draw).
-       Keys are raw sequence bytes packed into a word, so without
-       mixing they cluster in the low bits and linear probing would
-       degenerate into long chains. */
-    static auto mix(uint64_t key) noexcept -> uint64_t {
-      key ^= key >> 30U;
-      key *= 0xBF58476D1CE4E5B9ULL;
-      key ^= key >> 27U;
-      key *= 0x94D049BB133111EBULL;
-      key ^= key >> 31U;
-      return key;
-    }
-
     struct Slot {
       uint64_t epoch = 0;  // 0 = never used; epoch_ is bumped above it before any lookup
       uint64_t key = 0;    // packed (k-1)-mer, meaningful only when epoch matches
