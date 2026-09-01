@@ -102,10 +102,9 @@ auto populate_si(struct searchinfo_s & si,
   /* allocate more memory for the sequence, if necessary */
 
   auto const seq_len = static_cast<int>(seq.size());
-  if (seq_len + 1 > si.seq_alloc)
+  if (si.qsequence_v.size() < static_cast<size_t>(seq_len) + 1)
     {
-      si.seq_alloc = seq_len + buffer_headroom;
-      si.qsequence_v.resize(static_cast<size_t>(si.seq_alloc));
+      si.qsequence_v.resize(static_cast<size_t>(seq_len + buffer_headroom));
     }
 
   /* copy the header into owned storage, then point the read-only view at it.
@@ -152,7 +151,6 @@ auto search_thread_init(struct searchinfo_s & si, int const seqcount, int const 
   si.hits_v.resize(static_cast<size_t>(tophits) * static_cast<size_t>(number_of_strands(parameters.opt_strand)));
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
-  si.seq_alloc = 0;
   si.qsequence = Span<char>{};
   si.s.reset(search16_init(parameters.opt_match,
                         parameters.opt_mismatch,

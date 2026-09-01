@@ -168,8 +168,9 @@ struct searchinfo_s
   std::vector<char> query_head_v;  /* owned header storage (the copying paths) */
   View<char> query_head {nullptr, 0};  /* query header: a view into query_head_v, the
                                           database, or a caller-owned buffer */
-  int seq_alloc = 0;                /* bytes allocated for the query sequence */
-  std::vector<char> qsequence_v;  /* vector of query sequence chars */
+  std::vector<char> qsequence_v;  /* vector of query sequence chars, grown to
+                                       the longest query seen plus
+                                       buffer_headroom (the copying paths) */
   Span<char> qsequence;          /* query sequence (length == query length):
                                        a span over qsequence_v, the database, or
                                        a caller-owned buffer */

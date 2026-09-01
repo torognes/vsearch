@@ -62,8 +62,8 @@
 
 
 /* Over-allocation headroom (bytes) for the per-query sequence buffers in the
-   search engine: populate_si() grows them to length + buffer_headroom (see
-   searchinfo_s::seq_alloc), so a query slightly longer than the previous one
+   search engine: populate_si() grows searchinfo_s::qsequence_v to
+   length + buffer_headroom, so a query slightly longer than the previous one
    does not trigger another realloc. (The header buffers are simply resized to
    each query's header nowadays and take no headroom.) It also fixes the
    sequence/header length ceiling: --maxseqlength is capped at

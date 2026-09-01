@@ -627,10 +627,9 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (qseqlen + 1 > si->seq_alloc)
+        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen) + 1)
           {
-            si->seq_alloc = qseqlen + buffer_headroom;
-            si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
+            si->qsequence_v.resize(static_cast<size_t>(qseqlen + buffer_headroom));
           }
       }
 
@@ -688,7 +687,6 @@ static auto sintax_thread_init(struct sintax_state_s const & state, struct searc
   si.m = Minheap(state.tophits);
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
-  si.seq_alloc = 0;
   si.qsequence = Span<char>{};
   si.nw = nullptr;
   si.s.reset();

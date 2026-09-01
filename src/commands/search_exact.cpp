@@ -495,10 +495,9 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (qseqlen + 1 > si->seq_alloc)
+        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen) + 1)
           {
-            si->seq_alloc = qseqlen + buffer_headroom;
-            si->qsequence_v.resize(static_cast<size_t>(si->seq_alloc));
+            si->qsequence_v.resize(static_cast<size_t>(qseqlen + buffer_headroom));
           }
       }
 
@@ -558,7 +557,6 @@ auto search_exact_thread_init(struct searchinfo_s & si, struct Parameters const 
   si.hits_v.resize(static_cast<std::size_t>(tophits * number_of_strands(parameters.opt_strand)));
   si.qsize = 1;
   si.query_head = View<char>{nullptr, 0};
-  si.seq_alloc = 0;
   si.qsequence = Span<char>{};
   si.nw = nullptr;
   si.s = nullptr;
