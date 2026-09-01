@@ -395,8 +395,11 @@ namespace {
 
 auto scramble(struct Parameters const & parameters) -> void
 {
-  std::size_t buffer_alloc = initial_memory_allocation;
-  std::vector<char> seq_buffer(buffer_alloc);
+  /* deliberately declared outside the record loop: the buffer grows to
+     the longest record seen and is reused, so after the first few
+     records no allocation happens at all (cppcheck's variableScope
+     hint would reallocate per record) */
+  std::vector<char> seq_buffer(initial_memory_allocation);
 
   if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
     fatal("No output files specified");
@@ -442,10 +445,9 @@ auto scramble(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (length + 1 > buffer_alloc)
+        if (seq_buffer.size() < length + 1)
           {
-            buffer_alloc = length + 1;
-            seq_buffer.resize(buffer_alloc);
+            seq_buffer.resize(length + 1);
           }
 
         std::copy(sequence.cbegin(), sequence.cend(), seq_buffer.begin());

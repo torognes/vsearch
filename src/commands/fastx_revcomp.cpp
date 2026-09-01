@@ -72,7 +72,6 @@
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
 #include <algorithm>  // std::reverse_copy
-#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fclose
 #include <vector>
@@ -83,9 +82,12 @@ constexpr auto initial_memory_allocation = 512;
 
 auto fastx_revcomp(struct Parameters const & parameters) -> void
 {
-  std::size_t buffer_alloc = initial_memory_allocation;
-  std::vector<char> seq_buffer(buffer_alloc);
-  std::vector<char> qual_buffer(buffer_alloc);
+  /* deliberately declared outside the record loop: the buffers grow to
+     the longest record seen and are reused, so after the first few
+     records no allocation happens at all (cppcheck's variableScope
+     hint would reallocate per record) */
+  std::vector<char> seq_buffer(initial_memory_allocation);
+  std::vector<char> qual_buffer(initial_memory_allocation);
 
   if ((parameters.opt_fastaout == nullptr) && (parameters.opt_fastqout == nullptr)) {
     fatal("No output files specified");
@@ -128,11 +130,13 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (length + 1 > buffer_alloc)
+        if (seq_buffer.size() < length + 1)
           {
-            buffer_alloc = length + 1;
-            seq_buffer.resize(buffer_alloc);
-            qual_buffer.resize(buffer_alloc);
+            seq_buffer.resize(length + 1);
+          }
+        if (qual_buffer.size() < length + 1)
+          {
+            qual_buffer.resize(length + 1);
           }
 
         reverse_complement(make_span(seq_buffer).first(length + 1), sequence);
