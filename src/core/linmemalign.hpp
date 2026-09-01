@@ -117,7 +117,6 @@ private:
   static constexpr auto matrix_size = 16U;
   char op = '\0';
   int64_t op_run = 0;
-  int64_t cigar_alloc = 0;
   int64_t cigar_length = 0;
   std::vector<char> cigar_string;
 
@@ -147,8 +146,6 @@ private:
   int64_t ge_t_r = 0;
 
   bool n_mismatch = false;  // treat alignment against N as a mismatch (opt_n_mismatch)
-
-  std::size_t vector_alloc = 0;
 
   std::vector<int64_t> HH;
   std::vector<int64_t> EE;

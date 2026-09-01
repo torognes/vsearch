@@ -216,21 +216,19 @@ auto LinearMemoryAligner::scorematrix_fill(struct Scoring const & scoring) -> vo
 
 
 auto LinearMemoryAligner::alloc_vectors(std::size_t const size) -> void {
-  if (vector_alloc >= size) { return; }
-  vector_alloc = size;
-  HH.resize(vector_alloc);
-  EE.resize(vector_alloc);
-  XX.resize(vector_alloc);
-  YY.resize(vector_alloc);
+  if (HH.size() >= size) { return; }
+  HH.resize(size);
+  EE.resize(size);
+  XX.resize(size);
+  YY.resize(size);
 }
 
 
 auto LinearMemoryAligner::cigar_reset() -> void
 {
-  if (cigar_alloc < 1)
+  if (cigar_string.empty())
     {
-      cigar_alloc = minimal_length;
-      cigar_string.resize(static_cast<std::size_t>(cigar_alloc));
+      cigar_string.resize(static_cast<std::size_t>(minimal_length));
     }
   cigar_string[0] = '\0';
   cigar_length = 0;
@@ -255,10 +253,11 @@ auto LinearMemoryAligner::cigar_flush() -> void
   /* One character beyond the run, for the terminator: cigar_length counts the
      characters written, and cigar_reset()/the readers expect cigar_string to
      stay NUL-terminated. */
-  if (cigar_length + width + 1 > cigar_alloc)
+  auto const current = static_cast<int64_t>(cigar_string.size());
+  if (cigar_length + width + 1 > current)
     {
-      cigar_alloc += std::max(cigar_length + width + 1 - cigar_alloc, minimal_length);
-      cigar_string.resize(static_cast<std::size_t>(cigar_alloc));
+      cigar_string.resize(static_cast<std::size_t>(
+        current + std::max(cigar_length + width + 1 - current, minimal_length)));
     }
 
   auto cursor = std::next(cigar_string.begin(), static_cast<std::ptrdiff_t>(cigar_length));
