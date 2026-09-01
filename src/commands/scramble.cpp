@@ -74,7 +74,6 @@
 #include "utils/random.hpp"
 #include <algorithm>  // std::copy, std::find
 #include <cassert>
-#include <climits>  // CHAR_BIT
 #include <cstddef>  // std::ptrdiff_t
 #include <cstdint>  // int64_t, uint32_t, uint64_t
 #include <cstdio>  // std::FILE, std::size_t
@@ -91,7 +90,13 @@ constexpr auto initial_memory_allocation = 512;
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  constexpr auto n_one_byte_kmers = std::size_t{1} << CHAR_BIT;  // 2^8
+  /* the number of bits in a byte, without the CHAR_BIT macro: for
+     unsigned char, digits is exactly that by definition (widened to
+     an unsigned type, as it only ever feeds shifts and products) */
+  constexpr auto bits_per_byte =
+    static_cast<std::size_t>(std::numeric_limits<unsigned char>::digits);
+
+  constexpr auto n_one_byte_kmers = std::size_t{1} << bits_per_byte;  // 2^8
   constexpr auto n_two_byte_kmers = n_one_byte_kmers * n_one_byte_kmers;  // 2^16
 
   /* Direct-index vertex table for the smallest (k-1)-mer widths: one
@@ -110,6 +115,8 @@ namespace {
      Scrambler. */
   template <std::size_t table_size>
   class DirectVertexTable {
+    static_assert((table_size == n_one_byte_kmers) or (table_size == n_two_byte_kmers),
+                  "DirectVertexTable is sized for one or two packed bytes only");
   public:
     auto next_record() noexcept -> void { ++epoch_; }
 
@@ -228,9 +235,9 @@ namespace {
       uint64_t key = 0;
       auto const mask = (width == sizeof(uint64_t))
         ? std::numeric_limits<uint64_t>::max()
-        : ((uint64_t{1} << (CHAR_BIT * width)) - 1);
+        : ((uint64_t{1} << (bits_per_byte * width)) - 1);
       for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
-        key = ((key << CHAR_BIT)
+        key = ((key << bits_per_byte)
                | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
         if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
         /* key holds the (k-1)-mer ending at pos */
@@ -250,12 +257,12 @@ namespace {
     auto map_vertices_direct(View<char> const sequence,
                              std::size_t const width,
                              DirectVertexTable<table_size> & table) -> void {
-      assert((std::size_t{1} << (CHAR_BIT * width)) == table_size);
+      assert((std::size_t{1} << (bits_per_byte * width)) == table_size);
       table.next_record();
       uint64_t key = 0;
       auto const mask = static_cast<uint64_t>(table_size - 1);
       for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
-        key = ((key << CHAR_BIT)
+        key = ((key << bits_per_byte)
                | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
         if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
         /* key holds the (k-1)-mer ending at pos */
