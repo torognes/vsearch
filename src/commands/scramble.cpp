@@ -120,22 +120,7 @@ namespace {
       vertex_ids_.clear();
       position_vertices_.clear();
       last_chars_.clear();
-      uint64_t key = 0;
-      auto const mask = (width == sizeof(uint64_t))
-        ? std::numeric_limits<uint64_t>::max()
-        : ((uint64_t{1} << (CHAR_BIT * width)) - 1);
-      for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
-        key = ((key << CHAR_BIT)
-               | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
-        if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
-        /* key holds the (k-1)-mer ending at pos */
-        auto const next_id = static_cast<uint32_t>(last_chars_.size());
-        auto const insertion = vertex_ids_.emplace(key, next_id);
-        if (insertion.second) {
-          last_chars_.push_back(sequence[pos]);
-        }
-        position_vertices_.push_back(insertion.first->second);
-      }
+      map_vertices_hashed(sequence, width);
       assert(position_vertices_.size() == n_positions);
       start_vertex_ = position_vertices_.front();
       end_vertex_ = position_vertices_.back();
@@ -184,6 +169,27 @@ namespace {
     }
 
   private:
+    /* the general vertex mapper: any width up to 8 packed bytes,
+       through the unordered_map */
+    auto map_vertices_hashed(View<char> const sequence, std::size_t const width) -> void {
+      uint64_t key = 0;
+      auto const mask = (width == sizeof(uint64_t))
+        ? std::numeric_limits<uint64_t>::max()
+        : ((uint64_t{1} << (CHAR_BIT * width)) - 1);
+      for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
+        key = ((key << CHAR_BIT)
+               | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
+        if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
+        /* key holds the (k-1)-mer ending at pos */
+        auto const next_id = static_cast<uint32_t>(last_chars_.size());
+        auto const insertion = vertex_ids_.emplace(key, next_id);
+        if (insertion.second) {
+          last_chars_.push_back(sequence[pos]);
+        }
+        position_vertices_.push_back(insertion.first->second);
+      }
+    }
+
     std::vector<uint32_t> offsets_;      // vertex_count() + 1 prefix sums into adjacency_
     std::vector<uint32_t> adjacency_;    // one successor id per edge, grouped by source
     std::vector<char> last_chars_;       // per-vertex last byte of its (k-1)-mer
