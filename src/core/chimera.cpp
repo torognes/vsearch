@@ -152,13 +152,13 @@ struct chimera_info_s
   struct Database const * db = nullptr;
 
   int query_alloc = 0; /* the longest query sequence allocated memory for */
-  int head_alloc = 0; /* the longest header allocated memory for */
   int part_alloc = 0; /* the longest query part allocated memory for */
 
   int query_no = 0;
   std::vector<char> query_head_v;  /* owned header storage, NUL-terminated and
-                                      grown monotonically via head_alloc, so it
-                                      is generally longer than the header */
+                                      grown monotonically to the longest header
+                                      seen, so it is generally longer than the
+                                      header */
   View<char> query_head {nullptr, 0};  /* the header itself: a view into
                                           query_head_v, excluding the
                                           terminator */
@@ -373,11 +373,10 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
     }
 
   const int maxhlen = std::max(static_cast<int>(header_length), 1);
-  if (maxhlen > chimera_info->head_alloc)
+  if (chimera_info->query_head_v.size() < static_cast<size_t>(maxhlen) + 1)
     {
       chimera_info->query_head_v.resize(static_cast<size_t>(maxhlen) + 1);
     }
-  chimera_info->head_alloc = std::max(chimera_info->head_alloc, maxhlen);
 
   /* realloc arrays based on query length */
 
