@@ -525,10 +525,6 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
   auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
   auto notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
   auto notmatchedfq_handle = open_optional_output_file(parameters.opt_notmatchedfq, OutputOption{"--notmatchedfq"});
-  std::FILE * const fp_fastaout = fastaout_handle.get();
-  std::FILE * const fp_fastqout = fastqout_handle.get();
-  std::FILE * const fp_notmatched = notmatched_handle.get();
-  std::FILE * const fp_notmatchedfq = notmatchedfq_handle.get();
 
   int64_t kept = 0;
   int64_t discarded = 0;
@@ -572,7 +568,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
             if (parameters.opt_fastaout != nullptr)
               {
-                fasta_print_general(fp_fastaout,
+                fasta_print_general(fastaout_handle.get(),
                                     nullptr,
                                     sequence,
                                     h1->header_view(),
@@ -582,7 +578,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
             if (parameters.opt_fastqout != nullptr)
               {
-                fastq_print_general(fp_fastqout,
+                fastq_print_general(fastqout_handle.get(),
                                     sequence,
                                     h1->header_view(),
                                     h1->quality_view().subspan(window_start, window_length),
@@ -600,7 +596,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
             if (parameters.opt_notmatched != nullptr)
               {
-                fasta_print_general(fp_notmatched,
+                fasta_print_general(notmatched_handle.get(),
                                     nullptr,
                                     h1->record(),
                                     OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
@@ -609,7 +605,7 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
 
             if (parameters.opt_notmatchedfq != nullptr)
               {
-                fastq_print_general(fp_notmatchedfq,
+                fastq_print_general(notmatchedfq_handle.get(),
                                     h1->record(),
                                     OutputAnnotations{static_cast<uint64_t>(h1->get_abundance()), discarded},
                                     parameters);
@@ -630,25 +626,13 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       print_extracted(parameters.fp_log, ExtractionCounts{kept, discarded});
     }
 
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fastaout_handle.reset();
-    }
-
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fastqout_handle.reset();
-    }
-
-  if (parameters.opt_notmatched != nullptr)
-    {
-      notmatched_handle.reset();
-    }
-
-  if (parameters.opt_notmatchedfq != nullptr)
-    {
-      notmatchedfq_handle.reset();
-    }
+  /* close in declaration order at a defined point (destructors would run in
+     reverse, changing the flush order when streams share stdout); reset() is
+     a no-op on an empty handle, so unopened outputs need no guard. */
+  fastaout_handle.reset();
+  fastqout_handle.reset();
+  notmatched_handle.reset();
+  notmatchedfq_handle.reset();
 
   h1->report_stripped_warning(parameters);
 }
