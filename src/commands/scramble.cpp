@@ -435,7 +435,7 @@ auto scramble(struct Parameters const & parameters) -> void
         /* header */
 
         auto const header = input_handle->header_view();
-        auto const abundance = input_handle->get_abundance();
+        auto const abundance = static_cast<uint64_t>(input_handle->get_abundance());
 
 
         /* sequence */
@@ -473,7 +473,7 @@ auto scramble(struct Parameters const & parameters) -> void
                                 nullptr,
                                 make_view(seq_buffer).first(length),
                                 header,
-                                OutputAnnotations{static_cast<uint64_t>(abundance), count},
+                                OutputAnnotations{abundance, count},
                                 parameters);
           }
 
@@ -483,7 +483,7 @@ auto scramble(struct Parameters const & parameters) -> void
                                 make_view(seq_buffer).first(length),
                                 header,
                                 input_handle->quality_view(),
-                                OutputAnnotations{static_cast<uint64_t>(abundance), count},
+                                OutputAnnotations{abundance, count},
                                 parameters);
           }
 
