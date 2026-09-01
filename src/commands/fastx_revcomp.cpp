@@ -109,8 +109,6 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
   auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  std::FILE * const fp_fastaout = fastaout_handle.get();
-  std::FILE * const fp_fastqout = fastqout_handle.get();
 
   {
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
@@ -151,7 +149,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
         if (parameters.opt_fastaout != nullptr)
           {
-            fasta_print_general(fp_fastaout,
+            fasta_print_general(fastaout_handle.get(),
                                 nullptr,
                                 make_view(seq_buffer).first(length),
                                 header,
@@ -161,7 +159,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
         if (parameters.opt_fastqout != nullptr)
           {
-            fastq_print_general(fp_fastqout,
+            fastq_print_general(fastqout_handle.get(),
                                 make_view(seq_buffer).first(length),
                                 header,
                                 make_view(qual_buffer).first(length),
@@ -173,15 +171,12 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
       }
   }
 
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fastaout_handle.reset();
-    }
-
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fastqout_handle.reset();
-    }
+  /* close in declaration order at a defined point (destructors would run in
+     reverse, changing the flush order when both streams share stdout);
+     reset() is a no-op on an empty handle, so unopened outputs need no
+     guard. */
+  fastaout_handle.reset();
+  fastqout_handle.reset();
 
   input_handle->report_stripped_warning(parameters);
 }
