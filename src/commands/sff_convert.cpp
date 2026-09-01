@@ -477,7 +477,6 @@ auto sff_convert(struct Parameters const & parameters) -> void
   auto fp_sff = open_input_file(parameters.opt_sff_convert);
   check_sff_input(parameters.opt_sff_convert, (not fp_sff));
   auto const output_handle = open_mandatory_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  std::FILE * const fp_fastqout = output_handle.get();
 
 
   /* read and check header */
@@ -638,7 +637,7 @@ auto sff_convert(struct Parameters const & parameters) -> void
 
         uint32_t const length = clip_end - clip_start;
 
-        fastq_print_general(fp_fastqout,
+        fastq_print_general(output_handle.get(),
                             View<char>{std::next(bases.data(), clip_start),
                                        static_cast<std::size_t>(length)},
                             make_view(read_name).first(read_name.size() - 1),

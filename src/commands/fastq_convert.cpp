@@ -171,7 +171,6 @@ auto fastq_convert(struct Parameters const & parameters) -> void
   auto const filesize = input_handle->get_size();
 
   auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-  std::FILE * const fp_fastqout = fastqout_handle.get();
 
 
   static constexpr auto default_expected_error = -1.0;  // refactoring: print no ee value?
@@ -223,7 +222,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
 
         OutputAnnotations annotations {static_cast<uint64_t>(abundance), n_entries};
         annotations.expected_error = default_expected_error;
-        fastq_print_general(fp_fastqout,
+        fastq_print_general(fastqout_handle.get(),
                             sequence,
                             header,
                             make_view(normalized_quality).first(length),

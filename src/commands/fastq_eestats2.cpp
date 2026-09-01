@@ -170,7 +170,6 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
   uint64_t const filesize = h->get_size();
 
   auto const output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
-  std::FILE * const fp_output = output_handle.get();
 
 
   uint64_t seq_count = 0;
@@ -274,7 +273,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
   ReadTotals const totals = {seq_count, symbols, longest};
 
   // same report to each requested destination (--log is optional)
-  for (auto * output_stream : {fp_output, parameters.fp_log})
+  for (auto * output_stream : {output_handle.get(), parameters.fp_log})
     {
       if (output_stream != nullptr)
         {

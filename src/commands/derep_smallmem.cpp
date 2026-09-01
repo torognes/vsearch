@@ -242,7 +242,6 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     }
 
   auto const output_handle = open_mandatory_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  std::FILE * const fp_fastaout = output_handle.get();
 
   auto const filesize = h->get_size();
 
@@ -469,7 +468,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
             if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
               {
                 ++selected;
-                fasta_print_general(fp_fastaout,
+                fasta_print_general(output_handle.get(),
                                     nullptr,
                                     sequence,
                                     h2->header_view(),

@@ -150,7 +150,6 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   }
 
   auto output_handle = open_optional_output_file(parameters.opt_output, OutputOption{"--output"});
-  std::FILE * const fp_output = output_handle.get();
   auto uc_handle = open_optional_output_file(parameters.opt_uc, OutputOption{"--uc"});
   std::FILE * const fp_uc = uc_handle.get();
 
@@ -406,7 +405,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
             if ((size >= parameters.opt_minuniquesize) and (size <= parameters.opt_maxuniquesize))
               {
                 ++relabel_count;
-                fasta_print_general(fp_output,
+                fasta_print_general(output_handle.get(),
                                     nullptr,
                                     db.record(bp.seqno_first),
                                     OutputAnnotations{static_cast<uint64_t>(size), relabel_count},
