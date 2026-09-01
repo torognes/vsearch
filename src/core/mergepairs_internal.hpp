@@ -129,12 +129,10 @@ struct merge_data_s
   std::vector<char> rev_sequence;
   std::vector<char> fwd_quality;
   std::vector<char> rev_quality;
-  int64_t header_alloc = 0;
-  int64_t seq_alloc = 0;
-  /* the two header buffers are sized to header_alloc, the longest header seen
-     so far, so their vector size says nothing about the current pair; record
-     the lengths the reader already knows rather than recovering them with
-     std::strlen at each output site */
+  /* the buffers above are sized to the longest header/read seen so far, so
+     their vector size says nothing about the current pair; record the lengths
+     the reader already knows rather than recovering them with std::strlen at
+     each output site */
   int64_t fwd_header_length = 0;
   int64_t rev_header_length = 0;
   int64_t fwd_length = 0;
@@ -147,7 +145,6 @@ struct merge_data_s
   std::vector<char> merged_sequence;
   std::vector<char> merged_quality_v;
   int64_t merged_length = 0;
-  int64_t merged_seq_alloc = 0;
   double ee_merged = 0;
   double ee_fwd = 0;
   double ee_rev = 0;

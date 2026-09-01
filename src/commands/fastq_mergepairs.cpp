@@ -491,9 +491,8 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
       auto const rev_header_len = static_cast<int64_t>(rev_header_view.size());
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
-      if (header_needed > a_read_pair.header_alloc)
+      if (a_read_pair.fwd_header.size() < static_cast<std::size_t>(header_needed))
         {
-          a_read_pair.header_alloc = header_needed;
           a_read_pair.fwd_header.resize(static_cast<std::size_t>(header_needed));
           a_read_pair.rev_header.resize(static_cast<std::size_t>(header_needed));
         }
@@ -504,9 +503,8 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       state.sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
 
-      if (seq_needed > a_read_pair.seq_alloc)
+      if (a_read_pair.fwd_sequence.size() < static_cast<std::size_t>(seq_needed))
         {
-          a_read_pair.seq_alloc = seq_needed;
           a_read_pair.fwd_sequence.resize(static_cast<std::size_t>(seq_needed));
           a_read_pair.rev_sequence.resize(static_cast<std::size_t>(seq_needed));
           a_read_pair.fwd_quality.resize(static_cast<std::size_t>(seq_needed));
@@ -516,9 +514,8 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       int64_t const merged_seq_needed = a_read_pair.fwd_length + a_read_pair.rev_length + 1;
 
-      if (merged_seq_needed > a_read_pair.merged_seq_alloc)
+      if (a_read_pair.merged_sequence.size() < static_cast<std::size_t>(merged_seq_needed))
         {
-          a_read_pair.merged_seq_alloc = merged_seq_needed;
           a_read_pair.merged_sequence.resize(static_cast<std::size_t>(merged_seq_needed));
           a_read_pair.merged_quality_v.resize(static_cast<std::size_t>(merged_seq_needed));
         }
