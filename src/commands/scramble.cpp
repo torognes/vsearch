@@ -71,6 +71,7 @@
 #include "utils/fatal.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
+#include "utils/hash_table_size.hpp"  // vsearch::table_size_half
 #include "utils/random.hpp"
 #include <algorithm>  // std::copy, std::find
 #include <cassert>
@@ -94,10 +95,6 @@ namespace {
      an unsigned type, as it only ever feeds shifts and products) */
   constexpr auto bits_per_byte =
     static_cast<std::size_t>(std::numeric_limits<unsigned char>::digits);
-
-  /* floor for the flat table's probe region: even the smallest
-     records get a few cache lines of slots, never a degenerate table */
-  constexpr auto min_flat_table_slots = std::size_t{16};
 
   constexpr auto n_one_byte_kmers = std::size_t{1} << bits_per_byte;  // 2^8
   constexpr auto n_two_byte_kmers = n_one_byte_kmers * n_one_byte_kmers;  // 2^16
@@ -169,10 +166,8 @@ namespace {
        grow the slot vector if needed (fresh slots carry epoch 0,
        stale by construction) and invalidate every slot in O(1) */
     auto next_record(std::size_t const n_keys) -> void {
-      auto region = min_flat_table_slots;
-      while (region < 2 * n_keys) {
-        region *= 2;
-      }
+      auto const region =
+        static_cast<std::size_t>(vsearch::table_size_half(n_keys));
       if (region > slots_.size()) {
         slots_.resize(region);
       }
