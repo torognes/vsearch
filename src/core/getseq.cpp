@@ -162,7 +162,6 @@ namespace {
 auto read_labels_file(char const * filename, struct Parameters const & parameters,
                       std::vector<std::vector<char>> & labels_data) -> void
 {
-  auto labels_alloc = 0U;
   auto labels_count = 0U;
   auto labels_longest = std::size_t{0};
   auto fp_labels = open_input_file(filename);
@@ -209,10 +208,9 @@ auto read_labels_file(char const * filename, struct Parameters const & parameter
 
         labels_longest = std::max(length, labels_longest);
 
-        if (labels_count + 1 > labels_alloc)
+        if (labels_data.size() < labels_count + 1)
           {
-            labels_alloc += a_memory_chunck;
-            labels_data.resize(labels_alloc);
+            labels_data.resize(labels_data.size() + a_memory_chunck);
           }
         labels_data[labels_count].resize(length);
         std::copy(buffer.begin(), std::next(buffer.begin(), static_cast<std::ptrdiff_t>(length)),
