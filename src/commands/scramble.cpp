@@ -96,64 +96,18 @@ namespace {
   constexpr auto bits_per_byte =
     static_cast<std::size_t>(std::numeric_limits<unsigned char>::digits);
 
-  constexpr auto n_one_byte_kmers = std::size_t{1} << bits_per_byte;  // 2^8
-  constexpr auto n_two_byte_kmers = n_one_byte_kmers * n_one_byte_kmers;  // 2^16
-
-  /* Direct-index vertex table for the smallest (k-1)-mer widths: one
-     or two packed bytes admit at most 2^8 or 2^16 distinct (k-1)-mers,
-     so an array indexed by the packed bytes themselves replaces the
-     hash map of the general mapper -- no hashing, no probing, no
-     per-node allocation (measured 2.2x on the whole command at k = 2).
-     Slots are epoch-stamped: next_record() invalidates the whole table
-     in O(1), so nothing is cleared between records -- a per-record
-     refill would cost O(table_size) regardless of record length, which
-     at 2^16 entries would dwarf the lookups themselves. The epoch is
-     64 bits on purpose: a 32-bit counter would let a stale slot alias
-     a live one after exactly 2^32 records. Storage is a heap vector of
-     fixed size rather than a std::array member, because the width-2
-     table is 1 MiB -- too big to live inside a stack-allocated
-     Scrambler. */
-  template <std::size_t table_size>
-  class DirectVertexTable {
-    static_assert((table_size == n_one_byte_kmers) or (table_size == n_two_byte_kmers),
-                  "DirectVertexTable is sized for one or two packed bytes only");
-  public:
-    auto next_record() noexcept -> void { ++epoch_; }
-
-    /* return the dense vertex id of the (k-1)-mer packed in 'index',
-       assigning 'next_id' on its first occurrence this record; a
-       result equal to next_id signals a first occurrence (the
-       counterpart of unordered_map::emplace's insertion flag) */
-    auto find_or_insert(std::size_t const index,
-                        uint32_t const next_id) noexcept -> uint32_t {
-      assert(index < table_size);
-      Slot & slot = slots_[index];
-      if (slot.epoch != epoch_) {
-        slot.epoch = epoch_;
-        slot.vertex_id = next_id;
-      }
-      return slot.vertex_id;
-    }
-
-  private:
-    struct Slot {
-      uint64_t epoch = 0;  // 0 = never seen; epoch_ is bumped above it before any lookup
-      uint32_t vertex_id = 0;
-    };
-    std::vector<Slot> slots_ = std::vector<Slot>(table_size);
-    uint64_t epoch_ = 0;  // the current record's stamp, see next_record()
-  };
-
-
-  /* Flat open-addressing vertex table for the remaining widths (3 to
+  /* Flat open-addressing vertex table for every (k-1)-mer width (1 to
      8 packed bytes), replacing std::unordered_map: one find-or-insert
      probe sequence per position instead of emplace (which allocates a
      node even for a duplicate key -- one malloc/free per input base,
      60-70% of every k >= 2 run in the 2026-08-31 profile), contiguous
-     slots instead of node chains. Slots are epoch-stamped like
-     DirectVertexTable's, which doubles as the empty-slot marker -- no
-     key value needs to be reserved, so the full 64-bit key space of
-     width 8 stays valid. next_record() sizes a power-of-two probe
+     slots instead of node chains. Slots are epoch-stamped:
+     next_record() invalidates the whole table in O(1), so nothing is
+     cleared between records, and the stamp doubles as the empty-slot
+     marker -- no key value needs to be reserved, so the full 64-bit
+     key space of width 8 stays valid. The epoch is 64 bits on
+     purpose: a 32-bit counter would let a stale slot alias a live one
+     after exactly 2^32 records. next_record() sizes a power-of-two probe
      region from the record's own position count: the load factor
      stays at or below one half, so linear probing terminates and
      probe chains stay short, and no rehash can happen mid-record --
@@ -239,13 +193,7 @@ namespace {
          in order of first occurrence, so the mapping is deterministic */
       position_vertices_.clear();
       last_chars_.clear();
-      if (width == 1) {
-        map_vertices_direct(sequence, width, direct_width1_);
-      } else if (width == 2) {
-        map_vertices_direct(sequence, width, direct_width2_);
-      } else {
-        map_vertices_hashed(sequence, width);
-      }
+      map_vertices_hashed(sequence, width);
       assert(position_vertices_.size() == n_positions);
       start_vertex_ = position_vertices_.front();
       end_vertex_ = position_vertices_.back();
@@ -316,39 +264,12 @@ namespace {
       }
     }
 
-    /* the same mapping through a direct-index table (width 1 or 2):
-       identical rolling key, identical first-occurrence id assignment,
-       so the two mappers are interchangeable byte for byte */
-    template <std::size_t table_size>
-    auto map_vertices_direct(View<char> const sequence,
-                             std::size_t const width,
-                             DirectVertexTable<table_size> & table) -> void {
-      assert((std::size_t{1} << (bits_per_byte * width)) == table_size);
-      table.next_record();
-      uint64_t key = 0;
-      auto const mask = static_cast<uint64_t>(table_size - 1);
-      for (std::size_t pos = 0; pos < sequence.size(); ++pos) {
-        key = ((key << bits_per_byte)
-               | static_cast<uint64_t>(static_cast<unsigned char>(sequence[pos]))) & mask;
-        if (pos + 1 < width) { continue; }  // key does not hold a full (k-1)-mer yet
-        /* key holds the (k-1)-mer ending at pos */
-        auto const next_id = static_cast<uint32_t>(last_chars_.size());
-        auto const vertex = table.find_or_insert(static_cast<std::size_t>(key), next_id);
-        if (vertex == next_id) {  // first occurrence this record
-          last_chars_.push_back(sequence[pos]);
-        }
-        position_vertices_.push_back(vertex);
-      }
-    }
-
     std::vector<uint32_t> offsets_;      // vertex_count() + 1 prefix sums into adjacency_
     std::vector<uint32_t> adjacency_;    // one successor id per edge, grouped by source
     std::vector<char> last_chars_;       // per-vertex last byte of its (k-1)-mer
     std::vector<uint32_t> position_vertices_;  // build scratch: vertex id at each position
     std::vector<uint32_t> scatter_cursors_;    // build scratch for pass 3
-    FlatVertexTable vertex_ids_;  // packed (k-1)-mer -> dense id, width 3 to 8
-    DirectVertexTable<n_one_byte_kmers> direct_width1_;  // k = 2 fast path
-    DirectVertexTable<n_two_byte_kmers> direct_width2_;  // k = 3 fast path
+    FlatVertexTable vertex_ids_;  // packed (k-1)-mer -> dense id
     uint32_t start_vertex_ = 0;
     uint32_t end_vertex_ = 0;
   };
