@@ -1532,9 +1532,6 @@ auto cluster(char const * dbname,
       auto msaout_handle = open_optional_output_file(parameters.opt_msaout, OutputOption{"--msaout"});
       auto consout_handle = open_optional_output_file(parameters.opt_consout, OutputOption{"--consout"});
       auto profile_handle = open_optional_output_file(parameters.opt_profile, OutputOption{"--profile"});
-      std::FILE * const fp_msaout = msaout_handle.get();
-      std::FILE * const fp_consout = consout_handle.get();
-      std::FILE * const fp_profile = profile_handle.get();
 
       lastcluster = -1;
 
@@ -1559,7 +1556,7 @@ auto cluster(char const * dbname,
                 if (lastcluster != -1)
                   {
                     /* compute msa & consensus */
-                    msa(fp_msaout, fp_consout, fp_profile,
+                    msa(msaout_handle.get(), consout_handle.get(), profile_handle.get(),
                         lastcluster,
                         make_view(msa_target_list_v).first(static_cast<std::size_t>(msa_target_count)),
                         cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
@@ -1584,7 +1581,7 @@ auto cluster(char const * dbname,
         if (lastcluster != -1)
           {
             /* compute msa & consensus */
-            msa(fp_msaout, fp_consout, fp_profile,
+            msa(msaout_handle.get(), consout_handle.get(), profile_handle.get(),
                 lastcluster,
                 make_view(msa_target_list_v).first(static_cast<std::size_t>(msa_target_count)),
                 cluster_abundance_v[static_cast<std::size_t>(lastcluster)],
