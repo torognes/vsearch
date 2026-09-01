@@ -207,10 +207,7 @@ auto orient(struct Parameters const & parameters) -> void
   OutputFileHandle fastqout_handle;
   OutputFileHandle tabbedout_handle;
   OutputFileHandle notmatched_handle;
-  std::FILE * fp_fastaout = nullptr;
-  std::FILE * fp_fastqout = nullptr;
   std::FILE * fp_tabbedout = nullptr;
-  std::FILE * fp_notmatched = nullptr;
 
   int queries = 0;
   int qmatches = 0;
@@ -237,7 +234,6 @@ auto orient(struct Parameters const & parameters) -> void
   /* open output files */
 
   fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  fp_fastaout = fastaout_handle.get();
 
   if (parameters.opt_fastqout != nullptr)
     {
@@ -247,11 +243,9 @@ auto orient(struct Parameters const & parameters) -> void
         }
 
       fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-      fp_fastqout = fastqout_handle.get();
     }
 
   notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
-  fp_notmatched = notmatched_handle.get();
   tabbedout_handle = open_optional_output_file(parameters.opt_tabbedout, OutputOption{"--tabbedout"});
   fp_tabbedout = tabbedout_handle.get();
 
@@ -359,7 +353,7 @@ auto orient(struct Parameters const & parameters) -> void
 
             if (parameters.opt_fastaout != nullptr)
               {
-                fasta_print_general(fp_fastaout,
+                fasta_print_general(fastaout_handle.get(),
                                     nullptr,
                                     query_h->record(),
                                     OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
@@ -368,7 +362,7 @@ auto orient(struct Parameters const & parameters) -> void
 
             if (parameters.opt_fastqout != nullptr)
               {
-                fastq_print_general(fp_fastqout,
+                fastq_print_general(fastqout_handle.get(),
                                     query_h->record(),
                                     OutputAnnotations{static_cast<uint64_t>(qsize), qmatches},
                                     parameters);
@@ -404,7 +398,7 @@ auto orient(struct Parameters const & parameters) -> void
 
             if (parameters.opt_fastaout != nullptr)
               {
-                fasta_print_general(fp_fastaout,
+                fasta_print_general(fastaout_handle.get(),
                                     nullptr,
                                     rc_sequence,
                                     query_head,
@@ -424,7 +418,7 @@ auto orient(struct Parameters const & parameters) -> void
                     query_qual_rev[query_qual_fwd.size()] = '\0';
                   }
 
-                fastq_print_general(fp_fastqout,
+                fastq_print_general(fastqout_handle.get(),
                                     rc_sequence,
                                     query_head,
                                     make_view(query_qual_rev).first(query_sequence.size()),
@@ -443,14 +437,14 @@ auto orient(struct Parameters const & parameters) -> void
               {
                 if (query_h->is_fastq_input())
                   {
-                    fastq_print_general(fp_notmatched,
+                    fastq_print_general(notmatched_handle.get(),
                                         query_h->record(),
                                         OutputAnnotations{static_cast<uint64_t>(qsize), notmatched},
                                         parameters);
                   }
                 else
                   {
-                    fasta_print_general(fp_notmatched,
+                    fasta_print_general(notmatched_handle.get(),
                                         nullptr,
                                         query_h->record(),
                                         OutputAnnotations{static_cast<uint64_t>(qsize), notmatched},
@@ -485,22 +479,14 @@ auto orient(struct Parameters const & parameters) -> void
   dbindex.clear();
   db.clear();
 
-  if (parameters.opt_tabbedout != nullptr)
-    {
-      tabbedout_handle.reset();
-    }
-  if (parameters.opt_notmatched != nullptr)
-    {
-      notmatched_handle.reset();
-    }
-  if (parameters.opt_fastqout != nullptr)
-    {
-      fastqout_handle.reset();
-    }
-  if (parameters.opt_fastaout != nullptr)
-    {
-      fastaout_handle.reset();
-    }
+  /* close at a defined point, in the historical fclose order (destructors
+     would close in reverse declaration order, changing the flush order when
+     streams share stdout); reset() is a no-op on an empty handle, so
+     unopened outputs need no guard. */
+  tabbedout_handle.reset();
+  notmatched_handle.reset();
+  fastqout_handle.reset();
+  fastaout_handle.reset();
 
   query_h->report_stripped_warning(parameters);
 
