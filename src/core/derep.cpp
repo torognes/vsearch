@@ -708,7 +708,6 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   uint64_t alloc_clusters = 1024;
   uint64_t alloc_seqs = 1024;
-  int64_t alloc_seqlen = 1023;
 
   uint64_t hashtablesize = 2 * alloc_clusters;
   uint64_t hash_mask = hashtablesize - 1;
@@ -741,8 +740,12 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
   // memory-intensive: per-sequence buffers have been allocated
 
-  std::vector<char> seq_up(static_cast<std::size_t>(alloc_seqlen) + 1);
-  std::vector<char> rc_seq_up(static_cast<std::size_t>(alloc_seqlen) + 1);
+  /* deliberately declared outside the record loop: the buffers grow to
+     the longest record seen and are reused, so after the first few
+     records no allocation happens at all (cppcheck's variableScope
+     hint would reallocate per record) */
+  std::vector<char> seq_up(1024);
+  std::vector<char> rc_seq_up(1024);
   std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
 
@@ -781,11 +784,10 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         /* check allocations */
 
-        if (seqlen > alloc_seqlen)
+        if (seq_up.size() < static_cast<std::size_t>(seqlen) + 1)
           {
-            alloc_seqlen = seqlen;
-            seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
-            rc_seq_up.resize(static_cast<std::size_t>(alloc_seqlen) + 1);
+            seq_up.resize(static_cast<std::size_t>(seqlen) + 1);
+            rc_seq_up.resize(static_cast<std::size_t>(seqlen) + 1);
 
             // memory-intensive: sequence buffers grown to fit the longest sequence
           }
