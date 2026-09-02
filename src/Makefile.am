@@ -73,9 +73,11 @@ AM_CXXFLAGS = $(AM_CFLAGS) -std=c++11 -fno-exceptions
 # conversions that are intrinsic to the upstream hashing code.
 # -Wuseless-cast: align_simd.cc, the historical blocker (the casts were
 # load-bearing in the v_load/v_store/ALIGNCORE macros), is clean now
-# that those are functions. results.cc keeps one flagged cast on
-# purpose: uint64_t -> size_t is a no-op on the 64-bit targets but is
-# retained as an explicit, portable narrowing.
+# that those are functions. The tree is clean under this flag: a
+# uint64_t -> size_t cast is useless on every target vsearch can be
+# built for, since a 32-bit host cannot get past core/searchcore.cpp
+# (it uses the GCC __int128 extension), so do not add one back as a
+# "portable narrowing" -- name the type on the declaration instead.
 if ENABLE_DEBUG
 AM_CXXFLAGS += -Wcast-qual -Wconversion -Wnon-virtual-dtor -Wold-style-cast \
                -Woverloaded-virtual -Wsign-conversion -Wuseless-cast
