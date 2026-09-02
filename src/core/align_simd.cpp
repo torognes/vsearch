@@ -62,6 +62,7 @@
 #include "arch/intrinsics.hpp"  // SIMD intrinsics (__m128i / VECTOR_SHORT, _mm_*)
 #include "core/db.hpp"
 #include "utils/fatal_allocator.hpp"  // FatalAllocator
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/score_4bit.hpp"  // vsearch::score_4bit, SubstitutionScores, nucleotide_codes_4bit
 #include "utils/view.hpp"  // View<char>
@@ -415,11 +416,9 @@ struct s16info_s
   std::vector<VECTOR_SHORT *, FatalAllocator<VECTOR_SHORT *>> qtable;  /* each entry points into dprofile (fixed size) */
   std::vector<unsigned short, FatalAllocator<unsigned short>> dir;
   View<char> qseq;  /* borrowed query (not owned) */
-  uint64_t diralloc = 0;
 
   std::vector<char, FatalAllocator<char>> cigar;
   char * cigarend = nullptr;  /* working pointer into cigar (not owned) */
-  int64_t cigaralloc = 0;
   int opcount = 0;
   char op = '\0';
 
@@ -1363,19 +1362,13 @@ auto search16(s16info_s * s,
   s->maxdlen = static_cast<int>(maxdlen);
   uint64_t const dirbuffersize = qlen * static_cast<uint64_t>(s->maxdlen) * 4;
 
-  if (dirbuffersize > s->diralloc)
-    {
-      s->diralloc = dirbuffersize;
-      s->dir.resize(dirbuffersize);
-    }
+  vsearch::grow_to_fit(s->dir, static_cast<std::size_t>(dirbuffersize));
 
   unsigned short * dirbuffer = s->dir.data();
 
-  if (static_cast<int64_t>(qlen) + s->maxdlen + 1 > s->cigaralloc)
-    {
-      s->cigaralloc = static_cast<int64_t>(qlen) + s->maxdlen + 1;
-      s->cigar.resize(static_cast<size_t>(s->cigaralloc));
-    }
+  auto const cigar_needed = static_cast<int64_t>(qlen) + s->maxdlen + 1;
+  assert(cigar_needed > 0);
+  vsearch::grow_to_fit(s->cigar, static_cast<std::size_t>(cigar_needed));
 
   VECTOR_SHORT M;
   VECTOR_SHORT T0;
