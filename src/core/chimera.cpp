@@ -127,6 +127,15 @@ constexpr auto chimera_id = 0.55;
    owned as a local by chimera_threads_run(). */
 
 /* information for each query sequence to be checked */
+/* The parent segments that tile the query: starts[nth] and lengths[nth]
+   describe parent nth. Kept as one value so the two same-typed views cannot be
+   passed in the wrong order. */
+struct parent_tiling_s {
+  View<int> starts;
+  View<int> lengths;
+};
+
+
 struct chimera_info_s
 {
   /* run configuration, set by chimera_thread_init and read by the detection
@@ -216,6 +225,34 @@ struct chimera_info_s
      reused across chimera_detect_single calls */
   std::vector<struct hit> api_allhits_list;
   std::unique_ptr<LinearMemoryAligner> api_lma_ptr;
+
+  /* Views cut to the current record. The buffers above are high-water marks
+     reused across queries, so every reader has to cut them to the length that
+     is live right now; these do it in one place. Past the cut they hold stale
+     data from earlier records (or, for maxi, zeros), and an index beyond the
+     cut now asserts rather than reading it -- which is the disagreement that
+     cost a heap overflow in fill_in_alignment_string_for_query.
+
+     Accessors rather than stored members on purpose: a view cached across a
+     grow_to_fit dangles when the buffer reallocates, which realloc_arrays
+     already has to work around for si[].qsequence. */
+  auto query() const -> View<char> {
+    return make_view(query_seq).first(static_cast<std::size_t>(query_len));
+  }
+  // one insertion count per query position, plus one for the terminal run
+  auto insertions() const -> View<int> {
+    return make_view(maxi).first(static_cast<std::size_t>(query_len) + 1);
+  }
+  auto candidates() const -> View<unsigned int> {
+    return make_view(cand_list).first(static_cast<std::size_t>(cand_count));
+  }
+  auto parents() const -> View<int> {
+    return make_view(best_parents).first(static_cast<std::size_t>(parents_found));
+  }
+  auto tiling() const -> struct parent_tiling_s {
+    auto const count = static_cast<std::size_t>(parents_found);
+    return {make_view(best_start).first(count), make_view(best_len).first(count)};
+  }
 };
 
 
@@ -786,10 +823,7 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 
   std::fill(chimera_info->maxi.begin(), chimera_info->maxi.end(), 0);
 
-  auto const count = static_cast<size_t>(chimera_info->parents_found);
-  assert(count <= chimera_info->best_parents.size());
-  auto const best_parents_view = make_span(chimera_info->best_parents).first(count);
-  for (auto const best_parent : best_parents_view) {
+  for (auto const best_parent : chimera_info->parents()) {
     auto pos = 0LL;
     auto const & cigar = chimera_info->nwcigar[static_cast<size_t>(best_parent)];
     auto const cigar_pairs = parse_cigar_string(make_view(cigar));
@@ -945,34 +979,18 @@ auto fill_in_alignment_string_for_query(View<char> const query,
 }
 
 
-/* Cut the query and insertion-count views to the current query. Both buffers
-   are high-water marks grown to the longest query seen: past query_len,
-   query_seq holds stale bases from earlier records, while maxi holds zeros
-   (fill_max_alignment_length clears all of it before every query). Cutting
-   them here is what bounds both row fills. */
-struct query_row_inputs_s {
-  View<char> query;       // the current query's bases, and nothing past them
-  View<int> insertions;   // one count per query position, plus the terminal run
-};
-
-auto query_row_inputs(struct chimera_info_s const * chimera_info)
-  -> struct query_row_inputs_s {
-  auto const query_length = static_cast<std::size_t>(chimera_info->query_len);
-  return {make_view(chimera_info->query_seq).first(query_length),
-          make_view(chimera_info->maxi).first(query_length + 1)};
-}
-
-
-auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> void {
-  /* same views and the same Span as fill_in_alignment_string_for_query: the
-     model string is filled in lockstep with the query row, so it is bounded
-     the same way and its writes are checked the same way. qpos stays an int
-     because the parent tiling below compares it as a value, not as an index. */
-  auto const insertions = query_row_inputs(chimera_info).insertions;
-  auto const model = make_span(chimera_info->model);
+/* Fill the model row in lockstep with the query row: same bound, same checked
+   writes, one letter per parent. qpos stays an int because the tiling compares
+   it as a value, not as an index. */
+auto fill_in_model_string_for_query(View<int> const insertions,
+                                    struct parent_tiling_s const tiling,
+                                    Span<char> const model) -> void {
+  assert(tiling.starts.size() == tiling.lengths.size());
+  auto const query_length = static_cast<int>(insertions.size()) - 1;
+  auto const parents_found = static_cast<int>(tiling.starts.size());
   int nth_parent = 0;
   std::size_t alnpos = 0;
-  for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
+  for (int qpos = 0; qpos < query_length; ++qpos)
     {
       /* Advance to the next parent only while one exists. The parent segments
          are expected to tile the query exactly, in which case nth_parent
@@ -984,8 +1002,9 @@ auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> voi
          past the maxparents-element array, and emitting model letters beyond
          the last parent. Clamping keeps nth_parent in [0, parents_found - 1]
          and attributes any uncovered tail to the last parent (S19). */
-      if ((nth_parent + 1 < chimera_info->parents_found) and
-          (qpos >= (chimera_info->best_start[static_cast<size_t>(nth_parent)] + chimera_info->best_len[static_cast<size_t>(nth_parent)]))) {
+      if ((nth_parent + 1 < parents_found) and
+          (qpos >= (tiling.starts[static_cast<std::size_t>(nth_parent)]
+                    + tiling.lengths[static_cast<std::size_t>(nth_parent)]))) {
         ++nth_parent;
       }
       // add insertion (if any):
@@ -1073,10 +1092,10 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
   fill_alignment_parents(ci, db);
 
-  auto const row_inputs = query_row_inputs(ci);
-  fill_in_alignment_string_for_query(row_inputs.query, row_inputs.insertions,
+  fill_in_alignment_string_for_query(ci->query(), ci->insertions(),
                                      make_span(ci->qaln));
-  fill_in_model_string_for_query(ci);
+  fill_in_model_string_for_query(ci->insertions(), ci->tiling(),
+                                 make_span(ci->model));
 
   std::vector<unsigned char> psym;
   psym.reserve(maxparents);
@@ -1331,8 +1350,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
   /* fill in alignment string for query */
 
-  auto const row_inputs = query_row_inputs(ci);
-  fill_in_alignment_string_for_query(row_inputs.query, row_inputs.insertions,
+  fill_in_alignment_string_for_query(ci->query(), ci->insertions(),
                                      make_span(ci->qaln));
 
   /* mark positions to ignore in voting */
@@ -2148,7 +2166,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
 
   /* align full query to each candidate */
 
-  search16_qprep(ci->s, make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)));
+  search16_qprep(ci->s, ci->query());
 
   /* the candidates found above, not the whole maxcandidates buffers */
   auto const candidates = static_cast<std::size_t>(ci->cand_count);
@@ -2174,7 +2192,7 @@ static auto chimera_process_query(struct chimera_info_s * ci,
              linear memory aligner */
 
           auto const tseq = db.sequence_view(static_cast<uint64_t>(target));
-          auto const qseq = make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len));
+          auto const qseq = ci->query();
 
           std::string nwcigar = lma.align(qseq, tseq);
           auto const stats = lma.alignstats(nwcigar.c_str(), qseq, tseq);
@@ -2322,7 +2340,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             fasta_print_general(state.fp_chimeras,
                                 nullptr,
-                                make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
+                                ci->query(),
                                 ci->query_head,
                                 query_annotations(state.chimera_count),
                                 state.parameters);
@@ -2339,7 +2357,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             fasta_print_general(state.fp_borderline,
                                 nullptr,
-                                make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
+                                ci->query(),
                                 ci->query_head,
                                 query_annotations(state.borderline_count),
                                 state.parameters);
@@ -2378,7 +2396,7 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
           {
             fasta_print_general(state.fp_nonchimeras,
                                 nullptr,
-                                make_view(ci->query_seq).first(static_cast<std::size_t>(ci->query_len)),
+                                ci->query(),
                                 ci->query_head,
                                 query_annotations(state.nonchimera_count),
                                 state.parameters);
