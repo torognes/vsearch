@@ -126,7 +126,7 @@
 
 #define VSEARCH_API_VERSION_MAJOR 0
 #define VSEARCH_API_VERSION_MINOR 23
-#define VSEARCH_API_VERSION_PATCH 0
+#define VSEARCH_API_VERSION_PATCH 1
 
 /* Encoded as MAJOR*1000000 + MINOR*1000 + PATCH (OpenSSL/libcurl
    convention), so each component may range 0..999 without collision:
@@ -201,6 +201,15 @@ auto vsearch_api_version_string() -> const char *;
    Note: parameters.opt_minsize is NOT resolved here — it has command-specific
    defaults (1 for most commands, 8 for cluster_unoise). Set it explicitly if
    needed (the struct default is 0).
+
+   Note: parameters.opt_fastq_qmaxout is NOT resolved here either, for the same
+   reason — its default depends on what is about to be written, not on the
+   struct. It is left at a sentinel and resolved by the consumer that knows:
+   MergePairs applies the ceiling --fastq_mergepairs uses (41). Setting it
+   explicitly overrides that, and is checked here against the offset a merged
+   symbol is written with (parameters.opt_fastq_ascii), so a caller who raises
+   the ceiling past what the offset can carry is told at session open rather
+   than getting an invalid FASTQ file.
 
      {
        VsearchSession const session(parameters);

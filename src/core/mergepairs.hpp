@@ -146,7 +146,16 @@ struct MergeInput {
      opt_fastq_minlen     — min merged length (default 1)
      opt_fastq_maxlen     — max merged length (default unlimited)
      opt_fastq_maxns      — max Ns allowed (default unlimited)
-     opt_fastq_ascii      — quality ASCII offset (default 33) */
+     opt_fastq_ascii      — quality ASCII offset (default 33). Merged qualities
+                            are written with THIS offset: --fastq_mergepairs
+                            has no --fastq_asciiout, so neither does this.
+     opt_fastq_qmaxout    — ceiling on the merged posterior quality (default
+                            41, the value --fastq_mergepairs uses). It changes
+                            every merged quality symbol: at 93 two agreeing Q40
+                            bases score Q85 instead of Q41. Raising it past
+                            126 - opt_fastq_ascii is refused when the session
+                            opens.
+     opt_fastq_qminout    — floor on the merged posterior quality (default 0) */
 class MergePairs {
 public:
   explicit MergePairs(struct Parameters const & parameters);

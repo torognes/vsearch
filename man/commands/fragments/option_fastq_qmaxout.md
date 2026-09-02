@@ -10,3 +10,9 @@
   one through: `--fasta2fastq`, which has no input quality and uses this
   option as the value to write, and `--fastq_mergepairs`, which caps the
   computed posterior quality of a merged base.
+
+  For `--fastq_mergepairs` the offset in question is `--fastq_ascii`,
+  not `--fastq_asciiout`: that command writes fastq but does not accept
+  `--fastq_asciiout`, so a merged quality symbol carries the same offset
+  the input was read with. The sum rule is stated against `--fastq_ascii`
+  there, and against `--fastq_asciiout` everywhere else.
