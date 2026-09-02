@@ -443,13 +443,12 @@ auto scramble(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (seq_buffer.size() < length + 1)
+        if (seq_buffer.size() < length)
           {
-            seq_buffer.resize(length + 1);
+            seq_buffer.resize(length);
           }
 
         std::copy(sequence.cbegin(), sequence.cend(), seq_buffer.begin());
-        seq_buffer[length] = '\0';
 
         /* per-record substream (sintax-style): each record's scramble
            depends only on the base seed, its ordinal, and its length,

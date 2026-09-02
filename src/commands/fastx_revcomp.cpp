@@ -132,9 +132,9 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
           {
             seq_buffer.resize(length + 1);
           }
-        if (qual_buffer.size() < length + 1)
+        if (qual_buffer.size() < length)
           {
-            qual_buffer.resize(length + 1);
+            qual_buffer.resize(length);
           }
 
         reverse_complement(make_span(seq_buffer).first(length + 1), sequence);
@@ -145,7 +145,6 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         /* reverse quality values (the view is empty for fasta input) */
         auto const quality = input_handle->quality_view();
         std::reverse_copy(quality.cbegin(), quality.cend(), qual_buffer.begin());
-        qual_buffer[quality.size()] = '\0';
 
         if (parameters.opt_fastaout != nullptr)
           {
