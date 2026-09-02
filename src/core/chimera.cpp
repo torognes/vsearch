@@ -79,6 +79,7 @@
 #include "utils/ascii_case.hpp"  // to_lower
 #include "utils/cigar.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/make_unique.hpp"  // make_unique
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -370,10 +371,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
     }
 
   const int maxhlen = std::max(static_cast<int>(header_length), 1);
-  if (chimera_info->query_head_v.size() < static_cast<size_t>(maxhlen))
-    {
-      chimera_info->query_head_v.resize(static_cast<size_t>(maxhlen));
-    }
+  vsearch::grow_to_fit(chimera_info->query_head_v, static_cast<size_t>(maxhlen));
 
   /* realloc arrays based on query length */
 
