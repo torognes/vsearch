@@ -819,13 +819,33 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
 }
 
 
+/* Write a run of filler characters into an alignment row and return the
+   advanced cursor. Every alignment row in this file is built the same way --
+   a filler run, then one character -- so the capacity check lives here rather
+   than being repeated, and correctly-sized rows cannot drift apart from the
+   checks that guard them. The run and the character written just after it must
+   both fit, hence "<" and not "<=". */
+auto fill_run(Span<char> const row, std::size_t const cursor,
+              int const run_length, char const filler) -> std::size_t {
+  assert(run_length >= 0);
+  auto const length = static_cast<std::size_t>(run_length);
+  assert(cursor + length < row.size());
+  std::fill_n(std::next(row.begin(), static_cast<std::ptrdiff_t>(cursor)),
+              length, filler);
+  return cursor + length;
+}
+
+
 auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & db) -> void
 {
   /* fill in alignment strings for the parents */
 
   for (int i = 0; i < ci->parents_found; ++i)
     {
-      auto & alignment = ci->paln[static_cast<size_t>(i)];
+      /* the row as a Span, so every write is bounds-checked and the two
+         filler runs below go through fill_run's capacity assert -- the same
+         treatment the query and model rows get */
+      auto const alignment = make_span(ci->paln[static_cast<size_t>(i)]);
       int const cand = ci->best_parents[static_cast<size_t>(i)];
       int const target_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(cand)]);
       auto const target_seq = db.sequence_view(static_cast<uint64_t>(target_seqno));
@@ -833,7 +853,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
       auto is_inserted = false;
       int qpos = 0;
       int tpos = 0;
-      int alnpos = 0;
+      std::size_t alnpos = 0;
 
       auto const & cigar = ci->nwcigar[static_cast<size_t>(cand)];
       auto const cigar_pairs = parse_cigar_string(make_view(cigar));
@@ -846,13 +866,13 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
             {
               if (j < runlength)
                 {
-                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
+                  alignment[alnpos] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
                   ++tpos;
                   ++alnpos;
                 }
               else
                 {
-                  alignment[static_cast<size_t>(alnpos)] = '-';
+                  alignment[alnpos] = '-';
                   ++alnpos;
                 }
             }
@@ -865,19 +885,18 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
             {
               if (not is_inserted)
                 {
-                  std::fill_n(&alignment[static_cast<size_t>(alnpos)], ci->maxi[static_cast<size_t>(qpos)], '-');
-                  alnpos += ci->maxi[static_cast<size_t>(qpos)];
+                  alnpos = fill_run(alignment, alnpos, ci->maxi[static_cast<size_t>(qpos)], '-');
                 }
 
               if (operation == Operation::match)
                 {
-                  alignment[static_cast<size_t>(alnpos)] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
+                  alignment[alnpos] = map_uppercase(target_seq[static_cast<std::size_t>(tpos)]);
                   ++tpos;
                   ++alnpos;
                 }
               else
                 {
-                  alignment[static_cast<size_t>(alnpos)] = '-';
+                  alignment[alnpos] = '-';
                   ++alnpos;
                 }
 
@@ -891,12 +910,11 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
 
       if (not is_inserted)
         {
-          std::fill_n(&alignment[static_cast<size_t>(alnpos)], ci->maxi[static_cast<size_t>(qpos)], '-');
-          alnpos += ci->maxi[static_cast<size_t>(qpos)];
+          alnpos = fill_run(alignment, alnpos, ci->maxi[static_cast<size_t>(qpos)], '-');
         }
 
       /* end of sequence string */
-      alignment[static_cast<size_t>(alnpos)] = '\0';
+      alignment[alnpos] = '\0';
     }
 }
 
@@ -921,26 +939,14 @@ auto fill_in_alignment_string_for_query(View<char> const query,
   std::size_t alnpos = 0;
   for (std::size_t qpos = 0; qpos < query.size(); ++qpos) {
     // add insertion (if any):
-    assert(insertions[qpos] >= 0);
-    auto const insert_length = static_cast<std::size_t>(insertions[qpos]);
-    // room for the filler run and for the character written just after it
-    assert(alnpos + insert_length < alignment.size());
-    std::fill_n(std::next(alignment.begin(), static_cast<std::ptrdiff_t>(alnpos)),
-                insert_length, '-');
-    alnpos += insert_length;
+    alnpos = fill_run(alignment, alnpos, insertions[qpos], '-');
 
     // add (mis-)matching position:
     alignment[alnpos] = map_uppercase(query[qpos]);
     ++alnpos;
   }
   // add terminal gap (if any):
-  assert(insertions[query.size()] >= 0);
-  auto const insert_length = static_cast<std::size_t>(insertions[query.size()]);
-  // room for the filler run and for the terminator written just after it
-  assert(alnpos + insert_length < alignment.size());
-  std::fill_n(std::next(alignment.begin(), static_cast<std::ptrdiff_t>(alnpos)),
-              insert_length, '-');
-  alnpos += insert_length;
+  alnpos = fill_run(alignment, alnpos, insertions[query.size()], '-');
   alignment[alnpos] = '\0';
 }
 
@@ -988,26 +994,16 @@ auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> voi
         ++nth_parent;
       }
       // add insertion (if any):
-      assert(insertions[static_cast<std::size_t>(qpos)] >= 0);
-      auto const insert_length = static_cast<std::size_t>(insertions[static_cast<std::size_t>(qpos)]);
-      // room for the filler run and for the character written just after it
-      assert(alnpos + insert_length < model.size());
-      std::fill_n(std::next(model.begin(), static_cast<std::ptrdiff_t>(alnpos)),
-                  insert_length, static_cast<char>('A' + nth_parent));
-      alnpos += insert_length;
+      auto const parent_letter = static_cast<char>('A' + nth_parent);
+      alnpos = fill_run(model, alnpos, insertions[static_cast<std::size_t>(qpos)], parent_letter);
 
       // add (mis-)matching position:
-      model[alnpos] = static_cast<char>('A' + nth_parent);
+      model[alnpos] = parent_letter;
       ++alnpos;
     }
   // add terminal gap (if any):
-  assert(insertions[insertions.size() - 1] >= 0);
-  auto const insert_length = static_cast<std::size_t>(insertions[insertions.size() - 1]);
-  // room for the filler run and for the terminator written just after it
-  assert(alnpos + insert_length < model.size());
-  std::fill_n(std::next(model.begin(), static_cast<std::ptrdiff_t>(alnpos)),
-              insert_length, static_cast<char>('A' + nth_parent));
-  alnpos += insert_length;
+  alnpos = fill_run(model, alnpos, insertions[insertions.size() - 1],
+                    static_cast<char>('A' + nth_parent));
   model[alnpos] = '\0';
 }
 
