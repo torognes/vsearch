@@ -69,6 +69,7 @@
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/hash_table_size.hpp"  // vsearch::table_size_half
@@ -443,10 +444,7 @@ auto scramble(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (seq_buffer.size() < length)
-          {
-            seq_buffer.resize(length);
-          }
+        vsearch::grow_to_fit(seq_buffer, length);
 
         std::copy(sequence.cbegin(), sequence.cend(), seq_buffer.begin());
 
