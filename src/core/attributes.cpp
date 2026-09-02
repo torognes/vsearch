@@ -68,12 +68,11 @@
 #include <algorithm>  // std::find_if, std::search, std::sort
 #include <array>
 #include <cerrno>  // errno
-#include <cstddef>  // std::ptrdiff_t, std::size_t
+#include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t, uint64_t
 #include <cstdio>  // std::FILE, std::fprintf, std::fputs
 #include <cstdlib>  // std::strtoll
 #include <cstring>  // std::strlen
-#include <iterator>  // std::next, std::distance
 
 
 // anonymous namespace: limit visibility and usage to this translation unit
