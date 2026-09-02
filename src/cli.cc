@@ -4879,22 +4879,26 @@ namespace {
         fatal("The argument to --fastq_asciiout must be 33 or 64");
       }
 
-    if (parameters.opt_fastq_asciiout + parameters.opt_fastq_qminout < lowest_printable_ascii)
+    /* Both output bounds are stated against the offset this command writes
+       with, not against --fastq_asciiout unconditionally: --fastq_mergepairs
+       encodes with --fastq_ascii and does not accept --fastq_asciiout. Naming
+       the wrong offset erred in both directions -- it left the ceiling's whole
+       range 63..93 unguarded, so --fastq_ascii 64 --fastq_qmaxout 93 wrote
+       byte 157 (a SIGSEGV in 2.31.0); and it refused a --fastq_qminout that
+       offset 64 represents perfectly well, since 64 - 31 is still '!'. */
+    auto const origin = cli_quality_origin(parameters);
+    auto const output_offset = fastq_output_offset(parameters, origin);
+    std::string const offset_option =
+      (origin == QualityOrigin::merged) ? "--fastq_ascii" : "--fastq_asciiout";
+
+    if (output_offset + parameters.opt_fastq_qminout < lowest_printable_ascii)
       {
-        fatal("Sum of arguments to --fastq_asciiout and --fastq_qminout must be no less than 33");
+        fatal("Sum of arguments to " + offset_option
+              + " and --fastq_qminout must be no less than 33");
       }
 
-    /* stated against the offset this command writes with, not against
-       --fastq_asciiout unconditionally: --fastq_mergepairs encodes with
-       --fastq_ascii and does not accept --fastq_asciiout, so the old form left
-       the whole range 63..93 unguarded there and let --fastq_ascii 64
-       --fastq_qmaxout 93 write byte 157 (a SIGSEGV in 2.31.0). */
-    auto const origin = cli_quality_origin(parameters);
-    if (fastq_output_offset(parameters, origin) + parameters.opt_fastq_qmaxout
-        > highest_printable_ascii)
+    if (output_offset + parameters.opt_fastq_qmaxout > highest_printable_ascii)
       {
-        std::string const offset_option =
-          (origin == QualityOrigin::merged) ? "--fastq_ascii" : "--fastq_asciiout";
         fatal("Sum of arguments to " + offset_option
               + " and --fastq_qmaxout must be no more than 126");
       }

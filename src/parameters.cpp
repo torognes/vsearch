@@ -71,7 +71,7 @@
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_available_cores
 #include "utils/fatal.hpp"  // fatal
-#include "utils/quality_encoding.hpp"  // highest_printable_ascii, sanger_ascii_offset, legacy_max_quality, fastq_qmaxout_unset
+#include "utils/quality_encoding.hpp"  // lowest_printable_ascii, highest_printable_ascii, sanger_ascii_offset, legacy_max_quality, fastq_qmaxout_unset
 #include <array>  // std::array::size
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
@@ -271,23 +271,40 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
         highest_printable_ascii - parameters.opt_fastq_ascii;
     }
 
-  /* The output-side sum rule, which the CLI applies in
-     validate_option_values() but the library had nowhere: a caller who sets
-     opt_fastq_ascii = 64 and leaves the ceiling at 93 gets merged quality
-     bytes up to 64 + 93 = 157 -- an invalid FASTQ file, and a SIGSEGV in
-     vsearch 2.31.0.
+  /* The three output-quality rules the CLI applies in
+     validate_option_values() but the library had nowhere. Without the ceiling
+     one, a caller who sets opt_fastq_ascii = 64 and leaves the ceiling at 93
+     gets merged quality bytes up to 64 + 93 = 157 -- an invalid FASTQ file,
+     and a SIGSEGV in vsearch 2.31.0.
 
-     It is checked here rather than in parameters_validate(), which the CLI
+     They are checked here rather than in parameters_validate(), which the CLI
      also calls, because the offset a symbol is written with depends on the
      command: a legal CLI run (--fastq_convert --fastq_ascii 64
      --fastq_asciiout 33 --fastq_qmaxout 93) writes with asciiout and would be
      rejected by any command-agnostic reading of the rule. A library session
-     has no command, and MergePairs is its only consumer of the ceiling, so the
-     merged origin is the one that applies. */
+     has no command, and MergePairs is its only consumer of these bounds, so
+     the merged origin is the one that applies -- which also means the offset
+     is opt_fastq_ascii, and the messages name it.
+
+     The ceiling has to be the RESOLVED one: the member still holds the
+     sentinel unless the caller set it, and comparing qminout against
+     INT64_MIN would refuse every default configuration. */
   auto const merged_ceiling =
     resolve_fastq_qmaxout(parameters, QualityOrigin::merged);
-  if (fastq_output_offset(parameters, QualityOrigin::merged) + merged_ceiling
-      > highest_printable_ascii)
+  auto const merged_offset =
+    fastq_output_offset(parameters, QualityOrigin::merged);
+
+  if (parameters.opt_fastq_qminout > merged_ceiling)
+    {
+      fatal("The argument to --fastq_qminout cannot be larger than --fastq_qmaxout");
+    }
+
+  if (merged_offset + parameters.opt_fastq_qminout < lowest_printable_ascii)
+    {
+      fatal("Sum of arguments to --fastq_ascii and --fastq_qminout must be no less than 33");
+    }
+
+  if (merged_offset + merged_ceiling > highest_printable_ascii)
     {
       fatal("Sum of arguments to --fastq_ascii and --fastq_qmaxout must be no more than 126");
     }
