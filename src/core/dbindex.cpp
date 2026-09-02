@@ -64,14 +64,17 @@
 #include "core/db.hpp"
 #include "core/dbindex.hpp"
 #include "core/unique.hpp"
+#include "utils/decimal_digits.hpp"  // decimal::to_text
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
+#include "utils/warn.hpp"  // vsearch::warn
 #include <algorithm>  // std::max
 #include <array>
 #include <cassert>  // assert
 #include <cstdint>  // uint64_t
 #include <cstdio>  // std::FILE
 #include <iterator>  // std::next
+#include <string>  // std::string
 #include <vector>
 
 
@@ -213,6 +216,67 @@ auto Dbindex::add_sequence(unsigned int const seqno, Masking const seqmask, stru
 }
 
 
+/* anonymous namespace: limit visibility and usage to this translation unit */
+namespace {
+
+  /* A sequence whose unique-k-mer list comes back empty is absent from the
+     k-mer index, so it is never selected as a candidate target. The message
+     says exactly that and no more: such a sequence can still be *reached*, by
+     a query that samples no k-mers itself and is therefore compared against
+     every database sequence (documented in option_qmask.md), so "can never be
+     matched" would be an overclaim. Three situations produce an empty list --
+     every k-mer overlaps a masked (lowercase) base, every k-mer contains a
+     symbol outside ACGTU, or the sequence is shorter than the word length (see
+     Uniquer::count(), core/unique.cpp) -- and telling them apart would cost a
+     second pass over the whole database (a count() with Masking::none), so the
+     warning reports the observable fact and lists the possible causes. When
+     masking is off, lowercase cannot be one of them and is left out.
+
+     One summary line, not one warning per sequence: a low-complexity or
+     heavily masked dataset would otherwise emit millions of them, which is why
+     the existing discard reports (core/db.cpp) are shaped the same way.
+
+     Motivating case: torognes/vsearch#570, where the all-lowercase BOLD COI
+     reference database was silently indexed as 2.2 M unhittable sequences and
+     --sintax produced 13 days of empty classifications. */
+  /* The two counts travel together and are both plain integers, so they are
+     named in a struct rather than passed as two adjacent swappable arguments
+     (the shape FilterCounts uses in core/filter.cpp; clang-tidy's
+     readability-suspicious-call-argument flags the two-argument form). No
+     default member initializers: they would make this a non-aggregate before
+     C++14, and the call site brace-initializes it. */
+  struct KmerlessCounts
+  {
+    uint64_t without_kmers;
+    uint64_t sequences;
+  };
+
+
+  auto warn_sequences_without_kmers(KmerlessCounts const & counts,
+                                    unsigned int const wordlength,
+                                    Masking const seqmask) -> void
+  {
+    if (counts.without_kmers == 0)
+      {
+        return;
+      }
+    std::string message = decimal::to_text(counts.without_kmers) + " of "
+      + decimal::to_text(counts.sequences)
+      + " sequences yielded no k-mer for the index and cannot be selected as"
+        " candidate targets.\n"
+      + "Possible causes: all their k-mers ";
+    if (seqmask != Masking::none)
+      {
+        message += "are masked (lowercase) or ";
+      }
+    message += "contain a symbol other than A, C, G, T or U, or the sequences"
+      " are shorter than the word length (" + decimal::to_text(wordlength) + ").";
+    vsearch::warn(message);
+  }
+
+}  // end of anonymous namespace
+
+
 auto Dbindex::add_all_sequences(Masking const seqmask, struct Database const & db, struct Parameters const & parameters) -> void
 {
   auto const seqcount = static_cast<unsigned int>(db.getsequencecount());
@@ -243,12 +307,17 @@ auto Dbindex::prepare(Masking const seqmask, struct Database const & db, struct 
   kmercount.assign(hashsize, 0U);
 
   /* first scan, just count occurrences */
+  uint64_t sequences_without_kmers = 0;
   {
     Progress progress("Counting k-mers", seqcount, parameters);
     for (auto seqno = 0U; seqno < seqcount ; seqno++)
       {
         auto const uniquelist = uhandle.count(static_cast<int>(wordlength),
                                               db.sequence_view(seqno), seqmask);
+        if (uniquelist.empty())
+          {
+            ++sequences_without_kmers;
+          }
         for (auto const kmer : uniquelist)
           {
             ++kmercount[kmer];
@@ -256,6 +325,11 @@ auto Dbindex::prepare(Masking const seqmask, struct Database const & db, struct 
         progress.update(seqno);
       }
   }
+
+  /* after the Progress object is destroyed, so the warning does not land in
+     the middle of a progress line (warn() opens with a newline anyway) */
+  warn_sequences_without_kmers(KmerlessCounts{sequences_without_kmers, seqcount},
+                               wordlength, seqmask);
 
   /* determine minimum kmer count for bitmap usage */
   unsigned int const bitmap_mincount = bitmap_min_matches(seqcount);

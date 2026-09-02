@@ -5,4 +5,7 @@
   when using *soft* masking, search commands become case sensitive:
   masking excludes masked regions from the *k*-mer index used to
   select candidate targets (the pairwise alignment itself always
-  ignores case). The default is to mask using *dust*.
+  ignores case). A database sequence with no unmasked stretch of at
+  least the word length contributes no *k*-mer to the index and can
+  never be reported as a hit; vsearch warns when there are such
+  sequences, giving how many. The default is to mask using *dust*.
