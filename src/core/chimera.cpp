@@ -136,6 +136,15 @@ struct parent_tiling_s {
 };
 
 
+/* The four per-query rows of an alignment block, all the same length. */
+struct alignment_rows_s {
+  Span<char> query;
+  Span<char> model;
+  Span<char> diffs;
+  Span<char> votes;
+};
+
+
 struct chimera_info_s
 {
   /* run configuration, set by chimera_thread_init and read by the detection
@@ -248,6 +257,19 @@ struct chimera_info_s
   }
   auto parents() const -> View<int> {
     return make_view(best_parents).first(static_cast<std::size_t>(parents_found));
+  }
+  /* The alignment rows, cut to the alignment being built. alnlen is passed in
+     rather than stored: find_total_alignment_length() derives it from maxi,
+     and a cached copy would be exactly the second length this struct is trying
+     to stop keeping. The rows are written to, hence Spans. */
+  auto rows(int const alnlen) -> struct alignment_rows_s {
+    auto const length = static_cast<std::size_t>(alnlen);
+    return {make_span(qaln).first(length), make_span(model).first(length),
+            make_span(diffs).first(length), make_span(votes).first(length)};
+  }
+  auto parent_row(int const nth, int const alnlen) -> Span<char> {
+    return make_span(paln[static_cast<std::size_t>(nth)])
+             .first(static_cast<std::size_t>(alnlen));
   }
   auto tiling() const -> struct parent_tiling_s {
     auto const count = static_cast<std::size_t>(parents_found);
@@ -851,29 +873,29 @@ auto fill_max_alignment_length(struct chimera_info_s * chimera_info) -> void
    advanced cursor. Every alignment row in this file is built the same way --
    a filler run, then one character -- so the capacity check lives here rather
    than being repeated, and correctly-sized rows cannot drift apart from the
-   checks that guard them. The run and the character written just after it must
-   both fit, hence "<" and not "<=". */
+   checks that guard them. Only the run itself is checked here: whatever is
+   written after it goes through Span::operator[], which checks itself. */
 auto fill_run(Span<char> const row, std::size_t const cursor,
               int const run_length, char const filler) -> std::size_t {
   assert(run_length >= 0);
   auto const length = static_cast<std::size_t>(run_length);
-  assert(cursor + length < row.size());
+  assert(cursor + length <= row.size());
   std::fill_n(std::next(row.begin(), static_cast<std::ptrdiff_t>(cursor)),
               length, filler);
   return cursor + length;
 }
 
 
-auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & db) -> void
+auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & db,
+                            int const alnlen) -> void
 {
   /* fill in alignment strings for the parents */
 
   for (int i = 0; i < ci->parents_found; ++i)
     {
-      /* the row as a Span, so every write is bounds-checked and the two
-         filler runs below go through fill_run's capacity assert -- the same
-         treatment the query and model rows get */
-      auto const alignment = make_span(ci->paln[static_cast<size_t>(i)]);
+      /* cut to alnlen, the same bound the readers use, so a row that does not
+         fill exactly trips an assert here rather than being read back short */
+      auto const alignment = ci->parent_row(i, alnlen);
       int const cand = ci->best_parents[static_cast<size_t>(i)];
       int const target_seqno = static_cast<int>(ci->cand_list[static_cast<size_t>(cand)]);
       auto const target_seq = db.sequence_view(static_cast<uint64_t>(target_seqno));
@@ -941,8 +963,7 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
           alnpos = fill_run(alignment, alnpos, ci->maxi[static_cast<size_t>(qpos)], '-');
         }
 
-      /* end of sequence string */
-      alignment[alnpos] = '\0';
+      assert(alnpos == alignment.size());  // the row filled exactly
     }
 }
 
@@ -975,7 +996,7 @@ auto fill_in_alignment_string_for_query(View<char> const query,
   }
   // add terminal gap (if any):
   alnpos = fill_run(alignment, alnpos, insertions[query.size()], '-');
-  alignment[alnpos] = '\0';
+  assert(alnpos == alignment.size());  // the row filled exactly
 }
 
 
@@ -1018,7 +1039,7 @@ auto fill_in_model_string_for_query(View<int> const insertions,
   // add terminal gap (if any):
   alnpos = fill_run(model, alnpos, insertions[insertions.size() - 1],
                     static_cast<char>('A' + nth_parent));
-  model[alnpos] = '\0';
+  assert(alnpos == model.size());  // the row filled exactly
 }
 
 
@@ -1090,12 +1111,11 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
   fill_max_alignment_length(ci);
   auto const alnlen = find_total_alignment_length(ci);
 
-  fill_alignment_parents(ci, db);
+  fill_alignment_parents(ci, db, alnlen);
 
-  fill_in_alignment_string_for_query(ci->query(), ci->insertions(),
-                                     make_span(ci->qaln));
-  fill_in_model_string_for_query(ci->insertions(), ci->tiling(),
-                                 make_span(ci->model));
+  auto const rows = ci->rows(alnlen);
+  fill_in_alignment_string_for_query(ci->query(), ci->insertions(), rows.query);
+  fill_in_model_string_for_query(ci->insertions(), ci->tiling(), rows.model);
 
   std::vector<unsigned char> psym;
   psym.reserve(maxparents);
@@ -1120,7 +1140,7 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
       psym.clear();
     }
 
-  ci->diffs[static_cast<size_t>(alnlen)] = '\0';
+
 
 
   auto const match_QP = count_matches_with_parents(ci, alnlen);
@@ -1346,12 +1366,12 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
   fill_max_alignment_length(ci);
   auto const alnlen = find_total_alignment_length(ci);
 
-  fill_alignment_parents(ci, db);
+  fill_alignment_parents(ci, db, alnlen);
 
   /* fill in alignment string for query */
 
   fill_in_alignment_string_for_query(ci->query(), ci->insertions(),
-                                     make_span(ci->qaln));
+                                     ci->rows(alnlen).query);
 
   /* mark positions to ignore in voting */
   std::fill(ci->ignore.begin(), ci->ignore.end(), false);
@@ -1437,7 +1457,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
       ci->diffs[static_cast<size_t>(i)] = diff;
     }
 
-  ci->diffs[static_cast<size_t>(alnlen)] = '\0';
+
 
   /* compute score */
 
