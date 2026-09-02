@@ -108,7 +108,7 @@ constexpr auto BZ_MORE_MEM = 0;  /* faster decompression using more memory */
 #endif
 
 
-DynamicLibraries::DynamicLibraries() noexcept
+DynamicLibraries::DynamicLibraries()  // not noexcept: see the header
 {
 #ifdef HAVE_ZLIB_H
   gz_lib = dynlib::open(gz_libname.data());
