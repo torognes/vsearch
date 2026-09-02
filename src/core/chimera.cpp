@@ -155,13 +155,12 @@ struct chimera_info_s
   int part_alloc = 0; /* the longest query part allocated memory for */
 
   int query_no = 0;
-  std::vector<char> query_head_v;  /* owned header storage, NUL-terminated and
-                                      grown monotonically to the longest header
-                                      seen, so it is generally longer than the
-                                      header */
+  std::vector<char> query_head_v;  /* owned header storage, grown monotonically
+                                      to the longest header seen, so it is
+                                      generally longer than the header */
   View<char> query_head {nullptr, 0};  /* the header itself: a view into
-                                          query_head_v, excluding the
-                                          terminator */
+                                          query_head_v, cut to the current
+                                          header's length */
   int64_t query_size = 0;
   std::vector<char> query_seq;
   int query_len = 0;
@@ -286,18 +285,16 @@ enum struct Status : unsigned char {
 // anonymous namespace: limit visibility and usage to this translation unit
 namespace {
 
-  /* Copy a stored header or sequence into a local NUL-terminated buffer. The
-     detection core walks its copies as C strings, so the terminator is written
-     here rather than read from the source: the byte after a header or sequence
-     view is a '\0' in the reader's and the Database's buffers alike, but it is
-     not part of the view being copied. */
+  /* Copy a stored header or sequence into a scratch buffer reused across
+     queries. Nothing in the detection core reads a terminator any more -- every
+     consumer of these copies is driven by a View's size -- so the copy is
+     exactly source.size() bytes and the buffer needs no room past them. */
   // Returns a view over the copy, so the caller can store the bytes and the
   // length as one value instead of tracking a separate length field.
-  auto copy_and_terminate(View<char> const source,
-                          std::vector<char> & destination) -> View<char> {
-    assert(destination.size() > source.size());
+  auto copy_into_scratch(View<char> const source,
+                         std::vector<char> & destination) -> View<char> {
+    assert(destination.size() >= source.size());
     std::copy(source.cbegin(), source.cend(), destination.begin());
-    destination[source.size()] = '\0';
     return make_view(destination).first(source.size());
   }
 
@@ -373,9 +370,9 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
     }
 
   const int maxhlen = std::max(static_cast<int>(header_length), 1);
-  if (chimera_info->query_head_v.size() < static_cast<size_t>(maxhlen) + 1)
+  if (chimera_info->query_head_v.size() < static_cast<size_t>(maxhlen))
     {
-      chimera_info->query_head_v.resize(static_cast<size_t>(maxhlen) + 1);
+      chimera_info->query_head_v.resize(static_cast<size_t>(maxhlen));
     }
 
   /* realloc arrays based on query length */
@@ -387,7 +384,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
     {
       chimera_info->query_alloc = maxqlen;
 
-      chimera_info->query_seq.resize(static_cast<size_t>(maxqlen) + 1);
+      chimera_info->query_seq.resize(static_cast<size_t>(maxqlen));
 
       chimera_info->maxi.resize(static_cast<size_t>(maxqlen) + 1);
       chimera_info->maxsmooth.resize(static_cast<size_t>(maxqlen));
@@ -2274,8 +2271,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             realloc_arrays(ci, db, query_record.header.size());
 
             /* copy the data locally (query seq, head) */
-            ci->query_head = copy_and_terminate(query_record.header, ci->query_head_v);
-            copy_and_terminate(query_record.sequence, ci->query_seq);
+            ci->query_head = copy_into_scratch(query_record.header, ci->query_head_v);
+            copy_into_scratch(query_record.sequence, ci->query_seq);
             query_position = state.query_fasta_h->get_position();
           }
         else
@@ -2295,8 +2292,8 @@ static auto chimera_thread_core(struct chimera_cli_state_s & state,
             /* if necessary expand memory for arrays based on query length */
             realloc_arrays(ci, db, query_record.header.size());
 
-            ci->query_head = copy_and_terminate(query_record.header, ci->query_head_v);
-            copy_and_terminate(query_record.sequence, ci->query_seq);
+            ci->query_head = copy_into_scratch(query_record.header, ci->query_head_v);
+            copy_into_scratch(query_record.sequence, ci->query_seq);
           }
         else
           {
@@ -2973,11 +2970,8 @@ auto chimera_detect_single(struct chimera_info_s * ci,
 
   realloc_arrays(ci, *ci->db, query.header.size());
 
-  ci->query_head = copy_and_terminate(query.header, ci->query_head_v);
-  /* copy the bases and write the terminator here, rather than reading a
-     query.sequence.size() + 1'th byte the view does not cover */
-  std::copy(query.sequence.cbegin(), query.sequence.cend(), ci->query_seq.begin());
-  ci->query_seq[query.sequence.size()] = '\0';
+  ci->query_head = copy_into_scratch(query.header, ci->query_head_v);
+  copy_into_scratch(query.sequence, ci->query_seq);
 
   /* Clear result. Non-chimeric results will have only query_label and
      flag='N' populated; all other fields remain zero. */
