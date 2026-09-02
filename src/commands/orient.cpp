@@ -73,6 +73,7 @@
 #include "core/udb.hpp"
 #include "core/unique.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
@@ -283,7 +284,6 @@ auto orient(struct Parameters const & parameters) -> void
 
   Uniquer uh_fwd;
 
-  std::size_t alloc = 0;
   std::vector<char> qseq_rev;
   std::vector<char> query_qual_rev;
 
@@ -379,21 +379,17 @@ auto orient(struct Parameters const & parameters) -> void
             /* alloc more mem if necessary to keep reverse sequence and qual */
             assert(qseqlen > 0);
             static_assert(sizeof(std::size_t) >= sizeof(int), "size_t is too small");
-            const std::size_t requirements = static_cast<std::size_t>(qseqlen) + 1;
+            auto const query_length = static_cast<std::size_t>(qseqlen);
             // refactoring: unsigned int qseqlen
-            if (requirements > alloc)
+            vsearch::grow_to_fit(qseq_rev, query_length);
+            if (query_h->is_fastq_input())
               {
-                alloc = requirements;
-                qseq_rev.resize(alloc);
-                if (query_h->is_fastq_input())
-                  {
-                    query_qual_rev.resize(alloc);
-                  }
+                vsearch::grow_to_fit(query_qual_rev, query_length);
               }
 
             /* get reverse complementary sequence */
 
-            reverse_complement(make_span(qseq_rev).first(query_sequence.size() + 1), query_sequence);
+            reverse_complement(make_span(qseq_rev).first(query_sequence.size()), query_sequence);
             auto const rc_sequence = make_view(qseq_rev).first(query_sequence.size());
 
             if (parameters.opt_fastaout != nullptr)
@@ -415,7 +411,6 @@ auto orient(struct Parameters const & parameters) -> void
                     // copy query string in reverse order
                     std::reverse_copy(query_qual_fwd.cbegin(), query_qual_fwd.cend(),
                                       query_qual_rev.begin());
-                    query_qual_rev[query_qual_fwd.size()] = '\0';
                   }
 
                 fastq_print_general(fastqout_handle.get(),
@@ -479,10 +474,12 @@ auto orient(struct Parameters const & parameters) -> void
   dbindex.clear();
   db.clear();
 
-  /* close at a defined point, in the historical fclose order (destructors
-     would close in reverse declaration order, changing the flush order when
-     streams share stdout); reset() is a no-op on an empty handle, so
-     unopened outputs need no guard. */
+  /* close here rather than at scope exit, so that a deferred write error (full
+     disk, quota exceeded, broken pipe) is fatal before the warning and the
+     reports below rather than after them. The order among the four is not
+     significant: outputs naming the same target share one std::FILE (see
+     utils/open_file.hpp), so there is at most one close per target. reset() is
+     a no-op on an empty handle, so unopened outputs need no guard. */
   tabbedout_handle.reset();
   notmatched_handle.reset();
   fastqout_handle.reset();

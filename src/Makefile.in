@@ -231,7 +231,7 @@ am__libcpu_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -307,7 +307,7 @@ am__libcpu_pic_a_SOURCES_DIST = arch/simde/increment_counters.cpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -382,7 +382,7 @@ am__libcpu_sse2_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -451,7 +451,7 @@ am__libcpu_sse2_pic_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -520,7 +520,7 @@ am__libcpu_ssse3_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -589,7 +589,7 @@ am__libcpu_ssse3_pic_a_SOURCES_DIST =  \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -657,7 +657,7 @@ am__libvsearch_core_a_SOURCES_DIST = core/align_simd.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -896,7 +896,7 @@ am____top_builddir__bin_vsearch_SOURCES_DIST = core/align_simd.hpp \
 	utils/compare_strings_nocase.hpp utils/decimal_digits.hpp \
 	utils/dynlib_loader.hpp utils/element_order.hpp \
 	utils/fatal.hpp utils/fatal_allocator.hpp \
-	utils/hash_table_size.hpp utils/header_attribute.hpp \
+	utils/grow_to_fit.hpp utils/hash_table_size.hpp utils/header_attribute.hpp \
 	utils/kmer_hash_struct.hpp utils/logfile.hpp \
 	utils/make_unique.hpp utils/maps.hpp utils/median.hpp \
 	utils/number_of_strands.hpp utils/open_file.hpp \
@@ -1591,6 +1591,7 @@ utils/dynlib_loader.hpp \
 utils/element_order.hpp \
 utils/fatal.hpp \
 utils/fatal_allocator.hpp \
+utils/grow_to_fit.hpp \
 utils/hash_table_size.hpp \
 utils/header_attribute.hpp \
 utils/kmer_hash_struct.hpp \

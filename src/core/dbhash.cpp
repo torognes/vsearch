@@ -172,11 +172,11 @@ auto Dbhash::add(View<char> const seq, uint64_t const seqno, struct Database con
 auto Dbhash::add_all(struct Database const & db, struct Parameters const & parameters) -> void
 {
   Progress progress("Hashing database sequences", db.getsequencecount(), parameters);
-  std::vector<char> normalized(db.getlongestsequence() + 1);
+  std::vector<char> normalized(db.getlongestsequence());
   for (uint64_t seqno = 0; seqno < db.getsequencecount(); ++seqno)
     {
       auto const sequence = db.sequence_view(seqno);
-      string_normalize(make_span(normalized).first(sequence.size() + 1), sequence);
+      string_normalize(make_span(normalized).first(sequence.size()), sequence);
       add(make_view(normalized).first(sequence.size()), seqno, db);
       progress.update(seqno + 1);
     }

@@ -61,7 +61,7 @@
 #pragma once
 
 #include <cstdio>  // std::FILE, std:fclose, std::fopen
-#include <memory>  // std::unique_ptr
+#include <memory>  // std::unique_ptr, std::shared_ptr
 
 
 // Make sure std::FILE * cannot leak
@@ -89,10 +89,25 @@ using FileHandle = std::unique_ptr<std::FILE, CloseFileHandle>;
 // silently truncated output file. Input streams keep the plain CloseFileHandle
 // above (a stale read-error flag must not turn into a write failure).
 struct CheckedCloseOutputHandle {
-  auto operator()(std::FILE * file_handle) noexcept -> void;  // defined in open_file.cpp
+  auto operator()(std::FILE * file_handle) const noexcept -> void;  // defined in open_file.cpp
 };
 
-using OutputFileHandle = std::unique_ptr<std::FILE, CheckedCloseOutputHandle>;
+// Shared, not unique: two output options naming the same target -- two spelled
+// "-", two spelled "/dev/stdout", or two identical paths -- alias one std::FILE,
+// so they share one buffer, one file offset and one close instead of clobbering
+// each other or interleaving their buffer flushes mid-record. See the registry
+// in open_file.cpp.
+//
+// A consequence worth having: since there is at most one std::FILE per target,
+// the order in which handles are released is no longer observable, so callers
+// no longer need to close their outputs in a pinned order (they used to, and
+// each command's order was a different historical accident).
+//
+// Nothing outside the openers below should copy a handle. The type cannot
+// express "exactly one owner" for the named-file case, and a stray copy would
+// silently hold a stream open -- and its deferred write errors unreported --
+// past the point the code meant to close it.
+using OutputFileHandle = std::shared_ptr<std::FILE>;
 
 
 // A command-line option name (for example "--output"), wrapped in its own type
@@ -114,15 +129,21 @@ auto open_input_file(char const * filename) -> FileHandle;
 /* Low-level named output opener in binary write mode: a null filename yields an
    empty handle, "-" writes a duplicate of stdout, and an open failure yields an
    empty handle. Prefer the mandatory/optional wrappers below, which also report
-   the error; this primitive is used where the caller does its own checking. */
+   the error; this primitive is used where the caller does its own checking.
+
+   A filename already open for output yields a handle on that same stream rather
+   than a second one (see the registry in open_file.cpp), which is why this
+   returns a shared handle. */
 auto open_output_file(char const * filename) -> OutputFileHandle;
 
 /* Open a mandatory named output stream (binary write mode). Fatal if the option
    was not given (filename == nullptr), naming <option>, or if the file cannot
-   be opened. "-" writes a duplicate of stdout. */
+   be opened. "-" writes a duplicate of stdout, shared with any other output
+   naming the same target. */
 auto open_mandatory_output_file(char const * filename, OutputOption option) -> OutputFileHandle;
 
 /* Open an optional named output stream (binary write mode). A null filename
    (option not given) yields an empty handle; a named file that cannot be opened
-   is fatal, naming <option>. "-" writes a duplicate of stdout. */
+   is fatal, naming <option>. "-" writes a duplicate of stdout, shared with any
+   other output naming the same target. */
 auto open_optional_output_file(char const * filename, OutputOption option) -> OutputFileHandle;

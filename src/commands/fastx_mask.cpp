@@ -221,9 +221,4 @@ auto fastx_mask(struct Parameters const & parameters) -> void
 
   db.clear();
 
-  /* reset() in the original fclose order (fastaout before fastqout); a no-op on
-     an unopened handle, and scope-exit would reverse the flush order for the
-     degenerate case of both outputs sharing stdout. */
-  fp_fastaout.reset();
-  fp_fastqout.reset();
 }

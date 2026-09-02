@@ -262,8 +262,10 @@ namespace {
 
 
   auto close_output_files(output_files & outfiles) -> void {
-    /* reset in this fixed order (scope-exit destruction runs in reverse) so
-       that any streams sharing stdout flush as they did before RAII */
+    /* called before the stripped-character warnings, so that a deferred write
+       error is fatal ahead of them. The order among the eight is not
+       significant: outputs naming the same target share one std::FILE (see
+       utils/open_file.hpp). */
     for (auto * pair : {& outfiles.synced_fwd, & outfiles.synced_rev,
                         & outfiles.orphans_fwd, & outfiles.orphans_rev,}) {
       pair->fasta.handle.reset();

@@ -64,6 +64,8 @@
 #include "view.hpp"  // View<char>
 
 
-// Write the reverse complement of seq into rc_seq, terminating it with a '\0'.
-// rc_seq must have room for seq.size() + 1 characters.
+// Write the reverse complement of seq into rc_seq. Exactly seq.size()
+// characters are written, and rc_seq must have room for that many: the output
+// is not terminated, because no caller reads a terminator -- every one of them
+// takes a View or Span cut to the length it already knows.
 auto reverse_complement(Span<char> rc_seq, View<char> seq) -> void;

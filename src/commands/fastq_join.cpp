@@ -68,6 +68,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
@@ -145,8 +146,10 @@ namespace {
 
 
   auto close_output_files(struct output_files & outfiles) -> void {
-    /* reset in this fixed order (scope-exit destruction runs in reverse) so
-       that outputs sharing stdout flush as they did before RAII */
+    /* called before close_input_files(), which emits the stripped-character
+       warnings, so that a deferred write error is fatal ahead of them. The
+       order between the two is not significant: outputs naming the same target
+       share one std::FILE (see utils/open_file.hpp). */
     outfiles.fasta.handle.reset();
     outfiles.fastq.handle.reset();
   }
@@ -224,10 +227,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
            helper; the former in-place std::reverse + std::transform called
            the cross-TU map_complement() once per base) */
 
-        if (rc_buffer.size() < rev_seq_length + 1)
-          {
-            rc_buffer.resize(rev_seq_length + 1);
-          }
+        vsearch::grow_to_fit(rc_buffer, rev_seq_length);
         reverse_complement(make_span(rc_buffer), rev_sequence);
 
         /* join them: forward read, pad gap, reverse-complemented reverse

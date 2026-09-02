@@ -68,6 +68,7 @@
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
@@ -107,10 +108,16 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
 
   auto const filesize = input_handle->get_size();
 
-  auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-
   {
+    /* declared here, ahead of the progress bar, so that leaving this scope
+       closes the outputs -- and reports any deferred write error -- after the
+       final progress line and before the stripped-character warning below,
+       which is the order the explicit close used to give. Which of the two is
+       closed first is no longer observable: outputs naming the same target
+       share one std::FILE (see utils/open_file.hpp). */
+    auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+    auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress(input_handle->is_fastq_format() ? "Reading FASTQ file" : "Reading FASTA file", filesize, parameters);
     while (input_handle->next(false, chrmap_no_change()))
@@ -128,16 +135,10 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (seq_buffer.size() < length + 1)
-          {
-            seq_buffer.resize(length + 1);
-          }
-        if (qual_buffer.size() < length + 1)
-          {
-            qual_buffer.resize(length + 1);
-          }
+        vsearch::grow_to_fit(seq_buffer, length);
+        vsearch::grow_to_fit(qual_buffer, length);
 
-        reverse_complement(make_span(seq_buffer).first(length + 1), sequence);
+        reverse_complement(make_span(seq_buffer).first(length), sequence);
 
 
         /* quality values */
@@ -145,7 +146,6 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         /* reverse quality values (the view is empty for fasta input) */
         auto const quality = input_handle->quality_view();
         std::reverse_copy(quality.cbegin(), quality.cend(), qual_buffer.begin());
-        qual_buffer[quality.size()] = '\0';
 
         if (parameters.opt_fastaout != nullptr)
           {
@@ -170,13 +170,6 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         progress.update(input_handle->get_position());
       }
   }
-
-  /* close in declaration order at a defined point (destructors would run in
-     reverse, changing the flush order when both streams share stdout);
-     reset() is a no-op on an empty handle, so unopened outputs need no
-     guard. */
-  fastaout_handle.reset();
-  fastqout_handle.reset();
 
   input_handle->report_stripped_warning(parameters);
 }

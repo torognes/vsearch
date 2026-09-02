@@ -198,6 +198,7 @@ utils/dynlib_loader.hpp \
 utils/element_order.hpp \
 utils/fatal.hpp \
 utils/fatal_allocator.hpp \
+utils/grow_to_fit.hpp \
 utils/hash_table_size.hpp \
 utils/header_attribute.hpp \
 utils/kmer_hash_struct.hpp \

@@ -142,7 +142,7 @@ namespace {
     if (need_reverse)
       {
         rc_buffer.clear();
-        rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
+        rc_buffer.resize(static_cast<std::size_t>(seq_length));
         reverse_complement(make_span(rc_buffer), sequence);
         rc_sequence = make_view(rc_buffer).first(sequence.size());
       }
@@ -382,9 +382,10 @@ namespace {
 
 
   auto close_output_files(struct file_purpose & fastaout) -> void {
-    /* reset in this fixed order (scope-exit destruction would run in the
-       reverse order) so that any streams sharing stdout flush in the same
-       order as the pre-RAII code */
+    /* called before the stripped-character warning, so that a deferred write
+       error is fatal ahead of it rather than after. The order among the four is
+       not significant: outputs naming the same target share one std::FILE (see
+       utils/open_file.hpp). */
     fastaout.cut.forward.handle.reset();
     fastaout.discarded.forward.handle.reset();
     fastaout.cut.reverse.handle.reset();

@@ -650,16 +650,4 @@ auto allpairs_global(struct Parameters const & parameters) -> void
 
   /* clean up, global */
   state.db.clear();
-  /* reset() is a no-op on an empty handle, so unopened outputs need
-     no guard. */
-  matched_handle.reset();
-  notmatched_handle.reset();
-  fastapairs_handle.reset();
-  qsegout_handle.reset();
-  tsegout_handle.reset();
-  uc_handle.reset();
-  blast6out_handle.reset();
-  userout_handle.reset();
-  alnout_handle.reset();
-  samout_handle.reset();
 }

@@ -70,6 +70,7 @@
 #include "core/fastq.hpp"
 #include "core/fastx.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
@@ -491,11 +492,8 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
       auto const rev_header_len = static_cast<int64_t>(rev_header_view.size());
       int64_t const header_needed = std::max(fwd_header_len, rev_header_len) + 1;
 
-      if (a_read_pair.fwd_header.size() < static_cast<std::size_t>(header_needed))
-        {
-          a_read_pair.fwd_header.resize(static_cast<std::size_t>(header_needed));
-          a_read_pair.rev_header.resize(static_cast<std::size_t>(header_needed));
-        }
+      vsearch::grow_to_fit(a_read_pair.fwd_header, static_cast<std::size_t>(header_needed));
+      vsearch::grow_to_fit(a_read_pair.rev_header, static_cast<std::size_t>(header_needed));
 
       a_read_pair.fwd_length = static_cast<int64_t>(fwd_sequence_view.size());
       a_read_pair.rev_length = static_cast<int64_t>(rev_sequence_view.size());
@@ -503,31 +501,26 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       state.sum_read_length += static_cast<double>(a_read_pair.fwd_length + a_read_pair.rev_length);
 
-      if (a_read_pair.fwd_sequence.size() < static_cast<std::size_t>(seq_needed))
-        {
-          a_read_pair.fwd_sequence.resize(static_cast<std::size_t>(seq_needed));
-          a_read_pair.rev_sequence.resize(static_cast<std::size_t>(seq_needed));
-          a_read_pair.fwd_quality.resize(static_cast<std::size_t>(seq_needed));
-          a_read_pair.rev_quality.resize(static_cast<std::size_t>(seq_needed));
-        }
+      vsearch::grow_to_fit(a_read_pair.fwd_sequence, static_cast<std::size_t>(seq_needed));
+      vsearch::grow_to_fit(a_read_pair.rev_sequence, static_cast<std::size_t>(seq_needed));
+      vsearch::grow_to_fit(a_read_pair.fwd_quality, static_cast<std::size_t>(seq_needed));
+      vsearch::grow_to_fit(a_read_pair.rev_quality, static_cast<std::size_t>(seq_needed));
 
 
       int64_t const merged_seq_needed = a_read_pair.fwd_length + a_read_pair.rev_length + 1;
 
-      if (a_read_pair.merged_sequence.size() < static_cast<std::size_t>(merged_seq_needed))
-        {
-          a_read_pair.merged_sequence.resize(static_cast<std::size_t>(merged_seq_needed));
-          a_read_pair.merged_quality_v.resize(static_cast<std::size_t>(merged_seq_needed));
-        }
+      vsearch::grow_to_fit(a_read_pair.merged_sequence, static_cast<std::size_t>(merged_seq_needed));
+      vsearch::grow_to_fit(a_read_pair.merged_quality_v, static_cast<std::size_t>(merged_seq_needed));
 
       /* make local copies of the seq, header and qual */
 
+      /* the length travels with the bytes; every reader takes
+         make_view(header).first(header_length), so a shorter header after a
+         longer one cannot expose the tail and needs no terminator to hide it */
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
-      a_read_pair.fwd_header[fwd_header_view.size()] = '\0';  // fix issue when reusing allocated mem
       a_read_pair.fwd_header_length = fwd_header_len;
 
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
-      a_read_pair.rev_header[rev_header_view.size()] = '\0';  // fix issue when reusing allocated mem
       a_read_pair.rev_header_length = rev_header_len;
 
       std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair.fwd_sequence.begin());

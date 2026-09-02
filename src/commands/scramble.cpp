@@ -69,6 +69,7 @@
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/hash_table_size.hpp"  // vsearch::table_size_half
@@ -414,9 +415,6 @@ auto scramble(struct Parameters const & parameters) -> void
 
   auto const filesize = input_handle->get_size();
 
-  auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
-  auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
-
   /* the RandomSeed carries the full 64-bit --randseed (or an OS value
      when 0); every draw goes through random_bounded(), so a given seed
      yields the same output on any platform (see utils/random.hpp).
@@ -426,6 +424,15 @@ auto scramble(struct Parameters const & parameters) -> void
   Scrambler scrambler;
 
   {
+    /* declared here, ahead of the progress bar, so that leaving this scope
+       closes the outputs -- and reports any deferred write error -- after the
+       final progress line and before the stripped-character warning below,
+       which is the order the explicit close used to give. Which of the two is
+       closed first is no longer observable: outputs naming the same target
+       share one std::FILE (see utils/open_file.hpp). */
+    auto fastaout_handle = open_optional_output_file(parameters.opt_fastaout, OutputOption{"--fastaout"});
+    auto fastqout_handle = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
+
     int64_t count = 0;  // the ordinal fed to --relabel; int would wrap at 2^31 records
     Progress progress("Scrambling", filesize, parameters);
     while (input_handle->next(false, chrmap_no_change()))
@@ -443,13 +450,9 @@ auto scramble(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (seq_buffer.size() < length + 1)
-          {
-            seq_buffer.resize(length + 1);
-          }
+        vsearch::grow_to_fit(seq_buffer, length);
 
         std::copy(sequence.cbegin(), sequence.cend(), seq_buffer.begin());
-        seq_buffer[length] = '\0';
 
         /* per-record substream (sintax-style): each record's scramble
            depends only on the base seed, its ordinal, and its length,
@@ -490,13 +493,6 @@ auto scramble(struct Parameters const & parameters) -> void
         progress.update(input_handle->get_position());
       }
   }
-
-  /* close in declaration order at a defined point (destructors would run in
-     reverse, changing the flush order when both streams share stdout);
-     reset() is a no-op on an empty handle, so unopened outputs need no
-     guard. */
-  fastaout_handle.reset();
-  fastqout_handle.reset();
 
   input_handle->report_stripped_warning(parameters);
 }

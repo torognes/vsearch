@@ -63,6 +63,7 @@
 #include "core/mask.hpp"  // Masking
 #include "utils/maps.hpp"  // chrmap_2bit, chrmap_mask_lower, chrmap_mask_ambig
 #include "utils/hash_table_size.hpp"  // table_size_half
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include <algorithm>  // std::min, std::fill, std::fill_n
 #include <cstddef>  // std::ptrdiff_t, std::size_t
 #include <cstdint>  // int64_t, uint64_t
@@ -96,10 +97,7 @@ auto Uniquer::count_bitmap(int const wordlength,
 {
   /* if necessary, grow the list of unique kmers (at most seq.size() entries) */
 
-  if (list_.size() < seq.size())
-    {
-      list_.resize(seq.size());
-    }
+  vsearch::grow_to_fit(list_, seq.size());
 
   uint64_t const size = 1ULL << (wordlength << 1ULL);
 
@@ -168,10 +166,7 @@ auto Uniquer::count_stamps(int const wordlength,
 {
   /* if necessary, grow the list of unique kmers (at most seq.size() entries) */
 
-  if (list_.size() < seq.size())
-    {
-      list_.resize(seq.size());
-    }
+  vsearch::grow_to_fit(list_, seq.size());
 
   uint64_t const size = 1ULL << (static_cast<uint64_t>(wordlength) << 1ULL);
 
@@ -256,14 +251,8 @@ auto Uniquer::count_hash(int const wordlength,
      (the probe never looks past hash_mask_, so any leftover tail is untouched) */
 
   auto const table_size = static_cast<std::size_t>(size);
-  if (hash_.size() < table_size)
-    {
-      hash_.resize(table_size);
-    }
-  if (list_.size() < table_size)
-    {
-      list_.resize(table_size);
-    }
+  vsearch::grow_to_fit(hash_, table_size);
+  vsearch::grow_to_fit(list_, table_size);
   std::fill_n(hash_.begin(), table_size, bucket{});
 
   uint64_t bad = 0;

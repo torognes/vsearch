@@ -210,7 +210,7 @@ auto search_exact_onequery(struct searchinfo_s * si, struct Dbhash const & dbhas
   dbhash_search_info_s info;
 
   auto const seqlen = si->qsequence.size();
-  std::vector<char> normalized(seqlen + 1);
+  std::vector<char> normalized(seqlen);
   string_normalize(make_span(normalized),
                    View<char>{si->qsequence});
 
@@ -495,19 +495,17 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen) + 1)
+        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen))
           {
             si->qsequence_v.resize(static_cast<size_t>(qseqlen + buffer_headroom));
           }
       }
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
-    state.si_plus[t].query_head_v.resize(qhead.size() + 1);
+    state.si_plus[t].query_head_v.resize(qhead.size());
     std::copy(qhead.cbegin(), qhead.cend(), state.si_plus[t].query_head_v.begin());
-    state.si_plus[t].query_head_v[qhead.size()] = '\0';
     state.si_plus[t].query_head = make_view(state.si_plus[t].query_head_v).first(qhead.size());
     std::copy(qseq.cbegin(), qseq.cend(), state.si_plus[t].qsequence_v.begin());
-    state.si_plus[t].qsequence_v[qseq.size()] = '\0';
     state.si_plus[t].qsequence = make_span(state.si_plus[t].qsequence_v).first(qseq.size());
 
     /* get progress as amount of input file read */
@@ -521,7 +519,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       {
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
         state.si_minus[t].query_head = make_view(state.si_minus[t].query_head_v).first(state.si_plus[t].query_head.size());
-        reverse_complement(make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size() + 1),
+        reverse_complement(make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size()),
                            View<char>{state.si_plus[t].qsequence});
         state.si_minus[t].qsequence = make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size());
       }
@@ -826,19 +824,4 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   search_exact_done(state);
 
-  /* reset() is a no-op on an empty handle, so unopened outputs need no guard.
-     The fixed order matches the legacy fclose sequence: RAII scope-exit would
-     reverse it and flip the flush order for outputs that share stdout. */
-  dbmatched_handle.reset();
-  dbnotmatched_handle.reset();
-  matched_handle.reset();
-  notmatched_handle.reset();
-  fastapairs_handle.reset();
-  qsegout_handle.reset();
-  tsegout_handle.reset();
-  uc_handle.reset();
-  blast6out_handle.reset();
-  userout_handle.reset();
-  alnout_handle.reset();
-  samout_handle.reset();
 }

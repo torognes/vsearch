@@ -58,32 +58,48 @@
 
 */
 
+
 #pragma once
 
-#include "span.hpp"  // Span<char>
-#include "view.hpp"  // View<char>
-#include <cassert>
-#include <vector>
+#include <cstddef>  // std::size_t
 
 
-// Normalize raw_seq (upper-case, U->T) into normalized. Exactly
-// raw_seq.size() characters are written, and normalized must have room for
-// that many: the output is not terminated, because no caller reads a
-// terminator -- the digest callers pass an explicit length to SHA1/MD5, and
-// the rest take a View cut to the length they already know.
-auto string_normalize(Span<char> normalized, View<char> raw_seq) -> void;
+/* Grow a reused scratch buffer so it can hold at least min_size elements,
+   never shrinking it.
 
+   The buffers this serves are high-water marks kept across records: a short
+   record after a long one reuses the allocation and does no work at all. That
+   is the whole idiom, hand-written at more than a dozen sites, and the point
+   of naming it is that the name says "never shrinks" where an unguarded
+   resize() would not.
 
-// The same, into a reused scratch buffer, returning the normalized bases --
-// which is what every caller wants next, and what each of them used to spell
-// out a second time as make_view(buffer).first(seqlen). The buffer is a
-// high-water-mark vector grown by its owner and only partly used, hence the
-// prefix rather than the whole of it.
-//
-// inline: this sits in the dereplication hot loop, where an added cross-TU
-// call has cost 15-20% before.
-inline auto normalize_into(std::vector<char> & buffer, View<char> const raw_seq) -> View<char> {
-  assert(buffer.size() >= raw_seq.size());
-  string_normalize(make_span(buffer).first(raw_seq.size()), raw_seq);
-  return make_view(buffer).first(raw_seq.size());
-}
+   min_size is the caller's, deliberately. Six of the call sites ask for
+   "length + 1" because they hand the buffer to a helper that terminates it,
+   and folding that "+ 1" in here would hide the reason for the extra byte at
+   the exact sites where a reader needs to see it -- the audit in
+   TBD_20260901_grow_to_fit.md found one buffer whose terminator was being read
+   by accident. Passing min_size in also lets the buffers that are not sized
+   from a record length (the kmer tables in core/unique.cpp) use the same
+   helper.
+
+   Deliberately unconstrained: a container without size()/resize() already
+   produces a better diagnostic from the body ("no member named 'resize'; did
+   you mean 'size'?", naming the type and the line) than a static_assert would.
+   A type trait becomes worth its ~20 lines of C++11 void_t machinery only if
+   an overload appears that needs SFINAE to disambiguate -- a fill-value form,
+   say -- at which point the constraint has to move to enable_if anyway,
+   because a static_assert fires instead of removing a candidate.
+
+   The std::max spelling was measured against this guarded one: byte-identical
+   codegen at -O2. This form is kept because it reads as what it is. */
+namespace vsearch
+{
+
+  template <typename Container>
+  auto grow_to_fit(Container & container, std::size_t const min_size) -> void {
+    if (container.size() < min_size) {
+      container.resize(min_size);
+    }
+  }
+
+}  // namespace vsearch
