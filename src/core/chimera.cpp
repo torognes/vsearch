@@ -906,34 +906,76 @@ auto fill_alignment_parents(struct chimera_info_s * ci, struct Database const & 
 }
 
 
-auto fill_in_alignment_string_for_query(struct chimera_info_s * chimera_info) -> void {
-  auto alnpos = 0;
-  /* bounded by query_len, not by query_seq.size(): the buffer is a high-water
-     mark grown to the longest query seen and holds a '\0' plus stale bytes
-     past the current query (see fill_in_model_string_for_query, which fills
-     the model string in lockstep with the same bound) */
-  for (int qpos = 0; qpos < chimera_info->query_len; ++qpos) {
+/* Expand a query into its alignment row: emit insertions[qpos] filler
+   characters before each query position's character, then the terminal filler
+   run, then a terminator.
+
+   The query and the insertion counts arrive as views, so the bound comes from
+   the data itself rather than from a query_len field that has to be kept in
+   agreement with the separately-sized high-water buffers it indexes into --
+   the agreement that broke when a range-for walked the whole query_seq buffer
+   and wrote past the end of the row. The row is written through a Span, so its
+   capacity is available at the point of writing and an overrun trips an assert
+   in a debug build instead of smashing the heap. */
+auto fill_in_alignment_string_for_query(View<char> const query,
+                                        View<int> const insertions,
+                                        Span<char> const alignment) -> void {
+  // one insertion count per query position, plus one for the terminal run
+  assert(insertions.size() == query.size() + 1);
+
+  std::size_t alnpos = 0;
+  for (std::size_t qpos = 0; qpos < query.size(); ++qpos) {
     // add insertion (if any):
-    auto const insert_length = chimera_info->maxi[static_cast<size_t>(qpos)];
-    std::fill_n(&chimera_info->qaln[static_cast<size_t>(alnpos)], insert_length, '-');
+    assert(insertions[qpos] >= 0);
+    auto const insert_length = static_cast<std::size_t>(insertions[qpos]);
+    // room for the filler run and for the character written just after it
+    assert(alnpos + insert_length < alignment.size());
+    std::fill_n(std::next(alignment.begin(), static_cast<std::ptrdiff_t>(alnpos)),
+                insert_length, '-');
     alnpos += insert_length;
 
     // add (mis-)matching position:
-    chimera_info->qaln[static_cast<size_t>(alnpos)] =
-      map_uppercase(chimera_info->query_seq[static_cast<size_t>(qpos)]);
+    alignment[alnpos] = map_uppercase(query[qpos]);
     ++alnpos;
   }
   // add terminal gap (if any):
-  auto const insert_length = chimera_info->maxi[static_cast<size_t>(chimera_info->query_len)];
-  std::fill_n(&chimera_info->qaln[static_cast<size_t>(alnpos)], insert_length, '-');
+  assert(insertions[query.size()] >= 0);
+  auto const insert_length = static_cast<std::size_t>(insertions[query.size()]);
+  // room for the filler run and for the terminator written just after it
+  assert(alnpos + insert_length < alignment.size());
+  std::fill_n(std::next(alignment.begin(), static_cast<std::ptrdiff_t>(alnpos)),
+              insert_length, '-');
   alnpos += insert_length;
-  chimera_info->qaln[static_cast<size_t>(alnpos)] = '\0';
+  alignment[alnpos] = '\0';
+}
+
+
+/* Cut the query and insertion-count views to the current query. query_seq and
+   maxi are high-water marks grown to the longest query seen, so past query_len
+   they hold a '\0' and stale bytes from earlier records; cutting them here is
+   what bounds both row fills. */
+struct query_row_inputs_s {
+  View<char> query;       // the current query, without its terminator
+  View<int> insertions;   // one count per query position, plus the terminal run
+};
+
+auto query_row_inputs(struct chimera_info_s const * chimera_info)
+  -> struct query_row_inputs_s {
+  auto const query_length = static_cast<std::size_t>(chimera_info->query_len);
+  return {make_view(chimera_info->query_seq).first(query_length),
+          make_view(chimera_info->maxi).first(query_length + 1)};
 }
 
 
 auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> void {
+  /* same views and the same Span as fill_in_alignment_string_for_query: the
+     model string is filled in lockstep with the query row, so it is bounded
+     the same way and its writes are checked the same way. qpos stays an int
+     because the parent tiling below compares it as a value, not as an index. */
+  auto const insertions = query_row_inputs(chimera_info).insertions;
+  auto const model = make_span(chimera_info->model);
   int nth_parent = 0;
-  auto alnpos = 0;
+  std::size_t alnpos = 0;
   for (int qpos = 0; qpos < chimera_info->query_len; ++qpos)
     {
       /* Advance to the next parent only while one exists. The parent segments
@@ -951,19 +993,27 @@ auto fill_in_model_string_for_query(struct chimera_info_s * chimera_info) -> voi
         ++nth_parent;
       }
       // add insertion (if any):
-      auto const insert_length = chimera_info->maxi[static_cast<size_t>(qpos)];
-      std::fill_n(&chimera_info->model[static_cast<size_t>(alnpos)], insert_length, static_cast<char>('A' + nth_parent));
+      assert(insertions[static_cast<std::size_t>(qpos)] >= 0);
+      auto const insert_length = static_cast<std::size_t>(insertions[static_cast<std::size_t>(qpos)]);
+      // room for the filler run and for the character written just after it
+      assert(alnpos + insert_length < model.size());
+      std::fill_n(std::next(model.begin(), static_cast<std::ptrdiff_t>(alnpos)),
+                  insert_length, static_cast<char>('A' + nth_parent));
       alnpos += insert_length;
 
       // add (mis-)matching position:
-      chimera_info->model[static_cast<size_t>(alnpos)] = static_cast<char>('A' + nth_parent);
+      model[alnpos] = static_cast<char>('A' + nth_parent);
       ++alnpos;
     }
   // add terminal gap (if any):
-  auto const insert_length = chimera_info->maxi[static_cast<size_t>(chimera_info->query_len)];
-  std::fill_n(&chimera_info->model[static_cast<size_t>(alnpos)], insert_length, static_cast<char>('A' + nth_parent));
+  assert(insertions[insertions.size() - 1] >= 0);
+  auto const insert_length = static_cast<std::size_t>(insertions[insertions.size() - 1]);
+  // room for the filler run and for the terminator written just after it
+  assert(alnpos + insert_length < model.size());
+  std::fill_n(std::next(model.begin(), static_cast<std::ptrdiff_t>(alnpos)),
+              insert_length, static_cast<char>('A' + nth_parent));
   alnpos += insert_length;
-  chimera_info->model[static_cast<size_t>(alnpos)] = '\0';
+  model[alnpos] = '\0';
 }
 
 
@@ -1037,7 +1087,9 @@ auto eval_parents_long(struct chimera_info_s * ci, struct chimera_cli_state_s * 
 
   fill_alignment_parents(ci, db);
 
-  fill_in_alignment_string_for_query(ci);
+  auto const row_inputs = query_row_inputs(ci);
+  fill_in_alignment_string_for_query(row_inputs.query, row_inputs.insertions,
+                                     make_span(ci->qaln));
   fill_in_model_string_for_query(ci);
 
   std::vector<unsigned char> psym;
@@ -1293,25 +1345,9 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
 
   /* fill in alignment string for query */
 
-  char * q = ci->qaln.data();
-  int qpos = 0;
-  for (int i = 0; i < ci->query_len; ++i)
-    {
-      for (int j = 0; j < ci->maxi[static_cast<size_t>(i)]; ++j)
-        {
-          *q = '-';
-          ++q;
-        }
-      *q = map_uppercase(ci->query_seq[static_cast<size_t>(qpos)]);
-      ++qpos;
-      ++q;
-    }
-  for (int j = 0; j < ci->maxi[static_cast<size_t>(ci->query_len)]; ++j)
-    {
-      *q = '-';
-      ++q;
-    }
-  *q = 0;
+  auto const row_inputs = query_row_inputs(ci);
+  fill_in_alignment_string_for_query(row_inputs.query, row_inputs.insertions,
+                                     make_span(ci->qaln));
 
   /* mark positions to ignore in voting */
   std::fill(ci->ignore.begin(), ci->ignore.end(), false);
@@ -1761,7 +1797,7 @@ auto eval_parents(struct chimera_info_s * ci, struct chimera_cli_state_s * cli, 
           fprint(cli->fp_uchimealns, "\n\n");
 
           auto const width = parameters.opt_alignwidth > 0 ? parameters.opt_alignwidth : alnlen;
-          qpos = 0;
+          auto qpos = 0;
           auto p1pos = 0;
           auto p2pos = 0;
           auto rest = alnlen;
