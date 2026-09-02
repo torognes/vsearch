@@ -108,21 +108,19 @@ auto populate_si(struct searchinfo_s & si,
     }
 
   /* copy the header into owned storage, then point the read-only view at it.
-     The copy is head.size() bytes plus a terminator written here, rather than
-     head.size() + 1 bytes read from the source: the callers all happen to pass
-     a NUL-terminated header, but that byte is outside the view they hand over. */
-  si.query_head_v.resize(head.size() + 1);
+     The copy is exactly head.size() bytes: every consumer of query_head drives
+     off the view's size, so there is no terminator to write or to read. */
+  si.query_head_v.resize(head.size());
   std::copy(head.cbegin(), head.cend(), si.query_head_v.begin());
-  si.query_head_v[head.size()] = '\0';
   si.query_head = make_view(si.query_head_v).first(head.size());
 
-  /* copy or reverse-complement sequence into the owned buffer, then point the
-     span at it (length == seq.size(); the NUL at [seq.size()] sits just past
-     the span) */
+  /* copy or reverse-complement the sequence into the owned buffer, then point
+     the span at it (length == seq.size()). The minus strand asks for one byte
+     more than it uses because reverse_complement() still terminates its
+     output; the plus strand needs no such room. */
   if (strand == 0)
     {
       std::copy(seq.cbegin(), seq.cend(), si.qsequence_v.begin());
-      si.qsequence_v[seq.size()] = '\0';
     }
   else
     {

@@ -213,11 +213,10 @@ inline auto cluster_query_core(struct searchinfo_s & si, struct Database const &
     }
   else
     {
-      /* copy the bases and write the terminator here, rather than reading a
-         seqlen + 1'th byte the view does not cover (as populate_si does) */
+      /* copy exactly the bases the view covers: qsequence is cut to seqlen
+         and every consumer drives off that size */
       auto const dbseq = db.sequence_view(useqno);
       std::copy(dbseq.cbegin(), dbseq.cend(), si.qsequence_v.begin());
-      si.qsequence_v[dbseq.size()] = '\0';
     }
   si.qsequence = make_span(si.qsequence_v).first(static_cast<std::size_t>(seqlen));
 

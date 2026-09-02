@@ -634,12 +634,10 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       }
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
-    si_plus[t].query_head_v.resize(qhead.size() + 1);
+    si_plus[t].query_head_v.resize(qhead.size());
     std::copy(qhead.cbegin(), qhead.cend(), si_plus[t].query_head_v.begin());
-    si_plus[t].query_head_v[qhead.size()] = '\0';
     si_plus[t].query_head = make_view(si_plus[t].query_head_v).first(qhead.size());
     std::copy(qseq.cbegin(), qseq.cend(), si_plus[t].qsequence_v.begin());
-    si_plus[t].qsequence_v[qseq.size()] = '\0';
     si_plus[t].qsequence = make_span(si_plus[t].qsequence_v).first(qseq.size());
 
     /* get progress as amount of input file read */

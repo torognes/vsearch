@@ -412,7 +412,7 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
     {
       for (auto & query_info: chimera_info->si)
         {
-          query_info.qsequence_v.resize(static_cast<size_t>(maxpartlen) + 1);
+          query_info.qsequence_v.resize(static_cast<size_t>(maxpartlen));
           query_info.qsequence = make_span(query_info.qsequence_v).first(0);
         }
       chimera_info->part_alloc = maxpartlen;
@@ -2034,7 +2034,6 @@ auto partition_query(struct chimera_info_s * chimera_info) -> void
         make_span(chimera_info->query_seq).first(static_cast<std::size_t>(chimera_info->query_len));
       assert(static_cast<std::size_t>(length) <= search_info.qsequence_v.size());
       std::copy(cursor, std::next(cursor, length), search_info.qsequence_v.begin());
-      search_info.qsequence_v[static_cast<size_t>(length)] = '\0';
       search_info.qsequence = make_span(search_info.qsequence_v).first(static_cast<std::size_t>(length));
 
       rest -= length;

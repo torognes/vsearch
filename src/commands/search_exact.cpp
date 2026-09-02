@@ -502,12 +502,10 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       }
 
     /* plus strand: copy header and sequence into owned storage, spans point at them */
-    state.si_plus[t].query_head_v.resize(qhead.size() + 1);
+    state.si_plus[t].query_head_v.resize(qhead.size());
     std::copy(qhead.cbegin(), qhead.cend(), state.si_plus[t].query_head_v.begin());
-    state.si_plus[t].query_head_v[qhead.size()] = '\0';
     state.si_plus[t].query_head = make_view(state.si_plus[t].query_head_v).first(qhead.size());
     std::copy(qseq.cbegin(), qseq.cend(), state.si_plus[t].qsequence_v.begin());
-    state.si_plus[t].qsequence_v[qseq.size()] = '\0';
     state.si_plus[t].qsequence = make_span(state.si_plus[t].qsequence_v).first(qseq.size());
 
     /* get progress as amount of input file read */
