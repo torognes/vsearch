@@ -195,16 +195,20 @@ static auto dust_core(Span<char> const sequence, bool const use_hardmask) -> voi
 
   auto const len = static_cast<int>(sequence.size());
 
-  /* make a local copy of the original sequence, including the terminator that
-     sits just past the span (see the write below) */
-  std::vector<char> local_seq(static_cast<std::size_t>(len) + 1);
-  std::copy_n(sequence.data(), static_cast<std::size_t>(len) + 1, local_seq.data());
+  /* make a local copy of the original sequence -- exactly the span, and no
+     further. This used to copy len + 1 bytes and write a '\0' back at [len],
+     both one past the end: an undocumented requirement that every caller hand
+     dust() a buffer with a spare byte. The extra byte was never used (wo() and
+     the re-masking transform below are both bounded by len), and no caller
+     reads a terminator here, so the read, the write and the requirement go
+     together. An empty span is now handled too: it used to reach
+     std::copy_n(nullptr, 1, ...). */
+  std::vector<char> const local_seq(sequence.cbegin(), sequence.cend());
 
   if (!use_hardmask)
     {
       /* convert sequence to upper case unless hardmask in effect */
       std::transform(sequence.begin(), sequence.end(), sequence.begin(), to_upper);
-      sequence.data()[len] = 0;  /* the terminator, which sits just past the span */
     }
 
   /* indexed, and the index is mutated in the body: a masked region short
