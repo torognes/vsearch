@@ -1221,7 +1221,14 @@ auto search16_qprep(s16info_s * s, View<char> const qseq) -> void
   s->qseq = qseq;
 
   s->hearray.resize(2 * qseq.size());
-  std::memset(s->hearray.data(), 0, s->hearray.size() * sizeof(VECTOR_SHORT));
+  /* An empty query (issue 171) leaves hearray empty, and data() is then null
+     on the first query a thread prepares, before any capacity exists. A null
+     destination is undefined for std::memset even with a zero length, so the
+     call is skipped rather than reached with one. */
+  if (not s->hearray.empty())
+    {
+      std::memset(s->hearray.data(), 0, s->hearray.size() * sizeof(VECTOR_SHORT));
+    }
 
   s->qtable.resize(qseq.size());
 
