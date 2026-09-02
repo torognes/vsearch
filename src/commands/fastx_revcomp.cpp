@@ -68,6 +68,7 @@
 #include "core/fastx.hpp"
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
@@ -128,14 +129,10 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        if (seq_buffer.size() < length + 1)
-          {
-            seq_buffer.resize(length + 1);
-          }
-        if (qual_buffer.size() < length)
-          {
-            qual_buffer.resize(length);
-          }
+        // seq_buffer gets the extra byte because reverse_complement() below
+        // terminates its output; qual_buffer, written here, needs no such room
+        vsearch::grow_to_fit(seq_buffer, length + 1);
+        vsearch::grow_to_fit(qual_buffer, length);
 
         reverse_complement(make_span(seq_buffer).first(length + 1), sequence);
 
