@@ -73,6 +73,7 @@
 #include "core/udb.hpp"
 #include "core/unique.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/reverse_complement.hpp"
@@ -283,7 +284,6 @@ auto orient(struct Parameters const & parameters) -> void
 
   Uniquer uh_fwd;
 
-  std::size_t alloc = 0;
   std::vector<char> qseq_rev;
   std::vector<char> query_qual_rev;
 
@@ -379,16 +379,15 @@ auto orient(struct Parameters const & parameters) -> void
             /* alloc more mem if necessary to keep reverse sequence and qual */
             assert(qseqlen > 0);
             static_assert(sizeof(std::size_t) >= sizeof(int), "size_t is too small");
-            const std::size_t requirements = static_cast<std::size_t>(qseqlen) + 1;
+            auto const query_length = static_cast<std::size_t>(qseqlen);
             // refactoring: unsigned int qseqlen
-            if (requirements > alloc)
+            /* qseq_rev asks for one byte more than it uses because
+               reverse_complement() below terminates its output; query_qual_rev
+               is written here and needs no such room */
+            vsearch::grow_to_fit(qseq_rev, query_length + 1);
+            if (query_h->is_fastq_input())
               {
-                alloc = requirements;
-                qseq_rev.resize(alloc);
-                if (query_h->is_fastq_input())
-                  {
-                    query_qual_rev.resize(alloc);
-                  }
+                vsearch::grow_to_fit(query_qual_rev, query_length);
               }
 
             /* get reverse complementary sequence */
@@ -415,7 +414,6 @@ auto orient(struct Parameters const & parameters) -> void
                     // copy query string in reverse order
                     std::reverse_copy(query_qual_fwd.cbegin(), query_qual_fwd.cend(),
                                       query_qual_rev.begin());
-                    query_qual_rev[query_qual_fwd.size()] = '\0';
                   }
 
                 fastq_print_general(fastqout_handle.get(),
