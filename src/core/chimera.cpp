@@ -152,9 +152,6 @@ struct chimera_info_s
      default-constructible. Must outlive ci. */
   struct Database const * db = nullptr;
 
-  int query_alloc = 0; /* the longest query sequence allocated memory for */
-  int part_alloc = 0; /* the longest query part allocated memory for */
-
   int query_no = 0;
   std::vector<char> query_head_v;  /* owned header storage, grown monotonically
                                       to the longest header seen, so it is
@@ -184,7 +181,6 @@ struct chimera_info_s
   std::array<int64_t, maxcandidates> nwgaps {{}};
   std::vector<std::string> nwcigar = std::vector<std::string>(maxcandidates);
 
-  int match_size = 0;
   std::vector<int> match;
   std::vector<int> insert;
   std::vector<int> smooth;
@@ -377,45 +373,43 @@ auto realloc_arrays(struct chimera_info_s * chimera_info, struct Database const 
 
   const int maxqlen = std::max(chimera_info->query_len, 1);
   auto const max_2x2_size = static_cast<size_t>(maxcandidates) * static_cast<size_t>(maxqlen);
+  const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
 
-  if (maxqlen > chimera_info->query_alloc)
-    {
-      chimera_info->query_alloc = maxqlen;
+  /* Each buffer states the size it needs. They all grow monotonically with
+     maxqlen, so the single query_alloc guard they used to share was correct --
+     but it hid the fact that they ask for four different sizes, and it kept a
+     copy of a length the vectors already know. */
+  vsearch::grow_to_fit(chimera_info->query_seq, static_cast<size_t>(maxqlen));
+  vsearch::grow_to_fit(chimera_info->maxi, static_cast<size_t>(maxqlen) + 1);
+  vsearch::grow_to_fit(chimera_info->maxsmooth, static_cast<size_t>(maxqlen));
+  vsearch::grow_to_fit(chimera_info->match, max_2x2_size);
+  vsearch::grow_to_fit(chimera_info->insert, max_2x2_size);
+  vsearch::grow_to_fit(chimera_info->smooth, max_2x2_size);
 
-      chimera_info->query_seq.resize(static_cast<size_t>(maxqlen));
+  vsearch::grow_to_fit(chimera_info->scan_p, static_cast<size_t>(maxqlen) + 1);
+  vsearch::grow_to_fit(chimera_info->scan_q, static_cast<size_t>(maxqlen) + 1);
 
-      chimera_info->maxi.resize(static_cast<size_t>(maxqlen) + 1);
-      chimera_info->maxsmooth.resize(static_cast<size_t>(maxqlen));
-      chimera_info->match.resize(max_2x2_size);
-      chimera_info->insert.resize(max_2x2_size);
-      chimera_info->smooth.resize(max_2x2_size);
-
-      chimera_info->scan_p.resize(static_cast<size_t>(maxqlen) + 1);
-      chimera_info->scan_q.resize(static_cast<size_t>(maxqlen) + 1);
-
-      const int64_t maxalnlen = static_cast<int64_t>(maxqlen) + (2 * static_cast<int64_t>(db.getlongestsequence()));
-      chimera_info->paln.resize(maxparents);
-      for (auto & a_parent_alignment : chimera_info->paln) {
-        a_parent_alignment.resize(static_cast<size_t>(maxalnlen) + 1);
-      }
-      chimera_info->qaln.resize(static_cast<size_t>(maxalnlen) + 1);
-      chimera_info->diffs.resize(static_cast<size_t>(maxalnlen) + 1);
-      chimera_info->votes.resize(static_cast<size_t>(maxalnlen) + 1);
-      chimera_info->model.resize(static_cast<size_t>(maxalnlen) + 1);
-      chimera_info->ignore.resize(static_cast<size_t>(maxalnlen) + 1);
-    }
+  vsearch::grow_to_fit(chimera_info->paln, maxparents);
+  for (auto & a_parent_alignment : chimera_info->paln) {
+    vsearch::grow_to_fit(a_parent_alignment, static_cast<size_t>(maxalnlen) + 1);
+  }
+  vsearch::grow_to_fit(chimera_info->qaln, static_cast<size_t>(maxalnlen) + 1);
+  vsearch::grow_to_fit(chimera_info->diffs, static_cast<size_t>(maxalnlen) + 1);
+  vsearch::grow_to_fit(chimera_info->votes, static_cast<size_t>(maxalnlen) + 1);
+  vsearch::grow_to_fit(chimera_info->model, static_cast<size_t>(maxalnlen) + 1);
+  vsearch::grow_to_fit(chimera_info->ignore, static_cast<size_t>(maxalnlen) + 1);
 
   // resize query parts if longer than earlier, minimum 100
   const int maxpartlen =
     std::max((maxqlen + chimera_info->parts - 1) / chimera_info->parts, 100);
-  if (maxpartlen > chimera_info->part_alloc)
+  for (auto & query_info: chimera_info->si)
     {
-      for (auto & query_info: chimera_info->si)
-        {
-          query_info.qsequence_v.resize(static_cast<size_t>(maxpartlen));
-          query_info.qsequence = make_span(query_info.qsequence_v).first(0);
-        }
-      chimera_info->part_alloc = maxpartlen;
+      /* the span is reset unconditionally now that the growth is: a grow may
+         reallocate and leave it dangling, and partition_query -- the first
+         thing chimera_process_query does -- sets it for real before any reader
+         sees it */
+      vsearch::grow_to_fit(query_info.qsequence_v, static_cast<size_t>(maxpartlen));
+      query_info.qsequence = make_span(query_info.qsequence_v).first(0);
     }
 }
 
