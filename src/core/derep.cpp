@@ -72,6 +72,7 @@
 #include "core/fastx.hpp"  // fastx_open, fastx_next, fastx_get_*
 #include "core/quality_range.hpp"  // vsearch::check_quality_score
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/median.hpp"
 #include "utils/open_file.hpp"
@@ -784,13 +785,9 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
 
         /* check allocations */
 
-        if (seq_up.size() < static_cast<std::size_t>(seqlen) + 1)
-          {
-            seq_up.resize(static_cast<std::size_t>(seqlen) + 1);
-            rc_seq_up.resize(static_cast<std::size_t>(seqlen) + 1);
-
-            // memory-intensive: sequence buffers grown to fit the longest sequence
-          }
+        // memory-intensive: sequence buffers grown to fit the longest sequence
+        vsearch::grow_to_fit(seq_up, static_cast<std::size_t>(seqlen) + 1);
+        vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen) + 1);
 
         if (extra_info and (sequencecount + 1 > alloc_seqs))
           {
