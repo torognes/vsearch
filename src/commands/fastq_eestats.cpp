@@ -68,6 +68,7 @@
 #include "utils/print_view.hpp"  // fprint
 #include "utils/progress.hpp"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include <algorithm>  // std::max, std::min, std::sort
@@ -217,7 +218,8 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
   uint64_t seq_count = 0;
 
-  int64_t len_alloc = 10;
+  /* only the initial size now; the tables grow themselves per record */
+  int64_t const initial_table_length = 10;
 
   const int resolution = 1000;
   /* rows of qual_length_table are indexed by the raw quality value (0..qmax),
@@ -225,17 +227,17 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
      while indexing by the unshifted value overflowed the row for qmin >= 2 */
   int const max_quality = static_cast<int>(parameters.opt_fastq_qmax + 1);
 
-  std::vector<uint64_t> read_length_table(static_cast<size_t>(len_alloc));
-  std::vector<uint64_t> qual_length_table(static_cast<size_t>(len_alloc * (max_quality + 1)));
+  std::vector<uint64_t> read_length_table(static_cast<size_t>(initial_table_length));
+  std::vector<uint64_t> qual_length_table(static_cast<size_t>(initial_table_length * (max_quality + 1)));
   /* Sparse per-position expected-error histogram: ee_length_table[pos] holds
      one (e_int bin, count) pair per observed bin. This replaces a dense
      triangular table of size ~resolution*len^2/2 (almost entirely zeros) that
      OOM'd on long reads; memory scales with the cells actually observed, and
      BinHistogram::bins() keeps the reader's ascending walk over e_int
      unchanged (E12). */
-  std::vector<BinHistogram> ee_length_table(static_cast<size_t>(len_alloc));
-  std::vector<double> sum_ee_length_table(static_cast<size_t>(len_alloc));
-  std::vector<double> sum_pe_length_table(static_cast<size_t>(len_alloc));
+  std::vector<BinHistogram> ee_length_table(static_cast<size_t>(initial_table_length));
+  std::vector<double> sum_ee_length_table(static_cast<size_t>(initial_table_length));
+  std::vector<double> sum_pe_length_table(static_cast<size_t>(initial_table_length));
 
   int64_t len_min = std::numeric_limits<long>::max();
 
@@ -263,16 +265,13 @@ auto fastq_eestats(struct Parameters const & parameters) -> void
 
         int64_t const new_alloc = len + 1;
 
-        if (new_alloc > len_alloc)
-          {
-            read_length_table.resize(static_cast<size_t>(new_alloc));
-            qual_length_table.resize(static_cast<size_t>(new_alloc * (max_quality + 1)));
-            ee_length_table.resize(static_cast<size_t>(new_alloc));
-            sum_ee_length_table.resize(static_cast<size_t>(new_alloc));
-            sum_pe_length_table.resize(static_cast<size_t>(new_alloc));
-
-            len_alloc = new_alloc;
-          }
+        /* qual_length_table is one row of (max_quality + 1) per position,
+           which the shared guard used to hide */
+        vsearch::grow_to_fit(read_length_table, static_cast<size_t>(new_alloc));
+        vsearch::grow_to_fit(qual_length_table, static_cast<size_t>(new_alloc * (max_quality + 1)));
+        vsearch::grow_to_fit(ee_length_table, static_cast<size_t>(new_alloc));
+        vsearch::grow_to_fit(sum_ee_length_table, static_cast<size_t>(new_alloc));
+        vsearch::grow_to_fit(sum_pe_length_table, static_cast<size_t>(new_alloc));
 
         len_min = std::min(len, len_min);
         len_max = std::max(len, len_max);

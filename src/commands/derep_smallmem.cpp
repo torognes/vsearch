@@ -68,6 +68,7 @@
 #include "utils/progress.hpp"
 #include "vendored/city.h"
 #include "utils/fatal.hpp"
+#include "utils/grow_to_fit.hpp"  // vsearch::grow_to_fit
 #include "utils/maps.hpp"
 #include "utils/open_file.hpp"
 #include "utils/print_view.hpp"  // fprint
@@ -246,7 +247,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
   auto const filesize = h->get_size();
 
   /* allocate initial memory for sequences of length up to 1023 chars */
-  int64_t alloc_seqlen = 1024;
+  int64_t const initial_seqlen = 1024;
 
   /* allocate initial hashtable with 1024 buckets */
 
@@ -254,8 +255,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
   // memory-intensive: the hash table has been allocated
 
-  std::vector<char> seq_up(static_cast<size_t>(alloc_seqlen) + 1);
-  std::vector<char> rc_seq_up(static_cast<size_t>(alloc_seqlen) + 1);
+  std::vector<char> seq_up(static_cast<size_t>(initial_seqlen) + 1);
+  std::vector<char> rc_seq_up(static_cast<size_t>(initial_seqlen) + 1);
 
   std::string const prompt = std::string("Dereplicating file ") + input_filename;
 
@@ -289,14 +290,11 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
 
         /* check allocations */
 
-        if (seqlen > alloc_seqlen)
-          {
-            alloc_seqlen = seqlen;
-            seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
-            rc_seq_up.resize(static_cast<size_t>(alloc_seqlen) + 1);
-
-            // memory-intensive: sequence buffers grown to fit the longest sequence
-          }
+        // memory-intensive: sequence buffers grown to fit the longest sequence
+        // (both keep a byte past the bases: normalize_into and
+        // reverse_complement terminate their output)
+        vsearch::grow_to_fit(seq_up, static_cast<size_t>(seqlen) + 1);
+        vsearch::grow_to_fit(rc_seq_up, static_cast<size_t>(seqlen) + 1);
 
         if (100 * (stats.clusters + 1) > 95 * hashtable.size())
           {
