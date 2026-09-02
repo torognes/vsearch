@@ -183,7 +183,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   constexpr auto terminal = std::numeric_limits<unsigned int>::max();
   std::vector<unsigned int> nextseqtab(static_cast<std::vector<unsigned int>::size_type>(dbsequencecount), terminal);
 
-  std::vector<char> seq_up(db.getlongestsequence() + 1);
+  std::vector<char> seq_up(db.getlongestsequence());
 
   /* make table of hash values of prefixes */
 

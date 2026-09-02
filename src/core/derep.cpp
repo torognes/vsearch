@@ -786,8 +786,8 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         /* check allocations */
 
         // memory-intensive: sequence buffers grown to fit the longest sequence
-        vsearch::grow_to_fit(seq_up, static_cast<std::size_t>(seqlen) + 1);
-        vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen) + 1);
+        vsearch::grow_to_fit(seq_up, static_cast<std::size_t>(seqlen));
+        vsearch::grow_to_fit(rc_seq_up, static_cast<std::size_t>(seqlen));
 
         if (extra_info and (sequencecount + 1 > alloc_seqs))
           {
@@ -1215,7 +1215,7 @@ auto derep_add_sequence(struct derep_session_s * ds,
   /* Grow seq_up buffer if needed */
   if (seqlen + 1 > static_cast<int>(ds->seq_up.size()))
     {
-      ds->seq_up.resize(static_cast<std::size_t>(seqlen) + 1);
+      ds->seq_up.resize(static_cast<std::size_t>(seqlen));
     }
 
   /* Normalize: uppercase, U→T */

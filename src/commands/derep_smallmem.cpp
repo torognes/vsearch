@@ -291,10 +291,8 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
         /* check allocations */
 
         // memory-intensive: sequence buffers grown to fit the longest sequence
-        // (both keep a byte past the bases: normalize_into and
-        // reverse_complement terminate their output)
-        vsearch::grow_to_fit(seq_up, static_cast<size_t>(seqlen) + 1);
-        vsearch::grow_to_fit(rc_seq_up, static_cast<size_t>(seqlen) + 1);
+        vsearch::grow_to_fit(seq_up, static_cast<size_t>(seqlen));
+        vsearch::grow_to_fit(rc_seq_up, static_cast<size_t>(seqlen));
 
         if (100 * (stats.clusters + 1) > 95 * hashtable.size())
           {

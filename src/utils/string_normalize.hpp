@@ -66,22 +66,24 @@
 #include <vector>
 
 
-// Normalize raw_seq (upper-case, U->T) into normalized, terminating it with a
-// '\0'. normalized must have room for raw_seq.size() + 1 characters.
+// Normalize raw_seq (upper-case, U->T) into normalized. Exactly
+// raw_seq.size() characters are written, and normalized must have room for
+// that many: the output is not terminated, because no caller reads a
+// terminator -- the digest callers pass an explicit length to SHA1/MD5, and
+// the rest take a View cut to the length they already know.
 auto string_normalize(Span<char> normalized, View<char> raw_seq) -> void;
 
 
-// The same, into a reused scratch buffer, returning the normalized bases
-// without the terminator -- which is what every caller wants next, and what
-// each of them used to spell out a second time as
-// make_view(buffer).first(seqlen). The buffer is a high-water-mark vector
-// grown by its owner and only partly used, hence the prefix rather than the
-// whole of it.
+// The same, into a reused scratch buffer, returning the normalized bases --
+// which is what every caller wants next, and what each of them used to spell
+// out a second time as make_view(buffer).first(seqlen). The buffer is a
+// high-water-mark vector grown by its owner and only partly used, hence the
+// prefix rather than the whole of it.
 //
 // inline: this sits in the dereplication hot loop, where an added cross-TU
 // call has cost 15-20% before.
 inline auto normalize_into(std::vector<char> & buffer, View<char> const raw_seq) -> View<char> {
-  assert(buffer.size() > raw_seq.size());  // room for the '\0' too
-  string_normalize(make_span(buffer).first(raw_seq.size() + 1), raw_seq);
+  assert(buffer.size() >= raw_seq.size());
+  string_normalize(make_span(buffer).first(raw_seq.size()), raw_seq);
   return make_view(buffer).first(raw_seq.size());
 }

@@ -121,7 +121,7 @@ auto get_hex_seq_digest_sha1(std::array<char, len_hex_dig_sha1> & hex, View<char
      from the search worker threads (e.g. --relabel_sha1). Do not hash `seq`
      directly, and do not enable SHA1HANDSOFF (a shared static workspace). */
 
-  std::vector<char> normalized(seq.size() + 1);
+  std::vector<char> normalized(seq.size());
   string_normalize(make_span(normalized), seq);
 
   std::array<unsigned char, sha1_digest_length> digest {{}};
@@ -151,7 +151,7 @@ auto get_hex_seq_digest_md5(std::array<char, len_hex_dig_md5> & hex, View<char> 
      per-call `normalized` copy (never `seq`): the vendored MD5 may read it
      via an aligned reinterpret, and being per-call it is thread-safe. */
 
-  std::vector<char> normalized(seq.size() + 1);
+  std::vector<char> normalized(seq.size());
   string_normalize(make_span(normalized), seq);
 
   std::array<unsigned char, md5_digest_length> digest {{}};

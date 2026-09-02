@@ -69,11 +69,10 @@
 auto string_normalize(Span<char> const normalized, View<char> const raw_seq) -> void
 {
   /* convert string to upper case and replace U by T */
-  assert(normalized.size() > raw_seq.size());  // room for the '\0' terminator
+  assert(normalized.size() >= raw_seq.size());
   auto const * normalize_map = chrmap_normalize();
   std::transform(raw_seq.begin(), raw_seq.end(), normalized.begin(),
                  [normalize_map](char const nucleotide) -> char {
                    return static_cast<char>(normalize_map[static_cast<unsigned char>(nucleotide)]);
                  });
-  normalized[raw_seq.size()] = '\0';
 }
