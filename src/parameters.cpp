@@ -65,13 +65,13 @@
 // it lives in its own translation unit rather than in the argument parser or in
 // main(). validate_thread_count() lives here too, next to its fixups caller.
 
-#include "parameters.hpp"  // validate_thread_count, parameters_resolve_derived, parameters_validate, vsearch_apply_defaults_fixups
+#include "parameters.hpp"  // validate_thread_count, parameters_resolve_derived, parameters_validate, vsearch_apply_defaults_fixups, QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "vsearch.hpp"  // struct Parameters
 #include "core/chimera.hpp"  // maxparents
 #include "core/searchcore.hpp"  // minwordmatches_defaults
 #include "os/system.hpp"  // system_get_available_cores
 #include "utils/fatal.hpp"  // fatal
-#include "utils/quality_encoding.hpp"  // highest_printable_ascii, sanger_ascii_offset
+#include "utils/quality_encoding.hpp"  // highest_printable_ascii, sanger_ascii_offset, legacy_max_quality, fastq_qmaxout_unset
 #include <array>  // std::array::size
 #include <cstddef>  // std::size_t
 #include <cstdint>  // int64_t
@@ -147,6 +147,35 @@ auto parameters_resolve_derived(struct Parameters & parameters) -> void
     parameters.opt_gap_extension_target_left_infinite or
     parameters.opt_gap_extension_target_interior_infinite or
     parameters.opt_gap_extension_target_right_infinite;
+}
+
+
+auto fastq_output_offset(struct Parameters const & parameters,
+                         QualityOrigin const origin) -> int64_t
+{
+  /* --fastq_mergepairs writes with the input offset because it has no
+     --fastq_asciiout to write with; every other producer of quality uses the
+     output offset. See QualityOrigin in parameters.hpp for why this cannot be
+     read off the opt_<command> pointers. */
+  return (origin == QualityOrigin::merged) ? parameters.opt_fastq_ascii
+                                           : parameters.opt_fastq_asciiout;
+}
+
+
+auto resolve_fastq_qmaxout(struct Parameters const & parameters,
+                           QualityOrigin const origin) -> int64_t
+{
+  if (parameters.opt_fastq_qmaxout != fastq_qmaxout_unset)
+    {
+      return parameters.opt_fastq_qmaxout;
+    }
+  /* a score vsearch produced keeps the pre-3.0 ceiling; one that passed
+     through is capped only by what the output offset can carry */
+  if (origin == QualityOrigin::passed_through)
+    {
+      return highest_printable_ascii - fastq_output_offset(parameters, origin);
+    }
+  return legacy_max_quality;
 }
 
 
@@ -231,16 +260,36 @@ auto vsearch_apply_defaults_fixups(struct Parameters & parameters) -> void
      being wrongly accepted before. What this corrects is the value the
      caller reads back, and the divergence from the CLI.
 
-     opt_fastq_qmaxout is deliberately NOT resolved here: its CLI default is
-     command-aware (41 for --fasta2fastq and --fastq_mergepairs, which
-     generate a score rather than read one, and 126 - asciiout elsewhere),
-     and this function is command-agnostic by construction. Deriving it here
-     would change merged qualities for a library caller, which is exactly
-     what that CLI exception exists to prevent. */
+     opt_fastq_qmaxout is still NOT resolved here, for the same reason as
+     before: its default is entry-point-specific (see QualityOrigin), and this
+     function is command-agnostic by construction. It now carries a sentinel
+     rather than a plausible-looking 93, so the consumer that does know its
+     origin -- MergePairs -- resolves it, and the two cannot be confused. */
   if (parameters.opt_fastq_qmax == highest_printable_ascii - sanger_ascii_offset)
     {
       parameters.opt_fastq_qmax =
         highest_printable_ascii - parameters.opt_fastq_ascii;
+    }
+
+  /* The output-side sum rule, which the CLI applies in
+     validate_option_values() but the library had nowhere: a caller who sets
+     opt_fastq_ascii = 64 and leaves the ceiling at 93 gets merged quality
+     bytes up to 64 + 93 = 157 -- an invalid FASTQ file, and a SIGSEGV in
+     vsearch 2.31.0.
+
+     It is checked here rather than in parameters_validate(), which the CLI
+     also calls, because the offset a symbol is written with depends on the
+     command: a legal CLI run (--fastq_convert --fastq_ascii 64
+     --fastq_asciiout 33 --fastq_qmaxout 93) writes with asciiout and would be
+     rejected by any command-agnostic reading of the rule. A library session
+     has no command, and MergePairs is its only consumer of the ceiling, so the
+     merged origin is the one that applies. */
+  auto const merged_ceiling =
+    resolve_fastq_qmaxout(parameters, QualityOrigin::merged);
+  if (fastq_output_offset(parameters, QualityOrigin::merged) + merged_ceiling
+      > highest_printable_ascii)
+    {
+      fatal("Sum of arguments to --fastq_ascii and --fastq_qmaxout must be no more than 126");
     }
 
   parameters_validate(parameters);

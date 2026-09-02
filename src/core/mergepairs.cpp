@@ -62,6 +62,7 @@
 #include "core/mergepairs.hpp"
 #include "core/mergepairs_internal.hpp"
 #include "core/kmerhash.hpp"
+#include "parameters.hpp"  // QualityOrigin, fastq_output_offset, resolve_fastq_qmaxout
 #include "utils/fatal.hpp"
 #include "utils/kmer_hash_struct.hpp"
 #include "utils/maps.hpp"
@@ -162,8 +163,17 @@ auto precompute_qual(struct Parameters const & parameters) -> QualityTables
 {
   /* Precompute tables of scores etc */
   QualityTables tables;
-  auto const qmaxout = static_cast<double>(parameters.opt_fastq_qmaxout);
+  /* resolved rather than read: in a library session the member still holds the
+     sentinel, because vsearch_apply_defaults_fixups() is command-agnostic and
+     cannot know a merge is coming. Resolving here is what makes a library
+     merge produce the same quality string as --fastq_mergepairs does. */
+  auto const qmaxout = static_cast<double>(
+    resolve_fastq_qmaxout(parameters, QualityOrigin::merged));
   auto const qminout = static_cast<double>(parameters.opt_fastq_qminout);
+  /* the merged symbol carries the INPUT offset: this command writes fastq but
+     does not accept --fastq_asciiout (see QualityOrigin) */
+  auto const output_offset = static_cast<double>(
+    fastq_output_offset(parameters, QualityOrigin::merged));
 
   for (auto x = 33U; x <= 126U; x++)
     {
@@ -184,14 +194,14 @@ auto precompute_qual(struct Parameters const & parameters) -> QualityTables
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          tables.merge_qual_same[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
+          tables.merge_qual_same[x][y] = static_cast<char>(output_offset + q);
 
           /* Mismatch, x is highest quality */
           p = px * (1.0 - (py / 3.0)) / (px + py - (4.0 * px * py / 3.0));
           q = std::round(-10.0 * std::log10(p));
           q = std::min(q, qmaxout);
           q = std::max(q, qminout);
-          tables.merge_qual_diff[x][y] = static_cast<char>(static_cast<double>(parameters.opt_fastq_ascii) + q);
+          tables.merge_qual_diff[x][y] = static_cast<char>(output_offset + q);
 
           /*
             observed match,

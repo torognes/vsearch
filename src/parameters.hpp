@@ -82,6 +82,47 @@ auto validate_thread_count(int64_t threads) -> void;
    struct. Both the CLI and the library call this. */
 auto parameters_resolve_derived(struct Parameters & parameters) -> void;
 
+/* Where a written quality symbol comes from. Two independent facts hang off
+   it, which is why one enum carries both: the ceiling that applies to the
+   symbol, and the ASCII offset that encodes it.
+
+     merged          --fastq_mergepairs. The Edgar & Flyvbjerg posterior of a
+                     merged base is computed rather than read, so it keeps the
+                     pre-3.0 ceiling of 41; and it is written with
+                     --fastq_ascii, because the command does not accept
+                     --fastq_asciiout.
+     generated       --fasta2fastq. Also a produced score, so also 41, but
+                     written with --fastq_asciiout like everything else.
+     passed_through  a symbol read from the input and re-encoded
+                     (--fastq_convert, --fastx_uniques, --sff_convert). Capped
+                     only by what the output offset can carry.
+
+   The two axes really are independent -- 'generated' is a produced score
+   written with asciiout, 'merged' a produced score written with ascii -- which
+   is why neither can be derived from the other. --fastq_mergepairs is the only
+   command on the ascii side: the others that reject --fastq_asciiout
+   (--fastx_filter, --cut, --orient, --fastx_revcomp, --fastx_subsample) copy
+   quality through verbatim and never clamp it, and --derep_fulllength has no
+   --fastqout at all. */
+enum struct QualityOrigin { merged, generated, passed_through };
+
+/* The ASCII offset a written quality symbol carries. Never derive this from
+   the opt_<command> pointers: a library session sets none of them, so a merge
+   driven through MergePairs would read as a pass-through and be encoded with
+   the wrong offset. The caller states its origin instead. */
+auto fastq_output_offset(struct Parameters const & parameters,
+                         QualityOrigin origin) -> int64_t;
+
+/* The resolved --fastq_qmaxout ceiling: the caller's value whenever one was
+   given, otherwise the default for this origin. The CLI resolves once at parse
+   time and writes the answer back into the struct, so by the time a command
+   runs the member holds a real value and a direct read is correct. The library
+   cannot -- vsearch_apply_defaults_fixups() is command-agnostic by
+   construction and does not know which entry point is coming -- so it leaves
+   the sentinel in place and every library-reachable consumer calls this. */
+auto resolve_fastq_qmaxout(struct Parameters const & parameters,
+                           QualityOrigin origin) -> int64_t;
+
 /* Fatal unless the thread count and the
    maxaccepts/maxrejects/wordlength/iddef/chimeras_parents_max values are in
    range. Shared range validation for both the CLI and the library, so a
