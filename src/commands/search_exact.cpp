@@ -824,19 +824,4 @@ auto search_exact(struct Parameters const & parameters) -> void
 
   search_exact_done(state);
 
-  /* reset() is a no-op on an empty handle, so unopened outputs need no guard.
-     The fixed order matches the legacy fclose sequence: RAII scope-exit would
-     reverse it and flip the flush order for outputs that share stdout. */
-  dbmatched_handle.reset();
-  dbnotmatched_handle.reset();
-  matched_handle.reset();
-  notmatched_handle.reset();
-  fastapairs_handle.reset();
-  qsegout_handle.reset();
-  tsegout_handle.reset();
-  uc_handle.reset();
-  blast6out_handle.reset();
-  userout_handle.reset();
-  alnout_handle.reset();
-  samout_handle.reset();
 }

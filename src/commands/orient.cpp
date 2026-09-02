@@ -474,10 +474,12 @@ auto orient(struct Parameters const & parameters) -> void
   dbindex.clear();
   db.clear();
 
-  /* close at a defined point, in the historical fclose order (destructors
-     would close in reverse declaration order, changing the flush order when
-     streams share stdout); reset() is a no-op on an empty handle, so
-     unopened outputs need no guard. */
+  /* close here rather than at scope exit, so that a deferred write error (full
+     disk, quota exceeded, broken pipe) is fatal before the warning and the
+     reports below rather than after them. The order among the four is not
+     significant: outputs naming the same target share one std::FILE (see
+     utils/open_file.hpp), so there is at most one close per target. reset() is
+     a no-op on an empty handle, so unopened outputs need no guard. */
   tabbedout_handle.reset();
   notmatched_handle.reset();
   fastqout_handle.reset();

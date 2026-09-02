@@ -372,15 +372,6 @@ auto writing_fastq_output(std::vector<uint64_t> const & deck,
   }
 }
 
-
-auto close_output_files(struct file_types & ouput_files) -> void {
-  /* reset in this fixed order (scope-exit destruction runs in reverse) so
-     that any streams sharing stdout flush as they did before RAII */
-  ouput_files.fasta.kept.handle.reset();
-  ouput_files.fastq.kept.handle.reset();
-  ouput_files.fasta.lost.handle.reset();
-  ouput_files.fastq.lost.handle.reset();
-}
 }  // anonymous namespace
 
 
@@ -455,5 +446,6 @@ auto subsample(struct Parameters const & parameters) -> void {
 
   // clean up
   db.clear();
-  close_output_files(ouput_files);
+  /* the four output handles in 'ouput_files' are closed when it goes out of
+     scope here; the streams no longer need closing in any particular order */
 }

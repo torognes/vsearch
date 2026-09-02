@@ -2838,11 +2838,6 @@ auto chimera(struct Parameters const & parameters) -> void
   state.dbindex.clear();
   state.db.clear();
 
-  borderline_handle.reset();
-  uchimeout_handle.reset();
-  uchimealns_handle.reset();
-  nonchimeras_handle.reset();
-  chimeras_handle.reset();
 }
 
 

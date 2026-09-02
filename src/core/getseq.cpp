@@ -626,9 +626,12 @@ auto getseq(struct Parameters const & parameters, char const * filename) -> void
       print_extracted(parameters.fp_log, ExtractionCounts{kept, discarded});
     }
 
-  /* close in declaration order at a defined point (destructors would run in
-     reverse, changing the flush order when streams share stdout); reset() is
-     a no-op on an empty handle, so unopened outputs need no guard. */
+  /* close here rather than at scope exit, so that a deferred write error is
+     fatal before the stripped-character warning below rather than after it,
+     and after the log report above rather than before it. The order among the
+     four is not significant: outputs naming the same target share one
+     std::FILE (see utils/open_file.hpp). reset() is a no-op on an empty
+     handle, so unopened outputs need no guard. */
   fastaout_handle.reset();
   fastqout_handle.reset();
   notmatched_handle.reset();

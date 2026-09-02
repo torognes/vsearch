@@ -146,8 +146,10 @@ namespace {
 
 
   auto close_output_files(struct output_files & outfiles) -> void {
-    /* reset in this fixed order (scope-exit destruction runs in reverse) so
-       that outputs sharing stdout flush as they did before RAII */
+    /* called before close_input_files(), which emits the stripped-character
+       warnings, so that a deferred write error is fatal ahead of them. The
+       order between the two is not significant: outputs naming the same target
+       share one std::FILE (see utils/open_file.hpp). */
     outfiles.fasta.handle.reset();
     outfiles.fastq.handle.reset();
   }

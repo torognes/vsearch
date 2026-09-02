@@ -606,20 +606,6 @@ static auto search_done(struct search_cli_state_s & state) -> void
   state.dbindex.clear();
   state.db.clear();
 
-  /* reset() is a no-op on an empty handle, so unopened outputs need no guard.
-     The fixed order matches the legacy fclose sequence: RAII scope-exit would
-     reverse it and flip the flush order for outputs that share stdout. */
-  state.fp_lcaout.reset();
-  state.fp_matched.reset();
-  state.fp_notmatched.reset();
-  state.fp_fastapairs.reset();
-  state.fp_qsegout.reset();
-  state.fp_tsegout.reset();
-  state.fp_uc.reset();
-  state.fp_blast6out.reset();
-  state.fp_userout.reset();
-  state.fp_alnout.reset();
-  state.fp_samout.reset();
 }
 
 
