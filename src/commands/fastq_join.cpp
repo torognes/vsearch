@@ -225,7 +225,7 @@ auto fastq_join(struct Parameters const & parameters) -> void
            helper; the former in-place std::reverse + std::transform called
            the cross-TU map_complement() once per base) */
 
-        vsearch::grow_to_fit(rc_buffer, rev_seq_length + 1);
+        vsearch::grow_to_fit(rc_buffer, rev_seq_length);
         reverse_complement(make_span(rc_buffer), rev_sequence);
 
         /* join them: forward read, pad gap, reverse-complemented reverse

@@ -102,7 +102,7 @@ auto populate_si(struct searchinfo_s & si,
   /* allocate more memory for the sequence, if necessary */
 
   auto const seq_len = static_cast<int>(seq.size());
-  if (si.qsequence_v.size() < static_cast<size_t>(seq_len) + 1)
+  if (si.qsequence_v.size() < static_cast<size_t>(seq_len))
     {
       si.qsequence_v.resize(static_cast<size_t>(seq_len + buffer_headroom));
     }
@@ -115,16 +115,15 @@ auto populate_si(struct searchinfo_s & si,
   si.query_head = make_view(si.query_head_v).first(head.size());
 
   /* copy or reverse-complement the sequence into the owned buffer, then point
-     the span at it (length == seq.size()). The minus strand asks for one byte
-     more than it uses because reverse_complement() still terminates its
-     output; the plus strand needs no such room. */
+     the span at it (length == seq.size()). Neither strand needs room past the
+     bases: reverse_complement() no longer terminates its output. */
   if (strand == 0)
     {
       std::copy(seq.cbegin(), seq.cend(), si.qsequence_v.begin());
     }
   else
     {
-      reverse_complement(make_span(si.qsequence_v).first(seq.size() + 1), seq);
+      reverse_complement(make_span(si.qsequence_v).first(seq.size()), seq);
     }
   si.qsequence = make_span(si.qsequence_v).first(seq.size());
 }

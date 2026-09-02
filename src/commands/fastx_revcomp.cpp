@@ -129,12 +129,10 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
         auto const sequence = input_handle->sequence_view();
         auto const length = sequence.size();
 
-        // seq_buffer gets the extra byte because reverse_complement() below
-        // terminates its output; qual_buffer, written here, needs no such room
-        vsearch::grow_to_fit(seq_buffer, length + 1);
+        vsearch::grow_to_fit(seq_buffer, length);
         vsearch::grow_to_fit(qual_buffer, length);
 
-        reverse_complement(make_span(seq_buffer).first(length + 1), sequence);
+        reverse_complement(make_span(seq_buffer).first(length), sequence);
 
 
         /* quality values */

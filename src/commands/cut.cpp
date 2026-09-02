@@ -142,7 +142,7 @@ namespace {
     if (need_reverse)
       {
         rc_buffer.clear();
-        rc_buffer.resize(static_cast<std::size_t>(seq_length) + 1);
+        rc_buffer.resize(static_cast<std::size_t>(seq_length));
         reverse_complement(make_span(rc_buffer), sequence);
         rc_sequence = make_view(rc_buffer).first(sequence.size());
       }

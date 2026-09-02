@@ -627,7 +627,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen) + 1)
+        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen))
           {
             si->qsequence_v.resize(static_cast<size_t>(qseqlen + buffer_headroom));
           }
@@ -651,7 +651,7 @@ static auto sintax_thread_run(struct sintax_state_s & state, uint64_t const t) -
       {
         si_minus[t].query_head_v = si_plus[t].query_head_v;
         si_minus[t].query_head = make_view(si_minus[t].query_head_v).first(si_plus[t].query_head.size());
-        reverse_complement(make_span(si_minus[t].qsequence_v).first(si_plus[t].qsequence.size() + 1),
+        reverse_complement(make_span(si_minus[t].qsequence_v).first(si_plus[t].qsequence.size()),
                            View<char>{si_plus[t].qsequence});
         si_minus[t].qsequence = make_span(si_minus[t].qsequence_v).first(si_plus[t].qsequence.size());
       }

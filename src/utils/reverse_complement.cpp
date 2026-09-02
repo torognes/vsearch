@@ -70,13 +70,12 @@ auto reverse_complement(Span<char> const rc_seq, View<char> const seq) -> void
 {
   /* Write the reverse complementary sequence to rc_seq.
      The memory for rc_seq must be long enough for the rc_seq of the sequence
-     (identical to the length of seq + 1). */
+     (identical to the length of seq). */
 
-  assert(rc_seq.size() > seq.size());  // room for the '\0' terminator
+  assert(rc_seq.size() >= seq.size());
   auto const * complement_map = chrmap_complement();
   std::transform(seq.rbegin(), seq.rend(), rc_seq.begin(),
                  [complement_map](char const nucleotide) -> char {
                    return static_cast<char>(complement_map[static_cast<unsigned char>(nucleotide)]);
                  });
-  rc_seq[seq.size()] = '\0';
 }

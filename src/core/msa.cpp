@@ -241,7 +241,7 @@ auto allocate_buffer_for_reverse_strand_target(View<struct msa_target_s> const t
   auto const longest_reversed = find_longest_target_on_reverse_strand(targets, db);
   if (longest_reversed > 0)
     {
-      rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed + 1));
+      rc_buffer_v.resize(static_cast<std::vector<char>::size_type>(longest_reversed));
       return make_span(rc_buffer_v);
     }
   return {};
@@ -274,7 +274,7 @@ auto print_header_and_sequence(std::FILE * fp_msaout, char const * header_prefix
 auto reverse_complement_target_if_need_be(int const strand, Span<char> const rc_buffer,
                                           View<char> const target_seq) -> View<char> {
   if (strand == 0) { return target_seq; }
-  reverse_complement(rc_buffer.first(target_seq.size() + 1), target_seq);
+  reverse_complement(rc_buffer.first(target_seq.size()), target_seq);
   return View<char>{rc_buffer.first(target_seq.size())};
 }
 

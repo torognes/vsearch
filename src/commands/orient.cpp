@@ -381,10 +381,7 @@ auto orient(struct Parameters const & parameters) -> void
             static_assert(sizeof(std::size_t) >= sizeof(int), "size_t is too small");
             auto const query_length = static_cast<std::size_t>(qseqlen);
             // refactoring: unsigned int qseqlen
-            /* qseq_rev asks for one byte more than it uses because
-               reverse_complement() below terminates its output; query_qual_rev
-               is written here and needs no such room */
-            vsearch::grow_to_fit(qseq_rev, query_length + 1);
+            vsearch::grow_to_fit(qseq_rev, query_length);
             if (query_h->is_fastq_input())
               {
                 vsearch::grow_to_fit(query_qual_rev, query_length);
@@ -392,7 +389,7 @@ auto orient(struct Parameters const & parameters) -> void
 
             /* get reverse complementary sequence */
 
-            reverse_complement(make_span(qseq_rev).first(query_sequence.size() + 1), query_sequence);
+            reverse_complement(make_span(qseq_rev).first(query_sequence.size()), query_sequence);
             auto const rc_sequence = make_view(qseq_rev).first(query_sequence.size());
 
             if (parameters.opt_fastaout != nullptr)

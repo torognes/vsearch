@@ -829,7 +829,7 @@ static auto dereplicating(std::unique_ptr<fastx_s> const & input_handle,
         /* reverse complement if necessary */
         if (parameters.opt_strand)
           {
-            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen) + 1), seq_up_v);
+            reverse_complement(make_span(rc_seq_up).first(static_cast<std::size_t>(seqlen)), seq_up_v);
           }
 
         /* Find free bucket or bucket for identical sequence (see

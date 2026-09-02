@@ -495,7 +495,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
 
         /* allocate more memory for the sequence, if necessary */
 
-        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen) + 1)
+        if (si->qsequence_v.size() < static_cast<size_t>(qseqlen))
           {
             si->qsequence_v.resize(static_cast<size_t>(qseqlen + buffer_headroom));
           }
@@ -519,7 +519,7 @@ auto search_exact_thread_run(uint64_t const t, struct search_exact_state_s & sta
       {
         state.si_minus[t].query_head_v = state.si_plus[t].query_head_v;
         state.si_minus[t].query_head = make_view(state.si_minus[t].query_head_v).first(state.si_plus[t].query_head.size());
-        reverse_complement(make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size() + 1),
+        reverse_complement(make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size()),
                            View<char>{state.si_plus[t].qsequence});
         state.si_minus[t].qsequence = make_span(state.si_minus[t].qsequence_v).first(state.si_plus[t].qsequence.size());
       }
