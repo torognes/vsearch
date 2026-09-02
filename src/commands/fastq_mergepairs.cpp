@@ -514,12 +514,13 @@ auto read_pair(struct mergepairs_cli_state_s & state, merge_data_t & a_read_pair
 
       /* make local copies of the seq, header and qual */
 
+      /* the length travels with the bytes; every reader takes
+         make_view(header).first(header_length), so a shorter header after a
+         longer one cannot expose the tail and needs no terminator to hide it */
       std::copy(fwd_header_view.cbegin(), fwd_header_view.cend(), a_read_pair.fwd_header.begin());
-      a_read_pair.fwd_header[fwd_header_view.size()] = '\0';  // fix issue when reusing allocated mem
       a_read_pair.fwd_header_length = fwd_header_len;
 
       std::copy(rev_header_view.cbegin(), rev_header_view.cend(), a_read_pair.rev_header.begin());
-      a_read_pair.rev_header[rev_header_view.size()] = '\0';  // fix issue when reusing allocated mem
       a_read_pair.rev_header_length = rev_header_len;
 
       std::copy(fwd_sequence_view.cbegin(), fwd_sequence_view.cend(), a_read_pair.fwd_sequence.begin());

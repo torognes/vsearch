@@ -626,8 +626,6 @@ auto sff_convert(struct Parameters const & parameters) -> void
               {
                 fatal("Invalid SFF file. Clipping region is empty (clip start beyond clip end).");
               }
-            bases[clip_end] = '\0';
-            quality_scores[clip_end] = '\0';
           }
         else
           {
