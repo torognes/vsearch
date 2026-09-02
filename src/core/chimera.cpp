@@ -947,10 +947,10 @@ auto fill_in_alignment_string_for_query(View<char> const query,
 
 /* Cut the query and insertion-count views to the current query. query_seq and
    maxi are high-water marks grown to the longest query seen, so past query_len
-   they hold a '\0' and stale bytes from earlier records; cutting them here is
-   what bounds both row fills. */
+   they hold stale bytes from earlier records; cutting them here is what bounds
+   both row fills. */
 struct query_row_inputs_s {
-  View<char> query;       // the current query, without its terminator
+  View<char> query;       // the current query's bases, and nothing past them
   View<int> insertions;   // one count per query position, plus the terminal run
 };
 
