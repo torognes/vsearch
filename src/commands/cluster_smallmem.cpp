@@ -65,5 +65,5 @@
 
 auto cluster_smallmem(struct Parameters const & parameters) -> void
 {
-  cluster(parameters.opt_cluster_smallmem, ClusterMode::smallmem, parameters);
+  cluster(parameters.input_filename, ClusterMode::smallmem, parameters);
 }

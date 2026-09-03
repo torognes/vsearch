@@ -107,81 +107,44 @@ public:
   /* Options: one member per long option the CLI accepts. Everything that is
      not an option lives in the Runtime sub-struct at the end, except fp_log
      (see there). */
-  char * opt_allpairs_global = nullptr;
-  char * opt_chimeras_denovo = nullptr;
-  char * opt_cluster_fast = nullptr;
-  char * opt_cluster_size = nullptr;
-  char * opt_cluster_smallmem = nullptr;
-  char * opt_cluster_unoise = nullptr;
-  char * opt_cut = nullptr;
+
+  /* The argument of the command option: the input the selected command reads.
+     One member for all of them, rather than one char * per command named after
+     that command. The 48 that used to sit here were each dual-purpose -- the
+     input file name, and a de-facto "which command am I" flag tested against
+     nullptr a hundred times -- and the second purpose was a trap: a library
+     caller sets no command option, so every such test silently read as "not
+     this command" no matter what the caller had asked for. Each consumer now
+     states its mode explicitly (ClusterMode, ChimeraMode, GetseqMode,
+     Derep_mode, QualityOrigin, ...) and only the file name is left. */
+  char * input_filename = nullptr;
   std::string opt_cut_pattern;
   char * opt_db = nullptr;
   char * opt_dbmatched = nullptr;
   char * opt_dbnotmatched = nullptr;
-  char * opt_derep_fulllength = nullptr;
-  char * opt_derep_id = nullptr;
-  char * opt_derep_prefix = nullptr;
-  char * opt_derep_smallmem = nullptr;
-  char * opt_fasta2fastq = nullptr;
   char * opt_fastaout = nullptr;
   char * opt_fastaout_rev = nullptr;
   char * opt_fastaout_discarded = nullptr;
   char * opt_fastaout_discarded_rev = nullptr;
   char * opt_fastaout_orphans = nullptr;
   char * opt_fastaout_orphans_rev = nullptr;
-  char * opt_fastq_chars = nullptr;
-  char * opt_fastq_convert = nullptr;
-  char * opt_fastq_eestats2 = nullptr;
-  char * opt_fastq_eestats = nullptr;
-  char * opt_fastq_filter = nullptr;
-  char * opt_fastq_join = nullptr;
-  char * opt_fastq_mergepairs = nullptr;
-  char * opt_fastq_stats = nullptr;
   char * opt_fastqout = nullptr;
   char * opt_fastqout_rev = nullptr;
   char * opt_fastqout_discarded = nullptr;
   char * opt_fastqout_discarded_rev = nullptr;
   char * opt_fastqout_orphans = nullptr;
   char * opt_fastqout_orphans_rev = nullptr;
-  char * opt_fastx_filter = nullptr;
-  char * opt_fastx_getseq = nullptr;
-  char * opt_fastx_getseqs = nullptr;
-  char * opt_fastx_getsubseq = nullptr;
-  char * opt_fastx_mask = nullptr;
-  char * opt_fastx_revcomp = nullptr;
-  char * opt_fastx_subsample = nullptr;
-  char * opt_fastx_syncpairs = nullptr;
-  char * opt_fastx_uniques = nullptr;
   std::string opt_join_padgap = default_sequence_padding;
   std::string opt_join_padgapq = default_quality_padding;
   char * opt_label_suffix = nullptr;
   char * opt_log = nullptr;
-  char * opt_makeudb_usearch = nullptr;
-  char * opt_maskfasta = nullptr;
-  char * opt_orient = nullptr;
   char * opt_output = nullptr;
   char * opt_relabel = nullptr;
   char * opt_read_separators = nullptr;
-  char * opt_rereplicate = nullptr;
   char * opt_reverse = nullptr;
   char * opt_sample = nullptr;
-  char * opt_scramble = nullptr;
-  char * opt_search_exact = nullptr;
-  char * opt_sff_convert = nullptr;
-  char * opt_shuffle = nullptr;
-  char * opt_sintax = nullptr;
-  char * opt_sortbylength = nullptr;
-  char * opt_sortbysize = nullptr;
   char * opt_tabbedout = nullptr;
   char * opt_uc = nullptr;
-  char * opt_uchime2_denovo = nullptr;
-  char * opt_uchime3_denovo = nullptr;
-  char * opt_uchime_denovo = nullptr;
-  char * opt_uchime_ref = nullptr;
-  char * opt_udb2fasta = nullptr;
-  char * opt_udbinfo = nullptr;
-  char * opt_udbstats = nullptr;
-  char * opt_usearch_global = nullptr;
 
   /* Not an option, but kept here rather than in Runtime below: this is the
      destination opened *from* opt_log, and it is read at some 245 logging

@@ -154,7 +154,7 @@ auto derep_prefix(struct Parameters const & parameters) -> void
   std::FILE * const fp_uc = uc_handle.get();
 
   Database db;
-  db.read(parameters.opt_derep_prefix, 0, parameters);
+  db.read(parameters.input_filename, 0, parameters);
 
   db.sortbylength_shortest_first(parameters);
 

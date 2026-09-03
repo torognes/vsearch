@@ -384,7 +384,7 @@ auto subsample(struct Parameters const & parameters) -> void {
   open_output_files(ouput_files);
 
   Database db;
-  db.read(parameters.opt_fastx_subsample, 0, parameters);
+  db.read(parameters.input_filename, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
   abort_if_fastq_out_of_fasta(ouput_files, db);

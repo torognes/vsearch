@@ -3291,7 +3291,7 @@ namespace {
             break;
 
           case option_usearch_global:
-            parameters.opt_usearch_global = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_db:
@@ -3410,7 +3410,7 @@ namespace {
             break;
 
           case option_sortbysize:
-            parameters.opt_sortbysize = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_output:
@@ -3438,7 +3438,7 @@ namespace {
             break;
 
           case option_derep_fulllength:
-            parameters.opt_derep_fulllength = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_minseqlength:
@@ -3474,7 +3474,7 @@ namespace {
             break;
 
           case option_sortbylength:
-            parameters.opt_sortbylength = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_matched:
@@ -3638,7 +3638,7 @@ namespace {
             break;
 
           case option_scramble:
-            parameters.opt_scramble = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_scramble_kmer:
@@ -3655,7 +3655,7 @@ namespace {
             break;
 
           case option_shuffle:
-            parameters.opt_shuffle = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_randseed:
@@ -3663,7 +3663,7 @@ namespace {
             break;
 
           case option_maskfasta:
-            parameters.opt_maskfasta = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_hardmask:
@@ -3709,11 +3709,11 @@ namespace {
             break;
 
           case option_cluster_smallmem:
-            parameters.opt_cluster_smallmem = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_cluster_fast:
-            parameters.opt_cluster_fast = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_centroids:
@@ -3792,11 +3792,11 @@ namespace {
             break;
 
           case option_uchime_denovo:
-            parameters.opt_uchime_denovo = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_uchime_ref:
-            parameters.opt_uchime_ref = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_uchimealns:
@@ -3816,7 +3816,7 @@ namespace {
             break;
 
           case option_allpairs_global:
-            parameters.opt_allpairs_global = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_acceptall:
@@ -3828,7 +3828,7 @@ namespace {
             break;
 
           case option_cluster_size:
-            parameters.opt_cluster_size = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_samout:
@@ -3844,7 +3844,7 @@ namespace {
             break;
 
           case option_fastx_subsample:
-            parameters.opt_fastx_subsample = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_sample_pct:
@@ -3852,7 +3852,7 @@ namespace {
             break;
 
           case option_fastq_chars:
-            parameters.opt_fastq_chars = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_profile:
@@ -3892,11 +3892,11 @@ namespace {
             break;
 
           case option_derep_prefix:
-            parameters.opt_derep_prefix = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastq_filter:
-            parameters.opt_fastq_filter = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastqout:
@@ -3912,7 +3912,7 @@ namespace {
             break;
 
           case option_fastx_syncpairs:
-            parameters.opt_fastx_syncpairs = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastaout_orphans:
@@ -3984,7 +3984,7 @@ namespace {
             break;
 
           case option_fastq_stats:
-            parameters.opt_fastq_stats = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastq_tail:
@@ -3992,7 +3992,7 @@ namespace {
             break;
 
           case option_fastx_revcomp:
-            parameters.opt_fastx_revcomp = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_label_suffix:
@@ -4028,11 +4028,11 @@ namespace {
             break;
 
           case option_search_exact:
-            parameters.opt_search_exact = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastx_mask:
-            parameters.opt_fastx_mask = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_min_unmasked_pct:
@@ -4044,7 +4044,7 @@ namespace {
             break;
 
           case option_fastq_convert:
-            parameters.opt_fastq_convert = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastq_asciiout:
@@ -4056,7 +4056,7 @@ namespace {
             break;
 
           case option_fastq_mergepairs:
-            parameters.opt_fastq_mergepairs = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastq_eeout:
@@ -4116,11 +4116,11 @@ namespace {
             break;
 
           case option_fastq_eestats:
-            parameters.opt_fastq_eestats = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_rereplicate:
-            parameters.opt_rereplicate = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_xdrop_nw:
@@ -4160,7 +4160,7 @@ namespace {
             break;
 
           case option_fastx_filter:
-            parameters.opt_fastx_filter = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_otutabout:
@@ -4188,7 +4188,7 @@ namespace {
             break;
 
           case option_fastq_eestats2:
-            parameters.opt_fastq_eestats2 = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_ee_cutoffs:
@@ -4200,23 +4200,23 @@ namespace {
             break;
 
           case option_makeudb_usearch:
-            parameters.opt_makeudb_usearch = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_udb2fasta:
-            parameters.opt_udb2fasta = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_udbinfo:
-            parameters.opt_udbinfo = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_udbstats:
-            parameters.opt_udbstats = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_cluster_unoise:
-            parameters.opt_cluster_unoise = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_unoise_alpha:
@@ -4224,15 +4224,15 @@ namespace {
             break;
 
           case option_uchime2_denovo:
-            parameters.opt_uchime2_denovo = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_uchime3_denovo:
-            parameters.opt_uchime3_denovo = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_sintax:
-            parameters.opt_sintax = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_sintax_cutoff:
@@ -4253,7 +4253,7 @@ namespace {
             break;
 
           case option_fastq_join:
-            parameters.opt_fastq_join = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_join_padgap:
@@ -4266,7 +4266,7 @@ namespace {
             break;
 
           case option_sff_convert:
-            parameters.opt_sff_convert = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_sff_clip:
@@ -4294,15 +4294,15 @@ namespace {
             break;
 
           case option_fastx_getseq:
-            parameters.opt_fastx_getseq = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastx_getseqs:
-            parameters.opt_fastx_getseqs = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastx_getsubseq:
-            parameters.opt_fastx_getsubseq = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_label_substr_match:
@@ -4342,7 +4342,7 @@ namespace {
             break;
 
           case option_cut:
-            parameters.opt_cut = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_cut_pattern:
@@ -4354,15 +4354,15 @@ namespace {
             break;
 
           case option_derep_id:
-            parameters.opt_derep_id = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_orient:
-            parameters.opt_orient = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fasta2fastq:
-            parameters.opt_fasta2fastq = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_lcaout:
@@ -4374,7 +4374,7 @@ namespace {
             break;
 
           case option_fastx_uniques:
-            parameters.opt_fastx_uniques = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_fastq_qout_max:
@@ -4402,7 +4402,7 @@ namespace {
             break;
 
           case option_derep_smallmem:
-            parameters.opt_derep_smallmem = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_lengthout:
@@ -4414,7 +4414,7 @@ namespace {
             break;
 
           case option_chimeras_denovo:
-            parameters.opt_chimeras_denovo = optarg;
+            parameters.input_filename = optarg;
             break;
 
           case option_chimeras_length_min:
@@ -4988,21 +4988,15 @@ namespace {
        giving "-" to both makes the two readers race over the same stream and
        silently return no hits. Reject that ambiguous spelling; feed one of
        them through an explicit stream path (/dev/stdin, a named pipe, or a
-       process substitution) instead. --db is valid only for the five search
-       commands below, and only the active one's query field is set, so at
-       most one branch is non-null. */
+       process substitution) instead. --db is only valid for the five search
+       commands, so a non-null --db means the input file is one of their
+       queries; every other command leaves --db unset and cannot reach the
+       fatal below. */
     {
       auto const reads_stdin = [](char const * name) -> bool {
         return (name != nullptr) and (std::strcmp(name, "-") == 0);
       };
-      char const * const query =
-        (parameters.opt_usearch_global != nullptr) ? parameters.opt_usearch_global :
-        (parameters.opt_search_exact   != nullptr) ? parameters.opt_search_exact   :
-        (parameters.opt_sintax         != nullptr) ? parameters.opt_sintax         :
-        (parameters.opt_orient         != nullptr) ? parameters.opt_orient         :
-        (parameters.opt_uchime_ref     != nullptr) ? parameters.opt_uchime_ref     :
-        nullptr;
-      if (reads_stdin(parameters.opt_db) and reads_stdin(query))
+      if (reads_stdin(parameters.opt_db) and reads_stdin(parameters.input_filename))
         {
           fatal("Cannot read both the query and the database from standard "
                 "input; give one of them an explicit path such as /dev/stdin, "

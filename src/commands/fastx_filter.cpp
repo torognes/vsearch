@@ -65,5 +65,5 @@
 
 auto fastx_filter(struct Parameters const & parameters) -> void
 {
-  filter(false, parameters.opt_fastx_filter, parameters);
+  filter(false, parameters.input_filename, parameters);
 }

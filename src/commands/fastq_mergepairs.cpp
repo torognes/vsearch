@@ -1034,7 +1034,7 @@ auto fastq_mergepairs(struct Parameters const & parameters) -> void
 
   /* open input files */
 
-  fastq_fwd = fastq_open(parameters.opt_fastq_mergepairs, parameters);
+  fastq_fwd = fastq_open(parameters.input_filename, parameters);
   fastq_rev = fastq_open(parameters.opt_reverse, parameters);
 
   /* open output files */

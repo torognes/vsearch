@@ -126,7 +126,7 @@ auto fastx_mask(struct Parameters const & parameters) -> void
   auto fp_fastqout = open_optional_output_file(parameters.opt_fastqout, OutputOption{"--fastqout"});
 
   Database db;
-  db.read(parameters.opt_fastx_mask, 0, parameters);
+  db.read(parameters.input_filename, 0, parameters);
   // memory-intensive: the entire database is now held in memory
 
   if ((fp_fastqout != nullptr) && ! db.is_fastq())

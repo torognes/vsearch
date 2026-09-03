@@ -712,7 +712,7 @@ auto search_exact(struct Parameters const & parameters) -> void
   state.qmatches_abundance = 0;
   state.queries = 0;
   state.queries_abundance = 0;
-  auto const query_owner = fastx_open(parameters.opt_search_exact, parameters);
+  auto const query_owner = fastx_open(parameters.input_filename, parameters);
   state.query_fastx_h = query_owner.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads

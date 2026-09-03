@@ -166,7 +166,7 @@ auto fastq_convert(struct Parameters const & parameters) -> void
     fatal("No output file specified with --fastqout");
   }
 
-  auto input_handle = fastq_open(parameters.opt_fastq_convert, parameters);
+  auto input_handle = fastq_open(parameters.input_filename, parameters);
 
   auto const filesize = input_handle->get_size();
 

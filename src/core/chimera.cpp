@@ -156,13 +156,14 @@ struct chimera_info_s
      are carried in that copy, so neither path mutates the opt_* globals (E1). */
   struct Parameters const * parameters = nullptr;
 
-  /* which of the five chimera commands this detection is running as, set by
-     chimera_thread_init beside parameters. The detection core reads it where
-     the five differ (the --chimeras_denovo partitioning, the uchime2/uchime3
-     scoring rule) instead of asking which opt_<command> pointer is non-null.
-     Defaults to uchime_ref because that is what the library path documents as
-     its behaviour (LIBRARY_API.md) and what a null opt_uchime_ref used to
-     select there. */
+  /* which of the five chimera algorithms this detection is running, set by
+     chimera_thread_init beside parameters -- from the command on the CLI path,
+     from the caller's argument on the library one. The detection core reads it
+     where the five differ (the --chimeras_denovo partitioning, the
+     uchime2/uchime3 scoring rule) instead of asking which opt_<command>
+     pointer is non-null. The initializer matches the default argument of
+     chimera_detect_thread_init(), which is the reference-based detection this
+     API has always documented (LIBRARY_API.md). */
   ChimeraMode mode = ChimeraMode::uchime_ref;
 
   /* the chimera-detection configuration for the library path: a copy of the
@@ -2560,8 +2561,6 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
   /* prepare per-thread chimera detection state */
   state.cia.resize(static_cast<size_t>(state.detection_parameters.opt_threads));
 
-  char const * denovo_dbname = nullptr;
-
   /* prepare queries / database */
   if (mode == ChimeraMode::uchime_ref)
     {
@@ -2588,7 +2587,7 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
           state.dbindex.add_all_sequences(parameters.opt_dbmask, state.db, parameters);
         }
 
-      state.query_fasta_h = fasta_open(parameters.opt_uchime_ref, parameters);
+      state.query_fasta_h = fasta_open(parameters.input_filename, parameters);
       progress_total = state.query_fasta_h->get_size();
 
       /* The query file is parsed inside the worker threads
@@ -2601,27 +2600,7 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
   else
     {
 
-      if (parameters.opt_uchime_denovo != nullptr)
-        {
-          denovo_dbname = parameters.opt_uchime_denovo;
-        }
-      else if (parameters.opt_uchime2_denovo != nullptr)
-        {
-          denovo_dbname = parameters.opt_uchime2_denovo;
-        }
-      else if (parameters.opt_uchime3_denovo != nullptr)
-        {
-          denovo_dbname = parameters.opt_uchime3_denovo;
-        }
-      else if (parameters.opt_chimeras_denovo != nullptr)
-        {
-          denovo_dbname = parameters.opt_chimeras_denovo;
-        }
-      else {
-        fatal("Internal error");
-      }
-
-      state.db.read(denovo_dbname, 0, parameters);
+      state.db.read(parameters.input_filename, 0, parameters);
 
       if (parameters.opt_qmask == Masking::dust)
         {
@@ -2815,14 +2794,7 @@ auto chimera(ChimeraMode const mode, struct Parameters const & parameters) -> vo
 
   if (parameters.fp_log != nullptr)
     {
-      if (mode == ChimeraMode::uchime_ref)
-        {
-          std::fputs(parameters.opt_uchime_ref, parameters.fp_log);
-        }
-      else
-        {
-          std::fputs(denovo_dbname, parameters.fp_log);
-        }
+      std::fputs(parameters.input_filename, parameters.fp_log);
 
       if (state.seqno > 0)
         {
@@ -2931,7 +2903,8 @@ auto chimera_session_cleanup() -> void
 
 
 auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                                struct Dbindex const & dbindex, struct Database const & db) -> void
+                                struct Dbindex const & dbindex, struct Database const & db,
+                                ChimeraMode const mode) -> void
 {
   /* Per-thread initialization: SIMD aligners, k-mer finders, working
      buffers. Safe to call concurrently for different ci instances.
@@ -2940,15 +2913,11 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
      it through ci->parameters (E1). tophits sizes the per-part minheaps; it is
      derived from those options here rather than read from a shared file-static
      (E4). */
-  ci->detection_parameters = chimera_detection_parameters(parameters, ChimeraMode::uchime_ref);
+  ci->detection_parameters = chimera_detection_parameters(parameters, mode);
   int const tophits = static_cast<int>(ci->detection_parameters.opt_maxaccepts +
                                        ci->detection_parameters.opt_maxrejects);
 
-  /* uchime_ref: the library path has no command option to state a mode with,
-     and reference-based detection is what it documents (LIBRARY_API.md) --
-     the same answer a null opt_uchime_ref used to give here. */
-  chimera_thread_init(ci, tophits, ci->detection_parameters, dbindex, db,
-                      ChimeraMode::uchime_ref);
+  chimera_thread_init(ci, tophits, ci->detection_parameters, dbindex, db, mode);
 
   /* Allocate per-thread working state for chimera_process_query.
      These mirror the locals in chimera_thread_core but persist
@@ -2961,14 +2930,15 @@ auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters co
 
 
 auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                         struct Dbindex const & dbindex, struct Database const & db) -> void
+                         struct Dbindex const & dbindex, struct Database const & db,
+                         ChimeraMode const mode) -> void
 {
   /* Convenience wrapper: session init + per-thread init in one call.
      Use for single-threaded detection (one chimera_info_s per session).
      For multi-threaded detection, call chimera_session_init() once then
      chimera_detect_thread_init() per thread. */
   chimera_session_init(parameters);
-  chimera_detect_thread_init(ci, parameters, dbindex, db);
+  chimera_detect_thread_init(ci, parameters, dbindex, db, mode);
 }
 
 auto chimera_detect_single(struct chimera_info_s * ci,
@@ -3114,7 +3084,8 @@ auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,
                           struct Database const & db,
                           View<struct query_record_s> const queries,
-                          Span<struct chimera_result_s> const results) -> void
+                          Span<struct chimera_result_s> const results,
+                          ChimeraMode const mode) -> void
 {
   assert(results.size() == queries.size());
   if (queries.empty())
@@ -3141,7 +3112,8 @@ auto chimera_detect_batch(struct Parameters const & parameters,
       /* own the handle before initialising it, so a fatal() in
          chimera_detect_thread_init frees this element and all prior ones. */
       ctx.ci_array.emplace_back(chimera_info_alloc());
-      chimera_detect_thread_init(ctx.ci_array[static_cast<size_t>(t)].get(), parameters, dbindex, db);
+      chimera_detect_thread_init(ctx.ci_array[static_cast<size_t>(t)].get(), parameters, dbindex, db,
+                                 mode);
     }
 
   /* run all queries through the worker pool (work-stealing on next_query) */

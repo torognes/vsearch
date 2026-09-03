@@ -608,9 +608,9 @@ auto allpairs_global(struct Parameters const & parameters) -> void
   OutputFileHandle notmatched_handle = open_optional_output_file(parameters.opt_notmatched, OutputOption{"--notmatched"});
   fp_notmatched = notmatched_handle.get();
 
-  state.db.read(parameters.opt_allpairs_global, 0, parameters);
+  state.db.read(parameters.input_filename, 0, parameters);
 
-  results_show_samheader(fp_samout, parameters.opt_allpairs_global, state.db, parameters);
+  results_show_samheader(fp_samout, parameters.input_filename, state.db, parameters);
 
   if (parameters.opt_qmask == Masking::dust)
     {

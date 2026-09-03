@@ -642,7 +642,7 @@ auto usearch_global(struct Parameters const & parameters) -> void
   qmatches_abundance = 0;
   queries = 0;
   queries_abundance = 0;
-  auto const query_fastx_h = fastx_open(parameters.opt_usearch_global, parameters);
+  auto const query_fastx_h = fastx_open(parameters.input_filename, parameters);
   state.query_fastx_h = query_fastx_h.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads (search_thread_run).

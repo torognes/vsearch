@@ -405,7 +405,7 @@ auto scramble(struct Parameters const & parameters) -> void
     fatal("No output files specified");
   }
 
-  auto input_handle = fastx_open(parameters.opt_scramble, parameters);
+  auto input_handle = fastx_open(parameters.input_filename, parameters);
 
   if ((parameters.opt_fastqout != nullptr) && not input_handle->is_fastq_input())
     {

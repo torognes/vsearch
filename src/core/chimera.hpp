@@ -64,6 +64,7 @@
 #include "utils/span.hpp"  // Span
 #include "utils/view.hpp"  // View
 #include <array>
+#include <cstdint>  // std::uint8_t
 
 constexpr auto maxparents = 20; /* max, could be fewer */
 
@@ -71,6 +72,28 @@ constexpr auto maxparents = 20; /* max, could be fewer */
 constexpr auto chimera_label_capacity = 1024;
 
 /* === Library API for embedding chimera detection === */
+
+/* Which of the five chimera algorithms a detection run uses. They differ in
+   where the candidate parents come from (a separate --db reference for
+   uchime_ref, the sequences already processed for the four de-novo modes), in
+   the scoring rule, in the output options they honour, and in what the log
+   records.
+
+   The CLI engine used to tell them apart by asking which opt_<command> pointer
+   was non-null. A library caller sets no command option, so the caller states
+   its mode instead -- the same reasoning as QualityOrigin (parameters.hpp) and
+   Derep_mode (derep_internal.hpp). This is what a library caller used to say
+   by setting opt_chimeras_denovo to a non-null value. */
+enum struct ChimeraMode : std::uint8_t {
+  uchime_ref, uchime_denovo, uchime2_denovo, uchime3_denovo, chimeras_denovo
+};
+
+/* De-novo detection: the four modes that draw their candidate parents from the
+   sequences already processed, rather than from the separate --db reference
+   that --uchime_ref searches. */
+inline auto chimera_is_denovo(ChimeraMode const mode) -> bool {
+  return mode != ChimeraMode::uchime_ref;
+}
 
 /* Result of chimera detection for a single query.
    Fields match vsearch's --uchimeout 18-column format.
@@ -129,9 +152,14 @@ auto chimera_session_cleanup() -> void;
    parameters: the configured Parameters (stored in ci for the detection
    core to read; must outlive ci).
    dbindex: the k-mer index to search (installed on ci's si's; must outlive ci).
-   db: the sequence database to query (installed on ci; must outlive ci). */
+   db: the sequence database to query (installed on ci; must outlive ci).
+   mode: which of the five chimera algorithms to run. Defaults to uchime_ref,
+   the reference-based detection this API has always documented as its
+   behaviour; pass ChimeraMode::chimeras_denovo for the de-novo algorithm that
+   used to be selected by setting opt_chimeras_denovo. */
 auto chimera_detect_thread_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                                struct Dbindex const & dbindex, struct Database const & db) -> void;
+                                struct Dbindex const & dbindex, struct Database const & db,
+                                ChimeraMode mode = ChimeraMode::uchime_ref) -> void;
 
 /* Free per-thread resources allocated by chimera_detect_thread_init. */
 auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
@@ -141,7 +169,8 @@ auto chimera_detect_thread_cleanup(struct chimera_info_s * ci) -> void;
 /* Convenience: chimera_session_init() + chimera_detect_thread_init(ci).
    Use when only one chimera_info_s exists per session. */
 auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & parameters,
-                         struct Dbindex const & dbindex, struct Database const & db) -> void;
+                         struct Dbindex const & dbindex, struct Database const & db,
+                         ChimeraMode mode = ChimeraMode::uchime_ref) -> void;
 
 /* Detect chimera for a single query sequence.
    Supports both uchime_ref and uchime_denovo modes (selected by ci->mode, which
@@ -178,4 +207,5 @@ auto chimera_detect_batch(struct Parameters const & parameters,
                           struct Dbindex const & dbindex,
                           struct Database const & db,
                           View<struct query_record_s> queries,
-                          Span<struct chimera_result_s> results) -> void;
+                          Span<struct chimera_result_s> results,
+                          ChimeraMode mode = ChimeraMode::uchime_ref) -> void;

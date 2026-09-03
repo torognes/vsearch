@@ -785,7 +785,7 @@ auto sintax(struct Parameters const & parameters) -> void
 
   /* prepare reading of queries */
 
-  auto const query_fastx_h = fastx_open(parameters.opt_sintax, parameters);
+  auto const query_fastx_h = fastx_open(parameters.input_filename, parameters);
   state.query_fastx_h = query_fastx_h.get();  // workers borrow the raw handle
 
   /* The query file is parsed inside the worker threads (see

@@ -391,7 +391,7 @@ auto fastx_syncpairs(struct Parameters const & parameters) -> void
 
   /* open and check input files */
 
-  auto forward_handle = fastx_open(parameters.opt_fastx_syncpairs, parameters);
+  auto forward_handle = fastx_open(parameters.input_filename, parameters);
   auto reverse_handle = fastx_open(parameters.opt_reverse, parameters);
 
   auto const forward_empty = forward_handle->is_empty_input();

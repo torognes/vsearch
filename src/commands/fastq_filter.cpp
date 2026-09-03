@@ -65,5 +65,5 @@
 
 auto fastq_filter(struct Parameters const & parameters) -> void
 {
-  filter(true, parameters.opt_fastq_filter, parameters);
+  filter(true, parameters.input_filename, parameters);
 }

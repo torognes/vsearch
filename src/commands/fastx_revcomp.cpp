@@ -94,7 +94,7 @@ auto fastx_revcomp(struct Parameters const & parameters) -> void
     fatal("No output files specified");
   }
 
-  auto input_handle = fastx_open(parameters.opt_fastx_revcomp, parameters);
+  auto input_handle = fastx_open(parameters.input_filename, parameters);
 
   // if (input_handle == nullptr)
   //   {

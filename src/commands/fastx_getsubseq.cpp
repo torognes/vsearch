@@ -65,5 +65,5 @@
 
 auto fastx_getsubseq(struct Parameters const & parameters) -> void
 {
-  getseq(parameters, GetseqMode::one_subsequence, parameters.opt_fastx_getsubseq);
+  getseq(parameters, GetseqMode::one_subsequence, parameters.input_filename);
 }

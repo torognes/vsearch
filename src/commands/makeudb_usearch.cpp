@@ -144,7 +144,7 @@ auto makeudb_usearch(struct Parameters const & parameters) -> void
             + ")");
     }
 
-  db.read(parameters.opt_makeudb_usearch, 1, parameters);
+  db.read(parameters.input_filename, 1, parameters);
 
   /* Every reader rejects a UDB whose header declares no sequences (the
      buffer[13] == 0 term of udb_read()'s "Invalid UDB file" test), so writing

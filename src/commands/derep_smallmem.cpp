@@ -234,7 +234,7 @@ auto derep_smallmem(struct Parameters const & parameters) -> void
     output options: --fastaout
   */
 
-  auto * input_filename = parameters.opt_derep_smallmem;
+  auto * input_filename = parameters.input_filename;
   auto h = fastx_open(input_filename, parameters);
 
   if (h->is_pipe_input())

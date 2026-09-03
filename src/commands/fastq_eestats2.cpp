@@ -165,7 +165,7 @@ auto fastq_eestats2(struct Parameters const & parameters) -> void
   auto const & ee_cutoffs = parameters.opt_ee_cutoffs;
   auto const ee_cutoffs_count = static_cast<int>(ee_cutoffs.size());
 
-  auto h = fastq_open(parameters.opt_fastq_eestats2, parameters);
+  auto h = fastq_open(parameters.input_filename, parameters);
 
   uint64_t const filesize = h->get_size();
 
