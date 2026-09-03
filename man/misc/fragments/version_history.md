@@ -34,6 +34,13 @@
       `--fastq_ascii`. Raising `--fastq_qmax` means a phred+64 file read
       at the default offset 33 is no longer stopped by the bound, so
       vsearch now says so instead. Run `--fastq_chars` to confirm.
+    - fix: `--help` now lists the commands `--fastx_getseq`,
+      `--fastx_getseqs` and `--fastx_getsubseq`, under a new "Sequence
+      retrieval" section, along with the options specific to them
+      (`--label`, `--labels`, `--label_word`, `--label_words`,
+      `--label_field`, `--label_substr_match`, `--subseq_start`,
+      `--subseq_end` and `--notmatchedfq`). The three commands have
+      manual pages but could not be discovered from the help text.
 
 **v2.31.0** released April 29th, 2026
 :   Includes the following changes:

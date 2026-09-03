@@ -70,7 +70,7 @@
   /*       0         1         2         3         4         5         6         7          */
   /*       01234567890123456789012345678901234567890123456789012345678901234567890123456789 */
   // C++17 refactoring: deduce the size with CTAD and drop this constant
-  static constexpr std::size_t help_line_count = 505;
+  static constexpr std::size_t help_line_count = 536;
   static constexpr std::array<char const *, help_line_count> help_message =
     {{
       "\n",
@@ -471,6 +471,37 @@
       "  --uc_allhits                show all, not just top hit with uc output\n",
       "  --userfields STRING         fields to output in userout file\n",
       "  --userout FILENAME          filename for user-defined tab-separated output\n",
+      "\n",
+      "Sequence retrieval\n",
+      "  --fastx_getseq FILENAME     extract one sequence by label from FASTA/FASTQ\n",
+      "  --fastx_getseqs FILENAME    extract sequences by label from FASTA/FASTQ file\n",
+      "  --fastx_getsubseq FILENAME  extract a subsequence by label and position\n",
+      " Parameters\n",
+      "  --fastq_ascii INT           FASTQ input quality score ASCII base char (33)\n",
+      "  --fastq_qmax INT            maximum base quality value for FASTQ input (41)\n",
+      "  --fastq_qmin INT            minimum base quality value for FASTQ input (0)\n",
+      "  --label STRING              label to match, by default the whole header\n",
+      "  --label_field STRING        field for word matching, for --fastx_getseqs\n",
+      "  --label_substr_match        allow the label to match anywhere in the header\n",
+      "  --label_word STRING         case-sensitive word, for --fastx_getseqs\n",
+      "  --label_words FILENAME      file of words to match, for --fastx_getseqs\n",
+      "  --labels FILENAME           file of labels to match, for --fastx_getseqs\n",
+      "  --sizein                    consider abundance info from input, do not ignore\n",
+      "  --subseq_end INT            end position, 1-based, for --fastx_getsubseq\n",
+      "  --subseq_start INT          start position, 1-based, for --fastx_getsubseq\n",
+      " Output\n",
+      "  --fastaout FILENAME         FASTA output filename\n",
+      "  --fastqout FILENAME         FASTQ output filename\n",
+      "  --label_suffix STRING       label to append to identifier in the output\n",
+      "  --notmatched FILENAME       FASTA file for the sequences not extracted\n",
+      "  --notmatchedfq FILENAME     FASTQ file for the sequences not extracted\n",
+      "  --relabel STRING            relabel sequences with this prefix string\n",
+      "  --relabel_keep              keep the old label after the new when relabelling\n",
+      "  --relabel_md5               relabel with md5 digest of normalized sequence\n",
+      "  --relabel_self              relabel with the sequence itself as label\n",
+      "  --relabel_sha1              relabel with sha1 digest of normalized sequence\n",
+      "  --sizeout                   write abundance annotation to output\n",
+      "  --xsize                     strip abundance information in output\n",
       "\n",
       "Shuffling and sorting\n",
       "  --shuffle FILENAME          shuffle order of sequences in FASTA file randomly\n",
