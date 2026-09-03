@@ -53,6 +53,9 @@ output option.
 #(./fragments/option_acceptall.md)
 
 #(./fragments/option_id_search.md)
+: Note: the *k*-mer pre-filter mentioned above is not part of
+  `--allpairs_global`, which aligns every pair of sequences (see the
+  *ignored options* section below).
 
 
 ## core options
