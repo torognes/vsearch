@@ -22,7 +22,8 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y groff libbz2-dev zlib1g-dev
+        # python3-yaml, zsh and fish are for the completion checks below
+        sudo apt-get install -y groff libbz2-dev zlib1g-dev python3-yaml zsh fish
 
     - name: Configure and build
       run: |
@@ -31,6 +32,15 @@ jobs:
         make clean
         make ARFLAGS="cr" -j$(nproc)
         bin/vsearch -v
+
+    # Checks the completion spec against the option tables in src/cli.cc, so
+    # this fires on a change to either side -- the spec drifting is the usual
+    # case, but a new or renamed option in cli.cc is what makes it drift.
+    # STRICT=1 turns a missing python3, PyYAML, zsh or fish into a failure:
+    # without it they are skipped with a notice, which here would quietly
+    # turn the whole check into a pass.
+    - name: Check the shell completion scripts
+      run: STRICT=1 make -C completion check
 
     - name: Test the library API
       run: |
