@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src man
+SUBDIRS = src man completion
 EXTRA_DIST = autogen.sh
 
 # NEWS is the release history as plain text, rendered by pandoc from the

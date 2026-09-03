@@ -106,6 +106,35 @@ AS_IF([test "x$enable_manpages" != "xno"], [
 ])
 
 
+# The shell completion scripts in completion/ are generated from
+# completion/spec/vsearch.yaml by the generators in completion/scripts/, which
+# need Python and PyYAML. Unlike the manual they are tracked, so installing
+# them needs neither: only a maintainer regenerating them after a spec change
+# does, and only through 'make -C completion regenerate-completions'. The
+# directories below are the conventional ones for the three shells; a
+# distribution that puts them elsewhere overrides them. Single-quoted so
+# ${datadir} survives configure and is expanded by make, which is what keeps
+# --prefix and DESTDIR working.
+AC_ARG_ENABLE(completion,
+  AS_HELP_STRING([--disable-completion],
+                 [Do not install the shell completion scripts]))
+
+AC_ARG_WITH([bashcompdir],
+  AS_HELP_STRING([--with-bashcompdir=DIR],
+                 [directory for bash completions @<:@DATADIR/bash-completion/completions@:>@]),
+  [bashcompdir="$withval"], [bashcompdir='${datadir}/bash-completion/completions'])
+AC_ARG_WITH([zshcompdir],
+  AS_HELP_STRING([--with-zshcompdir=DIR],
+                 [directory for zsh completions @<:@DATADIR/zsh/site-functions@:>@]),
+  [zshcompdir="$withval"], [zshcompdir='${datadir}/zsh/site-functions'])
+AC_ARG_WITH([fishcompdir],
+  AS_HELP_STRING([--with-fishcompdir=DIR],
+                 [directory for fish completions @<:@DATADIR/fish/vendor_completions.d@:>@]),
+  [fishcompdir="$withval"], [fishcompdir='${datadir}/fish/vendor_completions.d'])
+AC_SUBST([bashcompdir])
+AC_SUBST([zshcompdir])
+AC_SUBST([fishcompdir])
+
 # Check for --enable-profiling option
 AC_ARG_ENABLE([profiling],
   [AS_HELP_STRING([--enable-profiling], [Enable profiling build])],
@@ -158,6 +187,7 @@ esac
 
 AC_CHECK_HEADERS([windows.h], [AM_CONDITIONAL(TARGET_WIN, true)], [AM_CONDITIONAL(TARGET_WIN, false)])
 
+AM_CONDITIONAL(INSTALL_COMPLETION, test "x$enable_completion" != "xno")
 AM_CONDITIONAL(HAVE_PANDOC, test "x${have_pandoc}" = "xyes")
 AM_CONDITIONAL(BUILD_MANPAGES, test "x${have_manpages}" = "xyes")
 AM_CONDITIONAL(BUILD_NEWS, test "x${have_news}" = "xyes")
@@ -171,6 +201,7 @@ AM_PROG_CC_C_O
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 man/Makefile])
+                 man/Makefile
+                 completion/Makefile])
 
 AC_OUTPUT
