@@ -107,19 +107,12 @@ public:
   std::string prog_header;
   std::string command_line;
 
-  /* CPU features detected at startup (see utils/cpu_features) */
-  int64_t altivec_present {0};  // unused
-  int64_t neon_present {0};     // unused
-  int64_t mmx_present {0};      // unused
-  int64_t sse_present {0};      // unused
+  /* CPU features detected at startup (see utils/cpu_features). Only the two
+     the code actually branches on are kept; the ten other flags that used to
+     sit here (altivec, neon, mmx, sse, sse3, sse41, sse42, popcnt, avx, avx2)
+     were written and never read. */
   int64_t sse2_present {0};
-  int64_t sse3_present {0};     // unused
   int64_t ssse3_present {0};
-  int64_t sse41_present {0};    // unused
-  int64_t sse42_present {0};    // unused
-  int64_t popcnt_present {0};   // unused
-  int64_t avx_present {0};      // unused
-  int64_t avx2_present {0};     // unused
   char * opt_allpairs_global = nullptr;
   char * opt_chimeras_denovo = nullptr;
   char * opt_cluster_fast = nullptr;

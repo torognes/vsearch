@@ -85,29 +85,25 @@ namespace {
     __cpuid_count(leaf, 0U, registers.eax, registers.ebx, registers.ecx, registers.edx);
     return registers;
   }
-
-  // Read the low 32 bits of XCR0 via XGETBV. Must only be called when CPUID
-  // reports OSXSAVE, otherwise XGETBV raises #UD (illegal instruction).
-  // cpu_features.cpp is compiled with the baseline target, so the _xgetbv
-  // intrinsic is unavailable; use the equivalent one-instruction asm.
-  auto read_xcr0() noexcept -> unsigned int {
-    unsigned int xcr0_lo {0};
-    unsigned int xcr0_hi {0};
-    __asm__ __volatile__("xgetbv" : "=a"(xcr0_lo), "=d"(xcr0_hi) : "c"(0U));
-    static_cast<void>(xcr0_hi);
-    return xcr0_lo;
-  }
 }  // anonymous namespace
 
 
 auto cpu_features_detect(struct Parameters & parameters) -> void
 {
-  // Feature masks (bit_MMX, bit_SSE, ...) come from <cpuid.h>. bit_OSXSAVE
-  // is not defined by older <cpuid.h> versions (GCC 4.x), so spell it out.
+  // Feature masks (bit_SSE2, bit_SSSE3) come from <cpuid.h>. Only the two
+  // features the code actually branches on are probed; the ten flags this
+  // function also used to set were never read anywhere in the tree.
+  //
+  // Should AVX or AVX2 ever be needed: reporting bit_AVX / bit_AVX2 is not
+  // sufficient on its own. The OS must also have enabled saving of the YMM
+  // register state, i.e. CPUID must report OSXSAVE (leaf-1 ECX bit 27, not
+  // defined by older <cpuid.h> versions such as GCC 4.x, so spell it out)
+  // and XCR0 -- read via XGETBV, which raises #UD unless OSXSAVE is set --
+  // must have both the SSE (bit 1) and AVX (bit 2) state-enable bits set.
+  // Without that check an AVX-capable CPU running on an old OS is
+  // over-reported. AVX2 additionally lives in leaf 7 (EBX), which is only
+  // available when CPUID reports a maximum basic leaf of at least 7.
   static constexpr unsigned int basic_leaf_mask = 0xffU;  // CPUID.0:EAX low byte
-  static constexpr unsigned int extended_features_leaf = 7U;
-  static constexpr unsigned int bit_osxsave = 0x08000000U;  // CPUID.1:ECX bit 27
-  static constexpr unsigned int xcr0_avx_state = 0x6U;  // XMM | YMM
 
   cpuid_registers const leaf0 = get_cpuid(0U);
   unsigned int const maxlevel = leaf0.eax & basic_leaf_mask;
@@ -115,32 +111,8 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   if (maxlevel >= 1U)
     {
       cpuid_registers const leaf1 = get_cpuid(1U);
-      parameters.mmx_present    = static_cast<int64_t>((leaf1.edx & bit_MMX)    != 0U);
-      parameters.sse_present    = static_cast<int64_t>((leaf1.edx & bit_SSE)    != 0U);
-      parameters.sse2_present   = static_cast<int64_t>((leaf1.edx & bit_SSE2)   != 0U);
-      parameters.sse3_present   = static_cast<int64_t>((leaf1.ecx & bit_SSE3)   != 0U);
-      parameters.ssse3_present  = static_cast<int64_t>((leaf1.ecx & bit_SSSE3)  != 0U);
-      parameters.sse41_present  = static_cast<int64_t>((leaf1.ecx & bit_SSE4_1) != 0U);
-      parameters.sse42_present  = static_cast<int64_t>((leaf1.ecx & bit_SSE4_2) != 0U);
-      parameters.popcnt_present = static_cast<int64_t>((leaf1.ecx & bit_POPCNT) != 0U);
-
-      // AVX/AVX2 are only usable if the OS has enabled saving of the YMM
-      // register state: CPUID must report OSXSAVE (leaf-1 ECX bit 27) and
-      // XCR0 (read via XGETBV) must have both the SSE (bit 1) and AVX
-      // (bit 2) state-enable bits set. Without this check an AVX-capable
-      // CPU running on an old OS would be over-reported.
-      bool const osxsave_present = (leaf1.ecx & bit_osxsave) != 0U;
-      bool const avx_os_enabled =
-        osxsave_present and ((read_xcr0() & xcr0_avx_state) == xcr0_avx_state);
-      bool const avx_supported = (leaf1.ecx & bit_AVX) != 0U;
-      parameters.avx_present = static_cast<int64_t>(avx_supported and avx_os_enabled);
-
-      if (maxlevel >= extended_features_leaf)
-        {
-          cpuid_registers const leaf7 = get_cpuid(extended_features_leaf);
-          bool const avx2_supported = (leaf7.ebx & bit_AVX2) != 0U;
-          parameters.avx2_present = static_cast<int64_t>(avx2_supported and avx_os_enabled);
-        }
+      parameters.sse2_present  = static_cast<int64_t>((leaf1.edx & bit_SSE2)  != 0U);
+      parameters.ssse3_present = static_cast<int64_t>((leaf1.ecx & bit_SSSE3) != 0U);
     }
 }
 
