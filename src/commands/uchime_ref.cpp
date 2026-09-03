@@ -65,5 +65,5 @@
 
 auto uchime_ref(struct Parameters const & parameters) -> void
 {
-  chimera(parameters);
+  chimera(ChimeraMode::uchime_ref, parameters);
 }

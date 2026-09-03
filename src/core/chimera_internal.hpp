@@ -60,6 +60,8 @@
 
 #pragma once
 
+#include <cstdint>  // std::uint8_t
+
 /* Internal seam between the CLI chimera-detection engine (core/chimera.cpp)
    and its five thin command wrappers (commands/uchime_denovo.cpp,
    commands/uchime2_denovo.cpp, commands/uchime3_denovo.cpp,
@@ -67,5 +69,25 @@
    public library API, so it lives here rather than in core/chimera.hpp.
 
    The five commands all run this one engine; it selects reference-vs-de-novo
-   detection and the algorithm variant from the parameters. */
-auto chimera(struct Parameters const & parameters) -> void;
+   detection and the algorithm variant from the mode. */
+
+/* Which of the five chimera commands the shared engine runs as. They differ in
+   where the parent candidates come from (a separate --db for uchime_ref, the
+   query set itself for the four de-novo modes), in the scoring rule, in the
+   output options they honour, and in what the log records. chimera() used to
+   tell them apart by asking which opt_<command> pointer was non-null; a
+   library caller sets none of them, so the caller states its mode instead --
+   the same reasoning as QualityOrigin (parameters.hpp) and Derep_mode
+   (derep_internal.hpp). */
+enum struct ChimeraMode : std::uint8_t {
+  uchime_ref, uchime_denovo, uchime2_denovo, uchime3_denovo, chimeras_denovo
+};
+
+/* De-novo detection: the four modes that draw their candidate parents from the
+   sequences already processed, rather than from the separate --db reference
+   that --uchime_ref searches. */
+inline auto chimera_is_denovo(ChimeraMode const mode) -> bool {
+  return mode != ChimeraMode::uchime_ref;
+}
+
+auto chimera(ChimeraMode mode, struct Parameters const & parameters) -> void;

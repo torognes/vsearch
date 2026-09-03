@@ -65,5 +65,5 @@
 
 auto uchime_denovo(struct Parameters const & parameters) -> void
 {
-  chimera(parameters);
+  chimera(ChimeraMode::uchime_denovo, parameters);
 }

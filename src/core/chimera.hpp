@@ -144,7 +144,8 @@ auto chimera_detect_init(struct chimera_info_s * ci, struct Parameters const & p
                          struct Dbindex const & dbindex, struct Database const & db) -> void;
 
 /* Detect chimera for a single query sequence.
-   Supports both uchime_ref and uchime_denovo modes (based on opt_chimeras_denovo).
+   Supports both uchime_ref and uchime_denovo modes (selected by ci->mode, which
+   chimera_detect_thread_init sets to ChimeraMode::uchime_ref).
    ci: per-thread working state (from chimera_detect_init). NOT thread-safe if shared.
    query: the query's header, sequence (DNA, uppercase) and abundance (1 for
    uchime_ref, the actual count for uchime_denovo). Neither view need be
