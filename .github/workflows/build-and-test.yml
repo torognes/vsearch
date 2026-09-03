@@ -23,7 +23,7 @@ jobs:
       run: |
         sudo apt-get update
         # python3-yaml, zsh and fish are for the completion checks below
-        sudo apt-get install -y groff libbz2-dev zlib1g-dev python3-yaml zsh fish
+        sudo apt-get install -y libbz2-dev zlib1g-dev python3-yaml zsh fish
 
     - name: Configure and build
       run: |
@@ -105,7 +105,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y groff libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
+        sudo apt-get install -y libbz2-dev zlib1g-dev ${{ matrix.target.pkgs }}
 
     - name: Build for ${{ matrix.target.name }}
       run: |
@@ -138,7 +138,7 @@ jobs:
           brew tap | grep -qx "$tap" && brew untap "$tap"
         done
         brew update
-        brew install autoconf automake groff
+        brew install autoconf automake
 
     - name: Configure and build
       run: |
@@ -179,7 +179,7 @@ jobs:
           brew tap | grep -qx "$tap" && brew untap "$tap"
         done
         brew update
-        brew install autoconf automake groff
+        brew install autoconf automake
 
     - name: Configure and build
       run: |
@@ -227,7 +227,7 @@ jobs:
         usesh: true
         prepare: |
           pkg update -f
-          pkg install -y autoconf automake gmake bash git bzip2 groff
+          pkg install -y autoconf automake gmake bash git bzip2
           pw useradd -n runner -m -s /usr/local/bin/bash
         run: |
           echo "========== Building vsearch =========="
