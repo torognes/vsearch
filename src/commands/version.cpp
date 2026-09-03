@@ -83,12 +83,12 @@ auto version(struct Parameters const & parameters) -> void
   if (compression::gzip_supported)
     {
       fprint(stdout, "Compiled with support for gzip-compressed files,");
-      if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->gzip_available())
+      if ((parameters.runtime.dyn_libs != nullptr) and parameters.runtime.dyn_libs->gzip_available())
         {
           fprint(stdout, " and the library is loaded.\n");
 
-          char const * const gz_version = parameters.dyn_libs->gzip_version();
-          unsigned long const flags = parameters.dyn_libs->gzip_compile_flags();
+          char const * const gz_version = parameters.runtime.dyn_libs->gzip_version();
+          unsigned long const flags = parameters.runtime.dyn_libs->gzip_compile_flags();
 
           fprint(stdout, "zlib version ");
           std::fputs(gz_version, stdout);
@@ -119,7 +119,7 @@ auto version(struct Parameters const & parameters) -> void
   if (compression::bzip2_supported)
     {
       fprint(stdout, "Compiled with support for bzip2-compressed files,");
-      if ((parameters.dyn_libs != nullptr) and parameters.dyn_libs->bzip2_available())
+      if ((parameters.runtime.dyn_libs != nullptr) and parameters.runtime.dyn_libs->bzip2_available())
         {
           fprint(stdout, " and the library is loaded.\n");
         }

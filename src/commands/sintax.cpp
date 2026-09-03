@@ -375,7 +375,7 @@ auto sintax_search_topscores(struct searchinfo_s * searchinfo,
       if (bitmap != nullptr)
         {
 #ifdef __x86_64__
-          if (parameters.ssse3_present != 0)
+          if (parameters.runtime.ssse3_present != 0)
             {
               increment_counters_from_bitmap_ssse3(kmer_counts.data(),
                                                    bitmap, indexed_count);

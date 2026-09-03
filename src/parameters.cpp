@@ -121,7 +121,7 @@ auto parameters_resolve_derived(struct Parameters & parameters) -> void
         }
     }
 
-  if (not parameters.gap_penalties_adjusted)
+  if (not parameters.runtime.gap_penalties_adjusted)
     {
       parameters.opt_gap_open_query_left -= parameters.opt_gap_extension_query_left;
       parameters.opt_gap_open_target_left -= parameters.opt_gap_extension_target_left;
@@ -129,7 +129,7 @@ auto parameters_resolve_derived(struct Parameters & parameters) -> void
       parameters.opt_gap_open_target_interior -= parameters.opt_gap_extension_target_interior;
       parameters.opt_gap_open_query_right -= parameters.opt_gap_extension_query_right;
       parameters.opt_gap_open_target_right -= parameters.opt_gap_extension_target_right;
-      parameters.gap_penalties_adjusted = true;
+      parameters.runtime.gap_penalties_adjusted = true;
     }
 
   /* Fold the twelve '*' gap-penalty sentinels into one flag so the accept path

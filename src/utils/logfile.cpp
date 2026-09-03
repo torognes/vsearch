@@ -92,9 +92,9 @@ LogFile::LogFile(struct Parameters & parameters)
   handle = open_optional_output_file(parameters.opt_log, OutputOption{"--log"});
   parameters.fp_log = handle.get();
   log_file::set_handle(handle.get());
-  fprint(handle.get(), make_view(parameters.prog_header));
+  fprint(handle.get(), make_view(parameters.runtime.prog_header));
   fprint(handle.get(), '\n');
-  fprint(handle.get(), make_view(parameters.command_line));
+  fprint(handle.get(), make_view(parameters.runtime.command_line));
   fprint(handle.get(), '\n');
 
   start_time = std::chrono::steady_clock::now();

@@ -1128,7 +1128,7 @@ auto results_show_samheader(std::FILE * output_handle,
       fprint(output_handle, "\tVN:");
       std::fputs(PROG_VERSION, output_handle);
       fprint(output_handle, "\tCL:");
-      fprint(output_handle, make_view(parameters.command_line));
+      fprint(output_handle, make_view(parameters.runtime.command_line));
       fprint(output_handle, '\n');
     }
 }

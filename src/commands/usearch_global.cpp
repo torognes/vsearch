@@ -523,9 +523,9 @@ static auto search_prep(struct search_cli_state_s & state) -> void
   state.fp_alnout = open_optional_output_file(state.parameters.opt_alnout, OutputOption{"--alnout"});
   if (state.fp_alnout != nullptr)
     {
-      fprint(state.fp_alnout.get(), make_view(state.parameters.command_line));
+      fprint(state.fp_alnout.get(), make_view(state.parameters.runtime.command_line));
       fprint(state.fp_alnout.get(), '\n');
-      fprint(state.fp_alnout.get(), make_view(state.parameters.prog_header));
+      fprint(state.fp_alnout.get(), make_view(state.parameters.runtime.prog_header));
       fprint(state.fp_alnout.get(), '\n');
     }
 

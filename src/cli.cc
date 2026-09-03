@@ -5358,7 +5358,7 @@ auto args_init(int const argc, char ** argv, struct Parameters & parameters) -> 
 {
   validate_option_tables();
 
-  parameters.progname = argv[0];
+  parameters.runtime.progname = argv[0];
 
   /* The option parser (parse_options) populates this Parameters
      (self-defaulting), which is the single configuration source the run reads

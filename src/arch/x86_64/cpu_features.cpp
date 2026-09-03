@@ -111,15 +111,15 @@ auto cpu_features_detect(struct Parameters & parameters) -> void
   if (maxlevel >= 1U)
     {
       cpuid_registers const leaf1 = get_cpuid(1U);
-      parameters.sse2_present  = static_cast<int64_t>((leaf1.edx & bit_SSE2)  != 0U);
-      parameters.ssse3_present = static_cast<int64_t>((leaf1.ecx & bit_SSSE3) != 0U);
+      parameters.runtime.sse2_present  = static_cast<int64_t>((leaf1.edx & bit_SSE2)  != 0U);
+      parameters.runtime.ssse3_present = static_cast<int64_t>((leaf1.ecx & bit_SSSE3) != 0U);
     }
 }
 
 
 auto cpu_features_test(struct Parameters const & parameters) -> void
 {
-  if (parameters.sse2_present == 0)
+  if (parameters.runtime.sse2_present == 0)
     {
       fatal("Sorry, this program requires a cpu with SSE2.");
     }

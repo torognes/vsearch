@@ -81,7 +81,7 @@
 std::string const default_quality_padding = "IIIIIIII";  // Q40 with an offset of 33
 std::string const default_sequence_padding = "NNNNNNNN";
 
-class DynamicLibraries;  // owned by main(), referenced through parameters.dyn_libs
+class DynamicLibraries;  // owned by main(), referenced through parameters.runtime.dyn_libs
 
 struct Parameters {
 private:
@@ -104,15 +104,9 @@ private:
     highest_printable_ascii - sanger_ascii_offset;
 
 public:
-  std::string prog_header;
-  std::string command_line;
-
-  /* CPU features detected at startup (see utils/cpu_features). Only the two
-     the code actually branches on are kept; the ten other flags that used to
-     sit here (altivec, neon, mmx, sse, sse3, sse41, sse42, popcnt, avx, avx2)
-     were written and never read. */
-  int64_t sse2_present {0};
-  int64_t ssse3_present {0};
+  /* Options: one member per long option the CLI accepts. Everything that is
+     not an option lives in the Runtime sub-struct at the end, except fp_log
+     (see there). */
   char * opt_allpairs_global = nullptr;
   char * opt_chimeras_denovo = nullptr;
   char * opt_cluster_fast = nullptr;
@@ -188,9 +182,13 @@ public:
   char * opt_udbinfo = nullptr;
   char * opt_udbstats = nullptr;
   char * opt_usearch_global = nullptr;
-  char * progname = nullptr;
+
+  /* Not an option, but kept here rather than in Runtime below: this is the
+     destination opened *from* opt_log, and it is read at some 245 logging
+     sites -- qualifying every one of them for the sake of one declaration
+     would cost more than the boundary is worth. */
   std::FILE * fp_log = nullptr;
-  DynamicLibraries const * dyn_libs = nullptr;
+
   double opt_fastq_truncee_rate = std::numeric_limits<double>::max();
   double opt_max_unmasked_pct = 100.0;
   double opt_min_unmasked_pct = 0;
@@ -417,10 +415,29 @@ public:
   std::vector<double> opt_ee_cutoffs = {0.5, 1.0, 2.0};  // was opt_ee_cutoffs_values/_count
   std::vector<Userfield> opt_userfields;  // was userfields_requested/_count (globals)
 
-  /* Internal state (not an option): guards the once-only gap-open penalty
-     adjustment in vsearch_apply_defaults_fixups() so a repeated call on the
-     same struct is idempotent rather than double-subtracting. */
-  bool gap_penalties_adjusted = false;
+  /* Not options: process and environment state, resources derived from the
+     environment rather than from a flag the user typed, and one piece of
+     internal bookkeeping. Grouping them makes the boundary structural: every
+     member above this point mirrors a command-line option, and nothing here
+     does. */
+  struct Runtime {
+    std::string prog_header;
+    std::string command_line;
+    char * progname = nullptr;
+    DynamicLibraries const * dyn_libs = nullptr;
+
+    /* CPU features detected at startup (see arch/cpu_features). Only the two
+       the code actually branches on are kept; the ten other flags that used
+       to sit here (altivec, neon, mmx, sse, sse3, sse41, sse42, popcnt, avx,
+       avx2) were written and never read. */
+    int64_t sse2_present {0};
+    int64_t ssse3_present {0};
+
+    /* Guards the once-only gap-open penalty adjustment in
+       vsearch_apply_defaults_fixups() so a repeated call on the same struct
+       is idempotent rather than double-subtracting. */
+    bool gap_penalties_adjusted = false;
+  } runtime;
 };
 
 /* The shared parameter-resolution / session-lifecycle declarations that used
