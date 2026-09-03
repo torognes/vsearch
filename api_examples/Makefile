@@ -27,6 +27,27 @@ ifdef SANITIZE
 CXXFLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -g
 endif
 
+# The same rule applies to _GLIBCXX_DEBUG, and getting it wrong is quieter than
+# a link error. ../src/Makefile.am adds -D_GLIBCXX_DEBUG under --enable-debug;
+# that macro replaces std::vector with std::__debug::vector, which is a
+# different size, so struct Parameters has a different layout on each side of
+# the boundary. An example built without it against a library built with it
+# links cleanly and then reads every Parameters member past the first vector
+# from the wrong offset: the examples hang, segfault, or abort with
+# std::bad_alloc / std::bad_array_new_length out of a Parameters copy.
+#
+# So it is detected rather than assumed, from the library itself (which is the
+# thing being linked, and stays right even for a hand-built libvsearch.a)
+# rather than from ../src/Makefile. Debug mode instantiates std::__debug::*
+# templates, whose mangled names begin _ZNSt7__debug; a release library has
+# none. Override the detection with GLIBCXX_DEBUG=1 or =0 if ever needed.
+GLIBCXX_DEBUG := $(shell test -r $(VSEARCH_LIB) && \
+                   nm $(VSEARCH_LIB) 2>/dev/null | grep -q _ZNSt7__debug && \
+                   echo 1 || echo 0)
+ifeq ($(GLIBCXX_DEBUG),1)
+CXXFLAGS += -D_GLIBCXX_DEBUG
+endif
+
 SHELL = /bin/bash
 
 EXAMPLES = example_chimera example_search example_merge example_merge_error example_cluster example_dust example_derep example_reinit example_lifecycle example_dbinfo example_recover
