@@ -87,12 +87,15 @@ commands:
   # Paired-end
   - --fastq_join
   - --fastq_mergepairs
+  - --fastx_syncpairs
   # Pairwise alignment
   - --allpairs_global
   # Restriction site cutting
   - --cut
   # Reverse complement
   - --fastx_revcomp
+  # Scrambling
+  - --scramble
   # Searching
   - --search_exact
   - --usearch_global
@@ -298,6 +301,10 @@ options:
     command: true
     arg: { type: file, ftype: fastq }
     desc: "merge paired-end reads into one sequence"
+  - name: --fastx_syncpairs
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "reorder paired reads to match across both files"
   - name: --allpairs_global
     command: true
     arg: { type: file, ftype: fasta }
@@ -310,6 +317,10 @@ options:
     command: true
     arg: { type: file, ftype: fastx }
     desc: "reverse-complement sequences in FASTA or FASTQ file"
+  - name: --scramble
+    command: true
+    arg: { type: file, ftype: fastx }
+    desc: "randomize nucleotide order within each sequence"
   - name: --search_exact
     command: true
     arg: { type: file, ftype: fasta }
@@ -464,6 +475,11 @@ options:
     arg: { type: int }
     desc: "minimum base quality value for FASTQ output (0)"
 
+  # -------------------- Parameters: fastq_convert --------------------
+  - name: --fastq_solexa
+    arg: { type: flag }
+    desc: "convert Solexa/Illumina 1.0 scores to the Phred scale"
+
   # -------------------- Parameters: dereplication / FASTQ input --------------------
   - name: --maxuniquesize
     arg: { type: int }
@@ -521,6 +537,11 @@ options:
     arg: { type: string }
     desc: "quality string used for padding (IIIIIIII)"
 
+  # -------------------- Parameters: fastx_syncpairs --------------------
+  - name: --read_separators
+    arg: { type: string }
+    desc: "characters marking a trailing /1 or /2 mate marker (/)"
+
   # -------------------- Parameters: fastq_mergepairs --------------------
   - name: --fastq_allowmergestagger
     arg: { type: flag }
@@ -565,6 +586,11 @@ options:
   - name: --cut_pattern
     arg: { type: string }
     desc: "pattern to match with ^ and _ at cut sites"
+
+  # -------------------- Parameters: scramble --------------------
+  - name: --scramble_kmer
+    arg: { type: int }
+    desc: "preserve counts of words up to this size 1-9 (1)"
 
   # -------------------- Parameters: searching --------------------
   - name: --fulldp
@@ -682,6 +708,9 @@ options:
     desc: "seed for PRNG, zero to use random data source (0)"
 
   # -------------------- Parameters: subsample --------------------
+  - name: --allow_fewer
+    arg: { type: flag }
+    desc: "accept fewer reads than --sample_size, do not fail"
   - name: --sample_pct
     arg: { type: real }
     desc: "sampling percentage between 0.0 and 100.0"
@@ -887,6 +916,18 @@ options:
   - name: --fastqout_rev
     arg: { type: outfile }
     desc: "FASTQ filename for passed reverse sequences"
+  - name: --fastaout_orphans
+    arg: { type: outfile }
+    desc: "FASTA filename for forward reads without a mate"
+  - name: --fastaout_orphans_rev
+    arg: { type: outfile }
+    desc: "FASTA filename for reverse reads without a mate"
+  - name: --fastqout_orphans
+    arg: { type: outfile }
+    desc: "FASTQ filename for forward reads without a mate"
+  - name: --fastqout_orphans_rev
+    arg: { type: outfile }
+    desc: "FASTQ filename for reverse reads without a mate"
 
   # -------------------- Output: searching --------------------
   - name: --blast6out
@@ -1562,6 +1603,7 @@ command_options:
     - --sample
     - --sizein
     - --sizeout
+    - --threads
     - --xee
     - --xlength
     - --xsize
@@ -1569,6 +1611,7 @@ command_options:
     - --bzip2_decompress
     - --fasta_width
     - --gzip_decompress
+    - --label_suffix
     - --lengthout
     - --log
     - --maxseqlength
@@ -1724,6 +1767,7 @@ command_options:
     - --fastq_qmaxout
     - --fastq_qmin
     - --fastq_qminout
+    - --fastq_solexa
     - --fastqout
     - --gzip_decompress
     - --label_suffix
@@ -2067,7 +2111,9 @@ command_options:
     - --lengthout
     - --log
     - --max_unmasked_pct
+    - --maxseqlength
     - --min_unmasked_pct
+    - --minseqlength
     - --no_progress
     - --notrunclabels
     - --qmask
@@ -2112,6 +2158,7 @@ command_options:
     - --xlength
     - --xsize
   --fastx_subsample:
+    - --allow_fewer
     - --bzip2_decompress
     - --fasta_width
     - --fastaout
@@ -2125,6 +2172,8 @@ command_options:
     - --label_suffix
     - --lengthout
     - --log
+    - --maxseqlength
+    - --minseqlength
     - --no_progress
     - --notrunclabels
     - --quiet
@@ -2143,6 +2192,27 @@ command_options:
     - --xee
     - --xlength
     - --xsize
+  --fastx_syncpairs:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastaout_orphans
+    - --fastaout_orphans_rev
+    - --fastaout_rev
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --fastqout_orphans
+    - --fastqout_orphans_rev
+    - --fastqout_rev
+    - --gzip_decompress
+    - --log
+    - --no_progress
+    - --quiet
+    - --read_separators
+    - --reverse
+    - --threads
   --fastx_uniques:
     - --bzip2_decompress
     - --fasta_width
@@ -2237,6 +2307,8 @@ command_options:
     - --label_suffix
     - --lengthout
     - --log
+    - --maxseqlength
+    - --minseqlength
     - --no_progress
     - --notmatched
     - --notrunclabels
@@ -2279,6 +2351,35 @@ command_options:
     - --xee
     - --xlength
     - --xsize
+  --scramble:
+    - --bzip2_decompress
+    - --fasta_width
+    - --fastaout
+    - --fastq_ascii
+    - --fastq_qmax
+    - --fastq_qmin
+    - --fastqout
+    - --gzip_decompress
+    - --label_suffix
+    - --lengthout
+    - --log
+    - --no_progress
+    - --notrunclabels
+    - --quiet
+    - --randseed
+    - --relabel
+    - --relabel_keep
+    - --relabel_md5
+    - --relabel_self
+    - --relabel_sha1
+    - --sample
+    - --scramble_kmer
+    - --sizein
+    - --sizeout
+    - --threads
+    - --xee
+    - --xlength
+    - --xsize
   --search_exact:
     - --alnout
     - --biomout
@@ -2293,8 +2394,6 @@ command_options:
     - --gzip_decompress
     - --hardmask
     - --label_suffix
-    - --lca_cutoff
-    - --lcaout
     - --lengthout
     - --log
     - --match
