@@ -693,8 +693,11 @@ static auto evaluate_extra_hits(struct searchinfo_s & si,
             = si.uh.count_shared(static_cast<int>(si.dbindex->wordlength),
                                   sic.kmersample);
 
-          /* check if min number of shared kmers is satisfied */
-          if (search_enough_kmers(si, shared))
+          /* check if min number of shared kmers is satisfied. The extra
+             sequence is the candidate target here, and its own k-mer sample is
+             the ceiling on `shared` (torognes/vsearch#328) */
+          if (search_enough_kmers(si, KmerEvidence{shared,
+                                                   static_cast<unsigned int>(sic.kmersample.size())}))
             {
               auto const length = static_cast<unsigned int>(sic.qsequence.size());
 
