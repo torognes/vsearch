@@ -34,6 +34,12 @@
       `--fastq_ascii`. Raising `--fastq_qmax` means a phred+64 file read
       at the default offset 33 is no longer stopped by the bound, so
       vsearch now says so instead. Run `--fastq_chars` to confirm.
+    - add: shell auto-completion scripts for bash, zsh and fish (issue
+      #417), installed by `make install` in the standard location for
+      each shell. Completion offers the commands, then only the options
+      the chosen command accepts, values for options taking a fixed set,
+      and filenames filtered by extension. Configure with
+      `--disable-completion` or `--with-bashcompdir=DIR` and friends.
     - fix: `--help` now lists the commands `--fastx_getseq`,
       `--fastx_getseqs` and `--fastx_getsubseq`, under a new "Sequence
       retrieval" section, along with the options specific to them

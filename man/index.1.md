@@ -35,6 +35,16 @@ The same pages are published online at
 [https://torognes.github.io/vsearch/](https://torognes.github.io/vsearch/),
 where they can be browsed and searched.
 
+Shell auto-completion of commands, options and filenames is available
+for bash, zsh and fish. `make install` places the three scripts in the
+directories those shells search, so pressing the tab key while typing a
+vsearch command line suggests the commands, then the options that the
+chosen command accepts, and completes filenames. See the *Shell
+auto-completion* section of the
+[README](https://github.com/torognes/vsearch#shell-auto-completion) for
+per-user installation and for enabling completion without installing
+system-wide.
+
 
 # VSEARCH COMMANDS
 

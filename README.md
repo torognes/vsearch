@@ -105,7 +105,7 @@ Or, if you are using Windows, download and extract (unzip) the contents of this 
 https://github.com/torognes/vsearch/releases/download/v{VERSION}/vsearch-{VERSION}-win-x86_64.zip
 ```
 
-**Linux and Mac**: You will now have the binary distribution in a folder called `vsearch-{VERSION}-{OS}-{ARCH}` in which you will find two subfolders `bin` and `man`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and copies or symbolic links to the contents of `man` (the `man1`, `man5` and `man7` subfolders) in a folder included in your `$MANPATH`.
+**Linux and Mac**: You will now have the binary distribution in a folder called `vsearch-{VERSION}-{OS}-{ARCH}` in which you will find three subfolders `bin`, `man` and `completion`. We recommend making a copy or a symbolic link to the vsearch binary `bin/vsearch` in a folder included in your `$PATH`, and copies or symbolic links to the contents of `man` (the `man1`, `man5` and `man7` subfolders) in a folder included in your `$MANPATH`. The `completion` folder holds the shell auto-completion scripts; see *Shell auto-completion* below for where to put them.
 
 **Windows**: You will now have the binary distribution in a folder
 called `vsearch-{VERSION}-win-x86_64`. The vsearch executable is called
@@ -121,6 +121,44 @@ files. These DLL's have been obtained for mingw-w64 from the MSYS2
 platform.
 
 **Documentation:** The VSEARCH user's manual is a set of manual pages: a hub page listing every command, one page per command, one page per file format, and one page per reference topic. `make install` installs them all; type `man vsearch` for the hub, `man vsearch-usearch_global` for a command, `man 5 vsearch-fastq` for a file format, and `man 7 vsearch-userfields` for a reference topic. They are also readable [online](https://torognes.github.io/vsearch/), and they come with the binary distribution. To install them manually, copy the pages, or create symbolic links to them, in the `man1`, `man5` and `man7` subfolders of a folder included in your `$MANPATH`. Being generated, the pages themselves are not in git: they are built from the markdown sources in [`man`](https://github.com/torognes/vsearch/tree/master/man), which is where a documentation change belongs, and rebuilt with `make -C man regenerate-manpages`. The release history is one of those pages, `man 7 vsearch-history`, and is installed as a plain-text `NEWS` file as well.
+
+
+## Shell auto-completion
+
+VSEARCH ships completion scripts for **bash**, **zsh** and **fish**, in the [`completion`](./completion) folder. Once installed, pressing the <kbd>Tab</kbd> key while typing a vsearch command line suggests the available commands; once a command is on the line, only the options that this command accepts are offered, values are suggested for options that take a fixed set (`--qmask`, `--dbmask`, `--strand`), and options expecting a file name complete file names, filtered by extension where that makes sense.
+
+`make install` installs all three, in the standard locations for each shell (`$PREFIX/share/bash-completion/completions`, `$PREFIX/share/zsh/site-functions` and `$PREFIX/share/fish/vendor_completions.d`). Distributions that place them elsewhere can say so at configure time, and `--disable-completion` skips them entirely:
+
+```sh
+./configure --with-bashcompdir=/etc/bash_completion.d
+./configure --disable-completion
+```
+
+**From the binary distribution**, or to enable completion for a single user without installing system-wide, copy the file your shell needs (or create a symbolic link to it) from the `completion` folder:
+
+```sh
+# bash
+cp completion/vsearch ~/.local/share/bash-completion/completions/vsearch
+
+# zsh: any directory in your $fpath will do
+mkdir -p ~/.zsh/completions && cp completion/_vsearch ~/.zsh/completions/
+
+# fish
+cp completion/vsearch.fish ~/.config/fish/completions/
+```
+
+For **zsh**, the directory has to be in `$fpath` *before* `compinit` runs, because `compinit` scans `$fpath` at the moment it is called and not later. In `~/.zshrc`:
+
+```zsh
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit && compinit
+```
+
+If completion still does not appear after that, `~/.zcompdump` is probably a stale cache: `rm -f ~/.zcompdump*` and start a new shell.
+
+For **bash**, sourcing the file from `~/.bashrc` works too (`source /path/to/completion/vsearch`). The script uses the `bash-completion` package's filename completion when it is installed, and falls back to its own when it is not, so neither path requires it.
+
+The three scripts are generated from a single specification of vsearch's command-line interface, [`completion/spec/vsearch.yaml`](./completion/spec/vsearch.yaml), which is where a completion change belongs; `make check` verifies that the specification still matches the option tables in the source, so completion cannot silently fall behind the program. See [`completion/README.md`](./completion/README.md) for details.
 
 
 ## API
